@@ -77,10 +77,20 @@ class MerchantTemplatePreparationChecks(unittest.TestCase):
         ui = read('Tests/AppUITests/MerchantTemplatePreparationFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', ui)), 2)
         self.assertIn('app.buttons["Museum"].tap()', ui)
-        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].tap()', ui)
+        self.assertIn('app.alerts.buttons.matching(identifier: identifier)', ui)
+        self.assertIn('matches.firstMatch.waitForExistence(timeout: 5)', ui)
+        self.assertIn('matches.allElementsBoundByAccessibilityElement.filter', ui)
+        self.assertIn('$0.descendants(matching: .button).count == 0', ui)
+        self.assertIn('XCTAssertEqual(leaves.count, 1, app.debugDescription)', ui)
+        self.assertIn('return try XCTUnwrap(leaves.count == 1 ? leaves.first : nil)', ui)
+        for action in ['keepEditing', 'discardReload']:
+            self.assertIn(f'let {action} = try nativeAlertAction("merchant.operations.{action}", in: app)', ui)
+            self.assertIn(f'XCTAssertTrue({action}.waitForExistence(timeout: 5)); {action}.tap()', ui)
         self.assertIn('XCTAssertEqual(field.value as? String, "Map and pen")', ui)
-        self.assertIn('app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)', ui)
-        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)', ui)
+        self.assertIn('XCTAssertEqual(field.value as? String, "  Map and pen  ")', ui)
+        self.assertIn('XCTAssertNotEqual(field.value as? String, "  Map and pen  ")', ui)
+        self.assertIn('XCTAssertFalse(app.buttons["merchant.operations.close"].exists)', ui)
+        self.assertIn('XCTAssertFalse(app.staticTexts["merchant.operations.exampleSaved"].exists)', ui)
 
 
 if __name__ == '__main__': unittest.main()

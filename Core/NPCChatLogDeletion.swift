@@ -21,13 +21,15 @@ public enum NPCChatLogDeletion {
     /// Decodes the confirmed count only. A business rejection is definite; any
     /// other unreadable 2xx body is an unknown outcome, never a guessed zero.
     public static func decode(_ bytes: Data) throws -> NPCChatLogDeletionOutcome {
+        struct Status: Decodable { let code: Int }
         struct Envelope: Decodable {
-            let code: Int
             let data: Payload?
             struct Payload: Decodable { let deleted: Int? }
         }
-        guard bytes.count <= 65_536, let envelope = try? JSONDecoder().decode(Envelope.self, from: bytes) else { return .unknown }
-        guard envelope.code == 200 else { throw NPCChatDataFailure.rejected }
+        guard bytes.count <= 65_536, let status = try? JSONDecoder().decode(Status.self, from: bytes) else { return .unknown }
+        // A definite rejection does not depend on a success-shaped payload.
+        guard status.code == 200 else { throw NPCChatDataFailure.rejected }
+        guard let envelope = try? JSONDecoder().decode(Envelope.self, from: bytes) else { return .unknown }
         guard let deleted = envelope.data?.deleted, deleted >= 0 else { return .unknown }
         return .deleted(count: deleted)
     }
@@ -52,8 +54,9 @@ public enum NPCChatLogDeletion {
               let approval = approval() else { return false }
         return approval.allows(configuration: configuration, namespace: session.namespace, accountID: session.accountID, path: NPCChatLogDeletion.path)
     }
-    /// Throws only when nothing was sent, or when the server definitely rejected
-    /// the request. Once dispatched, a lost or unreadable response is `.unknown`.
+    /// A failed preflight sends nothing. A retired session or approval discards
+    /// the response with `staleSession`. In the same context, a dispatched request
+    /// with a lost or unreadable response is `.unknown` and is never retried here.
     public func delete(session: ComplianceSession) async throws -> NPCChatLogDeletionOutcome {
         guard canDelete(session: session), let credential = token(), let accepted = approval() else { throw NPCChatDataFailure.unavailable }
         var request = URLRequest(url: configuration.baseURL.appendingPathComponent(NPCChatLogDeletion.path))
@@ -64,11 +67,18 @@ public enum NPCChatLogDeletion {
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control")
         request.httpBody = Data("{}".utf8) // Same empty body as the mini program; the server reads no fields.
         try Task.checkCancellation()
-        guard current() == session, token() == credential, approval() == accepted else { throw NPCChatDataFailure.staleSession }
+        guard current() == session, token() == credential, approval() == accepted,
+              canDelete(session: session) else { throw NPCChatDataFailure.staleSession }
         let bytes: Data, status: Int
         do { (bytes, status) = try await transport.send(request) }
-        catch { return .unknown }
-        guard current() == session, token() == credential else { throw NPCChatDataFailure.staleSession }
+        catch {
+            guard current() == session, token() == credential, approval() == accepted,
+                  canDelete(session: session) else { throw NPCChatDataFailure.staleSession }
+            return .unknown
+        }
+        guard current() == session, token() == credential, approval() == accepted,
+              canDelete(session: session) else { throw NPCChatDataFailure.staleSession }
+        guard !Task.isCancelled else { return .unknown }
         guard status != 401 else { throw NPCChatDataFailure.signedOut }
         guard (200..<300).contains(status) else { return .unknown }
         return try NPCChatLogDeletion.decode(bytes)

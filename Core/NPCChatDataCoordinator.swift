@@ -60,6 +60,8 @@ import Foundation
         clearRead(); if deletion == .confirming { deletion = .idle; confirmation = nil }
         let operation = generation
         phase = .loading; onChange?()
+        guard generation == operation else { return }
+        guard !Task.isCancelled, visible, active, current() == session, available(session) else { sessionChanged(); return }
         do {
             let value = try await read(session)
             guard generation == operation else { return }
@@ -94,15 +96,22 @@ import Foundation
         }
         let session = pending.session, operation = generation
         deletion = .deleting; onChange?()
+        guard generation == operation else { return }
+        guard !Task.isCancelled, visible, active, current() == session,
+              available(session), deletionAvailable(session) else { sessionChanged(); return }
         let outcome: NPCChatLogDeletionOutcome
         do { outcome = try await deleteLogs(session) }
         catch {
             guard generation == operation else { return }
-            guard !Task.isCancelled, visible, active, current() == session else { sessionChanged(); return }
-            deletion = .failed(error as? NPCChatDataFailure ?? .failed); onChange?(); return
+            guard !Task.isCancelled, visible, active, current() == session,
+                  available(session), deletionAvailable(session) else { sessionChanged(); return }
+            let failure = error as? NPCChatDataFailure ?? .failed
+            if failure == .signedOut || failure == .staleSession { clearRead() }
+            deletion = .failed(failure); onChange?(); return
         }
         guard generation == operation else { return }
-        guard !Task.isCancelled, visible, active, current() == session else { sessionChanged(); return }
+        guard !Task.isCancelled, visible, active, current() == session,
+              available(session), deletionAvailable(session) else { sessionChanged(); return }
         clearRead()
         switch outcome {
         case .deleted(let count): deletion = .deleted(count: count)

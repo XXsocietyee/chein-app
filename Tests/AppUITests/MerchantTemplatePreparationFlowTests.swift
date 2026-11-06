@@ -4,6 +4,17 @@ final class MerchantTemplatePreparationFlowTests: XCTestCase {
     private var app: XCUIApplication?
     override func setUp() { super.setUp(); continueAfterFailure = false }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app?.terminate(); app = nil }
+    private func nativeAlertAction(_ identifier: String, in app: XCUIApplication) throws -> XCUIElement {
+        let matches = app.alerts.buttons.matching(identifier: identifier)
+        // Wait for presentation before resolving the native wrapper/button pair.
+        XCTAssertTrue(matches.firstMatch.waitForExistence(timeout: 5), app.debugDescription)
+        let leaves = matches.allElementsBoundByAccessibilityElement.filter {
+            $0.descendants(matching: .button).count == 0
+        }
+        // Two independent actions must still fail; never tap an arbitrary match.
+        XCTAssertEqual(leaves.count, 1, app.debugDescription)
+        return try XCTUnwrap(leaves.count == 1 ? leaves.first : nil)
+    }
     private func open() -> XCUIApplication {
         let app = XCUIApplication()
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US", "--uitesting-merchant-operations-fixture"]
@@ -43,14 +54,16 @@ final class MerchantTemplatePreparationFlowTests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true)); XCTAssertEqual(field.value as? String, "Map and pen")
         attachFixtureScreenshot(self, app: app, name: "Merchant preparation fields retained by synthetic source")
     }
-    func testReloadRequiresExplicitDiscardAndDoesNotSavePreparationEdits() {
+    func testReloadRequiresExplicitDiscardAndDoesNotSavePreparationEdits() throws {
         let app = open(); edit(app)
         app.buttons["merchant.operations.reload"].tap()
-        XCTAssertTrue(app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.keepEditing"].tap()
+        let keepEditing = try nativeAlertAction("merchant.operations.keepEditing", in: app)
+        XCTAssertTrue(keepEditing.waitForExistence(timeout: 5)); keepEditing.tap()
         let field = app.descendants(matching: .any)["merchant.operations.field.requiredMaterials"].firstMatch
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true)); XCTAssertEqual(field.value as? String, "  Map and pen  ")
         app.buttons["merchant.operations.reload"].tap()
-        XCTAssertTrue(app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)); app.alerts.buttons["merchant.operations.discardReload"].tap()
+        let discardReload = try nativeAlertAction("merchant.operations.discardReload", in: app)
+        XCTAssertTrue(discardReload.waitForExistence(timeout: 5)); discardReload.tap()
         XCTAssertTrue(revealFixtureElement(field, in: app, towardTop: true))
         XCTAssertNotEqual(field.value as? String, "  Map and pen  ")
         XCTAssertFalse(app.buttons["merchant.operations.close"].exists)

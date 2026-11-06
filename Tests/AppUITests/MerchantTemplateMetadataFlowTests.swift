@@ -26,7 +26,10 @@ final class MerchantTemplateMetadataFlowTests: XCTestCase {
         XCTAssertTrue(revealFixtureElement(metadata, in: app, requiresHittable: false))
         let confirm = app.buttons["merchant.operations.confirm"]
         XCTAssertTrue(revealFixtureElement(confirm, in: app)); XCTAssertTrue(confirm.isEnabled)
-        let confirmationBar = app.navigationBars["Review local draft"]
+        // The confirmation uses an untitled navigation bar with its own Cancel action.
+        let confirmationBars = app.navigationBars.containing(.button, identifier: "merchant.operations.confirm.cancel")
+        XCTAssertEqual(confirmationBars.count, 1, app.debugDescription)
+        let confirmationBar = confirmationBars.element
         XCTAssertTrue(confirmationBar.exists, app.debugDescription)
         confirm.tap()
         // Do not use the departing sheet's bars to measure the underlying editor.
