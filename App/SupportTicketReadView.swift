@@ -85,7 +85,7 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
         .onChange(of: scene) { _, phase in retire(preserveSelection: true); if phase == .active { start() } }
         .onChange(of: session.supportTicketReadIdentity) { _, _ in retire(preserveSelection: false) }
     }
-    @ViewBuilder private func field(_ key: String, _ value: String?) {
+    @ViewBuilder private func field(_ key: String, _ value: String?) -> some View {
         if let value { LabeledContent { Text(verbatim: value).textSelection(.enabled) } label: { supportTicketReadText(key) } }
     }
     private func readIntent() -> (SupportTicketReadCoordinator, SupportTicketReadIntent)? {
