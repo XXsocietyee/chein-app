@@ -61,7 +61,9 @@ import SwiftUI
                             .accessibilityIdentifier("profile.followList.empty")
                     }
                     if flow.hasMore && !flow.loading && flow.error == nil {
-                        Button("square.loadMore") { flow.more() }.modifier(ProfileFollowListMoreStyle()).accessibilityIdentifier("profile.followList.more")
+                        Button { flow.more() } label: {
+                            Text("square.loadMore").frame(maxWidth: .infinity, minHeight: 44)
+                        }.modifier(ProfileFollowListMoreStyle()).accessibilityIdentifier("profile.followList.more")
                     }
                 }
             }
@@ -123,9 +125,8 @@ import SwiftUI
 private struct ProfileFollowListMoreStyle: ViewModifier {
     @Environment(\.themeDomain) private var domain
     @ViewBuilder func body(content: Content) -> some View {
-        switch Result(catching: { try CYComponentTheme.buttons(in: domain) }) {
-        case .success(let tokens): content.buttonStyle(CYButtonStyle(.secondary, tokens: tokens, expands: true))
-        case .failure: content
-        }
+        content.buttonStyle(.bordered)
+            .font(Theme.Font.button)
+            .tint(Theme.Color.accent(in: domain))
     }
 }
