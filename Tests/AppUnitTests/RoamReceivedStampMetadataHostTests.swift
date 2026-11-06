@@ -217,6 +217,7 @@ import UIKit
             requests.append(request); let path = request.url!.lastPathComponent
             if path == "phone" { return (try JSONSerialization.data(withJSONObject: ["code": 200, "token": "synthetic-received", "data": ["id": account, "role": "player"]]), 200) }
             if path == "userInfo" { return (try JSONSerialization.data(withJSONObject: ["code": 200, "appUser": ["userId": account, "role": "player"]]), 200) }
+            if path == "logout" { return (Data(#"{"code":200}"#.utf8), 200) }
             let route = try XCTUnwrap(RoamReceivedStampReadRoute(request: request, baseURL: URL(string: "https://received-host.example/native")!))
             pages.append(route.page)
             let row: [String: Any] = ["id": route.page, "kind": 1, "caption": "Received metadata", "checkState": 1,
