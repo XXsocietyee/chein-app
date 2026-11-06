@@ -35,6 +35,7 @@ import Combine
     func retire() { active = false; generation = UUID() }
 
     func chooseAction(_ index: Int) -> () -> Void { action(.choose(index)) }
+    func chooseAction(_ id: String) -> () -> Void { action(.chooseID(id)) }
     func multiple() -> Binding<Bool> {
         let stamp = generation, snapshot = selection
         let changeOn = action(.setMultiple(true)), changeOff = action(.setMultiple(false))
@@ -78,7 +79,7 @@ import Combine
                                 (option.correct ? "largecircle.fill.circle" : "circle"))
                                 .accessibilityHidden(true)
                             VStack(alignment: .leading) {
-                                Text("templateQAAnswers.optionNumber \(option.id + 1)").font(.caption)
+                                Text("templateQAAnswers.optionNumber \(option.ordinal + 1)").font(.caption)
                                 if option.label.isEmpty { Text("templateQAAnswers.emptyLabel") }
                                 else { Text(verbatim: option.label) }
                             }

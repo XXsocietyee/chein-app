@@ -96,6 +96,42 @@ final class TemplateQAAnswerSelectionTests: XCTestCase {
         XCTAssertNil(TemplateQAAnswerSelection(draft).applying(.choose(0), to: draft))
         XCTAssertEqual(flags(try edit(.setMultiple(false), draft)), [])
     }
+    func testStableIDAndOrdinalChooseTheSameOriginalOption() throws {
+        let draft = fixture(), selection = TemplateQAAnswerSelection(draft)
+        XCTAssertEqual(selection.options.map(\.id), ["opt_1", "opt_2", "opt_3"])
+        XCTAssertEqual(selection.options.map(\.ordinal), [0, 1, 2])
+        let selected = try XCTUnwrap(selection.applying(.chooseID("opt_3"), to: draft))
+        XCTAssertEqual(flags(selected), [false, false, true])
+        XCTAssertEqual(selected, try edit(.choose(2), draft))
+        XCTAssertNil(selection.applying(.chooseID("not-an-original-option"), to: draft))
+    }
+
+    func testStableIDRejectsCapturedReorderAndByteDifferentSnapshot() {
+        var original = fixture()
+        original.setCreatorValue(.qa, path: [.field("options"), .index(0), .field("label")], entry: .string("é"))
+        let captured = TemplateQAAnswerSelection(original)
+        var changed = original, rows = changed.rows("qa", "options")
+        rows.swapAt(0, 1); changed.set("qa", "options", .array(rows))
+        XCTAssertNil(captured.applying(.chooseID("opt_1"), to: changed))
+        changed = original
+        changed.setCreatorValue(.qa, path: [.field("options"), .index(0), .field("label")], entry: .string("e\u{301}"))
+        XCTAssertNil(captured.applying(.chooseID("opt_1"), to: changed))
+        XCTAssertEqual(TemplateQAAnswerSelection(changed).options.map(\.id), captured.options.map(\.id))
+    }
+
+    func testStableIDMissingDuplicateOrMalformedCannotWriteAnswers() {
+        for id: TemplateAuthoringJSON? in [nil, .string("opt_2"), .string(""), .string("bad id"), .number(1)] {
+            var draft = fixture()
+            draft.setCreatorValue(.qa, path: [.field("options"), .index(0), .field("id")], entry: id)
+            let before = draft, selection = TemplateQAAnswerSelection(draft)
+            XCTAssertFalse(selection.isSupported)
+            XCTAssertNil(selection.applying(.chooseID("opt_2"), to: draft))
+            XCTAssertNil(selection.applying(.choose(1), to: draft))
+            XCTAssertNil(selection.applying(.setMultiple(true), to: draft))
+            XCTAssertEqual(draft, before)
+        }
+    }
+
     func testExistingSerializationRestoreAndRehearsalUseConfiguredAnswers() throws {
         var draft = try edit(.setMultiple(true), fixture())
         draft = try edit(.choose(2), draft)

@@ -3,6 +3,9 @@ import SwiftUI
 @MainActor struct TemplateCreatorRehearsalView: View {
     let draft: TemplateAdvancedDraft
     let family: TemplateCreatorFamily
+    // Formal source visits can fence branch actions without introducing another executor.
+    var branchAdmission: () -> Bool = { true }
+    var showsReview = true
     @State private var rehearsal = TemplateCreatorRehearsal()
     @State private var input = ""
     @State private var selected = Set<String>()
@@ -23,10 +26,10 @@ import SwiftUI
             Section("creator.rehearse") { interaction }
             if rehearsal.result != .ready { Section { Text(LocalizedStringKey("creator.result." + rehearsal.result.rawValue)) } }
             Section {
-                Button("creator.reset") { rehearsal.reset(); input = ""; selected = []; startedAt = nil; sampleIndex = 0; profileAnswers = [:] }
-                DisclosureGroup("creator.review") {
+                Button("creator.reset") { guard family != .branch || branchAdmission() else { return }; rehearsal.reset(); input = ""; selected = []; startedAt = nil; sampleIndex = 0; profileAnswers = [:] }
+                if showsReview { DisclosureGroup("creator.review") {
                     TemplateCreatorReviewFields(value: .object(fields), fields: TemplateCreatorSchema.fields(family))
-                }
+                } }
             }
         }.navigationTitle(LocalizedStringKey(family.labelKey))
             .accessibilityIdentifier("creator.rehearsal." + family.rawValue)
@@ -145,12 +148,12 @@ import SwiftUI
     }
     private var branch: some View {
         VStack(alignment: .leading) {
-            Button("creator.start") { rehearsal.startBranch(draft) }
+            Button("creator.start") { guard branchAdmission() else { return }; rehearsal.startBranch(draft) }
             if let row = rows("steps").first(where: { $0["id"]?.string == rehearsal.branchStepID }) {
                 Text(verbatim: row["title"]?.string ?? ""); Text(verbatim: row["body"]?.string ?? "")
                 if row["terminal"]?.bool == true { Text(verbatim: row["outcomeLabel"]?.string ?? ""); Text("creator.effectsNotApplied") }
                 ForEach(Array((row["options"]?.array ?? []).enumerated()), id: \.offset) { _, option in
-                    Button(option.object?["label"]?.string ?? "") { rehearsal.chooseBranch(option.object?["id"]?.string ?? "", draft: draft) }
+                    Button(option.object?["label"]?.string ?? "") { guard branchAdmission() else { return }; rehearsal.chooseBranch(option.object?["id"]?.string ?? "", draft: draft) }
                 }
             }
         }
