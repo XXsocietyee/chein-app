@@ -33,19 +33,21 @@ private final class MemberIdentityAvatarLifecycle: @unchecked Sendable {
     private let owner: MemberIdentityCardReadOwner
     private let access: MemberIdentityAvatarAccess?
     private let source: UUID?
-    private let decode: (Data) throws -> UIImage
+    private let decode: @MainActor (Data) throws -> UIImage
     private var lifecycle: MemberIdentityAvatarLifecycle?
-    private var mounted = false, foreground = false
+    private var mounted = false
+    private var foreground = false
     private var operation = UUID()
     private var reader: MemberIdentityAvatarReader?
-    private var work: Task<Void, Never>?, timer: Task<Void, Never>?
+    @ObservationIgnored private var work: Task<Void, Never>?
+    @ObservationIgnored private var timer: Task<Void, Never>?
     private var storedImage: UIImage?
     private var deadline: ContinuousClock.Instant?
     private weak var surface: (any MemberIdentityAvatarSurface)?
     private(set) var phase: Phase = .idle
     init(observation: MemberIdentityAvatarObservation, owner: MemberIdentityCardReadOwner,
          access: MemberIdentityAvatarAccess?, notifications: NotificationCenter = .default,
-         decode: @escaping (Data) throws -> UIImage = { data in
+         decode: @escaping @MainActor (Data) throws -> UIImage = { data in
              let clean = try RetainedImageSanitizer.sanitize(data)
              guard let image = UIImage(data: clean.jpeg) else { throw RetainedImageFailure.invalid }; return image
          }) {

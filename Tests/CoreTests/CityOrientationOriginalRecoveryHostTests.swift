@@ -6,7 +6,7 @@ import FoundationNetworking
 
 @available(macOS 14.0, *) @MainActor final class CityOrientationOriginalRecoveryHostTests: XCTestCase {
     let base=URL(string:"https://example.test/city")!
-    final class Store {var bytes:[String:Data]=[:];var failWrite=false
+    @MainActor final class Store {var bytes:[String:Data]=[:];var failWrite=false
         lazy var journal=CityOrientationTaskJournal(read:{self.bytes[$0]},write:{data,key in
             if self.failWrite {throw PlayExperienceError.persistenceUnavailable};self.bytes[key]=data
         })

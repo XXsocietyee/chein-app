@@ -14,7 +14,7 @@ import FoundationNetworking
             return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
         }
     }
-    final class Fixture {
+    @MainActor final class Fixture {
         let context: RuntimeDependencyContext
         let wire = Wire()
         let issued: ClubBadgeManagementApproval

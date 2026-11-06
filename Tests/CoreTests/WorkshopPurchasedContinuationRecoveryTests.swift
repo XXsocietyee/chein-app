@@ -18,7 +18,7 @@ import FoundationNetworking
         func wait() async { for _ in 0..<1000 { if pending != nil { return }; await Task.yield() }; XCTFail("Expected synthetic delayed continuation") }
         func releaseNetworkFailure() { let old = pending; pending = nil; old?.resume(throwing: URLError(.timedOut)) }
     }
-    final class Fixture {
+    @MainActor final class Fixture {
         let context: RuntimeDependencyContext, wire = Wire()
         var approval: WorkshopPurchasedReadApproval?
         lazy var lease = ContentDraftSessionLease(context: context, current: { [weak self] in self?.context })

@@ -9,10 +9,11 @@ import Observation
     private let currentAsset: () -> OwnMediaAsset?
     private let copyText: (String) throws -> Void
     private let source: UUID?
-    private var mounted = false, foreground = false
+    private var mounted = false
+    private var foreground = false
     private var operation = UUID()
     private var reader: OwnMediaApprovedLinkReader?
-    private var task: Task<Void, Never>?
+    @ObservationIgnored private var task: Task<Void, Never>?
     private var phase: Phase = .idle
     init(asset: OwnMediaAsset, access: OwnMediaApprovedLinkAccess?, currentAsset: @escaping () -> OwnMediaAsset?,
          copyText: @escaping (String) throws -> Void = { value in

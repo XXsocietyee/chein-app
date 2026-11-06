@@ -1,5 +1,56 @@
 import SwiftUI
 
+/// View activity only. Retiring a ticket never changes the coordinator or its journal.
+/// A separate UUID distinguishes concurrent/repeated work within the same generation.
+@MainActor struct ClubGovernanceFormLifecycle {
+    enum Work: Equatable { case prepare, confirm, customerEdit }
+    struct Context: Equatable {
+        let identity: ClubReadIdentity?
+        let currentIdentity: ClubReadIdentity?
+        let authorization: UUID?
+        let access: ObjectIdentifier
+        let coordinator: ObjectIdentifier
+        let operation: ClubGovernanceMutation
+        let scope: ClubGovernanceScope
+        let namespace: Data
+        let realm: Data
+        let configured: Bool
+        let visible: Bool
+        let active: Bool
+        @MainActor init(identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator,
+             operation: ClubGovernanceMutation, scope: ClubGovernanceScope, visible: Bool, active: Bool) {
+            self.identity = identity; currentIdentity = access.identity; authorization = access.authorizationGeneration
+            self.access = ObjectIdentifier(access); self.coordinator = ObjectIdentifier(coordinator)
+            self.operation = operation; self.scope = scope
+            namespace = Data(access.storageNamespace.utf8); realm = Data(access.journalRealm.utf8)
+            configured = access.isConfigured; self.visible = visible; self.active = active
+        }
+        var permitsPresentation: Bool { visible && active && configured && identity?.accountID != nil && identity == currentIdentity }
+    }
+    struct Ticket: Equatable {
+        fileprivate let id: UUID
+        fileprivate let generation: UInt64
+        fileprivate let context: Context
+        let work: Work
+    }
+    private(set) var generation: UInt64 = 0
+    private var activity: Ticket?
+    var busy: Bool { activity != nil }
+    mutating func begin(_ work: Work, in context: Context) -> Ticket? {
+        guard !busy, context.permitsPresentation else { return nil }
+        let ticket = Ticket(id: UUID(), generation: generation, context: context, work: work)
+        activity = ticket; return ticket
+    }
+    func owns(_ ticket: Ticket, in context: Context) -> Bool {
+        activity == ticket && generation == ticket.generation && context.permitsPresentation && ticket.context == context
+    }
+    mutating func finish(_ ticket: Ticket) {
+        guard activity == ticket else { return }
+        activity = nil
+    }
+    mutating func retire() { generation &+= 1; activity = nil }
+}
+
 @MainActor struct ClubGovernanceCommandForm: View {
     let route: ClubGovernanceFormRoute
     let identity: ClubReadIdentity?
@@ -27,12 +78,20 @@ import SwiftUI
     @State private var failure: ClubGovernanceFailure?
     @State private var receipt: ClubGovernanceValue?
     @State private var groupCode: ClubGovernanceGroupCode?
-    @State private var busy = false
+    @State private var presentation = ClubGovernanceFormLifecycle()
+    private var busy: Bool { presentation.busy }
     @State private var dirty = false
     @State private var locked = false
     @State private var showDiscard = false
     @State private var cancelConfirmReview: ClubGovernanceReview?
-    @State private var generation: UInt64 = 0
+    private var generation: UInt64 { presentation.generation }
+    private var presentationContext: ClubGovernanceFormLifecycle.Context {
+        .init(identity: identity, access: access, coordinator: coordinator, operation: route.operation,
+              scope: route.scope, visible: audienceVisible, active: scenePhase == .active)
+    }
+    private func retirePresentation() {
+        presentation.retire(); review = nil; cancelConfirmReview = nil
+    }
     init(route: ClubGovernanceFormRoute, identity: ClubReadIdentity?, access: any ClubGovernanceAccess, coordinator: ClubGovernanceCoordinator, validateTarget: (() async throws -> Void)? = nil, caseSubmissionReturn: ClubCaseSubmissionReturn.Callbacks? = nil, attendanceReturn: ClubAttendanceCorrectionReturn.Callbacks? = nil, roleManagementReturn: ClubRoleManagementReturn.Callbacks? = nil, topicSettingsReturn: ClubTopicSettingsReturn.Callbacks? = nil, banRemovalReturn: ClubBanRemovalReturn.Callbacks? = nil, seriesUpdateReturn: ClubSeriesUpdateReturn.Callbacks? = nil, seriesCreationReturn: ClubSeriesCreationReturn.Callbacks? = nil, occurrenceCancellationReturn: ClubOccurrenceCancellationReturn.Callbacks? = nil) {
         self.route = route; self.identity = identity; self.access = access; self.coordinator = coordinator; self.validateTarget = validateTarget
         self.caseSubmissionReturn = caseSubmissionReturn
@@ -226,7 +285,7 @@ import SwiftUI
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { if dirty || busy || locked { showDiscard = true } else { dismiss() } } } }
         .interactiveDismissDisabled(dirty || busy || locked)
         .confirmationDialog("club.gov.discardTitle", isPresented: $showDiscard, titleVisibility: .visible) {
-            Button("club.gov.discard", role: .destructive) { generation &+= 1; coordinator.cancelReview(); dismiss() }
+            Button("club.gov.discard", role: .destructive) { retirePresentation(); coordinator.cancelReview(); dismiss() }
             Button("club.gov.keepEditing", role: .cancel) {}
         } message: { Text(locked ? "club.gov.unknown" : "club.gov.discardBody") }
         .sheet(item: $scheduleSession) { session in
@@ -239,7 +298,7 @@ import SwiftUI
             }
         }
         .onChange(of: access.authorizationGeneration) { _, _ in scheduleSession = nil }
-        .onChange(of: identity) { _, _ in scheduleSession = nil; generation &+= 1; review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
+        .onChange(of: identity) { _, _ in scheduleSession = nil; retirePresentation(); review = nil; receipt = nil; groupCode = nil; coordinator.cancelReview(); draft = .init(operation: route.operation, scope: route.scope); failure = .staleReview; dismiss() }
         .task(id: rolePickerContext) {
             guard route.operation == .assignRole, let permit = rolePicker.activate(rolePickerContext) else { return }
             await rolePicker.load(permit, access: access)
@@ -249,6 +308,7 @@ import SwiftUI
             await seriesLeadPicker.load(permit, access: access)
         }
         .onAppear { audienceVisible = true }
+        .onChange(of: presentationContext) { _, _ in retirePresentation(); coordinator.cancelReview() }
         .onChange(of: scenePhase) { _, phase in
             if phase != .active { notificationAudience.leave(audienceContext) }
         }
@@ -268,7 +328,7 @@ import SwiftUI
                 if route.operation == .issueGroupCode { receipt = nil }
             }
         }
-        .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; generation &+= 1; coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
+        .onDisappear { groupCode = nil; if route.operation == .issueGroupCode { receipt = nil }; audienceVisible = false; notificationAudience.leave(audienceContext); seriesLeadPicker.leave(seriesLeadContext); scheduleSession = nil; retirePresentation(); coordinator.cancelReview(); rolePicker.leave(rolePickerContext) }
     }
     private var hostMaterialsContext: ClubHostApplicationMaterials.Context {
         ClubHostApplicationMaterials.context(formID: route.id, scope: route.scope, identity: identity, access: access)
@@ -353,29 +413,36 @@ import SwiftUI
     private func textBinding(_ key: String) -> Binding<String> { Binding(get: { draft.text[key] ?? "" }, set: { draft.text[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func flagBinding(_ key: String) -> Binding<Bool> { Binding(get: { draft.flags[key] ?? false }, set: { draft.flags[key] = $0; dirty = true; review = nil; coordinator.cancelReview() }) }
     private func prepare() async {
-        guard roleAssignmentReady && seriesScheduleReady && seriesLeadReady && hostMaterialsReady else { return }
-        let revision = generation, expected = identity; busy = true; failure = nil
+        guard !Task.isCancelled, draft.operation == route.operation, draft.scope == route.scope,
+              roleAssignmentReady && seriesScheduleReady && seriesLeadReady && hostMaterialsReady && notificationAudienceReady,
+              !locked, review == nil, receipt == nil,
+              let activity = presentation.begin(.prepare, in: presentationContext) else { return }
+        let revision = generation, expected = identity; failure = nil
+        defer { presentation.finish(activity) }
         do {
             if let validateTarget {
                 try await validateTarget()
-                guard revision == generation, expected == identity, expected == access.identity, !Task.isCancelled else { return }
+                guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             }
             let pending = try await coordinator.prepare(draft.command())
-            guard revision == generation, expected == identity, expected == access.identity else { return }
+            guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             guard seriesScheduleReady else { coordinator.cancelReview(); throw ClubGovernanceFailure.invalidRequest }
             review = pending
-        } catch { if revision == generation && expected == identity { failure = error as? ClubGovernanceFailure ?? .malformed } }
-        if revision == generation { busy = false }
+        } catch { if presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation && expected == identity { failure = error as? ClubGovernanceFailure ?? .malformed } }
     }
     private func confirm(_ review: ClubGovernanceReview) async {
-        let revision = generation, expected = identity; busy = true; failure = nil
+        guard !Task.isCancelled, self.review?.id == review.id, review.command.operation == route.operation,
+              review.command.scope == route.scope, !locked, coordinator.canDispatch(review.command),
+              let activity = presentation.begin(.confirm, in: presentationContext) else { return }
+        let revision = generation, expected = identity; failure = nil
+        defer { presentation.finish(activity) }
         let submittedRequestID = draft.requestID
         do {
             // A reviewed schedule may have crossed Shanghai midnight while left open.
             guard seriesScheduleReady else { coordinator.cancelReview(); throw ClubGovernanceFailure.invalidRequest }
             if let validateTarget {
                 try await validateTarget()
-                guard revision == generation, expected == identity, expected == access.identity, !Task.isCancelled else { return }
+                guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             }
             guard seriesScheduleReady else { coordinator.cancelReview(); throw ClubGovernanceFailure.invalidRequest }
             if let caseSubmissionReturn, !caseSubmissionReturn.begin(review) { throw ClubGovernanceFailure.staleReview }
@@ -392,8 +459,9 @@ import SwiftUI
             if route.operation == .cancelOccurrence, let occurrenceCancellationReturn {
                 guard self.review?.id == review.id, occurrenceCancellationReturn.begin(review) else { throw ClubGovernanceFailure.staleReview }
             }
+            guard presentation.owns(activity, in: presentationContext), !Task.isCancelled else { return }
             let value = try await coordinator.confirm(review)
-            guard revision == generation, expected == identity, expected == access.identity else { return }
+            guard presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation, expected == identity, expected == access.identity else { return }
             receipt = value; self.review = nil; locked = true
             if returnsToRoster { attendanceReturn?.acknowledged(review, value) }
             caseSubmissionReturn?.acknowledged(review)
@@ -416,7 +484,7 @@ import SwiftUI
                     expectedClubID: clubID, expectedActivityID: activityID)
             }
         } catch {
-            if revision == generation && expected == identity {
+            if presentation.owns(activity, in: presentationContext), !Task.isCancelled, revision == generation && expected == identity {
                 // Invalid original QR cannot render an acknowledged success card.
                 // This clears ephemeral presentation only, never the durable original request.
                 if route.operation == .issueGroupCode { groupCode = nil; receipt = nil }
@@ -427,6 +495,5 @@ import SwiftUI
                 }
             }
         }
-        if revision == generation { busy = false }
     }
 }

@@ -175,7 +175,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
                 if tab == .overview {
-                    if let host = badgeHost(id) { ClubBadgeManagementEntry(host: host).id(host.id) }
+                    if let host = badgeHost(id) { ClubBadgeManagementNavigationEntry(host: host).id(host.id) }
                     // Mini-program overview: introduction, then the 主理人 / 俱乐部类型 / 所在城市 facts.
                     Section("club.introduction") {
                         if let description = club.description, !description.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {

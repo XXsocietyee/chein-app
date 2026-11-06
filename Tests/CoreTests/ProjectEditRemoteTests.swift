@@ -69,7 +69,7 @@ import FoundationNetworking
             let (co, owner, storage, _, wire) = try await setup(completed: false), before = storage.data
             co.leaveScreen(); wire.data = malformed ? Data(#"{"code":200,"data":{"editScope":"FULL","topic":{"id":71,"productType":9,"updateTime":"r3"},"chapters":[],"tickets":[]}}"#.utf8) : Data(#"{"code":403,"msg":"Denied"}"#.utf8)
             wire.status = malformed ? 200 : 403
-            await co.load(); XCTAssertEqual(co.state, .blocked); XCTAssertTrue(co.isLocked)
+            await co.load(); XCTAssertEqual(co.state, .unknown); XCTAssertTrue(co.isLocked)
             XCTAssertEqual(storage.data, before); XCTAssertNotNil(owner.session); XCTAssertNil(co.acknowledgedContinuation)
         }
     }

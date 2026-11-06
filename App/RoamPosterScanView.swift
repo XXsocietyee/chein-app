@@ -6,6 +6,7 @@ import SwiftUI
     let node: RoamNodeDetail
     var coordinator: RoamPosterCoordinator? = nil
     var cameraEnabled = false
+    var voucherDestination: (() -> AnyView)? = nil
     @Environment(\.scenePhase) private var scenePhase
     private enum Focus: Hashable { case scan, status }
     @AccessibilityFocusState private var focusedControl: Focus?
@@ -35,7 +36,9 @@ import SwiftUI
                     Button("media.poster.confirm") { run { await coordinator.submit() } }.accessibilityIdentifier("media.poster.confirm")
                 }
                 if coordinator.phase == .needsRedemption || availability == .needsRedemption {
-                    NavigationLink("roam.experience.voucher") { RoamVoucherEntryView() }
+                    NavigationLink("roam.experience.voucher") {
+                        if let voucherDestination { voucherDestination() } else { AnyView(RoamVoucherEntryView()) }
+                    }
                 }
             }
             Section {

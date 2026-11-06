@@ -847,6 +847,23 @@ import XCTest
         }
     }
 
+    func testAnchorRouteRetainsFrozenAccessAfterHomeCleanupAndRejectsNewReaderContext() async throws {
+        let (model, reader) = makeSystem(), journal = MerchantBusinessMemoryIntentStore()
+        let loaded = try await startFreshRead(model, reader: reader)
+        let access = try grant()
+        await finish(loaded, reader: reader, with: .success(access))
+        let route = MerchantBusinessHomeRoute(target: .anchor, reader: reader, journal: journal, anchorAccess: access)
+        let equal = MerchantBusinessHomeRoute(target: .anchor, reader: reader, journal: journal, anchorAccess: access)
+        retire(model)
+        assertEmpty(model, reader: reader)
+        XCTAssertEqual(route.anchorAccess, access)
+        XCTAssertEqual(Set([route, equal]).count, 1)
+        XCTAssertTrue(route.isCurrent(reader: reader, journal: journal))
+        XCTAssertFalse(route.isCurrent(reader: Reader(), journal: journal))
+        XCTAssertFalse(route.isCurrent(reader: reader, journal: MerchantBusinessMemoryIntentStore()))
+        assertReadOnly(reader)
+    }
+
     func testHomeRouteRejectsChangedReaderScopeAuthorizationConfigurationOrJournal() {
         let targets: [MerchantBusinessHomeRoute.Target] = [.query(.overview), .scan, .cityNode]
         for target in targets {

@@ -1,0 +1,289 @@
+import SwiftUI
+
+/// Mount inside the host's NavigationStack; no competing navigation or save service.
+@MainActor struct NativeConditionAuthorView: View {
+    @StateObject private var model: NativeConditionAuthorController
+    private let reader: (any NativeConditionAuthorReadbackServing)?
+    private let projectVisit: NativeAuthorProjectVisit?
+    private let close: (() -> Void)?
+    @State private var confirmingClose = false
+    private func text(_ key: String) -> String { NSLocalizedString(key, tableName: "NativeConditionAuthor", bundle: .main, comment: "") }
+    init(host: any NativeConditionAuthorDraftHosting, reader: (any NativeConditionAuthorReadbackServing)? = nil,
+         projectVisit: NativeAuthorProjectVisit? = nil, close: (() -> Void)? = nil) {
+        _model = StateObject(wrappedValue: NativeConditionAuthorController(host: host)); self.reader = reader
+        self.projectVisit = projectVisit; self.close = close
+    }
+    var body: some View {
+        List {
+            if let document = model.document {
+                if !model.canEdit { Section { Text("nativeCondition.readOnly") } }
+                if document.surface == .routeGraph {
+                    branches("edges", fallback: false)
+                    branches("fallbacks", fallback: true)
+                } else if document.surface == .componentCheck {
+                    NativeComponentAuthorCheckFields(model: model)
+                } else {
+                    NativeConditionAuthorExpressionSection(model: model, path: .init(), effect: document.surface == .templateEffects || document.surface == .componentEffects)
+                }
+                Section {
+                    NavigationLink("nativeCondition.preview") { NativeConditionAuthorPreview(model: model, authoritative: false) }
+                    if reader != nil {
+                        Button("nativeCondition.readAuthoritative") { if let reader { Task { await model.read(using: reader) } } }
+                            .disabled(document.hasChanges)
+                    }
+                    if model.session?.authoritative != nil {
+                        NavigationLink("nativeCondition.authoritative") { NativeConditionAuthorPreview(model: model, authoritative: true) }
+                    }
+                }
+                if !model.issues.isEmpty {
+                    Section("nativeCondition.validation") {
+                        ForEach(model.issues) { issue in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(LocalizedStringKey("nativeCondition.issue." + issue.code))
+                                Text(verbatim: issue.path).font(.caption).textSelection(.enabled)
+                                if !issue.detail.isEmpty { Text(verbatim: issue.detail).font(.caption).foregroundStyle(.secondary) }
+                            }.accessibilityElement(children: .combine)
+                        }
+                    }
+                }
+                Section {
+                    Button("nativeCondition.saveDraft", action: model.save)
+                        .disabled(!model.canEdit || model.issues.count > 0 || !document.hasChanges)
+                        .accessibilityIdentifier("nativeCondition.saveOriginalDraft")
+                    if model.session?.state == .localSaved { Text("nativeCondition.localSaved").foregroundStyle(.secondary) }
+                } footer: { Text("nativeCondition.originalFlow") }
+            } else { Section { Text("nativeCondition.unavailable") } }
+            if let key = model.errorKey { Section { Text(LocalizedStringKey(key)).foregroundStyle(.red) } }
+        }
+        .navigationTitle("nativeCondition.title")
+        .toolbar {
+            ToolbarItem { EditButton().disabled(!model.canEdit) }
+            if close != nil {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(text("nativeCondition.close")) {
+                        if model.document?.hasChanges == true { confirmingClose = true }
+                        else { finishClose() }
+                    }.accessibilityIdentifier("nativeCondition.closeProjectChild")
+                }
+            }
+        }
+        .confirmationDialog(text("nativeCondition.discardTitle"), isPresented: $confirmingClose, titleVisibility: .visible) {
+            Button(text("nativeCondition.discardAndClose"), role: .destructive) { finishClose() }
+            Button(text("nativeCondition.keepEditing"), role: .cancel) {}
+        } message: { Text(verbatim: text("nativeCondition.discardMessage")) }
+        .onAppear {
+            model.refresh()
+            let owner = model
+            projectVisit?.onRetire { [weak owner] in owner?.retire() }
+        }
+        .accessibilityIdentifier("nativeCondition.author")
+    }
+    private func finishClose() { model.retire(); close?() }
+    @ViewBuilder private func branches(_ key: String, fallback: Bool) -> some View {
+        let path = NativeConditionAuthorPath().field(key)
+        let rows = model.value(path)?.nativeConditionArray ?? []
+        Section(LocalizedStringKey(fallback ? "nativeCondition.fallbacks" : "nativeCondition.branches")) {
+            ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
+                NavigationLink {
+                    NativeConditionAuthorBranchView(model: model, path: path.index(index), fallback: fallback)
+                } label: {
+                    let fields = row.nativeConditionObject ?? [:]
+                    VStack(alignment: .leading) {
+                        Text(verbatim: fields["id"]?.nativeConditionText ?? String(index + 1))
+                        Text(verbatim: "\(fields["fromNodeId"]?.nativeConditionInteger.map(String.init) ?? "?") → \(fields["toNodeId"]?.nativeConditionInteger.map(String.init) ?? "?")")
+                            .font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+            }.onDelete { model.remove($0, from: path) }.onMove { model.move($0, to: $1, in: path) }
+            Button("nativeCondition.addBranch") {
+                let row: ProjectEditJSON = .object(fallback ? [:] : ["id": .string(""), "trigger": .object(["type": .string(""), "outcomeCode": .string("")]), "conditions": .array([]), "effects": .array([])])
+                if model.value(path) == nil { model.setField(key, at: .init(), to: .array([row])) } else { model.append(row, to: path) }
+            }.disabled(!model.canEdit || rows.count >= 1024)
+        }
+        .deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
+    }
+}
+
+@MainActor private struct NativeConditionAuthorBranchView: View {
+    @ObservedObject var model: NativeConditionAuthorController
+    let path: NativeConditionAuthorPath
+    let fallback: Bool
+    var body: some View {
+        Form {
+            if let value = model.value(path), let row = value.nativeConditionObject {
+                Section("nativeCondition.branch") {
+                    if !fallback { TextField("nativeCondition.field.id", text: text("id", row)) }
+                    selection("fromNodeId", row, options: model.catalog?.nodes ?? [], integer: true)
+                    selection("toNodeId", row, options: model.catalog?.nodes ?? [], integer: true)
+                    if !fallback {
+                        selection("type", row["trigger"]?.nativeConditionObject ?? [:], options: model.catalog?.triggers ?? [], integer: false, trigger: true)
+                        let source = row["fromNodeId"]?.nativeConditionInteger.map(String.init) ?? ""
+                        let trigger = row["trigger"]?.nativeConditionObject?["type"]?.nativeConditionText ?? ""
+                        let outcomes = (model.catalog?.sourceOutcomes[source] ?? []).filter { $0.triggerType == trigger }.map { NativeConditionAuthorOption(id: $0.code, label: $0.label) }
+                        selection("outcomeCode", row["trigger"]?.nativeConditionObject ?? [:], options: outcomes, integer: false, trigger: true)
+                    }
+                    ForEach(["priority", "weight", "maxVisits"], id: \.self) { key in
+                        TextField(LocalizedStringKey("nativeCondition.field." + key), text: text(key, row, integer: true)).keyboardType(.numbersAndPunctuation)
+                            .contextMenu { Button("nativeCondition.unset") { model.removeField(key, at: path) } }
+                    }
+                    ForEach(["once", "allowLoop"], id: \.self) { key in
+                        Toggle(LocalizedStringKey("nativeCondition.field." + key), isOn: Binding(get: { row[key] == .bool(true) }, set: { model.setField(key, at: path, to: .bool($0)) }))
+                    }
+                }.disabled(!model.canEdit)
+                if !fallback {
+                    if row["conditions"] == nil {
+                        Button("nativeCondition.addCondition") { model.setField("conditions", at: path, to: .array([])) }.disabled(!model.canEdit)
+                    } else { NativeConditionAuthorExpressionSection(model: model, path: path.field("conditions"), effect: false) }
+                }
+                if row["effects"] == nil {
+                    Button("nativeCondition.addEffect") { model.setField("effects", at: path, to: .array([])) }.disabled(!model.canEdit)
+                } else { NativeConditionAuthorExpressionSection(model: model, path: path.field("effects"), effect: true) }
+            } else { Text("nativeCondition.unavailable") }
+        }.navigationTitle("nativeCondition.branch").toolbar { EditButton().disabled(!model.canEdit) }
+    }
+    private func text(_ key: String, _ row: [String: ProjectEditJSON], integer: Bool = false) -> Binding<String> {
+        Binding(get: { row[key]?.nativeConditionText ?? row[key]?.nativeConditionNumber.map { NSDecimalNumber(decimal: $0).stringValue } ?? "" }, set: { value in
+            if integer {
+                model.setField(key, at: path, to: Int64(value).map { .number(Decimal($0)) } ?? .string(value))
+            } else { model.setField(key, at: path, to: .string(value)) }
+        })
+    }
+    private func selection(_ key: String, _ row: [String: ProjectEditJSON], options: [NativeConditionAuthorOption], integer: Bool, trigger: Bool = false) -> some View {
+        let current = row[key]?.nativeConditionText ?? row[key]?.nativeConditionInteger.map(String.init) ?? ""
+        return Picker(LocalizedStringKey("nativeCondition.field." + key), selection: Binding(get: { current }, set: { value in
+            let entry: ProjectEditJSON = integer ? Int64(value).map { .number(Decimal($0)) } ?? .string(value) : .string(value)
+            if trigger {
+                let original = model.value(path)?.nativeConditionObject?["trigger"]?.nativeConditionObject ?? [:]
+                var object = original; object[key] = entry; model.setField("trigger", at: path, to: .object(object))
+            } else { model.setField(key, at: path, to: entry) }
+        })) {
+            if !options.contains(where: { $0.id == current }) { Text(verbatim: current.isEmpty ? "—" : current).tag(current) }
+            ForEach(options) { option in Text(verbatim: option.label).tag(option.id) }
+        }
+    }
+}
+
+@MainActor struct NativeConditionAuthorExpressionSection: View {
+    @ObservedObject var model: NativeConditionAuthorController
+    let path: NativeConditionAuthorPath
+    let effect: Bool
+    var body: some View {
+        Section(LocalizedStringKey(effect ? "nativeCondition.effects" : "nativeCondition.conditions")) {
+            if let value = model.value(path) {
+                if let array = value.nativeConditionArray {
+                    ForEach(Array(array.enumerated()), id: \.offset) { index, value in link(value, at: path.index(index)) }
+                        .onDelete { model.remove($0, from: path) }.onMove { model.move($0, to: $1, in: path) }
+                    Button(effect ? "nativeCondition.addEffect" : "nativeCondition.addCondition") {
+                        model.append(NativeConditionAuthorFields.blank(operation: effect ? "SET" : "EQ", effect: effect), to: path)
+                    }.disabled(!model.canEdit)
+                } else { link(value, at: path) }
+            }
+        }.deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
+    }
+    private func link(_ value: ProjectEditJSON, at path: NativeConditionAuthorPath) -> some View {
+        let op = value.nativeConditionArray != nil ? "ALL_OF_ARRAY" : value.nativeConditionObject?["op"]?.nativeConditionText ?? "UNKNOWN"
+        return NavigationLink {
+            NativeConditionAuthorNodeView(model: model, path: path, effect: effect)
+        } label: { if let title = NativeComponentAuthorLabels.operations[op] { Text(verbatim: title) } else { Text(LocalizedStringKey("nativeCondition.op." + op)) } }
+    }
+}
+
+@MainActor private struct NativeConditionAuthorNodeView: View {
+    @ObservedObject var model: NativeConditionAuthorController
+    let path: NativeConditionAuthorPath
+    let effect: Bool
+    @State private var showFields = false
+    @State private var pendingOperation: String?
+    private var op: String { model.value(path)?.nativeConditionObject?["op"]?.nativeConditionText ?? "" }
+    var body: some View {
+        Form {
+            if let value = model.value(path) {
+                if value.nativeConditionArray != nil {
+                    NativeConditionAuthorExpressionSection(model: model, path: path, effect: effect)
+                } else {
+                    Section {
+                        Picker("nativeCondition.operation", selection: Binding(get: { op }, set: { pendingOperation = $0 })) {
+                            let registered = NativeConditionAuthorValidation.registeredOperations.filter { model.catalog?.rpg?.supportedOperations.contains($0) == true }
+                            let operations = (effect ? (model.catalog?.component == nil ? NativeConditionAuthorValidation.effectOperations : NativeConditionAuthorValidation.componentEffectOperations) : NativeConditionAuthorValidation.conditionOperations + registered)
+                                .filter { (model.document?.surface != .attributeCondition && model.catalog?.component == nil) || $0 != "CONSUME_ITEM" }
+                            if !operations.contains(op) { Text(verbatim: op).tag(op) }
+                            ForEach(operations, id: \.self) { operation in
+                                if let title = NativeComponentAuthorLabels.operations[operation] { Text(verbatim: title).tag(operation) }
+                                else { Text(LocalizedStringKey("nativeCondition.op." + operation)).tag(operation) }
+                            }
+                        }.disabled(!model.canEdit)
+                        Button("nativeCondition.editFields") { showFields = true }.disabled(!model.canEdit)
+                    }
+                    if ["ALL_OF", "ANY_OF"].contains(op) {
+                        NativeConditionAuthorExpressionSection(model: model, path: path.field("children"), effect: false)
+                    } else if op == "NOT" {
+                        NativeConditionAuthorExpressionSection(model: model, path: path.field("child"), effect: false)
+                    } else if op == "RANDOM_CHOICE" {
+                        choices(value)
+                    }
+                    Section { Text(verbatim: NativeConditionAuthorPresentation.json(value)).font(.caption).textSelection(.enabled) }
+                }
+            } else { Text("nativeCondition.unavailable") }
+        }.navigationTitle(LocalizedStringKey(effect ? "nativeCondition.effect" : "nativeCondition.condition"))
+        .toolbar { EditButton().disabled(!model.canEdit) }
+        .sheet(isPresented: $showFields) {
+            if let value = model.value(path), let revision = model.document?.revision {
+                NavigationStack { NativeConditionAuthorFieldForm(model: model, path: path, original: value, capturedRevision: revision, effect: effect) }
+            }
+        }
+        .confirmationDialog("nativeCondition.changeOperation", isPresented: Binding(get: { pendingOperation != nil }, set: { if !$0 { pendingOperation = nil } })) {
+            Button("nativeCondition.replaceOperation", role: .destructive) {
+                if let operation = pendingOperation, let original = model.value(path) {
+                    _ = model.replace(path, expected: original, with: NativeConditionAuthorFields.changingOperation(original, to: operation, effect: effect))
+                }; pendingOperation = nil
+            }
+        } message: { Text("nativeCondition.changeOperationDetail") }
+    }
+    @ViewBuilder private func choices(_ value: ProjectEditJSON) -> some View {
+        let choicesPath = path.field("choices"), rows = value.nativeConditionObject?["choices"]?.nativeConditionArray ?? []
+        Section("nativeCondition.choices") {
+            ForEach(Array(rows.enumerated()), id: \.offset) { i, _ in
+                NavigationLink {
+                    NativeConditionAuthorChoiceView(model: model, path: choicesPath.index(i))
+                } label: { Text("nativeCondition.choice") + Text(verbatim: " \(i + 1)") }
+            }.onDelete { model.remove($0, from: choicesPath) }.onMove { model.move($0, to: $1, in: choicesPath) }
+            Button("nativeCondition.addChoice") { model.append(.object(["weight": .number(1), "effects": .array([])]), to: choicesPath) }
+                .disabled(!model.canEdit || rows.count >= 32)
+        }.deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
+    }
+}
+
+@MainActor private struct NativeConditionAuthorChoiceView: View {
+    @ObservedObject var model: NativeConditionAuthorController
+    let path: NativeConditionAuthorPath
+    var body: some View {
+        Form {
+            Section {
+                TextField("nativeCondition.field.weight", text: Binding(get: {
+                    model.value(path)?.nativeConditionObject?["weight"]?.nativeConditionText ?? model.value(path)?.nativeConditionObject?["weight"]?.nativeConditionInteger.map(String.init) ?? ""
+                }, set: { model.setField("weight", at: path, to: Int64($0).map { .number(Decimal($0)) } ?? .string($0)) })).keyboardType(.numberPad)
+            }.disabled(!model.canEdit)
+            NativeConditionAuthorExpressionSection(model: model, path: path.field("effects"), effect: true)
+        }.navigationTitle("nativeCondition.choice").toolbar { EditButton().disabled(!model.canEdit) }
+    }
+}
+
+enum NativeConditionAuthorPresentation {
+    static func json(_ value: ProjectEditJSON) -> String {
+        let encoder = JSONEncoder(); encoder.outputFormatting = [.sortedKeys, .prettyPrinted, .withoutEscapingSlashes]
+        guard let data = try? encoder.encode(value) else { return "" }; return String(decoding: data, as: UTF8.self)
+    }
+}
+
+@MainActor private struct NativeConditionAuthorPreview: View {
+    @ObservedObject var model: NativeConditionAuthorController
+    let authoritative: Bool
+    var body: some View {
+        List {
+            if model.isCurrent, let document = authoritative ? model.session?.authoritative : model.document {
+                Section { Text(LocalizedStringKey(authoritative ? "nativeCondition.authoritative" : "nativeCondition.declarationPreview")) }
+                Section { Text(verbatim: (try? document.serialized()) ?? document.original).font(.system(.footnote, design: .monospaced)).textSelection(.enabled) }
+            } else { Text("nativeCondition.unavailable") }
+        }.navigationTitle("nativeCondition.preview")
+    }
+}

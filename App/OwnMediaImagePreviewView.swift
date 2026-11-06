@@ -8,10 +8,12 @@ import Observation
     private let access: OwnMediaImagePreviewAccess?
     private let currentAsset: () -> OwnMediaAsset?
     private let source: UUID?
-    private var mounted = false, foreground = false
+    private var mounted = false
+    private var foreground = false
     private var operation = UUID()
     private var reader: OwnMediaImagePreviewReader?
-    private var task: Task<Void, Never>?, expirationTask: Task<Void, Never>?
+    @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var expirationTask: Task<Void, Never>?
     private var storedImage: UIImage?
     private var displayDeadline: ContinuousClock.Instant?
     private(set) var presentation: UUID?

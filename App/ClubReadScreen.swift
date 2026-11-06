@@ -101,7 +101,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
     }
 }
 
-private struct ClubLoadIssue {
+struct ClubLoadIssue {
     let titleKey: String
     let hintKey: String
     let message: String?

@@ -156,6 +156,30 @@ enum WalletOrganizerFinanceAdmission {
 enum WalletOrganizerFinanceIdentity {
     static func key(accountID: Int?, epoch: UInt64?) -> String { "\(accountID ?? 0):\(epoch ?? 0)" }
 }
+private struct WalletContentListStyle: ViewModifier {
+    @Environment(\.themeDomain) private var domain
+    func body(content: Content) -> some View {
+        content.listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
+            .background(Theme.Color.bgPage(in: domain))
+            .font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
+    }
+}
+extension View {
+    func walletContentList() -> some View { modifier(WalletContentListStyle()) }
+}
+struct WalletStatusMessage: View {
+    let message: LocalizedStringKey
+    let systemImage: String
+    var body: some View {
+        Label { Text(message).fixedSize(horizontal: false, vertical: true) }
+            icon: { Image(systemName: systemImage).accessibilityHidden(true) }
+            .font(Theme.Font.body)
+            .padding(.vertical, Theme.Space.s3)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .combine)
+    }
+}
 
 @MainActor struct WalletOrganizerFinanceAccess {
     let reader: any CoopFlowReading

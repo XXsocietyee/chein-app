@@ -13,7 +13,7 @@ import FoundationNetworking
             requests.append(request); beforeReply?(); return (Data("{}".utf8), status)
         }
     }
-    private final class Harness {
+    @MainActor private final class Harness {
         let context: RuntimeDependencyContext
         let query: CityCurrentSnapshotQuery
         let wire = Wire()

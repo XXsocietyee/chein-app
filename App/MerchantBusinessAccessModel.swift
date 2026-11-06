@@ -32,16 +32,17 @@ struct MerchantBusinessAccessRequest: Equatable {
 /// The retained original reader and journal prevent old routes being rebound to
 /// replacement dependencies. A route survives leaving Home, not a context change.
 struct MerchantBusinessHomeRoute: Hashable {
-    enum Target: Hashable { case query(MerchantBusinessQuery), scan, cityNode, cityArrival(merchantID: Int64) }
+    enum Target: Hashable { case query(MerchantBusinessQuery), scan, cityNode, cityArrival(merchantID: Int64), anchor }
     let target: Target
+    let anchorAccess: MerchantBusinessAccess?
     let context: MerchantBusinessAccessLoadKey
     let reader: any MerchantBusinessReading
     let journal: any MerchantBusinessIntentStore
     private let journalIdentity: ObjectIdentifier
 
     @MainActor init(target: Target, reader: any MerchantBusinessReading,
-                    journal: any MerchantBusinessIntentStore) {
-        self.target = target; self.reader = reader; self.journal = journal
+                    journal: any MerchantBusinessIntentStore, anchorAccess: MerchantBusinessAccess? = nil) {
+        self.anchorAccess = anchorAccess; self.target = target; self.reader = reader; self.journal = journal
         context = .init(reader: reader); journalIdentity = ObjectIdentifier(journal)
     }
     @MainActor func isCurrent(reader: any MerchantBusinessReading,
@@ -50,10 +51,10 @@ struct MerchantBusinessHomeRoute: Hashable {
             context == MerchantBusinessAccessLoadKey(reader: reader)
     }
     static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.target == rhs.target && lhs.context == rhs.context && lhs.journalIdentity == rhs.journalIdentity
+        lhs.target == rhs.target && lhs.anchorAccess == rhs.anchorAccess && lhs.context == rhs.context && lhs.journalIdentity == rhs.journalIdentity
     }
     func hash(into hasher: inout Hasher) {
-        hasher.combine(target); hasher.combine(context); hasher.combine(journalIdentity)
+        hasher.combine(target); hasher.combine(anchorAccess?.merchantID); hasher.combine(context); hasher.combine(journalIdentity)
     }
 }
 

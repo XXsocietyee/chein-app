@@ -97,17 +97,16 @@ public struct ClubGovernanceService {
               grant.allows(configuration: configuration, namespace: session.storageNamespace, accountID: actor, path: path) else {
             throw ClubGovernanceFailure.notConfigured
         }
-        let originalCheck = check
-        let check: () throws -> Void = {
-            try originalCheck()
+        func validatedCheck() throws {
+            try check()
             guard self.participationTrendApproval(topicID, session) == grant else { throw ClubGovernanceFailure.notConfigured }
         }
         guard topicID > 0, session.identity.isSignedIn else { throw ClubGovernanceFailure.invalidRequest }
         let request = try request(path: "api/registration/count_by_date",
             fields: ["owner_type": .integer(1), "owner_id": .integer(topicID)], form: true, token: session.token)
-        try check()
+        try validatedCheck()
         let (data, status) = try await transport.send(request)
-        try check()
+        try validatedCheck()
         guard data.count <= 4 * 1024 * 1024 else { throw ClubGovernanceFailure.malformed }
         let envelope = try? JSONDecoder().decode(ClubGovernanceValue.self, from: data)
         let code = envelope?["code"].int

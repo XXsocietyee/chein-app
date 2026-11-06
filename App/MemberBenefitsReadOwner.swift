@@ -14,11 +14,12 @@ import Observation
     }
     enum Phase: Equatable { case loading, ready(Snapshot), unavailable, failed }
     private let reader: any MemberHomeReading
-    private var mounted = false, foreground = false
+    private var mounted = false
+    private var foreground = false
     private var operation = UUID()
     private var readScope: UUID?
     private var stored: Phase = .loading
-    private var work: Task<Void, Never>?
+    @ObservationIgnored private var work: Task<Void, Never>?
     private var navigation: Navigation?
     init(reader: any MemberHomeReading) { self.reader = reader }
     deinit { work?.cancel() }

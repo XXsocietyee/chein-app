@@ -28,6 +28,9 @@ import SwiftUI
                 if model.phase == "unknown" { Button("playx.reconcile") { Task { await model.recover() } } }
                 if model.phase == "retryable" { Button("playx.retryExact") { Task { await model.retryExact() } } }
             }
+            if let receipt = model.modInstallationActionReceipt, let requestID = model.modInstallationActionKey {
+                ModInstallationNativeActionReceiptView(receipt: receipt, requestID: requestID)
+            }
             if model.state == nil, nativePlatform?.acceptance.localRemindersEnabled == true {
                 Section { NativeTimeWindowHostView(advanced: model, segment: .null) }
             }

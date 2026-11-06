@@ -8,7 +8,7 @@ import FoundationNetworking
 /// Independent regression fixtures. Existing favorite tests and their historical ACK
 /// assertions are deliberately untouched; this suite concerns only read projection.
 @MainActor final class ProfileFavoriteDetailRevisionRegressionTests: XCTestCase {
-    @MainActor @Observable private final class Context {
+    @MainActor @Observable fileprivate final class Context {
         var current: RuntimeDependencyContext?
         var viewer: UInt64 = 1
         var access: ProfileFavoriteDetailAccess?

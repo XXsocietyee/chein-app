@@ -13,7 +13,7 @@ extension EnvironmentValues {
         set { self[ClubBadgeHostFactoryKey.self] = newValue }
     }
 }
-@MainActor struct ClubBadgeManagementEntry: View {
+@MainActor struct ClubBadgeManagementNavigationEntry: View {
     let host: ClubBadgeHost
     var body: some View {
         NavigationLink { ClubBadgeManagementView(host: host).id(host.id) } label: {

@@ -1691,6 +1691,105 @@ final class AppSession: ObservableObject {
             })
     }
     /// Independent install protocol approval; neither paid metadata nor FREE read authority is used.
+    // Reviewed deployment input only. Never set by login, metadata grants or client payment callbacks.
+    var workshopCommerceApproval: WorkshopCommerceApproval?
+    func makeWorkshopCommerceController(readOnly: Bool = false) -> WorkshopCommerceController? {
+        guard let captured = currentWorkshopOwnedContext else { return nil }
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+            return self.currentWorkshopOwnedContext
+        }
+        return WorkshopCommerceComposition.make(context: captured, approval: workshopCommerceApproval,
+            currentApproval: { [weak self] in self?.workshopCommerceApproval }, current: current,
+            storage: templateAuthoringSecureStorage, enableApprovedStoreKit: !readOnly, readOnly: readOnly,
+            onUnauthorized: { [weak self] context in
+                guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    // Independent default-off version comparison / upgrade-stage approval. Does not authorize purchase or publication.
+    var modUpgradeApproval: ModUpgradeApproval?
+    // Independent default-off W18.8 report authority; commerce/install approvals cannot enable it.
+    var modOwnedReportApproval: ModOwnedReportApproval?
+    var modOwnedReportRevision: String {
+        "\(sessionRevision):\(compositionViewerRevision):\(workshopReadConfigurationRevision):\(modOwnedReportApproval?.revision.uuidString ?? "off")"
+    }
+    func makeModOwnedReportController(reference: ModInstallationIdentity) -> ModOwnedReportController? {
+        guard (try? reference.validate()) != nil, let captured = currentWorkshopOwnedContext,
+              let issued = modOwnedReportApproval, issued.matches(captured) else { return nil }
+        let viewer = compositionViewerRevision, configuration = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.workshopReadConfigurationRevision == configuration,
+                  self.modOwnedReportApproval?.revision == issued.revision else { return nil }
+            return self.currentWorkshopOwnedContext
+        }
+        guard let service = try? ModOwnedReportService(lease: ContentDraftSessionLease(context: captured, current: current),
+            approval: issued, currentApproval: { [weak self] in self?.modOwnedReportApproval }, unauthorized: { [weak self] context in
+                guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            }) else { return nil }
+        return ModOwnedReportController(reference: reference, service: service,
+            store: ModOwnedReportStore(storage: templateAuthoringSecureStorage, context: captured, reference: reference))
+    }
+
+    func makeModUpgradeController(reference: ModInstallationIdentity) -> ModUpgradeController? {
+        guard let captured = currentWorkshopOwnedContext else { return nil }
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+            return self.currentWorkshopOwnedContext
+        }
+        return ModUpgradeComposition.make(reference: reference, context: captured, approval: modUpgradeApproval,
+            currentApproval: { [weak self] in self?.modUpgradeApproval },
+            installationApproval: modInstallationApproval,
+            currentInstallationApproval: { [weak self] in self?.modInstallationApproval }, current: current,
+            storage: templateAuthoringSecureStorage, transport: compositionTransport,
+            onUnauthorized: { [weak self] context in
+                guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    // Independently reviewed installation deployment input. Never inferred from purchase/payment or login.
+    @Published var modInstallationApproval: ModInstallationApproval?
+    func makeModInstallationController(reference: ModInstallationIdentity) -> ModInstallationController? {
+        guard let captured = currentWorkshopOwnedContext else { return nil }
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+            return self.currentWorkshopOwnedContext
+        }
+        return ModInstallationComposition.make(reference: reference, context: captured, approval: modInstallationApproval,
+            currentApproval: { [weak self] in self?.modInstallationApproval }, current: current,
+            storage: templateAuthoringSecureStorage,
+            onUnauthorized: { [weak self] context in
+                guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+    /// One construction supplies the original controller and its read-only H5 receipt adapter.
+    /// The normal entry retains this pair; it must not create a second controller just to obtain the reader.
+    func makeModInstallationWithOriginalReader(reference: ModInstallationIdentity) -> ModInstallationComposition.OriginalReaderContext? {
+        guard let captured = currentWorkshopOwnedContext else { return nil }
+        let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewer,
+                  self.workshopReadConfigurationRevision == configurationRevision else { return nil }
+            return self.currentWorkshopOwnedContext
+        }
+        return ModInstallationComposition.makeWithOriginalReader(reference: reference, context: captured, approval: modInstallationApproval,
+            currentApproval: { [weak self] in self?.modInstallationApproval }, current: current,
+            storage: templateAuthoringSecureStorage,
+            onUnauthorized: { [weak self] context in
+                guard let self, ContentDraftContextFence.matches(current(), context) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
+    }
+
     func makeWorkshopPaidInstallController(item: WorkshopPurchasedItem) -> WorkshopPaidInstallController? {
         let context = currentWorkshopOwnedContext, approval = currentWorkshopPaidInstallApproval
         let viewer = compositionViewerRevision, configurationRevision = workshopReadConfigurationRevision
@@ -2975,11 +3074,19 @@ final class AppSession: ObservableObject {
     func playAdvanced(scope: PlaySessionScope, nodeID: Int, topicID: Int?, lifetime: PlayInteractionLifetime? = nil) -> PlayAdvancedCoordinator? {
         guard let lifetime, lifetime.isCurrent, scope.isValid, nodeID > 0, let topicID, topicID > 0, let api = dormantPlayRuntimeService() else { return nil }
         let key = playRuntimeKey(scope, suffix: "advanced:\(nodeID)")
-        if let retained = retainedPlayAdvanced[key], retained.readLifetimeID == lifetime.identity || retained.blocksReadRebinding { return retained }
+        if let retained = retainedPlayAdvanced[key], retained.readLifetimeID == lifetime.identity ||
+            (retained.blocksReadRebinding && !retained.canRestoreModAfterRetiredRead(gameplayMode: lifetime.gameplayMode)) { return retained }
         let activityID: Int
         switch scope { case .activity(let id): activityID = id; case .topic(let id): guard id == topicID else { return nil }; activityID = 0 }
+        let recovery: (any PlayAdvancedRecovery)? = {
+            guard let owner = currentPlayRuntimeSession, let regional = regionalConfiguration, let storageScope else { return nil }
+            return try? PlayAdvancedRecoverySystemFactory.make(session: owner,
+                scope: .init(activityID: activityID, topicID: topicID, nodeID: nodeID),
+                regionalConfiguration: regional, storageScope: storageScope)
+        }()
         let model = PlayAdvancedCoordinator(activityID: activityID, topicID: topicID, nodeID: nodeID, service: api.bound(to: lifetime),
-            currentSession: { [weak self] in self?.currentPlayRuntimeSession })
+            modJournal: ModInstallationNativeRuntimeJournal(storage: templateAuthoringSecureStorage), modGameplayMode: lifetime.gameplayMode,
+            recovery: recovery, currentSession: { [weak self] in self?.currentPlayRuntimeSession })
         retainedPlayAdvanced[key] = model; return model
     }
     func playPreference(scope: PlaySessionScope, nodeID: Int, lifetime: PlayInteractionLifetime? = nil) -> PlayPreferenceCoordinator? {
@@ -3840,6 +3947,163 @@ final class AppSession: ObservableObject {
         return BusinessRuntimeFactory(configuration: configuration, api: api, transport: runtimeHTTPTransport,
             current: { [weak self] in self?.currentRuntimeDependencyContext })
     }
+    /// Dedicated full37 current registry factory. The only configuration source is the
+    /// reviewed composition selector; original project read access is never a write grant.
+    private func nativeAttributeAuthorCurrentDependencies(for model: ProjectEditModel) -> NativeAttributeAuthorDependencies? {
+        guard !projectConfigurationChanging, let api = regionalConfiguration?.apiConfiguration,
+              let context = currentRuntimeDependencyContext, let projectSession = currentProjectEditSession,
+              projectRuntimeFactory?.permits(.projectRead) == true,
+              let host = NativeAttributeAuthorProjectHost(model: model, configuration: api),
+              let issued = composition.nativeAttributeAuthorConfiguration(context),
+              [NativeAttributeAuthorHostEndpoint.definitions, .requestReceipt, .inspectCurrent].contains(where: {
+                  issued.permits($0, context: context, binding: host.binding)
+              }),
+              let catalog = nativeAttributeConditionCatalogReader(for: model, host: host) else { return nil }
+        if !issued.permits(.definitions, context: context, binding: host.binding) {
+            // A degraded read-only source opens only a real original pending record. It
+            // cannot create a fresh registry editor or mistake an unsent local draft for UNKNOWN.
+            let store = NativeAttributeAuthorLocalStore(storage: templateAuthoringSecureStorage)
+            guard let recovered = try? store.load(binding: host.binding), let pending = recovered.pending else { return nil }
+            let receipt = pending.request.isVersionedMutation && pending.dispatchStarted &&
+                pending.originalRequestProtocol == NativeAttributeAuthorRequest.originalRequestProtocol
+            let operation: NativeAttributeAuthorHostEndpoint = receipt ? .requestReceipt : .inspectCurrent
+            guard issued.permits(operation, context: context, binding: host.binding) else { return nil }
+        }
+        let viewer = compositionViewerRevision, configurationRevision = projectConfigurationRevision
+        let issuanceSelectionRevision = composition.nativeAttributeAuthorConfigurationRevision(context)
+        // Receipt-only issuance may open the same durable pending record; original load returns
+        // UNKNOWN before any fresh definitions GET. It grants neither validate/save/delete nor replay.
+        let currentConfiguration: () -> NativeAttributeAuthorRuntimeConfiguration? = { [weak self, host] in
+            guard let self, !self.projectConfigurationChanging,
+                  self.compositionViewerRevision == viewer, self.projectConfigurationRevision == configurationRevision,
+                  self.currentRuntimeDependencyContext == context, self.currentProjectEditSession == projectSession,
+                  self.projectRuntimeFactory?.permits(.projectRead) == true,
+                  host.currentBinding() == host.binding,
+                  self.composition.nativeAttributeAuthorConfigurationRevision(context) == issuanceSelectionRevision,
+                  let live = self.composition.nativeAttributeAuthorConfiguration(context), live == issued,
+                  live.matches(context, binding: host.binding) else { return nil }
+            return live
+        }
+        let permits: (NativeAttributeAuthorHostEndpoint) -> Bool = { endpoint in
+            currentConfiguration()?.permits(endpoint, context: context, binding: host.binding) == true
+        }
+        guard let transport = compositionTransport.nativeAttributeAuthorTransport(context: context,
+            approval: issued.approval, currentApproval: { currentConfiguration()?.approval }, currentCapability: permits,
+            credentials: { [weak self, host] in
+                guard currentConfiguration() != nil, let self, let binding = host.currentBinding(), let token = self.token else { return nil }
+                return try? .init(binding: binding, token: token)
+            }) else { return nil }
+        // On S+1 the original42 receipt retires its source and asks for original Project
+        // reload. Do not auto-reload/overwrite an unrelated unsaved original Project draft.
+        let references = host.e16ReferenceReader(transport: transport, endpointAllowed: permits,
+                                                currentAccess: { currentConfiguration() != nil })
+        return host.dependencies(transport: transport, storage: templateAuthoringSecureStorage, references: references,
+                                 conditionCatalogReader: catalog, endpointAllowed: permits, currentAccess: { currentConfiguration() != nil })
+    }
+
+    /// Normal Project entry. Independent author approval enables the current registry;
+    /// without it only the existing projectRead local/published alternatives are offered.
+    var nativeAttributeAuthorProjectFactory: NativeAttributeAuthorProjectFactory {
+        .init(make: { [weak self] model in
+            if let current = self?.nativeAttributeAuthorCurrentDependencies(for: model) { return current }
+            guard let self, let configuration = self.regionalConfiguration?.apiConfiguration,
+                  let captured = self.currentProjectEditSession,
+                  let host = NativeAttributeAuthorProjectHost(model: model, configuration: configuration),
+                  let catalog = self.nativeAttributeConditionCatalogReader(for: model, host: host) else { return nil }
+            return host.localDraftDependencies(storage: self.templateAuthoringSecureStorage, conditionCatalogReader: catalog,
+                currentAccess: { [weak self] in
+                    guard let self else { return false }
+                    return !self.projectConfigurationChanging && self.currentProjectEditSession == captured &&
+                        self.projectRuntimeFactory?.permits(.projectRead) == true
+                })
+        }, published: { [weak self] model in
+            guard let self, let configuration = self.regionalConfiguration?.apiConfiguration,
+                  let captured = self.currentProjectEditSession,
+                  let host = NativeAttributeAuthorProjectHost(model: model, configuration: configuration),
+                  let reader = self.nativeAttributePublishedReader(for: model) else { return nil }
+            return NativeAttributeAuthorPublishedHost(project: host, reader: reader, currentAccess: { [weak self] in
+                guard let self else { return false }
+                return !self.projectConfigurationChanging && self.currentProjectEditSession == captured &&
+                    self.projectRuntimeFactory?.permits(.projectRead) == true
+            })
+        })
+    }
+
+
+    func nativeAttributePublishedReader(for model: ProjectEditModel) -> NativeAttributeAuthorPublishedReader? {
+        guard let source = NativeConditionAuthorProjectReadbackAdapter.Source.capture(model: model),
+              source.session == currentProjectEditSession,
+              projectRuntimeFactory?.permits(.projectRead) == true,
+              let service = projectAuthorDetailHTTPReader(owner: source.owner) else { return nil }
+        return NativeAttributeAuthorPublishedReader(service: service, currentSession: { [weak self, weak model] in
+            guard let self, let model,
+                  let live = NativeConditionAuthorProjectReadbackAdapter.Source.capture(model: model),
+                  live.scope == source.scope, live.owner == source.owner, live.product == source.product,
+                  live.topicID == source.topicID, live.session == self.currentProjectEditSession else { return nil }
+            return live.session
+        })
+    }
+
+    /// Reads the existing owner-private catalog for42 rules.when. The caller retains its
+    /// exact Project host and passes this reader to that host's existing dependencies.
+    func nativeAttributeConditionCatalogReader(for model: ProjectEditModel, host: NativeAttributeAuthorProjectHost) -> NativeAttributeAuthorConditionCatalogReader? {
+        guard let source = NativeConditionAuthorProjectReadbackAdapter.Source.capture(model: model),
+              source.scope == host.scope, host.currentBinding() == host.binding,
+              source.session == currentProjectEditSession,
+              projectRuntimeFactory?.permits(.projectRead) == true,
+              let service = projectAuthorDetailHTTPReader(owner: source.owner) else { return nil }
+        return NativeAttributeAuthorConditionCatalogReader(service: service,
+            currentSession: { [weak self] in self?.currentProjectEditSession },
+            currentSource: { [weak self, weak model, host] in
+                guard let self, let model, self.projectRuntimeFactory?.permits(.projectRead) == true,
+                      let live = NativeConditionAuthorProjectReadbackAdapter.Source.capture(model: model),
+                      live.scope == source.scope, live.owner == source.owner, live.product == source.product,
+                      live.session == self.currentProjectEditSession, host.currentBinding() == host.binding else { return nil }
+                return .init(binding: host.binding, scope: live.scope, baseRevision: model.draft.baseRevision)
+            })
+    }
+
+    func makeProfileFollowListFlow() -> ProfileFollowListFlow {
+        let viewerRevision = compositionViewerRevision
+        guard let context = currentRuntimeDependencyContext,
+              let approval = composition.profileFollowListApproval(context) else { return .init(reader: nil) }
+        let current: () -> RuntimeDependencyContext? = { [weak self] in
+            guard let self, self.compositionViewerRevision == viewerRevision else { return nil }
+            return self.currentRuntimeDependencyContext
+        }
+        let selected: () -> ProfileFollowListApproval? = { [weak self] in
+            guard let self, current() == context else { return nil }
+            return self.composition.profileFollowListApproval(context)
+        }
+        let transport = ProfileFollowListDispatchTransport { [weak self] request in
+            guard let self, current() == context else { throw CancellationError() }
+            return try await self.compositionTransport.sendProfileFollowList(request, context: context,
+                approval: approval, stillApproved: { current() == context && selected() == approval })
+        }
+        let service = try? ProfileFollowListService(context: context, approval: approval, transport: transport,
+            current: current, currentApproval: selected, onUnauthorized: { [weak self] captured in
+                guard let self, current() == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
+            })
+        return .init(reader: service)
+    }
+
+    /// Original owner-private author read only; general project writes keep their existing wrapper.
+    private func projectAuthorDetailHTTPReader(owner: ProjectEditOwner) -> ProjectEditHTTPService? {
+        guard let factory = projectRuntimeFactory, factory.permits(.projectRead),
+              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+        let captured = factory.captured, viewerRevision = compositionViewerRevision, configurationRevision = projectConfigurationRevision
+        return ProjectEditHTTPService(configuration: configuration, transport: factory.client([.projectRead]),
+            owner: owner, approval: factory.approval([.projectRead]), store: projectDraftStore,
+            currentCredentials: { [weak self] in
+                guard let self, !self.projectConfigurationChanging, self.projectConfigurationRevision == configurationRevision,
+                      self.compositionViewerRevision == viewerRevision, self.currentRuntimeDependencyContext == captured,
+                      self.projectRuntimeFactory?.permits(.projectRead) == true,
+                      let session = self.currentProjectEditSession, let token = self.token else { return nil }
+                return try? ProjectEditCredentials(session: session, token: token)
+            })
+    }
+
     private func projectEditorService(owner: ProjectEditOwner) -> any ProjectEditServing {
         let service: any ProjectEditServing
         if let factory = projectRuntimeFactory, factory.permits(.projectRead), let configuration = regionalConfiguration?.apiConfiguration {
@@ -4218,6 +4482,42 @@ final class AppSession: ObservableObject {
                                      approval: @escaping () -> WithdrawalSupportApproval? = { nil }) -> WithdrawalSupportReader {
         WithdrawalSupportReader(source: source, approval: approval, session: { [weak self] in self?.walletCommerceScope })
     }
+    // W18.7 creator-owned read routes only; server qualification/payment approval remains independent.
+    private var currentModSettlementReadSession: ModSettlementReadSession? {
+        guard let context = currentRuntimeDependencyContext else { return nil }
+        return ModSettlementReadSession(context: context, viewerRevision: compositionViewerRevision)
+    }
+    func makeModSettlementReader() -> ModSettlementReader {
+        ModSettlementReader(configuration: regionalConfiguration?.apiConfiguration, transport: runtimeHTTPTransport,
+            current: { [weak self] in self?.currentModSettlementReadSession },
+            onUnauthorized: { [weak self] captured in
+                guard let self, self.currentModSettlementReadSession == captured else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: captured.context.session.epoch,
+                                      credential: captured.context.session.token)
+            })
+    }
+
+    @Published var merchantDeskAnchorAcceptanceSelector:(RuntimeDependencyContext)->MerchantDeskAnchorAcceptance? = { _ in nil }
+    func makeMerchantDeskAnchorFlow(access:MerchantBusinessAccess)->MerchantDeskAnchorFlow? {
+        guard let service=merchantBusinessService,let session=currentMerchantBusinessSession,
+              let context=currentRuntimeDependencyContext else{return nil}
+        let viewer=compositionViewerRevision;let acceptance=merchantDeskAnchorAcceptanceSelector(context)
+        let current:()->Bool = { [weak self] in
+            guard let self else{return false}
+            return self.currentRuntimeDependencyContext==context && self.compositionViewerRevision==viewer
+                && self.merchantDeskAnchorAcceptanceSelector(context)==acceptance
+        }
+        let scoped=compositionTransport.scopedForMerchantDeskAnchor(acceptance:acceptance,stillCurrent:current)
+        return MerchantDeskAnchorFlow(service:service,transport:scoped,journal:merchantBusinessJournal,
+            scope:.init(realm:service.realm,accountID:session.accountID,epoch:session.epoch),access:access,
+            token:{current() ? session.token:nil},current:current,
+            approved:{current() && acceptance?.context==context && acceptance?.configureExistingStore==true},
+            unauthorized:{ [weak self] in
+                guard let self,self.currentMerchantBusinessSession==session else{return}
+                self.expireIfMatching(error:APIError.unauthorized,stamp:session.epoch,credential:self.token)
+            })
+    }
+
     func makeWalletCommerceReader(readApproval: OperationEndpointApproval? = nil,
                                   transport: (any HTTPTransport)? = nil) -> WalletCommerceReader {
         let transport = scopedTransport(transport)

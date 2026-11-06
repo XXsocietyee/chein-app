@@ -14,7 +14,7 @@ import FoundationNetworking
             requests.append(request); onSend?(); return response
         }
     }
-    final class Fixture {
+    @MainActor final class Fixture {
         let wire = Wire(), access = ClubGovernanceFixtureAccess()
         let scope = ClubGovernanceScope(clubID: 81, topicID: 91)
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -139,7 +139,7 @@ import FoundationNetworking
             XCTAssertEqual(f.wire.requests.count, 1); XCTAssertTrue(f.access.sent.isEmpty)
         }
     }
-    func testUnknownCannotCarrySuccessAndChangedWireCannotPass() throws {
+    func testUnknownCannotCarrySuccessAndChangedWireCannotPass() async throws {
         let f = try fixture(), original = try f.original()
         var unknown = f.unknown(); unknown["series"] = .object(["id": .integer(100)])
         XCTAssertThrowsError(try ClubSeriesOriginalReceipt.decode(.object(unknown), original: original))
@@ -149,7 +149,7 @@ import FoundationNetworking
         applied = try f.applied(); applied["occurrences"] = .array([])
         XCTAssertThrowsError(try ClubSeriesOriginalReceipt.decode(.object(applied), original: original))
     }
-    func testUnicodeEquivalentButDifferentOriginalBytesAreRejected() throws {
+    func testUnicodeEquivalentButDifferentOriginalBytesAreRejected() async throws {
         let f = try fixture(), decomposed = try f.original(id: "e\u{0301}")
         var value = try f.applied(), wire = value["wire"]!.object!, series = value["series"]!.object!
         value["requestId"] = .string("e\u{0301}"); series["requestId"] = value["requestId"]; value["series"] = .object(series)

@@ -22,7 +22,7 @@ import Observation
     private var selected: [ProfileCurrentMediaKind: ProfileSavedMediaReadApproval] = [:]
     private var used: Set<UUID> = []
     private var clients: [WeakClient] = []
-    private var expirationTasks: [ProfileCurrentMediaKind: Task<Void, Never>] = [:]
+    @ObservationIgnored private var expirationTasks: [ProfileCurrentMediaKind: Task<Void, Never>] = [:]
     private(set) var revision = UUID()
     deinit { expirationTasks.values.forEach { $0.cancel() } }
     func replace(_ kind: ProfileCurrentMediaKind, with value: ProfileSavedMediaReadApproval?) throws {

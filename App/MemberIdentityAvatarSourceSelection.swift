@@ -9,7 +9,7 @@ import Observation
 @MainActor @Observable final class MemberIdentityAvatarSourceSelection {
     private var selected: MemberIdentityAvatarApproval?
     private var used: Set<UUID> = []
-    private var timer: Task<Void, Never>?
+    @ObservationIgnored private var timer: Task<Void, Never>?
     deinit { timer?.cancel() }
     func replace(with value: MemberIdentityAvatarApproval?) throws {
         if let value {

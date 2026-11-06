@@ -329,6 +329,7 @@ struct SessionRootView: View {
         .onChange(of: personalShareScenePhase, initial: true) { _, phase in
             session.personalLocationShareHost.sceneChanged(phase)
         }
+        .environment(\.nativeAttributeAuthorProjectFactory, session.nativeAttributeAuthorProjectFactory)
         .environment(\.projectCategoryReader, session)
             .environment(\.projectNodePlaceReader, session.searchMapReader)
         .environment(\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)

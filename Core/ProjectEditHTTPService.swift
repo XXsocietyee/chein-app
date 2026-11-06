@@ -3,6 +3,15 @@ import Foundation
 import FoundationNetworking
 #endif
 
+/// Ephemeral original owner-private detail; never a write receipt or persisted wholesale.
+public struct ProjectEditAuthorDetailReadback {
+    public let server: URL
+    public let session: ProjectEditSession
+    public let owner: ProjectEditOwner
+    public let snapshot: ProjectEditSnapshot
+    public let raw: Data
+}
+
 public struct ProjectEditCredentials: Equatable {
     public let session: ProjectEditSession
     fileprivate let token: String
@@ -13,13 +22,15 @@ public struct ProjectEditCredentials: Equatable {
 }
 /// Original four project writers through the source-backed exact-request producer.
 /// Historical local-only UUIDs never become server receipts or automatic retries.
-@MainActor public final class ProjectEditHTTPService: ProjectEditServing {
+@MainActor public final class ProjectEditHTTPService: ProjectEditServing, H5AuthorSelfUseEditorReading {
     private let configuration: APIConfiguration
     private let transport: any HTTPTransport
     private let owner: ProjectEditOwner
     private let approval: OperationEndpointApproval?
     private let store: ProjectEditLocalStore?
     private let currentCredentials: () -> ProjectEditCredentials?
+    public let selfUseEditorAuthority: H5AuthorSelfUseEditorAuthority?
+    private let selfUseAuthorityCheck: ((H5AuthorSelfUseEditorAuthority) async throws -> Void)?
     private func allows(_ path: String) -> Bool {
         guard let approval, let credentials = currentCredentials(), store != nil else { return false }
         return approval.allows(configuration: configuration, namespace: credentials.session.storageNamespace, accountID: credentials.session.accountID, path: path)
@@ -30,24 +41,55 @@ public struct ProjectEditCredentials: Equatable {
     public var authority: ProjectEditServiceAuthority { supportsRequestRetry ? .approved : .readOnly }
 
     public init(configuration: APIConfiguration, transport: any HTTPTransport, owner: ProjectEditOwner,
-                approval: OperationEndpointApproval? = nil, store: ProjectEditLocalStore? = nil, currentCredentials: @escaping () -> ProjectEditCredentials?) {
+                approval: OperationEndpointApproval? = nil, store: ProjectEditLocalStore? = nil,
+                selfUseEditorAuthority: H5AuthorSelfUseEditorAuthority? = nil,
+                selfUseAuthorityCheck: ((H5AuthorSelfUseEditorAuthority) async throws -> Void)? = nil,
+                currentCredentials: @escaping () -> ProjectEditCredentials?) {
         self.configuration = configuration; self.transport = transport; self.owner = owner
         self.approval = approval; self.store = store; self.currentCredentials = currentCredentials
+        self.selfUseEditorAuthority = selfUseEditorAuthority; self.selfUseAuthorityCheck = selfUseAuthorityCheck
     }
     private func check(_ credentials: ProjectEditCredentials) throws {
         try Task.checkCancellation()
         guard currentCredentials() == credentials else { throw ProjectEditError.changedSession }
+    }
+
+    private func checkSelfUseAuthority(topicID: Int, credentials: ProjectEditCredentials) async throws {
+        guard let authority = selfUseEditorAuthority else { return }
+        guard owner == .personal, Int(exactly: authority.topicId) == topicID,
+              Int(exactly: authority.authorId) == credentials.session.accountID,
+              let selfUseAuthorityCheck else { throw ProjectEditError.notConfigured }
+        try await selfUseAuthorityCheck(authority)
+        try check(credentials)
+    }
+
+    /// Reuse the original owner-private read and full-scope authority checks.
+    public func readOriginalAuthorDetail(topicID: Int, session: ProjectEditSession) async throws -> ProjectEditAuthorDetailReadback {
+        guard topicID > 0, let credentials = currentCredentials(), credentials.session == session else {
+            throw ProjectEditError.changedSession
+        }
+        try check(credentials)
+        try await checkSelfUseAuthority(topicID: topicID, credentials: credentials)
+        let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/topic/edit-detail"),
+            fields: ["id": String(topicID), "scope": owner.rawValue], token: credentials.token)
+        let (data, status) = try await transport.send(request)
+        try check(credentials)
+        try Self.validateRead(data, status: status)
+        let snapshot = try ProjectEditContract.decodeEditDetail(data, expectedTopicID: topicID, owner: owner)
+        if let authority = selfUseEditorAuthority {
+            try authority.validateOriginalDetail(data, session: session)
+            guard snapshot.scope == .full else { throw ProjectEditError.invalidContract }
+            try await checkSelfUseAuthority(topicID: topicID, credentials: credentials)
+        }
+        return .init(server: configuration.baseURL, session: session, owner: owner, snapshot: snapshot, raw: data)
     }
     public func preflight(topicID: Int?, session: ProjectEditSession) async throws -> ProjectEditPreflight {
         guard let credentials = currentCredentials(), credentials.session == session else { throw ProjectEditError.changedSession }
         try check(credentials)
         if let topicID {
             guard topicID > 0 else { throw ProjectEditError.invalidContract }
-            let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/topic/edit-detail"), fields: ["id": String(topicID), "scope": owner.rawValue], token: credentials.token)
-            let (data, status) = try await transport.send(request); try check(credentials)
-            try Self.validateRead(data, status: status)
-            let snapshot = try ProjectEditContract.decodeEditDetail(data, expectedTopicID: topicID, owner: owner)
-            return .init(capability: .init(canProPublish: false, remaining: nil), snapshot: snapshot)
+            let readback = try await readOriginalAuthorDetail(topicID: topicID, session: session)
+            return .init(capability: .init(canProPublish: false, remaining: nil), snapshot: readback.snapshot)
         }
         let request = try OperationAdapterHTTP.json(configuration: configuration, path: "api/publish/home", body: Data("{}".utf8), token: credentials.token)
         let (data, status) = try await transport.send(request); try check(credentials)
@@ -110,6 +152,7 @@ public struct ProjectEditCredentials: Equatable {
             try store.savePending(dispatched, session: session)
         } catch { return .notSent }
         do {
+            if let topicID = operation.identity.topicID { try await checkSelfUseAuthority(topicID: topicID, credentials: credentials) }
             // Saving may invoke a provider callback. Recheck the exact durable command
             // and current owner immediately before dispatch; never downgrade its marker.
             try check(credentials)

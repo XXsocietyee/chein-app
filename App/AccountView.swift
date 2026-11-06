@@ -41,6 +41,14 @@ import SwiftUI
                     WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
                     WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
                         .environment(\.workshopGeneratedTemplateReaderFactory, { session.makeOwnedMemberTemplateReader() })
+                    WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() },
+                        makeInstallationPair: { reference in
+                            guard let pair = session.makeModInstallationWithOriginalReader(reference: reference) else { return nil }
+                            return (pair.controller, pair.originalReader)
+                        })
+                    NavigationLink { WorkshopLicenseLibraryView() } label: {
+                        Label { Text("workshopCommerce.library.title", tableName: "WorkshopCommerce") } icon: { Image(systemName: "checkmark.seal") }
+                    }.accessibilityIdentifier("account.workshopLicenses")
                     OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
                     NavigationLink { ProjectEditLaunchView().id(session.sessionRevision) } label: {
                         Label("projectEdit.title", systemImage: "square.and.pencil")
@@ -56,6 +64,7 @@ import SwiftUI
                     NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope) } label: {
                         Label("wallet.title", systemImage: "wallet.pass")
                     }.accessibilityIdentifier("account.wallet")
+                    ModSettlementAccountLink(makeReader: { session.makeModSettlementReader() })
                 }
                 Section("account.section.collection") {
                     NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
@@ -74,6 +83,7 @@ import SwiftUI
                     }.id(session.socialAccountReader.identity) } label: {
                         Label("social.profile", systemImage: "person.crop.rectangle")
                     }.accessibilityIdentifier("account.publicProfile")
+                    ProfileFollowListAccountEntry(session: session)
                     NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders) } label: {
                         Label("profile.edit.title",systemImage:"pencil")
                     }.accessibilityIdentifier("account.editProfile")
@@ -121,7 +131,7 @@ import SwiftUI
                     NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
                         Label("merchant.projects", systemImage: "calendar")
                     }.accessibilityIdentifier("account.merchantProjectBrowse")
-                    NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }) } label: {
+                    NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) }) } label: {
                         Label("merchant.title",systemImage:"storefront")
                     }.accessibilityIdentifier("account.merchant")
                     if merchantRootModeSwitch.isAvailable {

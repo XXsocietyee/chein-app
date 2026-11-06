@@ -14,7 +14,7 @@ import FoundationNetworking
             requests.append(request); afterDispatch?(); return response
         }
     }
-    final class Fixture {
+    @MainActor final class Fixture {
         let context: RuntimeDependencyContext
         let wire = Wire()
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
@@ -69,7 +69,7 @@ import FoundationNetworking
         f.wire.response = (try f.envelope(data: f.receipt(entry, terminal: false)), 200)
         let result = try await f.service.receipt(entry)
         XCTAssertFalse(result.isTerminal); XCTAssertEqual(try f.journal.read(f.context, clubID: 7).first?.outcome, "UNKNOWN")
-        XCTAssertEqual(f.wire.requests.map { $0.url?.path }, ["/api/club/badge/original-receipt"])
+        XCTAssertEqual(f.wire.requests.map { $0.url?.path }, [f.context.baseURL.appendingPathComponent("api/club/badge/original-receipt").path])
     }
     func testOnlyExactTerminalReceiptCanSettleOriginalJournal() async throws {
         let f = try Fixture(), entry = try f.entry(); try f.journal.reserve(entry, context: f.context)

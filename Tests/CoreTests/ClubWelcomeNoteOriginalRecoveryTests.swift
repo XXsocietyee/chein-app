@@ -47,7 +47,7 @@ import FoundationNetworking
             writes += 1; throw APIError.invalidRequest
         }
     }
-    private final class Fixture {
+    @MainActor private final class Fixture {
         let base = URL(string: "https://example.test/native")!
         let directory = FileManager.default.temporaryDirectory.appendingPathComponent("welcome-test-" + UUID().uuidString)
         let pending = Pending(), write = Dispatch(), read = Dispatch(), access = Access()

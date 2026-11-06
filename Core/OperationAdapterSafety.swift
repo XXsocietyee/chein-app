@@ -22,12 +22,23 @@ public struct OperationEndpointApproval: Equatable {
 
 /// Local replay lock only. There is no server operation ID, receipt endpoint or retry key.
 public struct OperationPendingRecord: Codable, Equatable {
+    /// Old null slots remain readable; non-null retired payloads stay rejected and retained.
+    public enum RetiredPayload: Codable, Equatable {
+        public init(from decoder: Decoder) throws {
+            throw DecodingError.dataCorrupted(.init(codingPath: decoder.codingPath, debugDescription: "This legacy operation payload is not supported."))
+        }
+        public func encode(to encoder: Encoder) throws { switch self {} }
+    }
     public let operationID: UUID
     public let ownerKey: String
     public let targetKey: String
     public var acknowledgedSteps: Int
     /// Original N006 metadata only; never a token, complete URL or one-time credential.
     public var nativeWebhook: NativeWebhookPendingMetadata?
+    public var merchantNPCSave: RetiredPayload?
+    public var themeItemUse: RetiredPayload?
+    public var sideQuestPlayer: RetiredPayload?
+    public var merchantSideQuestPublishing: RetiredPayload?
     public init(operationID: UUID = UUID(), ownerKey: String, targetKey: String, acknowledgedSteps: Int = 0) {
         self.operationID = operationID; self.ownerKey = ownerKey; self.targetKey = targetKey; self.acknowledgedSteps = acknowledgedSteps
     }

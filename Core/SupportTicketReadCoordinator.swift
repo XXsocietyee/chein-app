@@ -13,9 +13,15 @@ public struct SupportTicketReadIntent { fileprivate let owner: SupportTicketRead
     private var selected: SupportTicketReadTicket?
     private var texts: [SupportTicketReadMessage] = []
     private var history: [SupportTicketReadEvent] = []
-    private var listCursor: Int64 = 0, messageCursor: Int64 = 0, eventCursor: Int64 = 0
-    private var listMore = false, messageMore = false, eventMore = false
-    private var didLoad = false, eventsLoaded = false, running = false
+    private var listCursor: Int64 = 0
+    private var messageCursor: Int64 = 0
+    private var eventCursor: Int64 = 0
+    private var listMore = false
+    private var messageMore = false
+    private var eventMore = false
+    private var didLoad = false
+    private var eventsLoaded = false
+    private var running = false
     private var problem: SupportTicketReadFailure?
     public init(reader: SupportTicketReadReader) { self.reader = reader }
     public var isCurrent: Bool { active && reader.isCurrent }

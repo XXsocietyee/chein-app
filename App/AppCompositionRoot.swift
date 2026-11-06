@@ -76,7 +76,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let tokenStore: (RegionalSessionStorageScope?) -> any AppTokenStorage
     let privateHomeKeychain: (any PrivateHomeKeychainPrimitive)?
     let playRecovery: PlayRecoveryConstruction
-    let invoiceJournal: (RegionalSessionStorageScope) -> any InvoiceLaunchStorage
+    let invoiceJournal: @MainActor (RegionalSessionStorageScope) -> any InvoiceLaunchStorage
 #if DEBUG
     /// Explicit fixture-only override. Ordinary and Release composition keep system storage.
     var syntheticWorkshopCreatorPendingRecoveryStorage: (any TemplateAuthoringStorage)? = nil
@@ -85,7 +85,7 @@ extension KeychainTokenStore: AppTokenStorage {}
          tokenStore: @escaping (RegionalSessionStorageScope?) -> any AppTokenStorage = { KeychainTokenStore(scope: $0) },
          privateHomeKeychain: (any PrivateHomeKeychainPrimitive)? = nil,
          playRecovery: PlayRecoveryConstruction = .system,
-         invoiceJournal: @escaping (RegionalSessionStorageScope) -> any InvoiceLaunchStorage = { TemplateAuthoringSecureStorage(scope: $0) }) {
+         invoiceJournal: @escaping @MainActor (RegionalSessionStorageScope) -> any InvoiceLaunchStorage = { TemplateAuthoringSecureStorage(scope: $0) }) {
         self.defaults = defaults; self.tokenStore = tokenStore; self.privateHomeKeychain = privateHomeKeychain
         self.playRecovery = playRecovery; self.invoiceJournal = invoiceJournal
     }
@@ -97,6 +97,9 @@ extension KeychainTokenStore: AppTokenStorage {}
 }
 
 @MainActor struct AppCompositionRoot {
+    var nativeAttributeAuthorConfiguration: @MainActor (RuntimeDependencyContext) -> NativeAttributeAuthorRuntimeConfiguration? = { _ in nil }
+    var nativeAttributeAuthorConfigurationRevision: @MainActor (RuntimeDependencyContext) -> UInt64? = { _ in nil }
+    var profileFollowListApproval: @MainActor (RuntimeDependencyContext) -> ProfileFollowListApproval? = { _ in nil }
     /// Default empty. No deployment, login or another read grant issues this source.
     let officialPublicEventReadSelection = OfficialPublicEventReadSelection()
     // Proposed read-only wiring. No grant is issued by shipped composition.
@@ -1341,6 +1344,59 @@ extension KeychainTokenStore: AppTokenStorage {}
         return result
     }
 
+    func nativeAttributeAuthorTransport(context: RuntimeDependencyContext,
+        approval: OperationEndpointApproval?,
+        currentApproval: @escaping () -> OperationEndpointApproval?,
+        currentCapability: @escaping (NativeAttributeAuthorHostEndpoint) -> Bool,
+        credentials: @escaping () -> NativeAttributeAuthorHostCredentials?) -> NativeAttributeAuthorHostTransport? {
+        guard let viewer = current(), channelMessageContextMatches(context, viewer: viewer),
+              let api = deployment?.regional.apiConfiguration else { return nil }
+        return NativeAttributeAuthorHostTransport(configuration: api, approval: approval,
+            currentApproval: currentApproval, currentCapability: currentCapability,
+            credentials: {
+                guard let value = credentials(), value.binding.accountID == Int64(context.session.accountID),
+                      value.binding.epoch == context.session.epoch,
+                      value.binding.namespace.utf8.elementsEqual(context.session.namespace.utf8) else { return nil }
+                return value
+            }, dispatch: { [weak self] request, finalCheck in
+                guard let self, self.current() == viewer, self.channelMessageContextMatches(context, viewer: viewer),
+                      request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(context.session.token.utf8) == true else {
+                    throw NativeAttributeAuthorError.staleSource
+                }
+                try Task.checkCancellation()
+                try finalCheck() // After every wrapper suspension and immediately before original wire.
+                let result = try await self.underlying.send(request)
+                guard self.current() == viewer, self.channelMessageContextMatches(context, viewer: viewer), !Task.isCancelled else {
+                    throw NativeAttributeAuthorError.staleSource
+                }
+                return result
+            })
+    }
+
+
+    func sendProfileFollowList(_ request: URLRequest, context: RuntimeDependencyContext,
+                               approval: ProfileFollowListApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
+        guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
+              deployment.regional.market == context.market,
+              deployment.storageScope.service == context.session.namespace,
+              let captured = current(), captured.isSignedInContentViewer,
+              captured.accountID == context.session.accountID,
+              captured.epoch == context.session.epoch, captured.role == context.role,
+              captured.token.map({ Data($0.utf8) }) == Data(context.session.token.utf8),
+              stillApproved(), ProfileFollowListTransportPolicy.accepts(request, context: context, approval: approval) else {
+            throw APIError.notConfigured
+        }
+        try Task.checkCancellation()
+        do {
+            let result = try await underlying.send(request)
+            guard current() == captured, stillApproved(), !Task.isCancelled else { throw CancellationError() }
+            return result
+        } catch {
+            guard current() == captured, stillApproved(), !Task.isCancelled else { throw CancellationError() }
+            throw error
+        }
+    }
+
     func sendNativeFriendDirectory(_ request: URLRequest, context: RuntimeDependencyContext,
                           approval: NativeFriendDirectoryApproval, stillApproved: () -> Bool) async throws -> (Data, Int) {
         guard let deployment, deployment.regional.apiConfiguration?.baseURL == context.baseURL,
@@ -1522,6 +1578,26 @@ extension KeychainTokenStore: AppTokenStorage {}
             }, viewer: currentViewer, selected: selectedSource)
     }
     /// Replacing only the network/recorder adapter must preserve every approval selector.
+    private var merchantDeskAnchorOnly=false
+    private var merchantDeskAnchorScope:(viewer:SessionIdentity,acceptance:MerchantDeskAnchorAcceptance,current:()->Bool)?
+    func scopedForMerchantDeskAnchor(acceptance:MerchantDeskAnchorAcceptance?,stillCurrent:@escaping ()->Bool)->CompositionHTTPTransport {
+        let scoped=copy(underlying:underlying,manualMapSelection:manualMapSelection)
+        scoped.merchantDeskAnchorOnly=true;scoped.merchantDeskAnchorScope=nil
+        if let viewer=current(),let acceptance{scoped.merchantDeskAnchorScope=(viewer,acceptance,stillCurrent)}
+        return scoped
+    }
+    private func sendMerchantDeskAnchor(_ request:URLRequest,
+        scope:(viewer:SessionIdentity,acceptance:MerchantDeskAnchorAcceptance,current:()->Bool))async throws->(Data,Int) {
+        guard let deployment,let api=deployment.regional.apiConfiguration,current()==scope.viewer,scope.current(),
+              scope.viewer.isSignedInContentViewer,let account=scope.viewer.accountID,let token=scope.viewer.token,let role=scope.viewer.role,
+              let session=try? PlayExperienceSession(accountID:account,epoch:scope.viewer.epoch,namespace:deployment.storageScope.service,token:token) else{throw APIError.notConfigured}
+        let actual=RuntimeDependencyContext(market:deployment.regional.market,baseURL:api.baseURL,role:role,session:session)
+        guard actual==scope.acceptance.context,scope.acceptance.permits(request,transport:self) else{throw APIError.notConfigured}
+        try Task.checkCancellation();let result=try await underlying.send(request)
+        guard current()==scope.viewer,scope.current() else{throw CancellationError()}
+        return result
+    }
+
     func replacingUnderlying(_ underlying: any HTTPTransport) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: manualMapSelection)
     }
@@ -1558,6 +1634,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.publicMerchantHomeScope = publicMerchantHomeScope
         transport.nearbyMerchantScope = nearbyMerchantScope
         transport.nearbyMerchantOnly = nearbyMerchantOnly
+        transport.merchantDeskAnchorOnly = merchantDeskAnchorOnly
+        transport.merchantDeskAnchorScope = merchantDeskAnchorScope
         transport.merchantOverviewOnly = merchantOverviewOnly
         transport.merchantOverviewScope = merchantOverviewScope
         transport.merchantPredictionOnly = merchantPredictionOnly
@@ -2281,6 +2359,10 @@ extension KeychainTokenStore: AppTokenStorage {}
 
 
     func send(_ request: URLRequest) async throws -> (Data, Int) {
+        if merchantDeskAnchorOnly {
+            guard let scope = merchantDeskAnchorScope else { throw APIError.notConfigured }
+            return try await sendMerchantDeskAnchor(request, scope: scope)
+        }
         guard let deployment, let api = deployment.regional.apiConfiguration,
               let url = request.url, url.fragment == nil else { throw APIError.notConfigured }
         let merchantGamePlayer = MerchantGamePlayerReadRoute(request: request, baseURL: api.baseURL)

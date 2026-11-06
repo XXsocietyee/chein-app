@@ -293,6 +293,7 @@ import SwiftUI
 }
 
 @MainActor struct MerchantBusinessHomeView: View {
+    @Environment(\.merchantAnchorDestination) private var merchantAnchorDestination
     @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     let reader: any MerchantBusinessReading
     let journal: any MerchantBusinessIntentStore
@@ -319,6 +320,10 @@ import SwiftUI
                     MerchantOperatorSelfRoleCard(access: access)
                 }
                 Section("merchant.business.workspace") {
+                    if access.allows("merchant:basic:read") {
+                        NavigationLink(value: MerchantBusinessHomeRoute(target: .anchor, reader: reader, journal: journal, anchorAccess: access)) { Text("merchant.desk.anchor.title", tableName: "MerchantDeskSkuSupply") }
+                            .accessibilityIdentifier("merchant.desk.anchor.entry")
+                    }
                     ForEach(destinations, id: \.self) { query in
                         if (try? access.require(query.permissions)) != nil {
                             NavigationLink(value: MerchantBusinessHomeRoute(target: .query(query), reader: reader, journal: journal)) { Label(LocalizedStringKey(query.titleKey), systemImage: symbol(query)) }
@@ -358,6 +363,9 @@ import SwiftUI
                     else { MerchantScanPreviewView() }
                 case .cityNode: CityNodeRedeemView(reader: route.reader, journal: route.journal)
                 case .cityArrival(let merchantID): SessionCityArrivalMerchantView(merchantID: merchantID)
+                case .anchor:
+                    if let access = route.anchorAccess, let anchor = merchantAnchorDestination(access) { anchor }
+                    else { MerchantAnchorReadRecoveryPresentation(state: "notConfigured", busy: false) }
                 }
             } else { Text("merchant.business.stale") }
         }

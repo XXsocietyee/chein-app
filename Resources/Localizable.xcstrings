@@ -215375,13 +215375,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sales open at this price, and the partner lineup and settlement terms lock."
+            "value" : "Confirm this final price. Sales require review approval."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此终价将开售，合作阵容和结算条款锁定。"
+            "value" : "确认此终价，开售前还需通过审核。"
           }
         }
       }
@@ -215392,13 +215392,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confirm opening sales"
+            "value" : "Confirm final price"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "确认开售"
+            "value" : "确认终价"
           }
         }
       }

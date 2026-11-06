@@ -5,7 +5,8 @@ import Observation
 @MainActor @Observable final class MemberIdentityCardReadOwner {
     struct Run: Equatable { let revision: UUID, scope: UUID, started: ContinuousClock.Instant }
     private var run: Run?
-    private var mounted = false, active = false
+    private var mounted = false
+    private var active = false
     func appear(active: Bool) { mounted = true; self.active = active }
     func scene(active: Bool) { self.active = mounted && active; if !self.active { invalidate() } }
     func disappear() { mounted = false; active = false; invalidate() }

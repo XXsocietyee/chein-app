@@ -47,7 +47,7 @@ private final class OriginalRequestTransport: HTTPTransport {
         let paths = [ActivityCreateRequestContract.submitPath, ActivityCreateRequestContract.readPath, ActivityCreateRequestContract.resumePath,
                      ProjectStateRequestContract.contextPath, ProjectStateRequestContract.submitPath, ProjectStateRequestContract.readPath,
                      "api/activity/publish", "api/topic/delete", "api/topic/update_user_status"]
-        let approval = try OperationEndpointApproval(baseURL: config.baseURL, namespace: s.namespace, accountID: s.accountID, paths: paths)
+        let approval = try OperationEndpointApproval(baseURL: config.baseURL, namespace: s.namespace, accountID: s.accountID, paths: Set(paths))
         let credentials = try PublishingCredentials(session: s, token: "synthetic-token")
         return PublishingService(configuration: config, transport: transport, approval: write ? approval : nil, journal: journal,
             activityReceiptApproval: approval, activityRequestStore: store, credentials: { credentials })

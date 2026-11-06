@@ -16,7 +16,9 @@ import Observation
     public private(set) var busy = false
     public private(set) var messageKey = "cityAcquire.status.initial"
     public private(set) var activityID = UUID()
-    private var active = true, accessBlocked = false, journalFailed = false
+    private var active = true
+    private var accessBlocked = false
+    private var journalFailed = false
     private let service: CityAcquisitionService?
     private let journal: (any OperationPendingJournal)?
     private let unauthorized: () -> Void

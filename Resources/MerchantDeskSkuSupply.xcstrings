@@ -1,0 +1,1612 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "merchant.desk.sku.originalPriceOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit existing SKU supply only. Displayed prices are reference values; saving preserves the current server prices and does not list or sell the product."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅编辑既有 SKU 供给。所示价格仅供参考，保存保留服务端当前价格，不上架或售卖商品。"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Product review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品版本审核"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submission is not approval or publication. Only the original platform reviewer can decide; unconfirmed qualifications remain unconfirmed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交不等于批准或上架。仅原平台有权审核者可决定，专项资质未确认时保持未确认。"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.recover": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original submission result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读原提交结果"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result is unconfirmed. Keep the original request and read it again; do not resubmit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未确认，请保留原请求回读，不重复提交。"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.submitted %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original submission accepted at revision %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原提交已受理，版本 %lld"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.version %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current revision %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前版本 %lld"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.submit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit this product revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交当前商品版本审核"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current review result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读当前审核结果"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit the current saved product and SKU version for review? This does not publish it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交当前已保存商品与 SKU 版本审核？此操作不上架。"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.state.UNVERIFIED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review source not yet confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "审核来源尚未确认"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.state.DRAFT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft / revised"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿／已修订"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.state.PENDING_REVIEW": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for platform review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待平台审核"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.state.APPROVED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original current revision approved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原当前版本审核通过"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.state.REJECTED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected; read the original reason"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已驳回，请查看原原因"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.state.OFF_SHELF": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Off shelf"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已下架"
+          }
+        }
+      }
+    },
+    "merchant.desk.review.legacy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原目录状态未验证；新版本审核尚未启用，不据此称已批准。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original catalog status is unverified. Review of the new revision is not yet enabled; this does not indicate approval."
+          }
+        }
+      }
+    },
+    "merchant.desk.review.qualification.ready": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原资格当前已确认；不替代商品版本审核。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original qualification is currently confirmed. This does not replace review of the product revision."
+          }
+        }
+      }
+    },
+    "merchant.desk.review.qualification.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原资格未确认或已失效；不能据历史审核称当前可公开。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original qualification is unconfirmed or no longer valid. A past approval does not establish current eligibility for publication."
+          }
+        }
+      }
+    },
+    "merchant.desk.review.public.available": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端确认当前商品与资格同版本可公开。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server confirms that publication is allowed for the current product revision and its associated qualification revision."
+          }
+        }
+      }
+    },
+    "merchant.desk.review.public.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前不能确认同版本公开有效；历史提交回执仍保留。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Publication eligibility for the current product and qualification revisions cannot be confirmed. Past submission receipts are retained."
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店核销锚点配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store redemption anchor settings"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.boundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅配置地图锚点，不验证到店、不启用核销或发奖。门店坐标仅供定位，须人工点选并确认。保留原 WiFi 配置，不扫描设备。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Configure the map anchor only. This does not verify a store visit, enable redemption, or issue rewards. Store coordinates are for locating the store only; manually select and confirm the anchor. Existing Wi-Fi settings are preserved; no devices are scanned."
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.recover": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读原锚点保存请求"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the original anchor save request"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未确认，保留原请求；不自动重发。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is unconfirmed. Keep the original request; it will not be resent automatically."
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.accepted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存请求已受理；当前配置另行回读，不代表核销资格。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save request was accepted. Check the current settings separately; acceptance does not establish redemption eligibility."
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.version %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置版本 %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current settings revision %lld"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.wifi %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留原 WiFi 配置数 %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Existing Wi-Fi entries preserved: %lld"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.store": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原门店位置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original store location"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.saved": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前保存锚点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Currently saved anchor"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.selected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "人工选定锚点"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manually selected anchor"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.radius %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锚点半径 %lld 米"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anchor radius: %lld meters"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.attest": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核对真实门店并明确确认此人工选点，不将地图反查当到店证据"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have checked the actual store and explicitly confirm this manually selected location. I will not treat a map lookup as proof of a store visit."
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.save": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认保存原锚点配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and save the original anchor settings"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.missingStore": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原门店位置缺失，先通过原门店资料入口补齐；不生成或代填坐标。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original store location is missing. Add it through the original store details entry first; coordinates will not be generated or filled in for you."
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.refresh": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新原配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh the original settings"
+          }
+        }
+      }
+    },
+    "merchant.desk.anchor.confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存人工选择的位置及半径，保留既有 WiFi。此操作不执行核销。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save the manually selected location and radius, preserving existing Wi-Fi settings. This does not perform redemption."
+          }
+        }
+      }
+    },
+    "merchant.evidence.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销复核与补充说明"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redemption review and additional information"
+          }
+        }
+      }
+    },
+    "merchant.evidence.boundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅向原待复核单补充说明或已确认的本单私密图片，不执行核销、发奖或改变裁决。图片上传与原补证提交是两次明确确认。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only add information or confirmed private images for this case to the original pending review. This does not perform redemption, issue rewards, or change the decision. Image upload and submission of additional evidence each require separate explicit confirmation."
+          }
+        }
+      }
+    },
+    "merchant.evidence.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原复核入口或权限未配置"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original review entry point or permissions are not configured"
+          }
+        }
+      }
+    },
+    "merchant.evidence.recover": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读原补证请求"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the original additional-evidence request"
+          }
+        }
+      }
+    },
+    "merchant.evidence.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补证结果未确认，保留原请求，不自动重发。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The additional-evidence result is unconfirmed. Keep the original request; it will not be resent automatically."
+          }
+        }
+      }
+    },
+    "merchant.evidence.accepted": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原补证已受理；下方是原单当前裁决，不代表补证已获认可。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original additional-evidence submission was accepted for processing. The current decision on the original case appears below; this does not mean the evidence has been approved."
+          }
+        }
+      }
+    },
+    "merchant.evidence.review %lld": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原复核单 %lld"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original review case %lld"
+          }
+        }
+      }
+    },
+    "merchant.evidence.originalAttachments": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原单已有附件记录。仅对本单私密图片逐请求授权读取，不猜测其他旧附件地址。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original case has attachment records. Access to private images for this case requires authorization for each request; other existing attachment addresses will not be guessed."
+          }
+        }
+      }
+    },
+    "merchant.evidence.noteLimit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "说明最多 500 字符。不要填密码、核销凭据或无关个人资料。仅本次提交，离页不保留正文。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to 500 characters. Do not include passwords, redemption credentials, or unrelated personal information. The note is used only for this submission and is not retained when you leave the page."
+          }
+        }
+      }
+    },
+    "merchant.evidence.submit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认补充原复核说明"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm additional information for the original review"
+          }
+        }
+      }
+    },
+    "merchant.evidence.refresh": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新原单当前裁决"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh the current decision on the original case"
+          }
+        }
+      }
+    },
+    "merchant.evidence.list": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新我的原复核单"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh my original review cases"
+          }
+        }
+      }
+    },
+    "merchant.evidence.confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将本次说明提交到所选原待复核单；不会改变裁决或执行核销。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit this note to the selected original pending review case. This will not change the decision or perform redemption."
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本单私密图片补证"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private image evidence for this case"
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.boundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只选择你有权提供的本复核单图片。经明确同意上传到原私密证据域，随后仍需确认提交补证；上传不是裁决或核销。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select only images for this review case that you have the right to provide. With your explicit consent, they will be uploaded to the original private evidence storage. You must then separately confirm the additional-evidence submission. Uploading does not decide the case or perform redemption."
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.choose": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择本单真实图片"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select an authentic image for this case"
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.upload": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同意上传所选私密图片"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consent to upload the selected private image"
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片请求结果未知，保留原身份并回读；重新选择必须为同一原图，不另起请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The image request result is unknown. Retain the original request identity and check its result. If you select the image again, it must be the same original image; do not start a new request."
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.recover": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读原图片上传"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the original image upload"
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.preview": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权读取本单原图片"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authorize access to the original image for this case"
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.held": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原图片请求尚未确认，不能当作已上传附件。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original image request is still unconfirmed and cannot be treated as an uploaded attachment."
+          }
+        }
+      }
+    },
+    "merchant.evidence.image.confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认将所选图片用于当前原复核单私密补证，并经原图片安全检查。不会发布到公开封面或消息。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm that the selected image will be used as private additional evidence for the current original review case and undergo the original image safety checks. It will not be published as a public cover or message."
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Platform-approved product retail value"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台批准的商品零售价值"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the original product-level approval, not a current selling, points, or settlement price. It does not establish a SKU price or permission to sell."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是商品级原批准事实，不是当前售价、积分价或结算价；不代表某个SKU的定价或销售许可。"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.notProvided": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has not provided an approved retail value."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端尚未提供批准零售价值。"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.unready": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The approved retail value is not ready."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准零售价值尚未就绪。"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.invalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The approved value does not match the current product review or its source cannot be verified."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批准值与当前商品审核身份不一致或来源无法核实。"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.yuan": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "yuan"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.version": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original approved product revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原商品批准版本"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.qualification": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original qualification revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原资质版本"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original approval request ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原批准请求号"
+          }
+        }
+      }
+    },
+    "merchant.desk.retail.hash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original approved snapshot hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原批准快照摘要"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.backProducts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to products"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回商品列表"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.backSkus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to SKUs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回规格列表"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reload from original source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取原始资料"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.empty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No products are available in your current access scope."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前权限范围内暂无商品。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.noSkus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This product currently has no SKUs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该商品目前暂无规格。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.cancelReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to editing without saving"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回编辑，不保存"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.editAgain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current SKU and edit again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前规格后继续编辑"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.currentLoading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save is confirmed. Reading the current SKU…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存回执已确认，正在读取当前规格…"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.currentSelectProduct": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save is confirmed. This older record has no product identity. Select its product and SKU from the original list to read the current state."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存回执已确认。旧记录未保存商品标识，请从原列表选择对应商品和规格以读取当前状态。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.currentUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original save is confirmed, but the current SKU could not be read. Retry the read only; do not save again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原保存回执已确认，但当前规格读取未完成。请仅重读，不要重复保存。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.retryCurrent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry current state only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅重读当前状态"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.currentTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current server SKU (not the original receipt)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端当前规格（不是原回执）"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.confirmationTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm these SKU changes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认规格修改"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.productIdentity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Product ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品编号"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.skuIdentity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKU ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规格编号"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.nameLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKU name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "规格名称"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.referencePriceLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference price · current server prices are preserved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考价格 · 保存保留服务端当前价格"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.stockLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stock to save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将保存的库存"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readLoading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checking this product. No save is being sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在核对当前商品，未发送保存请求。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read could not be completed. Your edits are unchanged. Retry checks this same product only; it does not save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取未完成，编辑内容未变。重试仅核对同一商品，不会保存。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readInvalidResponse": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The returned product details could not be verified. Retry this read before continuing; no save was sent by this check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回的商品资料无法核实。请重试读取后再继续；本次核对未发送保存请求。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readNotListed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This product is no longer available in the current list. Go back and choose a product again. This is not a save result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前列表已无法确认此商品。请返回重新选择商品；这不是保存结果。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readSignIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your sign-in could not be verified. Leave this page and sign in again before continuing. No save was sent by this check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法核实登录状态。请退出此页面并重新登录后再继续；本次核对未发送保存请求。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readDenied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You no longer have access to these product details. Leave this page and check your merchant access. This does not settle any pending save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已无法访问这些商品资料。请退出此页面并核实商家权限；这不会结清任何待确认的保存请求。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readDisabled": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This product read is not available in the current configuration. Leave this page; no save was sent by this check."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前配置不提供此商品读取。请退出此页面；本次核对未发送保存请求。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readContextChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account, merchant or authorization context changed. Leave this page and reopen it for your current identity."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号、商家或授权环境已变化。请退出此页面，再以当前身份重新打开。"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.retryRead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry this read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试本次读取"
+          }
+        }
+      }
+    },
+    "merchant.desk.sku.readReadyForReview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The product read was refreshed. Check your edits, then choose Review changes to continue. This retry did not send a save."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品已重新读取。请核对编辑内容，再选择检查修改继续；本次重试未发送保存请求。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

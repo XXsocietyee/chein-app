@@ -54,7 +54,7 @@ import FoundationNetworking
     func draft() -> TemplateAuthoringDraft {
         var value = TemplateAuthoringDraft(title: "Original request fixture")
         value.description = "Read the original result"; value.players = "1-2"; value.duration = 10; value.categoryId = 4
-        value.finishEnabled = true; value.validationMethod = .manual
+        value.finishEnabled = true; value.validationMethod = .manual; value.rewardEnabled = false
         return value
     }
     func request(_ intent: TemplateAuthoringIntent = .saveDraft) throws -> TemplateAuthoringRequest {
@@ -106,8 +106,8 @@ import FoundationNetworking
     }
     func testCorruptedWireBytesAndWrongOperationCannotMatch() throws {
         let value = try submit()
-        XCTAssertTrue(value.matches(operationID: try XCTUnwrap(UUID(uuidString: value.requestId)), request: request()))
-        XCTAssertFalse(value.matches(operationID: UUID(), request: request()))
+        XCTAssertTrue(value.matches(operationID: try XCTUnwrap(UUID(uuidString: value.requestId)), request: try request()))
+        XCTAssertFalse(value.matches(operationID: UUID(), request: try request()))
         var raw = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(value)) as? [String: Any])
         raw["payloadBase64Chunks"] = [Data("{}".utf8).base64EncodedString()]
         let bad = try JSONDecoder().decode(TemplateAuthoringRequestReceipt.Submit.self, from: JSONSerialization.data(withJSONObject: raw))
@@ -237,7 +237,7 @@ import FoundationNetworking
     }
     func testPersistedRequestMustMatchOperationAndDescriptor() throws {
         let (_, c, _) = try setup(), store = TemplateAuthoringLocalStore(storage: Storage()), identity = TemplateAuthoringIdentity()
-        var value = TemplateAuthoringPending(operationID: UUID(), ownerKey: c.session.ownerKey, identity: identity, request: request(), createdAt: Date())
+        var value = TemplateAuthoringPending(operationID: UUID(), ownerKey: c.session.ownerKey, identity: identity, request: try request(), createdAt: Date())
         value.serverRequest = try submit()
         XCTAssertThrowsError(try store.savePending(value, session: c.session))
         value.serverRequest = try .init(id: value.operationID, command: .init(request: request(.publish)))

@@ -13,14 +13,19 @@ import Observation
     @ObservationIgnored private let notifications: NotificationCenter
     @ObservationIgnored private var timeObserver: NSObjectProtocol?
     @ObservationIgnored private var device: (any OwnMediaAudioPreviewPlaying)?
-    private var mounted = false, foreground = false
-    private var operation = UUID(), watchGeneration = UUID()
+    private var mounted = false
+    private var foreground = false
+    private var operation = UUID()
+    private var watchGeneration = UUID()
     private var reader: OwnMediaAudioPreviewReader?
-    private var task: Task<Void, Never>?, expirationTask: Task<Void, Never>?, progressTask: Task<Void, Never>?
+    @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var expirationTask: Task<Void, Never>?
+    @ObservationIgnored private var progressTask: Task<Void, Never>?
     private var deadline: ContinuousClock.Instant?
     private(set) var presentation: UUID?
     private(set) var phase: Phase = .idle
-    private(set) var duration: TimeInterval = 0, position: TimeInterval = 0
+    private(set) var duration: TimeInterval = 0
+    private(set) var position: TimeInterval = 0
     var controlRevision: UUID { operation }
     init(asset: OwnMediaAsset, access: OwnMediaAudioPreviewAccess?, currentAsset: @escaping () -> OwnMediaAsset?,
          notifications: NotificationCenter = .default, makeDevice: @escaping @MainActor () -> any OwnMediaAudioPreviewPlaying = { OwnMediaAudioPreviewDevice() }) {

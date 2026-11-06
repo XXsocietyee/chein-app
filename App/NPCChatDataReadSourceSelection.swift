@@ -10,7 +10,7 @@ import Observation
     private var selected: NPCChatDataReadApproval?
     private var used: Set<UUID> = []
     private var clients: [WeakClient] = []
-    private var expirationTask: Task<Void, Never>?
+    @ObservationIgnored private var expirationTask: Task<Void, Never>?
     private(set) var revision = UUID()
     init() {}
     deinit { expirationTask?.cancel() }

@@ -4,14 +4,14 @@ import XCTest
 /// Pure metadata state machines only; no archive, network, payment, install or runtime execution.
 final class WorkshopModuleOriginalManifestBindingTests: XCTestCase {
     private let request = "import-req-0001"
-    private let hash = String(repeating: "ab", count: 32)
+    private let contentHash = String(repeating: "ab", count: 32)
     private var metadata: [String: String] {
-        ["id": "mod-1", "version": "1.0.0", "contentHash": hash, "schemaVersion": "1"]
+        ["id": "mod-1", "version": "1.0.0", "contentHash": contentHash, "schemaVersion": "1"]
     }
     private var qmod: [String: String] {
         ["formatVersion": "1.0", "kind": "questify.mod", "packageId": "mod-1",
-         "packageVersion": "1.0.0", "entrypoint": "content.json", "contentHash": hash,
-         "schemaVersion": "1", "filePath": "content.json", "fileSha256": hash, "fileBytes": "12"]
+         "packageVersion": "1.0.0", "entrypoint": "content.json", "contentHash": contentHash,
+         "schemaVersion": "1", "filePath": "content.json", "fileSha256": contentHash, "fileBytes": "12"]
     }
     func testExactReplayAndExistingSchemaNormalizationPreserveOriginalState() throws {
         var entry = WorkshopModuleImportEntry()

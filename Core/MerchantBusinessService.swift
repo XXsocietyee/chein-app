@@ -8,16 +8,19 @@ import FoundationNetworking
 public protocol MerchantBusinessTestTransport: HTTPTransport {}
 public enum MerchantDeskRead: Equatable {
     case products
+    case stores, anchor
     case productDetail(productID: Int)
     case receipt(requestID: String)
     public var permissions: [String] {
         switch self {
         case .products, .productDetail: return ["merchant:project:manage"]
-        case .receipt: return ["merchant:basic:read"]
+        case .receipt, .stores, .anchor: return ["merchant:basic:read"]
         }
     }
     public func request() throws -> MerchantBusinessRequest {
         switch self {
+        case .stores: return .json("api/merchant/desk/stores", [:])
+        case .anchor: return .json("api/merchant/desk/anchor", [:])
         case .products:
             return .empty("api/merchant/desk/products")
         case .productDetail(let productID):

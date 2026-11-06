@@ -58,7 +58,7 @@ import FoundationNetworking
         do{_ = try await client.state();XCTFail("stale actor")}catch{};XCTAssertTrue(wire.requests.isEmpty);live=grant.context
         wire.respond={_ in grant.revoke();return try self.response(self.state())};do{_ = try await client.state();XCTFail("revoked reply")}catch{}
     }
-    func testProtectedPayerCostOtherOriginAndMissingConsentAreRejectedByRoute() throws {
+    func testProtectedPayerCostOtherOriginAndMissingConsentAreRejectedByRoute() async throws {
         var request=URLRequest(url:base.appendingPathComponent("api/city-game/acquisition/command"));request.httpMethod="POST";request.setValue("application/json",forHTTPHeaderField:"Content-Type")
         var body:[String:Any]=["requestId":confirmID,"kind":"CONFIRM","regionId":"city-1","quoteId":quoteID,"quoteHash":String(repeating:"a",count:64),"confirmed":true]
         request.httpBody=try JSONSerialization.data(withJSONObject:body);XCTAssertNotNil(CityAcquisitionRoute(request:request,baseURL:base))
@@ -73,10 +73,33 @@ import FoundationNetworking
         let grant=try approval(),wire=Wire();wire.respond={request in if request.url!.path.hasSuffix("/titles"){var t=self.title();t["status"]="PAUSED_TERM_FROZEN";return try self.response(["contract":"CITY_ACQUISITION_V1","memberId":7,"regionId":"city-1","titles":[t]])};return (Data("{\"code\":503,\"errorCode\":\"SOURCE_UNAVAILABLE\"}".utf8),503)}
         let c=CityAcquisitionController(service:service(grant,wire),journal:Journal());await c.load();XCTAssertEqual(c.titles.first?.status,"PAUSED_TERM_FROZEN");XCTAssertNil(c.snapshot);XCTAssertNil(c.confirmation);XCTAssertTrue(wire.requests.allSatisfy{$0.httpMethod=="GET"})
     }
-    func testMixedActionPolicyRequiresExplicitCostAndKeepsLegacyRules() throws {
-        let legacy:[String:Any]=["scope":"TEAM_ROUND","unit":"ACTION","totalUnits":8,"rollCost":1,"refillPolicy":"NONE_WITHIN_ROUND","chargeTiming":"COMMITTED_DICE_RESULT","actionKind":"DICE_ROLL","resultPolicy":"RECORD_ONLY_NO_EFFECTS"]
-        func decode(_ n:[String:Any])throws->CityActionBudgetRules{try JSONDecoder().decode(CityActionBudgetRules.self,from:JSONSerialization.data(withJSONObject:n))}
-        XCTAssertTrue(try decode(legacy).valid);var mixed=legacy;mixed["actionKind"]="DICE_ROLL_AND_ACQUIRE";mixed["chargeTiming"]="COMMITTED_ACTION_EFFECT";mixed["resultPolicy"]="DICE_RECORD_ONLY_ACQUISITION_EXPLICIT_CONFIRM";XCTAssertFalse(try decode(mixed).valid);mixed["acquisitionCost"]=2;XCTAssertTrue(try decode(mixed).valid)
+    func testMixedActionPolicyRequiresExplicitCostAndKeepsLegacyRules() async throws {
+        let legacy: [String: Any] = ["scope": "TEAM_ROUND", "unit": "ACTION", "totalUnits": 8, "rollCost": 1,
+            "refillPolicy": "NONE_WITHIN_ROUND", "chargeTiming": "COMMITTED_DICE_RESULT",
+            "actionKind": "DICE_ROLL", "resultPolicy": "RECORD_ONLY_NO_EFFECTS"]
+        func validate(_ rules: [String: Any], contract: String) throws {
+            let snapshot: [String: Any] = [
+                "contract": contract, "scope": "CITY", "status": "AVAILABLE", "writeApproved": true,
+                "binding": try XCTUnwrap(state()["binding"]),
+                "teamId": "11111111-1111-1111-1111-111111111111",
+                "sessionId": "22222222-2222-2222-2222-222222222222", "teamVersion": 4, "version": 0,
+                "usedUnits": 0, "remainingUnits": 8, "rollCount": 0,
+                "movementStatus": "UNAVAILABLE", "arrivalProof": "NOT_PROVIDED",
+                "ownershipEffect": "NONE", "pointsEffect": "NONE", "effectsStatus": "NOT_EXECUTED",
+                "recentResults": [], "rules": rules, "dice": ["diceId": "dice", "faces": [1, 9], "weights": [1, 3]]
+            ]
+            let decoded = try JSONDecoder().decode(CityActionBudgetState.self,
+                from: JSONSerialization.data(withJSONObject: snapshot))
+            try decoded.validate(region: "city-1")
+        }
+        XCTAssertNoThrow(try validate(legacy, contract: "CITY_ACTION_BUDGET_V1"))
+        var mixed = legacy
+        mixed["actionKind"] = "DICE_ROLL_AND_ACQUIRE"
+        mixed["chargeTiming"] = "COMMITTED_ACTION_EFFECT"
+        mixed["resultPolicy"] = "DICE_RECORD_ONLY_ACQUISITION_EXPLICIT_CONFIRM"
+        XCTAssertThrowsError(try validate(mixed, contract: "CITY_ACTION_BUDGET_V2"))
+        mixed["acquisitionCost"] = 2
+        XCTAssertNoThrow(try validate(mixed, contract: "CITY_ACTION_BUDGET_V2"))
     }
     @MainActor final class Wire:HTTPTransport {var requests:[URLRequest]=[];var respond:((URLRequest)throws->(Data,Int))?;func send(_ request:URLRequest)async throws->(Data,Int){requests.append(request);return try respond?(request) ?? (Data(),500)}}
     @MainActor final class Journal:OperationPendingJournal {var record:OperationPendingRecord?;func pending(ownerKey:String,targetKey:String)throws->OperationPendingRecord?{guard let record,record.ownerKey==ownerKey,record.targetKey==targetKey else{return nil};return record};func write(_ value:OperationPendingRecord)throws{guard record==nil||record==value else{throw APIError.invalidRequest};record=value};func clear(_ value:OperationPendingRecord)throws{guard record==value else{throw APIError.invalidRequest};record=nil}}

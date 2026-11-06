@@ -343,7 +343,7 @@ final class ClubGovernanceGroupCodeTests: XCTestCase {
 
 private final class GovernanceImageTransport: ClubGovernanceOfflineTransport {
     var request: URLRequest?
-    var response = Data([1, 2, 3])
+    var response = Data(base64Encoded: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAAAAAA6fptVAAAACklEQVR4nGNgAAAAAgABSK+kcQAAAABJRU5ErkJggg==")!
     func send(_ request: URLRequest) async throws -> (Data, Int) { self.request = request; return (response, 200) }
 }
 final class ClubGovernanceMediaTests: XCTestCase {
@@ -352,7 +352,8 @@ final class ClubGovernanceMediaTests: XCTestCase {
         let code = try ClubGovernanceGroupCode(receipt: ClubGovernanceFixtures.receipt(.issueGroupCode), receivedAt: now)
         let service = ClubGovernanceGroupCodeMediaService(offlineTransport: transport, approvedFixtureHosts: ["example.com"])
         let bytes = try await service.imageBytes(code, now: now)
-        XCTAssertEqual(bytes.count, 3); XCTAssertEqual(transport.request?.httpMethod, "GET")
+        XCTAssertEqual(bytes, transport.response); XCTAssertEqual(bytes.count, 67)
+        XCTAssertEqual(transport.request?.httpMethod, "GET")
         XCTAssertNil(transport.request?.value(forHTTPHeaderField: "Authorization")); XCTAssertNil(transport.request?.value(forHTTPHeaderField: "Cookie"))
     }
     func testQRMediaDefaultsOffAndExpiredCodeSendsNothing() async throws {

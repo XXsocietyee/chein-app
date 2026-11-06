@@ -1,0 +1,742 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "modUpgrade.open": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compare purchased MOD versions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "比较已购 MOD 版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD version upgrade"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD 版本升级"
+          }
+        }
+      }
+    },
+    "modUpgrade.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version upgrade is not enabled for this account and deployment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号与部署尚未启用版本升级。"
+          }
+        }
+      }
+    },
+    "modUpgrade.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh / recover original choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新 / 恢复原选择"
+          }
+        }
+      }
+    },
+    "modUpgrade.original": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original purchased version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原已购版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.oldLicense": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original license"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原许可证"
+          }
+        }
+      }
+    },
+    "modUpgrade.oldVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原发布版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.oldContentHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原内容哈希"
+          }
+        }
+      }
+    },
+    "modUpgrade.oldTermsHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original terms hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原条款哈希"
+          }
+        }
+      }
+    },
+    "modUpgrade.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your original license, private draft and running activity stay unchanged. Upgrading creates a separate private draft under a separately authorized exact version; it does not publish or migrate activity."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原许可证、原私有草稿与进行中的活动保持不变。升级仅按另行授权的准确版本创建独立私有草稿，不发布，也不迁移活动。"
+          }
+        }
+      }
+    },
+    "modUpgrade.candidates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviewed version choices"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已审核的版本选项"
+          }
+        }
+      }
+    },
+    "modUpgrade.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No choices on this page. Continue to the next page if available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页没有可选版本。如有下一页，可继续查看。"
+          }
+        }
+      }
+    },
+    "modUpgrade.more": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More reviewed versions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多已审核版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.comparison": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected version comparison"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选版本对比"
+          }
+        }
+      }
+    },
+    "modUpgrade.ordering.NEWER_PACKAGE_VERSION": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Newer package version, verified by the server"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端确认的更高软件包版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.ordering.OTHER_REVIEWED_RELEASE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Other reviewed release, not a claim of newer version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他已审核发布版本，不表示版本更新"
+          }
+        }
+      }
+    },
+    "modUpgrade.authorization.AUTHORIZED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate exact-version license available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有独立的准确版本许可证"
+          }
+        }
+      }
+    },
+    "modUpgrade.authorization.ACQUISITION_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Separate acquisition required"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要另行获取授权"
+          }
+        }
+      }
+    },
+    "modUpgrade.targetVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选发布版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.targetContentHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选内容哈希"
+          }
+        }
+      }
+    },
+    "modUpgrade.targetTermsHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected terms hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选条款哈希"
+          }
+        }
+      }
+    },
+    "modUpgrade.offer": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exact offer ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准确报价 ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.package": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Package ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "软件包 ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.packageVersion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Package version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "软件包版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.changedFields": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changed field paths"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "变更字段路径"
+          }
+        }
+      }
+    },
+    "modUpgrade.noChangedFields": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No changed fields reported. This is not a full content review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未报告字段变更。这不代表已完成完整内容审核。"
+          }
+        }
+      }
+    },
+    "modUpgrade.bindings": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required resource bindings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所需资源绑定"
+          }
+        }
+      }
+    },
+    "modUpgrade.reviewNext": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This comparison shows metadata only. Review the complete new licensed content and real resource bindings in the next installation preview before explicitly creating the new draft. Original purchased-version terms do not extend to this release."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处仅对比元数据。下一步需在安装预览中检查完整的新授权内容与真实资源绑定，再明确确认创建新草稿。原已购版本条款不会自动延伸至此版本。"
+          }
+        }
+      }
+    },
+    "modUpgrade.acquisitionBoundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the existing MOD catalog for the exact offer ID shown above. Its existing price, channel and purchase confirmations still apply. Return here and refresh after acquisition; no purchase is started by this screen."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请在现有 MOD 目录中查找上方准确报价 ID。原有价格、渠道与购买确认规则仍适用。获取后返回此处刷新；本页面不会发起购买。"
+          }
+        }
+      }
+    },
+    "modUpgrade.select": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review separate-draft choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认独立草稿选择"
+          }
+        }
+      }
+    },
+    "modUpgrade.blocked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version is not compatible. No draft will be prepared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本不兼容，不会准备草稿。"
+          }
+        }
+      }
+    },
+    "modUpgrade.confirmQuestion": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep the original and prepare a separate version?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留原版本，准备独立的新版本？"
+          }
+        }
+      }
+    },
+    "modUpgrade.confirm": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm exact version choice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认准确版本选择"
+          }
+        }
+      }
+    },
+    "modUpgrade.cancel": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep original / cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留原版 / 取消"
+          }
+        }
+      }
+    },
+    "modUpgrade.savedSelection": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original saved upgrade intent"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存的原升级意向"
+          }
+        }
+      }
+    },
+    "modUpgrade.newLicense": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New exact-version license"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新准确版本许可证"
+          }
+        }
+      }
+    },
+    "modUpgrade.originalRequest": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求 ID"
+          }
+        }
+      }
+    },
+    "modUpgrade.continueOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue / read original upgrade receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续 / 读取原升级回执"
+          }
+        }
+      }
+    },
+    "modUpgrade.recoveryBoundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue the same saved selection and original request. Unknown outcomes do not create another request. The old draft remains unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续同一已保存选择与原请求。结果未知时不会创建另一个请求，旧草稿保持不变。"
+          }
+        }
+      }
+    },
+    "modUpgrade.error.session": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Account or approval changed. Reopen before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或授权已变更，请重新进入后继续。"
+          }
+        }
+      }
+    },
+    "modUpgrade.error.storage": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original choice could not be durably read or saved. No new upgrade request can be sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法可靠读取或保存原选择，不能发送新的升级请求。"
+          }
+        }
+      }
+    },
+    "modUpgrade.error.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version data could not be verified. Retry reading; any saved original intent is preserved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法验证版本数据。可重试读取，已保存的原意向保持不变。"
+          }
+        }
+      }
+    },
+    "modUpgrade.discardRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Discard this known-rejected choice and choose again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "放弃已明确拒绝的选择，重新选择"
+          }
+        }
+      }
+    },
+    "modUpgrade.discardUnstaged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel unsubmitted choice / choose a different version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消未提交的选择 / 选择其他版本"
+          }
+        }
+      }
+    },
+    "modUpgrade.finishUninstalled": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verify cancelled / failed original and choose again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核验原请求已取消 / 失败后重新选择"
+          }
+        }
+      }
+    },
+    "modUpgrade.error.originalNotFinished": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request is still prepared or has installed successfully. Continue its original receipt; only cancelled or failed requests can be cleared here."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求仍在准备中或已成功安装。请继续查看原回执；这里只能清理已取消或失败的请求。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

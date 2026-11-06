@@ -9,6 +9,11 @@ public struct ProjectEditRemoteTarget: Equatable, Hashable, Identifiable {
     public var id: String { "\(readerScope):\(owner.rawValue):\(topicID)" }
     public static func == (lhs: Self, rhs: Self) -> Bool { lhs.topicID == rhs.topicID && lhs.owner.rawValue == rhs.owner.rawValue && lhs.readerScope == rhs.readerScope }
     public func hash(into hasher: inout Hasher) { hasher.combine(topicID); hasher.combine(owner.rawValue); hasher.combine(readerScope) }
+    /// A verified installation selects a fresh edit-detail read and grants no edit authority.
+    public init?(installationReceipt receipt: ModInstallationReceipt, readerScope: UUID) {
+        guard (try? receipt.validate(identity: receipt.identity)) != nil, let id = receipt.topicID else { return nil }
+        topicID = id; owner = .merchant; self.readerScope = readerScope
+    }
     public init?(project: CreatorContentProject, readerScope: UUID) {
         guard project.bizType == "topic", project.sourceID > 0 else { return nil }
         switch project.ownerType {

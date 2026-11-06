@@ -14,10 +14,14 @@ import Observation
     @ObservationIgnored private let notifications: NotificationCenter
     @ObservationIgnored private var observers: [NSObjectProtocol] = []
     @ObservationIgnored private(set) var device: (any OwnMediaModelPreviewRendering)?
-    private var mounted = false, foreground = false
-    private var operation = UUID(), watchGeneration = UUID()
+    private var mounted = false
+    private var foreground = false
+    private var operation = UUID()
+    private var watchGeneration = UUID()
     private var reader: OwnMediaModelPreviewReader?
-    private var task: Task<Void, Never>?, expirationTask: Task<Void, Never>?, loadingTask: Task<Void, Never>?
+    @ObservationIgnored private var task: Task<Void, Never>?
+    @ObservationIgnored private var expirationTask: Task<Void, Never>?
+    @ObservationIgnored private var loadingTask: Task<Void, Never>?
     private var deadline: ContinuousClock.Instant?
     private(set) var presentation: UUID?
     private(set) var phase: Phase = .idle

@@ -13,7 +13,7 @@ import FoundationNetworking
             return try handler(request)
         }
     }
-    private final class Scenario {
+    @MainActor private final class Scenario {
         let source: ClubBadgeOriginalConsumerRecoveryTests.Fixture
         let wire = Wire()
         var owner = true
@@ -35,12 +35,12 @@ import FoundationNetworking
             try fixture.journal.settle(entry, outcome: "CONFIRMED", receipt: original, context: fixture.context)
             wire.handler = { [unowned self] request in
                 switch request.url!.path {
-                case "/api/club/detail":
+                case self.path("api/club/detail"):
                     try self.onDetail?()
                     return (try self.source.envelope(data: ["id": 7, "isOwner": self.owner]), 200)
-                case "/api/club/badge/list":
+                case self.path("api/club/badge/list"):
                     return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": [["badgeCode": "CLUB7_1", "badgeName": "Trail", "clubId": 7]]]), 200)
-                case "/api/club/badge/create", "/api/club/badge/original-receipt":
+                case self.path("api/club/badge/create"), self.path("api/club/badge/original-receipt"):
                     let recovery = request.url!.path.hasSuffix("original-receipt")
                     if !recovery && !self.confirmMutation { return (Data(), 503) }
                     guard let pending = try self.source.journal.read(self.source.context, clubID: 7).first(where: { $0.outcome == "UNKNOWN" }) else {
@@ -52,6 +52,7 @@ import FoundationNetworking
                 }
             }
         }
+        func path(_ endpoint: String) -> String { source.context.baseURL.appendingPathComponent(endpoint).path }
         var draft: ClubBadgeCreateDraft { var d = ClubBadgeCreateDraft(); d.name = "Second"; return d }
     }
 
@@ -71,7 +72,7 @@ import FoundationNetworking
         XCTAssertEqual(s.flow.resultPresentation, .needsReview)
         XCTAssertEqual(s.flow.receipt, s.prior)
         XCTAssertFalse(s.flow.canCreate)
-        XCTAssertFalse(s.wire.paths.contains("/api/club/badge/create"))
+        XCTAssertFalse(s.wire.paths.contains(s.path("api/club/badge/create")))
         XCTAssertEqual(try s.source.journal.read(s.source.context, clubID: 7).first?.receipt, s.prior)
     }
 
@@ -87,7 +88,7 @@ import FoundationNetworking
         XCTAssertEqual(s.flow.resultPresentation, .storageUnavailable)
         XCTAssertEqual(s.flow.receipt, s.prior)
         XCTAssertFalse(s.flow.canCreate)
-        XCTAssertFalse(s.wire.paths.contains("/api/club/badge/create"))
+        XCTAssertFalse(s.wire.paths.contains(s.path("api/club/badge/create")))
     }
 
     func testUnknownThenExactRecoveryReplacesOnlyCurrentResult() async throws {
@@ -102,7 +103,7 @@ import FoundationNetworking
         guard case .confirmed(let recovered) = s.flow.resultPresentation else { return XCTFail("Exact receipt must be the current recovery result") }
         XCTAssertEqual(recovered.requestId, pending.requestID)
         XCTAssertNotEqual(recovered.requestId, s.prior.requestId)
-        XCTAssertEqual(s.wire.paths.filter { $0 == "/api/club/badge/create" }.count, 1)
+        XCTAssertEqual(s.wire.paths.filter { $0 == s.path("api/club/badge/create") }.count, 1)
         XCTAssertEqual(try s.source.journal.read(s.source.context, clubID: 7).first?.receipt, s.prior)
         await s.flow.refresh()
         XCTAssertEqual(s.flow.resultPresentation, .historical(recovered))
@@ -118,6 +119,6 @@ import FoundationNetworking
         XCTAssertNotEqual(current.requestId, s.prior.requestId)
         XCTAssertEqual(s.flow.receipt, current)
         XCTAssertEqual(try s.source.journal.read(s.source.context, clubID: 7).first?.receipt, s.prior)
-        XCTAssertEqual(s.wire.paths.filter { $0 == "/api/club/badge/create" }.count, 1)
+        XCTAssertEqual(s.wire.paths.filter { $0 == s.path("api/club/badge/create") }.count, 1)
     }
 }

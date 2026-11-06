@@ -10,6 +10,8 @@ public struct PlayAdvancedState: Equatable {
     public let playKit: PlayWireValue; public let multiplayer: PlayWireValue
     public let storyVariables: [String: PlayWireValue]
     public let objectCard: ObjectCard?
+    public let modInstallationRuntime: PlayWireValue
+    let modInstallationReceipt: PlayWireValue
     public var isMultiplayer: Bool { config["multiplayer"]["enabled"].bool == true }
     public var needsUnverifiedSteps: Bool { playKit["steps"].object != nil && playKit["steps"]["reached"].bool != true }
     public init(_ raw: PlayWireValue) throws {
@@ -26,6 +28,8 @@ public struct PlayAdvancedState: Equatable {
         branch = raw["branch"]; playKit = raw["playKit"]; multiplayer = raw["multiplayer"]
         storyVariables = raw["vars"].object ?? [:]
         objectCard = PlayObjectCardReceiptDecoder.decode(raw["objectCard"])
+        modInstallationRuntime = raw["modInstallationRuntime"]
+        modInstallationReceipt = modInstallationRuntime == .null ? .null : raw
     }
     public func remainingSeconds(nowMilliseconds: Int64) -> Int? {
         deadlineAt.map { Int(max(0, ceil(Double($0 - nowMilliseconds) / 1000))) }
@@ -69,7 +73,7 @@ public enum PlayKitActionCatalog {
         }
     }
 }
-public struct PlayAdvancedPending: Equatable {
+public struct PlayAdvancedPending: Codable, Equatable {
     public let sessionID: Int; public let version: Int; public let key: String
     public let action: String; public let payload: [String: PlayWireValue]
 }
@@ -193,10 +197,20 @@ extension PlayExperienceService {
     let currentSession: () -> PlayExperienceSession?
     private var owner: PlayExperienceSession?
     private var generation: UInt64 = 0
+    private let modGameplayMode: PlayGameplayMode?
+    private let modJournal: ModInstallationNativeRuntimeJournal?
+    private var modRecord: ModInstallationNativeRuntimeRecord?
+    private var modJournalReadFailed = false
+    private var modProofRequired = false
+    private var modActionReceipt: PlayAdvancedState?
+    public var modInstallationActionReceipt: PlayAdvancedState? { isCurrent && phase != "stale" && phase != "disabled" ? modActionReceipt : nil }
+    public var modInstallationActionKey: String? { modInstallationActionReceipt == nil ? nil : modRecord?.command.key }
+    public var modInstallationRecoveryRequired: Bool { modRecord?.settled == false || modJournalReadFailed }
     private let recovery: (any PlayAdvancedRecovery)?
     private var recoverySnapshot: PlayAdvancedRecoverySnapshot?
     public private(set) var startOutcomeUnknown = false
-    public init(activityID: Int, topicID: Int, nodeID: Int, service: PlayExperienceService, recovery: (any PlayAdvancedRecovery)? = nil, currentSession: @escaping () -> PlayExperienceSession?) {
+    public init(activityID: Int, topicID: Int, nodeID: Int, service: PlayExperienceService, modJournal: ModInstallationNativeRuntimeJournal? = nil, modGameplayMode: PlayGameplayMode? = nil, recovery: (any PlayAdvancedRecovery)? = nil, currentSession: @escaping () -> PlayExperienceSession?) {
+        self.modJournal = modJournal; self.modGameplayMode = modGameplayMode
         if let recovery { self.recovery = recovery }
         else if service.transport is PlayRecoveryRecordingTransport { self.recovery = nil }
         else { self.recovery = PlayUnavailableAdvancedRecovery() }
@@ -204,13 +218,16 @@ extension PlayExperienceService {
     }
     public var readLifetimeID: String? { service.readLifetimeID }
     public var hasCurrentReadLifetime: Bool { service.hasCurrentReadLifetime }
-    public var blocksReadRebinding: Bool { recoverySnapshot != nil || startOutcomeUnknown || pending != nil || ["loading", "submitting", "unknown", "retryable"].contains(phase) }
+    public var blocksReadRebinding: Bool { modInstallationRecoveryRequired || recoverySnapshot != nil || startOutcomeUnknown || pending != nil || ["loading", "submitting", "unknown", "retryable"].contains(phase) }
     public func start() async {
         if recovery != nil { await startDurably(); return }
         guard !startOutcomeUnknown, state == nil, ["idle", "rejected", "disabled"].contains(phase), let session = currentSession() else { return }
         generation &+= 1; let generation = generation; owner = session; phase = "loading"
         startOutcomeUnknown = true
         do {
+            if try restoreModCommand(session: session) {
+                startOutcomeUnknown = false; phase = "unknown"; await recover(); return
+            }
             try accept(await service.startAdvanced(activityID: activityID, topicID: topicID, nodeID: nodeID, token: session.token), session: session, generation: generation)
             startOutcomeUnknown = false
         } catch {
@@ -222,7 +239,14 @@ extension PlayExperienceService {
         }
     }
     public var isCurrent: Bool { owner != nil && owner == currentSession() }
-    public var canInteract: Bool { isCurrent && phase == "ready" && pending == nil && state?.status == "RUNNING" }
+    public var canInteract: Bool {
+        isCurrent && phase == "ready" && pending == nil && !modInstallationRecoveryRequired && state?.status == "RUNNING" &&
+        (!modProofRequired || (modJournal != nil && state.flatMap { try? ModInstallationNativeRuntimeProof(state: $0) } != nil))
+    }
+    /// A fresh same-mode host may read the original journal; this never rebinds the retired host.
+    public func canRestoreModAfterRetiredRead(gameplayMode: PlayGameplayMode) -> Bool {
+        !hasCurrentReadLifetime && modJournal != nil && modInstallationRecoveryRequired && modGameplayMode == gameplayMode
+    }
     public func review(kind: String, action: String, detail: [String: PlayWireValue] = [:]) throws -> PlayKitActionReview {
         guard canInteract, let state, let owner else { throw PlayExperienceError.staleSession }
         guard state.playKit[kind].object != nil || state.config[kind]["enabled"].bool == true else { throw PlayExperienceError.unsupported }
@@ -242,8 +266,11 @@ extension PlayExperienceService {
             issue = .staleSession; return false
         }
         pendingRequestedCard = review.kind == "photoCheck" && state.playKit["photoCheck"]["mode"].text == "CARD"
-        pending = PlayAdvancedPending(sessionID: review.sessionID, version: review.version,
+        let command = PlayAdvancedPending(sessionID: review.sessionID, version: review.version,
             key: review.id.uuidString, action: review.action, payload: review.payload)
+        do { try prepareModCommand(command, state: state, session: review.owner) }
+        catch { failure(error, session: review.owner, generation: generation, preservePending: true); return false }
+        pending = command
         await sendPending()
         return pending == nil && phase == "ready" && self.state?.sessionID == review.sessionID && (self.state?.version ?? -1) > review.version
     }
@@ -273,7 +300,16 @@ extension PlayExperienceService {
         let preservesUnknown = phase == "retryable" || phase == "unknown"
         let generation = generation; let cardLifetime = cardLifetime; phase = "submitting"
         do {
+            if modRecord?.receipt != nil { try await finishModReadback(session: session, generation: generation); return }
             let result = try await service.advancedAction(pending, token: session.token)
+            try validate(result, session: session, generation: generation)
+            if var record = modRecord, !record.settled {
+                try record.validateResult(result)
+                record.receipt = result.modInstallationReceipt
+                try persistMod(record, session: session)
+                modActionReceipt = result
+                try await finishModReadback(session: session, generation: generation); return
+            }
             try accept(result, session: session, generation: generation)
             if self.cardLifetime == cardLifetime { cardReceipts.accept(result, owner: session, pending: pending, requestedCard: pendingRequestedCard) }
             self.pending = nil; pendingRequestedCard = false
@@ -281,12 +317,23 @@ extension PlayExperienceService {
     }
     public func recover() async {
         if recovery != nil { await recoverDurably(); return }
-        guard let pending, let session = owner, session == currentSession(), phase == "unknown" else { return }
+        guard let session = owner, session == currentSession(), phase == "unknown",
+              pending != nil || modJournalReadFailed || modRecord?.receipt != nil else { return }
         let generation = generation; phase = "loading"
         do {
+            if modJournalReadFailed {
+                guard try restoreModCommand(session: session) else {
+                    startOutcomeUnknown = false; issue = nil; phase = state == nil ? "idle" : "ready"; return
+                }
+            }
+            guard let pending else { throw PlayExperienceError.persistenceUnavailable }
+            if modRecord?.receipt != nil { try await finishModReadback(session: session, generation: generation); return }
             let result = try await service.advancedState(sessionID: pending.sessionID, token: session.token)
             try validate(result, session: session, generation: generation)
             guard result.version >= pending.version else { throw PlayExperienceError.malformed }
+            if let record = modRecord, !record.settled {
+                guard try ModInstallationNativeRuntimeProof(state: result) == record.proof else { throw PlayExperienceError.malformed }
+            }
             state = result
             cardReceipts.reconcile(result, owner: session)
             // Version advancement alone is NOT proof, including on a single-user run.
@@ -296,7 +343,7 @@ extension PlayExperienceService {
     }
     public func retryExact() async { guard phase == "retryable" else { return }; await sendPending() }
     public func refreshAuthoritative() async {
-        if pending != nil { if phase == "unknown" { await recover() }; return }
+        if pending != nil || modInstallationRecoveryRequired { if phase == "unknown" { await recover() }; return }
         guard phase != "submitting", let state, let session = owner, session == currentSession() else { return }
         let generation = generation; phase = "loading"
         do { try accept(await service.advancedState(sessionID: state.sessionID, token: session.token), session: session, generation: generation) }
@@ -319,6 +366,7 @@ extension PlayExperienceService {
               ["idle", "rejected", "disabled"].contains(phase), let session = currentSession() else { return }
         generation &+= 1; let generation = generation; owner = session; phase = "loading"
         do {
+            _ = try restoreModCommand(session: session)
             let scope = try durableScope()
             let stored = try await recovery.read()
             try checkDurableOwner(session, generation)
@@ -338,6 +386,7 @@ extension PlayExperienceService {
                 }
                 phase = "unknown"; await recoverDurably(); return
             }
+            guard !modInstallationRecoveryRequired else { throw PlayExperienceError.persistenceUnavailable }
             guard service.enabled.contains(.advanced) else { throw PlayExperienceError.disabled }
             let marker = try PlayAdvancedRecoveryRecord(session: session, scope: scope, process: recovery.processID)
             recoverySnapshot = try await recovery.prepare(marker)
@@ -360,6 +409,13 @@ extension PlayExperienceService {
         let generation = generation; let cardLifetime = cardLifetime; phase = "submitting"
         do {
             try checkDurableOwner(session, generation)
+            if modProofRequired {
+                guard let record = modRecord,
+                      try PlayAdvancedFrozenAction.requestBytes(record.command) == PlayAdvancedFrozenAction.requestBytes(pending) else {
+                    throw PlayExperienceError.persistenceUnavailable
+                }
+            }
+            if modRecord?.receipt != nil { try await finishModEncryptedReadback(session: session, generation: generation); return }
             guard service.enabled.contains(.advanced) else { throw PlayExperienceError.disabled }
             if recoverySnapshot == nil {
                 let record = try PlayAdvancedRecoveryRecord(session: session, scope: durableScope(), pending: pending, requestedCard: pendingRequestedCard)
@@ -372,9 +428,16 @@ extension PlayExperienceService {
             try checkDurableOwner(session, generation)
             let result = try await service.advancedAction(pending, token: session.token)
             try validate(result, session: session, generation: generation)
+            if var record = modRecord, !record.settled {
+                try record.validateResult(result)
+                record.receipt = result.modInstallationReceipt
+                try persistMod(record, session: session)
+                modActionReceipt = result
+            }
             guard let dispatched = recoverySnapshot else { throw PlayExperienceError.persistenceUnavailable }
             recoverySnapshot = try await recovery.transition(dispatched, to: .acknowledged, startedSessionID: nil)
             try checkDurableOwner(session, generation)
+            if modRecord?.receipt != nil { try await finishModEncryptedReadback(session: session, generation: generation); return }
             guard let acknowledged = recoverySnapshot else { throw PlayExperienceError.persistenceUnavailable }
             try await recovery.clear(acknowledged)
             try checkDurableOwner(session, generation)
@@ -397,8 +460,12 @@ extension PlayExperienceService {
         guard let recovery, let session = owner, session == currentSession(), phase == "unknown" else { return }
         let generation = generation; phase = "loading"
         do {
+            _ = try restoreModCommand(session: session)
             var observed = try await recovery.read()
             try checkDurableOwner(session, generation)
+            if observed == nil, recoverySnapshot == nil, modInstallationRecoveryRequired {
+                throw PlayExperienceError.persistenceUnavailable // Never invent the missing encrypted companion.
+            }
             if observed == nil, recoverySnapshot == nil, let pending {
                 // prepare never returned, so this coordinator never dispatched.
                 // Retry persistence of that same original, not a new review/key.
@@ -425,6 +492,14 @@ extension PlayExperienceService {
                 }
                 pending = original; pendingRequestedCard = stored.value.requestedCard
             }
+            if modProofRequired {
+                guard let record = modRecord, let pending,
+                      try PlayAdvancedFrozenAction.requestBytes(record.command) == PlayAdvancedFrozenAction.requestBytes(pending) else {
+                    throw PlayExperienceError.persistenceUnavailable
+                }
+                if record.receipt != nil { try await finishModEncryptedReadback(session: session, generation: generation); return }
+                guard !stored.value.canClear else { throw PlayExperienceError.persistenceUnavailable }
+            }
             // A second viewer must not replay an action still in flight in this process.
             if stored.value.phase == .dispatching, stored.value.dispatchProcess == recovery.processID {
                 phase = "unknown"; issue = .unknownResult; return
@@ -433,6 +508,9 @@ extension PlayExperienceService {
             let result = try await service.advancedState(sessionID: sessionID, token: session.token)
             try validate(result, session: session, generation: generation)
             if let pending { guard result.version >= pending.version else { throw PlayExperienceError.malformed } }
+            if let record = modRecord, !record.settled {
+                guard try ModInstallationNativeRuntimeProof(state: result) == record.proof else { throw PlayExperienceError.malformed }
+            }
             if stored.value.canClear {
                 if stored.value.phase == .acknowledged, let pending {
                     guard result.version > pending.version else { throw PlayExperienceError.malformed }
@@ -449,6 +527,87 @@ extension PlayExperienceService {
             }
         } catch { durableFailure(error, session: session, generation: generation) }
     }
+    private func restoreModCommand(session: PlayExperienceSession) throws -> Bool {
+        guard let modJournal else { return false }
+        do {
+            let loaded = try modJournal.load(owner: session, realm: service.configuration.baseURL.absoluteString, activity: activityID, topic: topicID, node: nodeID, gameplayMode: modGameplayMode)
+            // No app path deletes an unresolved record. Missing storage cannot release an in-memory dispatched command.
+            if modRecord?.settled == false {
+                guard loaded?.command == modRecord?.command else { throw PlayExperienceError.persistenceUnavailable }
+            }
+            modRecord = loaded; modJournalReadFailed = false
+            if modRecord != nil { modProofRequired = true }
+            guard let record = modRecord, !record.settled || pending?.key == record.command.key else { return false }
+            pending = record.command
+            modActionReceipt = try record.receipt.map(PlayAdvancedState.init)
+            return true
+        } catch { modJournalReadFailed = true; throw PlayExperienceError.persistenceUnavailable }
+    }
+
+    private func prepareModCommand(_ command: PlayAdvancedPending, state: PlayAdvancedState, session: PlayExperienceSession) throws {
+        guard state.modInstallationRuntime != .null else { return }
+        guard let modJournal, modRecord?.settled != false else { throw PlayExperienceError.persistenceUnavailable }
+        let record = try ModInstallationNativeRuntimeRecord(owner: session, realm: service.configuration.baseURL.absoluteString, gameplayMode: modGameplayMode,
+            proof: ModInstallationNativeRuntimeProof(state: state), command: command)
+        do {
+            try modJournal.save(record, replacing: modRecord, owner: session)
+            modRecord = record; modActionReceipt = nil
+        } catch {
+            // A failed read-back may follow a successful write. Reload that exact slot before any new command.
+            modJournalReadFailed = true; throw error
+        }
+    }
+
+    private func persistMod(_ record: ModInstallationNativeRuntimeRecord, session: PlayExperienceSession) throws {
+        guard let modJournal, currentSession() == session else { throw PlayExperienceError.staleSession }
+        do { try modJournal.save(record, replacing: modRecord, owner: session); modRecord = record }
+        catch { modJournalReadFailed = true; throw PlayExperienceError.persistenceUnavailable }
+    }
+
+    private func finishModReadback(session: PlayExperienceSession, generation: UInt64) async throws {
+        guard var record = modRecord, let receipt = record.receipt else { throw PlayExperienceError.malformed }
+        let original = try PlayAdvancedState(receipt)
+        let latest = try await service.advancedState(sessionID: record.command.sessionID, token: session.token)
+        try validate(latest, session: session, generation: generation)
+        guard try ModInstallationNativeRuntimeProof(state: latest) == record.proof,
+              latest.version >= max(original.version, state?.version ?? original.version) else { throw PlayExperienceError.malformed }
+        record.settled = true
+        try persistMod(record, session: session)
+        modActionReceipt = original; pending = nil; pendingRequestedCard = false
+        try accept(latest, session: session, generation: generation)
+    }
+
+    /// A MOD receipt never advances an encrypted UNKNOWN or foreign in-flight marker.
+    private func finishModEncryptedReadback(session: PlayExperienceSession, generation: UInt64) async throws {
+        guard let recovery, let record = modRecord, let receipt = record.receipt else { throw PlayExperienceError.persistenceUnavailable }
+        if recoverySnapshot == nil { recoverySnapshot = try await recovery.read(); try checkDurableOwner(session, generation) }
+        guard let stored = recoverySnapshot, let command = stored.value.pending,
+              try PlayAdvancedFrozenAction.requestBytes(command) == PlayAdvancedFrozenAction.requestBytes(record.command) else {
+            throw PlayExperienceError.persistenceUnavailable
+        }
+        try stored.value.validate(session: session, scope: durableScope())
+        let original = try PlayAdvancedState(receipt)
+        try record.validateResult(original)
+        if stored.value.phase != .acknowledged {
+            guard stored.value.phase == .dispatching, stored.value.dispatchProcess == recovery.processID else {
+                // Preserve the exact original evidence and permit only its current-state GET.
+                let latest = try await service.advancedState(sessionID: command.sessionID, token: session.token)
+                try validate(latest, session: session, generation: generation)
+                guard try ModInstallationNativeRuntimeProof(state: latest) == record.proof,
+                      latest.version >= max(original.version, state?.version ?? original.version) else { throw PlayExperienceError.malformed }
+                modActionReceipt = original; state = latest; cardReceipts.reconcile(latest, owner: session)
+                throw PlayExperienceError.persistenceUnavailable
+            }
+            recoverySnapshot = try await recovery.transition(stored, to: .acknowledged, startedSessionID: nil)
+            try checkDurableOwner(session, generation)
+        }
+        try await finishModReadback(session: session, generation: generation)
+        guard let acknowledged = recoverySnapshot, acknowledged.value.phase == .acknowledged else { throw PlayExperienceError.persistenceUnavailable }
+        try await recovery.clear(acknowledged)
+        try checkDurableOwner(session, generation)
+        recoverySnapshot = nil; pending = nil; pendingRequestedCard = false; startOutcomeUnknown = false
+    }
+
     private func validate(_ state: PlayAdvancedState, session: PlayExperienceSession, generation: UInt64) throws {
         guard self.generation == generation, currentSession() == session, !Task.isCancelled else { throw PlayExperienceError.staleSession }
         guard state.activityID == activityID, state.topicID == topicID, state.nodeID == nodeID,
@@ -456,8 +615,16 @@ extension PlayExperienceService {
     }
     private func accept(_ state: PlayAdvancedState, session: PlayExperienceSession, generation: UInt64) throws {
         try validate(state, session: session, generation: generation)
+        if modProofRequired || state.modInstallationRuntime != .null {
+            guard state.version >= (self.state?.version ?? state.version) else { throw PlayExperienceError.malformed }
+        }
         if self.state?.version != state.version { clearAdvancedLeaderboard() }
         self.state = state; issue = nil
+        if state.modInstallationRuntime != .null { modProofRequired = true }
+        if modProofRequired && (modJournal == nil || (try? ModInstallationNativeRuntimeProof(state: state)) == nil) { issue = .persistenceUnavailable }
+        if let record = modRecord, record.settled, (try? ModInstallationNativeRuntimeProof(state: state)) == record.proof {
+            modActionReceipt = try record.receipt.map(PlayAdvancedState.init)
+        } else if modRecord?.settled != false { modActionReceipt = nil }
         cardReceipts.reconcile(state, owner: session)
         // An unresolved steps proof must not disable unrelated server-present kits.
         // Step submission itself is separately unsupported until its proof contract is approved.
@@ -467,6 +634,13 @@ extension PlayExperienceService {
         guard self.generation == generation else { return }
         guard currentSession() == session else { clearAdvancedLeaderboard(); self.state = nil; clearObjectCardReceipt(); phase = "stale"; return }
         issue = error as? PlayExperienceError ?? .unknownResult
+        if modInstallationRecoveryRequired {
+            clearAdvancedLeaderboard()
+            if case PlayExperienceError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+            else if case APIError.unauthorized = error { clearObjectCardReceipt(); phase = "stale" }
+            else { phase = "unknown" }
+            return
+        }
         if preservePending, pending != nil {
             // A current-state read has no original action identity. Missing data,
             // an expired grant or a business error must not release that action.

@@ -33,7 +33,7 @@ import FoundationNetworking
         func wait() async { for _ in 0..<1000 { if pending != nil { return }; await Task.yield() }; XCTFail("Expected delayed synthetic response") }
         func reject() { let old = pending; pending = nil; old?.resume(returning: (Data(), 401)) }
     }
-    final class Fixture {
+    @MainActor final class Fixture {
         let context: RuntimeDependencyContext, command: WorkshopPaidProfessionalCommand, reference: WorkshopPaidInstalledTextReference
         let wire: Wire, memory: Memory
         var current: RuntimeDependencyContext?, read: WorkshopPaidProfessionalReadApproval?, write: WorkshopPaidProfessionalWriteApproval?

@@ -1,0 +1,2855 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "modInstallation.error.bindingsRecovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resources could not be verified again. Any previous choices remain for review, but preparing and installing are disabled until refresh succeeds."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法重新确认资源。已有选择保留供核对，刷新成功前不能准备或安装。"
+          }
+        }
+      }
+    },
+    "modInstallation.bindingsChanged": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Some selected resources changed or no longer match this anchor. Review the available resources and choose again. Nothing was installed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "部分已选资源发生变化或不再匹配此锚点。请核对可用资源并重新选择，尚未执行安装。"
+          }
+        }
+      }
+    },
+    "modInstallation.chooseAnchorFirst": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose an anchor POI before binding resources. Map resources must be in the same region."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先选择锚点地点，再绑定资源。地图资源必须位于同一区域。"
+          }
+        }
+      }
+    },
+    "modInstallation.anchor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anchor POI"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "锚点地点"
+          }
+        }
+      }
+    },
+    "modInstallation.authorizedVersion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original licensed version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始授权版本"
+          }
+        }
+      }
+    },
+    "modInstallation.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回"
+          }
+        }
+      }
+    },
+    "modInstallation.bindingHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen binding hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结绑定哈希"
+          }
+        }
+      }
+    },
+    "modInstallation.bindings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose real store resources"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择真实门店资源"
+          }
+        }
+      }
+    },
+    "modInstallation.bindingsBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only server-verified resources belonging to your store are selectable. Every required placeholder and a real anchor POI must be selected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅可选择服务端验证属于本人门店的资源。必须选择真实锚点地点，并填齐全部必需占位。"
+          }
+        }
+      }
+    },
+    "modInstallation.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A purchase is only a license. Installation creates a private native draft, not published or executable content."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "购买仅获得授权。安装只创建原生私有草稿，不会发布，也不会变成可执行内容。"
+          }
+        }
+      }
+    },
+    "modInstallation.cancelBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server will resolve this original request. Closing the screen is not cancellation, and cancellation does not revoke or refund the purchase."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端将处理此原始请求。关闭页面不等于取消；取消安装也不会撤销授权或退款。"
+          }
+        }
+      }
+    },
+    "modInstallation.cancelQuestion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel this prepared request?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消此待安装请求？"
+          }
+        }
+      }
+    },
+    "modInstallation.cancelRequest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel original installation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消原安装请求"
+          }
+        }
+      }
+    },
+    "modInstallation.choose": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择…"
+          }
+        }
+      }
+    },
+    "modInstallation.confirmBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this exact version, store, anchor and binding receipt. No purchase, publication, execution or review approval is implied."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请确认此原始版本、门店、锚点和绑定回执。本操作不代表再次购买、发布、执行或审核通过。"
+          }
+        }
+      }
+    },
+    "modInstallation.confirmInstall": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm and create private draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认并创建私有草稿"
+          }
+        }
+      }
+    },
+    "modInstallation.contentHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结内容哈希"
+          }
+        }
+      }
+    },
+    "modInstallation.draft": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member-template draft ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会员模板草稿编号"
+          }
+        }
+      }
+    },
+    "modInstallation.editDraft": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit private draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑私有草稿"
+          }
+        }
+      }
+    },
+    "modInstallation.error.cancelUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancellation could not be confirmed. Check the original request before trying another action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无法确认取消结果，请先查询原请求再继续。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.factsUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The installation receipt is retained, but current fact confirmation is not verified. Read current facts to recover; edits require a new review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装回执已保留，但尚无法确认当前事实状态。请读取当前事实恢复；改稿后需重新阅读确认。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current receipt is saved, but installation history could not be refreshed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前回执已保存，但暂时无法刷新安装历史。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.installUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The install result is unknown. Check the original request to recover its authoritative result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装结果未知，请查询原请求以恢复服务端最终结果。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.options": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store options could not be verified. No installation request was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法验证门店资源，未发送安装请求。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.pending": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A saved original request must be recovered before another installation can begin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已有原请求待恢复，完成恢复前不能开始另一次安装。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.prepareUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparation could not be confirmed. Only check the saved original request; do not create a replacement."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无法确认准备结果。请仅查询已保存的原请求，不要创建替代请求。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.recoveryUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request could not be verified. Its saved identity is retained; refresh to check again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法确认原请求，已保留原始编号，请刷新重查。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.requestUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server has not confirmed the saved original request. Keep this request and refresh; no replacement will be created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端尚未确认已保存的原请求。请保留此请求并刷新，不会另建替代请求。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.selection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose resources from the current verified store options."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择当前已验证门店下的资源。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.session": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account or approval changed. Reopen installation in the current session to recover safely."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号或权限已变更，请在当前会话重新进入安装以安全恢复。"
+          }
+        }
+      }
+    },
+    "modInstallation.error.storage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The recovery record could not be safely stored or read. Installation is blocked until recovery storage is available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法安全保存或读取恢复记录。恢复存储可用前，安装已锁定。"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This confirms only the merchant facts in this exact draft. Any content edit requires confirmation again. Theme/content review and W02 publication remain separate required steps. The licensed source cannot be resold in the public marketplace."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只确认此版本草稿中的门店事实。修改内容后必须重新确认。主题内容审核与 W02 发布仍是独立必需步骤，授权源模板不得在公共广场转售。"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.confirm": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm facts for this draft hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认此草稿哈希的事实"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.confirmed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Facts confirmed for this exact draft hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此草稿哈希对应的事实已确认"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.currentContent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current draft title and full rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿标题与完整规则"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.draftHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current draft content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前草稿内容哈希"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.readConfirmation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I have read the full title, rules and bindings and confirm the real merchant facts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已阅读完整标题、规则与绑定，并确认真实门店事实。"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current facts / recover confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前事实 / 恢复确认结果"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.required": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read and confirm the current merchant facts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请阅读并确认当前门店事实"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the current draft and bindings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阅读当前草稿与绑定"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Merchant fact confirmation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店事实确认"
+          }
+        }
+      }
+    },
+    "modInstallation.facts.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fact confirmation may have reached the server. Read the current facts before another confirmation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "事实确认可能已送达服务端，请先读取当前事实再继续。"
+          }
+        }
+      }
+    },
+    "modInstallation.gate.MERCHANT_FACT_CONFIRMATION": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required gate: current merchant facts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必需关卡：当前门店事实确认"
+          }
+        }
+      }
+    },
+    "modInstallation.gate.THEME_CONTENT_REVIEW": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required gate: theme and content review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必需关卡：主题内容审核"
+          }
+        }
+      }
+    },
+    "modInstallation.gate.W02_PUBLISH": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required gate: separate W02 publication"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必需关卡：独立 W02 发布"
+          }
+        }
+      }
+    },
+    "modInstallation.history": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装历史"
+          }
+        }
+      }
+    },
+    "modInstallation.keepRequest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留请求"
+          }
+        }
+      }
+    },
+    "modInstallation.kind.NPC": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NPC placeholder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "角色占位"
+          }
+        }
+      }
+    },
+    "modInstallation.kind.POI": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "POI placeholder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地点占位"
+          }
+        }
+      }
+    },
+    "modInstallation.kind.ROUTE_ENTRY": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Route-entry placeholder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "路线入口占位"
+          }
+        }
+      }
+    },
+    "modInstallation.kind.SITE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Site placeholder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场地占位"
+          }
+        }
+      }
+    },
+    "modInstallation.kind.SKU": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "SKU placeholder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商品占位"
+          }
+        }
+      }
+    },
+    "modInstallation.license": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权凭证"
+          }
+        }
+      }
+    },
+    "modInstallation.loadingOptions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load the original license and available resources to begin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先加载原授权及可用资源。"
+          }
+        }
+      }
+    },
+    "modInstallation.merchant": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本人门店"
+          }
+        }
+      }
+    },
+    "modInstallation.missingResource": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No eligible resource is available for this required placeholder. Add it to the store, then reload."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此必需占位暂无可选资源，请先在门店中补齐，再重新加载。"
+          }
+        }
+      }
+    },
+    "modInstallation.module": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Module"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模组"
+          }
+        }
+      }
+    },
+    "modInstallation.noAnchor": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This store has no eligible mapped POI. Add a real POI with a verified region before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该门店暂无符合条件的地图地点，请先添加地区已验证的真实地点。"
+          }
+        }
+      }
+    },
+    "modInstallation.noMerchants": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No eligible owned stores are available. Store ownership must be established before installation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无符合条件的本人门店，请先完成门店归属确认。"
+          }
+        }
+      }
+    },
+    "modInstallation.noPlaceholders": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This version has no additional placeholders. The store and anchor POI are still required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此版本没有额外占位，仍须选择本人门店和锚点地点。"
+          }
+        }
+      }
+    },
+    "modInstallation.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install to my store"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装到我的门店"
+          }
+        }
+      }
+    },
+    "modInstallation.originalReceipt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original server receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端原始回执"
+          }
+        }
+      }
+    },
+    "modInstallation.prepare": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare installation receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备安装回执"
+          }
+        }
+      }
+    },
+    "modInstallation.recover": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check original request and refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询原请求并刷新"
+          }
+        }
+      }
+    },
+    "modInstallation.recoveryBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interrupted or uncertain operations keep their original request ID across closing and relogin. Refresh never installs, cancels or creates a new request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中断或结果未知的操作会在关闭、重新登录后保留原请求编号。刷新只查询，不会安装、取消或新建请求。"
+          }
+        }
+      }
+    },
+    "modInstallation.region": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authoritative region"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端地区"
+          }
+        }
+      }
+    },
+    "modInstallation.release": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Purchased version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已购版本"
+          }
+        }
+      }
+    },
+    "modInstallation.reload": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopen installation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新进入安装"
+          }
+        }
+      }
+    },
+    "modInstallation.request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原始请求编号"
+          }
+        }
+      }
+    },
+    "modInstallation.restoreReceipt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check and restore original receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查询并恢复原回执"
+          }
+        }
+      }
+    },
+    "modInstallation.reviewInstall": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review original receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核对原始回执"
+          }
+        }
+      }
+    },
+    "modInstallation.serverError": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server error code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端错误码"
+          }
+        }
+      }
+    },
+    "modInstallation.startAnother": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepare another installation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备另一次安装"
+          }
+        }
+      }
+    },
+    "modInstallation.state.CANCELLED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装已取消"
+          }
+        }
+      }
+    },
+    "modInstallation.state.FAILED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation failed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装失败"
+          }
+        }
+      }
+    },
+    "modInstallation.state.INSTALLED_PRIVATE_DRAFT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private draft created · not published"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已创建私有草稿 · 未发布"
+          }
+        }
+      }
+    },
+    "modInstallation.state.PREPARED": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prepared · not installed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已准备 · 尚未安装"
+          }
+        }
+      }
+    },
+    "modInstallation.termsHash": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Frozen terms hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结条款哈希"
+          }
+        }
+      }
+    },
+    "modInstallation.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Install licensed module"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装已授权模组"
+          }
+        }
+      }
+    },
+    "modInstallation.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation is unavailable for this session. A separate reviewed installation grant is required."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次会话暂不可安装，需要独立审核的安装权限。"
+          }
+        }
+      }
+    },
+    "modInstallation.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request may have reached the server. Check its status before taking another action."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求可能已经送达服务端，请先查询原请求状态，不要新建请求。"
+          }
+        }
+      }
+    },
+    "modInstallation.retryOriginal": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry this original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试这一原请求"
+          }
+        }
+      }
+    },
+    "modInstallation.error.preflightRejected": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected preflight before creating a draft. Refresh and choose the current resources again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端预检已明确拒绝，未创建草稿。请刷新并重新选择当前资源。"
+          }
+        }
+      }
+    },
+    "modInstallation.previewContent": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bound native content preview"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已绑定的原生内容预览"
+          }
+        }
+      }
+    },
+    "modInstallation.error.preview": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The exact bound content could not be loaded. Refresh this request before installing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未能读取这一请求的完整绑定内容。请刷新原请求后再安装。"
+          }
+        }
+      }
+    },
+    "modInstallation.field.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Title"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "标题"
+          }
+        }
+      }
+    },
+    "modInstallation.field.description": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Description"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "介绍"
+          }
+        }
+      }
+    },
+    "modInstallation.field.players": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Players"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与人数"
+          }
+        }
+      }
+    },
+    "modInstallation.field.usageLocation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用场地"
+          }
+        }
+      }
+    },
+    "modInstallation.field.requiredMaterials": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Required materials"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所需材料"
+          }
+        }
+      }
+    },
+    "modInstallation.field.difficulty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Difficulty"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "难度"
+          }
+        }
+      }
+    },
+    "modInstallation.field.ruleInstructions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整规则"
+          }
+        }
+      }
+    },
+    "modInstallation.field.merchantGuide": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private merchant guide"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商户私有执行说明"
+          }
+        }
+      }
+    },
+    "modInstallation.field.questionName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目"
+          }
+        }
+      }
+    },
+    "modInstallation.field.questionAnswer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed answer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "授权答案"
+          }
+        }
+      }
+    },
+    "modInstallation.field.feedbackText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Feedback"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "反馈文案"
+          }
+        }
+      }
+    },
+    "modInstallation.field.questionA": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option A"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项A"
+          }
+        }
+      }
+    },
+    "modInstallation.field.questionB": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option B"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项B"
+          }
+        }
+      }
+    },
+    "modInstallation.field.questionC": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option C"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项C"
+          }
+        }
+      }
+    },
+    "modInstallation.field.questionD": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option D"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项D"
+          }
+        }
+      }
+    },
+    "modInstallation.field.correctAnswer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Correct option"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正确选项"
+          }
+        }
+      }
+    },
+    "modInstallation.field.storyText": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Story"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "故事"
+          }
+        }
+      }
+    },
+    "modInstallation.field.hint1": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第一条提示"
+          }
+        }
+      }
+    },
+    "modInstallation.field.hint2": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Second hint"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第二条提示"
+          }
+        }
+      }
+    },
+    "modInstallation.field.answerReveal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Answer explanation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "答案解释"
+          }
+        }
+      }
+    },
+    "modInstallation.field.photoRequireDesc": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Photo requirements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "照片要求"
+          }
+        }
+      }
+    },
+    "modInstallation.field.activityCategoryids": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Activity categories"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活动类别"
+          }
+        }
+      }
+    },
+    "modInstallation.field.validationMethod": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Native validation method"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原生验证方式"
+          }
+        }
+      }
+    },
+    "modInstallation.field.duration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Duration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时长"
+          }
+        }
+      }
+    },
+    "modInstallation.field.categoryId": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Category"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "类别"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete native graph"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整原生节点图"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Entry node"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "起点节点"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.end": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ending and outcome"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结局与结果码"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.currentConfiguration": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current complete configuration (edited; no mechanisms hidden)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前完整配置（已编辑；未隐藏其他机制）"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This structural preview does not run the story, approve review, or publish it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结构预览不执行剧情，不批准审核或发布。"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.fallback": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicit fallback if the selected destination is unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选目标不可用时的显式回退选项"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.topicBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Every node, option, edge and fallback is preserved in the native topic draft. Existing host authoring policies apply, including XP configuration. No reward is granted and nothing is published by installation. Review the full saved facts before submitting through the original content review and W02 release flow."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所有节点、选项、边与回退均保存到原生主题草稿。沿用现有主机创作规则，包括 XP 配置；安装不发奖、不发布。保存后请回读全部事实，再走原内容审核及 W02 发布流程。"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.qaBoundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "文本答题 · 单语言 · 导入 XP 为 0。后续编辑仍须通过原事实确认、审核和发布。答题次数耗尽在既有原生流程表示“答完”，不等于“答对”；后继仅按服务器完成回执推进。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Text questions · One language · Imported XP is 0. Edits still require fact confirmation, review and publication. In the existing native flow, exhausted attempts mean finished, not correct. Only the server completion receipt advances the route."
+          }
+        }
+      }
+    },
+    "modInstallation.graph.qaMulti": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多选：必须与正确答案集合完全一致"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Multiple selection: the answer set must match exactly"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.qaSingle": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "单选：一个正确答案"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Single selection: one correct answer"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.qaAttempts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多尝试次数（0 表示不限）"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maximum attempts (0 means unlimited)"
+          }
+        }
+      }
+    },
+    "modInstallation.graph.qaAnswer": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作者答案标记，不会作为玩家配置下发"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Author answer marker, excluded from player configuration"
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑已安装题目"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit installed questions"
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.scope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只更新此私有草稿的原题目，不创建副本、不发布、不扣安装配额。保存后重新回读并确认商户事实；不改变源模组或已发布版本。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Update the original question in this private draft only. No copy, publication or installation quota use. Read back and reconfirm merchant facts after saving; the licensed source and published versions remain unchanged."
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.review": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览题目修改"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review question changes"
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存到原私有题目"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save to the original private question"
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.saved": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原编辑回执已确认，请返回重新确认当前事实"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original edit receipt confirmed. Return to review the current facts."
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确认。退出或重启后先查原编辑回执，不更换请求。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Result unconfirmed. After exit or restart, read the original edit receipt before retrying the same request."
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.invalid": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题目不符合文本单选/多选合同，请检查题干、选项与正确答案"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check the question text, options and exact answer set."
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前题目暂不可编辑，请回读原回执与草稿；账号、归属或草稿状态可能已改变"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This question cannot currently be edited. Read the original receipt and draft again; account, ownership or draft state may have changed."
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.rejected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端拒绝本次修改，没有保存。请读取最新草稿后重新预览"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server rejected this edit without saving. Read the latest draft and review again."
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.question": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "题干"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Question"
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.lead": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前置说明"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduction"
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.option": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项文字"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Option label"
+          }
+        }
+      }
+    },
+    "modInstallation.qaEdit.feedback": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选中后的反馈"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Selected-option feedback"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.title": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑已安装玩法"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit installed template"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.scope": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅编辑此安装回执所属的原私有草稿，不新建副本，不再次占用安装配额。类别、验证方式、媒体奖励与已编译图保持原样。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit only the original private draft owned by this installation receipt. No duplicate or additional installation quota. Categories, validation method, media, rewards and compiled graph stay unchanged."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.locked": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此草稿已离开可编辑私有状态；这里只读展示原审核状态，不改动已发布运行版本。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This draft is no longer privately editable. Current review status is read-only; published runtime versions are not changed."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.auditStatus": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原审核状态：0 待审，1 通过，2 驳回，3 升级，4 已取消。审核通过不等于 W02 商业发布。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original review: 0 pending, 1 approved, 2 rejected, 3 escalated, 4 cancelled. Approval is not W02 commercial publication."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.graphReadOnly": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已编译原生图仅供完整查看，本页不修改图节点、边或结果语义。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The compiled native graph is shown in full but is read-only here. Nodes, edges and outcome semantics are preserved."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.save": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. 预览并保存原草稿"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1. Review and save original draft"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.facts": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. 重新确认完整内容与绑定事实"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2. Reconfirm full content and bindings"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.submit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. 明确提交原内容审核"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3. Explicitly submit original content review"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.reviewBoundary": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存不会自动审核或发布。事实确认须对应最新完整快照；提交审核另需已批准的提审接口配置，仅创建原审核任务并保持未上架，后续仍遵循原审核与 W02。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saving never approves or publishes. Fact confirmation must match the latest full snapshot. Review submission requires a separate approved review configuration, creates the original review task and stays unpublished; original review and W02 still apply."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.fullSnapshot": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整原审核快照"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full original review snapshot"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.confirm": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认本次操作"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this action"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.received": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已回读原操作回执"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original action receipt recovered"
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.unknown": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果未知，保留原请求。恢复时先读取原回执，不换请求重复保存或提审。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Outcome unknown. The original request is retained. Recovery reads its receipt before any same-request retry."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.unavailable": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前账号、私有草稿状态、事实或编辑权限不可用，请回读。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The current account, private draft state, facts or edit permission is unavailable. Reload to verify."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.invalid": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容未通过本页文本合同校验，请检查必填项与长度。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Content does not meet this text-edit contract. Check required fields and lengths."
+          }
+        }
+      }
+    },
+    "modInstallation.templateEdit.rejected": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已明确拒绝并回滚本次操作，请读取最新草稿。"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server explicitly rejected and rolled back this action. Reload the current draft."
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.open": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original installation results / restart recovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原安装结果 / 重启恢复"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original installation recovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原安装结果恢复"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.unavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original installation read approval or current session is unavailable. No request has been resubmitted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原安装结果读取许可或当前会话不可用；未重发请求。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.reopen": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reopen the original read scope"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新打开原读取范围"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading the original request and installation history…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取原请求与原安装历史…"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.identitySection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original license and results"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原许可与原结果"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.boundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This only reads the original request and installation history. It does not load new installation options, resubmit prepare/install/cancel, or edit or run installed content. Revocation or delisting does not mean the original request never happened; an old receipt does not restore installation or runtime rights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只读原请求与原安装历史，不读取新安装选项、不重发 prepare/install/cancel，不编辑或执行安装内容。撤权和下架不等于原请求未发生；旧回执也不恢复安装或运行权利。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.localSection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original local request · same key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机原请求 · 不换键"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.savedReceipt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved historical receipt · not this read’s result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机留存历史回执 · 不是本次读取结果"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.noLocalRequest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No original request record was found on this device. This does not prove that no installation occurred on the server. You can still read your original installation history."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机没有可读取的原请求记录；不据此认定服务端从未安装。可继续读取本人原安装历史。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.storageUnavailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original local request journal is unavailable. Its records have not been cleared or replaced."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机原请求记录暂不可读；未清理或替换原记录。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.requestUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read did not confirm the original request’s result (UNKNOWN). A 404, failure or timeout does not authorize a new installation request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求本次结果 UNKNOWN。404、失败或超时均不授权新建安装请求。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.resultSection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original request result from this read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次明确读取的原请求结果"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.resultBoundary": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the original installation request state, not proof of uninstalling, publishing or successful execution. Existing drafts and runs are not overwritten by an update."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此处是原安装请求状态，不是卸载、发布或运行成功证明；旧稿和旧 run 不被更新覆盖。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.historySection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your original server installation history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端本人原安装历史"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.readRequest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read this exact original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确读取这一原请求"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.emptyHistory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This original history page is empty. That does not prove an uninstall or rule out earlier records."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次原历史页为空；不证明安装被卸载或不存在更早记录。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.historyUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original history or selected request could not be confirmed in this read. An empty list or historical row is not a completed result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原历史或所选原请求本次读取未确认；不会从空列表或历史行制造完成结果。"
+          }
+        }
+      }
+    },
+    "modInstallation.originalRecovery.refresh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh the same original request and history"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新同一原请求与原历史"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

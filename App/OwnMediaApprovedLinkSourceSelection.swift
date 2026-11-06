@@ -14,7 +14,7 @@ import Observation
     private var selected: [Int64: OwnMediaApprovedLinkApproval] = [:]
     private var used: Set<UUID> = []
     private var clients: [WeakClient] = []
-    private var timers: [Int64: Task<Void, Never>] = [:]
+    @ObservationIgnored private var timers: [Int64: Task<Void, Never>] = [:]
     init() {}
     deinit { timers.values.forEach { $0.cancel() } }
     func replace(assetID: Int64, with value: OwnMediaApprovedLinkApproval?) throws {

@@ -167,4 +167,4 @@ public struct CityMerchantValueBenefitRecord: Decodable, Equatable, Sendable {
     }
 }
 
-public enum CityMerchantValueReportReason: String { case notInterested = "not_interested", noTime = "no_time", serviceUnavailable = "service_unavailable", preferNotToSay = "prefer_not_to_say" }
+public enum CityMerchantValueReportReason: String, CaseIterable { case notInterested = "not_interested", noTime = "no_time", serviceUnavailable = "service_unavailable", preferNotToSay = "prefer_not_to_say" }

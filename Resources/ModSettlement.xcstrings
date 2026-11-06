@@ -1,0 +1,982 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "modSettlement.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD income and settlements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD 收入与结算"
+          }
+        }
+      }
+    },
+    "modSettlement.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your server-side settlement records only, not total sales, wallet balance or activity-ticket revenue. No records does not mean zero income."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅展示本人服务端结算记录，不是全部销售收入、钱包余额或活动票款分润。未出现记录不代表收入为零。"
+          }
+        }
+      }
+    },
+    "modSettlement.noPaymentAction": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only. This page cannot request withdrawals, approve or send payments, and never shows bank or identity credentials."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页只读。不会申请提现、批准或发起付款，也不会显示银行或身份凭据。"
+          }
+        }
+      }
+    },
+    "modSettlement.loading": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading server records…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在读取真实记录…"
+          }
+        }
+      }
+    },
+    "modSettlement.refresh": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新"
+          }
+        }
+      }
+    },
+    "modSettlement.retry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read again"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取"
+          }
+        }
+      }
+    },
+    "modSettlement.records": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent settlements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的结算记录"
+          }
+        }
+      }
+    },
+    "modSettlement.empty": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No settlement records are available. Income reconciliation, the settlement period, eligibility or human preparation may still be pending. This does not mean paid or zero income."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无可查询的结算记录。收入来源、结算周期、资格或人工准备仍可能待处理，不显示为已结算或零收入。"
+          }
+        }
+      }
+    },
+    "modSettlement.limited": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Up to the latest 100 records. This is not a complete historical total."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多显示最近 100 条；本页不提供全部历史合计。"
+          }
+        }
+      }
+    },
+    "modSettlement.minorUnits": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minor units"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最小货币单位"
+          }
+        }
+      }
+    },
+    "modSettlement.lastRead": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Last read"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次读取时间"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creator settlement eligibility"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "作者结算资格"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.revision": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eligibility revision"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资格版本"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.expires": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有效期至"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.missing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No eligibility review is recorded. Identity, channel, tax, copyright and risk evidence require formal review. Real payouts must remain closed without approval."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无资格审核记录。身份、渠道、税务、版权与风险材料仍需正式审核；未批准不得开放真实收款。"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.notApproved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eligibility is not approved or has been revoked. It cannot authorize a payout."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资格尚未批准或已撤销，不能据此发起结算。"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.expired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Eligibility has expired and requires another review."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "资格已过期，需要重新审核。"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.valid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The recorded eligibility review is valid. This does not mean a payment is approved or received."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端记录的资格审核仍有效；不等于付款获批或已经到账。"
+          }
+        }
+      }
+    },
+    "modSettlement.qualification.channelUnknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This endpoint does not expose merchant-channel, tax-policy or payout-switch readiness. Eligibility is not proof that the channel is configured; operations must confirm formal approval and configuration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此接口不提供商户渠道、税务政策或付款开关的开放状态，不能把资格记录当成渠道已配置。正式批准与配置仍需运营确认。"
+          }
+        }
+      }
+    },
+    "modSettlement.frozen": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dispute or risk hold"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "争议或风险冻结"
+          }
+        }
+      }
+    },
+    "modSettlement.frozenExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A hold does not erase a completed payment. Operations must reconcile refunds, chargebacks, debt and release under the approved process."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冻结不抹去已发生的付款。退款、拒付、债务及解冻由运营按正式流程核对。"
+          }
+        }
+      }
+    },
+    "modSettlement.result": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement result and review state"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算结果与人审状态"
+          }
+        }
+      }
+    },
+    "modSettlement.detail": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算详情"
+          }
+        }
+      }
+    },
+    "modSettlement.confirmedAmount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider-confirmed paid amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方确认已付金额"
+          }
+        }
+      }
+    },
+    "modSettlement.proposedAmount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement amount, not proof of receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次结算金额，非到账证明"
+          }
+        }
+      }
+    },
+    "modSettlement.minorUnitsExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amounts are shown in the server currency’s minor units without conversion or mixed-currency totals. CNY 100 fen equals 1 yuan."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额按服务端原始最小货币单位展示，不擅自换算币种或汇总不同币种。CNY 的 100 分为 1 元。"
+          }
+        }
+      }
+    },
+    "modSettlement.retainedAmount": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reserve recorded in this draft"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本草稿记录的保留款"
+          }
+        }
+      }
+    },
+    "modSettlement.reserveExplanation": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the reserve snapshot at draft time, not the current withdrawable balance. Release at maturity still requires a new draft and human approval."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是草稿时的保留款快照，不是当前可提余额。到期释放也须重新准备并人工批准。"
+          }
+        }
+      }
+    },
+    "modSettlement.trace": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original record references"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原记录追溯"
+          }
+        }
+      }
+    },
+    "modSettlement.settlementID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Settlement ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结算编号"
+          }
+        }
+      }
+    },
+    "modSettlement.orderID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD order ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MOD 订单编号"
+          }
+        }
+      }
+    },
+    "modSettlement.version": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录版本"
+          }
+        }
+      }
+    },
+    "modSettlement.intentKey": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original payment-intent key"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原付款意图编号"
+          }
+        }
+      }
+    },
+    "modSettlement.providerResult": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider result ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方结果编号"
+          }
+        }
+      }
+    },
+    "modSettlement.createdAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Created"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建时间"
+          }
+        }
+      }
+    },
+    "modSettlement.updatedAt": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server updated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端更新时间"
+          }
+        }
+      }
+    },
+    "modSettlement.refreshResult": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回读原结果"
+          }
+        }
+      }
+    },
+    "modSettlement.readbackOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh reads the persisted result for this same settlement ID. It never resubmits payment or changes the intent key. Operations perform provider reconciliation separately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新只读取这个结算编号的已持久结果，不重新付款、不更换意图编号。服务方主动查单由运营接口执行。"
+          }
+        }
+      }
+    },
+    "modSettlement.reviewBoundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This shows only the review state persisted on the settlement. Pending workbench tasks, reviewer comments and estimates are not exposed by the creator API and are not invented."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这里只展示结算记录已经持久化的审核状态。后台待审任务、审核意见与预计处理时间未由作者接口提供，不会编造进度。"
+          }
+        }
+      }
+    },
+    "modSettlement.issue.notConfigured": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This read capability is not configured for the current region or service. No request was sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前地区或服务地址尚未配置此只读能力，未发起请求。"
+          }
+        }
+      }
+    },
+    "modSettlement.issue.login": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to the current creator account, then reopen settlements."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先登录当前作者账号，再重新打开结算记录。"
+          }
+        }
+      }
+    },
+    "modSettlement.issue.stale": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The account, role or service environment changed. Old records are hidden; go back and reopen this page."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账号、身份或服务环境已变化。已隐藏旧记录，请返回后重新进入。"
+          }
+        }
+      }
+    },
+    "modSettlement.issue.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Records are temporarily unavailable. This does not mean zero income, rejected review or failed payment. Try reading again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法读取，不代表收入为零、审核失败或付款失败。可稍后重新读取。"
+          }
+        }
+      }
+    },
+    "modSettlement.issue.malformed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The response does not match this creator or the MOD settlement contract. It was not displayed and no payment status was inferred."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回包与当前作者或 MOD 结算契约不一致，已拒绝显示，未作任何付款推断。"
+          }
+        }
+      }
+    },
+    "modSettlement.issue.notFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The record is unavailable, belongs to another creator, or the backend read route is not deployed. No other creator’s records are displayed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此记录不存在、不属于当前作者，或后端读取接口尚未开放。未显示其他人的记录。"
+          }
+        }
+      }
+    },
+    "modSettlement.state.DRAFT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Draft, not yet human-approved"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿，尚未人工批准"
+          }
+        }
+      }
+    },
+    "modSettlement.state.APPROVED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Human-approved, payment not submitted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已人工批准，尚未发起付款"
+          }
+        }
+      }
+    },
+    "modSettlement.state.SUBMITTING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Payment intent recorded, result unconfirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "付款意图已记录，结果待确认"
+          }
+        }
+      }
+    },
+    "modSettlement.state.UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider result unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方结果未知"
+          }
+        }
+      }
+    },
+    "modSettlement.state.PENDING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider processing, not confirmed paid"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方处理中，尚未确认已付"
+          }
+        }
+      }
+    },
+    "modSettlement.state.SUCCEEDED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider confirmed payment success"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方已确认付款成功"
+          }
+        }
+      }
+    },
+    "modSettlement.state.FAILED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Provider confirmed payment failure"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方已确认付款失败"
+          }
+        }
+      }
+    },
+    "modSettlement.state.CANCELLED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unsubmitted settlement cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未发起的结算已取消"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.DRAFT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The amount is still a draft. It is neither payment authorization nor proof of receipt."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额仍是草稿。尚不能视为已获付款授权，也不能视为已到账。"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.APPROVED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The draft is approved. Separate dispatch approval, channel/policy and current eligibility checks still apply on the server."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "草稿已批准。独立付款发起审批、渠道/政策和最新资格检查仍由服务端执行。"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.SUBMITTING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original intent is durable. Submission may be in progress or interrupted; operations must reconcile that same key without resubmitting."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原意图已持久化。可能正在提交或提交后中断，运营须沿原编号核对，不重新付款。"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown is neither failed nor paid. Reconcile the original intent without changing keys or paying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知不能当作失败或已付。继续核对原意图，不换编号、不重复打款。"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.PENDING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The provider has not returned a final result. Processing amounts are not confirmed paid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方尚未给出最终付款结果，不能把处理中金额计为已付。"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.SUCCEEDED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This state comes from an authoritative provider result. Later refunds, chargebacks or holds can still create outstanding obligations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此状态来自服务方权威结果。后续退款、拒付或冻结仍可能产生待处理义务。"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.FAILED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The provider confirmed a terminal unpaid result. A new settlement requires a new draft and human approval; this page never retries payment."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务方确认终态未付款。任何新的结算均需重新准备并人工审批，本页不会重试付款。"
+          }
+        }
+      }
+    },
+    "modSettlement.explanation.CANCELLED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a local cancellation before submission, not a reversal of money already paid by the provider."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是发起付款前的本地取消，不是向服务方撤回已支付款项。"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

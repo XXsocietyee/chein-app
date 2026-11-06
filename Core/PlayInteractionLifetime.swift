@@ -11,6 +11,7 @@ import Foundation
     init(context: PlayInteractionContext, current: @escaping () -> PlayInteractionContext?, onRetired: @escaping () -> Void) {
         self.context = context; self.current = current; self.onRetired = onRetired; identity = context.lifetimeIdentity
     }
+    public var gameplayMode: PlayGameplayMode { context.authoritativeMode }
     public var isCurrent: Bool { !retired && current() == context }
     func checkReturnedMode(_ value: Int?) throws {
         try check()

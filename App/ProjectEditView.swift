@@ -350,6 +350,7 @@ import SwiftUI
                             .disabled(model.coordinator.isLocked || model.coordinator.isReadOnly).accessibilityIdentifier("projectEdit.discardLocal")
                     }
                 }
+                NativeAttributeAuthorProjectEntrySection(model: model)
                 if model.coordinator.snapshot?.scope == .whitelist {
                     Section { Text("projectEdit.whitelistHint").accessibilityIdentifier("projectEdit.whitelistHint") }
                 }
