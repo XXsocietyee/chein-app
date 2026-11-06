@@ -72,11 +72,12 @@ import Observation
         try result.replace()
         return result
     }
-    private func mount(_ f: Fixture) -> UIWindow {
+    private func mount(_ f: Fixture) throws -> UIWindow {
         let host = UIHostingController(rootView: NavigationStack {
             ProfileFavoriteDetailDestination(selection: f.selection, makeReader: { f.reader }, accountReader: nil, actions: nil)
         }.environment(\.scenePhase, .active).environment(\.locale, Locale(identifier: "en_US")))
-        let window = UIWindow(frame: UIScreen.main.bounds)
+        let scene = try XCTUnwrap(UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first)
+        let window = UIWindow(windowScene: scene); window.frame = UIScreen.main.bounds
         window.rootViewController = host; window.makeKeyAndVisible()
         host.loadViewIfNeeded(); host.view.layoutIfNeeded()
         return window
@@ -111,7 +112,7 @@ import Observation
         return walk(window)
     }
     func testMountedNormalDestinationRemovesOldPostAndCommentsBeforeReplacementCompletes() async throws {
-        let f = try await fixture(), window = mount(f)
+        let f = try await fixture(), window = try mount(f)
         defer { f.reader.retire(); f.wire.abortHeld(); window.isHidden = true; window.rootViewController = nil }
         try await waitFor("The original post and comments must actually be visible") {
             self.contains("PRIVATE_POST_1", in: window) && self.contains("PRIVATE_COMMENT_1", in: window)
@@ -132,7 +133,7 @@ import Observation
         XCTAssertTrue(f.reader.confirmsCurrentDetail)
     }
     func testMountedRevocationHidesAlreadyLoadedPrivateProjectionWithoutAnotherRequest() async throws {
-        let f = try await fixture(), window = mount(f)
+        let f = try await fixture(), window = try mount(f)
         defer { f.reader.retire(); f.wire.abortHeld(); window.isHidden = true; window.rootViewController = nil }
         try await waitFor("The granted projection must be visible before revocation") {
             self.contains("PRIVATE_POST_1", in: window) && self.contains("PRIVATE_COMMENT_1", in: window)
@@ -147,7 +148,7 @@ import Observation
     }
     func testMountedReplacementWhileOldReadIsSuspendedDoesNotWaitOrAcceptLateOld401() async throws {
         let f = try await fixture(); f.wire.holdDetails = true
-        let window = mount(f)
+        let window = try mount(f)
         defer { f.reader.retire(); f.wire.abortHeld(); window.isHidden = true; window.rootViewController = nil }
         try await waitFor("A is genuinely suspended") { f.wire.held[1] != nil }
         try f.replace()

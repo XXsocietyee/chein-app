@@ -1,0 +1,342 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "installedRehearsal.entry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the saved version for rehearsal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前已保存版本并核对预演"
+          }
+        }
+      }
+    },
+    "installedRehearsal.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed draft rehearsal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装草稿隔离预演"
+          }
+        }
+      }
+    },
+    "installedRehearsal.savedOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the current server-saved version is read. Unsaved text in this editor is not used or saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅读取服务器当前已保存版本；不会使用或保存本页未保存的文字。"
+          }
+        }
+      }
+    },
+    "installedRehearsal.unsavedPreserved": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have unsaved changes. They will stay in this editor when you return."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本页有未保存修改，返回后仍保留在原编辑稿中。"
+          }
+        }
+      }
+    },
+    "installedRehearsal.licenseChecked": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The owner’s active license and the installed artifact and terms were checked for this visit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次已核对本人有效许可及安装制品、条款的一致性。"
+          }
+        }
+      }
+    },
+    "installedRehearsal.boundary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Local branch rehearsal only. No real task completion, reward, points, billing, creator income, fact confirmation, review or publishing. This does not simulate map, GPS or NPC services."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅在本地隔离预演分支，不完成真实任务、不发奖、不计积分或账单与创作者收入，也不确认事实、提审或发布；不模拟地图、GPS或NPC服务。"
+          }
+        }
+      }
+    },
+    "installedRehearsal.unavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This saved version cannot be rehearsed now. A separate read grant, current owner license and supported private branch draft are required. Recover unresolved writes first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前无法预演此已保存版本。需要独立读取许可、本人有效授权及受支持的私有分支草稿；未决写操作须先恢复。"
+          }
+        }
+      }
+    },
+    "installedRehearsal.return": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Return to the original editor"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回原编辑稿"
+          }
+        }
+      }
+    },
+    "installedRehearsal.start": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rehearse this saved version"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预演这份已保存版本"
+          }
+        }
+      }
+    },
+    "installedRehearsal.identity": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Checked saved identity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已核对的保存版本身份"
+          }
+        }
+      }
+    },
+    "installedRehearsal.savedFields": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server-saved content, not the local buffer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器已保存内容，不是本地未保存稿"
+          }
+        }
+      }
+    },
+    "installedRehearsal.fullSnapshot": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full saved snapshot"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整已保存快照"
+          }
+        }
+      }
+    },
+    "installedRehearsal.templateId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed template"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装模板"
+          }
+        }
+      }
+    },
+    "installedRehearsal.licenseId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "License"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可"
+          }
+        }
+      }
+    },
+    "installedRehearsal.moduleId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Module"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模组"
+          }
+        }
+      }
+    },
+    "installedRehearsal.releaseId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Release"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发行版本"
+          }
+        }
+      }
+    },
+    "installedRehearsal.installationId": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installation request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原安装请求"
+          }
+        }
+      }
+    },
+    "installedRehearsal.draftHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Saved draft hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已保存草稿哈希"
+          }
+        }
+      }
+    },
+    "installedRehearsal.contentHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed content hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装内容哈希"
+          }
+        }
+      }
+    },
+    "installedRehearsal.termsHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed terms hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "许可条款哈希"
+          }
+        }
+      }
+    },
+    "installedRehearsal.bindingHash": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Installed bindings hash"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安装绑定哈希"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}
