@@ -709,6 +709,9 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
                     self.activeDetailRoute = nil
                     self.returnScrollAnchorID = nil
                 }
+                if let activeDetailRoute, !acceptsDetailRoute(activeDetailRoute) {
+                    self.activeDetailRoute = nil
+                }
             case .stale:
                 break
             case .rejected:
@@ -748,6 +751,11 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
             if error as? APIError == .httpStatus(403) || error as? APIError == .businessCode(403) {
                 purgeAllState()
                 errorKey = "searchMap.failed"
+                return
+            }
+            if error as? APIError == .notConfigured || error as? APIError == .invalidConfiguration {
+                purgeAllState()
+                errorKey = "mapPublicLayers.notConfigured"
                 return
             }
             isLoading = false
@@ -807,9 +815,25 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
               let currentSession = session,
               let item = visibleReadyItems.first(where: { $0.key == key }),
               let sourceID = Int(item.key.id),
-              sourceID > 0 else {
+              sourceID > 0,
+              let target = detailTarget(for: item, sourceID: sourceID) else {
             return nil
         }
+        let route = MapPublicLayerDetailRoute(
+            id: item.key,
+            target: target,
+            viewerID: currentSession.viewerID,
+            scope: activeScope,
+            sessionFingerprint: currentSession.fingerprint
+        )
+        selectedItemKey = item.key
+        returnScrollAnchorID = Self.scrollAnchorID(for: item.key)
+        activeDetailRoute = route
+        return route
+    }
+
+    /// Resolve from the current server row so retries cannot retain withdrawn actions or old metadata.
+    private func detailTarget(for item: MapLayerItem, sourceID: Int) -> MapPublicLayerDetailRoute.Target? {
         let coordinate = RoamCoordinate(latitude: item.coordinate.latitude, longitude: item.coordinate.longitude)
         let wire = wireItem(for: item.key)
         let target: MapPublicLayerDetailRoute.Target
@@ -852,17 +876,7 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
         case .sideQuest, .cityBoardPoint:
             return nil
         }
-        let route = MapPublicLayerDetailRoute(
-            id: item.key,
-            target: target,
-            viewerID: currentSession.viewerID,
-            scope: activeScope,
-            sessionFingerprint: currentSession.fingerprint
-        )
-        selectedItemKey = item.key
-        returnScrollAnchorID = Self.scrollAnchorID(for: item.key)
-        activeDetailRoute = route
-        return route
+        return target
     }
 
     /// Verifies whether a pushed detail route is still valid for the current viewer and query session.
@@ -871,10 +885,13 @@ public struct MapPublicLayerDetailRoute: Identifiable, Equatable, Hashable {
               let currentSession = session,
               currentSession.viewerID == route.viewerID,
               activeScope == route.scope,
-              currentSession.fingerprint == route.sessionFingerprint else {
+              currentSession.fingerprint == route.sessionFingerprint,
+              let item = visibleReadyItems.first(where: { $0.key == route.id }),
+              let sourceID = Int(item.key.id), sourceID > 0,
+              let target = detailTarget(for: item, sourceID: sourceID) else {
             return false
         }
-        return visibleReadyItems.contains(where: { $0.key == route.id })
+        return target == route.target
     }
 
     /// Returns from detail while preserving the active query, viewport, loaded pages, cursor, and selection.

@@ -152,10 +152,7 @@ import Observation
             guard accountGeneration == account, queryGeneration == query, detailGeneration == ticket, accountID == viewer else { return }
             failure = Self.failure(error)
             if Self.isReadDenied(error) {
-                session = nil
-                acceptedReady = []
-                detail = nil
-                detailGeneration &+= 1
+                retireDeniedRead()
             }
         }
     }
@@ -217,13 +214,19 @@ import Observation
             guard accountGeneration == account, queryGeneration == ticket, accountID == viewer else { return }
             failure = Self.failure(error)
             if Self.isReadDenied(error) {
-                session = nil
-                acceptedReady = []
-                detail = nil
-                detailGeneration &+= 1
+                retireDeniedRead()
             }
         }
         if accountGeneration == account, queryGeneration == ticket { loading = false }
+    }
+
+    /// A detail rejection also retires concurrent page reads for this viewer/query.
+    private func retireDeniedRead() {
+        abandon()
+        session = nil
+        acceptedReady = []
+        detail = nil
+        last = nil
     }
 
     private func synchronizeReaderContext() {

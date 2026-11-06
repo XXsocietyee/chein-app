@@ -327,4 +327,87 @@ final class MapPublicLayerLaunchTests: XCTestCase {
         XCTAssertTrue(caller.ready.isEmpty)
         XCTAssertNil(caller.session)
     }
+
+    func testDetailDenialRetiresConcurrentPageAndSettlesCallerLoading() async throws {
+        let wire = Wire()
+        let current = try context()
+        let reader = SearchMapSessionReader(service: SearchMapService(configuration: try APIConfiguration(baseURL: baseURL), transport: wire), currentContext: { current })
+        let caller = MapPublicLayerCaller(reader: reader, activity: { _ in throw APIError.businessCode(403) })
+        caller.noteAccount(7)
+        let query = MapPublicLayerCaller.Query(viewerID: 7, minLat: "31.2", maxLat: "31.25", minLng: "121.4", maxLng: "121.5", layers: ["activity"], limit: 20)
+        var activity = store(7)
+        activity["sourceType"] = "activity"
+        activity["visualState"] = "running"
+        activity["actions"] = [String]()
+        let initial = Task { await caller.submit(query) }
+        await settle { wire.pending.count == 1 }
+        wire.reply(0, try page([layer("activity", items: [activity])], cursor: "page-2", envelope: true))
+        await initial.value
+        let item = try XCTUnwrap(caller.ready.first)
+        let next = Task { await caller.nextPage() }
+        await settle { wire.pending.count == 2 }
+        XCTAssertTrue(caller.loading)
+
+        await caller.openDetail(item)
+        XCTAssertFalse(caller.loading)
+        XCTAssertNil(caller.session)
+        XCTAssertTrue(caller.ready.isEmpty)
+        wire.reply(1, try page([layer("activity", items: [activity])], envelope: true))
+        await next.value
+        XCTAssertFalse(caller.loading)
+        XCTAssertNil(caller.session)
+        XCTAssertTrue(caller.ready.isEmpty)
+        XCTAssertNil(caller.detail)
+    }
+
+    func testRetryWithdrawnNavigationInvalidatesPreviouslyOpenedDetailRoute() async throws {
+        let wire = Wire()
+        let current = try context()
+        let coordinator = MapPublicLayerCoordinator(service: try makeService(wire), currentContext: { current }, isApproved: { true })
+        let box = try MapPublicLayerBoundingBox(minLat: "31.2", maxLat: "31.25", minLng: "121.4", maxLng: "121.5")
+        coordinator.loadAuthorizedViewport(box, layers: ["store", "activity"])
+        await settle { wire.pending.count == 1 }
+        wire.reply(0, try page([layer(items: [store(7)]), layer("activity", status: "FAILED")], envelope: true))
+        await settle { !coordinator.isLoading }
+        let key = try MapSourceKey(type: .store, id: "7")
+        let oldRoute = try XCTUnwrap(coordinator.openDetail(for: key))
+        XCTAssertTrue(coordinator.acceptsDetailRoute(oldRoute))
+        XCTAssertTrue(coordinator.canRetry)
+
+        coordinator.retryFailedPage()
+        await settle { wire.pending.count == 2 }
+        var closed = store(7)
+        closed["visibilityVersion"] = "2026-11-05T10:00:00"
+        closed["visualState"] = "closed"
+        closed["actions"] = [String]()
+        wire.reply(1, try page([layer(items: [closed]), layer("activity")], envelope: true))
+        await settle { !coordinator.isLoading }
+        XCTAssertFalse(coordinator.acceptsDetailRoute(oldRoute))
+        XCTAssertNil(coordinator.activeDetailRoute)
+        let refreshed = try XCTUnwrap(coordinator.openDetail(for: key))
+        XCTAssertEqual(refreshed.target, .store(sourceID: 7, title: "Store 7", coordinate: RoamCoordinate(latitude: 31.23, longitude: 121.47), canNavigate: false))
+        XCTAssertTrue(coordinator.acceptsDetailRoute(refreshed))
+    }
+
+    func testConfigurationDenialClearsCachedLayersInsteadOfOfferingCursorRetry() async throws {
+        for error in [APIError.notConfigured, .invalidConfiguration] {
+            let wire = Wire()
+            let current = try context()
+            let coordinator = MapPublicLayerCoordinator(service: try makeService(wire), currentContext: { current }, isApproved: { true })
+            let box = try MapPublicLayerBoundingBox(minLat: "31.2", maxLat: "31.25", minLng: "121.4", maxLng: "121.5")
+            coordinator.loadAuthorizedViewport(box, layers: ["store"])
+            await settle { wire.pending.count == 1 }
+            wire.reply(0, try page([layer(items: [store(7)])], cursor: "page-2", envelope: true))
+            await settle { !coordinator.isLoading }
+            XCTAssertEqual(coordinator.visibleReadyItems.count, 1)
+            coordinator.loadNextPage()
+            await settle { wire.pending.count == 2 }
+            wire.fail(1, error)
+            await settle { !coordinator.isLoading }
+            XCTAssertNil(coordinator.session)
+            XCTAssertTrue(coordinator.visibleReadyItems.isEmpty)
+            XCTAssertFalse(coordinator.canRetry)
+            XCTAssertEqual(coordinator.errorKey, "mapPublicLayers.notConfigured")
+        }
+    }
 }

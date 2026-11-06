@@ -50,7 +50,9 @@ public struct SocialAccountService {
     private func read<T: Decodable>(_ path: String, fields: [String: String] = [:], token: String? = nil, body: Bool = true, missingData: T? = nil) async throws -> T {
         if let token, !AuthRequestBuilder.isValidToken(token) { throw APIError.invalidRequest }
         try Task.checkCancellation()
-        let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token, includesBody: body)
+        var request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent(path), fields: fields, token: token, includesBody: body)
+        // The selected-profile read policy requires explicit cookie isolation.
+        if path == "api/user/public-info" { request.httpShouldHandleCookies = false }
         let (data, status) = try await transport.send(request)
         try Task.checkCancellation()
         let envelope = try? JSONDecoder().decode(SocialValue.self, from: data)

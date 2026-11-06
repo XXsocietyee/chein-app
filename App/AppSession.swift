@@ -1074,7 +1074,7 @@ final class AppSession: ObservableObject {
     private let searchMapSelection = ManualMapAreaSelection()
     private let roamMapSelection = ManualMapAreaSelection()
     private var currentSearchMapContext: SearchMapContext {
-        if let account, let token, let context = try? SearchMapContext(accountID: account.id, epoch: gate.currentStamp, token: token, role: account.effectiveRole, viewerRevision: compositionViewerRevision, manualMapApprovalRevision: currentManualMapApprovalRevision) { return context }
+        if let account, let token, let context = try? SearchMapContext(accountID: account.id, epoch: gate.currentStamp, token: token, role: account.effectiveRole, viewerRevision: compositionViewerRevision, manualMapApprovalRevision: currentManualMapApprovalRevision, publicMapApprovalRevision: currentPublicMapApprovalRevision) { return context }
         return SearchMapContext(guestEpoch: gate.currentStamp)
     }
     /// Re-evaluate current approval at the reader/UI boundary as well as the raw transport.
@@ -1083,6 +1083,12 @@ final class AppSession: ObservableObject {
         guard composition.reviewed?.reads.contains(.manualMap) == true,
               let context = currentRuntimeDependencyContext,
               let approval = composition.manualMapReadApproval(context), approval.matches(context) else { return nil }
+        return approval.revision
+    }
+    private var currentPublicMapApprovalRevision: UUID? {
+        guard composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false,
+              let context = currentRuntimeDependencyContext,
+              let approval = composition.mapPublicLayerReadApproval(context), approval.matches(context) else { return nil }
         return approval.revision
     }
     private var isMapPublicLayerReadApproved: Bool {

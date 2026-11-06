@@ -6,14 +6,16 @@ public struct SearchMapContext: Equatable {
     public let role: String?
     public let viewerRevision: UInt64
     public let manualMapApprovalRevision: UUID?
+    public let publicMapApprovalRevision: UUID?
     private let credential: String?
     var token: String? { credential }
-    public init(guestEpoch: UInt64) { accountID = nil; epoch = guestEpoch; credential = nil; role = nil; viewerRevision = 0; manualMapApprovalRevision = nil }
-    public init(accountID: Int, epoch: UInt64, token: String, role: String? = nil, viewerRevision: UInt64 = 0, manualMapApprovalRevision: UUID? = nil) throws {
+    public init(guestEpoch: UInt64) { accountID = nil; epoch = guestEpoch; credential = nil; role = nil; viewerRevision = 0; manualMapApprovalRevision = nil; publicMapApprovalRevision = nil }
+    public init(accountID: Int, epoch: UInt64, token: String, role: String? = nil, viewerRevision: UInt64 = 0, manualMapApprovalRevision: UUID? = nil, publicMapApprovalRevision: UUID? = nil) throws {
         guard accountID > 0, AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
         self.accountID = accountID; self.epoch = epoch; credential = token
         self.role = role; self.viewerRevision = viewerRevision
         self.manualMapApprovalRevision = manualMapApprovalRevision
+        self.publicMapApprovalRevision = publicMapApprovalRevision
     }
 }
 @MainActor public protocol SearchMapReading: AnyObject {
