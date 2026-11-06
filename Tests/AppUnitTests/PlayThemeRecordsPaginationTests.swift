@@ -4,7 +4,7 @@ import XCTest
 @MainActor final class PlayThemeRecordsPaginationTests: XCTestCase {
     private func firstPage() -> [PlayWireValue] {
         (0..<PlayExperienceService.themeHistoryPageSize).map { offset in
-            .object(["sessionId": .integer(100 - offset), "result": .object(["success": .bool(true)])])
+            .object(["sessionId": .integer(Int64(100 - offset)), "result": .object(["success": .bool(true)])])
         }
     }
 
