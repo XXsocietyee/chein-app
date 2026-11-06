@@ -45,8 +45,9 @@ import UIKit
         defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         let d = try ReviewedAppDeployment(market: .china, baseURL: "https://owner-host.example.test/native", approvedBaseURLs: [.china: ["https://owner-host.example.test/native"]], verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.owner.preview." + UUID().uuidString.lowercased(), realm: "synthetic")
         let login = login, vault = vault, box = listBox
-        root = .init(deployment: .reviewed(d), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { login })
-        root.ownMediaReadApproval = { context in box.approval.flatMap { $0.matches(context) ? $0 : nil } }
+        var configured = AppCompositionRoot(deployment: .reviewed(d), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { login })
+        configured.ownMediaReadApproval = { context in box.approval.flatMap { $0.matches(context) ? $0 : nil } }
+        root = configured
         row = asset
     }
     func boot() async -> AppSession { let session = root.makeSession(); await session.bootstrap(); login.requests = []; return session }

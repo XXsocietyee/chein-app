@@ -31,8 +31,9 @@ import XCTest
         defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         let d = try ReviewedAppDeployment(market: .china, baseURL: "https://approved-api.example.test/native", approvedBaseURLs: [.china: ["https://approved-api.example.test/native"]], verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.approved.link." + UUID().uuidString.lowercased(), realm: "synthetic")
         let login = login, vault = vault, box = listBox
-        root = .init(deployment: .reviewed(d), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { login })
-        root.ownMediaReadApproval = { context in box.approval.flatMap { $0.matches(context) ? $0 : nil } }; row = asset
+        var configured = AppCompositionRoot(deployment: .reviewed(d), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { login })
+        configured.ownMediaReadApproval = { context in box.approval.flatMap { $0.matches(context) ? $0 : nil } }
+        root = configured; row = asset
     }
     func boot() async -> AppSession { let s = root.makeSession(); await s.bootstrap(); login.requests = []; return s }
     func listGrant(_ s: AppSession, status: Bool = false) throws {

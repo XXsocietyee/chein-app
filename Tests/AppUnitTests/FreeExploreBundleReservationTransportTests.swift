@@ -204,7 +204,7 @@ import XCTest
     private func reject(_ adapter: FreeExploreBundleReservationTransport, _ request: URLRequest) async {
         do { _ = try await adapter.send(request); XCTFail("must reject") } catch {}
     }
-    private final class Rig {
+    @MainActor private final class Rig {
         let context: RuntimeDependencyContext
         var current: RuntimeDependencyContext?
         var approval: FreeExploreBundleReservationApproval?

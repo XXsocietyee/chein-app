@@ -88,7 +88,7 @@ import XCTest
         }
         XCTAssertTrue(rig.wire.requests.isEmpty)
     }
-    private final class Rig {
+    @MainActor private final class Rig {
         let captured: RuntimeDependencyContext
         var current: RuntimeDependencyContext?
         var selected: FreeExploreBundleReadApproval?

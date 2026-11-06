@@ -6,7 +6,8 @@ import UIKit
 /// Synthetic original host + independent composition route. Never fetches an image or sends an exchange.
 @MainActor final class RoamReceivedStampMetadataHostTests: XCTestCase {
     private let base = URL(string: "https://received-host.example/native")!
-    private func root(_ wire: Wire, _ grants: Grants? = nil) throws -> AppCompositionRoot {
+    private func root(_ wire: Wire, _ grants: Grants? = nil,
+                      roamAlbumMetadataReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? = { _ in nil }) throws -> AppCompositionRoot {
         let suite = "received-metadata-" + UUID().uuidString, vault = Vault()
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
@@ -14,7 +15,8 @@ import UIKit
             approvedBaseURLs: [.china: [base.absoluteString]], verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.received.metadata", realm: "synthetic")
         return .init(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }),
-            makeTransport: { wire }, roamReceivedStampReadAccess: { grants?.select($0) })
+            makeTransport: { wire }, roamReceivedStampReadAccess: { grants?.select($0) },
+            roamAlbumMetadataReadAccess: roamAlbumMetadataReadAccess)
     }
     private func login(_ session: AppSession) async {
         session.authChannels.cancel()
@@ -62,12 +64,11 @@ import UIKit
         XCTAssertEqual(wire.requests.count, 1)
     }
     func testAlbumGrantCannotEnableReceivedRoute() async throws {
-        let wire = Wire(), transport = try root(wire).transport()
-        transport.current = { .init(epoch: 1, accountID: 81, role: "player", token: "synthetic-received", viewerRevision: 1) }
-        transport.roamAlbumMetadataReadAccess = { c in
+        let wire = Wire(), transport = try root(wire, roamAlbumMetadataReadAccess: { c in
             try? .init(context: c, approval: .init(baseURL: c.baseURL, namespace: c.session.namespace,
                 accountID: c.session.accountID, paths: [RoamAlbumMetadataReadRoute.path]))
-        }
+        }).transport()
+        transport.current = { .init(epoch: 1, accountID: 81, role: "player", token: "synthetic-received", viewerRevision: 1) }
         let r = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(RoamReceivedStampReadRoute.path),
             fields: ["pageNum": "1", "pageSize": "20"], token: "synthetic-received")
         do { _ = try await transport.send(r); XCTFail() } catch { XCTAssertEqual(error as? APIError, .notConfigured) }

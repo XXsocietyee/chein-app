@@ -23,7 +23,7 @@ import XCTest
         var viewer: CompositionHTTPTransport.SessionIdentity?
         var write: OperationEndpointApproval?, receipt: OperationEndpointApproval?
     }
-    private final class Fixture {
+    @MainActor private final class Fixture {
         let base = URL(string: "https://example.test/native")!
         let wire = Wire(), scope = Scope()
         let deployment: ReviewedAppDeployment, context: RuntimeDependencyContext

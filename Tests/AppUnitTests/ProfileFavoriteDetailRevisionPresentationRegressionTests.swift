@@ -8,7 +8,7 @@ import Observation
 /// The selector publishes its own revision changes; no rootView assignment, refresh
 /// call, navigation replacement, or unrelated @State toggle forces the update.
 @MainActor final class ProfileFavoriteDetailRevisionPresentationRegressionTests: XCTestCase {
-    @MainActor @Observable private final class PublishedAccess {
+    @MainActor @Observable fileprivate final class PublishedAccess {
         var selected: ProfileFavoriteDetailAccess?
     }
     @MainActor private final class Wire: HTTPTransport {

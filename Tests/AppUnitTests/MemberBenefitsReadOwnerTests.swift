@@ -5,8 +5,13 @@ import XCTest
 @testable import Questify
 
 @MainActor @Observable private final class BenefitsOwnerReader: MemberHomeReading {
-    var scope = UUID(), isSignedIn = true, isConfigured = true, roleInfoAvailable = true
-    var reads = 0, hold = false, withdrawable = true
+    var scope = UUID()
+    var isSignedIn = true
+    var isConfigured = true
+    var roleInfoAvailable = true
+    var reads = 0
+    var hold = false
+    var withdrawable = true
     var pending: [Int: CheckedContinuation<MemberRoleInfo, Error>] = [:]
     var error: Error?
     func identity() async throws -> MemberIdentitySnapshot { throw APIError.notConfigured }
@@ -178,8 +183,11 @@ import XCTest
         defer { defaults.removePersistentDomain(forName: suite) }
         let vault = BenefitsHostVault(), wire = BenefitsHostWire(), box = BenefitsGrantBox()
         let deployment = try ReviewedAppDeployment(market: .china, baseURL: "https://benefits.example.test/native", approvedBaseURLs: [.china: ["https://benefits.example.test/native"]], verifiedCapabilities: [.domesticChinaPhone], bundleIdentifier: "test.benefits." + UUID().uuidString.lowercased(), realm: "synthetic")
-        let root = AppCompositionRoot(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire })
-        root.memberRoleInfoReadApproval = { c in box.value.flatMap { $0.matches(c) ? $0 : nil } }
+        let root: AppCompositionRoot = {
+            var configured = AppCompositionRoot(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire })
+            configured.memberRoleInfoReadApproval = { c in box.value.flatMap { $0.matches(c) ? $0 : nil } }
+            return configured
+        }()
         let session = root.makeSession(); await session.bootstrap(); XCTAssertFalse(session.memberHomeReader.roleInfoAvailable)
         let context = try XCTUnwrap(session.profileSavedMediaIdentity(.avatar).context)
         box.value = try .init(context: context, expiresAt: Date().addingTimeInterval(600)); defer { box.value?.revoke() }
@@ -192,5 +200,7 @@ import XCTest
         wire.role = "player"; await session.refreshOwnAccount()
         XCTAssertTrue(session.memberHomeReader.roleInfoAvailable); XCTAssertNotEqual(session.memberHomeReader.scope, first)
         XCTAssertEqual(vault.token, "synthetic-benefits")
+        box.value?.revoke()
+        XCTAssertFalse(session.memberHomeReader.roleInfoAvailable)
     }
 }
