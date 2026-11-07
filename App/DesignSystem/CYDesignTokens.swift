@@ -89,9 +89,9 @@ public enum CYColor {
 
     // MARK: 1. Brand Accent Family (#7A5CFF Violet Family)
 
-    /// Primary brand violet `#7A5CFF` (`--cy-violet-500` / `--cy-brand`).
+    /// Primary brand violet `#7A5CFF` (`--cy-violet-500` / `--cy-brand`, 4.38:1 vs `#FFFFFF`, 4.79:1 vs `#0A0A0B`).
     public static let accentRGB = CYRGB(hex: 0x7A5CFF)
-    /// Pressed / high-contrast light-mode text violet `#6A4AF0` (`--cy-violet-700`, 5.31:1 on `#FFFFFF`).
+    /// Pressed / high-contrast solid & light-mode text violet `#6A4AF0` (`--cy-violet-700`, 5.49:1 vs `#FFFFFF`).
     public static let accentStrongLightRGB = CYRGB(hex: 0x6A4AF0)
     /// High-contrast dark-mode text violet `#C4B5FD` (`--cy-violet-300`, 10.6:1 on `#0A0A0B`).
     public static let accentTextDarkRGB = CYRGB(hex: 0xC4B5FD)
@@ -99,8 +99,11 @@ public enum CYColor {
     public static let accentSoftLightRGB = CYRGB(hex: 0xEDE9FE)
     public static let accentSoftDarkRGB = CYRGB(hex: 0x7A5CFF, alpha: 0.18)
 
-    /// Primary interactive accent fill (`#7A5CFF` in both modes for buttons, active pills, key indicators).
+    /// Primary interactive accent fill (`#7A5CFF` brand family; use `accentStrong` when >= 4.5:1 normal-text contrast on white text is required).
     public static let accent = dynamic(light: accentRGB, dark: accentRGB)
+
+    /// High-contrast solid violet fill (`#6A4AF0`, 5.49:1 contrast with white text for small/dense labels).
+    public static let accentStrong = dynamic(light: accentStrongLightRGB, dark: accentStrongLightRGB)
 
     /// Pressed / emphasized accent (`#6A4AF0` light, `#8B70FF` dark).
     public static let accentPressed = dynamic(

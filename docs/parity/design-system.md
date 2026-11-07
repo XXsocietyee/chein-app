@@ -26,8 +26,9 @@
 
 | Token | Light Mode | Dark Mode | WCAG AA Contrast (on Surface) | Usage |
 |---|---|---|---|---|
-| `CYColor.accent` | `#7A5CFF` | `#7A5CFF` | `4.74:1` vs `#FFFFFF` (`textOnAccent`) | Primary CTA fill, active indicator, selected pill |
-| `CYColor.accentPressed` | `#6A4AF0` | `#8B70FF` | `5.31:1` / `6.40:1` | Pressed state for primary brand controls |
+| `CYColor.accent` | `#7A5CFF` | `#7A5CFF` | `4.38:1` vs `#FFFFFF` (`4.79:1` vs `#0A0A0B`) | Primary CTA fill, active indicator, selected pill (passes 3.0:1 UI/large text AA) |
+| `CYColor.accentStrong` | `#6A4AF0` | `#6A4AF0` | `5.49:1` vs `#FFFFFF` | High-contrast solid violet fill for small/dense white text (passes 4.5:1 normal-text AA) |
+| `CYColor.accentPressed` | `#6A4AF0` | `#8B70FF` | `5.49:1` / `6.40:1` | Pressed state for primary brand controls |
 | `CYColor.accentText` | `#6A4AF0` | `#C4B5FD` | `5.31:1` (L) / `10.60:1` (D) | Inline links, active tab labels, accent badges |
 | `CYColor.accentSoft` | `#EDE9FE` | `rgba(122,92,255,0.18)` | — | Soft brand tint surface for chips, monogram avatars |
 | `CYColor.accentWarm` | `#E04F2E` | `#FF8266` | `4.52:1` (L) / `7.85:1` (D) | Secondary coral highlight (hot badges, RPG/play accents) |
