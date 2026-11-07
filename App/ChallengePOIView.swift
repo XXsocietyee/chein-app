@@ -22,7 +22,7 @@ import QuestifyCore
 
             case .error:
                 ContentUnavailableView {
-                    Label(coordinator.errorMessage.isEmpty ? "加载挑战失败" : coordinator.errorMessage, systemImage: "exclamationmark.triangle")
+                    Label(coordinator.errorMessage.isEmpty ? String(localized: LocalizedStringResource("playx.poi.loadFailed", defaultValue: "Could not load the challenge", locale: locale)) : coordinator.errorMessage, systemImage: "exclamationmark.triangle")
                 } actions: {
                     Button(String(localized: LocalizedStringResource("playx.poi.retry", defaultValue: "重试", locale: locale))) {
                         Task { await onRefresh() }
@@ -116,7 +116,7 @@ import QuestifyCore
                     .font(.headline)
                 Spacer()
                 if let dist = coordinator.distanceMeters {
-                    Text(coordinator.withinRange ? "已进入打卡范围 (\(dist)m)" : "距离 \(dist)m")
+                    (coordinator.withinRange ? Text("playx.poi.inRange \(dist)") : Text("playx.poi.distance \(dist)"))
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(coordinator.withinRange ? .green : .orange)
                 }

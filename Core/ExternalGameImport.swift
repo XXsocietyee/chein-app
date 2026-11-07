@@ -13,9 +13,9 @@ public enum ExternalGamePermission: String, Codable, CaseIterable, Equatable, Se
 
     public var displayName: String {
         switch self {
-        case .storage: return "本地进度存档（仅限本游戏沙盒）"
-        case .haptics: return "触感反馈（轻触震动）"
-        case .audio: return "背景音效播放"
+        case .storage: return W8Text.t("本地进度存档（仅限本游戏沙盒）", "Local progress save (this game's sandbox only)")
+        case .haptics: return W8Text.t("触感反馈（轻触震动）", "Haptic feedback (light taps)")
+        case .audio: return W8Text.t("背景音效播放", "Background audio playback")
         }
     }
 }
@@ -34,9 +34,9 @@ public enum ExternalGameImportSource: Codable, Equatable, Sendable {
 
     public var sourceKindLabel: String {
         switch self {
-        case .url: return "链接导入 (URL)"
-        case .qrCode: return "扫码导入 (QR)"
-        case .file: return "文件导入 (Files / 分享)"
+        case .url: return W8Text.t("链接导入 (URL)", "Import by link (URL)")
+        case .qrCode: return W8Text.t("扫码导入 (QR)", "Import by QR scan (QR)")
+        case .file: return W8Text.t("文件导入 (Files / 分享)", "Import from file (Files / Share)")
         }
     }
 
@@ -125,45 +125,45 @@ public enum ExternalGameValidationError: Error, LocalizedError, Equatable, Senda
     public var errorDescription: String? {
         switch self {
         case .invalidManifestID(let id):
-            return "游戏标识无效（\(id)），须为 3–64 位小写字母、数字、点、下划线或连字符"
+            return W8Text.t("游戏标识无效（\(id)），须为 3–64 位小写字母、数字、点、下划线或连字符", "Invalid game ID (\(id)); use 3–64 letters, digits, dots, underscores or hyphens")
         case .invalidManifestName:
-            return "游戏名称不能为空且不能超过 80 个字符"
+            return W8Text.t("游戏名称不能为空且不能超过 80 个字符", "Game name must not be empty or exceed 80 characters")
         case .invalidManifestVersion(let ver):
-            return "版本号格式无效（\(ver)），须符合 x.y.z 语义化版本"
+            return W8Text.t("版本号格式无效（\(ver)），须符合 x.y.z 语义化版本", "Invalid version (\(ver)); use semantic version x.y.z")
         case .invalidContentRating(let rating):
-            return "内容分级无效（\(rating)），仅支持 4+、9+、12+、17+"
+            return W8Text.t("内容分级无效（\(rating)），仅支持 4+、9+、12+、17+", "Invalid content rating (\(rating)); only 4+, 9+, 12+, 17+ are supported")
         case .pathTraversalDetected(let path):
-            return "检测到非法路径或目录穿越：\(path)"
+            return W8Text.t("检测到非法路径或目录穿越：\(path)", "Illegal path or directory traversal detected: \(path)")
         case .disallowedFileExtension(let path):
-            return "包含不允许的文件类型：\(path)"
+            return W8Text.t("包含不允许的文件类型：\(path)", "Contains a disallowed file type: \(path)")
         case .missingEntryFile(let entry):
-            return "缺少入口文件：\(entry)"
+            return W8Text.t("缺少入口文件：\(entry)", "Missing entry file: \(entry)")
         case .packageOversized(let size, let maxAllowed):
-            return "游戏包体积超限（\(size) 字节，上限 \(maxAllowed) 字节）"
+            return W8Text.t("游戏包体积超限（\(size) 字节，上限 \(maxAllowed) 字节）", "Package too large (\(size) bytes, limit \(maxAllowed) bytes)")
         case .fileOversized(let path, let size, let maxAllowed):
-            return "单文件体积超限（\(path)：\(size) 字节，上限 \(maxAllowed) 字节）"
+            return W8Text.t("单文件体积超限（\(path)：\(size) 字节，上限 \(maxAllowed) 字节）", "File too large (\(path): \(size) bytes, limit \(maxAllowed) bytes)")
         case .tooManyFiles(let count, let maxAllowed):
-            return "文件数量超限（\(count) 个，上限 \(maxAllowed) 个）"
+            return W8Text.t("文件数量超限（\(count) 个，上限 \(maxAllowed) 个）", "Too many files (\(count), limit \(maxAllowed))")
         case .unsignedManifest:
-            return "游戏包缺少数字签名或哈希摘要"
+            return W8Text.t("游戏包缺少数字签名或哈希摘要", "Package is missing a digital signature or hash digest")
         case .invalidSignature:
-            return "游戏包数字签名校验未通过"
+            return W8Text.t("游戏包数字签名校验未通过", "Package signature verification failed")
         case .hashMismatch:
-            return "游戏包内容哈希（SHA-256）与清单不一致"
+            return W8Text.t("游戏包内容哈希（SHA-256）与清单不一致", "Package content hash (SHA-256) does not match the manifest")
         case .forbiddenPermission(let perm):
-            return "请求了未授权或禁止的权限：\(perm)"
+            return W8Text.t("请求了未授权或禁止的权限：\(perm)", "Requested a forbidden or unauthorized permission: \(perm)")
         case .invalidAllowedDomain(let domain):
-            return "包含不安全或非法的域名白名单：\(domain)"
+            return W8Text.t("包含不安全或非法的域名白名单：\(domain)", "Contains an unsafe or invalid allowed domain: \(domain)")
         case .tooManyAllowedDomains(let count):
-            return "域名白名单数量超限（\(count) 个，最多 10 个）"
+            return W8Text.t("域名白名单数量超限（\(count) 个，最多 10 个）", "Too many allowed domains (\(count); maximum 10)")
         case .insecureImportURL(let url):
-            return "仅允许从安全的 HTTPS 地址导入：\(url)"
+            return W8Text.t("仅允许从安全的 HTTPS 地址导入：\(url)", "Import is only allowed from a secure HTTPS address: \(url)")
         case .paymentOrIAPDetected(let detail):
-            return "外部导入游戏禁止包含支付或内购调用：\(detail)"
+            return W8Text.t("外部导入游戏禁止包含支付或内购调用：\(detail)", "Imported games must not contain payment or in-app purchase calls: \(detail)")
         case .symlinkOrEscapeDetected(let path):
-            return "检测到符号链接或沙盒目录越界：\(path)"
+            return W8Text.t("检测到符号链接或沙盒目录越界：\(path)", "Symbolic link or sandbox escape detected: \(path)")
         case .malformedArchive:
-            return "游戏包格式损坏或无法解析"
+            return W8Text.t("游戏包格式损坏或无法解析", "Package is corrupt or cannot be parsed")
         }
     }
 }
