@@ -76,3 +76,46 @@
 - **Password login**: Kept strictly disabled (`session.canUsePassword == false`).
 - **WeChat native sign-in & WeChat reconfirmation for deletion**: Requires native WeChat SDK / mini-program `wx.login` openid; SMS and Apple Sign-In are active.
 - **Default `.unconfigured` launch posture**: `RegionalLaunchConfiguration.composition` defaults to `reviewed: nil` (`.unconfigured`) in committed source so unit tests and unconfigured builds never contact a network host; supplying `QUESTIFY_API_BASE_URL` via gitignored `Config/Local.*.xcconfig` or calling `RegionalLaunchConfiguration.reviewedComposition(baseURL:...)` activates all reviewed gates.
+
+---
+
+## 4. Build, Scaffold, and Test Verification Evidence
+
+- **Xcode App Build (`Questify`, `/private/tmp/build-g1-gates-final-2.log`)**:
+  ```text
+  ** BUILD SUCCEEDED **
+  BUILD_EXIT=0
+  ```
+- **Xcode App Unit Tests (`QuestifyAppUnitTests`, `/private/tmp/test-g1-gates-final-2.log`)**:
+  ```text
+  Test Suite 'AppCompositionRootTests' passed at 2026-11-07 08:39:47.582.
+  	 Executed 18 tests, with 0 failures (0 unexpected) in 0.207 (0.213) seconds
+  Test Suite 'AssetPointsAndOrderCancellationSectionViewTests' passed at 2026-11-07 08:39:47.596.
+  	 Executed 4 tests, with 0 failures (0 unexpected) in 0.013 (0.014) seconds
+  Test Suite 'G1ProductionGatesEndToEndTests' passed at 2026-11-07 08:39:47.776.
+  	 Executed 6 tests, with 0 failures (0 unexpected) in 0.178 (0.180) seconds
+  Test Suite 'OwnedOrderCompositionTests' passed at 2026-11-07 08:39:48.035.
+  	 Executed 9 tests, with 0 failures (0 unexpected) in 0.257 (0.259) seconds
+  Test Suite 'WalletHistoryCompositionTests' passed at 2026-11-07 08:39:48.382.
+  	 Executed 31 tests, with 0 failures (0 unexpected) in 0.339 (0.346) seconds
+  Test Suite 'QuestifyAppUnitTests.xctest' passed at 2026-11-07 08:39:48.382.
+  	 Executed 68 tests, with 0 failures (0 unexpected) in 0.994 (1.013) seconds
+  Test Suite 'Selected tests' passed at 2026-11-07 08:39:48.382.
+  	 Executed 68 tests, with 0 failures (0 unexpected) in 0.994 (1.014) seconds
+  ** TEST SUCCEEDED **
+  TEST_EXIT=0
+  ```
+- **SwiftPM Core Unit Tests (`QuestifyCoreTests`, `/private/tmp/swift-test-g1-final-34594.log`)**:
+  ```text
+  Test Suite 'G1CoreProductionGatesTests' passed at 2026-11-07 07:45:43.479.
+  	 Executed 2 tests, with 0 failures (0 unexpected) in 0.015 (0.015) seconds
+  Test Suite 'I00SessionAdmissionBaselineTests' passed at 2026-11-07 07:45:43.495.
+  	 Executed 3 tests, with 0 failures (0 unexpected) in 0.016 (0.016) seconds
+  Test Suite 'Selected tests' passed at 2026-11-07 07:45:43.495.
+  	 Executed 5 tests, with 0 failures (0 unexpected) in 0.031 (0.032) seconds
+  TEST_EXIT=0
+  ```
+- **Scaffold & Contract Checks**:
+  - `/Users/fanning/.local/bin/python3.12 tools/check_scaffold.py`: `PASS structural checks: 4116 Swift source files, 13462 bilingual keys, references, scheme, read-only expected project equivalence` (exit 0).
+  - `/Users/fanning/.local/bin/python3.12 -m unittest Tests/ContractChecks/test_pkg19_login_deletion_chain.py`: `Ran 11 tests in 0.299s — OK` (exit 0).
+
