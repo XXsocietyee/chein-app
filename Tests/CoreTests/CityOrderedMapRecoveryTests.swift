@@ -93,7 +93,9 @@ import FoundationNetworking
         let raw = try reply().0
         let initialObject = try XCTUnwrap(JSONSerialization.jsonObject(with: raw) as? [String: Any])
         var initial = try XCTUnwrap(initialObject["data"] as? [String: Any])
-        let first = try JSONDecoder().decode(CityOrderedMapReply.self, from: JSONSerialization.data(withJSONObject: initial))
+        // Decode the exact original bytes: re-serializing parsed Doubles would turn 30.1 into 30.100000000000001.
+        struct Envelope: Decodable { let data: CityOrderedMapReply }
+        let first = try JSONDecoder().decode(Envelope.self, from: raw).data
         var state = try CityOrderedMapState(first, query: selection.scope.query)
         var replacement = point(); replacement["availability"] = "PAUSED"; replacement["merchantVersion"] = 1
         let event: [String: Any] = ["eventId": String(repeating: "b", count: 64), "aggregate": "point-1", "component": "MERCHANT",
