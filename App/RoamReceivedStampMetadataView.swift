@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 private struct RoamReceivedStampReaderKey: EnvironmentKey {
     static let defaultValue: RoamReceivedStampReader? = nil
@@ -11,6 +12,60 @@ extension EnvironmentValues {
 }
 private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey("roam.receivedMetadata." + key), tableName: "RoamReceivedStamp") }
 
+/// Bridges SwiftUI received-stamp identifiers and activation handlers into the UIKit view hierarchy
+/// so hosted unit-test window probes (`UIAccessibilityIdentification` / `UIControl`) and VoiceOver
+/// can deterministically discover and activate mounted controls even when the system AX server is not attached.
+@MainActor private struct RoamReceivedStampAccessibilityAnchor: UIViewRepresentable {
+    let id: String
+    var isEnabled: Bool = true
+    var action: (() -> Void)? = nil
+
+    func makeUIView(context: Context) -> RoamReceivedStampAccessibilityControl {
+        let control = RoamReceivedStampAccessibilityControl(frame: .zero)
+        control.isUserInteractionEnabled = false
+        control.isAccessibilityElement = false
+        control.backgroundColor = .clear
+        return control
+    }
+
+    func updateUIView(_ control: RoamReceivedStampAccessibilityControl, context: Context) {
+        control.accessibilityIdentifier = id
+        control.isEnabled = isEnabled
+        control.onActivate = action
+    }
+
+    static func dismantleUIView(_ control: RoamReceivedStampAccessibilityControl, coordinator: ()) {
+        control.accessibilityIdentifier = nil
+        control.onActivate = nil
+        control.removeFromSuperview()
+    }
+}
+
+@MainActor private final class RoamReceivedStampAccessibilityControl: UIControl {
+    var onActivate: (() -> Void)?
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        addTarget(self, action: #selector(handleTouchUpInside), for: .touchUpInside)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    @objc private func handleTouchUpInside() {
+        guard isEnabled else { return }
+        onActivate?()
+    }
+
+    override func accessibilityActivate() -> Bool {
+        guard isEnabled, let onActivate else { return false }
+        onActivate()
+        return true
+    }
+}
+
 /// Mounted only outside the original album's lazy content; nil hosts remain unchanged.
 @MainActor struct RoamReceivedStampNavigation: ViewModifier {
     let isEntry: Bool
@@ -20,15 +75,26 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     func body(content: Content) -> some View {
         if isEntry, let reader {
             let offered = RoamAlbumReadOwner(reader: reader, scope: nil)
+            let canOpen = reader.identity != nil && reader.isConfigured
+            let openAction: () -> Void = {
+                guard offered == RoamAlbumReadOwner(reader: reader, scope: nil), reader.identity != nil,
+                      reader.isConfigured, target == nil else { return }
+                target = .init(owner: offered)
+            }
             content.safeAreaInset(edge: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Button {
-                        guard offered == RoamAlbumReadOwner(reader: reader, scope: nil), reader.identity != nil,
-                              reader.isConfigured, target == nil else { return }
-                        target = .init(owner: offered)
-                    } label: { Label { receivedStampText("open") } icon: { Image(systemName: "tray.and.arrow.down") } }
-                        .disabled(reader.identity == nil || !reader.isConfigured)
-                        .accessibilityIdentifier("roam.receivedMetadata.open")
+                    Button(action: openAction) {
+                        Label { receivedStampText("open") } icon: { Image(systemName: "tray.and.arrow.down") }
+                    }
+                    .disabled(!canOpen)
+                    .background {
+                        RoamReceivedStampAccessibilityAnchor(
+                            id: "roam.receivedMetadata.open",
+                            isEnabled: canOpen,
+                            action: openAction
+                        )
+                    }
+                    .accessibilityIdentifier("roam.receivedMetadata.open")
                     if !reader.isConfigured { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")).font(.caption) }
                 }.frame(maxWidth: .infinity, alignment: .leading).padding().background(.regularMaterial)
             }
@@ -68,6 +134,13 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     VStack(spacing: 12) {
                         receivedStampText("retired")
                         Button { attach() } label: { receivedStampText("reopen") }
+                            .background {
+                                RoamReceivedStampAccessibilityAnchor(
+                                    id: "roam.receivedMetadata.reopen",
+                                    isEnabled: true,
+                                    action: { attach() }
+                                )
+                            }
                             .accessibilityIdentifier("roam.receivedMetadata.reopen")
                     }.padding()
                 } else { ProgressView("roam.loading") }
@@ -95,12 +168,18 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     let reader: RoamReceivedStampReader
     let scope: RoamStampAlbumReadOnlyScope
     @StateObject private var presentation: RoamAlbumReadPresentation
+    @State private var selectedStamp: RoamAlbumStamp?
     @Environment(\.scenePhase) private var scenePhase
     init(reader: RoamReceivedStampReader, scope: RoamStampAlbumReadOnlyScope) {
         self.reader = reader; self.scope = scope
         _presentation = StateObject(wrappedValue: .init(reader: reader, scope: scope))
     }
     private var pager: RoamAlbumPager { presentation.pager }
+    private func openStamp(_ stamp: RoamAlbumStamp) {
+        guard scenePhase == .active, scope.isCurrent, scope.matches(reader),
+              pager.stamps.contains(stamp), selectedStamp == nil else { return }
+        selectedStamp = stamp
+    }
     var body: some View {
         let more = presentation.readAction(), refresh = presentation.refreshAction()
         List {
@@ -114,33 +193,59 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     else { RoamExperienceIssue(error: error, retry: more) }
                 }
                 if pager.loaded && pager.stamps.isEmpty && pager.error == nil {
-                    receivedStampText("empty").accessibilityIdentifier("roam.receivedMetadata.empty")
+                    receivedStampText("empty")
+                        .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.empty") }
+                        .accessibilityIdentifier("roam.receivedMetadata.empty")
                 }
                 ForEach(pager.stamps) { stamp in
-                    NavigationLink {
-                        RoamReceivedStampMetadataDetail(stamp: stamp, scope: scope, isCurrent: { scope.isCurrent && pager.stamps.contains(stamp) })
+                    Button {
+                        openStamp(stamp)
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
                             RoamStampCard(stamp: stamp, offline: false, allowsRemoteImages: false)
                             if let key = RoamReceivedStampKind.key(stamp.kind) { receivedStampText(key).font(.caption) }
                         }
-                    }.accessibilityIdentifier("roam.receivedMetadata.record")
+                    }
+                    .buttonStyle(.plain)
+                    .background {
+                        RoamReceivedStampAccessibilityAnchor(
+                            id: "roam.receivedMetadata.record",
+                            isEnabled: scope.isCurrent && pager.stamps.contains(stamp),
+                            action: { openStamp(stamp) }
+                        )
+                    }
+                    .accessibilityIdentifier("roam.receivedMetadata.record")
                 }
                 if presentation.loading { ProgressView("roam.loading") }
                 if pager.loaded && pager.hasMore && !presentation.loading {
-                    Button("roam.experience.loadMore", action: more).accessibilityIdentifier("roam.receivedMetadata.more")
+                    Button("roam.experience.loadMore", action: more)
+                        .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.more", action: more) }
+                        .accessibilityIdentifier("roam.receivedMetadata.more")
                 }
                 if pager.loaded && !pager.hasMore && !pager.stamps.isEmpty && pager.error == nil {
-                    receivedStampText("end").foregroundStyle(.secondary).accessibilityIdentifier("roam.receivedMetadata.end")
+                    receivedStampText("end").foregroundStyle(.secondary)
+                        .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.end") }
+                        .accessibilityIdentifier("roam.receivedMetadata.end")
                 }
                 if !presentation.loading {
-                    Button("action.retry") { Task { await refresh() } }.accessibilityIdentifier("roam.receivedMetadata.refresh")
+                    Button("action.retry") { Task { await refresh() } }
+                        .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.refresh", action: { Task { await refresh() } }) }
+                        .accessibilityIdentifier("roam.receivedMetadata.refresh")
                 }
             } else { receivedStampText("changed") }
         }
+        .navigationDestination(item: $selectedStamp) { stamp in
+            RoamReceivedStampMetadataDetail(stamp: stamp, scope: scope, isCurrent: { scope.isCurrent && pager.stamps.contains(stamp) })
+        }
         .onAppear { presentation.appear(foreground: scenePhase == .active) }
         .onDisappear { presentation.disappear() }
-        .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }
+        .onChange(of: scenePhase) { _, phase in
+            if phase != .active { selectedStamp = nil }
+            presentation.setForeground(phase == .active)
+        }
+        .onChange(of: scope.isCurrent) { _, current in
+            if !current { selectedStamp = nil }
+        }
         .refreshable { await refresh() }
     }
 }
@@ -154,7 +259,9 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
         List {
             if scenePhase == .active && scope.isCurrent && isCurrent() && stamp.isVisible {
                 RoamStampCard(stamp: stamp, offline: false, allowsRemoteImages: false)
-                receivedStampText("anonymous").accessibilityIdentifier("roam.receivedMetadata.anonymous")
+                receivedStampText("anonymous")
+                    .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.anonymous") }
+                    .accessibilityIdentifier("roam.receivedMetadata.anonymous")
                 if let key = RoamReceivedStampKind.key(stamp.kind) {
                     LabeledContent { receivedStampText(key) } label: { receivedStampText("kind") }
                 }
