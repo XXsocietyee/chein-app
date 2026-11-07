@@ -188,6 +188,7 @@ import SwiftUI
     private var ending: [String: ProjectEditJSON]? { chapter.preserved["ending"]?.object }
     private var conditions: [ProjectEditJSON] { ending?["when"]?.array ?? [] }
     var body: some View {
+        ProjectEditChapterRulesSection(chapter: $chapter)
         Section("projectEdit.rich.chapterRole") {
             Toggle("projectEdit.rich.opening", isOn: Binding(get: { chapter.preserved["opening"] == .bool(true) }, set: { value in
                 chapter.preserved["opening"] = .bool(value)
