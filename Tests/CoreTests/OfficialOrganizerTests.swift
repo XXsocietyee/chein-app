@@ -82,7 +82,8 @@ private final class OrganizerTransport: HTTPTransport, @unchecked Sendable {
         XCTAssertFalse(check.pass); XCTAssertEqual(check.blockers, ["need cover"]); XCTAssertEqual(check.risks, ["r1"])
         XCTAssertEqual(t.requests[0].url?.path, "/prod-api/api/official/v2/events/5/publish-check")
         XCTAssertEqual(t.requests[0].value(forHTTPHeaderField: "Authorization"), "synthetic-token")
-        XCTAssertEqual(try await a.publishCheck(eventID: 5), .denied("not host"))
+        let denied = try await a.publishCheck(eventID: 5)
+        XCTAssertEqual(denied, .denied("not host"))
         guard case .allowed(let unknown) = try await a.publishCheck(eventID: 5) else { return XCTFail() }
         XCTAssertFalse(unknown.known); XCTAssertFalse(unknown.pass)
     }

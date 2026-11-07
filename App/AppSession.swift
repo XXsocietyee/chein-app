@@ -3428,6 +3428,29 @@ final class AppSession: ObservableObject {
         retainedOfficialActions = coordinator
         return coordinator
     }
+    var activityHostCancelAccess: (any ActivityHostCancelAccess)? {
+        guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+        return ActivityHostCancelHTTPAccess(
+            configuration: api,
+            transport: runtimeHTTPTransport,
+            enabled: { [weak self] in self?.account != nil && self?.token != nil },
+            session: { [weak self] in
+                guard let self, let account = self.account, let token = self.token else { return nil }
+                return (account.id, token)
+            }
+        )
+    }
+    var teamOrientBoardAccess: (any TeamOrientBoardAccess)? {
+        guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+        return TeamOrientBoardHTTPAccess(
+            configuration: api,
+            transport: runtimeHTTPTransport,
+            session: { [weak self] in
+                guard let self, let account = self.account, let token = self.token else { return nil }
+                return (account.id, token)
+            }
+        )
+    }
     private let officialEventService:OfficialEventService?
     private var officialSourceObservation: OfficialReadInvalidationSubscription?
     /// Match the selected public source again after service decode, not only at dispatch.

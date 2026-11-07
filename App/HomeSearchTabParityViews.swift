@@ -37,18 +37,18 @@ struct HomeHeroHeaderSectionView: View {
                                         Button {
                                             onSelectCity(nil, true)
                                         } label: {
-                                            Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale))
+                                            Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale)))
                                         }
                                         ForEach(HomeCitySwitchState.defaultSupportedCities, id: \.self) { city in
                                             Button {
                                                 onSelectCity(city, false)
                                             } label: {
-                                                Text(verbatim: city)
+                                                Text(verbatim: CoreLoopCopy(locale: locale).tr(city))
                                             }
                                         }
                                     } label: {
                                         Label {
-                                            Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
+                                            Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
                                         } icon: {
                                             Image(systemName: "location.fill")
                                         }
@@ -57,7 +57,7 @@ struct HomeHeroHeaderSectionView: View {
                                     .accessibilityIdentifier("homeIndex.hero.city")
                                 } else {
                                     Label {
-                                        Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
+                                        Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
                                     } icon: {
                                         Image(systemName: "location.fill")
                                     }

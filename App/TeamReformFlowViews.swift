@@ -41,6 +41,7 @@ struct TeamReformEntries: View {
     let hooks: TeamReformHooks?
     let open: (TeamReformSheet) -> Void
     var body: some View {
+        TeamOrientBoardSection(detail: detail)
         if let hooks {
             if hooks.capabilities.allows(.friendMultiInvite), TeamFriendInviteFlow.eligible(detail) {
                 Button { open(.invite(teamID: detail.team.id)) } label: { Label("teamReform.invite.open", systemImage: "person.2.badge.plus").frame(maxWidth: .infinity, minHeight: 44) }

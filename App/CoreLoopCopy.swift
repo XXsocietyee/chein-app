@@ -18,9 +18,18 @@ struct CoreLoopCopy {
         if zh.hasPrefix("集合前 24 小时可退（截止 "), zh.hasSuffix("）") {
             return "Refundable until 24 hours before meeting (deadline \(zh.dropFirst("集合前 24 小时可退（截止 ".count).dropLast()))"
         }
+        if zh.hasSuffix(" 天内过期") {
+            return "Expires in \(zh.dropLast(" 天内过期".count)) day(s)"
+        }
+        if zh.hasPrefix("将给 "), zh.hasSuffix(" 位已付款玩家全额退款,不可撤销。活动同时下架。") {
+            let count = zh.dropFirst("将给 ".count).dropLast(" 位已付款玩家全额退款,不可撤销。活动同时下架。".count)
+            return "\(count) paid attendee(s) will receive a full refund. This cannot be undone and the event will be unlisted."
+        }
         return zh
     }
     private static let table: [String: String] = [
+        "上海": "Shanghai", "杭州": "Hangzhou", "北京": "Beijing",
+        "深圳": "Shenzhen", "广州": "Guangzhou", "成都": "Chengdu",
         "搜索主题、活动、俱乐部、商家": "Search topics, events, clubs, merchants",
         "本单不可退": "Non-refundable order",
         "该场次已过「集合前 24 小时」退款截止时间，支付后不可退款。确认继续下单？":
@@ -41,7 +50,35 @@ struct CoreLoopCopy {
         "剩余名额已为俱乐部会员保留": "Remaining spots are reserved for club members",
         "名额已满": "Sold out", "暂无可用积分": "No points available", "该票不支持积分抵扣": "This ticket doesn't support points",
         "场次已开始": "Session has started", "场次已结束": "Session has ended", "报名已截止": "Registration closed",
+        "四店固定补偿产品已停止新开售，已售合同继续履行": "Four-shop fixed compensation products have stopped new sales; sold contracts will still be honored",
+        "四店固定补偿产品已停止新售票，已售合同继续履行": "Four-shop fixed compensation products have stopped new ticket sales; sold contracts will still be honored",
         "已售合同继续履行": "Sold contracts will still be honored",
+        "今天过期": "Expires today",
+        "已退款": "Refunded",
+        "退款已原路退回": "Refunded to the original payment method",
+        "退款处理中": "Refund in progress",
+        "原路退款异常，平台正在人工处理": "Original-route refund encountered an issue; platform support is processing it manually",
+        "人工退款已处理，等待复核确认": "Manual refund processed; awaiting final review",
+        "退款审核中": "Refund under review",
+        "退款申请已提交，等待平台审核": "Refund request submitted; awaiting platform review",
+        "原路退款中": "Refunding to original payment method",
+        "微信已受理原路退款，到账以微信退款通知为准": "Refund accepted by payment provider; arrival depends on provider notification",
+        "退款已批准，正在提交原路退款": "Refund approved; submitting to original payment method",
+        "已售出，时间和地点不可改": "Tickets have been sold; time and location cannot be changed",
+        "合作者可编辑内容，不参与结算": "Collaborators can edit content and do not participate in settlement",
+        "商家活动暂时只支持免费票": "Merchant events currently support free tickets only",
+        "商家主办活动还没开通收款，票价只能是 0": "Merchant-hosted events do not have payments enabled yet; ticket price must be 0",
+        "取消活动并退款": "Cancel event & refund",
+        "请填写取消原因": "Please enter a cancellation reason",
+        "取消原因不超过 100 字": "Cancellation reason cannot exceed 100 characters",
+        "填写取消原因（会展示给已报名用户）": "Enter cancellation reason (shown to registered attendees)",
+        "无法确认已付款人数，请稍后再试": "Could not verify paid attendee count. Please try again later.",
+        "当前无法取消": "Cannot cancel right now",
+        "重新检查": "Check again",
+        "确认取消并退款": "Confirm cancel & refund",
+        "活动已取消": "Event cancelled",
+        "已提交全额退款，到账时间以微信通知为准": "Full refund submitted; arrival depends on payment provider notification",
+        "取消失败": "Cancellation failed",
         "发布": "Publish", "选择发布方式": "Choose how to publish",
         "快速发布主题": "Quick topic", "专业版主题创编": "Pro topic studio", "发布单场活动": "Publish a single event",
         "3步轻量创建城市探索主题": "Create a city-exploration topic in 3 steps",

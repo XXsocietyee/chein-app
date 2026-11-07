@@ -422,3 +422,74 @@ struct OfficialOrganizerEntryRow: View {
         }
     }
 }
+
+/// Source `goRoam` jump (`pages/activity/official-detail/index.js`) for `.roamArrival` / `.roamLight` CTAs.
+@MainActor struct OfficialDetailRoamJumpSection: View {
+    let event: OfficialEvent
+    let cta: OfficialDetailCTA
+    var onOpenRoam: ((Int, String?) -> Void)? = nil
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+
+    private var canJumpToRoam: Bool {
+        (cta == .roamArrival || cta == .roamLight) && (onOpenRoam != nil || rootTabSwitch.isAvailable)
+    }
+
+    var body: some View {
+        if canJumpToRoam {
+            Section {
+                Button {
+                    if let onOpenRoam {
+                        onOpenRoam(event.id, nil)
+                    } else if rootTabSwitch.isAvailable {
+                        rootTabSwitch(.roam)
+                    }
+                } label: {
+                    Label {
+                        Text(LocalizedStringKey(cta.key))
+                            .font(.headline)
+                    } icon: {
+                        Image(systemName: "map.fill")
+                    }
+                    .frame(maxWidth: .infinity, minHeight: 44)
+                }
+                .buttonStyle(.questifyPrimary)
+                .accessibilityIdentifier("official.detail.cta.roam")
+            }
+        }
+    }
+}
+
+/// Source `onTapMission` Roam jump (`pages/activity/official-detail/index.js`) for signed-in `.verify` missions.
+@MainActor struct OfficialMissionRoamJumpButton: View {
+    let event: OfficialEvent
+    let missionIndex: Int
+    let action: OfficialDetailMissionAction
+    var onOpenRoam: ((Int, String?) -> Void)? = nil
+    @Environment(\.rootTabSwitch) private var rootTabSwitch
+    @Environment(\.locale) private var locale
+
+    private var canVerifyInRoam: Bool {
+        event.signed == true && !event.paused && action == .verify && (onOpenRoam != nil || rootTabSwitch.isAvailable)
+    }
+
+    var body: some View {
+        if canVerifyInRoam {
+            Button {
+                let code = event.missions.indices.contains(missionIndex) ? event.missions[missionIndex].code : nil
+                if let onOpenRoam {
+                    onOpenRoam(event.id, code)
+                } else if rootTabSwitch.isAvailable {
+                    rootTabSwitch(.roam)
+                }
+            } label: {
+                Label(
+                    CoreLoopCopy(locale: locale).t("去漫游完成", "Verify in Roam"),
+                    systemImage: "location.magnifyingglass"
+                )
+                .font(.subheadline.weight(.semibold))
+                .frame(minHeight: 44)
+            }
+            .accessibilityIdentifier("official.mission.roam.\(missionIndex)")
+        }
+    }
+}

@@ -35,20 +35,26 @@ final class ActivityHostCancelRulesTests: XCTestCase {
         t.replies = [(#"{"code":200,"data":{"paidPlayers":4}}"#, 200), (#"{"code":500,"msg":"no permission"}"#, 200),
                      (#"{"code":200,"data":{"paidPlayers":"x"}}"#, 200), (#"{"code":200,"data":{"paidPlayers":-1}}"#, 200)]
         let a = try make(t)
-        XCTAssertEqual(try await a.preview(activityID: 9), .paidPlayers(4))
+        let p1 = try await a.preview(activityID: 9)
+        XCTAssertEqual(p1, .paidPlayers(4))
         XCTAssertEqual(t.requests[0].url?.path, "/prod-api/api/activity/cancel_preview")
-        XCTAssertEqual(try await a.preview(activityID: 9), .blocked("no permission"))
-        XCTAssertEqual(try await a.preview(activityID: 9), .unknownCount)
-        XCTAssertEqual(try await a.preview(activityID: 9), .unknownCount)
+        let p2 = try await a.preview(activityID: 9)
+        XCTAssertEqual(p2, .blocked("no permission"))
+        let p3 = try await a.preview(activityID: 9)
+        XCTAssertEqual(p3, .unknownCount)
+        let p4 = try await a.preview(activityID: 9)
+        XCTAssertEqual(p4, .unknownCount)
     }
     func testCancelSendsTrimmedReasonAndMapsOutcome() async throws {
         let t = CancelTransport()
         t.replies = [(#"{"code":200,"msg":"refunded"}"#, 200), (#"{"code":400,"msg":"late"}"#, 200), ("x", 502)]
         let a = try make(t)
-        XCTAssertEqual(try await a.cancel(activityID: 9, reason: " rain "), .cancelled("refunded"))
+        let c1 = try await a.cancel(activityID: 9, reason: " rain ")
+        XCTAssertEqual(c1, .cancelled("refunded"))
         let body = try JSONSerialization.jsonObject(with: t.requests[0].httpBody!) as! [String: Any]
         XCTAssertEqual(body["reason"] as? String, "rain"); XCTAssertEqual(body["id"] as? Int, 9)
-        XCTAssertEqual(try await a.cancel(activityID: 9, reason: "r"), .rejected("late"))
+        let c2 = try await a.cancel(activityID: 9, reason: "r")
+        XCTAssertEqual(c2, .rejected("late"))
         do { _ = try await a.cancel(activityID: 9, reason: "r"); XCTFail() } catch { XCTAssertEqual(error as? ActivityHostCancelFailure, .network) }
     }
     func testInvalidAndDisabledSendNothing() async throws {

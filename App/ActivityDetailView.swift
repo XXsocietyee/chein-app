@@ -9,14 +9,17 @@ struct ActivityDetailView: View {
     var registrationEnabled = false
     var peopleProfile: ActivityPeopleProfileContext? = nil
     var requiredClubDestination: ((Int, @escaping () -> Bool) -> AnyView)? = nil
+    var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var body: some View {
         if let session = reader as? AppSession {
             SessionActivityDetailView(id: id, session: session,
-                playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled)
+                playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
+                hostCancelAccess: hostCancelAccess)
         } else {
             ActivityDetailContentView(id: id, reader: reader,
                 playReaderForActivity: playReaderForActivity, registrationEnabled: registrationEnabled,
-                peopleProfile: peopleProfile, requiredClubDestination: requiredClubDestination)
+                peopleProfile: peopleProfile, requiredClubDestination: requiredClubDestination,
+                hostCancelAccess: hostCancelAccess)
         }
     }
 }
@@ -26,6 +29,7 @@ struct ActivityDetailView: View {
     @ObservedObject var session: AppSession
     var playReaderForActivity: ((Int)->PlaySessionReader)?
     var registrationEnabled: Bool
+    var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     var body: some View {
         Group {
             if session.account == nil {
@@ -45,7 +49,8 @@ struct ActivityDetailView: View {
                             return selectionCurrent() && session.account != nil &&
                                 session.activityPresentationIdentity == activityIdentity && session.clubIdentity == clubIdentity
                         }))
-                    })
+                    },
+                    hostCancelAccess: hostCancelAccess ?? session.activityHostCancelAccess)
                     .id(session.contentDetailRevision)
             }
         }.appNavigationTitle("activity.details")
@@ -60,6 +65,7 @@ struct ActivityDetailView: View {
     var registrationEnabled=false
     var peopleProfile: ActivityPeopleProfileContext? = nil
     var requiredClubDestination: ((Int, @escaping () -> Bool) -> AnyView)? = nil
+    var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
     @State private var loadedPeopleSnapshotID: UUID?
     @State private var loadedProfileIdentity: SocialAccountIdentity?
     @State private var profileSelection: ActivityPersonProfileSelection?
@@ -299,6 +305,11 @@ struct ActivityDetailView: View {
                     NavigationLink { SessionPlayRuntimeView(session: session, destination: .director(id)) } label: {
                         Label("playx.director.title", systemImage: "person.3.sequence")
                     }.accessibilityIdentifier("activity.openPlayDirector")
+                }
+            }
+            if let hostCancelAccess {
+                ActivityHostCancelSection(detail: detail, access: hostCancelAccess) {
+                    await load()
                 }
             }
         }
