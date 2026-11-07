@@ -54,6 +54,40 @@ public struct RoamService {
         guard result.merchant.id == id else { throw APIError.malformedResponse }
         return result
     }
+    /// Mini-program `toggleFavorite`: POST api/city/nodes/{id}/favorite, receipt `data.favorited` must be a Bool.
+    public func toggleFavorite(poiID: Int, token: String) async throws -> Bool {
+        let data = try await writeMutation(.toggleFavorite(poiID: poiID), token: token)
+        guard let favorited = try decode(RoamActionEnvelope<RoamFavoriteReceipt>.self, data).data?.favorited else { throw APIError.malformedResponse }
+        return favorited
+    }
+    /// Mini-program `completeNode`: POST api/city/nodes/{id}/complete with the GCJ-02 fix.
+    /// A business rejection (code 500 + msg) is surfaced as `RoamActionFailure.rejected` so the UI can show the server's reason.
+    public func completeNode(poiID: Int, fix: RoamDeviceFix, answer: String = "", photoURL: String = "", code: String = "", token: String) async throws -> RoamNodeCompletion {
+        let data = try await writeMutation(.completeNode(poiID: poiID, fix: fix, answer: answer, photoURL: photoURL, code: code), token: token)
+        guard let receipt = try decode(RoamActionEnvelope<RoamNodeCompletion>.self, data).data else { throw APIError.malformedResponse }
+        if let id = receipt.poiID ?? receipt.id, id != poiID { throw APIError.malformedResponse }
+        return receipt
+    }
+    /// Live write through the same authenticated transport as the reads. The mutation descriptor builds the request;
+    /// a post-send failure is `RoamActionFailure.unknownOutcome` (the server may or may not have applied it).
+    func writeMutation(_ mutation: RoamExperienceMutation, token: String) async throws -> Data {
+        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        let request = try mutation.request(configuration: configuration, token: token)
+        try Task.checkCancellation()
+        let data: Data, status: Int
+        do { (data, status) = try await transport.send(request) }
+        catch is CancellationError { throw CancellationError() }
+        catch { throw RoamActionFailure.unknownOutcome }
+        if status == 401 { throw APIError.unauthorized }
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let envelope = try decode(RoamStatusEnvelope.self, data)
+        if envelope.code == 401 { throw APIError.unauthorized }
+        guard envelope.code == 200 else {
+            if let msg = envelope.msg, !msg.isEmpty { throw RoamActionFailure.rejected(msg) }
+            throw APIError.businessCode(envelope.code)
+        }
+        return data
+    }
     func presetRead(_ path: String, query: [String: String], token: String) async throws -> Data { try await get(path, query: query, token: token) }
     private func validate(radiusM: Int) throws {
         guard (1...20000).contains(radiusM) else { throw APIError.invalidRequest }
@@ -135,3 +169,27 @@ private struct RoamEventsEnvelope: Decodable {
 }
 private struct RoamValueEnvelope<T: Decodable>: Decodable { let data: T }
 private struct RoamOptionalEnvelope<T: Decodable>: Decodable { let data: T? }
+
+private struct RoamActionEnvelope<T: Decodable>: Decodable { let data: T? }
+private struct RoamFavoriteReceipt: Decodable { let favorited: Bool? }
+public enum RoamActionFailure: Error, Equatable {
+    case rejected(String)
+    /// The request may have reached the server; re-running is safe because the server is idempotent per node.
+    case unknownOutcome
+    case locationDenied
+    case locationUnavailable
+}
+public struct RoamNodeCompletion: Decodable, Equatable {
+    public let needRedeem: Bool
+    public let alreadyClaimed: Bool
+    public let poiID: Int?
+    public let id: Int?
+    enum CodingKeys: String, CodingKey { case needRedeem, alreadyClaimed, poiId, id }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        guard let need = try c.decodeIfPresent(Bool.self, forKey: .needRedeem) else { throw APIError.malformedResponse }
+        needRedeem = need
+        alreadyClaimed = try c.decodeIfPresent(Bool.self, forKey: .alreadyClaimed) ?? false
+        poiID = try c.decodeIfPresent(Int.self, forKey: .poiId); id = try c.decodeIfPresent(Int.self, forKey: .id)
+    }
+}

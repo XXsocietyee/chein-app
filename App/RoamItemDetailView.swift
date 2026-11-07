@@ -37,6 +37,8 @@ struct RoamItemDetailView: View {
     /// 410 from city/nodes/{id}: 据点未开放或已下线, shown without a retry.
     @State private var nodeUnavailable = false
     @State private var generation = 0
+    @StateObject private var poiActionModel = RoamPOIActionModel()
+    @Environment(\.roamPOIActions) private var poiActions
     init(item: RoamMapItem, reader: any RoamReading, mediaScope: UUID = UUID(), makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil, stampDestination: (() -> AnyView)? = nil, posterDestination: ((RoamNodeDetail) -> AnyView)? = nil, eventDestination: ((RoamEventDestination) -> AnyView)? = nil, playerProfileDestination: ((Int) -> AnyView)? = nil, couponWalletDestination: (() -> AnyView)? = nil) {
         self.stampDestination = stampDestination; self.posterDestination = posterDestination; self.eventDestination = eventDestination; self.playerProfileDestination = playerProfileDestination
         self.couponWalletDestination = couponWalletDestination
@@ -150,6 +152,7 @@ struct RoamItemDetailView: View {
                 eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil
             }
             .onChange(of: item) { _, value in
+                poiActionModel.reset()
                 latestItem = value; eventPresentationID = UUID(); merchantRetry.cancel()
                 eventNavigation = nil; routeTopicNavigation = nil; playerProfileNavigation = nil; featuredActivityNavigation = nil; featuredCouponWalletNavigation = nil
             }
@@ -193,8 +196,10 @@ struct RoamItemDetailView: View {
             }
             Section { RoamPOINodeParityCard(node: node, stampDestination: stampDestination) }
             Section("roam.yourStatus") {
-                Label(LocalizedStringKey(node.completed ? "roam.completed" : "roam.notCompleted"), systemImage: node.completed ? "checkmark.circle" : "circle")
-                if node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
+                let isCompleted = poiActionModel.completedOverride ?? node.completed
+                Label(LocalizedStringKey(isCompleted ? "roam.completed" : "roam.notCompleted"), systemImage: isCompleted ? "checkmark.circle" : "circle")
+                if poiActionModel.favoriteOverride ?? node.favorited { Label("roam.favorited", systemImage: "heart.fill") }
+                if let poiActions { RoamPOIActionRows(node: node, actions: poiActions, model: poiActionModel) }
                 NavigationLink { if let posterDestination { posterDestination(node) } else { AnyView(RoamPosterScanView(node: node)) } } label: { Label("media.poster.title", systemImage: "qrcode.viewfinder") }
                     .accessibilityIdentifier("media.poster.open")
                 NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("media.stamp.title", systemImage: "camera") }

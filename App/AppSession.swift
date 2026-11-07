@@ -6195,6 +6195,23 @@ final class AppSession: ObservableObject {
                 return try await service.officialRoute(id: id, token: token)
             })
     }()
+    /// Live POI favorite / check-in writes through the signed-in session; nil when there is no roam service.
+    func makeRoamPOIActions() -> RoamPOIActions? {
+        guard roamService != nil else { return nil }
+        let location = RuntimeNativeLocationProvider(enabled: true)
+        return RoamPOIActions(
+            toggleFavorite: { [weak self] poiID in
+                guard let self, let service = self.roamService, let token = self.token else { throw APIError.unauthorized }
+                return try await service.toggleFavorite(poiID: poiID, token: token)
+            },
+            complete: { [weak self] poiID in
+                guard let self, let service = self.roamService, self.token != nil else { throw APIError.unauthorized }
+                let fix = try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: location)
+                // Re-read the token after the permission prompt: the account may have changed meanwhile.
+                guard let token = self.token else { throw APIError.unauthorized }
+                return try await service.completeNode(poiID: poiID, fix: fix, token: token)
+            })
+    }
     private let roamService: RoamService?
     // Exact dormant IM adapter exists, but ordinary production composition has no live grant.
     private var imExpandedCoordinators: [IMScope: IMExpandedCoordinator] = [:]

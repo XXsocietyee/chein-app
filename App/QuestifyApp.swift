@@ -283,6 +283,7 @@ struct SessionRootView: View {
                         }
                         return AnyView(SessionTopicDetailView(id: id, session: session))
                     })
+                        .environment(\.roamPOIActions, session.makeRoamPOIActions())
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
