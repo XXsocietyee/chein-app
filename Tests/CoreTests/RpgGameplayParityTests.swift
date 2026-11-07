@@ -367,6 +367,10 @@ final class RpgGameplayParityTests: XCTestCase {
     // MARK: - CharacterCard & CharacterSheetPresenter (`user-character.js` & `character/index.js`)
 
     func testCharacterCardReadbackRpgSheetAndStars() {
+        let levels = [
+            CharacterAttributeLevel(at: 1, label: "初窥"),
+            CharacterAttributeLevel(at: 4, label: "精通")
+        ]
         let attr = CharacterCardAttribute(
             stateKey: "attr_insight",
             label: "洞察",
@@ -375,12 +379,9 @@ final class RpgGameplayParityTests: XCTestCase {
             max: 5,
             displayType: "stars",
             persistScope: "topic",
-            levels: [
-                CharacterAttributeLevel(at: 1, label: "初窥"),
-                CharacterAttributeLevel(at: 4, label: "精通")
-            ]
+            levels: levels
         )
-        XCTAssertEqual(attr.levelLabel, "精通")
+        XCTAssertEqual(attr.levelLabel(levels: levels), "精通")
         XCTAssertEqual(attr.scopeText, "同主题跨局保留")
         XCTAssertEqual(attr.rangeText, "范围 0–5")
         XCTAssertEqual(attr.percent, 80)
