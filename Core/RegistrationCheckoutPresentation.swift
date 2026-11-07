@@ -495,7 +495,7 @@ public enum TicketWindowRule {
         } else if let endTime, now > endTime {
             return .ended
         }
-        if let signupDeadline, now >= signupDeadline { return .closed }
+        // Source ticket-window.js: signupDeadline only closes self-guided tickets (handled above).
         return .available
     }
 
@@ -654,18 +654,14 @@ public enum NonRefundable24hNotice: Equatable {
 public enum TicketExpiryAndOrderStatusRules {
     /// Returns remaining whole days until `validUntil` from `now`, or `nil` if invalid.
     public static func passDaysLeft(validUntil: String?, now: Date = Date()) -> Int? {
-        guard let target = TicketWindowRule.parseTicketDate(validUntil) else { return nil }
-        let diff = target.timeIntervalSince(now)
-        return Int(floor(diff / 86_400.0))
+        // Source: natural-day count in China time; expired or unparsable == nil (see MoneyPassExpiry).
+        MoneyPassExpiry.daysLeft(until: validUntil, nowMs: Int64((now.timeIntervalSince1970 * 1000).rounded(.down)))
     }
 
     /// Matches `passExpiryText` in `utils/ticket-expiry.js`:
     /// shows `"今天过期"` when `days == 0`, `"{days} 天内过期"` when `1 <= days <= 7`, and `""` otherwise.
     public static func passExpiryText(validUntil: String?, now: Date = Date()) -> String {
-        guard let days = passDaysLeft(validUntil: validUntil, now: now), days >= 0, days <= 7 else {
-            return ""
-        }
-        return days == 0 ? "今天过期" : "\(days) 天内过期"
+        MoneyPassExpiry.text(until: validUntil, nowMs: Int64((now.timeIntervalSince1970 * 1000).rounded(.down)))
     }
 
     public struct PayoutSummary: Equatable {
@@ -686,14 +682,16 @@ public enum TicketExpiryAndOrderStatusRules {
         if payoutStatus == 3 {
             return PayoutSummary(label: "退款处理中", hint: "人工退款已处理，等待复核确认", canCancelRefundApplication: false)
         }
+        // Source: a rejected application (status 2) is not a refund in flight.
+        if status == 2 { return nil }
         if status == 0 {
             return PayoutSummary(label: "退款审核中", hint: "退款申请已提交，等待平台审核", canCancelRefundApplication: true)
         }
         if payoutStatus == 0 {
-            return PayoutSummary(label: "原路退款中", hint: "微信已受理原路退款，到账以微信退款通知为准", canCancelRefundApplication: false)
+            return PayoutSummary(label: "退款处理中", hint: "微信已受理原路退款，到账以微信退款通知为准", canCancelRefundApplication: false)
         }
         if status == 1 {
-            return PayoutSummary(label: "原路退款中", hint: "退款已批准，正在提交原路退款", canCancelRefundApplication: false)
+            return PayoutSummary(label: "退款处理中", hint: "退款已批准，正在提交原路退款", canCancelRefundApplication: false)
         }
         return nil
     }

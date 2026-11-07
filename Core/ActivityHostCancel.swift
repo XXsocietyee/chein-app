@@ -58,15 +58,14 @@ public enum ActivityHostCancelFailure: Error, Equatable { case disabled, invalid
         do { (data, status) = try await transport.send(r) } catch is CancellationError { throw CancellationError() }
         catch { throw ActivityHostCancelFailure.network }
         guard (200..<300).contains(status), let o = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-              let n = o["code"] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID() else { throw ActivityHostCancelFailure.network }
-        return (n.intValue, o["msg"] as? String, o["data"])
+              let code = MoneyHostCancelParity.responseCode(o["code"]) else { throw ActivityHostCancelFailure.network }
+        return (code, o["msg"] as? String, o["data"])
     }
     public func preview(activityID: Int) async throws -> ActivityHostCancelPreview {
         guard activityID > 0 else { throw ActivityHostCancelFailure.invalid }
         let r = try await post("api/activity/cancel_preview", ["id": activityID])
         guard r.code == 200 else { return .blocked(r.msg) }
-        if let n = (r.data as? [String: Any])?["paidPlayers"] as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(),
-           n.doubleValue == Double(n.intValue), n.intValue >= 0 { return .paidPlayers(n.intValue) }
+        if let count = MoneyHostCancelParity.paidPlayers((r.data as? [String: Any])?["paidPlayers"]) { return .paidPlayers(count) }
         return .unknownCount
     }
     public func cancel(activityID: Int, reason: String) async throws -> ActivityHostCancelOutcome {
