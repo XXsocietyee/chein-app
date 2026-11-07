@@ -525,7 +525,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.couponReadApproval = couponReadApproval ?? (productionGatesEnabled ? { [gates] in gates.couponRead($0) } : { _ in nil })
         self.couponWriteApproval = couponWriteApproval ?? (productionGatesEnabled ? { [gates] in gates.couponWrite($0) } : { _ in nil })
         self.templateShelfReadApproval = templateShelfReadApproval
-        self.messagingHistoryReadApproval = messagingHistoryReadApproval
+        self.messagingHistoryReadApproval = { [gates] context in
+            messagingHistoryReadApproval(context) ?? (productionGatesEnabled ? gates.messagingHistory(context) : nil)
+        }
         self.walletHistoryReadApproval = walletHistoryReadApproval ?? (productionGatesEnabled ? { [gates] in gates.walletHistory($0) } : { _ in nil })
         self.roamSessionFactReadAccess = roamSessionFactReadAccess
         self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
@@ -587,6 +589,8 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard reviewed?.productionGatesEnabled == true else { return nil }
         return productionGateLeases.topicUnlike(context)
     }
+    /// Hook for G2 club/channel safety composition (`ClubSafetyComposition.makeSafetyService(session:clubID:channelID:)`).
+    var clubChannelSafetyHostFactory: (@MainActor (AppSession, Int64, Int64) -> Any?)? = nil
     /// A diagnostic only, never an authorization token. The transport repeats its own
     /// exact route, credential and before/after identity checks at dispatch time.
     func readAvailability(_ surface: ReadSurface, identity: CompositionHTTPTransport.SessionIdentity?) -> ReadAvailability {
@@ -3667,6 +3671,17 @@ private enum ReviewedProductionFormMutationRoute {
             requiredKeys = ["couponHistoryId"]; positiveKey = "couponHistoryId"; requiredTypeField = nil
         case baseURL.appendingPathComponent("api/topic/like").absoluteString:
             requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"
+        case baseURL.appendingPathComponent("api/im/delete").absoluteString,
+             baseURL.appendingPathComponent("api/im/read").absoluteString:
+            requiredKeys = ["conversation_id"]; positiveKey = "conversation_id"; requiredTypeField = nil
+        case baseURL.appendingPathComponent("api/im/mute").absoluteString:
+            requiredKeys = ["conversation_id", "muted"]; positiveKey = "conversation_id"; requiredTypeField = nil
+        case baseURL.appendingPathComponent("api/im/report").absoluteString:
+            requiredKeys = ["message_id", "reason"]; positiveKey = "message_id"; requiredTypeField = nil
+        case baseURL.appendingPathComponent("api/im/block").absoluteString,
+             baseURL.appendingPathComponent("api/im/unblock").absoluteString,
+             baseURL.appendingPathComponent("api/im/start").absoluteString:
+            requiredKeys = ["target_member_id"]; positiveKey = "target_member_id"; requiredTypeField = nil
         default:
             return false
         }
@@ -3686,6 +3701,7 @@ private enum ReviewedProductionFormMutationRoute {
 
 @MainActor private final class ReviewedProductionGateLeases {
     private var walletHistoryByContext: [String: WalletHistoryReadApproval] = [:]
+    private var messagingHistoryByContext: [String: MessagingHistoryReadApproval] = [:]
     private var ownedOrderByContext: [String: OwnedOrderReadApproval] = [:]
     private var profileOwnedCouponByContext: [String: ProfileOwnedCouponReadAccess] = [:]
     private var profileFavoritesByContext: [String: ProfileFavoritesReadAccess] = [:]
@@ -3712,6 +3728,15 @@ private enum ReviewedProductionFormMutationRoute {
         if let existing = walletHistoryByContext[key], !existing.isRevoked { return existing }
         guard let approval = try? WalletHistoryReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         walletHistoryByContext[key] = approval
+        return approval
+    }
+
+    func messagingHistory(_ context: RuntimeDependencyContext) -> MessagingHistoryReadApproval? {
+        guard context.market == .china else { return nil }
+        let key = contextKey(context)
+        if let existing = messagingHistoryByContext[key], !existing.isRevoked { return existing }
+        guard let approval = try? MessagingHistoryReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        messagingHistoryByContext[key] = approval
         return approval
     }
 
@@ -3829,8 +3854,25 @@ private enum ReviewedProductionFormMutationRoute {
             externalCheckoutApproved: false, devicePaymentApproved: false,
             allowsReviewedCancellationAndRefund: true
         )
+        let imRoutes: [BusinessRuntimeFeature: Set<BusinessRuntimeRoute>] = [
+            .imDelete: Set([try? BusinessRuntimeRoute.post("api/im/delete")].compactMap { $0 }),
+            .imReport: Set([try? BusinessRuntimeRoute.post("api/im/report")].compactMap { $0 }),
+            .imBlock: Set([try? BusinessRuntimeRoute.post("api/im/block")].compactMap { $0 }),
+            .imUnblock: Set([try? BusinessRuntimeRoute.post("api/im/unblock")].compactMap { $0 }),
+            .imMute: Set([try? BusinessRuntimeRoute.post("api/im/mute")].compactMap { $0 }),
+            .imRead: Set([try? BusinessRuntimeRoute.post("api/im/read")].compactMap { $0 }),
+            .imStart: Set([try? BusinessRuntimeRoute.post("api/im/start")].compactMap { $0 }),
+            .imSend: Set([try? BusinessRuntimeRoute.post("api/im/send"), try? BusinessRuntimeRoute.post("api/im/send-receipt")].compactMap { $0 }),
+            .imUnreadTotal: Set([try? BusinessRuntimeRoute.post("api/im/unread-total")].compactMap { $0 }),
+            .clubChat: Set([try? BusinessRuntimeRoute.post("api/club/chat")].compactMap { $0 })
+        ]
+        let businessConfiguration = try? BusinessRuntimeConfiguration(
+            market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, routes: imRoutes
+        )
         return NativeRuntimeDependencies(
             couponCodeApproval: couponCodeApproval,
+            businessConfiguration: businessConfiguration,
             orderLifecycleConfiguration: orderConfiguration
         )
     }

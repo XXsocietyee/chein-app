@@ -217,10 +217,11 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         }
 
         // 2. App-level usage consent grant and withdrawal on device
-        UsageConsentStore.recordAgreement(defaults: defaults)
-        XCTAssertTrue(UsageConsentStore.isCurrentConsentGranted(defaults: defaults))
-        UsageConsentStore.clear(defaults: defaults)
-        XCTAssertFalse(UsageConsentStore.isCurrentConsentGranted(defaults: defaults))
+        let policy = UsageConsentPolicy(storage: UserDefaultsUsageConsentStorage(defaults: defaults))
+        try policy.agree(agreementChecked: true)
+        XCTAssertTrue(policy.granted)
+        policy.decline()
+        XCTAssertFalse(policy.granted)
 
         // 3. Roam location consent withdrawal + Merchant marketing consent withdrawal
         await session.authChannels.loginWithPhone(phone: "13800138000", code: "123456")
@@ -291,7 +292,7 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
 
         XCTAssertTrue(session.walletHistoryReader.isConfigured)
         let stages = try await session.walletHistoryReader.read { try await $0.stages(token: $1) }
-        XCTAssertEqual(stages.currentBalance, Decimal(string: "88.50"))
+        XCTAssertEqual(stages.withdrawable.value, Decimal(string: "88.5"))
         let balance = try await session.walletHistoryReader.read { try await $0.ledger(.balance, token: $1) }
         XCTAssertEqual(balance.rows.first?.id, 61)
         let points = try await session.walletHistoryReader.read { try await $0.ledger(.assetPoints, token: $1) }
@@ -377,6 +378,13 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         let merchantContext = try XCTUnwrap(session.currentRuntimeDependencyContext)
         XCTAssertNotNil(composition.couponReadApproval(merchantContext))
         XCTAssertNotNil(composition.couponWriteApproval(merchantContext))
+
+        // 6. G2 hook & IM/club safety approvals open under reviewed composition
+        XCTAssertTrue(session.messagingReader.isConfigured)
+        XCTAssertTrue(session.imSafetyWriter.permits(.hide(conversationID: 10)))
+        XCTAssertTrue(session.imSafetyWriter.permits(.report(conversationID: 10, messageID: 20)))
+        XCTAssertTrue(session.imSafetyWriter.permits(.block(conversationID: 10, targetMemberID: 30)))
+        XCTAssertTrue(session.imSafetyWriter.permits(.unblock(conversationID: 10, targetMemberID: 30)))
     }
 }
 
@@ -480,16 +488,16 @@ private final class G1TestWire: HTTPTransport {
             return (Data(json.utf8), 200)
         }
         if path.hasSuffix("/api/wallet/stages") {
-            return (Data(#"{"code":200,"data":{"currentBalance":88.50,"pendingBalance":12.00,"settledBalance":100.00}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"pendingSettlement":12,"disputed":0,"withdrawable":88.5,"complaintPeriod":[]}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/balance/list") || path.hasSuffix("/api/points/list") {
             return (Data(#"{"code":200,"data":[{"id":61,"memberId":7,"changeAmount":10.5,"createTime":"2026-10-01 10:00:00"}]}"#.utf8), 200)
         }
         if path.hasSuffix("/api/user/balance/list") {
-            return (Data(#"{"code":200,"data":{"memberId":7,"balance":88.50,"points":600}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"rows":[{"id":61,"changeBalance":12}],"total":1}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/withdrawal/list") {
-            return (Data(#"{"code":200,"rows":[{"id":71,"memberId":7,"amount":20.0,"status":1,"createTime":"2026-10-02 10:00:00"}],"total":1}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":[{"id":71,"amount":20.0,"status":1,"createTime":"2026-10-02 10:00:00"}]}"#.utf8), 200)
         }
         if path.hasSuffix("/api/registration/list") {
             return (Data(#"{"code":200,"data":{"rows":[{"id":41,"memberId":7,"ownerType":2,"ownerId":100,"cmsActivity":{"id":100,"name":"测试活动","memberId":99},"registrationStatus":1,"paymentStatus":1,"verificationStatus":0,"payableAmount":12.0}],"total":1}}"#.utf8), 200)

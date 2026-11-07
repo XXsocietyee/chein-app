@@ -6347,6 +6347,11 @@ final class AppSession: ObservableObject {
         guard let owner = try? ClubChatCoordinator(clubID: clubID, identity: snapshot.identity, service: service, clubs: clubReader, messages: messagingReader) else { return nil }
         clubChatOwners[clubID] = owner; return owner
     }
+    /// G1/G2 integration hook for club channel safety composition under reviewed deployment.
+    func makeClubChannelSafetyHost(clubID: Int64, channelID: Int64) -> Any? {
+        guard clubID > 0, channelID > 0 else { return nil }
+        return composition.clubChannelSafetyHostFactory?(self, clubID, channelID)
+    }
     private struct GroupPollOwnerKey: Hashable { let scope: IMScope; let reference: GroupPollReference? }
     private var groupPollOwners: [GroupPollOwnerKey: GroupPollCoordinator] = [:]
     func groupPollCoordinator(conversationID: Int, reference: GroupPollReference?) -> GroupPollCoordinator? {
