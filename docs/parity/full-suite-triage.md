@@ -125,3 +125,42 @@ Fixed this round: AccountCompliance*/AccountDeregistration*/I00 (see account-com
 
 `ProfileFavoriteDetailTests.testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader` (AppUnit): fails at `XCTAssertGreaterThan(probe.rootAppearances,0)`; its sibling classes ProfileFavoriteTopicReadTests/ProfileSettingsFavoritesTests fail identically at baseline, so this is the iOS 27 simulator hosting/appearance environment, not a ProfileFavorites regression. Not fixed.
 `RuntimeSessionRoleConsistencyTests.testMissingExplicitRole...` contradicts `I00SessionAdmissionBaselineTests`: OWNER decision (see reconcile doc row 7).
+
+## Core (GM-TEST-C2, branch gm-test4)
+
+Full `swift test` of QuestifyCoreTests on gm-test4 (log `/tmp/gm-test4-core-full.log`): `Executed 15004 tests, with 82 failures (16 unexpected)`. Starting point on the same tree before this wave: `Executed 15004 tests, with 176 failures (44 unexpected)`. The XCTest "failures" count includes multiple assertions per test; unique failing tests went 90 -> 39 (the 90 were first collected from the 176-failure run).
+Baseline e3ba3c1b cannot run a full Core pass (it crashes in `AccountComplianceTests`, the `dropLast` bug fixed here), so the failing classes were run there separately (`/tmp/gm-test4-core-base.log`: `Executed 453 tests, with 185 failures (53 unexpected)`, 99 unique failing tests): every one of the 90 tests failing here at the start also failed at the baseline, none are regressions of this wave; 9 `MerchantOfferWithdrawalUnifiedStoreTests` were already fixed.
+
+### Fixed in this wave (51 tests, nothing loosened, skipped or deleted)
+| class | tests | verdict | fix |
+|---|---|---|---|
+| PlayKitReviewTests, PlayCompareReviewTests, PlayReadLifetimeTests, ChapterInlinePendingSelectionTests | 15 | test fixture stale | `PlayAdvancedCoordinator` now defaults to a fail-closed `PlayUnavailableAdvancedRecovery` (start -> `persistenceUnavailable`, 0 requests). Fixtures pass the existing `PlayMemoryAdvancedRecovery()`. Production untouched. |
+| ClubApplicationRequiredMessageTests, NativeBlacklistTransportTests | 7 | test fixture | fixture hosts were `*.invalid`, which `APIConfiguration` rejects by design (`NativeFriendTransportTests` asserts that). Hosts renamed `*.test`. |
+| NativeHomeReturnNativeTests (10 of 11), NativeHomeReturnSelectionRecoveryFenceTests | 11 | test fixture | the synthetic DWELL_REQUIRED reply lacked `accountVersion`, which production now binds; request id `"other"` (5 chars) violates the 8..64 request-id rule. |
+| NativeHomeReturnNativeTests.testSixDecimalQuantization... | 1 | REAL code bug (Foundation behavior) | `NSDecimalNumber.doubleValue` returned `12.123456999999998` for `12.123457`; `NativeHomeReturnFix` now converts through the decimal text (`exactDouble`). |
+| CityCurrentSnapshotReadingTests, CityCurrentSnapshotPresentationTests, CityOrderedMapPresentationTests, CityOrderedMapRecoveryTests | 10 | env (Foundation) in fixtures | `JSONSerialization` writes Swift Double `30.1` as `30.100000000000001`, which no longer equals the exact Decimal viewport; fixtures use `NSDecimalNumber(string:)` and decode the original reply bytes. `JSONDecoder` Decimal decoding was probed and is exact. |
+| ClubCommunityTests.testReadRowsAndScope (+ rows in two sibling classes) | 1 | test fixture stale | the posts list now requires `isPinned` 0/1; fixture rows carry it. |
+| NearbyMapDiscoveryProjectionTests | 1 | test typo | a raw-string literal swallowed its closing JSON quote (invalid JSON). |
+| NicknameC6ReadTests | 1 | REAL code bug (Foundation behavior) | the nickname charset regex matched `e` + U+0301 as one letter (grapheme semantics on this OS), accepting a combining mark; `ProfileNicknameRules` now checks Unicode scalars (letter/number categories + `_#-.· `). |
+| AccountComplianceTests / Deregistration* / I00 | - | see `account-compliance-reconcile.md` | rows 1,2,3,6; row 7 kept fail-closed. |
+
+### Remaining 39 failing tests (all also fail at e3ba3c1b; none new)
+Verdict key: STALE = test written before the reviewed product snapshot f9ca1f42 (2026-11-06) hardened the contract, production is the safer behavior, OWNER decides whether tests are rewritten; OPEN = not root-caused yet.
+| class | tests | verdict | evidence |
+|---|---|---|---|
+| CityNodeRedemptionTests | 5 | STALE / OWNER | tests (2026-10-01) expect any `code:200` -> redeemed and 400/403/500 messages byte-exact. Production requires the exact original success body (poiId, memberId, couponId, couponGranted + exact message) and otherwise reports UNKNOWN (fail-safe against double redemption). |
+| ClubActionServiceTests, ClubActionSessionTests, ClubActionCoordinatorTests | 2+1+1 | STALE / OWNER | they apply with an empty `joinMessage` (the service test loop even lists `""` and `"   "` as valid); `ClubApplicationMessage.isValid` plus `ClubApplicationRequiredMessageTests` now require a non-empty reviewed message. The two test generations contradict each other. |
+| MerchantStoreIndustrySelectionTests, MerchantStoreIndustryServiceTests, MerchantStoreIndustryContractTests, MerchantOperationsServiceTests, MerchantOperationsContractTests | 3+2+1+1+1 | STALE / OWNER (medium confidence) | tests (2026-10-12) assert the single `categoryId` wire field and the older info/coop read order; production `MerchantStoreDecor` carries `categoryIds` with a multi-select replacement (1..5) and reads `/api/merchant/info`. |
+| MerchantNPCTests | 1 | STALE / OWNER | merchant-chat HTTP 403 is now mapped to `MerchantNPCGameDispatchDenial`; the test expects `rejected(403, ...)`. |
+| ProfileGuideReadRouteTests | 2 | STALE / OWNER | production deliberately accepts a detail reply with `data` omitted (c6 AjaxResult success(null)); tests expect it to throw. |
+| RoamPassportToolsTests | 1 | STALE / OWNER | weekly columns appear only when the collapsed item count equals the server total; the test's duplicate row makes it 3 of 4 and `weeks` is empty by design. |
+| ClubCommunityReadRuntimeTests | 2 | STALE / OWNER | older paged contract; production uses the f9ca1f42 full-list contract (same finding as the gm-test2 triage). |
+| ClubCommunityPendingJournalTests | 2 | STALE / OWNER | test asserts the request id is never persisted / absent in the outcome query; production persists and requires the matching `requestId` (`stale` otherwise). |
+| NativeFriendTransportTests | 3 | OPEN | `invalid` on receipts/review and a 401 journal clear; not root-caused. |
+| PrivateHomeRecoveryFenceTests | 2 | OPEN | restore fence ends `blocked` instead of `ready`; not root-caused. |
+| NativeChannelMessageOriginalWriterJournalTests | 2 | OPEN | quoted-send allowlist / plain receipt; not root-caused. |
+| ParticipantCoordinatorTests, ParticipantCoordinatorSnapshotLifetimeTests | 1+1 | OPEN | `outcomeUnknown(malformedResponse)` for a legacy nil acknowledgement; not root-caused. |
+| SquareReportTests, MessagingVisibilityTests, MerchantPersonalIncomeEligibilityTests, InvoiceLaunchCoordinatorTests | 1 each | OPEN | not root-caused (`invalid` / card destination nil / `malformed` / `outcomeUnknown`). |
+| MerchantOfferWithdrawalUnifiedStoreTests | 1 | OPEN, probably env | `persistence` thrown by a storage fixture; the other 9 tests of the class pass now. |
+
+Environment notes for reproducing: `swift test` runs from an Orca terminal; inside the Claude Bash sandbox SwiftPM/Swift-macro nested `sandbox-exec` and the simulator test runner socket are blocked.
