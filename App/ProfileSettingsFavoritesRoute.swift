@@ -141,7 +141,7 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
         content.background {
             if let route = owner.route {
                 Color.clear.navigationDestination(item: owner.binding(for: route)) { offered in
-                    ProfileSettingsFavoritesDestination(route: offered, owner: owner, current: { .current(session) })
+                    ProfileSettingsFavoritesDestination(route: offered, owner: owner, current: { .current(session) }, session: session)
                 }.id(route.id)
             }
             ProfileFavoriteNavigationLayer(owner: owner.posts) { selected in
@@ -161,6 +161,7 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
     let route: ProfileSettingsFavoritesRoute
     let owner: ProfileSettingsFavoritesOwner
     let current: () -> ProfileSettingsFavoritesAccess?
+    var session: AppSession? = nil
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         Group {
@@ -170,6 +171,7 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
                     onOpenPost: { owner.openPost($0, from: route, current: current()) },
                     favoriteRemoval: route.access.removal,
                     communityGate: route.access.communityGate).id(route.id)
+                    .modifier(TopicUnlikeInjectionIfAvailable(session: session))
             } else {
                 ContentUnavailableView {
                     Label { Text("settingsNative.favorites.changed", tableName: "ProfileSettingsFavorites") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
