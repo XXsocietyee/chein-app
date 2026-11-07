@@ -245,7 +245,8 @@ public struct ChannelCategoryDirectoryProjection: Equatable, Sendable {
         mentionCountsByChannelID: [Int64: Int] = [:],
         mutedOverrideByChannelID: [Int64: Bool] = [:],
         unreadOverrideByChannelID: [Int64: Int] = [:],
-        uncategorizedTitle: String = "频道"
+        uncategorizedTitle: String = "频道",
+        locale: Locale = ChannelCopy.defaultLocale
     ) {
         self.clubID = listing.clubID
 
@@ -306,7 +307,7 @@ public struct ChannelCategoryDirectoryProjection: Equatable, Sendable {
             builtGroups.append(
                 ChannelDiscordCategoryGroup(
                     id: 0,
-                    title: uncategorizedTitle,
+                    title: uncategorizedTitle == "频道" ? ChannelCopy.text("频道", "Channels", locale: locale) : uncategorizedTitle,
                     position: -1,
                     channels: uncategorized
                 )
@@ -556,12 +557,12 @@ public enum ChannelMessageBurstGrouper {
     /// Confirmed in `ApiImController.java`: no reaction endpoints exist in backend IM contract.
     public static let backendSupportsReactions: Bool = false
 
-    public static func formatDivider(_ divider: IMInboxTime.DividerText) -> String {
+    public static func formatDivider(_ divider: IMInboxTime.DividerText, locale: Locale = ChannelCopy.defaultLocale) -> String {
         switch divider {
         case let .today(clock):
-            return "今天 \(clock)"
+            return ChannelCopy.text("今天 \(clock)", "Today \(clock)", locale: locale)
         case let .yesterday(clock):
-            return "昨天 \(clock)"
+            return ChannelCopy.text("昨天 \(clock)", "Yesterday \(clock)", locale: locale)
         case let .date(month, day, clock):
             return String(format: "%02d-%02d %@", month, day, clock)
         }
@@ -597,16 +598,17 @@ public enum ChannelMessageBurstGrouper {
             let headerTimestamp = firstWire.createdAt.flatMap {
                 IMInboxTime.parse($0)
             }.map {
-                formatDivider(IMInboxTime.dividerText($0, now: now))
+                formatDivider(IMInboxTime.dividerText($0, now: now), locale: contentFilter.locale)
             } ?? (firstWire.createdAt ?? "")
 
             let burstItems: [ChannelBurstMessageItem] = currentMessages.enumerated().map { index, item in
                 let filterResult = contentFilter.evaluate(message: item.wireMessage)
-                let attachments = projectAttachments(for: item)
+                let attachments = projectAttachments(for: item, locale: contentFilter.locale)
                 let replyRef = extractReplyReference(
                     for: item.wireMessage,
                     allMessages: wireMessages,
-                    explicitReferences: replyReferencesByMessageID
+                    explicitReferences: replyReferencesByMessageID,
+                    locale: contentFilter.locale
                 )
                 return ChannelBurstMessageItem(
                     transcriptMessage: item,
@@ -623,11 +625,11 @@ public enum ChannelMessageBurstGrouper {
             if let rawName = firstWire.senderName?.trimmingCharacters(in: .whitespacesAndNewlines), !rawName.isEmpty {
                 senderName = rawName
             } else if !firstWire.isPayloadVisible {
-                senderName = "已撤回/屏蔽消息"
+                senderName = ChannelCopy.text("已撤回/屏蔽消息", "Recalled or hidden message", locale: contentFilter.locale)
             } else if isSystem {
-                senderName = "系统通知"
+                senderName = ChannelCopy.text("系统通知", "System notice", locale: contentFilter.locale)
             } else {
-                senderName = "成员 #\(firstSenderID)"
+                senderName = ChannelCopy.text("成员 #\(firstSenderID)", "Member #\(firstSenderID)", locale: contentFilter.locale)
             }
 
             groups.append(
@@ -650,7 +652,7 @@ public enum ChannelMessageBurstGrouper {
 
         for (index, item) in visibleAfterBlock.enumerated() {
             let message = item.wireMessage
-            let rawDivider = dividersByMessageID[message.id].map(formatDivider)
+            let rawDivider = dividersByMessageID[message.id].map { formatDivider($0, locale: contentFilter.locale) }
             // The first message in the transcript always gets a divider in `IMInboxTime.dividers`,
             // while subsequent dividers indicate a >5m gap.
             let gapDivider = index == 0 ? nil : rawDivider
@@ -690,7 +692,7 @@ public enum ChannelMessageBurstGrouper {
         return groups
     }
 
-    public static func projectAttachments(for item: ChannelTranscriptMessage) -> [ChannelAttachmentProjection] {
+    public static func projectAttachments(for item: ChannelTranscriptMessage, locale: Locale = ChannelCopy.defaultLocale) -> [ChannelAttachmentProjection] {
         let message = item.wireMessage
         guard message.isPayloadVisible else { return [] }
         var result: [ChannelAttachmentProjection] = []
@@ -701,7 +703,7 @@ public enum ChannelMessageBurstGrouper {
                 ChannelAttachmentProjection(
                     kind: .image,
                     url: rawURL,
-                    title: "图片附件",
+                    title: ChannelCopy.text("图片附件", "Image", locale: locale),
                     subtitle: nil,
                     isOriginApproved: isApprovedAttachmentURL(rawURL)
                 )
@@ -713,7 +715,7 @@ public enum ChannelMessageBurstGrouper {
                     ChannelAttachmentProjection(
                         kind: .pollCard,
                         url: item.mediaURL,
-                        title: "频道投票卡片",
+                        title: ChannelCopy.text("频道投票卡片", "Channel poll", locale: locale),
                         subtitle: text
                     )
                 )
@@ -722,7 +724,7 @@ public enum ChannelMessageBurstGrouper {
                     ChannelAttachmentProjection(
                         kind: .routeOrActivityCard,
                         url: item.mediaURL,
-                        title: message.card?.title ?? "俱乐部活动/路线卡片",
+                        title: message.card?.title ?? ChannelCopy.text("俱乐部活动/路线卡片", "Club event or route", locale: locale),
                         subtitle: message.card?.subtitle ?? text
                     )
                 )
@@ -732,7 +734,7 @@ public enum ChannelMessageBurstGrouper {
                 ChannelAttachmentProjection(
                     kind: .locationPin,
                     url: item.mediaURL,
-                    title: "位置分享",
+                    title: ChannelCopy.text("位置分享", "Shared location", locale: locale),
                     subtitle: message.content
                 )
             )
@@ -749,7 +751,8 @@ public enum ChannelMessageBurstGrouper {
     private static func extractReplyReference(
         for message: MessagingMessage,
         allMessages: [MessagingMessage],
-        explicitReferences: [Int: ChannelReplyThreadReference]
+        explicitReferences: [Int: ChannelReplyThreadReference],
+        locale: Locale = ChannelCopy.defaultLocale
     ) -> ChannelReplyThreadReference? {
         if let explicit = explicitReferences[message.id] {
             return explicit
@@ -762,8 +765,8 @@ public enum ChannelMessageBurstGrouper {
             return nil
         }
         let parent = allMessages.first { $0.id == targetID }
-        let author = parent?.senderName ?? "成员 #\(parent?.senderID ?? 0)"
-        let preview = parent?.isPayloadVisible == true ? (parent?.content ?? "") : "原消息不可用"
+        let author = parent?.senderName ?? ChannelCopy.text("成员 #\(parent?.senderID ?? 0)", "Member #\(parent?.senderID ?? 0)", locale: locale)
+        let preview = parent?.isPayloadVisible == true ? (parent?.content ?? "") : ChannelCopy.text("原消息不可用", "Original message unavailable", locale: locale)
         let replyCount = allMessages.filter {
             guard let text = $0.content else { return false }
             return text.hasPrefix("> #\(targetID)")
@@ -1211,13 +1214,15 @@ public enum ChannelMemberRoleTier: Int, Comparable, Equatable, Sendable, CaseIte
         lhs.rawValue < rhs.rawValue
     }
 
-    public var sectionTitle: String {
+    public var sectionTitle: String { sectionTitle(locale: ChannelCopy.defaultLocale) }
+
+    public func sectionTitle(locale: Locale) -> String {
         switch self {
-        case .owner: return "主理人"
-        case .coOwner: return "联席主理人"
-        case .operatorAdmin: return "运营管理员"
-        case .eventStaff: return "活动领队与核销"
-        case .member: return "俱乐部成员"
+        case .owner: return ChannelCopy.text("主理人", "Owner", locale: locale)
+        case .coOwner: return ChannelCopy.text("联席主理人", "Co-owner", locale: locale)
+        case .operatorAdmin: return ChannelCopy.text("运营管理员", "Operations admin", locale: locale)
+        case .eventStaff: return ChannelCopy.text("活动领队与核销", "Event lead & check-in", locale: locale)
+        case .member: return ChannelCopy.text("俱乐部成员", "Club members", locale: locale)
         }
     }
 }
@@ -1260,15 +1265,15 @@ public struct ChannelMemberRoleSection: Equatable, Sendable, Identifiable {
     public let title: String
     public let members: [ChannelMemberRoleItem]
 
-    public init(tier: ChannelMemberRoleTier, members: [ChannelMemberRoleItem]) {
+    public init(tier: ChannelMemberRoleTier, members: [ChannelMemberRoleItem], locale: Locale = ChannelCopy.defaultLocale) {
         self.tier = tier
-        self.title = "\(tier.sectionTitle) — \(members.count)"
+        self.title = "\(tier.sectionTitle(locale: locale)) — \(members.count)"
         self.members = members
     }
 }
 
 public enum ChannelMemberRoleRoster {
-    public static func buildSections(from members: [ChannelMemberRoleItem]) -> [ChannelMemberRoleSection] {
+    public static func buildSections(from members: [ChannelMemberRoleItem], locale: Locale = ChannelCopy.defaultLocale) -> [ChannelMemberRoleSection] {
         let sorted = members.sorted {
             if $0.tier != $1.tier { return $0.tier < $1.tier }
             return $0.memberID < $1.memberID
@@ -1276,7 +1281,7 @@ public enum ChannelMemberRoleRoster {
         return ChannelMemberRoleTier.allCases.compactMap { tier in
             let matching = sorted.filter { $0.tier == tier }
             guard !matching.isEmpty else { return nil }
-            return ChannelMemberRoleSection(tier: tier, members: matching)
+            return ChannelMemberRoleSection(tier: tier, members: matching, locale: locale)
         }
     }
 
@@ -1319,12 +1324,15 @@ public struct ChannelContentFilterHook: Equatable, Sendable {
     public let blockedSenderIDs: Set<Int>
     public let mutedKeywords: [String]
     public let maskObjectionableContent: Bool
+    public let locale: Locale
 
     public init(
         blockedSenderIDs: Set<Int> = [],
         mutedKeywords: [String] = Self.defaultObjectionableTerms,
-        maskObjectionableContent: Bool = true
+        maskObjectionableContent: Bool = true,
+        locale: Locale = ChannelCopy.defaultLocale
     ) {
+        self.locale = locale
         self.blockedSenderIDs = blockedSenderIDs
         self.mutedKeywords = mutedKeywords
         self.maskObjectionableContent = maskObjectionableContent
@@ -1344,11 +1352,11 @@ public struct ChannelContentFilterHook: Equatable, Sendable {
             let placeholder: String
             switch message.status {
             case .recalled:
-                placeholder = "该消息已撤回"
+                placeholder = ChannelCopy.text("该消息已撤回", "This message was recalled", locale: locale)
             case .blocked:
-                placeholder = "该消息因违反社区安全规范已被屏蔽"
+                placeholder = ChannelCopy.text("该消息因违反社区安全规范已被屏蔽", "This message was hidden by community safety filters.", locale: locale)
             case .unknown, .normal:
-                placeholder = "消息不可用"
+                placeholder = ChannelCopy.text("消息不可用", "Message unavailable", locale: locale)
             }
             return ChannelContentFilterEvaluation(displayText: placeholder, wasModified: true)
         }
@@ -1806,4 +1814,16 @@ public enum ClubTabAndAdminParityCatalog {
             flaggedOffFeatureNote: "pages/coop/withdraw 银行卡提现已按规范 Flagged Off，仅保留俱乐部结算单与订单分成只读核对。"
         )
     ]
+}
+
+
+// MARK: - Bilingual copy
+
+/// Locale-aware zh-Hans / en copy for strings produced in Core. The default locale stays
+/// Simplified Chinese so existing fixtures keep their original-service wording; views pass
+/// their environment locale.
+public enum ChannelCopy {
+    public static let defaultLocale = Locale(identifier: "zh-Hans")
+    public static func isChinese(_ locale: Locale) -> Bool { locale.language.languageCode?.identifier == "zh" }
+    public static func text(_ zh: String, _ en: String, locale: Locale) -> String { isChinese(locale) ? zh : en }
 }

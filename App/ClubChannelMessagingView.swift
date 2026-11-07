@@ -23,11 +23,13 @@ public struct ClubChannelMessagingView: View {
     @State private var composerText: String = ""
     @State private var showChannelSidebar: Bool = true
     @State private var showMemberRosterSheet: Bool = false
-    @State private var showAdminOperationsSheet: Bool = false
     @State private var activeSafetyBanner: String?
     @State private var mutedByChannelID: [Int64: Bool] = [:]
     @State private var unreadByChannelID: [Int64: Int] = [:]
     @State private var mentionByChannelID: [Int64: Int] = [:]
+    @Environment(\.locale) private var locale
+
+    private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
     private let rawListing: ChannelDirectoryListing
     private let roleBadgesByMemberID: [Int: String]
@@ -91,7 +93,16 @@ public struct ClubChannelMessagingView: View {
             messages: combined,
             roleBadgeByMemberID: roleBadgesByMemberID,
             replyReferencesByMessageID: replyReferences,
-            contentFilter: contentFilter
+            contentFilter: localizedFilter
+        )
+    }
+
+    private var localizedFilter: ChannelContentFilterHook {
+        ChannelContentFilterHook(
+            blockedSenderIDs: contentFilter.blockedSenderIDs,
+            mutedKeywords: contentFilter.mutedKeywords,
+            maskObjectionableContent: contentFilter.maskObjectionableContent,
+            locale: locale
         )
     }
 
@@ -107,15 +118,25 @@ public struct ClubChannelMessagingView: View {
                         .font(.caption)
                         .foregroundStyle(.primary)
                     Spacer()
-                    Button("关闭") {
+                    Button(copy("关闭", "Dismiss")) {
                         self.activeSafetyBanner = nil
                     }
+                    .frame(minHeight: 44)
                     .font(.caption.weight(.semibold))
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
                 .background(Color.green.opacity(0.12))
+                .accessibilityElement(children: .combine)
             }
+            if directoryProjection.groups.isEmpty {
+                ContentUnavailableView(
+                    copy("暂无频道", "No channels yet"),
+                    systemImage: "number",
+                    description: Text(copy("主理人创建频道后，这里会显示频道列表。", "Channels will appear here once the club owner creates them."))
+                )
+                .frame(maxHeight: .infinity)
+            } else {
             HStack(spacing: 0) {
                 if showChannelSidebar {
                     channelCategorySidebar
@@ -124,11 +145,12 @@ public struct ClubChannelMessagingView: View {
                 }
                 channelTranscriptColumn
             }
+            }
         }
         .sheet(isPresented: $showMemberRosterSheet) {
             ClubChannelMemberRosterSheet(
                 clubName: club.name,
-                sections: ChannelMemberRoleRoster.buildSections(from: memberRoster),
+                sections: ChannelMemberRoleRoster.buildSections(from: memberRoster, locale: locale),
                 policy: safetyPolicy,
                 blockedSenderIDs: contentFilter.blockedSenderIDs,
                 onSafetyActionFeedback: { message in
@@ -151,9 +173,6 @@ public struct ClubChannelMessagingView: View {
                     memberRoster.removeAll { $0.memberID == removedID }
                 }
             )
-        }
-        .sheet(isPresented: $showAdminOperationsSheet) {
-            ClubAdminParityOverviewSheet(club: club, capabilities: capabilities)
         }
     }
 
@@ -179,7 +198,9 @@ public struct ClubChannelMessagingView: View {
                 }
             }
             .buttonStyle(.borderless)
-            .accessibilityLabel("切换频道列表")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+            .accessibilityLabel(copy("切换频道列表", "Toggle channel list"))
 
             if let channel = selectedChannel {
                 HStack(spacing: 6) {
@@ -190,7 +211,7 @@ public struct ClubChannelMessagingView: View {
                         .font(.headline)
                         .lineLimit(1)
                     if channel.isReadOnlyAnnouncement {
-                        Text("公告只读")
+                        Text(copy("公告只读", "Announcement · Read only"))
                             .font(.caption2.weight(.medium))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -213,13 +234,15 @@ public struct ClubChannelMessagingView: View {
                 mutedByChannelID[channel.id] = nextMuted
                 refreshDirectoryProjection()
                 activeSafetyBanner = nextMuted
-                    ? "已开启「#\(channel.name)」免打扰（POST /api/im/mute）"
-                    : "已恢复「#\(channel.name)」消息提醒（POST /api/im/mute）"
+                    ? copy("已开启「#\(channel.name)」免打扰", "Muted #\(channel.name)")
+                    : copy("已恢复「#\(channel.name)」消息提醒", "Unmuted #\(channel.name)")
             } label: {
                 Image(systemName: selectedChannel?.isMuted == true ? "bell.slash.fill" : "bell")
             }
             .buttonStyle(.borderless)
-            .accessibilityLabel("频道免打扰")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+            .accessibilityLabel(selectedChannel?.isMuted == true ? copy("取消频道免打扰", "Unmute channel") : copy("频道免打扰", "Mute channel"))
 
             Button {
                 showMemberRosterSheet = true
@@ -231,17 +254,10 @@ public struct ClubChannelMessagingView: View {
                 }
             }
             .buttonStyle(.borderless)
-            .accessibilityLabel("频道成员与身份组")
+            .frame(minWidth: 44, minHeight: 44)
+            .contentShape(Rectangle())
+            .accessibilityLabel(copy("频道成员与身份组", "Channel members and roles"))
 
-            if safetyPolicy.canModerateMessages || safetyPolicy.canRemoveOrBanMembers {
-                Button {
-                    showAdminOperationsSheet = true
-                } label: {
-                    Image(systemName: "slider.horizontal.3")
-                }
-                .buttonStyle(.borderless)
-                .accessibilityLabel("俱乐部管理与运营视图")
-            }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
@@ -278,7 +294,7 @@ public struct ClubChannelMessagingView: View {
             }
             .padding(.vertical, 10)
         }
-        .background(Color(white: 0.96))
+        .background(Color(.secondarySystemBackground))
     }
 
     private func channelSidebarRow(_ channel: ChannelDiscordItemProjection) -> some View {
@@ -337,13 +353,22 @@ public struct ClubChannelMessagingView: View {
                                 } label: {
                                     HStack(spacing: 6) {
                                         Image(systemName: "arrow.up.circle")
-                                        Text("加载更早的频道消息")
+                                        Text(copy("加载更早的频道消息", "Load earlier messages"))
                                     }
                                     .font(.caption.weight(.medium))
                                     .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 6)
+                                    .frame(minHeight: 44)
                                 }
                                 .buttonStyle(.borderless)
+                            }
+
+                            if burstGroups.isEmpty {
+                                ContentUnavailableView(
+                                    copy("还没有消息", "No messages yet"),
+                                    systemImage: "bubble.left.and.bubble.right",
+                                    description: Text(copy("发送第一条消息，开启这个频道的讨论。", "Send the first message to start the conversation."))
+                                )
+                                .frame(maxWidth: .infinity, minHeight: 200)
                             }
 
                             ForEach(burstGroups) { group in
@@ -358,11 +383,13 @@ public struct ClubChannelMessagingView: View {
                                         retryFailedMessage(clientMessageID: clientMessageID)
                                     },
                                     onReportMessage: { msg in
-                                        switch safetyPolicy.validateReportMessage(message: msg, reason: "违规内容举报") {
+                                        switch safetyPolicy.validateReportMessage(message: msg, reason: "Objectionable content") {
                                         case let .success(endpoint):
-                                            activeSafetyBanner = "举报已提交（\(endpoint.apiPath)），安全团队将在 24 小时内处理。"
+                                            _ = endpoint
+                                            activeSafetyBanner = copy("举报已提交，安全团队将在 24 小时内处理。", "Report submitted. Our safety team will review it within 24 hours.")
                                         case let .failure(reason):
-                                            activeSafetyBanner = "无法举报该消息：\(reason.rawValue)"
+                                            _ = reason
+                                            activeSafetyBanner = copy("无法举报该消息，请稍后重试。", "Couldn't report this message. Please try again later.")
                                         }
                                     },
                                     onBlockAuthor: { authorID in
@@ -370,22 +397,26 @@ public struct ClubChannelMessagingView: View {
                                         case let .success(endpoint):
                                             var next = contentFilter.blockedSenderIDs
                                             next.insert(authorID)
+                                            _ = endpoint
                                             contentFilter = ChannelContentFilterHook(
                                                 blockedSenderIDs: next,
                                                 mutedKeywords: contentFilter.mutedKeywords,
                                                 maskObjectionableContent: contentFilter.maskObjectionableContent
                                             )
-                                            activeSafetyBanner = "已拉黑成员 #\(authorID) 并隐藏其消息（\(endpoint.apiPath)）"
+                                            activeSafetyBanner = copy("已拉黑成员 #\(authorID)，其消息已隐藏。", "Blocked member #\(authorID). Their messages are hidden.")
                                         case let .failure(reason):
-                                            activeSafetyBanner = "无法拉黑：\(reason.rawValue)"
+                                            _ = reason
+                                            activeSafetyBanner = copy("无法拉黑该用户。", "Couldn't block this user.")
                                         }
                                     },
                                     onDeleteMessage: { msg in
                                         switch safetyPolicy.validateDeleteMessage(channelID: Int(selectedChannelID), message: msg) {
                                         case let .success(endpoint):
-                                            activeSafetyBanner = "已撤回/删除消息 #\(msg.id)（\(endpoint.apiPath)）"
+                                            _ = endpoint
+                                            activeSafetyBanner = copy("消息 #\(msg.id) 已撤回/删除。", "Message #\(msg.id) was recalled or deleted.")
                                         case let .failure(reason):
-                                            activeSafetyBanner = "无权删除该消息：\(reason.rawValue)"
+                                            _ = reason
+                                            activeSafetyBanner = copy("你没有权限删除该消息。", "You don't have permission to delete this message.")
                                         }
                                     }
                                 )
@@ -408,7 +439,7 @@ public struct ClubChannelMessagingView: View {
                     } label: {
                         HStack(spacing: 6) {
                             Image(systemName: "arrow.down.circle.fill")
-                            Text("\(viewportState.pendingNewMessageCount) 条新消息 · 点击跳转到底部")
+                            Text(copy("\(viewportState.pendingNewMessageCount) 条新消息 · 点击跳转到底部", "\(viewportState.pendingNewMessageCount) new messages · Jump to present"))
                                 .font(.caption.weight(.semibold))
                         }
                         .padding(.horizontal, 14)
@@ -417,6 +448,7 @@ public struct ClubChannelMessagingView: View {
                         .foregroundStyle(.white)
                         .shadow(radius: 4)
                     }
+                    .frame(minHeight: 44)
                     .padding(.bottom, 10)
                 }
             }
@@ -433,7 +465,7 @@ public struct ClubChannelMessagingView: View {
                     Image(systemName: "arrowshape.turn.up.left.fill")
                         .font(.caption)
                         .foregroundStyle(Color.accentColor)
-                    Text("回复 \(replyTarget.senderName ?? "成员 #\(replyTarget.senderID ?? 0)")：\(replyTarget.content ?? "")")
+                    Text(copy("回复 \(replyTarget.senderName ?? "成员 #\(replyTarget.senderID ?? 0)")：\(replyTarget.content ?? "")", "Replying to \(replyTarget.senderName ?? "Member #\(replyTarget.senderID ?? 0)"): \(replyTarget.content ?? "")"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .lineLimit(1)
@@ -445,6 +477,9 @@ public struct ClubChannelMessagingView: View {
                             .foregroundStyle(.secondary)
                     }
                     .buttonStyle(.borderless)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .contentShape(Rectangle())
+                    .accessibilityLabel(copy("取消回复", "Cancel reply"))
                 }
                 .padding(.horizontal, 12)
                 .padding(.top, 6)
@@ -454,7 +489,7 @@ public struct ClubChannelMessagingView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "megaphone")
                         .foregroundStyle(.secondary)
-                    Text("当前为公告频道，仅主理人与管理员可发布通知")
+                    Text(copy("当前为公告频道，仅主理人与管理员可发布通知", "This is an announcement channel. Only club owners and admins can post notices."))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -462,7 +497,7 @@ public struct ClubChannelMessagingView: View {
                 .padding(.vertical, 10)
             } else {
                 HStack(spacing: 8) {
-                    TextField("在 #\(selectedChannel?.name ?? "频道") 发送消息…", text: $composerText)
+                    TextField(copy("在 #\(selectedChannel?.name ?? "频道") 发送消息…", "Message #\(selectedChannel?.name ?? "channel")…"), text: $composerText)
                         .textFieldStyle(.roundedBorder)
 
                     Button {
@@ -472,6 +507,8 @@ public struct ClubChannelMessagingView: View {
                             .font(.subheadline.weight(.semibold))
                     }
                     .buttonStyle(.borderedProminent)
+                    .frame(minWidth: 44, minHeight: 44)
+                    .accessibilityLabel(copy("发送", "Send"))
                     .disabled(composerText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .padding(.horizontal, 12)
@@ -494,7 +531,8 @@ public struct ClubChannelMessagingView: View {
             listing: rawListing,
             mentionCountsByChannelID: mentionByChannelID,
             mutedOverrideByChannelID: mutedByChannelID,
-            unreadOverrideByChannelID: unreadByChannelID
+            unreadOverrideByChannelID: unreadByChannelID,
+            locale: locale
         )
     }
 
@@ -539,6 +577,9 @@ private struct ChannelBurstGroupCard: View {
     let onReportMessage: (MessagingMessage) -> Void
     let onBlockAuthor: (Int) -> Void
     let onDeleteMessage: (MessagingMessage) -> Void
+    @Environment(\.locale) private var locale
+
+    private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -592,7 +633,7 @@ private struct ChannelBurstGroupCard: View {
                                         .foregroundStyle(.secondary)
                                         .lineLimit(1)
                                     if reply.threadReplyCount > 1 {
-                                        Text("\(reply.threadReplyCount) 条串内回复")
+                                        Text(copy("\(reply.threadReplyCount) 条串内回复", "\(reply.threadReplyCount) thread replies"))
                                             .font(.caption2.weight(.medium))
                                             .foregroundStyle(Color.accentColor)
                                     }
@@ -631,18 +672,18 @@ private struct ChannelBurstGroupCard: View {
                                          ChannelOutboundSendPhase.verifyingReceipt.rawValue:
                                         ProgressView()
                                             .controlSize(.mini)
-                                        Text(sendState == ChannelOutboundSendPhase.verifyingReceipt.rawValue ? "正在校验发送回执…" : "发送中…")
+                                        Text(sendState == ChannelOutboundSendPhase.verifyingReceipt.rawValue ? copy("正在校验发送回执…", "Verifying send receipt…") : copy("发送中…", "Sending…"))
                                             .font(.caption2)
                                             .foregroundStyle(.secondary)
                                     case ChannelOutboundSendPhase.failed.rawValue:
                                         Image(systemName: "exclamationmark.circle.fill")
                                             .foregroundStyle(.red)
                                             .font(.caption2)
-                                        Text("发送失败")
+                                        Text(copy("发送失败", "Failed to send"))
                                             .font(.caption2)
                                             .foregroundStyle(.red)
                                         if let cid = item.transcriptMessage.clientMessageID {
-                                            Button("重试（先核对回执）") {
+                                            Button(copy("重试（先核对回执）", "Retry (check receipt first)")) {
                                                 onRetrySend(cid)
                                             }
                                             .font(.caption2.weight(.semibold))
@@ -658,7 +699,7 @@ private struct ChannelBurstGroupCard: View {
                             Button {
                                 onReply(item.message)
                             } label: {
-                                Label("回复 / 串联讨论", systemImage: "arrowshape.turn.up.left")
+                                Label(copy("回复 / 串联讨论", "Reply / Start thread"), systemImage: "arrowshape.turn.up.left")
                             }
 
                             let senderID = item.message.senderID ?? 0
@@ -666,13 +707,13 @@ private struct ChannelBurstGroupCard: View {
                                 Button(role: .destructive) {
                                     onReportMessage(item.message)
                                 } label: {
-                                    Label("举报该消息", systemImage: "exclamationmark.bubble")
+                                    Label(copy("举报该消息", "Report message"), systemImage: "exclamationmark.bubble")
                                 }
 
                                 Button(role: .destructive) {
                                     onBlockAuthor(senderID)
                                 } label: {
-                                    Label("拉黑该用户", systemImage: "hand.raised.fill")
+                                    Label(copy("拉黑该用户", "Block user"), systemImage: "hand.raised.fill")
                                 }
                             }
 
@@ -680,7 +721,7 @@ private struct ChannelBurstGroupCard: View {
                                 Button(role: .destructive) {
                                     onDeleteMessage(item.message)
                                 } label: {
-                                    Label(senderID == viewerMemberID ? "撤回消息" : "管理员删除消息", systemImage: "trash")
+                                    Label(senderID == viewerMemberID ? copy("撤回消息", "Recall message") : copy("管理员删除消息", "Delete message (admin)"), systemImage: "trash")
                                 }
                             }
                         }
@@ -702,6 +743,9 @@ public struct ClubChannelMemberRosterSheet: View {
     public let onToggleBlockMember: (Int, Bool) -> Void
     public let onRemoveMember: (Int) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
+
+    private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
     public var body: some View {
         NavigationStack {
@@ -728,13 +772,13 @@ public struct ClubChannelMemberRosterSheet: View {
                                             .background(Color.accentColor.opacity(0.14), in: Capsule())
                                             .foregroundStyle(Color.accentColor)
                                         if blockedSenderIDs.contains(member.memberID) {
-                                            Text("已拉黑")
+                                            Text(copy("已拉黑", "Blocked"))
                                                 .font(.caption2)
                                                 .foregroundStyle(.red)
                                         }
                                     }
                                     if let expires = member.expiresText, !expires.isEmpty {
-                                        Text("角色有效期至 \(expires)")
+                                        Text(copy("角色有效期至 \(expires)", "Role valid until \(expires)"))
                                             .font(.caption2)
                                             .foregroundStyle(.secondary)
                                     }
@@ -744,38 +788,42 @@ public struct ClubChannelMemberRosterSheet: View {
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 if member.memberID != policy.viewerMemberID {
                                     let isBlocked = blockedSenderIDs.contains(member.memberID)
-                                    Button(isBlocked ? "取消拉黑" : "拉黑") {
+                                    Button(isBlocked ? copy("取消拉黑", "Unblock") : copy("拉黑", "Block")) {
                                         onToggleBlockMember(member.memberID, !isBlocked)
                                         onSafetyActionFeedback(
                                             isBlocked
-                                                ? "已取消拉黑 \(member.nickname)（POST /api/im/unblock）"
-                                                : "已拉黑 \(member.nickname)（POST /api/im/block）"
+                                                ? copy("已取消拉黑 \(member.nickname)", "Unblocked \(member.nickname)")
+                                                : copy("已拉黑 \(member.nickname)", "Blocked \(member.nickname)")
                                         )
                                     }
                                     .tint(.orange)
 
-                                    Button("举报") {
+                                    Button(copy("举报", "Report")) {
                                         switch policy.validateReportUser(
                                             targetMemberID: member.memberID,
                                             reasonCode: "HARASSMENT",
-                                            detail: "频道成员举报"
+                                            detail: "Channel member report"
                                         ) {
                                         case let .success(endpoint):
-                                            onSafetyActionFeedback("已提交对 \(member.nickname) 的举报（\(endpoint.apiPath)）")
+                                            _ = endpoint
+                                            onSafetyActionFeedback(copy("已提交对 \(member.nickname) 的举报", "Report on \(member.nickname) submitted"))
                                         case let .failure(denial):
-                                            onSafetyActionFeedback("举报失败：\(denial.rawValue)")
+                                            _ = denial
+                                            onSafetyActionFeedback(copy("举报失败，请稍后重试。", "Couldn't submit the report. Please try again later."))
                                         }
                                     }
                                     .tint(.yellow)
 
                                     if policy.canRemoveOrBanMembers {
-                                        Button("移除", role: .destructive) {
+                                        Button(copy("移除", "Remove"), role: .destructive) {
                                             switch policy.validateRemoveMember(target: member) {
                                             case let .success(endpoint):
                                                 onRemoveMember(member.memberID)
-                                                onSafetyActionFeedback("已移除成员 \(member.nickname)（\(endpoint.apiPath)）")
+                                                _ = endpoint
+                                                onSafetyActionFeedback(copy("已移除成员 \(member.nickname)", "Removed \(member.nickname)"))
                                             case let .failure(denial):
-                                                onSafetyActionFeedback("无法移除成员：\(denial.rawValue)")
+                                                _ = denial
+                                                onSafetyActionFeedback(copy("无法移除成员。", "Couldn't remove this member."))
                                             }
                                         }
                                     }
@@ -785,80 +833,10 @@ public struct ClubChannelMemberRosterSheet: View {
                     }
                 }
             }
-            .navigationTitle("\(clubName) · 成员与身份组")
+            .navigationTitle(copy("\(clubName) · 成员与身份组", "\(clubName) · Members & Roles"))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("完成") { dismiss() }
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Club Admin & Clubs Tab Parity Overview Sheet (Deliverables 1 & 4)
-
-public struct ClubAdminParityOverviewSheet: View {
-    public let club: ClubRecord
-    public let capabilities: ChannelModerationCapabilities
-    @Environment(\.dismiss) private var dismiss
-
-    public init(club: ClubRecord, capabilities: ChannelModerationCapabilities) {
-        self.club = club
-        self.capabilities = capabilities
-    }
-
-    public var body: some View {
-        NavigationStack {
-            List {
-                Section("俱乐部 Tab 原生对齐（Deliverable 1）") {
-                    ForEach(ClubTabAndAdminParityCatalog.clubsTabSurfaces) { item in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(item.title)
-                                .font(.subheadline.weight(.semibold))
-                            Text("小程序路由：\(item.miniProgramRoute)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            Text("接口：\(item.backendEndpoints.joined(separator: ", "))")
-                                .font(.caption2)
-                                .foregroundStyle(.secondary)
-                        }
-                        .padding(.vertical, 2)
-                    }
-                }
-
-                Section("俱乐部管理后台（Deliverable 4 · 含只读对账与 Flagged-Off 边界）") {
-                    ForEach(ClubTabAndAdminParityCatalog.clubAdminSurfaces) { item in
-                        VStack(alignment: .leading, spacing: 4) {
-                            HStack {
-                                Text(item.title)
-                                    .font(.subheadline.weight(.semibold))
-                                Spacer()
-                                if item.isReadOnlyFallback {
-                                    Text("只读模式")
-                                        .font(.caption2.weight(.semibold))
-                                        .padding(.horizontal, 6)
-                                        .padding(.vertical, 2)
-                                        .background(Color.blue.opacity(0.14), in: Capsule())
-                                        .foregroundStyle(.blue)
-                                }
-                            }
-                            Text("小程序路由：\(item.miniProgramRoute)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                            if let note = item.flaggedOffFeatureNote {
-                                Text(note)
-                                    .font(.caption2)
-                                    .foregroundStyle(.orange)
-                            }
-                        }
-                        .padding(.vertical, 2)
-                    }
-                }
-            }
-            .navigationTitle("\(club.name) · 俱乐部运营")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("关闭") { dismiss() }
+                    Button(copy("完成", "Done")) { dismiss() }
                 }
             }
         }

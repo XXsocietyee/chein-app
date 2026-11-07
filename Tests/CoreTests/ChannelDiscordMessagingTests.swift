@@ -559,4 +559,20 @@ final class ChannelDiscordMessagingTests: XCTestCase {
         XCTAssertFalse(viewport.showNewMessageJumpBanner)
         XCTAssertEqual(viewport.pendingNewMessageCount, 0)
     }
+
+    // MARK: - Bilingual copy
+
+    func testPlaceholdersAndTierTitlesFollowLocale() {
+        let en = Locale(identifier: "en")
+        let zh = Locale(identifier: "zh-Hans")
+        let hidden = ChannelTranscriptMessage.make(id: 9001, conversationID: 10, senderID: 501, type: 1, content: "x")
+        let filter = ChannelContentFilterHook(locale: en)
+        XCTAssertEqual(ChannelCopy.text("主理人", "Owner", locale: en), "Owner")
+        XCTAssertEqual(ChannelCopy.text("主理人", "Owner", locale: zh), "主理人")
+        XCTAssertEqual(ChannelMemberRoleTier.owner.sectionTitle(locale: en), "Owner")
+        XCTAssertEqual(ChannelMemberRoleTier.owner.sectionTitle(locale: zh), ChannelMemberRoleTier.owner.sectionTitle)
+        XCTAssertEqual(filter.evaluate(message: hidden.wireMessage).displayText, "x")
+        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today("08:30"), locale: en), "Today 08:30")
+        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today("08:30")), "今天 08:30")
+    }
 }
