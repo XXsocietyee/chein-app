@@ -11,10 +11,12 @@ struct MessagingHomeView: View {
     var squareDestination: ((@escaping () -> Void) -> AnyView)? = nil
     var predictionEntry: (() -> AnyView)? = nil
     private let identity: MessagingReadIdentity?
+    @Environment(\.imCoopInviteStrip) private var coopInviteStrip
     init(reader:any MessagingReading,mediaReader:(any SocialMessageMediaReading)?=nil,senderForConversation:((Int)->MessageActionCoordinator?)?=nil,expanded:IMExpandedNavigationContext?=nil,squareDestination:((@escaping () -> Void) -> AnyView)?=nil,predictionEntry:(() -> AnyView)?=nil) { self.reader=reader;self.mediaReader=mediaReader;self.senderForConversation=senderForConversation;self.expanded=expanded;self.squareDestination=squareDestination;self.predictionEntry=predictionEntry;identity=reader.identity }
     var body: some View {
         VStack(spacing: 0) {
             if let predictionEntry { predictionEntry().padding(.horizontal) }
+            if let coopInviteStrip { coopInviteStrip().padding(.horizontal) }
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
         }.appNavigationTitle("messaging.title")
         .navigationBarTitleDisplayMode(.large)
