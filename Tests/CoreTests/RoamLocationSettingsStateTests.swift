@@ -85,4 +85,14 @@ final class RoamLocationSettingsStateTests: XCTestCase {
         XCTAssertFalse(state.finishSettingsOpen(old, opened: false)); XCTAssertTrue(state.acceptsSettingsOpen(current))
         XCTAssertFalse(state.settingsOpenFailed)
     }
+    func testW5LocationPrivacyPolicyEnforcesWhenInUseAndBackgroundSuspension() {
+        let policy = RoamLocationPrivacyPolicyContract()
+        XCTAssertTrue(policy.isPolicyCompliant)
+        XCTAssertEqual(RoamLocationPrivacyPolicyContract.requiredAuthorizationScope, .whenInUse)
+        XCTAssertFalse(policy.requestsAlwaysOn)
+        XCTAssertTrue(policy.suspendsOnBackground)
+        XCTAssertTrue(policy.requiresFreshForegroundScope)
+        XCTAssertTrue(policy.copyZhHans.contains("When In Use"))
+        XCTAssertTrue(policy.copyEn.contains("When-In-Use"))
+    }
 }
