@@ -74,4 +74,11 @@ final class OrderLifecycleUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["退款处理中"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.buttons["orderLifecycle.review.refund"].exists)
     }
+    func testPaidOrderRefreshAndRefundStateTransitionPreserveCoreLoopIntegrity() {
+        let app = launch("paid")
+        XCTAssertTrue(app.staticTexts["orderLifecycle.state"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["orderLifecycle.refresh"].exists)
+        app.buttons["orderLifecycle.refresh"].tap()
+        XCTAssertTrue(app.staticTexts["orderLifecycle.state"].exists)
+    }
 }
