@@ -341,6 +341,7 @@ struct RoamToolUnavailableView: View {
     @State private var homeScope: RoamPassportReaderScope?
     @State private var home: Result<RoamPassportHome, Error>?
     @State private var openedTile: OpenedTile?
+    @State private var isPassportVisible = false
     private struct OpenedTile: Identifiable, Hashable {
         let id = UUID()
         let tile: RoamPassportHome.Tile
@@ -362,7 +363,8 @@ struct RoamToolUnavailableView: View {
             }
             RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         }
-        .onAppear { openedTile = nil; load() }
+        .onAppear { isPassportVisible = true; openedTile = nil; load() }
+        .onDisappear { isPassportVisible = false }
         .refreshable { load() }
         .onChange(of: readerScope) { _, _ in
             openedTile = nil
@@ -371,18 +373,12 @@ struct RoamToolUnavailableView: View {
         }
         .navigationDestination(item: $openedTile) { item in
             tileDestination(item.tile)
-                .onDisappear {
-                    if openedTile?.id == item.id {
-                        openedTile = nil
-                        load()
-                    }
-                }
         }
         .background { RoamHostedAccessibilityGroup(items: passportAccessibilityItems) }
         .accessibilityIdentifier("roam.home.passport")
     }
     private var passportAccessibilityItems: [RoamHostedAccessibilityItem] {
-        guard openedTile == nil else { return [] }
+        guard isPassportVisible, openedTile == nil else { return [] }
         var items: [RoamHostedAccessibilityItem] = []
         if reader != nil {
             switch currentHome {

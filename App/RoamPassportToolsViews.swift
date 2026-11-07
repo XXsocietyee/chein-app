@@ -113,7 +113,7 @@ struct RoamPassportToolsPageOwner: Hashable {
         let _ = (scopeTracker.tick, initialOwner, initialConfigured)
         let owner = RoamPassportToolsPageOwner(reader)
         let _ = RoamHostedScopeTracker.shared.observePassport(reader)
-        RoamAnniversaryContent(reader: reader, routeDestination: routeDestination, pageOwner: owner).id(owner)
+        RoamAnniversaryContent(reader: reader, routeDestination: routeDestination, pageOwner: owner)
             .appNavigationTitle("roam.tools.anniversary")
     }
 }
@@ -238,6 +238,17 @@ struct RoamAnniversaryReadIntent {
             state.bind(to: reader?.identity)
             if state.page == nil, navigation.openedPresentation == nil { state.requestRefresh() }
             enqueueRefreshIfNeeded()
+        }
+        .onChange(of: pageOwner) { _, _ in
+            navigation.invalidate()
+            state.bind(to: nil)
+            state.bind(to: reader?.identity)
+            if reader?.isConfigured != true {
+                state.revokeAccess(unavailableError ?? APIError.notConfigured)
+            } else {
+                state.requestRefresh()
+                enqueueRefreshIfNeeded()
+            }
         }
         .onChange(of: reader.map { ObjectIdentifier($0) }) { _, _ in
             // A replacement reader with the same account cannot inherit the old reader's rows/tasks.
@@ -394,18 +405,28 @@ struct RoamAnniversaryReadIntent {
     let pageOwner: RoamPassportToolsPageOwner
     let destination: (String) -> AnyView
     @Binding var navigation: RoamAnniversaryNavigationState
+    @ObservedObject private var scopeTracker = RoamHostedScopeTracker.shared
     var body: some View {
+        let _ = scopeTracker.tick
+        let isValid = presentation != nil && pageOwner.matches(reader) && reader?.identity == owner &&
+            reader?.isConfigured == true && navigation.mayRemainOpen(presentation, owner: owner)
         Group {
-            if let presentation, pageOwner.matches(reader), reader?.identity == owner, reader?.isConfigured == true,
-               navigation.mayRemainOpen(presentation, owner: owner) {
+            if isValid, let presentation {
                 destination(presentation.target.topicID)
-                    .background { RoamHostedAccessibilityAnchor(id: "passport.scope.route") }
             } else {
                 Label("topic.unavailable", systemImage: "exclamationmark.circle")
                     .foregroundStyle(.secondary)
-                    .background { RoamHostedAccessibilityAnchor(id: "roam.tools.anniversary.routeUnavailable") }
                     .accessibilityIdentifier("roam.tools.anniversary.routeUnavailable")
             }
+        }
+        .background {
+            RoamHostedAccessibilityGroup(
+                items: [
+                    RoamHostedAccessibilityItem(
+                        id: isValid ? "passport.scope.route" : "roam.tools.anniversary.routeUnavailable"
+                    )
+                ]
+            )
         }
         .onDisappear { navigation.noteCovered(presentation, owner: owner) }
     }

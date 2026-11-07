@@ -77,3 +77,4 @@ final class AccessGateAndSeparateConsentTests: XCTestCase {
         XCTAssertEqual(F.decide(accountID: 3, ownerStillCurrent: true, answer: .timedOut), .notCompleted)
     }
 }
+#endif

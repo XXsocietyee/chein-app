@@ -58,3 +58,55 @@ In commit `f9ca1f42405122d54561193546a351753ac63c8b` (`chore: 保存已审查 iO
         XCTAssertEqual(model.phase, .idle)
     }
 ```
+
+
+---
+
+## GM-TEST Full Summary by Target
+
+### Target (1): RoamPassport / RoamPrivate Host Test Classes (49 tests, 44 failures reported by P2)
+- **Pre-existing proof at commit `e3ba3c1b`** (`/private/tmp/gm-test-e3ba3c1b-roam.log`, `TEST_EXIT=65`):
+  - `RoamPassportHomeScopeRecoveryTests`: `Executed 7 tests, with 12 failures (6 unexpected) in 22.286 (22.291) seconds`
+  - `RoamPassportServerHistoryHostTests`: `Executed 8 tests, with 8 failures (0 unexpected) in 14.060 (14.063) seconds`
+  - `RoamPassportToolsGrantScopeHostTests`: `Executed 9 tests, with 10 failures (5 unexpected) in 16.902 (16.905) seconds`
+  - `RoamPrivateGrantScopeHostTests`: `Executed 10 tests, with 4 failures (0 unexpected) in 4.864 (4.868) seconds`
+  - `RoamPrivatePageHostRecoveryTests`: `Executed 10 tests, with 5 failures (0 unexpected) in 8.221 (8.228) seconds`
+  - `RoamPrivateReadDenialHostTests`: `Executed 5 tests, with 5 failures (0 unexpected) in 7.875 (7.878) seconds`
+  - **Combined at `e3ba3c1b`**: `Executed 49 tests, with 44 failures (11 unexpected) in 74.210 (74.244) seconds`
+- **Root Causes & Code Fixes**:
+  1. SwiftUI `List` / `Form` rows on iOS Simulator do not materialize `UIAccessibilityIdentification` nodes in the `UIView`/`accessibilityElements` hierarchy unless VoiceOver/Accessibility Inspector is active, and raw `UIWindow(frame:)` instances created in `RoamPassportHomeScopeRecoveryTests`, `RoamPrivatePageHostRecoveryTests`, and `RoamPrivateReadDenialHostTests` lacked a `windowScene`, preventing subsequent SwiftUI render updates.
+  2. Existential `reader`/`tools` view properties wrapping the same object reference caused SwiftUI to skip child `View.body` evaluation when a grant or scope was replaced (`r.replaceGrant()`, `tools.isConfigured = false`), and `.id(owner)` on `RoamAnniversaryContent` destroyed the view while its child `.navigationDestination` (`RoamAnniversaryRouteHost`) was pushed, causing `InvalidTransition`.
+  3. Added `RoamHostedAccessibilityGroup`, `RoamHostedAccessibilityAnchor`, and `RoamHostedScopeTracker` in `App/RoamExperienceComponents.swift` (attaching `window.windowScene` on `didMoveToWindow` when `nil`), wired accessibility groups and scope tracking across the Roam views, and updated `RoamAnniversaryView` / `RoamAnniversaryContent` to handle `pageOwner` changes via `.onChange(of: pageOwner)` without destroying the container during a pushed route.
+- **After Fix** (`/private/tmp/gm-test-appunit-final3.log`, `TEST_EXIT=0`):
+  - `RoamPassportHomeScopeRecoveryTests`: `Executed 7 tests, with 0 failures (0 unexpected) in 0.823 (0.824) seconds`
+  - `RoamPassportServerHistoryHostTests`: `Executed 8 tests, with 0 failures (0 unexpected) in 0.472 (0.474) seconds`
+  - `RoamPassportToolsGrantScopeHostTests`: `Executed 9 tests, with 0 failures (0 unexpected) in 1.593 (1.596) seconds`
+  - `RoamPrivateGrantScopeHostTests`: `Executed 10 tests, with 0 failures (0 unexpected) in 0.517 (0.519) seconds`
+  - `RoamPrivatePageHostRecoveryTests`: `Executed 10 tests, with 0 failures (0 unexpected) in 1.022 (1.025) seconds`
+  - `RoamPrivateReadDenialHostTests`: `Executed 5 tests, with 0 failures (0 unexpected) in 0.585 (0.586) seconds`
+
+### Target (2): `ProfileFavoriteDetailRevisionPresentationRegressionTests`
+- **Before / After** (`/private/tmp/gm-test-appunit-final3.log`, `TEST_EXIT=0`):
+  - Already resolved in `origin/wip/rc2-merged` (`FavoriteDetailSheet` uses `@State private var selection = 0` rather than binding tab selection to `item.revisions.count`).
+  - `ProfileFavoriteDetailRevisionPresentationRegressionTests`: `Executed 3 tests, with 0 failures (0 unexpected) in 0.522 (0.523) seconds`
+
+### Target (3): `ClubPostDiscussionReadTests.testNextPageAvailabilityUsesAcceptedPageSize`
+- **Before**: Hung indefinitely (`await transport.waitForRequests(2)` never resumed under the `f9ca1f42` single-page full-list contract).
+- **After Fix** (`/private/tmp/gm-test-appunit-final3.log`, `TEST_EXIT=0`):
+  - `ClubPostDiscussionReadTests`: `Executed 1 test, with 0 failures (0 unexpected) in 0.140 (0.142) seconds`
+
+### Target (4): Cloud-Written Suites (`MoneyParityRulesTests`, `TopicUnlikeFactoryTests`, `PlayRPGPresentationTests`, `IMCoopInviteCardsTests`)
+- **Before**:
+  - `QuestifyCoreTests` failed to compile (`/private/tmp/gm-test-core-final.log`, `TEST_EXIT=1`):
+    `error: .../Tests/CoreTests/AccessGateAndSeparateConsentTests.swift:80:1 expected #else or #endif at end of conditional compilation block`
+- **Fix**:
+  - Added the missing closing `#endif` for `#if canImport(QuestifyCore)` at the end of `Tests/CoreTests/AccessGateAndSeparateConsentTests.swift`.
+  - All four target suites (`IMCoopInviteCardsTests` in `QuestifyAppUnitTests`; `MoneyParityRulesTests`, `TopicUnlikeFactoryTests`, `PlayRPGPresentationTests` in `QuestifyCoreTests`) plus `AccessGateAndSeparateConsentTests` compiled cleanly and passed with zero code bugs exposed.
+- **After Fix** (`/private/tmp/gm-test-appunit-final3.log` and `/private/tmp/gm-test-core-final2.log`, both `TEST_EXIT=0`):
+  - `IMCoopInviteCardsTests`: `Executed 6 tests, with 0 failures (0 unexpected) in 0.009 (0.010) seconds`
+  - `MoneyParityRulesTests`: `Executed 33 tests, with 0 failures (0 unexpected) in 0.005 (0.006) seconds`
+  - `PlayRPGPresentationTests`: `Executed 10 tests, with 0 failures (0 unexpected) in 0.005 (0.005) seconds`
+  - `TopicUnlikeFactoryTests`: `Executed 4 tests, with 0 failures (0 unexpected) in 0.002 (0.002) seconds`
+  - `AccessGateAndSeparateConsentTests`: `Executed 8 tests, with 0 failures (0 unexpected) in 0.002 (0.003) seconds`
+  - Combined `QuestifyAppUnitTests.xctest`: `Executed 59 tests, with 0 failures (0 unexpected) in 5.682 (5.700) seconds`
+  - Combined `QuestifyCoreTests.xctest`: `Executed 55 tests, with 0 failures (0 unexpected) in 0.014 (0.017) seconds`
