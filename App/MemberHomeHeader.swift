@@ -23,11 +23,11 @@ import SwiftUI
             HStack(alignment: .top, spacing: 14) {
                 avatar
                 VStack(alignment: .leading, spacing: 6) {
-                    name.font(.title3.weight(.semibold)).accessibilityIdentifier("member.card.name")
+                    name.font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
                     HStack(spacing: 6) {
                         Text(verbatim: "Lv.\(level ?? snapshot?.levelID ?? account.level)")
                         Text("member.card.levelTitle", tableName: "MemberProfile")
-                    }.font(.subheadline).foregroundStyle(.secondary).accessibilityElement(children: .combine)
+                    }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
                     HStack(spacing: 10) {
                         Label { city } icon: { Image(systemName: "mappin.and.ellipse") }
@@ -39,7 +39,7 @@ import SwiftUI
                                 Text("member.card.days", tableName: "MemberProfile")
                             }.accessibilityElement(children: .combine).accessibilityIdentifier("member.card.streak")
                         }
-                    }.font(.footnote).foregroundStyle(.secondary)
+                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
             HStack {
@@ -52,6 +52,7 @@ import SwiftUI
             if let onOpenTickets {
                 Button(action: onOpenTickets) {
                     Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
+                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 }.accessibilityIdentifier("member.card.tickets")
             }
             LabeledContent {
@@ -65,7 +66,7 @@ import SwiftUI
             .accessibilityIdentifier("member.card.balance")
             switch phase {
             case .loading:
-                HStack { ProgressView(); Text("member.card.loading", tableName: "MemberProfile").foregroundStyle(.secondary) }
+                HStack { ProgressView(); Text("member.card.loading", tableName: "MemberProfile").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                     .accessibilityIdentifier("member.card.loading")
             case .failed(let signedOut):
                 VStack(alignment: .leading, spacing: 6) {
@@ -73,9 +74,9 @@ import SwiftUI
                         if signedOut { Text("member.card.signedOut", tableName: "MemberProfile") }
                         else if reader.isConfigured { Text("member.card.failed", tableName: "MemberProfile") }
                         else { Text("member.card.unavailable", tableName: "MemberProfile") }
-                    }.font(.footnote).foregroundStyle(.secondary)
+                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     if reader.isConfigured, !signedOut {
-                        Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile") }
+                        Button { Task { await load() } } label: { Text("member.card.retry", tableName: "MemberProfile").frame(minHeight: CYSpacing.minTouchTarget) }
                             .accessibilityIdentifier("member.card.retry")
                     }
                 }.accessibilityIdentifier("member.card.failed")
@@ -108,10 +109,12 @@ import SwiftUI
     private var lettermark: some View {
         let nickname = snapshot?.nickname ?? account.nickname
         return ZStack {
-            Circle().fill(.tint.opacity(0.15))
-            if let initial = nickname.first { Text(verbatim: String(initial)).font(.title2.weight(.semibold)) }
-            else { Image(systemName: "person.fill").font(.title2) }
+            Circle().fill(CYColor.accentSoft)
+            if let initial = nickname.first { Text(verbatim: String(initial)).font(CYTypography.sheetTitle).foregroundStyle(CYColor.accentText) }
+            else { Image(systemName: "person.fill").font(CYTypography.sheetTitle).foregroundStyle(CYColor.accentText) }
         }
+        // The lettermark sits in a fixed 56pt avatar; cap its growth so large Dynamic Type cannot overflow the circle.
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
     private var avatar: some View {
         ZStack {
@@ -125,8 +128,8 @@ import SwiftUI
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
     private func stat(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map(String.init) ?? "—").font(.headline.monospacedDigit())
-            label().font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
+            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }.frame(maxWidth: .infinity).accessibilityElement(children: .combine)
         .accessibilityIdentifier("member.card.\(id)")
     }
@@ -177,12 +180,12 @@ import SwiftUI
             case .loading:
                 ProgressView().accessibilityIdentifier("member.benefits.loading")
             case .unavailable:
-                Text("member.benefits.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
+                Text("member.benefits.unavailable", tableName: "MemberProfile").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("member.benefits.unavailable")
             case .failed:
                 VStack(alignment: .leading) {
-                    Text("member.benefits.failed", tableName: "MemberProfile").foregroundStyle(.secondary)
-                    Button { owner.refresh() } label: { Text("member.card.retry", tableName: "MemberProfile") }
+                    Text("member.benefits.failed", tableName: "MemberProfile").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    Button { owner.refresh() } label: { Text("member.card.retry", tableName: "MemberProfile").frame(minHeight: CYSpacing.minTouchTarget) }
                         .accessibilityIdentifier("member.benefits.retry")
                 }.accessibilityIdentifier("member.benefits.failed")
             case .ready(let snapshot):
@@ -219,8 +222,8 @@ struct MemberBenefitRow: View {
     var body: some View {
         HStack(spacing: 10) {
             Image(systemName: benefit.unlocked ? "checkmark.circle.fill" : "lock.fill")
-                .foregroundStyle(benefit.unlocked ? Color.accentColor : Color.secondary)
-            label.foregroundStyle(benefit.unlocked ? Color.primary : Color.secondary)
+                .foregroundStyle(benefit.unlocked ? CYColor.accentText : CYColor.textTertiary)
+            label.font(CYTypography.body).foregroundStyle(benefit.unlocked ? CYColor.textPrimary : CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .accessibilityValue(benefit.unlocked ? Text("member.benefit.unlocked", tableName: "MemberProfile")

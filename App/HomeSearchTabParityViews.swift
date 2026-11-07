@@ -52,7 +52,8 @@ struct HomeHeroHeaderSectionView: View {
                                         } icon: {
                                             Image(systemName: "location.fill")
                                         }
-                                        .foregroundStyle(.secondary)
+                                        .foregroundStyle(CYColor.textSecondary)
+                                        .frame(minHeight: CYSpacing.minTouchTarget)
                                     }
                                     .accessibilityIdentifier("homeIndex.hero.city")
                                 } else {
@@ -78,16 +79,17 @@ struct HomeHeroHeaderSectionView: View {
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "magnifyingglass")
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                 Text(verbatim: CoreLoopCopy(locale: locale).tr(GlobalSearchParityPresentation.placeholderCopy))
-                                    .font(.subheadline)
-                                    .foregroundStyle(.secondary)
+                                    .font(CYTypography.bodyCompact)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .lineLimit(1)
                                 Spacer(minLength: 0)
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .background(Color(uiColor: .secondarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .padding(.horizontal, CYSpacing.md)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("homeIndex.hero.searchEntry")
@@ -97,13 +99,16 @@ struct HomeHeroHeaderSectionView: View {
                         } label: {
                             Label {
                                 Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale))
-                                    .font(.subheadline.weight(.medium))
+                                    .font(CYTypography.label)
+                                    .foregroundStyle(CYColor.textPrimary)
                             } icon: {
                                 Image(systemName: "map")
+                                    .foregroundStyle(CYColor.accentText)
                             }
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                            .background(Color(uiColor: .secondarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .padding(.horizontal, CYSpacing.md)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
@@ -117,12 +122,12 @@ struct HomeHeroHeaderSectionView: View {
                             } label: {
                                 HStack(spacing: 6) {
                                     Text(verbatim: banner.title(locale: locale))
-                                        .font(.subheadline.weight(.semibold))
+                                        .font(CYTypography.label)
                                     Image(systemName: "arrow.up.right")
-                                        .font(.caption)
+                                        .font(CYTypography.meta)
                                 }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
+                                .padding(.horizontal, CYSpacing.md)
+                                .frame(minHeight: CYSpacing.minTouchTarget)
                             }
                             .buttonStyle(.bordered)
                             .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
@@ -150,12 +155,12 @@ private struct HomeHeroAvatar: View {
         }
         .frame(width: 48, height: 48)
         .clipShape(Circle())
-        .overlay { Circle().strokeBorder(Color.primary.opacity(0.12), lineWidth: 1) }
+        .overlay { Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
         .accessibilityHidden(true)
     }
     private var fallback: some View {
-        Color(uiColor: .tertiarySystemFill)
-            .overlay { Image(systemName: "person.fill").font(.title3).foregroundStyle(.secondary) }
+        CYColor.bgRaised
+            .overlay { Image(systemName: "person.fill").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textSecondary) }
     }
 }
 
@@ -1294,8 +1299,8 @@ struct PublishTabFloatingSheetView: View {
                             HStack(spacing: 12) {
                                 Image(systemName: item.systemImage)
                                     .font(.title3)
-                                    .foregroundStyle(item.isEnabled ? QuestifyPalette.accent : .secondary)
-                                    .frame(width: 28)
+                                    .foregroundStyle(item.isEnabled ? QuestifyPalette.accent : CYColor.textSecondary)
+                                    .frame(minWidth: 28)
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(verbatim: copy.tr(item.title))
                                         .font(.headline)
@@ -1305,8 +1310,8 @@ struct PublishTabFloatingSheetView: View {
                                         .foregroundStyle(.secondary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
-                                            .font(.caption2)
-                                            .foregroundStyle(.orange)
+                                            .font(CYTypography.micro)
+                                            .foregroundStyle(CYColor.warningText)
                                             .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
                                     }
                                 }

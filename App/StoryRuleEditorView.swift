@@ -355,148 +355,245 @@ import QuestifyCore
     }
 }
 
+/// Result of the last answer attempt for one station. There is deliberately no success case:
+/// answers cannot be sent from the app yet, so a valid attempt can only be "blocked".
+enum StoryAnswerFeedback: Equatable {
+    case invalid(String)
+    case blocked
+}
+
 @available(macOS 14.0, *)
 @MainActor struct StoryParticipationView: View {
     @Bindable var coordinator: StoryParticipationCoordinator
     let onJoinTap: () -> Void
     let onSubmitNodeAnswer: (Int) -> Void
+    /// Shows the "joining is not available yet" banner under the join card after the player taps Join.
+    var joinBlocked: Bool = false
+    var answerFeedback: [Int: StoryAnswerFeedback] = [:]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            // Project Join & Station Switcher Card
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text(LocalizedStringKey(coordinator.joinState.isMerchant ? "storyRule.joinMerchant" : "storyRule.joinPlayer"))
-                        .font(.headline)
-                    Spacer()
-                    Button(coordinator.joinState.joinActionTitle, action: onJoinTap)
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                        .disabled(!coordinator.joinState.canSubmitJoin)
-                }
-
-                if !coordinator.joinState.stations.isEmpty {
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            ForEach(Array(coordinator.joinState.stations.enumerated()), id: \.element.id) { idx, station in
-                                Button {
-                                    coordinator.joinState.switchStation(to: idx)
-                                } label: {
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text(station.name)
-                                            .font(.caption.weight(.semibold))
-                                        if !station.roleName.isEmpty {
-                                            Text(station.roleName)
-                                                .font(.caption2)
-                                                .foregroundStyle(.secondary)
-                                        }
-                                    }
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(
-                                        coordinator.joinState.selectedStationIndex == idx
-                                            ? Color.accentColor.opacity(0.18)
-                                            : Color.secondary.opacity(0.08),
-                                        in: RoundedRectangle(cornerRadius: 8)
-                                    )
-                                }
-                                .buttonStyle(.plain)
-                            }
-                        }
-                    }
-                }
-            }
-            .padding(12)
-            .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            joinCard
 
             if !coordinator.errorMessage.isEmpty {
-                Text(coordinator.errorMessage)
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                Label(coordinator.errorMessage, systemImage: "exclamationmark.triangle.fill")
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.dangerText)
             }
 
-            // Club Topic Story Chapters
-            ForEach(coordinator.chapters) { chapter in
-                VStack(alignment: .leading, spacing: 8) {
-                    Button {
-                        coordinator.expandedChapterNo = (coordinator.expandedChapterNo == chapter.chapterNo) ? nil : chapter.chapterNo
-                    } label: {
-                        HStack {
-                            Text(chapter.title)
-                                .font(.headline)
-                            Spacer()
-                            Text("storyRule.stationCount \(chapter.nodes.count)")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .buttonStyle(.plain)
+            if coordinator.chapters.isEmpty {
+                CYEmptyStateView(
+                    systemImage: "book.closed",
+                    title: LocalizedStringKey(W8Text.t("还没有剧情章节", "No story chapters yet")),
+                    description: LocalizedStringKey(W8Text.t("主题发布章节后会显示在这里。", "Chapters appear here once the theme publishes them.")))
+            }
 
-                    if coordinator.expandedChapterNo == chapter.chapterNo {
-                        ForEach(chapter.nodes) { node in
-                            VStack(alignment: .leading, spacing: 6) {
-                                HStack {
-                                    Text(node.name)
-                                        .font(.subheadline.weight(.semibold))
-                                    Spacer()
-                                    if node.answered {
-                                        Text("storyRule.answered")
-                                            .font(.caption2.weight(.semibold))
-                                            .foregroundStyle(.green)
-                                    }
-                                }
-                                if !node.walkText.isEmpty || !node.durationText.isEmpty {
-                                    Text([node.walkText, node.durationText].filter { !$0.isEmpty }.joined(separator: " · "))
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                                if !node.storyContent.isEmpty {
-                                    Text(node.storyContent)
-                                        .font(.caption)
-                                }
-                                if node.isAnswerable {
-                                    if !node.questionTitle.isEmpty {
-                                        Text(node.questionTitle)
-                                            .font(.caption.weight(.semibold))
-                                    }
-                                    if node.questionType == 1 && !node.options.isEmpty {
-                                        ForEach(node.options) { opt in
-                                            let selected = coordinator.draftAnswers[node.nodeId] == opt.key
-                                            Button {
-                                                coordinator.selectAnswer(nodeId: node.nodeId, value: opt.key)
-                                            } label: {
-                                                HStack {
-                                                    Image(systemName: selected ? "largecircle.fill.circle" : "circle")
-                                                    Text("\(opt.key). \(opt.label)")
-                                                        .font(.caption)
-                                                    Spacer()
-                                                }
-                                            }
-                                            .buttonStyle(.plain)
-                                        }
-                                    } else {
-                                        TextField("storyRule.answerPlaceholder", text: Binding(
-                                            get: { coordinator.draftAnswers[node.nodeId] ?? "" },
-                                            set: { coordinator.selectAnswer(nodeId: node.nodeId, value: $0) }
-                                        ))
-                                        .textFieldStyle(.roundedBorder)
-                                        .font(.caption)
-                                    }
-                                    Button("storyRule.submitAnswer") {
-                                        onSubmitNodeAnswer(node.nodeId)
-                                    }
-                                    .font(.caption.weight(.semibold))
-                                    .buttonStyle(.bordered)
-                                }
-                            }
-                            .padding(10)
-                            .background(Color.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
-                        }
-                    }
-                }
-                .padding(12)
-                .background(Color.secondary.opacity(0.05), in: RoundedRectangle(cornerRadius: 12))
+            ForEach(coordinator.chapters) { chapter in
+                chapterCard(chapter)
             }
         }
     }
+
+    // MARK: Join
+
+    private var joinCard: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYCard(variant: .elevated) {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    HStack(alignment: .center, spacing: CYSpacing.md) {
+                        Text(LocalizedStringKey(coordinator.joinState.isMerchant ? "storyRule.joinMerchant" : "storyRule.joinPlayer"))
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
+                        Spacer(minLength: CYSpacing.sm)
+                        Button(coordinator.joinState.joinActionTitle, action: onJoinTap)
+                            .buttonStyle(.cyPrimary(fullWidth: false))
+                            .disabled(!coordinator.joinState.canSubmitJoin)
+                            .accessibilityIdentifier("story.join")
+                    }
+
+                    if !coordinator.joinState.stations.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: CYSpacing.sm) {
+                                ForEach(Array(coordinator.joinState.stations.enumerated()), id: \.element.id) { idx, station in
+                                    stationChip(station, selected: coordinator.joinState.selectedStationIndex == idx) {
+                                        coordinator.joinState.switchStation(to: idx)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if joinBlocked {
+                PlayWriteUnavailableBanner(surface: .storyJoin)
+            }
+        }
+    }
+
+    private func stationChip(_ station: StoryProjectStation, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(station.name)
+                    .font(CYTypography.label)
+                    .foregroundStyle(selected ? CYColor.accentText : CYColor.textPrimary)
+                if !station.roleName.isEmpty {
+                    Text(station.roleName)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                }
+            }
+            .padding(.horizontal, CYSpacing.md)
+            .padding(.vertical, CYSpacing.sm)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .background(selected ? CYColor.accentSoft : CYColor.bgSurfaceSubtle,
+                        in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    // MARK: Chapters
+
+    private func chapterCard(_ chapter: StoryTopicChapter) -> some View {
+        let expanded = coordinator.expandedChapterNo == chapter.chapterNo
+        return CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Button {
+                    coordinator.expandedChapterNo = expanded ? nil : chapter.chapterNo
+                } label: {
+                    HStack {
+                        Text(chapter.title)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .multilineTextAlignment(.leading)
+                        Spacer(minLength: CYSpacing.sm)
+                        Text("storyRule.stationCount \(chapter.nodes.count)")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textTertiary)
+                        Image(systemName: expanded ? "chevron.up" : "chevron.down")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textTertiary)
+                            .accessibilityHidden(true)
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityValue(expanded ? W8Text.t("已展开", "Expanded") : W8Text.t("已折叠", "Collapsed"))
+
+                if expanded {
+                    ForEach(chapter.nodes) { node in nodeCard(node) }
+                }
+            }
+        }
+    }
+
+    private func nodeCard(_ node: StoryTopicNode) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack {
+                Text(node.name)
+                    .font(CYTypography.bodyMedium)
+                    .foregroundStyle(CYColor.textPrimary)
+                Spacer(minLength: CYSpacing.sm)
+                if node.answered {
+                    Label("storyRule.answered", systemImage: "checkmark.circle.fill")
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.successText)
+                }
+            }
+            if !node.walkText.isEmpty || !node.durationText.isEmpty {
+                Text([node.walkText, node.durationText].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textTertiary)
+            }
+            if !node.storyContent.isEmpty {
+                Text(node.storyContent)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if node.isAnswerable { answerControls(node) }
+        }
+        .padding(CYSpacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+    }
+
+    @ViewBuilder
+    private func answerControls(_ node: StoryTopicNode) -> some View {
+        if !node.questionTitle.isEmpty {
+            Text(node.questionTitle)
+                .font(CYTypography.label)
+                .foregroundStyle(CYColor.textPrimary)
+        }
+        if node.questionType == 1 && !node.options.isEmpty {
+            ForEach(node.options) { opt in
+                let selected = coordinator.draftAnswers[node.nodeId] == opt.key
+                Button {
+                    coordinator.selectAnswer(nodeId: node.nodeId, value: opt.key)
+                } label: {
+                    HStack(spacing: CYSpacing.md) {
+                        Image(systemName: selected ? "largecircle.fill.circle" : "circle")
+                            .foregroundStyle(selected ? CYColor.accentText : CYColor.textTertiary)
+                            .accessibilityHidden(true)
+                        Text("\(opt.key). \(opt.label)")
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .multilineTextAlignment(.leading)
+                        Spacer(minLength: 0)
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityAddTraits(selected ? .isSelected : [])
+            }
+        } else {
+            TextField(LocalizedStringKey("storyRule.answerPlaceholder"), text: Binding(
+                get: { coordinator.draftAnswers[node.nodeId] ?? "" },
+                set: { coordinator.selectAnswer(nodeId: node.nodeId, value: $0) }
+            ))
+            .font(CYTypography.body)
+            .padding(.horizontal, CYSpacing.md)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+        }
+
+        if let feedback = answerFeedback[node.nodeId] {
+            switch feedback {
+            case .invalid(let message):
+                Label(message, systemImage: "exclamationmark.triangle.fill")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.dangerText)
+            case .blocked:
+                PlayWriteUnavailableBanner(surface: .storyAnswer)
+            }
+        }
+
+        Button(LocalizedStringKey("storyRule.submitAnswer")) {
+            onSubmitNodeAnswer(node.nodeId)
+        }
+        .buttonStyle(.cySecondary(fullWidth: true))
+        .accessibilityIdentifier("story.submitAnswer.\(node.nodeId)")
+    }
 }
+
+#if DEBUG
+#Preview("Story participation") {
+    let model = StoryParticipationCoordinator(topicId: 1, fromSource: "topic")
+    model.loadStoryNodes([
+        .object([
+            "nodeId": .integer(1), "chapterNo": .integer(1), "chapterTitle": .string("Chapter 1"),
+            "name": .string("Old clock tower"), "description": .string("A quiet corner of the square.")
+        ])
+    ])
+    return ScrollView {
+        StoryParticipationView(coordinator: model, onJoinTap: {}, onSubmitNodeAnswer: { _ in }, joinBlocked: true)
+            .padding()
+    }
+    .background(CYColor.bgPage)
+}
+#endif

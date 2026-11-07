@@ -31,25 +31,34 @@ import QuestifyCore
     let topicID: Int
     let chapters: [TopicChapter]
     @State private var coordinator: StoryParticipationCoordinator?
-    @State private var notice: String?
+    @State private var joinBlocked = false
+    @State private var answerFeedback: [Int: StoryAnswerFeedback] = [:]
 
     var body: some View {
         ScrollView {
             if let coordinator {
                 StoryParticipationView(
                     coordinator: coordinator,
-                    onJoinTap: { notice = W8Text.t("暂时无法在此申请加入，请在城瘾小程序或俱乐部页面中操作。", "Joining isn't available here yet. Use the club page.") },
+                    onJoinTap: { joinBlocked = true },
                     onSubmitNodeAnswer: { nodeID in
-                        do { _ = try coordinator.buildAnswerRequest(nodeId: nodeID) }
-                        catch { notice = error.localizedDescription; return }
-                        notice = W8Text.t("答案暂时无法在此提交。", "Answers can't be submitted from here yet.")
-                    }
+                        // Validate locally; a valid answer is never sent (no approved write path), so it is only "blocked".
+                        do {
+                            _ = try coordinator.buildAnswerRequest(nodeId: nodeID)
+                            answerFeedback[nodeID] = .blocked
+                        } catch {
+                            answerFeedback[nodeID] = .invalid(error.localizedDescription)
+                        }
+                    },
+                    joinBlocked: joinBlocked,
+                    answerFeedback: answerFeedback
                 )
-                .padding()
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
             } else {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 120)
             }
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .navigationTitle(W8Text.t("参与剧情", "Join the story"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -68,9 +77,6 @@ import QuestifyCore
             }
             model.loadStoryNodes(raw)
             coordinator = model
-        }
-        .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) {
-            Button(W8Text.t("好", "OK"), role: .cancel) {}
         }
     }
 }

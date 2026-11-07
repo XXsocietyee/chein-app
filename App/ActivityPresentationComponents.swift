@@ -98,7 +98,7 @@ struct ActivityTicketCard: View {
     var body: some View {
         VStack(alignment:.leading,spacing:10) {
             Text(verbatim:ticket.name)
-                .font(.headline)
+                .font(CYTypography.cardTitle)
                 .fixedSize(horizontal:false,vertical:true)
             AmountLabel(amount:ticket.price)
                 .accessibilityElement(children:.combine)
@@ -113,7 +113,7 @@ struct ActivityTicketCard: View {
             if let description=ActivityPresentation.nonempty(ticket.description) {
                 Text(verbatim:description)
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal:false,vertical:true)
             }
         }

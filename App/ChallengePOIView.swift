@@ -5,158 +5,253 @@ import QuestifyCore
 
 // MARK: - POI Challenge View (Ported from pages/play/poi-challenge/index.wxml & index.js)
 
+/// Challenge screen: header, step checklist, photo + quiz inputs and a submit area.
+/// The challenge write has no approved contract in this build, so the submit area always carries the
+/// "not available yet" banner and `readyButBlocked` explains that a valid attempt was not sent.
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIView: View {
-    @Environment(\.locale) private var locale
     @Bindable var coordinator: ChallengePOICoordinator
     let onRefresh: () async -> Void
     let onSubmit: () async -> Void
+    /// Validation message from the last submit attempt (never a success message).
+    var submitFeedback: String? = nil
+    /// True when the last attempt passed local validation but could not be sent.
+    var readyButBlocked: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
             switch coordinator.state {
             case .loading:
-                ProgressView(String(localized: LocalizedStringResource("playx.poi.loading", defaultValue: "正在加载地标挑战…", locale: locale)))
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding()
+                ProgressView(LocalizedStringKey("playx.poi.loading"))
+                    .frame(maxWidth: .infinity, minHeight: 160)
 
             case .error:
-                ContentUnavailableView {
-                    Label(coordinator.errorMessage.isEmpty ? String(localized: LocalizedStringResource("playx.poi.loadFailed", defaultValue: "Could not load the challenge", locale: locale)) : coordinator.errorMessage, systemImage: "exclamationmark.triangle")
-                } actions: {
-                    Button(String(localized: LocalizedStringResource("playx.poi.retry", defaultValue: "重试", locale: locale))) {
-                        Task { await onRefresh() }
-                    }
-                }
+                CYErrorStateView(
+                    title: LocalizedStringKey("playx.poi.loadFailed"),
+                    message: LocalizedStringKey(coordinator.errorMessage.isEmpty ? W8Text.t("请检查网络连接后重试", "Check your connection and try again") : coordinator.errorMessage),
+                    retryTitle: LocalizedStringKey("playx.poi.retry"),
+                    onRetry: { Task { await onRefresh() } })
 
             case .photo, .quiz:
                 if let node = coordinator.node {
                     headerCard(node)
+                    checklistCard(node)
 
                     if !coordinator.errorMessage.isEmpty {
-                        Text(coordinator.errorMessage)
-                            .font(.caption)
-                            .foregroundStyle(.red)
+                        messageCard(coordinator.errorMessage, tone: .danger)
                     }
 
                     if coordinator.state == .photo || node.photoRequired {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(String(localized: LocalizedStringResource("playx.poi.photoStep", defaultValue: "第一步：现场拍照打卡", locale: locale)))
-                                .font(.subheadline.weight(.semibold))
-                            TextField(
-                                String(localized: LocalizedStringResource("playx.poi.photoUrlPlaceholder", defaultValue: "已上传现场照片地址", locale: locale)),
-                                text: $coordinator.uploadedPhotoUrl
-                            )
-                            .textFieldStyle(.roundedBorder)
-                            Button(String(localized: LocalizedStringResource("playx.poi.confirmPhoto", defaultValue: "确认现场照片", locale: locale))) {
-                                coordinator.confirmPhotoUploaded(coordinator.uploadedPhotoUrl)
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                        .padding(12)
-                        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                        photoCard
                     }
 
                     if coordinator.state == .quiz || !node.photoRequired {
                         quizCard(node)
                     }
 
-                    HStack(spacing: 10) {
-                        Button(String(localized: LocalizedStringResource("playx.poi.submit", defaultValue: "提交挑战", locale: locale))) {
-                            Task { await onSubmit() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(coordinator.submitting || coordinator.unknownSubmission)
-
-                        if coordinator.unknownSubmission {
-                            Button(String(localized: LocalizedStringResource("playx.poi.verifyReceipt", defaultValue: "刷新确认状态", locale: locale))) {
-                                Task { await onRefresh() }
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                    }
+                    submitArea
                 }
 
             case .done:
-                VStack(alignment: .leading, spacing: 10) {
-                    Label(
-                        coordinator.alreadyClaimed
-                            ? String(localized: LocalizedStringResource("playx.poi.alreadyDone", defaultValue: "已完成该地标挑战", locale: locale))
-                            : String(localized: LocalizedStringResource("playx.poi.completed", defaultValue: "挑战通关！", locale: locale)),
-                        systemImage: "medal.fill"
-                    )
-                    .font(.headline)
-                    .foregroundStyle(.orange)
-
-                    if let medal = coordinator.medal {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(medal.name)
-                                .font(.subheadline.weight(.semibold))
-                            if !medal.description.isEmpty {
-                                Text(medal.description)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                        .padding(10)
-                        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 10))
-                    }
-                }
-                .padding()
+                doneCard
             }
         }
-        .padding()
+    }
+
+    // MARK: Cards
+
+    private enum Tone { case danger, success }
+
+    private func messageCard(_ text: String, tone: Tone) -> some View {
+        Label(text, systemImage: tone == .danger ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+            .font(CYTypography.bodyCompact)
+            .foregroundStyle(tone == .danger ? CYColor.dangerText : CYColor.successText)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(CYSpacing.md)
+            .background(tone == .danger ? CYColor.dangerSoft : CYColor.successSoft,
+                        in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder
     private func headerCard(_ node: ChallengePOINode) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(node.title.isEmpty ? node.name : node.title)
-                    .font(.headline)
-                Spacer()
-                if let dist = coordinator.distanceMeters {
-                    (coordinator.withinRange ? Text("playx.poi.inRange \(dist)") : Text("playx.poi.distance \(dist)"))
-                        .font(.caption2.weight(.semibold))
-                        .foregroundStyle(coordinator.withinRange ? .green : .orange)
+        CYCard(variant: .elevated) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text(node.title.isEmpty ? node.name : node.title)
+                        .font(CYTypography.sheetTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: CYSpacing.sm)
+                    if let dist = coordinator.distanceMeters {
+                        Group {
+                            if coordinator.withinRange { Text("playx.poi.inRange \(dist)") } else { Text("playx.poi.distance \(dist)") }
+                        }
+                        .font(CYTypography.caption)
+                        .foregroundStyle(coordinator.withinRange ? CYColor.successText : CYColor.warningText)
+                    }
+                }
+                if !node.description.isEmpty {
+                    Text(node.description)
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
-            if !node.description.isEmpty {
-                Text(node.description)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+        }
+    }
+
+    @ViewBuilder
+    private func checklistCard(_ node: ChallengePOINode) -> some View {
+        let items = ChallengePOIChecklist.items(
+            node: node,
+            withinRange: coordinator.withinRange,
+            distanceMeters: coordinator.distanceMeters,
+            photoConfirmed: !coordinator.uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+            answerProvided: ChallengePOIChecklist.hasAnswerInput(
+                node: node, selectedOptionIndex: coordinator.selectedOptionIndex, textAnswer: coordinator.textAnswer))
+        if !items.isEmpty {
+            CYCard {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    ProgressView(value: ChallengePOIChecklist.progress(items))
+                        .tint(CYColor.accent)
+                        .accessibilityLabel(W8Text.t("挑战进度", "Challenge progress"))
+                    ChallengePOIChecklistView(items: items)
+                }
+            }
+        }
+    }
+
+    private var photoCard: some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Text("playx.poi.photoStep")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                TextField(LocalizedStringKey("playx.poi.photoUrlPlaceholder"), text: $coordinator.uploadedPhotoUrl)
+                    .font(CYTypography.body)
+                    .textContentType(.URL)
+                    .keyboardType(.URL)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
+                    .padding(.horizontal, CYSpacing.md)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                Button(LocalizedStringKey("playx.poi.confirmPhoto")) {
+                    coordinator.confirmPhotoUploaded(coordinator.uploadedPhotoUrl)
+                }
+                .buttonStyle(.cySecondary(fullWidth: true))
             }
         }
     }
 
     @ViewBuilder
     private func quizCard(_ node: ChallengePOINode) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            if !node.question.isEmpty {
-                Text(node.question)
-                    .font(.subheadline.weight(.semibold))
-            }
-            if !node.options.isEmpty {
-                ForEach(Array(node.options.enumerated()), id: \.offset) { idx, option in
-                    Button {
-                        coordinator.selectedOptionIndex = idx
-                    } label: {
-                        HStack {
-                            Image(systemName: coordinator.selectedOptionIndex == idx ? "checkmark.circle.fill" : "circle")
-                            Text(option)
-                            Spacer()
-                        }
-                        .padding(8)
-                        .background(
-                            coordinator.selectedOptionIndex == idx ? Color.accentColor.opacity(0.14) : Color.secondary.opacity(0.06),
-                            in: RoundedRectangle(cornerRadius: 8)
-                        )
+        if !node.question.isEmpty || !node.options.isEmpty {
+            CYCard {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    if !node.question.isEmpty {
+                        Text(node.question)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                    .buttonStyle(.plain)
+                    if !node.options.isEmpty {
+                        ForEach(Array(node.options.enumerated()), id: \.offset) { idx, option in
+                            optionRow(option, selected: coordinator.selectedOptionIndex == idx) {
+                                coordinator.selectedOptionIndex = idx
+                            }
+                        }
+                    } else {
+                        TextField(LocalizedStringKey("playx.poi.answerPlaceholder"), text: $coordinator.textAnswer)
+                            .font(CYTypography.body)
+                            .padding(.horizontal, CYSpacing.md)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    }
                 }
-            } else if !node.question.isEmpty {
-                TextField(String(localized: LocalizedStringResource("playx.poi.answerPlaceholder", defaultValue: "输入你的答案", locale: locale)), text: $coordinator.textAnswer)
-                    .textFieldStyle(.roundedBorder)
+            }
+        }
+    }
+
+    private func optionRow(_ option: String, selected: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: CYSpacing.md) {
+                Image(systemName: selected ? "checkmark.circle.fill" : "circle")
+                    .foregroundStyle(selected ? CYColor.accentText : CYColor.textTertiary)
+                    .accessibilityHidden(true)
+                Text(option)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+            }
+            .padding(.horizontal, CYSpacing.md)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .background(selected ? CYColor.accentSoft : CYColor.bgSurfaceSubtle,
+                        in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityAddTraits(selected ? .isSelected : [])
+    }
+
+    private var submitArea: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            PlayWriteUnavailableBanner(surface: .challengeSubmit)
+
+            if let submitFeedback, !submitFeedback.isEmpty {
+                messageCard(submitFeedback, tone: .danger)
+                    .accessibilityIdentifier("playx.poi.feedback")
+            } else if readyButBlocked {
+                Label(W8Text.t("答案已通过本机校验，但没有发送。", "Your attempt passed the local check but was not sent."),
+                      systemImage: "paperplane.circle")
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("playx.poi.readyBlocked")
+            }
+
+            Button(LocalizedStringKey("playx.poi.submit")) {
+                Task { await onSubmit() }
+            }
+            .buttonStyle(.cyPrimary(fullWidth: true))
+            .disabled(coordinator.submitting || coordinator.unknownSubmission)
+            .accessibilityIdentifier("playx.poi.submit")
+
+            if coordinator.unknownSubmission {
+                Button(LocalizedStringKey("playx.poi.verifyReceipt")) {
+                    Task { await onRefresh() }
+                }
+                .buttonStyle(.cySecondary(fullWidth: true))
+            }
+        }
+    }
+
+    private var doneCard: some View {
+        CYCard(variant: .accentTint) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Label(
+                    coordinator.alreadyClaimed
+                        ? W8Text.t("已完成该地标挑战", "Landmark challenge already completed")
+                        : W8Text.t("挑战通关！", "Challenge complete!"),
+                    systemImage: "medal.fill")
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(CYColor.warningText)
+                    .accessibilityAddTraits(.isHeader)
+
+                if let medal = coordinator.medal {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(medal.name)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                        if !medal.description.isEmpty {
+                            Text(medal.description)
+                                .font(CYTypography.bodyCompact)
+                                .foregroundStyle(CYColor.textSecondary)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                }
             }
         }
     }
@@ -169,25 +264,40 @@ import QuestifyCore
 @MainActor struct ChallengePOIHostView: View {
     let node: RoamNodeDetail
     @State private var coordinator: ChallengePOICoordinator?
-    @State private var notice: String?
+    @State private var feedback: String?
+    @State private var readyButBlocked = false
 
     var body: some View {
         ScrollView {
             if let coordinator {
                 ChallengePOIView(
                     coordinator: coordinator,
-                    onRefresh: { load(coordinator) },
+                    onRefresh: {
+                        feedback = nil
+                        readyButBlocked = false
+                        load(coordinator)
+                    },
                     onSubmit: {
-                        do { _ = try coordinator.buildCompletionPayload(userLat: nil, userLon: nil) }
-                        catch { notice = error.localizedDescription; return }
-                        notice = W8Text.t("挑战结果暂时无法在此提交。", "Challenge results can't be submitted from here yet.")
-                    }
+                        // Validate locally, then say honestly that nothing was sent: no approved write path exists.
+                        do {
+                            _ = try coordinator.buildCompletionPayload(userLat: nil, userLon: nil)
+                            feedback = nil
+                            readyButBlocked = true
+                        } catch {
+                            feedback = error.localizedDescription
+                            readyButBlocked = false
+                        }
+                    },
+                    submitFeedback: feedback,
+                    readyButBlocked: readyButBlocked
                 )
-                .padding()
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
             } else {
                 ProgressView().frame(maxWidth: .infinity, minHeight: 120)
             }
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .navigationTitle(W8Text.t("地标挑战", "Landmark challenge"))
         .navigationBarTitleDisplayMode(.inline)
         .task {
@@ -195,9 +305,6 @@ import QuestifyCore
             let model = ChallengePOICoordinator(nodeId: node.poiId)
             load(model)
             coordinator = model
-        }
-        .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) {
-            Button(W8Text.t("好", "OK"), role: .cancel) {}
         }
     }
 
@@ -208,3 +315,22 @@ import QuestifyCore
             radiusM: Double(node.radiusM ?? 100), photoRequired: true, completed: node.completed))
     }
 }
+
+#if DEBUG
+#Preview("Challenge · photo + quiz") {
+    let model = ChallengePOICoordinator(nodeId: 7)
+    model.applyLoadedNode(ChallengePOINode(
+        id: 7, name: "Clock Tower", description: "Find the mural behind the clock.",
+        radiusM: 100, photoRequired: true, question: "Which year was it built?", options: ["1921", "1934"]))
+    return ScrollView {
+        ChallengePOIView(coordinator: model, onRefresh: {}, onSubmit: {}, readyButBlocked: true).padding()
+    }
+    .background(CYColor.bgPage)
+}
+
+#Preview("Challenge · load failed") {
+    let model = ChallengePOICoordinator(nodeId: 7)
+    model.applyLoadError("")
+    return ChallengePOIView(coordinator: model, onRefresh: {}, onSubmit: {}).padding()
+}
+#endif

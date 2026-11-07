@@ -175,7 +175,7 @@ private struct TicketWalletRow: View {
                 Label {
                     Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true)
                 } icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
             }
             // The whole card is the control; this strip only names what a tap does.

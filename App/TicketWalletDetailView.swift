@@ -55,7 +55,7 @@ import SwiftUI
                     Section("ticketWallet.entitlements") {
                         LabeledContent("ticketWallet.pendingChapters", value: String(ticket.pendingCount))
                             .accessibilityIdentifier("ticketWallet.pendingChapters")
-                        if ticket.hasUnknownEntitlementStatus { Text("ticketWallet.unknownEntitlementStatus").font(.footnote) }
+                        if ticket.hasUnknownEntitlementStatus { Text("ticketWallet.unknownEntitlementStatus").font(CYTypography.meta) }
                         ForEach(Array(ticket.entitlements.enumerated()), id: \.offset) { _, entitlement in
                             TicketWalletEntitlementRow(entitlement: entitlement)
                                 .accessibilityIdentifier("ticketWallet.entitlement.\(entitlement.id)")
@@ -242,7 +242,7 @@ private struct TicketWalletDetailHeader: View {
                 if !expiry.isEmpty {
                     Text(verbatim: c.tr(expiry))
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "ticket")
@@ -260,7 +260,7 @@ private struct TicketWalletDetailHeader: View {
             if let notice = fulfillment.fulfillmentNotice {
                 Text(verbatim: c.tr(notice))
                     .font(.caption)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CYColor.textSecondary)
             }
         }
         .questifyCardSurface()
@@ -293,11 +293,11 @@ private struct TicketWalletEntitlementRow: View {
                     if let label = entitlement.statusLabel { Text(verbatim: label) }
                     else { Text(LocalizedStringKey("ticketWallet.entitlementStatus." + entitlement.statusKey)) }
                 } icon: { Image(systemName: symbol).accessibilityHidden(true) }
-                .font(.subheadline).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(.subheadline).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             }
             TicketWalletOptionalField(label: "ticketWallet.redeemedAt", value: entitlement.redeemedAt).font(.caption)
             if let reason = entitlement.invalidReason, !reason.isEmpty {
-                Text(verbatim: reason).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: reason).font(.caption).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }.padding(.vertical, 6)
