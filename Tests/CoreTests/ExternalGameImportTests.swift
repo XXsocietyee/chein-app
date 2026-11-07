@@ -1,0 +1,250 @@
+import XCTest
+@testable import QuestifyCore
+
+@MainActor final class ExternalGameImportTests: XCTestCase {
+    private func makeTempStore() -> (ExternalGameStore, URL) {
+        let tempDir = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("ExternalGameTests-" + UUID().uuidString, isDirectory: true)
+        let store = ExternalGameStore(rootDirectory: tempDir)
+        return (store, tempDir)
+    }
+
+    func testValidSignedArchiveImportInstallUpdateRemoveAndBridge() throws {
+        let (store, tempDir) = makeTempStore()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+
+        let archiveV1 = ExternalGameStore.makeSampleSignedArchive(
+            id: "rpg.campfire.riddle",
+            name: "篝火谜题",
+            version: "1.0.0",
+            permissions: ["storage", "haptics"],
+            contentRating: "4+",
+            allowedDomains: ["assets.example.com"]
+        )
+        let confirmation = try store.prepareImport(
+            archive: archiveV1,
+            source: .url(URL(string: "https://example.com/packages/riddle.json")!)
+        )
+        XCTAssertFalse(confirmation.isUpdate)
+        XCTAssertEqual(confirmation.permissionsList, [.storage, .haptics])
+
+        let installed = try store.confirmInstall()
+        XCTAssertEqual(store.installedGames.count, 1)
+        XCTAssertEqual(installed.manifest.version, "1.0.0")
+        XCTAssertNotNil(store.entryFileURL(for: installed))
+
+        // Update to v1.1.0
+        let archiveV2 = ExternalGameStore.makeSampleSignedArchive(
+            id: "rpg.campfire.riddle",
+            name: "篝火谜题",
+            version: "1.1.0",
+            permissions: ["storage"],
+            contentRating: "9+",
+            allowedDomains: ["assets.example.com"]
+        )
+        let updateConf = try store.prepareImport(
+            archive: archiveV2,
+            source: .qrCode("https://example.com/packages/riddle-v2.json")
+        )
+        XCTAssertTrue(updateConf.isUpdate)
+        XCTAssertEqual(updateConf.previousVersion, "1.0.0")
+        let updated = try store.confirmInstall()
+        XCTAssertEqual(store.installedGames.count, 1)
+        XCTAssertEqual(updated.manifest.version, "1.1.0")
+
+        // Versioned JS bridge v1.0
+        let saveReq = try JSONEncoder().encode(ExternalGameBridgeRequest(
+            apiVersion: "1.0",
+            action: "saveProgress",
+            payload: ["stage": "2"]
+        ))
+        let saveRes = store.handleBridgeMessage(saveReq, for: "rpg.campfire.riddle")
+        XCTAssertTrue(saveRes.ok)
+
+        let loadReq = try JSONEncoder().encode(ExternalGameBridgeRequest(
+            apiVersion: "1.0",
+            action: "loadProgress"
+        ))
+        let loadRes = store.handleBridgeMessage(loadReq, for: "rpg.campfire.riddle")
+        XCTAssertTrue(loadRes.ok)
+        XCTAssertEqual(loadRes.data?["stage"], "2")
+
+        // Haptics was removed in v1.1.0 permissions, so bridge must deny it
+        let hapticReq = try JSONEncoder().encode(ExternalGameBridgeRequest(
+            apiVersion: "1.0",
+            action: "haptic"
+        ))
+        let hapticRes = store.handleBridgeMessage(hapticReq, for: "rpg.campfire.riddle")
+        XCTAssertFalse(hapticRes.ok)
+        XCTAssertEqual(hapticRes.error, "PERMISSION_DENIED_HAPTICS")
+
+        // Unknown bridge version or non-allowlisted action is rejected
+        let badVerReq = try JSONEncoder().encode(ExternalGameBridgeRequest(
+            apiVersion: "2.0",
+            action: "getMetadata"
+        ))
+        XCTAssertEqual(store.handleBridgeMessage(badVerReq, for: "rpg.campfire.riddle").error, "UNSUPPORTED_API_VERSION")
+
+        let payReq = try JSONEncoder().encode(ExternalGameBridgeRequest(
+            apiVersion: "1.0",
+            action: "requestPayment"
+        ))
+        XCTAssertEqual(store.handleBridgeMessage(payReq, for: "rpg.campfire.riddle").error, "ACTION_NOT_ALLOWLISTED")
+
+        // Remove package
+        try store.remove(id: "rpg.campfire.riddle")
+        XCTAssertTrue(store.installedGames.isEmpty)
+    }
+
+    func testRejectsPathTraversalAndDisallowedExtensions() {
+        let badPaths = [
+            "../index.html",
+            "../../etc/passwd",
+            "/abs/index.html",
+            "sub/../../escape.html",
+            "sub\\win.html",
+            ".hidden.html",
+            "sub/.secret.js",
+            "a//b.html",
+        ]
+        for path in badPaths {
+            XCTAssertFalse(ExternalGameValidator.isSafeRelativePath(path), "Must reject path traversal: \(path)")
+            let archive = ExternalGameStore.makeSampleSignedArchive(entry: path)
+            XCTAssertThrowsError(try ExternalGameValidator.validateArchive(archive)) { error in
+                XCTAssertEqual(error as? ExternalGameValidationError, .pathTraversalDetected(path))
+            }
+        }
+
+        let badExtArchive = ExternalGameStore.makeSampleSignedArchive(entry: "payload.dylib")
+        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(badExtArchive)) { error in
+            XCTAssertEqual(error as? ExternalGameValidationError, .disallowedFileExtension("payload.dylib"))
+        }
+    }
+
+    func testRejectsOversizedFilesAndPackages() {
+        let oversizedFile = Data(repeating: 0x41, count: ExternalGameValidator.maxSingleFileSizeBytes + 1)
+        let files: [String: Data] = [
+            "index.html": Data("<html></html>".utf8),
+            "big.png": oversizedFile,
+        ]
+        let sha = ExternalGameValidator.computePackageSHA256(files)
+        var manifest = ExternalGameManifest(
+            id: "rpg.oversized.test",
+            name: "Oversized",
+            version: "1.0.0",
+            entry: "index.html",
+            sha256: sha,
+            signature: ""
+        )
+        manifest = ExternalGameManifest(
+            id: manifest.id,
+            name: manifest.name,
+            version: manifest.version,
+            entry: manifest.entry,
+            sha256: sha,
+            signature: ExternalGameValidator.signManifest(manifest)
+        )
+        let archive = ExternalGamePackageArchive(manifest: manifest, files: files)
+        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(archive)) { error in
+            guard case ExternalGameValidationError.fileOversized(let name, _, _) = error else {
+                XCTFail("Expected fileOversized, got \(error)")
+                return
+            }
+            XCTAssertEqual(name, "big.png")
+        }
+    }
+
+    func testRejectsUnsignedTamperedHashAndInvalidSignature() {
+        let valid = ExternalGameStore.makeSampleSignedArchive()
+        let unsignedManifest = ExternalGameManifest(
+            id: valid.manifest.id,
+            name: valid.manifest.name,
+            version: valid.manifest.version,
+            entry: valid.manifest.entry,
+            sha256: valid.manifest.sha256,
+            signature: ""
+        )
+        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(
+            ExternalGamePackageArchive(manifest: unsignedManifest, files: valid.files)
+        )) { error in
+            XCTAssertEqual(error as? ExternalGameValidationError, .unsignedManifest)
+        }
+
+        // Tamper file content without updating hash
+        let tamperedFiles = ["index.html": Data("<html><h1>Tampered</h1></html>".utf8)]
+        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(
+            ExternalGamePackageArchive(manifest: valid.manifest, files: tamperedFiles)
+        )) { error in
+            guard case ExternalGameValidationError.hashMismatch = error else {
+                XCTFail("Expected hashMismatch, got \(error)")
+                return
+            }
+        }
+
+        // Forged signature with wrong secret
+        let wrongSig = ExternalGameStore.makeSampleSignedArchive(secret: "wrong.secret.key")
+        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(wrongSig)) { error in
+            XCTAssertEqual(error as? ExternalGameValidationError, .invalidSignature)
+        }
+    }
+
+    func testRejectsBadDomainsInsecureURLsForbiddenPermissionsAndIAP() {
+        let badDomains = [
+            "*.example.com",
+            "https://example.com",
+            "example.com/path",
+            "example.com:8443",
+            "localhost",
+            "127.0.0.1",
+            "192.168.1.1",
+            "10.0.0.1",
+            "internal.local",
+            "user@example.com",
+        ]
+        for domain in badDomains {
+            XCTAssertFalse(ExternalGameValidator.isValidDomain(domain), "Must reject domain: \(domain)")
+            let archive = ExternalGameStore.makeSampleSignedArchive(allowedDomains: [domain])
+            XCTAssertThrowsError(try ExternalGameValidator.validateArchive(archive)) { error in
+                XCTAssertEqual(error as? ExternalGameValidationError, .invalidAllowedDomain(domain))
+            }
+        }
+
+        // Insecure HTTP import URL rejected
+        XCTAssertThrowsError(try ExternalGameValidator.validateImportURL(URL(string: "http://example.com/game.json")!))
+
+        // Forbidden permission rejected
+        for forbidden in ["payment", "iap", "camera", "location", "native-bridge"] {
+            let archive = ExternalGameStore.makeSampleSignedArchive(permissions: [forbidden])
+            XCTAssertThrowsError(try ExternalGameValidator.validateArchive(archive)) { error in
+                XCTAssertEqual(error as? ExternalGameValidationError, .forbiddenPermission(forbidden))
+            }
+        }
+
+        // Embedded payment/IAP script rejected
+        let iapFiles = ["index.html": Data("<script>new ApplePaySession(3, {});</script>".utf8)]
+        let sha = ExternalGameValidator.computePackageSHA256(iapFiles)
+        var m = ExternalGameManifest(id: "rpg.iap.attempt", name: "IAP", version: "1.0.0", entry: "index.html", sha256: sha, signature: "")
+        m = ExternalGameManifest(id: m.id, name: m.name, version: m.version, entry: m.entry, sha256: sha, signature: ExternalGameValidator.signManifest(m))
+        XCTAssertThrowsError(try ExternalGameValidator.validateArchive(ExternalGamePackageArchive(manifest: m, files: iapFiles))) { error in
+            XCTAssertEqual(error as? ExternalGameValidationError, .paymentOrIAPDetected("ApplePaySession"))
+        }
+    }
+
+    func testSandboxNavigationPolicyAndCSP() {
+        let archive = ExternalGameStore.makeSampleSignedArchive(allowedDomains: ["cdn.example.com"])
+        let csp = ExternalGameSandboxPolicy.contentSecurityPolicy(for: archive.manifest)
+        XCTAssertTrue(csp.contains("default-src 'self'"))
+        XCTAssertTrue(csp.contains("connect-src https://cdn.example.com"))
+        XCTAssertTrue(csp.contains("frame-src 'none'"))
+
+        let root = URL(fileURLWithPath: "/tmp/sandbox/packages/rpg.campfire.riddle", isDirectory: true)
+        let validFile = root.appendingPathComponent("index.html")
+        let escapedFile = URL(fileURLWithPath: "/tmp/sandbox/packages/other/index.html")
+        XCTAssertTrue(ExternalGameSandboxPolicy.allowsNavigation(to: validFile, packageRoot: root, manifest: archive.manifest))
+        XCTAssertFalse(ExternalGameSandboxPolicy.allowsNavigation(to: escapedFile, packageRoot: root, manifest: archive.manifest))
+        XCTAssertTrue(ExternalGameSandboxPolicy.allowsNavigation(to: URL(string: "https://cdn.example.com/sprite.png")!, packageRoot: root, manifest: archive.manifest))
+        XCTAssertFalse(ExternalGameSandboxPolicy.allowsNavigation(to: URL(string: "https://evil.example.com/sprite.png")!, packageRoot: root, manifest: archive.manifest))
+        XCTAssertFalse(ExternalGameSandboxPolicy.allowsNavigation(to: URL(string: "itms-apps://itunes.apple.com")!, packageRoot: root, manifest: archive.manifest))
+        XCTAssertFalse(ExternalGameSandboxPolicy.allowsNavigation(to: URL(string: "weixin://wap/pay")!, packageRoot: root, manifest: archive.manifest))
+    }
+}

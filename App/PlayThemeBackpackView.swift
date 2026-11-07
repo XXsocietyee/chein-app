@@ -4,7 +4,10 @@ import SwiftUI
 /// TEAM, trade, plans, chapter actions and zero-HP writes remain outside this page.
 @MainActor struct PlayThemeBackpackView: View {
     @Bindable var model: PlayThemeBackpackCoordinator
+    var gameplay: PlayThemeGameplayCoordinator? = nil
+    var externalGameStore: ExternalGameStore? = nil
     @State private var tab = Tab.items
+    @State private var defaultExternalGameStore = ExternalGameStore()
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @State private var selection: ActionSelection?
@@ -154,9 +157,87 @@ import SwiftUI
                 .accessibilityIdentifier("playx.backpack.clue")
             }
         case .game:
-            Text("playx.backpack.gameUnavailable").accessibilityIdentifier("playx.backpack.gameUnavailable")
+            if let gameplay {
+                gameTabContent(gameplay)
+            } else {
+                Text("playx.backpack.gameUnavailable").accessibilityIdentifier("playx.backpack.gameUnavailable")
+            }
+            Section {
+                ExternalGameLibrarySection(store: externalGameStore ?? defaultExternalGameStore)
+            }
         }
     }
+
+    @ViewBuilder private func gameTabContent(_ gameplay: PlayThemeGameplayCoordinator) -> some View {
+        if !gameplay.playerRunText.isEmpty || !gameplay.playerExitText.isEmpty {
+            Section {
+                Text(verbatim: [gameplay.playerRunText, gameplay.playerExitText].filter { !$0.isEmpty }.joined(separator: " · "))
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        if gameplay.challenge.awaitingChallenge {
+            Section(copy("归零挑战", "Zero-HP Challenge")) {
+                if !gameplay.challenge.challengeProgressText.isEmpty {
+                    LabeledContent(gameplay.challenge.challengeProgressLabel, value: gameplay.challenge.challengeProgressText)
+                }
+                Text(verbatim: gameplay.challenge.challengeRestoreText)
+                Text(verbatim: gameplay.challenge.challengeRetryText).font(.caption).foregroundStyle(.secondary)
+                ForEach(gameplay.challenge.challengeNodes, id: \.nodeId) { node in
+                    Button(node.name) { gameplay.openChallengeNode(node.nodeId) }
+                }
+            }
+        }
+        if !gameplay.actionRows.isEmpty {
+            Section(copy("主题行动", "Theme Actions")) {
+                ForEach(Array(gameplay.actionRows.enumerated()), id: \.element.id) { idx, row in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(verbatim: row.title).font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Text(verbatim: row.statusText).font(.caption).foregroundStyle(.secondary)
+                        }
+                        if !row.costText.isEmpty {
+                            Text(verbatim: row.costText).font(.caption2).foregroundStyle(.secondary)
+                        }
+                        Button(row.actionLabel) {
+                            _ = gameplay.tapGameplayAction(index: idx)
+                        }
+                        .disabled(!row.enabled)
+                    }
+                }
+            }
+        } else {
+            Text("playx.backpack.gameUnavailable").accessibilityIdentifier("playx.backpack.gameUnavailable")
+        }
+        if !gameplay.plans.isEmpty {
+            Section(copy("共同计划", "Shared Plans")) {
+                ForEach(gameplay.plans) { plan in
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack {
+                            Text(verbatim: plan.title).font(.subheadline.weight(.semibold))
+                            Spacer()
+                            Text(verbatim: plan.phaseText).font(.caption)
+                        }
+                        Text(verbatim: plan.teamCountText).font(.caption2).foregroundStyle(.secondary)
+                    }
+                }
+            }
+        }
+        if !gameplay.playerOperationRows.isEmpty {
+            Section(copy("现场与队伍操作", "Player Operations")) {
+                ForEach(gameplay.playerOperationRows) { op in
+                    Button {
+                        gameplay.openPlayerOperation(op.action)
+                    } label: {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: op.title).font(.subheadline.weight(.medium))
+                            Text(verbatim: op.caption).font(.caption2).foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+        }
 
     private func copy(_ chinese: String, _ english: String) -> String {
         locale.language.languageCode?.identifier == "zh" ? chinese : english
