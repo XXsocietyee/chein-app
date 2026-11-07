@@ -44,6 +44,7 @@ public struct CitySwitchIsolationSnapshot: Sendable, Equatable {
     public let rows: [CityIsolationSurfaceRow]
     public let cancelsInFlightReadsOnCityChange: Bool
     public let resetsViewportAndDeltaCursorOnSwitch: Bool
+    public let simulationLoopState: CitySimulationLoopState
 
     public var isCrossCityIsolationSafe: Bool {
         !activeCityCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -58,13 +59,15 @@ public struct CitySwitchIsolationSnapshot: Sendable, Equatable {
         previousCityCode: String? = "110100",
         rows: [CityIsolationSurfaceRow],
         cancelsInFlightReadsOnCityChange: Bool = true,
-        resetsViewportAndDeltaCursorOnSwitch: Bool = true
+        resetsViewportAndDeltaCursorOnSwitch: Bool = true,
+        simulationLoopState: CitySimulationLoopState = CitySimulationLoopState()
     ) {
         self.activeCityCode = activeCityCode
         self.previousCityCode = previousCityCode
         self.rows = rows
         self.cancelsInFlightReadsOnCityChange = cancelsInFlightReadsOnCityChange
         self.resetsViewportAndDeltaCursorOnSwitch = resetsViewportAndDeltaCursorOnSwitch
+        self.simulationLoopState = simulationLoopState
     }
 
     public static let defaultReady = CitySwitchIsolationSnapshot(
@@ -137,6 +140,19 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
                 .font(.caption.monospaced())
             }
             .accessibilityIdentifier("citySwitchIsolation.cityCode")
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(
+                    verbatim: "同城沙盘闭环 (DESIGNED)：行动力 \(snapshot.simulationLoopState.actionsRemaining)/\(snapshot.simulationLoopState.actionsPerRound) · 持仓 \(snapshot.simulationLoopState.activeHoldCount)/\(snapshot.simulationLoopState.holdingLimit) · 公平分群 \(snapshot.simulationLoopState.fairnessCohortState.rawValue)"
+                )
+                .font(.caption2.weight(.medium))
+                Text(
+                    verbatim: "状态机阶段：\(snapshot.simulationLoopState.phase.rawValue) · 门店积分服务费：\(snapshot.simulationLoopState.memberPointsFee)"
+                )
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("citySwitchIsolation.simulationLoop")
 
             ForEach(snapshot.rows) { row in
                 VStack(alignment: .leading, spacing: 4) {
