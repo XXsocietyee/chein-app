@@ -1,0 +1,112 @@
+[
+  {
+    "key": "club.channel.sidebar.toggle",
+    "zh": "切换频道列表",
+    "en": "Toggle Channel List"
+  },
+  {
+    "key": "club.channel.sidebar.uncategorized",
+    "zh": "频道",
+    "en": "Channels"
+  },
+  {
+    "key": "club.channel.announcement.readonly_badge",
+    "zh": "公告只读",
+    "en": "Announcement · Read Only"
+  },
+  {
+    "key": "club.channel.announcement.readonly_hint",
+    "zh": "当前为公告频道，仅主理人与管理员可发布通知",
+    "en": "This is an announcement channel. Only club owners and admins can post notices."
+  },
+  {
+    "key": "club.channel.mute.enabled_toast",
+    "zh": "已开启「#%@」免打扰",
+    "en": "Muted #%@"
+  },
+  {
+    "key": "club.channel.mute.disabled_toast",
+    "zh": "已恢复「#%@」消息提醒",
+    "en": "Unmuted #%@"
+  },
+  {
+    "key": "club.channel.transcript.load_older",
+    "zh": "加载更早的频道消息",
+    "en": "Load Earlier Messages"
+  },
+  {
+    "key": "club.channel.transcript.jump_to_new",
+    "zh": "%d 条新消息 · 点击跳转到底部",
+    "en": "%d new messages · Jump to present"
+  },
+  {
+    "key": "club.channel.composer.placeholder",
+    "zh": "在 #%@ 发送消息…",
+    "en": "Message #%@…"
+  },
+  {
+    "key": "club.channel.send.verifying_receipt",
+    "zh": "正在校验发送回执…",
+    "en": "Verifying send receipt…"
+  },
+  {
+    "key": "club.channel.send.failed_retry",
+    "zh": "重试（先核对回执）",
+    "en": "Retry (Check Receipt First)"
+  },
+  {
+    "key": "club.channel.reply.thread_count",
+    "zh": "%d 条串内回复",
+    "en": "%d thread replies"
+  },
+  {
+    "key": "club.channel.safety.report_message",
+    "zh": "举报该消息",
+    "en": "Report Message"
+  },
+  {
+    "key": "club.channel.safety.block_author",
+    "zh": "拉黑该用户",
+    "en": "Block User"
+  },
+  {
+    "key": "club.channel.safety.unblock_author",
+    "zh": "取消拉黑",
+    "en": "Unblock User"
+  },
+  {
+    "key": "club.channel.safety.delete_message_own",
+    "zh": "撤回消息",
+    "en": "Recall Message"
+  },
+  {
+    "key": "club.channel.safety.delete_message_admin",
+    "zh": "管理员删除消息",
+    "en": "Delete Message (Admin)"
+  },
+  {
+    "key": "club.channel.safety.remove_member_admin",
+    "zh": "移除成员",
+    "en": "Remove Member"
+  },
+  {
+    "key": "club.channel.safety.filtered_placeholder",
+    "zh": "该消息因违反社区安全规范已被屏蔽",
+    "en": "This message was hidden by community safety filters."
+  },
+  {
+    "key": "club.channel.roster.title",
+    "zh": "%@ · 成员与身份组",
+    "en": "%@ · Members & Roles"
+  },
+  {
+    "key": "club.admin.settlement.readonly_badge",
+    "zh": "只读模式",
+    "en": "Read-Only"
+  },
+  {
+    "key": "club.admin.settlement.withdraw_flagged_off",
+    "zh": "银行卡提现已按规范关闭，仅保留俱乐部结算单与订单分成只读核对。",
+    "en": "Bank withdrawal is flagged off; only read-only club settlement and revenue-share reconciliation are shown."
+  }
+]
