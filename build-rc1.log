@@ -1,0 +1,22 @@
+2026-11-07 00:11:58.314 xcodebuild[37121:106202]  DVTFilePathFSEvents: Failed to start fs event stream.
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath /Users/fanning/orca/workspaces/native-ios/integration-rc1/.dd CODE_SIGNING_ALLOWED=NO build
+
+Build settings from command line:
+    CODE_SIGNING_ALLOWED = NO
+    SDKROOT = iphonesimulator27.1
+
+Build Preparation
+Couldn't create workspace arena folder '/Users/fanning/orca/workspaces/native-ios/integration-rc1/.dd': Unable to write to info file '<DVTFilePath:0x7cf0af8480:'/Users/fanning/orca/workspaces/native-ios/integration-rc1/.dd/info.plist'>'.
+
+2026-11-07 00:12:01.581 xcodebuild[37121:106201] Error saving log: Error Domain=NSCocoaErrorDomain Code=513 "You don’t have permission to save the file “LogStoreManifest.plist” in the folder “Build”." UserInfo={NSUserStringVariant=Folder, NSUnderlyingError=0x7cf1009200 {Error Domain=NSPOSIXErrorDomain Code=1 "Operation not permitted"}, NSURL=file:///Users/fanning/orca/workspaces/native-ios/integration-rc1/.dd/Logs/Build/LogStoreManifest.plist} | User info: {
+    NSURL = "file:///Users/fanning/orca/workspaces/native-ios/integration-rc1/.dd/Logs/Build/LogStoreManifest.plist";
+    NSUnderlyingError = "Error Domain=NSPOSIXErrorDomain Code=1 \"Operation not permitted\"";
+    NSUserStringVariant = Folder;
+}
+** BUILD FAILED **
+
+
+The following build commands failed:
+	Building project Questify with scheme Questify and configuration Debug
+(1 failure)
