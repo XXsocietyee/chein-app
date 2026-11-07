@@ -8,13 +8,15 @@ public struct NativeHomeReturnFix: Equatable, Sendable, CustomStringConvertible,
         guard latitude.isFinite, longitude.isFinite, (-90...90).contains(latitude), (-180...180).contains(longitude),
               accuracyMeters.isFinite, accuracyMeters >= 0, capturedAt.timeIntervalSince1970.isFinite,
               capturedAt.timeIntervalSince1970 > 0, capturedAt.timeIntervalSince1970 < 9_007_199_254_740_991 / 1000 else { throw NativeHomeReturnFailure.invalid }
-        self.latitude = try Self.wireNumber(latitude, rounding: .plain).doubleValue
-        self.longitude = try Self.wireNumber(longitude, rounding: .plain).doubleValue
-        let conservativeAccuracy = try Self.wireNumber(accuracyMeters, rounding: .up).doubleValue
+        self.latitude = Self.exactDouble(try Self.wireNumber(latitude, rounding: .plain))
+        self.longitude = Self.exactDouble(try Self.wireNumber(longitude, rounding: .plain))
+        let conservativeAccuracy = Self.exactDouble(try Self.wireNumber(accuracyMeters, rounding: .up))
         guard conservativeAccuracy >= accuracyMeters else { throw NativeHomeReturnFailure.invalid }
         self.accuracyMeters = conservativeAccuracy
         self.capturedAt = capturedAt
     }
+    /// NSDecimalNumber.doubleValue can return the neighbouring double (12.123456999999998); parse the decimal text instead.
+    static func exactDouble(_ value: NSDecimalNumber) -> Double { Double(value.stringValue) ?? value.doubleValue }
     /// Decimal wire scale is bounded. Accuracy rounds upward so it can never become more precise.
     static func wireNumber(_ value: Double, rounding: Decimal.RoundingMode) throws -> NSDecimalNumber {
         guard value.isFinite, var decimal = Decimal(string: String(value), locale: Locale(identifier: "en_US_POSIX")),

@@ -51,7 +51,8 @@ import XCTest
             checks.append(check)
             if !noDwell && check.challengeId == nil {
                 return .init(requestId: check.requestId, decision: .dwellRequired, proofId: nil, homeVersion: check.homeVersion,
-                    expiresAtMillis: nil, retryAfterSeconds: 10, challengeId: "challenge-1")
+                    expiresAtMillis: nil, retryAfterSeconds: 10, challengeId: "challenge-1",
+                    accountVersion: corruptVerification ? version + 1 : version)
             }
             return .init(requestId: check.requestId, decision: .verified, proofId: "proof-1", homeVersion: check.homeVersion,
                 expiresAtMillis: Int64((clock.date.timeIntervalSince1970 + 60) * 1000), retryAfterSeconds: nil,

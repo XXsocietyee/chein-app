@@ -136,7 +136,7 @@ import XCTest
     }
 
     func testChangedSameScopeRecordCannotReplaceKnownOriginalIdentity() async throws {
-        let replacements = [try request("other"), try request(proof: "other-proof"),
+        let replacements = [try request("other-request"), try request(proof: "other-proof"),
                             try request(homeVersion: 4), try request(accountVersion: 5)]
         for replacement in replacements {
             let h = try Harness(), original = try request(), selected = try await establish(h, original)
