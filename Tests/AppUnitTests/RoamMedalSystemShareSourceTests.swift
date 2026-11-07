@@ -7,6 +7,7 @@ import UIKit
 /// Tests call that boundary only after invalidation, so no activity controller is made
 /// or presented. No test calls Photos, HTTP, or an external sharing destination.
 @MainActor final class RoamMedalSystemShareSourceTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testBothEarnedMedalKindsKeepExactPreparedImageAndNoRouteSelection() throws {
         let r = try MedalExportRig(), record = try record()
         try r.seed([record]); let durable = r.storage.rows

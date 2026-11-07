@@ -5,6 +5,7 @@ import UIKit
 
 /// Real private read service with synthetic payloads. Handoff assertions inspect bytes only, never files or system sharing.
 @MainActor final class RoamPrivateGrantScopeHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testQueuedPrivateReadAndSettlementCannotUseReplacementGrant() async throws {
         let r = try PrivateGrantHostRig(), page = RoamPrivatePageOwner(tools: r.reader)
         let first = RoamPrivatePageScope(r.reader); XCTAssertTrue(page.appear(foreground: true))

@@ -5,6 +5,7 @@ import UIKit
 
 /// Synthetic original host + independent composition route. Never fetches an image or sends an exchange.
 @MainActor final class RoamReceivedStampMetadataHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private let base = URL(string: "https://received-host.example/native")!
     private func root(_ wire: Wire, _ grants: Grants? = nil,
                       roamAlbumMetadataReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? = { _ in nil }) throws -> AppCompositionRoot {

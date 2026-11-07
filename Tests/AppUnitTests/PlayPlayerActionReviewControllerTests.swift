@@ -5,6 +5,7 @@ import Combine
 @testable import Questify
 
 @MainActor final class PlayPlayerActionReviewControllerTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     @MainActor private final class Harness {
         var session: PlayExperienceSession?
         let wire = PlayerActionAppWire()

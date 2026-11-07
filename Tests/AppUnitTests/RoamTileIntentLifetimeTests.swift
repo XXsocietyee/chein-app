@@ -5,6 +5,7 @@ import UIKit
 
 /// Existing typed tile reader + service + pager, with a memory-only transport admitting tile GETs.
 @MainActor final class RoamTileIntentLifetimeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testConstructedBackgroundAndForegroundEntryNeverReadAutomatically() async throws {
         let r = try TileIntentRig(), page = RoamTileMemoryPresentation(reader: r.reader)
         page.readAction()(); await page.refreshAction()()

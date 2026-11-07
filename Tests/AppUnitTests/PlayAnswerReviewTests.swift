@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class PlayAnswerReviewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func ready(text: Bool = false) async -> (AnswerReviewReader, PlayViewModel, UUID) {
         let reader = AnswerReviewReader(); reader.text = text
         let model = PlayViewModel(reader: reader); await model.load()

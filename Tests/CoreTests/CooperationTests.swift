@@ -23,7 +23,7 @@ private actor CooperationSuspendedTransport: HTTPTransport {
         let index = requests.count; requests.append(request)
         return try await withCheckedThrowingContinuation { pending[index] = $0 }
     }
-    func waitForRequests(_ count: Int) async { while pending.count < count { await Task.yield() } }
+    func waitForRequests(_ count: Int) async { let deadline = ContinuousClock.now + .seconds(5); while pending.count < count, ContinuousClock.now < deadline { await Task.yield() } }
     func finish(_ json: String, status: Int = 200) {
         let continuations = Array(pending.values); pending.removeAll()
         for continuation in continuations { continuation.resume(returning: (Data(json.utf8), status)) }

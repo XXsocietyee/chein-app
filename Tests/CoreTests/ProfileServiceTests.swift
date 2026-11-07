@@ -210,7 +210,7 @@ private actor ProfileSuspendedTransport: HTTPTransport {
         tokens.append(request.value(forHTTPHeaderField: "Authorization") ?? "")
         return try await withCheckedThrowingContinuation { pending.append($0) }
     }
-    func waitForRequests(_ count: Int) async { while tokens.count < count || pending.isEmpty { await Task.yield() } }
+    func waitForRequests(_ count: Int) async { let deadline = ContinuousClock.now + .seconds(5); while tokens.count < count || pending.isEmpty, ContinuousClock.now < deadline { await Task.yield() } }
     func reply(_ json: String) { pending.removeFirst().resume(returning: (Data(json.utf8), 200)) }
 }
 

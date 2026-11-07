@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class ProfilePublicInfoReadTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testAuthorFeedRetentionSurvivesHeaderHideReturnButNotGrantReplacement() async throws {
         let h = try Harness(); await h.login(); let reader = try h.reader()
         let retained = try XCTUnwrap(reader.authorPostsRetentionIdentity)

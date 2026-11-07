@@ -6,6 +6,7 @@ import UIKit
 /// The real place detail and original reader/service, with only an in-memory HTTP transport.
 /// No map rendering, permission request, remote image, camera, system share or business writer.
 @MainActor final class RoamPlaceDetailReadLifetimeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testInitialBackgroundDoesNotReadUntilVisibleForeground() async throws {
         let r = try PlaceReadLifetimeRig(), scene = try HostedNavigationSceneWindow(); defer { scene.retire() }
         r.phase = .background; mount(r, window: scene.window)

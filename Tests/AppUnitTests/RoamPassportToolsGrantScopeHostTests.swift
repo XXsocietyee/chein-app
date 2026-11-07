@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class RoamPassportToolsGrantScopeHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testPageOwnerUsesChosenGrantNotJustSameIdentity() throws {
         let r = try PassportScopeHostRig(), old = RoamPassportToolsPageOwner(r.reader)
         XCTAssertTrue(old.matches(r.reader)); try r.replaceGrant()

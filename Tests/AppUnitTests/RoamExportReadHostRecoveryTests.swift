@@ -6,6 +6,7 @@ import Combine
 
 /// Native controls and lifecycle only. Never activates Files, Share, GPS or a business writer.
 @MainActor final class RoamExportReadHostRecoveryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testOriginalPassportExportEntryReadsExactCheckpointAfterBackgroundedLateChunk() async throws {
         let state = ExportReadHostState(), tools = ExportReadHostTools(); state.tools = tools
         let window = mount(state, passport: true); defer { close(window) }

@@ -6,6 +6,7 @@ import UIKit
 /// Actual Browser entry consumers with the original tools reader and local history.
 /// The destination is a read-only probe, not a replacement topic service or writer.
 @MainActor final class RoamAnniversaryHostRestorationTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testBrowserPassportReadFailureRetryExactTopicAndBack() async throws {
         let r = try AnniversaryHostRig(); r.wire.status = 503
         let window = mount(r); defer { close(window) }

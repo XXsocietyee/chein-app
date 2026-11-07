@@ -6,6 +6,7 @@ import UIKit
 /// The App admission is tested against the original Core list/navigation generations.
 /// Hosted reads use the existing session reader and an in-memory original GET service.
 @MainActor final class RoamAnniversaryReadIntentTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testCurrentMoreUsesOriginalCursorAndIsConsumedByOriginalBegin() throws {
         let rig = try AnniversaryIntentRig(); var list = try seeded(rig.tools), nav = navigation(rig.tools)
         let visit = UUID(), offered = intent(.more, rig.tools, list, nav, visit)

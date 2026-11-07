@@ -6,6 +6,7 @@ import UIKit
 /// The actual Hub tile destination, original explicit read/continuation controls and
 /// independently approved reader. The transport is memory-only and accepts only tile GETs.
 @MainActor final class RoamTileDenialHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testHTTPAndBusiness403RemovePrivateCountAndContinuationWithoutEmptySuccess() async throws {
         for result in [(403, 200), (200, 403)] {
             let r = try TileDenialHostRig(), host = UIHostingController(rootView: AnyView(Text("Preparing test")))

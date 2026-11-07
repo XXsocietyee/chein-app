@@ -22,7 +22,7 @@ private actor AccountCollectionSuspendedTransport: HTTPTransport {
         let index = count; count += 1
         return try await withCheckedThrowingContinuation { pending[index] = $0 }
     }
-    func waitForRequests(_ number: Int) async { while count < number { await Task.yield() } }
+    func waitForRequests(_ number: Int) async { let deadline = ContinuousClock.now + .seconds(5); while count < number, ContinuousClock.now < deadline { await Task.yield() } }
     func finish(_ index: Int, json: String, status: Int = 200) {
         pending.removeValue(forKey: index)?.resume(returning: (Data(json.utf8), status))
     }

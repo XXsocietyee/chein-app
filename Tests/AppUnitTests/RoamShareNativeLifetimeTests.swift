@@ -6,6 +6,7 @@ import UIKit
 /// Real SwiftUI share pages/host removal, original save model, and a memory-only writer.
 /// Never calls the PhotoKit adapter or presents an activity controller.
 @MainActor final class RoamShareNativeLifetimeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testPermissionInactiveCoverDoesNotInvalidateHistorySave() async throws {
         let r = try ShareLifetimeRig(), scene = try HostedNavigationSceneWindow(); defer { scene.retire() }
         mount(r, window: scene.window); try await openAndPrepare(r, in: scene.window)

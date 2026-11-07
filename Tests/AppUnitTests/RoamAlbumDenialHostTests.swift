@@ -6,6 +6,7 @@ import UIKit
 /// Actual metadata album, its original page button and original denied/failed UI.
 /// The only transport is in memory. The read-only scope forbids pictures and capture.
 @MainActor final class RoamAlbumDenialHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testHTTPAndBusiness403RemoveOldCardsTotalAndLoadMoreWithoutEmptyAlbum() async throws {
         for result in [(403, 200), (200, 403)] {
             let r = try AlbumDenialHostRig(), host = UIHostingController(rootView: AnyView(Text("Preparing test")))

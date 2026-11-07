@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class ProfileSettingsFavoritesTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func opened(_ h: ProfileFavoritesHarness) throws -> (ProfileSettingsFavoritesOwner, ProfileSettingsFavoritesRoute) {
         let owner = ProfileSettingsFavoritesOwner()
         owner.appear(current: .current(h.session), foreground: true)

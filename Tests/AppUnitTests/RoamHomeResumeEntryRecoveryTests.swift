@@ -5,6 +5,7 @@ import UIKit
 
 /// Real local journal/reader, existing Browser and dormant live/check destinations. No GPS or remote service.
 @MainActor final class RoamHomeResumeEntryRecoveryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testCurrentLocalJournalCanOfferNavigationWithoutRemoteReadConfiguration() throws {
         let rig = try ResumeEntryRig(); try rig.seed(.unfinished)
         let reader = try XCTUnwrap(rig.reader), bytes = rig.storage.rows, writes = rig.storage.writes

@@ -6,6 +6,7 @@ import UIKit
 /// Original History entry consumers plus restored anniversary read/return state.
 /// In-memory HTTP and local history only; the topic destination is a read-only probe.
 @MainActor final class RoamAnniversaryHistoryRecoveryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private enum Entry: CaseIterable { case hub, passport }
     private let tool = "roamSub.w208.history.tool.anniversary"
 

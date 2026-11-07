@@ -5,6 +5,7 @@ import UIKit
 
 /// Real production view/navigation/sheet lifecycle with sealed protocol data, not a live account.
 @MainActor final class NativeFriendRequestReviewHostingTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private final class Journal: OperationPendingListing {
         var rows: [OperationPendingRecord] = []
         func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { rows.first { $0.ownerKey == ownerKey && $0.targetKey == targetKey } }

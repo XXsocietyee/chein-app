@@ -3,6 +3,7 @@ import SwiftUI
 @testable import Questify
 
 @MainActor final class RoamNearbyEventsRestoredDetailTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func activity(_ id: Int = 71) throws -> ActivityDetailAccess {
         .allowed(try JSONDecoder().decode(ActivityDetail.self, from: Data("{\"id\":\(id),\"name\":\"Synthetic activity\"}".utf8)))
     }
@@ -114,6 +115,7 @@ import UIKit
 /// New actual-browser hosts use the original approved entry reader and an in-memory HTTP transport.
 /// The detail destination is a read-only probe; neither GPS nor business writers are exercised.
 @MainActor final class RoamNearbyEventsOriginalHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testOptionalTeamFailureKeepsOriginalActivityAndOpensOnlyExactReadOnlyTopic() async throws {
         let rig = try NearbyEntryRig(), window = mount(rig)
         defer { close(window) }

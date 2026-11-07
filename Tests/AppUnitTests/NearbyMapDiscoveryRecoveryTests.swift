@@ -43,6 +43,7 @@ import UIKit
 }
 
 @MainActor final class NearbyMapDiscoveryRecoveryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func waitFor(_ message: String, _ condition: () -> Bool) async throws {
         for _ in 0..<100 {
             if condition() { return }

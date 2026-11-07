@@ -5,6 +5,7 @@ import UIKit
 
 /// Only the existing wallet reads. No payment, ticket mutation, play factory, GPS or local journal.
 @MainActor final class RoamEnrolledTopicsLifetimeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testConstructedOrBackgroundedPageNeverStartsOriginalRead() async throws {
         let r = EnrolledLifetimeRig(); let model = r.page
         model.readAction()(); await model.refreshAction()()

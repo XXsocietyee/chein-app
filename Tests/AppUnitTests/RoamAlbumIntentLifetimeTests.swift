@@ -5,6 +5,7 @@ import UIKit
 
 /// Original metadata album + real read service/pager, using only an in-memory multipart read route.
 @MainActor final class RoamAlbumIntentLifetimeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testInitialInactiveMountDefersOriginalReadAndUnopenedModelDoesNotRead() async throws {
         let r = try AlbumIntentRig(), scope = try r.scope()
         let page = RoamAlbumReadPresentation(reader: r.reader, scope: scope)

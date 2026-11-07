@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class RoamPlaceReadStatusViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func item() throws -> RoamMapItem {
         .place(try JSONDecoder().decode(RoamPlace.self,
             from: Data(#"{"id":11,"type":2,"name":"Synthetic","found":true,"pendingRedeem":true}"#.utf8)))
@@ -81,6 +82,7 @@ import UIKit
 }
 
 @MainActor final class RoamLiveCoverageViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private let date = Date(timeIntervalSince1970: 1_790_932_200)
     private let key = String(repeating: "a", count: 32)
     private func fixture(record: Bool = false, finishRequested: Bool = false, pending: RoamLivePending? = nil) throws
@@ -182,6 +184,7 @@ import UIKit
 }
 
 @MainActor final class RoamForegroundElapsedViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testKnownZeroAndMinuteBoundariesAreFormattedWithoutDates() {
         let copy = RoamLiveElapsedCopy(locale: Locale(identifier: "en"))
         for (seconds, value) in [(0, "00:00"), (9, "00:09"), (59, "00:59"), (60, "01:00"), (3661, "61:01")] {
@@ -276,6 +279,7 @@ import UIKit
 }
 
 @MainActor final class RoamFinishedMedalsViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private let key = String(repeating: "b", count: 32)
     private func fact(journey: String? = "Returned journey", shop: String? = "Returned shop",
                       complete: Bool = true, sessionID: Int = 12) throws -> RoamSessionFact {
@@ -438,6 +442,7 @@ import UIKit
     }
 }
 @MainActor final class RoamPlaceMemoryViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testLocalLabelsAndProvidedTextMountInBothLanguagesWithLargeText() {
         for (language, title, close) in [("en", "Place memory", "Close place note"), ("zh-Hans", "地点记忆", "关闭地点提示")] {
             let locale = Locale(identifier: language), copy = RoamPlaceMemoryCopy(locale: locale)
@@ -470,6 +475,7 @@ import UIKit
 }
 
 @MainActor final class RoamFinishedStoryViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private let key = String(repeating: "c", count: 32)
     private func fact(_ story: Any? = "Returned reflection", complete: Bool = true,
                       sessionID: Int = 12) throws -> RoamSessionFact {
@@ -583,6 +589,7 @@ import UIKit
 }
 
 @MainActor final class RoamLiveMerchantDescriptionViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testBothLanguagesAndLargeTextShowReadOnlyDescription() {
         let description = "Returned merchant text e\u{301}\nNo generated information"
         for (language, title) in [("en", "About this merchant"), ("zh-Hans", "商家介绍")] {
@@ -628,6 +635,7 @@ import UIKit
     }
 }
 @MainActor final class RoamLiveMerchantDescriptionHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testNormalActiveNearbyHostMountsWithoutAdditionalRequestOrMutation() async throws {
         let date = Date(timeIntervalSince1970: 1_790_932_200)
         let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://merchant-description-ui.example/native/")), accountID: 7)
@@ -648,6 +656,7 @@ import UIKit
 }
 
 @MainActor final class RoamNearbyVisibilityViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testUserToggleReversesOnlyBindingAndUsesBothAccessibleLabels() {
         for (language, hide, show, expandedValue, collapsedValue) in [
             ("en", "Hide nearby cards", "Show nearby cards", "Expanded", "Collapsed"),
@@ -736,6 +745,7 @@ import UIKit
 }
 
 @MainActor final class RoamPauseRouteOverviewViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func point(_ latitude: Double, _ longitude: Double) throws -> RoamHistoryPoint {
         .init(coordinate: try XCTUnwrap(RoamCoordinate(latitude: latitude, longitude: longitude)))
     }
@@ -800,6 +810,7 @@ import UIKit
     func shopBadge() async throws -> RoamShopBadge? { remoteReads += 1; throw APIError.notConfigured }
 }
 @MainActor final class RoamPausedBrowseViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func fixture() async throws -> (RoamLiveSessionController, RoamCoverageUIService, RoamCoverageUILocation, RoamCoverageUIStorage, RoamPausedBrowseTestReader) {
         let date = Date(timeIntervalSince1970: 1_790_932_200)
         let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://paused-browse-ui.example/native")), accountID: 7)
@@ -1053,6 +1064,7 @@ import UIKit
     func release() { hold = false; suspended?.resume(); suspended = nil }
 }
 @MainActor final class RoamReadOnlyAlbumScopeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func reader(account: Int = 7, epoch: UInt64 = 1) throws -> RoamReadOnlyAlbumTestReader {
         let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://readonly-album.example/native/")), accountID: account)
         return .init(.init(scope: scope, epoch: epoch))
@@ -1152,6 +1164,7 @@ import UIKit
 }
 
 @MainActor final class RoamPausedAlbumEntryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func fixture() async throws -> (RoamLiveSessionController, RoamCoverageUIService, RoamCoverageUILocation, RoamCoverageUIStorage, RoamReadOnlyAlbumTestReader) {
         let date = Date(timeIntervalSince1970: 1_790_932_200)
         let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://paused-readonly-album.example/native/")), accountID: 7)
@@ -1258,6 +1271,7 @@ import UIKit
     func finish(sessionID: Int, poiIDs: [Int], distanceMeters: Int) async throws { calls += 1 }
 }
 @MainActor final class RoamFinishedRouteViewTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func fixture(restored: Bool = false) async throws -> (RoamLiveSessionController, FinishedRouteUIService, RoamCoverageUILocation, RoamFinishedMedalsStorage) {
         let date = Date(timeIntervalSince1970: 1_790_932_200)
         let scope = try RoamHistoryScope(market: "cn", deployment: XCTUnwrap(URL(string: "https://finished-route-ui.example/native/")), accountID: 7)

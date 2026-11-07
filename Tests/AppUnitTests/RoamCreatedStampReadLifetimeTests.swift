@@ -6,6 +6,7 @@ import UIKit
 /// Read-only result-page tests. Synthetic confirmed targets use the existing typed contract;
 /// no test performs a create, upload, camera request, network call or real album access.
 @MainActor final class RoamCreatedStampReadLifetimeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testUnmountedIntentCannotReadAndAppearanceFindsOnlyOriginalConfirmedID() async throws {
         let r = try CreatedStampIntentReader(), target = try r.target()
         r.pages[1] = try r.page([8, 29, 31])

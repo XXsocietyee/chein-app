@@ -5,6 +5,7 @@ import Combine
 @testable import Questify
 
 @MainActor final class ClubManagementReviewOwnerTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     @MainActor private final class Access: ClubManagementAccess {
         var identity: ClubReadIdentity? = .init(accountID: 1, epoch: 1)
         let isConfigured = true

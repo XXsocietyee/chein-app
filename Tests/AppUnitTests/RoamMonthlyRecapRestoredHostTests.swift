@@ -6,6 +6,7 @@ import UIKit
 /// Three original lifecycle tests restored unchanged into a separate leaf.
 @MainActor private final class ExportHostState: ObservableObject { @Published var phase: ScenePhase = .active }
 @MainActor final class RoamMonthlyRecapRestoredHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func exportWait(_ message: String, _ condition: () -> Bool) async throws {
         for _ in 0..<100 {
             if condition() { return }
@@ -154,6 +155,7 @@ import UIKit
 /// New tests use the original production History/Passport/Hub consumers and the real scoped reader.
 /// All transport and storage are in-memory. Topic destinations are read-only text probes.
 @MainActor final class RoamMonthlyRecapNaturalEntryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private enum Entry: CaseIterable { case hub, passport, hubHistory, passportHistory }
 
     func testAllOriginalEntriesUseTypedTopicAndExactDetailReturnWithoutWrites() async throws {

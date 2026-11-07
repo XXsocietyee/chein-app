@@ -6,6 +6,7 @@ import UIKit
 /// Sealed test-only responses. Production views and real existing metadata/removal flows are hosted
 /// in an active scene; the test never invokes appearance/disappearance hooks or dispatches a network request.
 @MainActor final class NativeFriendDirectoryNavigationHostingTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private final class Journal: OperationPendingListing {
         var rows: [OperationPendingRecord] = []
         func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? { rows.first { $0.ownerKey == ownerKey && $0.targetKey == targetKey } }

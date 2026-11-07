@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class ActivityPublishingTimeRangeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     @MainActor private final class Harness {
         let owner = ActivityPublishingTimeRangeOwner()
         var account: PublishingSession? = .init(namespace: "activity-range-fixture", accountID: 71, epoch: UUID(), role: "club_owner", region: .china)

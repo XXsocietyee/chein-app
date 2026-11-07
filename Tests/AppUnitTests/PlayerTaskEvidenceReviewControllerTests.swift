@@ -6,6 +6,7 @@ import UIKit
 /// Synthetic transport and captures only. UIHostingController cases are authored,
 /// not substitutes for a future simulator or physical camera acceptance run.
 @MainActor final class PlayerTaskEvidenceReviewControllerTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     @MainActor private final class Harness {
         var session: PlayExperienceSession?
         let transport: EvidenceReviewAppTransport

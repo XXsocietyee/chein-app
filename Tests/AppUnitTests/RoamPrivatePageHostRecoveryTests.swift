@@ -5,6 +5,7 @@ import UIKit
 
 /// Original controls with memory-only tools. No PhotoKit, GPS, export or live operation.
 @MainActor final class RoamPrivatePageHostRecoveryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testQueuedOriginalActionCannotBeginAfterInactiveBackgroundDepartureOrRevocation() async throws {
         for boundary in ["inactive", "background", "leave", "revoke", "identity"] {
             let tools = PrivatePageHostTools(), page = RoamPrivatePageOwner(tools: tools)

@@ -3,6 +3,7 @@ import SwiftUI
 @testable import Questify
 
 @MainActor final class ProfileFavoriteDetailTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testListApprovalCannotOpenDetailAndDetailCannotReadTheList() async throws {
         let h = try ProfileFavoritesHarness(details:false);await h.login();let selected = try await h.selection()
         h.wire.requests = [];let reader = h.session.makeProfileFavoriteDetailReader(selected)

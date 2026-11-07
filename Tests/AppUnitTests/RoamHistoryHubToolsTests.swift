@@ -6,6 +6,7 @@ import UIKit
 /// Exercises the real Hub → History → existing tools NavigationLinks. All storage
 /// and HTTP are new in-memory test doubles; no fixture, remote or writer is changed.
 @MainActor final class RoamHistoryHubToolsTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private let anniversary = "roamSub.w208.history.tool.anniversary"
     private let recap = "roamSub.w208.history.tool.recap"
     private let export = "roamSub.w208.history.tool.export"

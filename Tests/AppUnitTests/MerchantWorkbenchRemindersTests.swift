@@ -6,6 +6,7 @@ import UIKit
 /// Mini-program index.wxml:113-132: aftercare needs canReadAftercare, prediction needs
 /// canManageProjects, both need a loaded positive count and never show while loading.
 @MainActor final class MerchantWorkbenchRemindersTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private func decode<T: Decodable>(_ type: T.Type, _ json: String) throws -> T {
         try JSONDecoder().decode(type, from: Data(json.utf8))
     }

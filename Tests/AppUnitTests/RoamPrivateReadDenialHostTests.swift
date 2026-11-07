@@ -5,6 +5,7 @@ import UIKit
 
 /// Actual private-tool controls with original reader and memory-only HTTP/journal. Never dispatches a writer.
 @MainActor final class RoamPrivateReadDenialHostTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testActualCapsuleContinuation403RemovesRowsAndExplicitRetryReadsFirstPage() async throws {
         let r = try PrivateReadDenialRig(), state = PrivateDenialHostState(reader: r.reader)
         let window = mount(state, destination: "capsule"); defer { close(window) }

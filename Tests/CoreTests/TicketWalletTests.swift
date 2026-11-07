@@ -25,7 +25,8 @@ private actor TicketWalletSuspendedTransport: HTTPTransport {
         return try await withCheckedThrowingContinuation { pending[index] = $0 }
     }
     func waitForRequests(_ count: Int) async {
-        while pending.count < count { await Task.yield() }
+        let deadline = ContinuousClock.now + .seconds(5)
+        while pending.count < count, ContinuousClock.now < deadline { await Task.yield() }
     }
     func finishAll(_ json: String, status: Int = 200) {
         let values = Array(pending.values); pending.removeAll()

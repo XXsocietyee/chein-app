@@ -5,6 +5,7 @@ import UIKit
 
 /// The original list model/detail, new memory readers, no action provider or real service.
 @MainActor final class RoamOfficialTasksLifetimeTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private let live = OfficialEventBrowseQuery(bucket: .live, keyword: "")
     func testUnshownAndBackgroundListCannotStartEitherOriginalRead() async throws {
         let r = OfficialTaskLifetimeRig()

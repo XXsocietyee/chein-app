@@ -6,6 +6,7 @@ import Combine
 
 #if DEBUG
 @MainActor final class CoopRelationPresentationOwnerTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private final class Probe {
         var parentCovered = false
         var childVisible = false

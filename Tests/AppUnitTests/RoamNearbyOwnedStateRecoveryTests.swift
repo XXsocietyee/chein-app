@@ -6,6 +6,7 @@ import UIKit
 /// Separate original /my and nearby/application reads, all in memory. Production grants, writers,
 /// fixtures and journals are unchanged. Hosted tests use original NearbyTeamsView and TeamDetailView.
 @MainActor final class RoamNearbyOwnedStateRecoveryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testPrivateReadFailureDoesNotBlockIndependentOriginalNearbyRead() async throws {
         let rig = try NearbyOwnedStateRig(); rig.ownedService.failure = TeamFailure.unavailable
         await rig.loadOwned(); await rig.nearby.loadNearby(NearbyTeamSyntheticFixtures.context)

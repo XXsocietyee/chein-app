@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class RoamAlbumMetadataReadAccessTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private let base=URL(string:"https://album.example/native")!
     private func root(_ wire: Wire, _ grants: Grants? = nil) throws -> AppCompositionRoot {
         let suite="roam-album-read-"+UUID().uuidString, vault=Vault()

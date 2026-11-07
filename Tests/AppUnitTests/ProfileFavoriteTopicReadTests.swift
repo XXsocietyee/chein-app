@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class ProfileFavoriteTopicReadTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testListSelectionNeedsSuccessfulCurrentLoadedIDAndScope() async throws {
         let h=try Harness();await h.login();let lists=h.session.profileFavoritesReader
         XCTAssertNil(lists.selectTopic(201,renderedScope:lists.scope))

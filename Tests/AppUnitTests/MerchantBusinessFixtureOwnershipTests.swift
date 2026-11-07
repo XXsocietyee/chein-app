@@ -5,6 +5,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class MerchantBusinessFixtureOwnershipTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     @MainActor private final class RebuildSignal: ObservableObject {
         @Published var revision = 0
     }

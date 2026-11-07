@@ -6,6 +6,7 @@ import UIKit
 /// Authored, NOT_RUN without an approved Apple toolchain. Real navigation/lifecycle with sealed data;
 /// controlled scene/authority changes are not device background or live account certification.
 @MainActor final class NativeBlacklistEntryHostingTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private final class Journal: OperationPendingListing {
         var rows: [OperationPendingRecord] = []
         func pending(ownerKey: String, targetKey: String) throws -> OperationPendingRecord? {

@@ -4,6 +4,22 @@ import SwiftUI
 import UIKit
 @testable import Questify
 
+/// Hosted tests locate original SwiftUI controls by `accessibilityIdentifier` through
+/// `UIAccessibilityIdentification`. On this runtime SwiftUI's accessibility node class answers the
+/// identifier selector but is not declared as conforming, so the typed lookup never matches it.
+/// Declaring the conformance on that runtime class changes only how tests read the identifier.
+enum HostedAccessibilityRuntime {
+    private static let declared: Bool = {
+        guard let identification = objc_getProtocol("UIAccessibilityIdentification") else { return false }
+        for name in ["SwiftUI.AccessibilityNode", "AccessibilityNode"] {
+            guard let cls = NSClassFromString(name), !class_conformsToProtocol(cls, identification) else { continue }
+            class_addProtocol(cls, identification)
+        }
+        return true
+    }()
+    static func enable() { _ = declared }
+}
+
 /// Own a real foreground scene for hosted SwiftUI navigation so the fixture takes
 /// part in the app's scene lifecycle, rather than mounting isolated frame-only content.
 /// This helper never calls appearance callbacks or changes animation behavior.
@@ -13,6 +29,7 @@ import UIKit
     private weak var previousKeyWindow: UIWindow?
 
     init() throws {
+        HostedAccessibilityRuntime.enable()
         let activeScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
             .filter { $0.activationState == .foregroundActive }
         let selected = try XCTUnwrap(activeScenes.count == 1 ? activeScenes.first : nil,

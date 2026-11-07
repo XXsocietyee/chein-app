@@ -3,6 +3,7 @@ import SwiftUI
 @testable import Questify
 
 @MainActor final class ProfileIdentityShareFlowTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private final class Reader: SocialAccountReading {
         var identity = SocialAccountIdentity(accountID: 7, epoch: 1, role: "player")
         var presentationRevision: UInt64 = 0

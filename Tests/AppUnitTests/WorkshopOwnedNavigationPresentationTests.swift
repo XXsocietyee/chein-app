@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class WorkshopOwnedNavigationPresentationTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private final class Recorder: HTTPTransport {
         var paths: [String] = []
         var unauthorized = false

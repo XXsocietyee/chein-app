@@ -5,6 +5,7 @@ import UIKit
 
 /// Original local history -> Passport -> History -> Back. No remote service, transport or writer.
 @MainActor final class RoamPassportHomeScopeRecoveryTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     func testLocalHistoryRemainsReadableWithoutRemoteConfiguration() async throws {
         let rig = try PassportScopeRig(); try rig.seed(3)
         let window = mount(rig); defer { close(window) }

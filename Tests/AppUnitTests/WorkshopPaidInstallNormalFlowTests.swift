@@ -4,6 +4,7 @@ import UIKit
 @testable import Questify
 
 @MainActor final class WorkshopPaidInstallNormalFlowTests: XCTestCase {
+    override class func setUp() { super.setUp(); HostedAccessibilityRuntime.enable() }
     private static func item()throws->WorkshopPurchasedItem{try JSONDecoder().decode(WorkshopPurchasedItem.self,from:JSONSerialization.data(withJSONObject:WorkshopPurchasedAppFixture.item))}
     private static let target:[String:Any]=["targetDraftId":91,"targetRevision":1,"businessType":"TOPIC","targetPayloadHash":String(repeating:"c",count:64),"mode":"UNRESOLVED","destinationKind":"W18_PRIVATE_COMPONENT_ONLY"]
     @MainActor private final class Vault:AppTokenStorage{var token:String?;func read()throws->String?{token};func write(_ value:String)throws{token=value};func clear()throws{token=nil}}
