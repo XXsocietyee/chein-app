@@ -23,7 +23,7 @@ public struct DirectoryMessagePreview: Equatable, Sendable {
 }
 
 /// Viewer-scoped read/notification state for a club channel (`my_state`).
-public struct DirectoryMyState: Equatable, Sendable {
+public struct ChannelDirectoryMyState: Equatable, Sendable {
     public let lastReadMessageID: Int64?
     public let lastReadAt: String?
     /// `0` = all messages, `1` = mentions only, `2` = muted.
@@ -73,7 +73,7 @@ public struct ChannelDirectoryEntry: Equatable, Sendable, Identifiable {
     public let visibility: Int
     public let position: Int
     public let archivedAt: String?
-    public let myState: DirectoryMyState?
+    public let myState: ChannelDirectoryMyState?
     public let lastMessagePreview: DirectoryMessagePreview?
 
     public init(
@@ -85,7 +85,7 @@ public struct ChannelDirectoryEntry: Equatable, Sendable, Identifiable {
         visibility: Int,
         position: Int,
         archivedAt: String? = nil,
-        myState: DirectoryMyState? = nil,
+        myState: ChannelDirectoryMyState? = nil,
         lastMessagePreview: DirectoryMessagePreview? = nil
     ) {
         self.id = id

@@ -259,7 +259,7 @@ final class ChannelDiscordMessagingTests: XCTestCase {
                     kind: 2,
                     visibility: 0,
                     position: 1,
-                    myState: DirectoryMyState(
+                    myState: ChannelDirectoryMyState(
                         lastReadMessageID: 10,
                         lastReadAt: nil,
                         notifyPref: 0,
@@ -275,7 +275,7 @@ final class ChannelDiscordMessagingTests: XCTestCase {
                     kind: 1,
                     visibility: 0,
                     position: 1,
-                    myState: DirectoryMyState(
+                    myState: ChannelDirectoryMyState(
                         lastReadMessageID: 20,
                         lastReadAt: nil,
                         notifyPref: 2, // muted
@@ -291,7 +291,7 @@ final class ChannelDiscordMessagingTests: XCTestCase {
                     kind: 1,
                     visibility: 0,
                     position: 2,
-                    myState: DirectoryMyState(
+                    myState: ChannelDirectoryMyState(
                         lastReadMessageID: 30,
                         lastReadAt: nil,
                         notifyPref: 0,
@@ -307,7 +307,7 @@ final class ChannelDiscordMessagingTests: XCTestCase {
                     kind: 1,
                     visibility: 0,
                     position: 3,
-                    myState: DirectoryMyState(
+                    myState: ChannelDirectoryMyState(
                         lastReadMessageID: nil,
                         lastReadAt: nil,
                         notifyPref: 0,
