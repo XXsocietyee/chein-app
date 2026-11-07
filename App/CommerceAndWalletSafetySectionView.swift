@@ -189,6 +189,19 @@ public struct CommerceAndWalletSafetySectionView: View {
                 }
             }
             .accessibilityIdentifier("commerceWalletSafety.pillarList")
+
+            VStack(alignment: .leading, spacing: 4) {
+                ForEach(W7MeWalletParityCatalog.surfaces) { surface in
+                    HStack {
+                        Text(verbatim: surface.titleEn)
+                            .font(.caption.weight(.medium))
+                        Spacer()
+                        Text(verbatim: surface.isFlaggedOffByPolicy ? "FLAGGED-OFF" : "PARITY-READY")
+                            .font(.caption2.monospaced())
+                    }
+                }
+            }
+            .accessibilityIdentifier("commerceWalletSafety.w7Surfaces")
         }
         .padding(12)
         .background(Color.secondary.opacity(0.08))

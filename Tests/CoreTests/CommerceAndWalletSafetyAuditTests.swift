@@ -202,4 +202,19 @@ final class CommerceAndWalletSafetyAuditTests: XCTestCase {
         XCTAssertTrue(report.violations.contains(.appendOnlyRewardLedgerViolation(entryID: "rw-cash-illegal")))
         XCTAssertTrue(report.violations.contains(.cashRedemptionOrTransferViolation(entryID: "rw-cash-illegal")))
     }
+
+    func testW7MeWalletParityCatalogCoversAllCategoriesAndKeepsBankWithdrawalFlaggedOff() {
+        let surfaces = W7MeWalletParityCatalog.surfaces
+        XCTAssertEqual(surfaces.count, 10)
+        XCTAssertEqual(
+            Set(surfaces.map(\.category)),
+            Set(W7MeWalletSurfaceCategory.allCases)
+        )
+        let flaggedOff = surfaces.filter(\.isFlaggedOffByPolicy)
+        XCTAssertEqual(flaggedOff.map(\.id), ["bank-withdrawal-flagged-off"])
+        for surface in surfaces {
+            XCTAssertFalse(surface.localizedTitle(isEnglish: true).isEmpty)
+            XCTAssertFalse(surface.localizedTitle(isEnglish: false).isEmpty)
+        }
+    }
 }

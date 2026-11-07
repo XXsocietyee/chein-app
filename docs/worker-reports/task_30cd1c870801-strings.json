@@ -1,0 +1,6 @@
+{
+  "task_id": "task_30cd1c870801",
+  "owner_track": "W7 me/wallet",
+  "notes": "All user-visible strings use existing bilingual catalog keys in Resources/Localizable.xcstrings (13,462 translated en + zh-Hans keys) or explicit locale-aware Text(verbatim:) bilingual selection.",
+  "strings": []
+}

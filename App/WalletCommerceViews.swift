@@ -181,6 +181,17 @@ extension WalletScreen where Value == WithdrawalBalance {
                     if !value.amountsKnown {
                         Text("wallet.amountsUnknown").accessibilityIdentifier("wallet.assets.unknown")
                     } else {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Text(verbatim: locale.language.languageCode?.identifier == "en" ? "AVAILABLE BALANCE" : "可提现/可用余额")
+                                .font(CYTypography.caption.weight(.semibold))
+                                .foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
+                                .font(CYTypography.data2XL)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .privacySensitive()
+                        }
+                        .padding(.vertical, CYSpacing.xs)
+                        .accessibilityIdentifier("wallet.assets.revolutCard")
                         if value.pendingSettlement.value > 0 { LabeledContent("wallet.pendingSettlement", value: format.amount(value.pendingSettlement, currency: value.currency)) }
                         ForEach(Array(value.complaintPeriod.enumerated()), id: \.offset) { _, item in
                             LabeledContent { Text(format.amount(item.amount, currency: value.currency)) } label: {
@@ -242,17 +253,31 @@ extension WalletScreen where Value == WithdrawalBalance {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     Text(LocalizedStringKey(income ? "wallet.income.empty" : "wallet.empty")).accessibilityIdentifier("wallet.ledger.empty")
                 }
-                ForEach(filtered) { row in
-                    if income {
-                        Button {
-                            incomeDetail = model.pager.incomeDetail(rowID: row.id, reader: reader)
-                        } label: {
-                            HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
-                                .contentShape(Rectangle()).frame(minHeight: 44)
-                        }
+                ForEach(WalletIncomeDay.group(filtered)) { group in
+                    Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
+                        .font(CYTypography.caption.weight(.semibold))
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("wallet.ledger.dateGroup.\(group.id)")
+                    ForEach(group.rows) { row in
+                        if income {
+                            Button {
+                                incomeDetail = model.pager.incomeDetail(rowID: row.id, reader: reader)
+                            } label: {
+                                HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
+                                    .contentShape(Rectangle()).frame(minHeight: 44)
+                            }
+                                .buttonStyle(.plain)
+                                .accessibilityIdentifier("wallet.income.detail.open.\(row.id)")
+                        } else {
+                            Button {
+                                incomeDetail = model.pager.ledgerTransactionDetail(rowID: row.id, reader: reader)
+                            } label: {
+                                HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
+                                    .contentShape(Rectangle()).frame(minHeight: 44)
+                            }
                             .buttonStyle(.plain)
-                            .accessibilityIdentifier("wallet.income.detail.open.\(row.id)")
-                    } else { ledgerRow(row) }
+                        }
+                    }
                 }
             }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
@@ -273,8 +298,22 @@ extension WalletScreen where Value == WithdrawalBalance {
             .sheet(item: $incomeDetail) { selection in
                 NavigationStack {
                     List {
-                        if let row = model.pager.incomeDetailRow(selection, reader: reader) {
+                        if let row = (income ? model.pager.incomeDetailRow(selection, reader: reader) : model.pager.ledgerTransactionDetailRow(selection, reader: reader)) {
                             Section { ledgerRow(row) }
+                            Section {
+                                LabeledContent {
+                                    Text(verbatim: "#\(row.id)")
+                                } label: {
+                                    Text(verbatim: locale.language.languageCode?.identifier == "en" ? "Reference ID" : "流水编号")
+                                }
+                                if let createTime = row.createTime, !createTime.isEmpty {
+                                    LabeledContent {
+                                        Text(verbatim: createTime)
+                                    } label: {
+                                        Text(verbatim: locale.language.languageCode?.identifier == "en" ? "Timestamp" : "记录时间")
+                                    }
+                                }
+                            }
                         } else {
                             Text(LocalizedStringKey(reader.scope == nil ? "wallet.login" : "wallet.failed"))
                                 .accessibilityIdentifier("wallet.income.detail.retired")
