@@ -231,3 +231,44 @@ public struct MerchantBusinessReceipt: Equatable {
         return row
     }
 }
+
+// MARK: - Merchant write wire allowlist (appended; no new project file)
+
+/// Exact merchant write routes the composition root may admit on a dedicated, allowlisted
+/// wire profile. Nothing here sends a request: it is the single reviewable list that a
+/// transport profile and the approval grants are derived from. Every route is POST-only,
+/// has no query string and no wildcard; reads keep using the read-route firewall.
+public enum MerchantWriteGroup: String, CaseIterable, Equatable {
+    case onboarding, storeOperations, storeCharacter, engagement, team, reviews, aftercare, uploads
+}
+
+public enum MerchantWriteRoute {
+    public static let routes: [MerchantWriteGroup: Set<String>] = [
+        .onboarding: ["api/merchant/merchant_registration"],
+        .storeOperations: ["api/merchant/update", "api/merchant/decor/save", "api/merchant/coop-profile/save",
+                           "api/merchant/business-status/update", "api/merchant/city-node/template/submit"],
+        .storeCharacter: ["api/merchant/npc/save", "api/merchant/npc/voice/enroll", "api/merchant/npc/voice/revoke",
+                          "api/merchant/npc/avatar/generate"],
+        .engagement: ["api/merchant/crm/segments", "api/merchant/crm/campaigns", "api/merchant/crm/broadcast",
+                      "api/merchant/crm/exports", "api/merchant/crm/customers/tags/batch"],
+        .team: ["api/merchant/operators/invite", "api/merchant/operators/role", "api/merchant/operators/remove",
+                "api/merchant/operators/invite/revoke", "api/merchant/operators/invite/accept"],
+        .reviews: ["api/merchant/reviews/create", "api/merchant/reviews/report"],
+        .aftercare: ["api/merchant/aftercare/respond"],
+        .uploads: ["api/common/uploadOSS"]
+    ]
+
+    public static var all: Set<String> { routes.values.reduce(into: Set<String>()) { $0.formUnion($1) } }
+
+    /// Group a route belongs to; nil when the route is not an admitted merchant write.
+    public static func group(of relative: String) -> MerchantWriteGroup? {
+        MerchantWriteGroup.allCases.first { routes[$0]?.contains(relative) == true }
+    }
+
+    /// Single predicate a transport profile calls: POST, exact path, no query, and the
+    /// caller's granted groups include the route's group.
+    public static func accepts(method: String, relative: String, hasQuery: Bool, granted: Set<MerchantWriteGroup>) -> Bool {
+        guard method == "POST", !hasQuery, let group = group(of: relative) else { return false }
+        return granted.contains(group)
+    }
+}
