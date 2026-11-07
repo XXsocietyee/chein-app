@@ -73,6 +73,7 @@ import SwiftUI
                         // Source official-mine row: title + publisher-view status badge, then city.
                         NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { publishedEventRow(event) }
                             .accessibilityIdentifier("official.published.event.\(event.id)")
+                        OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                     }
                 } header: { Text("official.published.eventsHeader \(events.count)") }
                 Section {

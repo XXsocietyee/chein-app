@@ -64,6 +64,7 @@ enum OfficialDetailID {
             let namesVisit = visit
             List {
                 OfficialEventCard(event: event).questifyCardListRow()
+                OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                 HStack(spacing: 8) {
                     Text(LocalizedStringKey(presentation.categoryKey)).font(.caption.weight(.semibold)).foregroundStyle(.tint)
                     Text("official.detailParity.organizer").font(.subheadline).foregroundStyle(.secondary)
