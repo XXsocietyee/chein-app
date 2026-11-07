@@ -11,6 +11,13 @@ public enum ActivityHostCancelRules {
         let r = trimmedReason(reason)
         return !r.isEmpty && r.count <= reasonLimit && (paidPlayers ?? -1) >= 0
     }
+    /// `noticeCancelled`: the mini-program shows the server's `msg` (which carries the "N orders contain verified
+    /// tickets and cannot be refunded automatically" warning) in an acknowledge-only modal. Returns that text, or nil
+    /// when the server sent none so the caller shows its own default copy.
+    public static func completionNotice(serverMessage: String?) -> String? {
+        guard let text = serverMessage?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return nil }
+        return text
+    }
     /// Mini-program `isOwner`: the activity's member id equals the signed-in user id.
     public static func isHost(hostMemberID: Int?, accountID: Int?) -> Bool {
         guard let hostMemberID, let accountID, hostMemberID > 0 else { return false }
@@ -25,6 +32,9 @@ public enum ActivityHostCancelPreview: Equatable {
     case unknownCount
 }
 public enum ActivityHostCancelOutcome: Equatable { case cancelled(String?), rejected(String?) }
+/// `scope` request field of `/api/activity/cancel_preview` and `/api/activity/cancel`. The merchant host flow
+/// (`subpackageA/pages/myproject`) sends `'MERCHANT'`; the club-host flow (`scene-play-activity-detail`) sends no scope.
+public enum ActivityHostCancelScope: String, Equatable { case merchant = "MERCHANT" }
 public enum ActivityHostCancelFailure: Error, Equatable { case disabled, invalid, network, unauthorized }
 
 @MainActor public protocol ActivityHostCancelAccess: AnyObject {
@@ -39,6 +49,8 @@ public enum ActivityHostCancelFailure: Error, Equatable { case disabled, invalid
     private let transport: any HTTPTransport
     private let session: @MainActor () -> (accountID: Int, token: String)?
     private let isEnabled: @MainActor () -> Bool
+    /// Opt-in merchant scope. nil (default) = club-host flow, no `scope` field, exactly like `scene-play-activity-detail`.
+    public var operationScope: ActivityHostCancelScope?
     public var enabled: Bool { isEnabled() }
     public var accountID: Int? { session()?.accountID }
     public init(configuration: APIConfiguration, transport: any HTTPTransport, enabled: @escaping @MainActor () -> Bool,
@@ -47,6 +59,8 @@ public enum ActivityHostCancelFailure: Error, Equatable { case disabled, invalid
     }
     private func post(_ path: String, _ body: [String: Any]) async throws -> (code: Int, msg: String?, data: Any?) {
         guard enabled else { throw ActivityHostCancelFailure.disabled }
+        var body = body
+        if let operationScope { body["scope"] = operationScope.rawValue }
         guard let token = session()?.token, AuthRequestBuilder.isValidToken(token) else { throw ActivityHostCancelFailure.unauthorized }
         var r = URLRequest(url: configuration.baseURL.appendingPathComponent(path))
         r.httpMethod = "POST"; r.timeoutInterval = 20; r.cachePolicy = .reloadIgnoringLocalCacheData

@@ -239,6 +239,8 @@ public enum MoneyRefundPayout {
 
 /// Port of `RefundPolicy.evaluate` (Java `chengyinhub-system/.../util/RefundPolicy.java`), activity-session and ticket-mode paths.
 public enum MoneyRefundPolicy {
+    /// Java `PurchaseKind.EXPLORE_PASS`.
+    public static let explorePassPurchaseKind = 3
     /// 集合前 24 小时.
     public static let sessionRefundWindowMs: Int64 = 24 * 3_600_000
 
@@ -256,9 +258,15 @@ public enum MoneyRefundPolicy {
     /// ownerType 2 = activity session ticket; otherwise ticketMode 2 = free exploration (ticket end), else ticket start.
     public static func evaluate(ownerType: Int?, paymentStatus: Int?, verificationStatus: Int?, ticketMode: Int?,
                                 ticketStartMs: Int64?, ticketEndMs: Int64?, activityStartMs: Int64?,
-                                snapshotDeadlineMs: Int64?, payableMinor: Int64?, pointUsed: Int64?, nowMs: Int64?) -> Verdict {
+                                snapshotDeadlineMs: Int64?, payableMinor: Int64?, pointUsed: Int64?, nowMs: Int64?,
+                                purchaseKind: Int? = nil) -> Verdict {
         guard paymentStatus == 2 else { return Verdict(refundable: false, deadlineMs: nil, manualReview: false, reason: "未支付订单无需退款") }
+        // RefundPolicy.verifiedVerdict: a verified free-exploration pass (PurchaseKind.EXPLORE_PASS) goes to manual
+        // review; every other kind (and legacy orders with purchaseKind == nil) is a hard refusal.
         if verificationStatus == 1 {
+            if purchaseKind == explorePassPurchaseKind {
+                return Verdict(refundable: false, deadlineMs: nil, manualReview: true, reason: "已核销订单需人工核实,请联系客服")
+            }
             return Verdict(refundable: false, deadlineMs: nil, manualReview: false, reason: "已核销报名不可退款")
         }
         if ownerType == 2, payableMinor == 0, pointUsed == 0 {
@@ -388,5 +396,63 @@ public enum MoneyHostCancelParity {
             return Int(d)
         }
         return nil
+    }
+}
+
+/// Opt-in adapters so callers can move to the fen-exact money rules without a flag day. Nothing calls them yet:
+/// `RegistrationCoreLoopRules.computeOrderPrice` stays the live path until the owner decides on coupon deduction
+/// (`ActivityRegistrationParityW206Tests` pins it). Compile-time shapes mirror the legacy `Decimal`-yuan API.
+public enum MoneyPricingAdapter {
+    public struct Output: Equatable {
+        /// Same shape as the legacy result; `couponDeductYuan` is always 0 (the backend never deducts coupons).
+        public let price: RegistrationCoreLoopRules.ComputedOrderPrice
+        /// Fen-exact breakdown including `paymentType` and the points/wechat split.
+        public let breakdown: MoneyPricing.Breakdown
+    }
+
+    static func fen(_ yuan: Decimal) -> Int64 {
+        var input = yuan * 100
+        var rounded = Decimal()
+        NSDecimalRound(&rounded, &input, 0, .plain)
+        return NSDecimalNumber(decimal: rounded).int64Value
+    }
+
+    static func yuan(_ fen: Int64) -> Decimal { Decimal(fen) / 100 }
+
+    /// `pointDeductRate` is yuan per point (backend default 0.02). `maxPointsDeductPerOrderYuan` caps once per order.
+    /// Non-positive rate/cap fall back to the backend defaults inside `MoneyPricing.compute`.
+    public static func compute(unitPrice: Decimal, quantity: Int = 1, memberUnitPrice: Decimal? = nil,
+                               usePoints: Bool = false, pointsUsableForProduct: Bool = true, userAvailablePoints: Int = 0,
+                               pointDeductRate: Decimal = Decimal(string: "0.02")!,
+                               maxPointsDeductPerOrderYuan: Decimal = 50) -> Output {
+        var scaledRate = pointDeductRate * 1_000_000
+        var rateRounded = Decimal()
+        NSDecimalRound(&rateRounded, &scaledRate, 0, .plain)
+        let b = MoneyPricing.compute(
+            unitMinor: fen(unitPrice), memberUnitMinor: memberUnitPrice.map(fen), quantity: quantity,
+            userPoints: Int64(max(0, userAvailablePoints)), usePoints: usePoints && pointsUsableForProduct,
+            rateMicroYuan: NSDecimalNumber(decimal: rateRounded).int64Value,
+            maxPerOrderMinor: fen(maxPointsDeductPerOrderYuan))
+        let price = RegistrationCoreLoopRules.ComputedOrderPrice(
+            orderTotalYuan: yuan(b.originalMinor), memberDiscountYuan: yuan(b.memberDiscountMinor),
+            couponDeductYuan: 0, pointsDeductYuan: yuan(b.pointDeductMinor), pointsUsed: Int(b.pointUsed),
+            payAmount: yuan(b.payableMinor))
+        return Output(price: price, breakdown: b)
+    }
+}
+
+/// Date-based entry to `MoneyRefundPolicy.evaluate` (the rule itself takes epoch ms).
+public enum MoneyRefundPolicyAdapter {
+    static func ms(_ date: Date?) -> Int64? { date.map { Int64(($0.timeIntervalSince1970 * 1000).rounded(.down)) } }
+
+    public static func evaluate(ownerType: Int?, paymentStatus: Int?, verificationStatus: Int?, ticketMode: Int?,
+                                purchaseKind: Int?, ticketStart: Date?, ticketEnd: Date?, activityStart: Date?,
+                                snapshotDeadline: Date?, payableMinor: Int64?, pointUsed: Int64?,
+                                now: Date?) -> MoneyRefundPolicy.Verdict {
+        MoneyRefundPolicy.evaluate(
+            ownerType: ownerType, paymentStatus: paymentStatus, verificationStatus: verificationStatus,
+            ticketMode: ticketMode, ticketStartMs: ms(ticketStart), ticketEndMs: ms(ticketEnd),
+            activityStartMs: ms(activityStart), snapshotDeadlineMs: ms(snapshotDeadline), payableMinor: payableMinor,
+            pointUsed: pointUsed, nowMs: ms(now), purchaseKind: purchaseKind)
     }
 }
