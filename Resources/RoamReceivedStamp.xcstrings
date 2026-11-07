@@ -224,6 +224,54 @@
           }
         }
       }
+    },
+    "roam.receivedMetadata.record": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收到的邮票记录"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Received stamp record"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.refresh": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新收到的章"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh received stamps"
+          }
+        }
+      }
+    },
+    "roam.receivedMetadata.more": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "加载更多收到的章"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load more received stamps"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

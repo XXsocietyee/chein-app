@@ -179,7 +179,7 @@ ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
 localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
-localizable_ui=re.sub(r'(?:systemImage|systemName):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
+localizable_ui=re.sub(r'(?:systemImage|systemName|symbol):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 # These four values are explicit nonlocalized identifiers at these exact calls.
 # Do not exclude the same strings when used by Text or localization lookup.
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")', '')

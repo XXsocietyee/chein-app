@@ -52,7 +52,7 @@ import Observation
             } else {
                 Image(systemName: "person.crop.circle").font(.system(size: 64))
                     .accessibilityHidden(true)
-                Text(LocalizedStringKey(model.savedAvatarReadSnapshot?.avatar.isEmpty == true ? "profile.currentAvatar.empty" : "profile.currentAvatar.unavailable"), tableName: "ProfileCurrentMediaUI")
+                (model.savedAvatarReadSnapshot?.avatar.isEmpty == true ? Text("profile.currentAvatar.empty", tableName: "ProfileCurrentMediaUI") : Text("profile.currentAvatar.unavailable", tableName: "ProfileCurrentMediaUI"))
                     .font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("profile.avatar.current.unavailable")
             }

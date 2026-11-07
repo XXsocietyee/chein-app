@@ -9,21 +9,22 @@ import UIKit
     let service: ClubProfileMediaService?
     @ObservedObject var flow: ClubProfileMediaFlow
     let enabled: Bool
+    @Environment(\.locale) private var locale
     @State private var showing = false
     var body: some View {
-        Section(String(localized: "media.title", table: "ClubProfileMedia")) {
+        Section(String(localized: LocalizedStringResource("media.title", table: "ClubProfileMedia", locale: locale))) {
             ForEach(ClubProfileMediaField.allCases, id: \.rawValue) { field in
-                Button(field == .logo ? String(localized: "media.selectLogo", table: "ClubProfileMedia") : String(localized: "media.selectCover", table: "ClubProfileMedia")) {
+                Button(field == .logo ? String(localized: LocalizedStringResource("media.selectLogo", table: "ClubProfileMedia", locale: locale)) : String(localized: LocalizedStringResource("media.selectCover", table: "ClubProfileMedia", locale: locale))) {
                     guard enabled, let identity, let service else { return }
                     showing = flow.open(field: field, snapshot: snapshot, identity: identity, service: service)
                 }.disabled(!enabled || service == nil || flow.state == .uploading)
                     .accessibilityIdentifier("club.profile.media." + field.rawValue)
                 if (field == .logo ? draft.logoUpload : draft.coverUpload) != nil {
-                    Text(String(localized: "media.staged", table: "ClubProfileMedia"))
-                    Button(String(localized: "media.discard", table: "ClubProfileMedia"), role: .destructive) { draft.discardMedia(field, original: snapshot.profile) }.disabled(!enabled)
+                    Text(String(localized: LocalizedStringResource("media.staged", table: "ClubProfileMedia", locale: locale)))
+                    Button(String(localized: LocalizedStringResource("media.discard", table: "ClubProfileMedia", locale: locale)), role: .destructive) { draft.discardMedia(field, original: snapshot.profile) }.disabled(!enabled)
                 }
             }
-            if service == nil { Text(String(localized: "media.disabled", table: "ClubProfileMedia")).font(.footnote) }
+            if service == nil { Text(String(localized: LocalizedStringResource("media.disabled", table: "ClubProfileMedia", locale: locale))).font(.footnote) }
         }
         .sheet(isPresented: $showing, onDismiss: { flow.closeSelection() }) {
             NavigationStack { ClubProfileMediaEditor(flow: flow, apply: { receipt in
@@ -38,6 +39,7 @@ import UIKit
     @ObservedObject var flow: ClubProfileMediaFlow
     let apply: (ClubProfileMediaReceipt) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @State private var item: PhotosPickerItem?
     @State private var crop: MerchantImageCropDraft?
@@ -56,34 +58,34 @@ import UIKit
             } else {
                 if let preview = flow.preview, let image = UIImage(data: preview.jpeg) {
                     Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
-                    Text(String(localized: "media.uploadHint", table: "ClubProfileMedia"))
-                    Button(String(localized: "media.upload", table: "ClubProfileMedia")) { flow.upload(consume: apply) }.disabled(!canSelect)
+                    Text(String(localized: LocalizedStringResource("media.uploadHint", table: "ClubProfileMedia", locale: locale)))
+                    Button(String(localized: LocalizedStringResource("media.upload", table: "ClubProfileMedia", locale: locale))) { flow.upload(consume: apply) }.disabled(!canSelect)
                 } else if let asset = flow.pendingAsset, let scope = flow.scope, let service = flow.service {
-                    Text(verbatim: String(format: String(localized: "media.asset", table: "ClubProfileMedia"), String(asset), flow.reviewState ?? String(localized: "media.pending", table: "ClubProfileMedia")))
-                    Button(String(localized: "media.readReview", table: "ClubProfileMedia")) { flow.checkReview(retry: false, consume: apply) }
+                    Text(verbatim: String(format: String(localized: LocalizedStringResource("media.asset", table: "ClubProfileMedia", locale: locale)), String(asset), flow.reviewState ?? String(localized: LocalizedStringResource("media.pending", table: "ClubProfileMedia", locale: locale))))
+                    Button(String(localized: LocalizedStringResource("media.readReview", table: "ClubProfileMedia", locale: locale))) { flow.checkReview(retry: false, consume: apply) }
                         .disabled(flow.state == .uploading || !service.permitsReview(scope, retry: false))
                     if ["REJECTED", "UNAVAILABLE"].contains(flow.reviewState ?? "") {
-                        Button(String(localized: "media.retryReview", table: "ClubProfileMedia")) { flow.checkReview(retry: true, consume: apply) }
+                        Button(String(localized: LocalizedStringResource("media.retryReview", table: "ClubProfileMedia", locale: locale))) { flow.checkReview(retry: true, consume: apply) }
                             .disabled(flow.state == .uploading || !service.permitsReview(scope, retry: true))
                     }
-                    Text(String(localized: "media.reviewHint", table: "ClubProfileMedia"))
+                    Text(String(localized: LocalizedStringResource("media.reviewHint", table: "ClubProfileMedia", locale: locale)))
                 } else if let scope = flow.scope, let service = flow.service {
-                    PhotosPicker(selection: $item, matching: .images) { Label(String(localized: "media.album", table: "ClubProfileMedia"), systemImage: "photo") }
+                    PhotosPicker(selection: $item, matching: .images) { Label(String(localized: LocalizedStringResource("media.album", table: "ClubProfileMedia", locale: locale)), systemImage: "photo") }
                         .disabled(!canSelect || !service.permitsAlbum(scope))
-                    Button(String(localized: "media.camera", table: "ClubProfileMedia")) { guard canSelect, service.permitsCamera(scope) else { return }; camera = true }
+                    Button(String(localized: LocalizedStringResource("media.camera", table: "ClubProfileMedia", locale: locale))) { guard canSelect, service.permitsCamera(scope) else { return }; camera = true }
                         .disabled(!canSelect || !service.permitsCamera(scope) || !UIImagePickerController.isSourceTypeAvailable(.camera))
                 }
                 if loading || flow.state == .uploading { ProgressView() }
-                if flow.state == .unknown { Text(String(localized: "media.unknown", table: "ClubProfileMedia")) }
-                if flow.state == .revoked { Text(String(localized: "media.revoked", table: "ClubProfileMedia")) }
-                if flow.state == .notSent { Text(String(localized: "media.notSent", table: "ClubProfileMedia")) }
-                if flow.state == .rejected { Text(String(localized: "media.rejected", table: "ClubProfileMedia")) }
-                if flow.state == .uploaded { Text(String(localized: "media.uploaded", table: "ClubProfileMedia")) }
+                if flow.state == .unknown { Text(String(localized: LocalizedStringResource("media.unknown", table: "ClubProfileMedia", locale: locale))) }
+                if flow.state == .revoked { Text(String(localized: LocalizedStringResource("media.revoked", table: "ClubProfileMedia", locale: locale))) }
+                if flow.state == .notSent { Text(String(localized: LocalizedStringResource("media.notSent", table: "ClubProfileMedia", locale: locale))) }
+                if flow.state == .rejected { Text(String(localized: LocalizedStringResource("media.rejected", table: "ClubProfileMedia", locale: locale))) }
+                if flow.state == .uploaded { Text(String(localized: LocalizedStringResource("media.uploaded", table: "ClubProfileMedia", locale: locale))) }
                 if let issue { Text(verbatim: issue) }
             }
         }
-        .navigationTitle(flow.field == .logo ? String(localized: "media.logo", table: "ClubProfileMedia") : String(localized: "media.cover", table: "ClubProfileMedia"))
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button(String(localized: "media.done", table: "ClubProfileMedia")) { dismiss() }.disabled(flow.state == .uploading) } }
+        .navigationTitle(flow.field == .logo ? String(localized: LocalizedStringResource("media.logo", table: "ClubProfileMedia", locale: locale)) : String(localized: LocalizedStringResource("media.cover", table: "ClubProfileMedia", locale: locale)))
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button(String(localized: LocalizedStringResource("media.done", table: "ClubProfileMedia", locale: locale))) { dismiss() }.disabled(flow.state == .uploading) } }
         .interactiveDismissDisabled(flow.state == .uploading)
         .sheet(isPresented: $camera) {
             MerchantEvidenceCameraCapture { bytes in
@@ -107,7 +109,7 @@ import UIKit
         .onChange(of: scenePhase) { _, phase in if phase != .active { selectionGeneration = UUID(); crop = nil; item = nil; camera = false; flow.retire(); dismiss() } }
     }
     private func accept(_ bytes: Data) {
-        guard flow.current, let field = flow.field, let image = try? RetainedImageSanitizer.sanitize(bytes) else { issue = String(localized: "media.unreadable", table: "ClubProfileMedia"); return }
+        guard flow.current, let field = flow.field, let image = try? RetainedImageSanitizer.sanitize(bytes) else { issue = String(localized: LocalizedStringResource("media.unreadable", table: "ClubProfileMedia", locale: locale)); return }
         // Existing .gallery geometry is exactly 16:9; merchant .cover is 5:3.
         crop = .init(source: image, aspect: field == .logo ? .logo : .gallery); issue = nil
     }

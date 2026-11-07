@@ -85,7 +85,7 @@ import SwiftUI
                 VStack(alignment: .leading, spacing: 6) {
                     Label { Text("profile.currentReview.rejected", tableName: "ProfileCurrentReview") }
                         icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
-                    Text(LocalizedStringKey(fact.liveWhenRead ? "profile.currentReview.liveWhenRead" : "profile.currentReview.notLiveWhenRead"), tableName: "ProfileCurrentReview")
+                    (fact.liveWhenRead ? Text("profile.currentReview.liveWhenRead", tableName: "ProfileCurrentReview") : Text("profile.currentReview.notLiveWhenRead", tableName: "ProfileCurrentReview"))
                         .font(.footnote).foregroundStyle(.secondary)
                     Text("profile.currentReview.notImageBinding", tableName: "ProfileCurrentReview")
                         .font(.caption).foregroundStyle(.secondary)

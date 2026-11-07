@@ -170,6 +170,23 @@
           }
         }
       }
+    },
+    "profile.currentMedia.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry loading saved image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新读取当前图片"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
