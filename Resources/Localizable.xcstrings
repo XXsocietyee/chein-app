@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "roam.poi.location.denied.message2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Allow location in Settings to reveal the fog as you walk. Location is only used while the app is open."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请在设置中允许定位，行走时才能点亮迷雾。仅在应用打开时使用定位。"
+          }
+        }
+      }
+    },
     "roam.stamp.hide" : {
       "extractionState" : "manual",
       "localizations" : {

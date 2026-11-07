@@ -6015,6 +6015,17 @@ final class AppSession: ObservableObject {
             liveService = RoamLiveService(api: api, approval: approval, transport: scopedTransport(transport),
                 currentSession: { [weak self] in self?.currentRoamExperienceSession })
             location = makeLocation()
+        } else if let snapshot = currentRoamExperienceSession, let api = regionalConfiguration?.apiConfiguration,
+                  let wire = compositionTransport.makeRoamLiveWriteTransport(profile: .liveRoam),
+                  let endpoints = try? OperationEndpointApproval(baseURL: api.baseURL, namespace: snapshot.identity.scope.namespace,
+                      accountID: snapshot.identity.scope.accountID, paths: RoamLiveApproval.requiredPaths) {
+            // Live fog reveal: foreground When-In-Use location only (asked at Start after purpose consent). Presence sharing stays off.
+            let approval = RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: false)
+            if approval.allows(snapshot.identity, api: api) {
+                liveService = RoamLiveService(api: api, approval: approval, transport: wire,
+                    currentSession: { [weak self] in self?.currentRoamExperienceSession })
+                location = RuntimeNativeLocationProvider(enabled: true)
+            }
         }
         let controller = RoamLiveSessionController(service: liveService, location: location, journal: journal, history: roamHistoryStore)
         retainedRoamLiveSession = controller
@@ -6108,23 +6119,42 @@ final class AppSession: ObservableObject {
     private var roamPrivateToolsAccess: (RuntimeDependencyContext) -> RoamPrivateToolsAccess? {
         { [weak self] context in
             guard let self, let current = self.currentRuntimeDependencyContext,
-                  ContentDraftContextFence.matches(context, current),
-                  let access = self.composition.roamPrivateToolsReadAccess(context),
-                  access.matches(context), !access.allowsWrites else { return nil }
-            return access
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.liveRoamPrivateToolsAccess(for: context)
         }
     }
     private var roamPassportToolsReadAccessSelector: (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? {
         { [weak self] context in
             guard let self, let current = self.currentRuntimeDependencyContext,
-                  ContentDraftContextFence.matches(context, current),
-                  let access = self.composition.roamPassportToolsReadAccess(context),
-                  access.matches(context) else { return nil }
-            return access
+                  ContentDraftContextFence.matches(context, current) else { return nil }
+            return self.liveRoamPassportToolsAccess(for: context)
         }
     }
+    /// One access object per signed-in context (the readers watch its revision), refreshed when the account/epoch changes.
+    /// Grants the exact roam private-tool and passport-tool routes for the signed-in China player; nothing else.
+    private var liveRoamPrivateAccessCache: RoamPrivateToolsAccess?
+    private var liveRoamPassportAccessCache: RoamPassportToolsReadAccess?
+    private func liveRoamPrivateToolsAccess(for context: RuntimeDependencyContext) -> RoamPrivateToolsAccess? {
+        if let cached = liveRoamPrivateAccessCache, cached.matches(context) { return cached }
+        liveRoamPrivateAccessCache?.revoke()
+        guard let approval = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+                accountID: context.session.accountID,
+                paths: RoamPrivateToolsRoute.reads.union(RoamPrivateToolsRoute.writes).union(RoamPassportToolsService.paths)),
+              let access = try? RoamPrivateToolsAccess(context: context, approval: approval) else { liveRoamPrivateAccessCache = nil; return nil }
+        liveRoamPrivateAccessCache = access
+        return access
+    }
+    private func liveRoamPassportToolsAccess(for context: RuntimeDependencyContext) -> RoamPassportToolsReadAccess? {
+        if let cached = liveRoamPassportAccessCache, cached.matches(context) { return cached }
+        liveRoamPassportAccessCache?.revoke()
+        guard let approval = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+                accountID: context.session.accountID, paths: Set(RoamPassportToolsService.paths)),
+              let access = try? RoamPassportToolsReadAccess(context: context, approval: approval) else { liveRoamPassportAccessCache = nil; return nil }
+        liveRoamPassportAccessCache = access
+        return access
+    }
     lazy var roamPassportToolsReader = RoamPassportToolsSessionReader(
-        service: regionalConfiguration?.apiConfiguration.map { RoamPassportToolsService(configuration: $0, transport: compositionTransport) },
+        service: regionalConfiguration?.apiConfiguration.flatMap { api in compositionTransport.makeRoamLiveWriteTransport(profile: .privateTools).map { RoamPassportToolsService(configuration: api, transport: $0) } },
         current: { [weak self] in self?.currentRuntimeDependencyContext }, access: roamPrivateToolsAccess,
         readAccess: roamPassportToolsReadAccessSelector,
         onUnauthorized: { [weak self] captured in
@@ -6132,7 +6162,7 @@ final class AppSession: ObservableObject {
             self.expireIfMatching(error: APIError.unauthorized, stamp: captured.session.epoch, credential: captured.session.token)
         })
     lazy var roamPrivateToolsReader = RoamPrivateToolsSessionReader(
-        service: regionalConfiguration?.apiConfiguration.map { RoamPrivateToolsService(configuration: $0, transport: compositionTransport) },
+        service: regionalConfiguration?.apiConfiguration.flatMap { api in compositionTransport.makeRoamLiveWriteTransport(profile: .privateTools).map { RoamPrivateToolsService(configuration: api, transport: $0) } },
         current: { [weak self] in self?.currentRuntimeDependencyContext }, access: roamPrivateToolsAccess,
         onUnauthorized: { [weak self] captured in
             guard let self, let current = self.currentRuntimeDependencyContext, ContentDraftContextFence.matches(captured, current) else { return }

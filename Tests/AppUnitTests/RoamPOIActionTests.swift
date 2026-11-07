@@ -79,6 +79,21 @@ final class RoamLiveWriteAllowlistTests: XCTestCase {
             XCTAssertFalse(RoamLiveWriteTransport.accepts(bad), bad)
         }
     }
+    func testLiveRoamProfileAdmitsOnlyFogRevealRoutes() {
+        XCTAssertTrue(RoamLiveWriteTransport.acceptsLiveRoam(method: "POST", relative: "api/roam/reveal", hasQuery: false))
+        XCTAssertTrue(RoamLiveWriteTransport.acceptsLiveRoam(method: "GET", relative: "api/roam/session", hasQuery: true))
+        XCTAssertFalse(RoamLiveWriteTransport.acceptsLiveRoam(method: "POST", relative: "api/roam/reveal", hasQuery: true))
+        XCTAssertFalse(RoamLiveWriteTransport.acceptsLiveRoam(method: "POST", relative: "api/roam/presence", hasQuery: false), "presence sharing stays off")
+        XCTAssertFalse(RoamLiveWriteTransport.acceptsLiveRoam(method: "GET", relative: "api/wallet/balance", hasQuery: false))
+    }
+    func testPrivateToolsProfileAdmitsOnlyCapsuleGoalExportAndPassportRoutes() {
+        XCTAssertTrue(RoamLiveWriteTransport.acceptsPrivateTools(method: "POST", relative: "api/capsules/create"))
+        XCTAssertTrue(RoamLiveWriteTransport.acceptsPrivateTools(method: "GET", relative: "api/capsules/list"))
+        XCTAssertTrue(RoamLiveWriteTransport.acceptsPrivateTools(method: "GET", relative: "api/monthly-recap"))
+        XCTAssertFalse(RoamLiveWriteTransport.acceptsPrivateTools(method: "POST", relative: "api/monthly-recap"))
+        XCTAssertFalse(RoamLiveWriteTransport.acceptsPrivateTools(method: "DELETE", relative: "api/capsules/delete"))
+        XCTAssertFalse(RoamLiveWriteTransport.acceptsPrivateTools(method: "POST", relative: "api/wallet/transfer"))
+    }
     func testImageOriginsAreHTTPSOnlyAndConfigDriven() throws {
         let base = try XCTUnwrap(URL(string: "https://api.example.com/native/"))
         XCTAssertEqual(RetainedImageOrigin.configured(apiBase: base, extra: nil), ["https://api.example.com"])

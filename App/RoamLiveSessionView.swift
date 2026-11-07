@@ -13,6 +13,7 @@ import Combine
     }
 }
 @MainActor struct RoamLiveSessionView: View {
+    @Environment(\.openURL) private var openURL
     let offlineExample: Bool
     let localHistoryReader: (any RoamExperienceReading)?
     let albumMetadataReader: RoamAlbumMetadataReader?
@@ -84,6 +85,15 @@ import Combine
                 if [.ready, .locationDenied, .paused].contains(owner.phase) {
                     Section {
                         Toggle("roam.live.consent", isOn: $purposeAccepted).accessibilityIdentifier("roam.live.consent")
+                        if owner.phase == .locationDenied {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Label("roam.poi.location.denied.title", systemImage: "location.slash").font(.subheadline.weight(.semibold))
+                                Text("roam.poi.location.denied.message2").font(.footnote).foregroundStyle(.secondary)
+                                Button("roam.poi.location.openSettings") {
+                                    if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                                }.frame(minHeight: 44).accessibilityIdentifier("roam.live.openSettings")
+                            }.accessibilityIdentifier("roam.live.locationDenied")
+                        }
                         if owner.presenceAvailable {
                             Toggle("roam.live.presenceConsent", isOn: $presenceAccepted)
                         }
