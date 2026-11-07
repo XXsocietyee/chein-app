@@ -324,6 +324,9 @@ extension KeychainTokenStore: AppTokenStorage {}
     let roamPassportHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess?
     let roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess?
     let roamPrivateToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess?
+    var roamPrivateToolsWriteAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil }
+    var roamLiveWriteApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
+    var roamLiveApproval: @MainActor (RuntimeDependencyContext) -> RoamLiveApproval? = { _ in nil }
     let profileOwnedCouponReadAccess: @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?
     let roamAlbumMetadataReadAccess: @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess?
     let roamTileMemoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess?
@@ -535,7 +538,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
         self.roamReceivedStampReadAccess = roamReceivedStampReadAccess
         self.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
-        self.roamPassportToolsReadAccess = roamPassportToolsReadAccess
+        self.roamPassportToolsReadAccess = { [gates] context in
+            roamPassportToolsReadAccess(context) ?? (productionGatesEnabled ? gates.roamPassportTools(context) : nil)
+        }
         self.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
         self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileOwnedCoupon($0) } : { _ in nil })
         self.roamAlbumMetadataReadAccess = roamAlbumMetadataReadAccess
@@ -569,6 +574,15 @@ extension KeychainTokenStore: AppTokenStorage {}
         if productionGatesEnabled {
             self.profileFavoriteRemovalAccesses = { [gates] context, scope in
                 gates.profileFavoriteRemoval(context, scope: scope)
+            }
+            self.roamPrivateToolsWriteAccess = { [gates] context in
+                gates.roamPrivateToolsWrite(context)
+            }
+            self.roamLiveWriteApproval = { [gates] context in
+                gates.roamLiveWrite(context)
+            }
+            self.roamLiveApproval = { [gates] context in
+                gates.roamLive(context)
             }
         }
     }
@@ -630,6 +644,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
         transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
+        transport.roamPrivateToolsWriteAccess = roamPrivateToolsWriteAccess
+        transport.roamLiveWriteApproval = roamLiveWriteApproval
+        transport.roamLiveApproval = roamLiveApproval
         return transport
     }
     func makeSession() -> AppSession { AppSession(composition: self) }
@@ -927,6 +944,9 @@ extension KeychainTokenStore: AppTokenStorage {}
     var roamPassportHistoryReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess? = { _ in nil }
     var roamPassportToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil }
     var roamPrivateToolsReadAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil }
+    var roamPrivateToolsWriteAccess: @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil }
+    var roamLiveWriteApproval: @MainActor (RuntimeDependencyContext) -> OperationEndpointApproval? = { _ in nil }
+    var roamLiveApproval: @MainActor (RuntimeDependencyContext) -> RoamLiveApproval? = { _ in nil }
     /// Internal scheduling seam, never a grant; the one-use final fence runs after it.
     var couponBeforeForward: (@MainActor () async -> Void)?
     /// Installed by AppSession; no runtime capability can be inferred from a root grant.
@@ -1651,8 +1671,65 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// Narrow live-write wire for the roam/city features: signed-in viewer only, POST only, same deployment origin and an exact
     /// relative-path allowlist. It forwards to the raw transport, so none of the reviewed read routes above are widened.
     func makeRoamLiveWriteTransport(profile: RoamLiveWriteTransport.Profile = .writes) -> RoamLiveWriteTransport? {
-        guard let api = deployment?.regional.apiConfiguration else { return nil }
-        return RoamLiveWriteTransport(baseURL: api.baseURL, underlying: underlying, profile: profile, current: { [weak self] in self?.current() })
+        guard let deployment, let api = deployment.regional.apiConfiguration else { return nil }
+        switch profile {
+        case .writes, .liveRoam:
+            guard deployment.productionGatesEnabled else { return nil }
+        case .privateTools:
+            break
+        }
+        return RoamLiveWriteTransport(
+            baseURL: api.baseURL,
+            underlying: underlying,
+            profile: profile,
+            current: { [weak self] in self?.current() },
+            configuredDeployment: { [weak self] in self?.deployment },
+            permitsRoute: { [weak self] context, profile, method, relative in
+                guard let self else { return false }
+                return self.permitsRoamLiveRoute(context: context, profile: profile, method: method, relative: relative)
+            }
+        )
+    }
+    private func permitsRoamLiveRoute(context: RuntimeDependencyContext, profile: RoamLiveWriteTransport.Profile, method: String, relative: String) -> Bool {
+        guard let deployment, let api = deployment.regional.apiConfiguration,
+              deployment.regional.market == context.market,
+              api.baseURL == context.baseURL,
+              deployment.storageScope.service == context.session.namespace else { return false }
+        switch profile {
+        case .writes:
+            guard deployment.productionGatesEnabled, method == "POST",
+                  let approvalPath = RoamLiveWriteTransport.approvalPath(forWriteRelative: relative),
+                  let approval = roamLiveWriteApproval(context) else { return false }
+            return approval.allows(configuration: api, namespace: context.session.namespace, accountID: context.session.accountID, path: approvalPath)
+        case .liveRoam:
+            guard deployment.productionGatesEnabled, let approval = roamLiveApproval(context) else { return false }
+            return approval.endpoints.allows(configuration: api, namespace: context.session.namespace, accountID: context.session.accountID, path: relative)
+        case .privateTools:
+            if RoamPrivateToolsRoute.writes.contains(relative) {
+                guard deployment.productionGatesEnabled, method == "POST",
+                      let access = roamPrivateToolsWriteAccess(context),
+                      access.matches(context), access.allowsWrites else { return false }
+                return access.allows([relative])
+            }
+            if RoamPrivateToolsRoute.reads.contains(relative) {
+                if deployment.productionGatesEnabled, let access = roamPrivateToolsWriteAccess(context),
+                   access.matches(context), access.allows([relative]) { return true }
+                guard let access = roamPrivateToolsReadAccess(context),
+                      access.matches(context), !access.allowsWrites else { return false }
+                return access.allows([relative])
+            }
+            if method == "GET", RoamPassportToolsService.paths.contains(relative) {
+                if let access = roamPassportToolsReadAccess(context),
+                   access.matches(context),
+                   access.endpoints.allows(configuration: api, namespace: context.session.namespace, accountID: context.session.accountID, path: relative) { return true }
+                if deployment.productionGatesEnabled, let access = roamPrivateToolsWriteAccess(context),
+                   access.matches(context), access.allows([relative]) { return true }
+                guard let access = roamPrivateToolsReadAccess(context),
+                      access.matches(context), !access.allowsWrites else { return false }
+                return access.allows([relative])
+            }
+            return false
+        }
     }
     func replacingUnderlying(_ underlying: any HTTPTransport) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: manualMapSelection)
@@ -1685,6 +1762,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         transport.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
         transport.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         transport.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
+        transport.roamPrivateToolsWriteAccess = roamPrivateToolsWriteAccess
+        transport.roamLiveWriteApproval = roamLiveWriteApproval
+        transport.roamLiveApproval = roamLiveApproval
         transport.profileFavoriteTopicSelection = profileFavoriteTopicSelection
         transport.profilePublicInfoTarget = profilePublicInfoTarget
         transport.publicMerchantHomeScope = publicMerchantHomeScope
@@ -3578,11 +3658,20 @@ extension CompositionHTTPTransport {
 }
 
 @MainActor struct RoamLiveWriteTransport: HTTPTransport {
+    static let writeApprovalPaths: Set<String> = [
+        "api/roam/stamp/create",
+        "api/roam/stamp/exchange",
+        "api/common/uploadOSS",
+        "api/city/nodes/favorite",
+        "api/city/nodes/complete"
+    ]
     let baseURL: URL
     let underlying: any HTTPTransport
     enum Profile { case writes, liveRoam, privateTools }
     var profile: Profile = .writes
     let current: () -> CompositionHTTPTransport.SessionIdentity?
+    var configuredDeployment: () -> ReviewedAppDeployment? = { nil }
+    var permitsRoute: (RuntimeDependencyContext, Profile, String, String) -> Bool = { _, _, _, _ in false }
     /// Live fog-reveal session: its GET reads carry a query string; only these exact routes are admitted.
     nonisolated static func acceptsLiveRoam(method: String, relative: String, hasQuery: Bool) -> Bool {
         switch (method, relative) {
@@ -3598,20 +3687,36 @@ extension CompositionHTTPTransport {
         return RoamPrivateToolsRoute.reads.contains(relative) || RoamPrivateToolsRoute.writes.contains(relative)
             || (method == "GET" && RoamPassportToolsService.paths.contains(relative))
     }
+    /// Canonical endpoint-approval path for a relative `.writes` route.
+    nonisolated static func approvalPath(forWriteRelative relative: String) -> String? {
+        let exact: Set<String> = ["api/roam/stamp/create", "api/roam/stamp/exchange", "api/common/uploadOSS"]
+        if exact.contains(relative) { return relative }
+        let parts = relative.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+        if parts.count == 5, parts[0] == "api", parts[1] == "city", parts[2] == "nodes",
+           parts[3].allSatisfy(\.isASCIIDigit), !parts[3].isEmpty,
+           ["favorite", "complete"].contains(parts[4]) {
+            return "api/city/nodes/\(parts[4])"
+        }
+        return nil
+    }
     /// Relative paths the roam/city features may write. Digits-only ids, no query, no fragment.
     nonisolated static func accepts(_ relative: String) -> Bool {
-        let exact: Set<String> = ["api/roam/stamp/create", "api/roam/stamp/exchange", "api/common/uploadOSS"]
-        if exact.contains(relative) { return true }
-        let parts = relative.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
-        if parts.count == 5, parts[0] == "api", parts[1] == "city", parts[2] == "nodes", parts[3].allSatisfy(\.isASCIIDigit), !parts[3].isEmpty,
-           ["favorite", "complete"].contains(parts[4]) { return true }
-        return false
+        approvalPath(forWriteRelative: relative) != nil
     }
     func send(_ request: URLRequest) async throws -> (Data, Int) {
-        guard let captured = current(), captured.isSignedInContentViewer,
-              let url = request.url, url.fragment == nil, url.scheme == baseURL.scheme,
-              url.host == baseURL.host, url.port == baseURL.port else { throw APIError.notConfigured }
-        let basePath = baseURL.path.hasSuffix("/") ? String(baseURL.path.dropLast()) : baseURL.path
+        guard let deployment = configuredDeployment(),
+              let configuredAPI = deployment.regional.apiConfiguration,
+              configuredAPI.baseURL == baseURL,
+              let configuredHost = configuredAPI.baseURL.host?.lowercased(), !configuredHost.isEmpty,
+              let captured = current(), captured.isSignedInContentViewer,
+              let accountID = captured.accountID, let role = captured.role, let token = captured.token,
+              let session = try? PlayExperienceSession(accountID: accountID, epoch: captured.epoch,
+                  namespace: deployment.storageScope.service, token: token),
+              let url = request.url, url.fragment == nil,
+              url.scheme?.lowercased() == configuredAPI.baseURL.scheme?.lowercased(),
+              url.host?.lowercased() == configuredHost,
+              url.port == configuredAPI.baseURL.port else { throw APIError.notConfigured }
+        let basePath = configuredAPI.baseURL.path.hasSuffix("/") ? String(configuredAPI.baseURL.path.dropLast()) : configuredAPI.baseURL.path
         guard url.path.hasPrefix(basePath + "/") else { throw APIError.notConfigured }
         let relative = String(url.path.dropFirst(basePath.count + 1)), method = request.httpMethod ?? "GET"
         switch profile {
@@ -3619,9 +3724,13 @@ extension CompositionHTTPTransport {
         case .privateTools: guard Self.acceptsPrivateTools(method: method, relative: relative) else { throw APIError.notConfigured }
         case .liveRoam: guard Self.acceptsLiveRoam(method: method, relative: relative, hasQuery: url.query != nil) else { throw APIError.notConfigured }
         }
+        let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: configuredAPI.baseURL, role: role, session: session)
+        guard permitsRoute(context, profile, method, relative) else { throw APIError.notConfigured }
         try Task.checkCancellation()
         let result = try await underlying.send(request)
-        guard current() == captured else { throw CancellationError() }
+        guard current() == captured,
+              configuredDeployment()?.regional.apiConfiguration?.baseURL == configuredAPI.baseURL,
+              permitsRoute(context, profile, method, relative) else { throw CancellationError() }
         return result
     }
 }
@@ -3768,6 +3877,10 @@ private enum ReviewedProductionFormMutationRoute {
     private var topicUnlikeByContext: [String: TopicUnlikeApproval] = [:]
     private var couponReadByContext: [String: CouponManagementReadApproval] = [:]
     private var couponWriteByContext: [String: CouponManagementWriteApproval] = [:]
+    private var roamLiveWriteByContext: [String: OperationEndpointApproval] = [:]
+    private var roamLiveByContext: [String: RoamLiveApproval] = [:]
+    private var roamPrivateToolsWriteByContext: [String: RoamPrivateToolsAccess] = [:]
+    private var roamPassportToolsByContext: [String: RoamPassportToolsReadAccess] = [:]
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {
         "\(context.market.rawValue)|\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
@@ -3776,6 +3889,47 @@ private enum ReviewedProductionFormMutationRoute {
     private func makeEndpoint(_ context: RuntimeDependencyContext, paths: Set<String>) -> OperationEndpointApproval? {
         try? .init(baseURL: context.baseURL, namespace: context.session.namespace,
                    accountID: context.session.accountID, paths: paths)
+    }
+
+    func roamLiveWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard context.market == .china else { return nil }
+        let key = contextKey(context)
+        if let existing = roamLiveWriteByContext[key] { return existing }
+        guard let approval = makeEndpoint(context, paths: RoamLiveWriteTransport.writeApprovalPaths) else { return nil }
+        roamLiveWriteByContext[key] = approval
+        return approval
+    }
+
+    func roamLive(_ context: RuntimeDependencyContext) -> RoamLiveApproval? {
+        guard context.market == .china else { return nil }
+        let key = contextKey(context)
+        if let existing = roamLiveByContext[key] { return existing }
+        guard let endpoints = makeEndpoint(context, paths: RoamLiveApproval.requiredPaths) else { return nil }
+        let approval = RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: false)
+        roamLiveByContext[key] = approval
+        return approval
+    }
+
+    func roamPrivateToolsWrite(_ context: RuntimeDependencyContext) -> RoamPrivateToolsAccess? {
+        guard context.market == .china, context.role == "player" else { return nil }
+        let key = contextKey(context)
+        if let existing = roamPrivateToolsWriteByContext[key], existing.matches(context) { return existing }
+        roamPrivateToolsWriteByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: RoamPrivateToolsAccess.universe),
+              let access = try? RoamPrivateToolsAccess(context: context, approval: endpoints) else { return nil }
+        roamPrivateToolsWriteByContext[key] = access
+        return access
+    }
+
+    func roamPassportTools(_ context: RuntimeDependencyContext) -> RoamPassportToolsReadAccess? {
+        guard context.market == .china, context.role == "player" else { return nil }
+        let key = contextKey(context)
+        if let existing = roamPassportToolsByContext[key], existing.matches(context) { return existing }
+        roamPassportToolsByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: Set(RoamPassportToolsService.paths)),
+              let access = try? RoamPassportToolsReadAccess(context: context, approval: endpoints) else { return nil }
+        roamPassportToolsByContext[key] = access
+        return access
     }
 
     func walletHistory(_ context: RuntimeDependencyContext) -> WalletHistoryReadApproval? {

@@ -113,4 +113,42 @@ final class RoamLiveWriteAllowlistTests: XCTestCase {
         let receipt = try await service.exchangeStamp(givenStampID: 3, token: "tok")
         XCTAssertFalse(receipt.exchanged); XCTAssertEqual(receipt.reason, "no stamps yet")
     }
+    @MainActor func testUnconfiguredTransportRefusesAll14PostRoutesAndForeignHosts() async throws {
+        final class SpyWire: HTTPTransport {
+            var sent: [URLRequest] = []
+            func send(_ r: URLRequest) async throws -> (Data, Int) { sent.append(r); return (Data(#"{"code":200}"#.utf8), 200) }
+        }
+        let spy = SpyWire()
+        let base = try XCTUnwrap(URL(string: "https://api.example.com"))
+        let routes: [(RoamLiveWriteTransport.Profile, String)] = [
+            (.writes, "api/common/uploadOSS"),
+            (.writes, "api/roam/stamp/create"),
+            (.writes, "api/roam/stamp/exchange"),
+            (.writes, "api/city/nodes/7/favorite"),
+            (.writes, "api/city/nodes/7/complete"),
+            (.liveRoam, "api/roam/reveal"),
+            (.liveRoam, "api/roam/finish"),
+            (.liveRoam, "api/roam/poi/discover"),
+            (.liveRoam, "api/roam/shop/visit"),
+            (.liveRoam, "api/map/nearby"),
+            (.privateTools, "api/capsules/create"),
+            (.privateTools, "api/capsules/delete"),
+            (.privateTools, "api/exploration-goals/create"),
+            (.privateTools, "api/exploration-goals/cancel")
+        ]
+        XCTAssertEqual(routes.count, 14)
+        let viewer = CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: 7, role: "player", token: "tok-7", viewerRevision: 1)
+        for (profile, path) in routes {
+            let unconfiguredWire = RoamLiveWriteTransport(baseURL: base, underlying: spy, profile: profile, current: { viewer })
+            var req = URLRequest(url: base.appendingPathComponent(path))
+            req.httpMethod = "POST"
+            do {
+                _ = try await unconfiguredWire.send(req)
+                XCTFail("Unconfigured wire must reject \(path)")
+            } catch {
+                XCTAssertEqual(error as? APIError, .notConfigured)
+            }
+        }
+        XCTAssertTrue(spy.sent.isEmpty)
+    }
 }

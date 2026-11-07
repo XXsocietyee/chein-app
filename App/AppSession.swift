@@ -4426,15 +4426,30 @@ final class AppSession: ObservableObject {
         return try? RetainedImageScope(accountID: wallet.accountID, epoch: wallet.epoch,
             realm: credentials.realm, destination: .stamp, namespace: wallet.namespace)
     }
-    /// Live stamp camera: signed-in account on a configured deployment. Camera permission is asked at the shutter.
-    var stampCameraEnabled: Bool { token != nil && regionalConfiguration?.apiConfiguration != nil }
+    /// Live stamp camera: signed-in account with composition-root stamp write approval on a configured deployment. Camera permission is asked at the shutter.
+    var stampCameraEnabled: Bool {
+        guard let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let approval = composition.roamLiveWriteApproval(context) else { return false }
+        return approval.allows(configuration: configuration, namespace: context.session.namespace,
+            accountID: context.session.accountID, path: "api/common/uploadOSS")
+            && approval.allows(configuration: configuration, namespace: context.session.namespace,
+                accountID: context.session.accountID, path: "api/roam/stamp/create")
+    }
     /// 投一张换一张: exchange the just-created stamp. Idempotent on the server for the same givenStampId.
     func exchangeStamp(givenStampID: Int) async throws -> RoamStampExchangeReceipt {
-        guard let service = roamWriteService, let token else { throw APIError.unauthorized }
+        guard let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let approval = composition.roamLiveWriteApproval(context),
+              approval.allows(configuration: configuration, namespace: context.session.namespace,
+                  accountID: context.session.accountID, path: "api/roam/stamp/exchange"),
+              let service = roamWriteService, let token else { throw APIError.unauthorized }
         return try await service.exchangeStamp(givenStampID: givenStampID, token: token)
     }
     func makeRoamStampCaptureCoordinator() -> RoamStampCaptureCoordinator? {
-        guard stampCameraEnabled, let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
+        guard stampCameraEnabled, let context = currentRuntimeDependencyContext,
+              let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
+              let approval = composition.roamLiveWriteApproval(context),
               let credentials = currentRetainedImageCredentials else { return nil }
         let current: () -> RetainedImageScope? = { [weak self] in
             guard let self, self.currentRetainedImageCredentials == credentials else { return nil }; return self.roamMediaScope
@@ -4446,7 +4461,7 @@ final class AppSession: ObservableObject {
         let uploader = RetainedImageHTTPUploader(configuration: configuration, transport: wire,
             enabled: true, approvedOrigins: origins, currentScope: current, token: token)
         let executor = RoamMediaMutationService(configuration: configuration, transport: wire, enabled: true,
-            approvedImageOrigins: origins, requiresApproval: false, currentScope: current, token: token)
+            approval: approval, approvedImageOrigins: origins, requiresApproval: false, currentScope: current, token: token)
         let storage = StoredRoamStampPending(read: { [unowned self] in try self.imageUploadStorage.read($0) },
             write: { [unowned self] in try self.imageUploadStorage.write($0, key: $1) })
         return RoamStampCaptureCoordinator(scope: scope,
@@ -6062,17 +6077,14 @@ final class AppSession: ObservableObject {
             liveService = RoamLiveService(api: api, approval: approval, transport: scopedTransport(transport),
                 currentSession: { [weak self] in self?.currentRoamExperienceSession })
             location = makeLocation()
-        } else if let snapshot = currentRoamExperienceSession, let api = regionalConfiguration?.apiConfiguration,
+        } else if let snapshot = currentRoamExperienceSession, let context = currentRuntimeDependencyContext,
+                  let api = regionalConfiguration?.apiConfiguration,
+                  let approval = composition.roamLiveApproval(context),
                   let wire = compositionTransport.makeRoamLiveWriteTransport(profile: .liveRoam),
-                  let endpoints = try? OperationEndpointApproval(baseURL: api.baseURL, namespace: snapshot.identity.scope.namespace,
-                      accountID: snapshot.identity.scope.accountID, paths: RoamLiveApproval.requiredPaths) {
-            // Live fog reveal: foreground When-In-Use location only (asked at Start after purpose consent). Presence sharing stays off.
-            let approval = RoamLiveApproval(endpoints: endpoints, foregroundLocation: true, presence: false)
-            if approval.allows(snapshot.identity, api: api) {
-                liveService = RoamLiveService(api: api, approval: approval, transport: wire,
-                    currentSession: { [weak self] in self?.currentRoamExperienceSession })
-                location = RuntimeNativeLocationProvider(enabled: true)
-            }
+                  approval.allows(snapshot.identity, api: api) {
+            liveService = RoamLiveService(api: api, approval: approval, transport: wire,
+                currentSession: { [weak self] in self?.currentRoamExperienceSession })
+            location = RuntimeNativeLocationProvider(enabled: true)
         }
         let controller = RoamLiveSessionController(service: liveService, location: location, journal: journal, history: roamHistoryStore)
         retainedRoamLiveSession = controller
@@ -6167,38 +6179,23 @@ final class AppSession: ObservableObject {
         { [weak self] context in
             guard let self, let current = self.currentRuntimeDependencyContext,
                   ContentDraftContextFence.matches(context, current) else { return nil }
-            return self.liveRoamPrivateToolsAccess(for: context)
+            if let writeAccess = self.composition.roamPrivateToolsWriteAccess(context),
+               writeAccess.matches(context) {
+                return writeAccess
+            }
+            guard let access = self.composition.roamPrivateToolsReadAccess(context),
+                  access.matches(context), !access.allowsWrites else { return nil }
+            return access
         }
     }
     private var roamPassportToolsReadAccessSelector: (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? {
         { [weak self] context in
             guard let self, let current = self.currentRuntimeDependencyContext,
-                  ContentDraftContextFence.matches(context, current) else { return nil }
-            return self.liveRoamPassportToolsAccess(for: context)
+                  ContentDraftContextFence.matches(context, current),
+                  let access = self.composition.roamPassportToolsReadAccess(context),
+                  access.matches(context) else { return nil }
+            return access
         }
-    }
-    /// One access object per signed-in context (the readers watch its revision), refreshed when the account/epoch changes.
-    /// Grants the exact roam private-tool and passport-tool routes for the signed-in China player; nothing else.
-    private var liveRoamPrivateAccessCache: RoamPrivateToolsAccess?
-    private var liveRoamPassportAccessCache: RoamPassportToolsReadAccess?
-    private func liveRoamPrivateToolsAccess(for context: RuntimeDependencyContext) -> RoamPrivateToolsAccess? {
-        if let cached = liveRoamPrivateAccessCache, cached.matches(context) { return cached }
-        liveRoamPrivateAccessCache?.revoke()
-        guard let approval = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-                accountID: context.session.accountID,
-                paths: RoamPrivateToolsRoute.reads.union(RoamPrivateToolsRoute.writes).union(RoamPassportToolsService.paths)),
-              let access = try? RoamPrivateToolsAccess(context: context, approval: approval) else { liveRoamPrivateAccessCache = nil; return nil }
-        liveRoamPrivateAccessCache = access
-        return access
-    }
-    private func liveRoamPassportToolsAccess(for context: RuntimeDependencyContext) -> RoamPassportToolsReadAccess? {
-        if let cached = liveRoamPassportAccessCache, cached.matches(context) { return cached }
-        liveRoamPassportAccessCache?.revoke()
-        guard let approval = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-                accountID: context.session.accountID, paths: Set(RoamPassportToolsService.paths)),
-              let access = try? RoamPassportToolsReadAccess(context: context, approval: approval) else { liveRoamPassportAccessCache = nil; return nil }
-        liveRoamPassportAccessCache = access
-        return access
     }
     lazy var roamPassportToolsReader = RoamPassportToolsSessionReader(
         service: regionalConfiguration?.apiConfiguration.flatMap { api in compositionTransport.makeRoamLiveWriteTransport(profile: .privateTools).map { RoamPassportToolsService(configuration: api, transport: $0) } },
@@ -6282,12 +6279,23 @@ final class AppSession: ObservableObject {
     }()
     /// Roam/city live writes use their own narrow, allowlisted wire (see RoamLiveWriteTransport), never the read-route firewall.
     private var roamWriteService: RoamService? {
-        guard let configuration = regionalConfiguration?.apiConfiguration, let wire = compositionTransport.makeRoamLiveWriteTransport() else { return nil }
+        guard let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let approval = composition.roamLiveWriteApproval(context),
+              approval.baseURL == configuration.baseURL,
+              let wire = compositionTransport.makeRoamLiveWriteTransport() else { return nil }
         return RoamService(configuration: configuration, transport: wire)
     }
     /// Live POI favorite / check-in writes through the signed-in session; nil when there is no roam service.
     func makeRoamPOIActions() -> RoamPOIActions? {
-        guard roamService != nil, roamWriteService != nil else { return nil }
+        guard let context = currentRuntimeDependencyContext,
+              let configuration = regionalConfiguration?.apiConfiguration,
+              let approval = composition.roamLiveWriteApproval(context),
+              approval.allows(configuration: configuration, namespace: context.session.namespace,
+                  accountID: context.session.accountID, path: "api/city/nodes/favorite"),
+              approval.allows(configuration: configuration, namespace: context.session.namespace,
+                  accountID: context.session.accountID, path: "api/city/nodes/complete"),
+              roamService != nil, roamWriteService != nil else { return nil }
         let location = RuntimeNativeLocationProvider(enabled: true)
         return RoamPOIActions(
             toggleFavorite: { [weak self] poiID in

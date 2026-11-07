@@ -152,6 +152,124 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         XCTAssertTrue(wire.requests.isEmpty)
     }
 
+    func testUnconfiguredSessionAndTransportCannotIssueAnyOfThe14RoamPostRoutesOrOtherHosts() async throws {
+        let wire = G1TestWire()
+        let vault = G1TestVault()
+        let suite = "g1-roam-unconfigured-" + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
+        let unconfigured = RegionalLaunchConfiguration.makeComposition(
+            reviewed: nil,
+            build: .init(market: "CN", baseURL: Self.placeholderBaseURL, bundleIdentifier: Self.placeholderBundleIdentifier, realm: "g1-roam-unconfigured"),
+            storage: .init(defaults: defaults, tokenStore: { _ in vault }),
+            makeTransport: { wire }
+        )
+        let session = unconfigured.makeSession()
+        let configuredBaseURL = try XCTUnwrap(URL(string: Self.placeholderBaseURL))
+        let syntheticContext = RuntimeDependencyContext(
+            market: .china,
+            baseURL: configuredBaseURL,
+            role: "player",
+            session: try PlayExperienceSession(accountID: 7, epoch: 1, namespace: "g1-roam-unconfigured", token: "synthetic-7")
+        )
+
+        // 1. Default .unconfigured composition derives no roam/city write approvals or live write transports.
+        XCTAssertNil(unconfigured.roamLiveWriteApproval(syntheticContext))
+        XCTAssertNil(unconfigured.roamLiveApproval(syntheticContext))
+        XCTAssertNil(unconfigured.roamPrivateToolsWriteAccess(syntheticContext))
+        XCTAssertNil(unconfigured.roamPrivateToolsReadAccess(syntheticContext))
+        XCTAssertNil(unconfigured.roamPassportToolsReadAccess(syntheticContext))
+        XCTAssertFalse(session.stampCameraEnabled)
+        XCTAssertNil(session.makeRoamStampCaptureCoordinator())
+        XCTAssertNil(session.makeRoamPOIActions())
+        XCTAssertFalse(session.roamPrivateToolsReader.isConfigured)
+        XCTAssertFalse(session.roamPrivateToolsReader.allowsWrites)
+        XCTAssertFalse(session.roamPassportToolsReader.isConfigured)
+        XCTAssertFalse(session.makeRoamLiveSessionController().isAvailable)
+
+        let unconfiguredTransport = unconfigured.transport()
+        XCTAssertNil(unconfiguredTransport.makeRoamLiveWriteTransport(profile: .writes))
+        XCTAssertNil(unconfiguredTransport.makeRoamLiveWriteTransport(profile: .liveRoam))
+        XCTAssertNil(unconfiguredTransport.makeRoamLiveWriteTransport(profile: .privateTools))
+
+        // 2. All 14 POST routes fail closed on an .unconfigured session/transport with zero network sends.
+        let fourteenPostRoutes: [(RoamLiveWriteTransport.Profile, String)] = [
+            (.writes, "api/common/uploadOSS"),
+            (.writes, "api/roam/stamp/create"),
+            (.writes, "api/roam/stamp/exchange"),
+            (.writes, "api/city/nodes/7/favorite"),
+            (.writes, "api/city/nodes/7/complete"),
+            (.liveRoam, "api/roam/reveal"),
+            (.liveRoam, "api/roam/finish"),
+            (.liveRoam, "api/roam/poi/discover"),
+            (.liveRoam, "api/roam/shop/visit"),
+            (.liveRoam, "api/map/nearby"),
+            (.privateTools, "api/capsules/create"),
+            (.privateTools, "api/capsules/delete"),
+            (.privateTools, "api/exploration-goals/create"),
+            (.privateTools, "api/exploration-goals/cancel")
+        ]
+        XCTAssertEqual(fourteenPostRoutes.count, 14)
+
+        let viewer = CompositionHTTPTransport.SessionIdentity(
+            epoch: 1, accountID: 7, role: "player", token: "synthetic-7", viewerRevision: 1
+        )
+        unconfiguredTransport.current = { viewer }
+
+        for (profile, route) in fourteenPostRoutes {
+            var request = URLRequest(url: configuredBaseURL.appendingPathComponent(route))
+            request.httpMethod = "POST"
+            request.setValue("synthetic-7", forHTTPHeaderField: "Authorization")
+            do {
+                _ = try await unconfiguredTransport.send(request)
+                XCTFail("Unconfigured CompositionHTTPTransport must reject POST \(route)")
+            } catch {
+                XCTAssertEqual(error as? APIError, .notConfigured, "Unexpected error for \(route): \(error)")
+            }
+
+            let directWire = RoamLiveWriteTransport(
+                baseURL: configuredBaseURL,
+                underlying: wire,
+                profile: profile,
+                current: { viewer }
+            )
+            do {
+                _ = try await directWire.send(request)
+                XCTFail("Unconfigured RoamLiveWriteTransport must reject POST \(route)")
+            } catch {
+                XCTAssertEqual(error as? APIError, .notConfigured, "Unexpected error for \(route): \(error)")
+            }
+        }
+        do {
+            _ = try await session.exchangeStamp(givenStampID: 1)
+            XCTFail("Unconfigured session must reject exchangeStamp")
+        } catch {}
+        XCTAssertTrue(wire.requests.isEmpty, "Unconfigured session/transport must never dispatch any of the 14 POST routes")
+
+        // 3. Configured RoamLiveWriteTransport refuses any host that is not the configured deployment host.
+        let (reviewedComposition, reviewedSession, _) = try makeReviewedSession(wire: wire, vault: vault)
+        await reviewedSession.authChannels.loginWithPhone(phone: "13800138000", code: "123456")
+        XCTAssertEqual(reviewedSession.account?.id, 7)
+        wire.requests.removeAll()
+
+        let reviewedTransport = reviewedComposition.transport()
+        reviewedTransport.current = { viewer }
+        let foreignBaseURL = try XCTUnwrap(URL(string: "https://evil.example.org"))
+        for (profile, route) in fourteenPostRoutes {
+            let liveWire = try XCTUnwrap(reviewedTransport.makeRoamLiveWriteTransport(profile: profile))
+            var foreignRequest = URLRequest(url: foreignBaseURL.appendingPathComponent(route))
+            foreignRequest.httpMethod = "POST"
+            foreignRequest.setValue("synthetic-7", forHTTPHeaderField: "Authorization")
+            do {
+                _ = try await liveWire.send(foreignRequest)
+                XCTFail("RoamLiveWriteTransport must refuse non-configured host for \(route)")
+            } catch {
+                XCTAssertEqual(error as? APIError, .notConfigured, "Unexpected error for foreign host \(route): \(error)")
+            }
+        }
+        XCTAssertTrue(wire.requests.isEmpty, "RoamLiveWriteTransport must never forward to a non-configured host")
+    }
+
     func testGate1InAppAccountDeletionEndToEndAndErrorRetryThroughReviewedComposition() async throws {
         let wire = G1TestWire()
         let vault = G1TestVault()
