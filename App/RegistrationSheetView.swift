@@ -116,8 +116,12 @@ struct RegistrationSheetView: View {
                 Button("action.cancel", role: .cancel) { flow.cancelConfirmation() }
             } message: {
                 if let review = flow.confirmation {
-                    Text(verbatim: "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n")
-                    + Text(verbatim: RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—")
+                    let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
+                    let amountText = RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—"
+                    let nonRefundableSuffix = review.quote.requiresNonRefundableConfirmation
+                        ? "\n\(NonRefundable24hNotice.modalTitle)：\(NonRefundable24hNotice.modalContent)"
+                        : ""
+                    Text(verbatim: base + amountText + nonRefundableSuffix)
                 }
             }
             .alert("registration.waitlist.cancelTitle", isPresented: $showingWaitlistCancellation) {
@@ -447,6 +451,12 @@ struct RegistrationSheetView: View {
                     } else { Text("registration.form.pointsUnavailable").foregroundStyle(.secondary) }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
                         .font(.headline).accessibilityIdentifier("registration.form.total")
+                    if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
+                        Text(verbatim: refundNotice)
+                            .font(.caption)
+                            .foregroundStyle(quote.requiresNonRefundableConfirmation ? .orange : .secondary)
+                            .accessibilityIdentifier("registration.fees.refundPolicy")
+                    }
                     if !quote.isUsableForCreate { Text("registration.form.incompleteQuote").foregroundStyle(.secondary) }
                 case .unavailable(let issue):
                     Text("registration.form.quoteFailed").foregroundStyle(.secondary)

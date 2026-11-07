@@ -1,0 +1,46 @@
+{
+  "w4CoreLoop.fourShop.stopNewSaleFinalization": {
+    "en": "Four-shop fixed compensation products have stopped new sales; sold contracts continue to be fulfilled.",
+    "zh-Hans": "四店固定补偿产品已停止新开售，已售合同继续履行"
+  },
+  "w4CoreLoop.fourShop.stopNewTicketSale": {
+    "en": "Four-shop fixed compensation products have stopped selling new tickets; sold contracts continue to be fulfilled.",
+    "zh-Hans": "四店固定补偿产品已停止新售票，已售合同继续履行"
+  },
+  "w4CoreLoop.fourShop.soldContractFulfillment": {
+    "en": "Sold contract continues fulfillment",
+    "zh-Hans": "已售合同继续履行"
+  },
+  "w4CoreLoop.nonRefundable.title": {
+    "en": "Non-refundable order",
+    "zh-Hans": "本单不可退"
+  },
+  "w4CoreLoop.nonRefundable.modalContent": {
+    "en": "This session has passed the 24-hour pre-gathering refund deadline and cannot be refunded after payment. Continue to place order?",
+    "zh-Hans": "该场次已过「集合前 24 小时」退款截止时间，支付后不可退款。确认继续下单？"
+  },
+  "w4CoreLoop.nonRefundable.confirm": {
+    "en": "Continue Order",
+    "zh-Hans": "继续下单"
+  },
+  "w4CoreLoop.nonRefundable.cancel": {
+    "en": "Think Again",
+    "zh-Hans": "再想想"
+  },
+  "w4CoreLoop.unifiedSearch.mode.list": {
+    "en": "List",
+    "zh-Hans": "列表"
+  },
+  "w4CoreLoop.unifiedSearch.mode.map": {
+    "en": "Map",
+    "zh-Hans": "地图"
+  },
+  "w4CoreLoop.publish.reviewSummary.create": {
+    "en": "Pre-Publish Summary",
+    "zh-Hans": "发布前摘要"
+  },
+  "w4CoreLoop.publish.reviewSummary.edit": {
+    "en": "Edit Summary",
+    "zh-Hans": "修改摘要"
+  }
+}

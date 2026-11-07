@@ -43,6 +43,11 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
+            Text(verbatim: ActivityPublishingWizard.heading(for: current))
+                .font(.subheadline.weight(.semibold))
+                .foregroundStyle(.primary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("publishModes.activity.wizard.heading")
         }
         .padding(.vertical, 4)
         .accessibilityIdentifier("publishModes.activity.wizard.step." + String(current))
@@ -93,5 +98,63 @@ import SwiftUI
             }
         }
         .controlSize(.large)
+    }
+}
+
+/// Step 2 pre-publish / edit review summary card matching `pages/publish/activity/index.wxml` (`发布前摘要` / `修改摘要`).
+@MainActor struct ActivityPublishingReviewSummaryCard: View {
+    let summary: ActivityPublishingWizard.ReviewSummary
+    var merchantHost: Bool = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(verbatim: summary.heading)
+                .font(.headline)
+                .accessibilityIdentifier("publishModes.activity.reviewSummary.heading")
+
+            if merchantHost {
+                Text(verbatim: ActivityPublishingWizard.merchantFreeTicketOnlyNotice)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("publishModes.activity.reviewSummary.merchantFreeNotice")
+            }
+
+            summaryRow(label: "名称", value: summary.nameText, id: "name")
+            summaryRow(label: "时间", value: summary.timeText, id: "time")
+            summaryRow(label: "地点", value: summary.addressText, id: "address")
+            summaryRow(label: "关联模板", value: summary.templateText, id: "template")
+            if let ticketText = summary.ticketSummaryText {
+                summaryRow(label: "票种", value: ticketText, id: "tickets")
+            }
+
+            Text(verbatim: summary.visibilityNotice)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("publishModes.activity.reviewSummary.visibility")
+        }
+        .padding(.vertical, 6)
+        .accessibilityIdentifier("publishModes.activity.reviewSummary")
+    }
+
+    @ViewBuilder
+    private func summaryRow(label: String, value: String, id: String) -> some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
+        } else {
+            LabeledContent {
+                Text(verbatim: value)
+                    .fixedSize(horizontal: false, vertical: true)
+            } label: {
+                Text(verbatim: label)
+                    .foregroundStyle(.secondary)
+            }
+            .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
+        }
     }
 }

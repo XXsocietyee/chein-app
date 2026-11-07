@@ -47,11 +47,17 @@ public struct RegistrationQuote: Decodable, Equatable {
     /// Source RegistrationQuoteResult.prioritySignupEnabled. Only an explicit true counts
     /// (mini-program `=== true`); absent or malformed values never invent a club benefit.
     public let prioritySignupEnabled: Bool
+    /// Source `/api/registration/quote` refund deadline (`yyyy-MM-dd HH:mm:ss` or ISO string).
+    public let refundDeadline: String?
+    /// Source `/api/registration/quote` tri-state refundability (`true`, `false`, or `nil` when not applicable).
+    /// In `pages/activity/baoming/baoming.js`, `payAmount > 0 && refundableNow === false` triggers the
+    /// mandatory 24-hour non-refundable confirmation ("本单不可退").
+    public let refundableNow: Bool?
 
     private enum CodingKeys: String, CodingKey {
         case payAmount, pointsUsed, pointsDeductYuan, pointsUsable
         case memberDiscountYuan, couponDeductYuan, clubMember, quoteSign
-        case prioritySignupEnabled
+        case prioritySignupEnabled, refundDeadline, refundableNow
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -64,6 +70,11 @@ public struct RegistrationQuote: Decodable, Equatable {
         clubMember = try c.decodeIfPresent(Bool.self, forKey: .clubMember) ?? false
         quoteSign = try c.decodeIfPresent(String.self, forKey: .quoteSign) ?? ""
         prioritySignupEnabled = ((try? c.decodeIfPresent(Bool.self, forKey: .prioritySignupEnabled)) ?? nil) == true
+        let rawDeadline = try? c.decodeIfPresent(String.self, forKey: .refundDeadline)
+        refundDeadline = rawDeadline?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+            ? rawDeadline?.trimmingCharacters(in: .whitespacesAndNewlines)
+            : nil
+        refundableNow = (try? c.decodeIfPresent(Bool.self, forKey: .refundableNow)) ?? nil
         guard pointsUsed >= 0 else { throw APIError.malformedResponse }
     }
 
@@ -73,6 +84,12 @@ public struct RegistrationQuote: Decodable, Equatable {
         payAmount != nil && !quoteSign.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
     public var hasPointsDeduction: Bool { pointsDeductYuan.map { $0 > .zero } ?? false }
+    /// Matches mini-program `baoming.js`: `payAmount > 0 && res.data.refundableNow === false`.
+    /// Pure-points / zero-yuan orders (`payAmount <= 0`) or `refundableNow != false` do not require the 24h non-refundable modal.
+    public var requiresNonRefundableConfirmation: Bool {
+        guard let payAmount, payAmount > .zero else { return false }
+        return refundableNow == false
+    }
 }
 
 /// An offer cannot be encoded with only an ID or only a token.
