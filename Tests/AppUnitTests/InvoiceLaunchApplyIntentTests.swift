@@ -40,3 +40,47 @@ import Foundation
         XCTAssertFalse(accepted); XCTAssertEqual(calls, 1)
     }
 }
+
+/// Synthetic list rules only; no network, no real invoice.
+@MainActor final class InvoiceLaunchHistoryRulesTests: XCTestCase {
+    private func application(id: Int64, status: String) throws -> InvoiceLaunchApplication {
+        let json: [String: Any] = ["id": id, "applicationNo": "SYNTHETIC-\(id)", "status": status, "titleType": "PERSONAL",
+            "titleName": "Synthetic title", "totalAmount": 14.25, "orderCount": 1, "orders": [Any]()]
+        return try JSONDecoder().decode(InvoiceLaunchApplication.self, from: JSONSerialization.data(withJSONObject: json))
+    }
+    func testFilterKeepsOnlyMatchingStatusAndAllKeepsEverything() throws {
+        let rows = [try application(id: 1, status: "SUBMITTED"), try application(id: 2, status: "ISSUED"),
+                    try application(id: 3, status: "SUBMITTED")]
+        XCTAssertEqual(InvoiceLaunchHistoryRules.rows(rows, filter: "all").map(\.id), [1, 2, 3])
+        XCTAssertEqual(InvoiceLaunchHistoryRules.rows(rows, filter: "SUBMITTED").map(\.id), [1, 3])
+        XCTAssertTrue(InvoiceLaunchHistoryRules.rows(rows, filter: "REJECTED").isEmpty)
+    }
+    func testOnlySubmittedCanBeWithdrawn() {
+        XCTAssertTrue(InvoiceLaunchHistoryRules.canWithdraw(.submitted))
+        for status in [InvoiceLaunchStatus.issued, .rejected, .cancelled] {
+            XCTAssertFalse(InvoiceLaunchHistoryRules.canWithdraw(status))
+        }
+    }
+    func testEmptyStateDistinguishesNoApplicationsFromEmptyFilter() {
+        XCTAssertEqual(InvoiceLaunchHistoryRules.emptyKey(total: 0, filter: "ISSUED"), "empty")
+        XCTAssertEqual(InvoiceLaunchHistoryRules.emptyKey(total: 3, filter: "all"), "empty")
+        XCTAssertEqual(InvoiceLaunchHistoryRules.emptyKey(total: 3, filter: "ISSUED"), "emptyFiltered")
+    }
+    func testWithdrawNeedsConfirmationAndSuccessNoticeOnlyAfterServiceSuccess() {
+        var flow = InvoiceLaunchWithdrawFlow()
+        XCTAssertNil(flow.confirm())
+        flow.ask(51); XCTAssertEqual(flow.confirming, 51); XCTAssertNil(flow.succeeded)
+        flow.cancelAsk(); XCTAssertNil(flow.confirm())
+        flow.ask(51)
+        XCTAssertEqual(flow.confirm(), 51); XCTAssertNil(flow.confirming); XCTAssertNil(flow.succeeded)
+        flow.finish(id: 51, success: false); XCTAssertNil(flow.succeeded)
+        flow.finish(id: 51, success: true); XCTAssertEqual(flow.succeeded, 51)
+        flow.ask(52); XCTAssertNil(flow.succeeded)
+    }
+    func testConfirmIsSingleUse() {
+        var flow = InvoiceLaunchWithdrawFlow()
+        flow.ask(7)
+        XCTAssertEqual(flow.confirm(), 7)
+        XCTAssertNil(flow.confirm())
+    }
+}

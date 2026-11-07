@@ -200,3 +200,39 @@ func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
         }
     }
 }
+
+/// Pure list rules for 我的发票 (subpackageMember/invoice). No I/O and no money math.
+enum InvoiceLaunchHistoryRules {
+    /// Filter chips in source order: 全部 / 处理中 / 已开具 / 已驳回 / 已撤回.
+    static let filterKeys = ["all", "SUBMITTED", "ISSUED", "REJECTED", "CANCELLED"]
+
+    static func rows(_ applications: [InvoiceLaunchApplication], filter: String) -> [InvoiceLaunchApplication] {
+        guard filter != "all" else { return applications }
+        return applications.filter { $0.status.rawValue == filter }
+    }
+
+    /// Source shows 撤回申请 on SUBMITTED rows only; the service still authorizes the request.
+    static func canWithdraw(_ status: InvoiceLaunchStatus) -> Bool { status == .submitted }
+
+    /// Localization key for the empty state: no applications at all vs. an empty filter.
+    static func emptyKey(total: Int, filter: String) -> String {
+        total == 0 || filter == "all" ? "empty" : "emptyFiltered"
+    }
+}
+
+/// Confirm-then-act state for the row-level withdraw. A success notice exists only
+/// after the injected service reported success; failure never produces one.
+struct InvoiceLaunchWithdrawFlow: Equatable {
+    private(set) var confirming: Int64?
+    private(set) var succeeded: Int64?
+
+    mutating func ask(_ id: Int64) { confirming = id; succeeded = nil }
+    mutating func cancelAsk() { confirming = nil }
+    /// Returns the id to send, or nil when nothing is awaiting confirmation.
+    mutating func confirm() -> Int64? {
+        defer { confirming = nil }
+        return confirming
+    }
+    mutating func finish(id: Int64, success: Bool) { succeeded = success ? id : nil }
+    mutating func dismissNotice() { succeeded = nil }
+}
