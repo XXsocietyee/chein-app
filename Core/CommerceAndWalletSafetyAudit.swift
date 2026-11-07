@@ -349,3 +349,119 @@ public enum CommerceAndWalletSafetyAuditor {
         )
     }
 }
+
+public enum W7MeWalletSurfaceCategory: String, CaseIterable, Sendable, Equatable {
+    case authAndSession = "AUTH_AND_SESSION"
+    case meAndProfile = "ME_AND_PROFILE"
+    case revolutWalletAndAssets = "REVOLUT_WALLET_AND_ASSETS"
+    case ordersAndCoupons = "ORDERS_AND_COUPONS"
+    case invoicesAndBadges = "INVOICES_AND_BADGES"
+    case privacyAndCompliance = "PRIVACY_AND_COMPLIANCE"
+    case merchantAndPricing = "MERCHANT_AND_PRICING"
+    case complaintsReportsAppeals = "COMPLAINTS_REPORTS_APPEALS"
+}
+
+public struct W7MeWalletSurfaceDescriptor: Sendable, Equatable, Identifiable {
+    public let id: String
+    public let miniProgramPath: String
+    public let category: W7MeWalletSurfaceCategory
+    public let titleZh: String
+    public let titleEn: String
+    public let isFlaggedOffByPolicy: Bool
+
+    public init(
+        id: String,
+        miniProgramPath: String,
+        category: W7MeWalletSurfaceCategory,
+        titleZh: String,
+        titleEn: String,
+        isFlaggedOffByPolicy: Bool = false
+    ) {
+        self.id = id
+        self.miniProgramPath = miniProgramPath
+        self.category = category
+        self.titleZh = titleZh
+        self.titleEn = titleEn
+        self.isFlaggedOffByPolicy = isFlaggedOffByPolicy
+    }
+
+    public func localizedTitle(isEnglish: Bool) -> String {
+        isEnglish ? titleEn : titleZh
+    }
+}
+
+public enum W7MeWalletParityCatalog {
+    public static let surfaces: [W7MeWalletSurfaceDescriptor] = [
+        W7MeWalletSurfaceDescriptor(
+            id: "auth-login",
+            miniProgramPath: "pages/login/index",
+            category: .authAndSession,
+            titleZh: "Apple + 短信验证码登录（密码登录保持关闭）",
+            titleEn: "Sign in with Apple + SMS OTP (Password Disabled)"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "me-home",
+            miniProgramPath: "pages/member/index/index",
+            category: .meAndProfile,
+            titleZh: "我的主页（身份卡片、票夹、资产、常用功能）",
+            titleEn: "Me Tab Home (Identity Card, Ticket Wallet, Assets, Benefits)"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "revolut-wallet",
+            miniProgramPath: "subpackageMember/pages/scene-asset/index",
+            category: .revolutWalletAndAssets,
+            titleZh: "Revolut 风格钱包与资产视图（余额卡片、按日分组流水、交易详情面板）",
+            titleEn: "Revolut-Style Wallet & Assets (Balance Card, Date-Grouped Ledger, Detail Sheet)"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "bank-withdrawal-flagged-off",
+            miniProgramPath: "subpackageMember/pages/withdrawal-apply/index",
+            category: .revolutWalletAndAssets,
+            titleZh: "银行卡提现与虚拟商品购买（按安全策略保持关闭）",
+            titleEn: "Bank Withdrawal & Virtual-Goods Purchase (Flagged Off by Policy)",
+            isFlaggedOffByPolicy: true
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "orders-tickets",
+            miniProgramPath: "subpackageMember/pages/order/index",
+            category: .ordersAndCoupons,
+            titleZh: "我的订单与票夹（9 态筛选、核销二维码、时间轴）",
+            titleEn: "Orders & Ticket Wallet (9-Filter Bar, Redemption QR, Timeline)"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "coupons-addresses",
+            miniProgramPath: "subpackageMember/pages/coupon/index",
+            category: .ordersAndCoupons,
+            titleZh: "优惠券包、兑换码核销与常用参与人/地址管理",
+            titleEn: "Coupons Wallet, Code Redemption & Participants/Addresses"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "invoices-badges",
+            miniProgramPath: "subpackageMember/pages/invoice/index",
+            category: .invoicesAndBadges,
+            titleZh: "发票中心 5 屏闭环与 3D 徽章墙",
+            titleEn: "5-Screen Invoice Center & Native 3D Badge Wall"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "privacy-deregistration",
+            miniProgramPath: "pages/member/privacy-protection/index",
+            category: .privacyAndCompliance,
+            titleZh: "隐私保护指引、协议原文与账号注销 3 步流程",
+            titleEn: "Privacy Protection, Legal Agreements & 3-Step Account Deletion"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "merchant-pricing",
+            miniProgramPath: "subpackageMember/pages/topic-pricing/index",
+            category: .merchantAndPricing,
+            titleZh: "定价申请、商户分账流水、批次明细、售后、客户与核销记录",
+            titleEn: "Topic Pricing, Merchant Ledger, Batch Detail, Aftercare, Customers & Verify Records"
+        ),
+        W7MeWalletSurfaceDescriptor(
+            id: "complaints-reports-appeals",
+            miniProgramPath: "subpackageMember/pages/complaint/index",
+            category: .complaintsReportsAppeals,
+            titleZh: "投诉与建议、举报进度追踪与评分申诉",
+            titleEn: "Complaints & Suggestions, Report Progress & Score Appeals"
+        ),
+    ]
+}

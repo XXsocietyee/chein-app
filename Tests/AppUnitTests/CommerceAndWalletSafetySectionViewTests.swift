@@ -91,5 +91,6 @@ final class CommerceAndWalletSafetySectionViewTests: XCTestCase {
             "W17.4 Non-Cash Policy: VIOLATION — points marked withdrawable"
         )
         XCTAssertEqual(view.snapshot.pillars[1].statusBadgeText, "VIOLATION (REVIEW REQUIRED)")
+        XCTAssertEqual(W7MeWalletParityCatalog.surfaces.count, 10)
     }
 }

@@ -246,6 +246,17 @@ public struct WalletIncomeDetailSelection: Identifiable {
               rows.contains(selection.row) else { return nil }
         return selection.row
     }
+    /// Admits a Revolut-style transaction detail sheet selection for any loaded ledger kind (balance, assetPoints, points, or income).
+    public func ledgerTransactionDetail(rowID: Int, reader: WalletCommerceReader) -> WalletIncomeDetailSelection? {
+        guard requestedReaderID == ObjectIdentifier(reader), let kind = requestedKind,
+              hasLoadedPage, !requiresLogin, !unavailable,
+              let scope = loadedScope, scope == reader.scope, reader.isConfigured,
+              rowID > 0, let row = rows.first(where: { $0.id == rowID }) else { return nil }
+        return WalletIncomeDetailSelection(row: row, scope: scope, kind: kind, snapshotID: snapshotID, readerID: ObjectIdentifier(reader))
+    }
+    public func ledgerTransactionDetailRow(_ selection: WalletIncomeDetailSelection, reader: WalletCommerceReader) -> WalletLedgerRow? {
+        incomeDetailRow(selection, reader: reader)
+    }
     public func load(reader: WalletCommerceReader, kind: WalletLedgerKind) async {
         let scope = reader.scope
         // Bind before dispatch, not only after success: repeated first-page taps
