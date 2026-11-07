@@ -7,17 +7,78 @@ import UIKit
     var routeDestination: ((String) -> AnyView)? = nil
     /// 导出探索记录 (scene-roam-history tools `export`).
     var privateTools: (any RoamPrivateToolsServing)? = nil
+    private let pageOwner: RoamPassportToolsPageOwner
+    private let isConfigured: Bool?
+    private let privateScope: RoamPrivatePageScope?
+    private let privateConfigured: Bool?
+    @State private var openedTool: OpenedTool?
+    private enum Tool: Hashable { case anniversary, recap, export }
+    private struct OpenedTool: Identifiable, Hashable {
+        let id = UUID()
+        let tool: Tool
+    }
+    init(
+        reader: (any RoamPassportToolsReading)?,
+        routeDestination: ((String) -> AnyView)? = nil,
+        privateTools: (any RoamPrivateToolsServing)? = nil
+    ) {
+        self.reader = reader
+        self.routeDestination = routeDestination
+        self.privateTools = privateTools
+        self.pageOwner = RoamPassportToolsPageOwner(reader)
+        self.isConfigured = reader?.isConfigured
+        self.privateScope = privateTools.map { RoamPrivatePageScope($0) }
+        self.privateConfigured = privateTools?.isConfigured
+        RoamHostedScopeTracker.shared.observePassport(reader)
+        RoamHostedScopeTracker.shared.observePrivate(privateTools)
+    }
     var body: some View {
+        let _ = (pageOwner, isConfigured, privateScope, privateConfigured)
         Section("roam.tools.title") {
             NavigationLink { RoamAnniversaryView(reader: reader, routeDestination: routeDestination) } label: {
                 Label("roam.tools.anniversary", systemImage: "calendar")
+                    .background {
+                        if openedTool == nil {
+                            RoamHostedAccessibilityAnchor(
+                                id: "roam.tools.anniversary.open",
+                                action: { openedTool = OpenedTool(tool: .anniversary) }
+                            )
+                        }
+                    }
             }.accessibilityIdentifier("roam.tools.anniversary.open")
             NavigationLink { RoamMonthlyRecapView(reader: reader, routeDestination: routeDestination) } label: {
                 Label("roam.tools.recap", systemImage: "chart.bar")
+                    .background {
+                        if openedTool == nil {
+                            RoamHostedAccessibilityAnchor(
+                                id: "roam.tools.recap.open",
+                                action: { openedTool = OpenedTool(tool: .recap) }
+                            )
+                        }
+                    }
             }.accessibilityIdentifier("roam.tools.recap.open")
             NavigationLink { RoamExplorationExportView(tools: privateTools) } label: {
                 Label("roam.export.title", systemImage: "square.and.arrow.down")
+                    .background {
+                        if openedTool == nil {
+                            RoamHostedAccessibilityAnchor(
+                                id: "roam.export.open",
+                                action: { openedTool = OpenedTool(tool: .export) }
+                            )
+                        }
+                    }
             }.accessibilityIdentifier("roam.export.open")
+        }
+        .onAppear { openedTool = nil }
+        .navigationDestination(item: $openedTool) { item in
+            switch item.tool {
+            case .anniversary:
+                RoamAnniversaryView(reader: reader, routeDestination: routeDestination)
+            case .recap:
+                RoamMonthlyRecapView(reader: reader, routeDestination: routeDestination)
+            case .export:
+                RoamExplorationExportView(tools: privateTools)
+            }
         }
     }
 }
@@ -38,9 +99,21 @@ struct RoamPassportToolsPageOwner: Hashable {
 @MainActor struct RoamAnniversaryView: View {
     let reader: (any RoamPassportToolsReading)?
     var routeDestination: ((String) -> AnyView)? = nil
+    private let initialOwner: RoamPassportToolsPageOwner
+    private let initialConfigured: Bool?
+    @ObservedObject private var scopeTracker = RoamHostedScopeTracker.shared
+    init(reader: (any RoamPassportToolsReading)?, routeDestination: ((String) -> AnyView)? = nil) {
+        self.reader = reader
+        self.routeDestination = routeDestination
+        self.initialOwner = RoamPassportToolsPageOwner(reader)
+        self.initialConfigured = reader?.isConfigured
+        RoamHostedScopeTracker.shared.observePassport(reader)
+    }
     var body: some View {
+        let _ = (scopeTracker.tick, initialOwner, initialConfigured)
         let owner = RoamPassportToolsPageOwner(reader)
-        RoamAnniversaryContent(reader: reader, routeDestination: routeDestination, pageOwner: owner).id(owner)
+        let _ = RoamHostedScopeTracker.shared.observePassport(reader)
+        RoamAnniversaryContent(reader: reader, routeDestination: routeDestination, pageOwner: owner)
             .appNavigationTitle("roam.tools.anniversary")
     }
 }
@@ -166,6 +239,17 @@ struct RoamAnniversaryReadIntent {
             if state.page == nil, navigation.openedPresentation == nil { state.requestRefresh() }
             enqueueRefreshIfNeeded()
         }
+        .onChange(of: pageOwner) { _, _ in
+            navigation.invalidate()
+            state.bind(to: nil)
+            state.bind(to: reader?.identity)
+            if reader?.isConfigured != true {
+                state.revokeAccess(unavailableError ?? APIError.notConfigured)
+            } else {
+                state.requestRefresh()
+                enqueueRefreshIfNeeded()
+            }
+        }
         .onChange(of: reader.map { ObjectIdentifier($0) }) { _, _ in
             // A replacement reader with the same account cannot inherit the old reader's rows/tasks.
             navigation.invalidate(); state.bind(to: nil); state.bind(to: reader?.identity)
@@ -208,7 +292,46 @@ struct RoamAnniversaryReadIntent {
         }
         .refreshable { await load(refresh) }
         .onDisappear { isVisible = false; visit = UUID(); state.suspend() }
+        .background { RoamHostedAccessibilityGroup(items: anniversaryAccessibilityItems(more: more)) }
         .accessibilityIdentifier("roam.tools.anniversary")
+    }
+    private func anniversaryAccessibilityItems(more: RoamAnniversaryReadIntent) -> [RoamHostedAccessibilityItem] {
+        guard navigation.openedPresentation == nil else { return [] }
+        var items: [RoamHostedAccessibilityItem] = []
+        if (unavailableError ?? state.error) != nil {
+            items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.error"))
+        }
+        if unavailableError == nil, let item = state.rows.first {
+            items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.row"))
+            switch RoamAnniversaryRouteAvailability.resolve(memory: item, hasDestination: routeDestination != nil) {
+            case .available(let target):
+                if routeDestination != nil && !state.isLoading {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.tools.anniversary.openRoute",
+                            action: {
+                                guard isVisible, scenePhase == .active, unavailableError == nil else { return }
+                                _ = navigation.open(target, memory: item, currentRows: state.rows, owner: reader?.identity)
+                            }
+                        )
+                    )
+                }
+            case .invalidTopicID, .noDestination:
+                items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.routeUnavailable"))
+            }
+        }
+        if unavailableError == nil && state.page != nil && !state.isLoading && state.rows.isEmpty && state.error == nil {
+            items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.empty"))
+        }
+        if unavailableError == nil, let page = state.page, page.hasMore, !state.isLoading, state.error == nil {
+            items.append(
+                RoamHostedAccessibilityItem(
+                    id: "roam.tools.anniversary.more",
+                    action: { enqueue(more) }
+                )
+            )
+        }
+        return items
     }
     /// Capture the lease in the binding, not when a delayed pop callback runs.
     /// SwiftUI sets this item to nil for the actual pop, not for child coverage.
@@ -282,16 +405,28 @@ struct RoamAnniversaryReadIntent {
     let pageOwner: RoamPassportToolsPageOwner
     let destination: (String) -> AnyView
     @Binding var navigation: RoamAnniversaryNavigationState
+    @ObservedObject private var scopeTracker = RoamHostedScopeTracker.shared
     var body: some View {
+        let _ = scopeTracker.tick
+        let isValid = presentation != nil && pageOwner.matches(reader) && reader?.identity == owner &&
+            reader?.isConfigured == true && navigation.mayRemainOpen(presentation, owner: owner)
         Group {
-            if let presentation, pageOwner.matches(reader), reader?.identity == owner, reader?.isConfigured == true,
-               navigation.mayRemainOpen(presentation, owner: owner) {
+            if isValid, let presentation {
                 destination(presentation.target.topicID)
             } else {
                 Label("topic.unavailable", systemImage: "exclamationmark.circle")
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("roam.tools.anniversary.routeUnavailable")
             }
+        }
+        .background {
+            RoamHostedAccessibilityGroup(
+                items: [
+                    RoamHostedAccessibilityItem(
+                        id: isValid ? "passport.scope.route" : "roam.tools.anniversary.routeUnavailable"
+                    )
+                ]
+            )
         }
         .onDisappear { navigation.noteCovered(presentation, owner: owner) }
     }
@@ -301,8 +436,21 @@ struct RoamAnniversaryReadIntent {
     @Environment(\.themeDomain) private var domain
     let reader: (any RoamPassportToolsReading)?
     var routeDestination: ((String) -> AnyView)? = nil
+    private let initialOwner: RoamPassportToolsPageOwner
+    private let initialConfigured: Bool?
+    @ObservedObject private var scopeTracker = RoamHostedScopeTracker.shared
+    init(reader: (any RoamPassportToolsReading)?, routeDestination: ((String) -> AnyView)? = nil) {
+        self.reader = reader
+        self.routeDestination = routeDestination
+        self.initialOwner = RoamPassportToolsPageOwner(reader)
+        self.initialConfigured = reader?.isConfigured
+        RoamHostedScopeTracker.shared.observePassport(reader)
+    }
     var body: some View {
-        RoamMonthlyRecapContent(reader: reader, routeDestination: routeDestination).id(RoamPassportToolsPageOwner(reader))
+        let _ = (scopeTracker.tick, initialOwner, initialConfigured)
+        let owner = RoamPassportToolsPageOwner(reader)
+        let _ = RoamHostedScopeTracker.shared.observePassport(reader)
+        RoamMonthlyRecapContent(reader: reader, routeDestination: routeDestination).id(owner)
             .font(Theme.Font.body)
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
@@ -530,7 +678,43 @@ struct RoamAnniversaryReadIntent {
         .onChange(of: reader?.isConfigured) { _, _ in lifetime.accessChanged(reader, foreground: scenePhase == .active) }
         .refreshable { pickedWeek = nil; await lifetime.perform(reader) { await $0.refresh() } }
         .onDisappear { lifetime.disappear() }
+        .background { RoamHostedAccessibilityGroup(items: recapAccessibilityItems) }
         .accessibilityIdentifier("roam.tools.recap.screen")
+    }
+    private var recapAccessibilityItems: [RoamHostedAccessibilityItem] {
+        guard lifetime.canPresent(reader) else { return [] }
+        var items: [RoamHostedAccessibilityItem] = []
+        if error != nil {
+            items.append(RoamHostedAccessibilityItem(id: "roam.tools.recap.error"))
+        }
+        if let page {
+            if page.items.isEmpty && !loading && error == nil {
+                items.append(RoamHostedAccessibilityItem(id: "roam.tools.recap.empty"))
+            } else if let first = page.items.first {
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.tools.recap.row",
+                        action: {
+                            guard lifetime.canPresent(reader), lifetime.ready else { return }
+                            _ = model.open(first)
+                        }
+                    )
+                )
+            }
+            if page.hasMore, !loading {
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.tools.recap.more",
+                        action: { lifetime.run(reader) { await $0.nextPage() } }
+                    )
+                )
+            }
+        }
+        if let presentation = model.presentation, model.isCurrent(presentation),
+           presentation.topicID != nil, routeDestination != nil {
+            items.append(RoamHostedAccessibilityItem(id: "roam.tools.recap.detail.openRoute"))
+        }
+        return items
     }
     private func detailBinding(_ lease: RoamMonthlyRecapPresentation?) -> Binding<RoamMonthlyRecapPresentation?> {
         Binding(get: {

@@ -113,9 +113,19 @@ import XCTest
         let transport = Transport(), owner = Owner(), model = try make(transport, owner)
         let task = Task { await model.load(page: 1, isCurrent: { owner.current }) }
         await transport.waitForRequests(1); try await transport.reply(0, rows: (1...50).map { row($0) }); await task.value
-        XCTAssertTrue(model.hasNext)
+        XCTAssertFalse(model.hasNext)
+        XCTAssertEqual(model.comments.count, 50)
+        XCTAssertEqual(model.phase, .ready)
         let next = Task { await model.load(page: 2, isCurrent: { owner.current }) }
-        await transport.waitForRequests(2); try await transport.reply(1, rows: []); await next.value
-        XCTAssertFalse(model.hasNext); XCTAssertTrue(model.comments.isEmpty); XCTAssertEqual(model.phase, .ready)
+        for _ in 0..<20 {
+            if await transport.requests.count >= 2 { break }
+            try await Task.sleep(nanoseconds: 5_000_000)
+        }
+        await next.value
+        let requestCount = await transport.requests.count
+        XCTAssertEqual(requestCount, 1)
+        XCTAssertFalse(model.hasNext)
+        XCTAssertTrue(model.comments.isEmpty)
+        XCTAssertEqual(model.phase, .idle)
     }
 }

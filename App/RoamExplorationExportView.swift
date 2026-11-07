@@ -9,10 +9,27 @@ import UniformTypeIdentifiers
 
 @MainActor struct RoamExplorationExportView: View {
     let tools: (any RoamPrivateToolsServing)?
+    private let initialScope: RoamPrivatePageScope?
+    private let initialConfigured: Bool?
+    @ObservedObject private var scopeTracker = RoamHostedScopeTracker.shared
+    init(tools: (any RoamPrivateToolsServing)?) {
+        self.tools = tools
+        self.initialScope = tools.map { RoamPrivatePageScope($0) }
+        self.initialConfigured = tools?.isConfigured
+        RoamHostedScopeTracker.shared.observePrivate(tools)
+    }
     var body: some View {
+        let _ = (scopeTracker.tick, initialScope, initialConfigured)
+        let _ = RoamHostedScopeTracker.shared.observePrivate(tools)
         Group {
-            if let tools { RoamExportContent(tools: tools).id(RoamPrivatePageScope(tools)) }
-            else { List { RoamPrivateIssueView(issue: .notConfigured) }.accessibilityIdentifier("roam.export.screen") }
+            if let tools {
+                let scope = RoamPrivatePageScope(tools)
+                RoamExportContent(tools: tools, isConfigured: tools.isConfigured).id(scope)
+            } else {
+                List { RoamPrivateIssueView(issue: .notConfigured) }
+                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(id: "roam.private.issue")]) }
+                    .accessibilityIdentifier("roam.export.screen")
+            }
         }.appNavigationTitle("roam.export.title").navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -125,6 +142,7 @@ private struct RoamExportFileSaveLink: View {
 
 @MainActor private struct RoamExportContent: View {
     let tools: any RoamPrivateToolsServing
+    let isConfigured: Bool
     @StateObject private var owner: RoamExportReadPresentation
     private var model: RoamExportCoordinator { owner.model }
     @State private var preset: RoamExportRangePreset.Kind = .last30Days
@@ -136,10 +154,16 @@ private struct RoamExportFileSaveLink: View {
     /// The save currently presented. Its own view owns the callback; a later save does not inherit it.
     @State private var saveTicket: RoamExportSaveTicket?
     @Environment(\.scenePhase) private var scenePhase
-    init(tools: any RoamPrivateToolsServing) {
+    init(tools: any RoamPrivateToolsServing, isConfigured: Bool) {
         self.tools = tools
+        self.isConfigured = isConfigured
         // Offline the fixture echoes a two-row page size so chunked reading stays visible; live reads use 100.
-        _owner = StateObject(wrappedValue: RoamExportReadPresentation(tools: tools))
+        let presentation = RoamExportReadPresentation(tools: tools)
+        _owner = StateObject(wrappedValue: presentation)
+        if let initial = presentation.model.presets.first(where: { $0.kind == .last30Days }) {
+            _startDate = State(initialValue: initial.startDate)
+            _endDate = State(initialValue: initial.endDateExclusive)
+        }
     }
     private func presetKey(_ kind: RoamExportRangePreset.Kind) -> LocalizedStringKey {
         switch kind { case .last30Days: return "roam.export.range.30"; case .thisYear: return "roam.export.range.year"; case .lastYear: return "roam.export.range.365" }
@@ -171,6 +195,10 @@ private struct RoamExportFileSaveLink: View {
         .onChange(of: RoamPrivatePageScope(tools)) { _, _ in
             deliveryContext.publish()
             owner.suspend(); saveTicket = nil; shareOffer = nil
+            owner.resume(foreground: scenePhase == .active)
+        }
+        .onChange(of: isConfigured) { _, _ in
+            deliveryContext.publish(); owner.suspend(); saveTicket = nil; shareOffer = nil
             owner.resume(foreground: scenePhase == .active)
         }
         .onChange(of: tools.isConfigured) { _, _ in
@@ -217,7 +245,52 @@ private struct RoamExportFileSaveLink: View {
                                         shareOffer = nil
                                     })
         }
+        .background { RoamHostedAccessibilityGroup(items: exportAccessibilityItems) }
         .accessibilityIdentifier("roam.export.screen")
+    }
+    private var exportAccessibilityItems: [RoamHostedAccessibilityItem] {
+        let _ = isConfigured
+        var items: [RoamHostedAccessibilityItem] = []
+        if let issue = model.issue {
+            items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+            if issue != .outcomeUnknown, issue != .signInRequired, issue != .notConfigured {
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.private.retry",
+                        action: {
+                            if prepared { owner.readNext() }
+                            else { owner.prepare(startDate: startDate, endDate: endDate) }
+                        }
+                    )
+                )
+            }
+        }
+        if prepared {
+            if owner.active {
+                if model.fileForDelivery(foreground: scenePhase == .active) != nil {
+                    items.append(RoamHostedAccessibilityItem(id: "roam.export.file"))
+                }
+                if model.phase != .reading && model.phase != .complete && !model.isBusy {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.export.readNext",
+                            action: { owner.readNext() }
+                        )
+                    )
+                }
+            }
+        } else if owner.active && !model.isBusy && RoamExportContract.isValidRange(start: startDate, end: endDate) {
+            items.append(
+                RoamHostedAccessibilityItem(
+                    id: "roam.export.prepare",
+                    action: {
+                        saveResult = nil
+                        owner.prepare(startDate: startDate, endDate: endDate)
+                    }
+                )
+            )
+        }
+        return items
     }
     private func use(_ kind: RoamExportRangePreset.Kind) {
         guard let value = model.presets.first(where: { $0.kind == kind }) else { return }

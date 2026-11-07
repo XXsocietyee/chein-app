@@ -7,13 +7,56 @@ import SwiftUI
 /// 探索目标 / 时光胶囊 passport tiles (pages/roam `passport.tiles`, NEW since 2026-10-14).
 @MainActor struct RoamPassportPrivateLinks: View {
     let tools: (any RoamPrivateToolsServing)?
+    private let initialScope: RoamPrivatePageScope?
+    private let initialConfigured: Bool?
+    private let initialWrites: Bool?
+    @State private var openedLink: OpenedLink?
+    private enum LinkKind: Hashable { case goals, capsule }
+    private struct OpenedLink: Identifiable, Hashable {
+        let id = UUID()
+        let kind: LinkKind
+    }
+    init(tools: (any RoamPrivateToolsServing)?) {
+        self.tools = tools
+        self.initialScope = tools.map { RoamPrivatePageScope($0) }
+        self.initialConfigured = tools?.isConfigured
+        self.initialWrites = tools?.allowsWrites
+        RoamHostedScopeTracker.shared.observePrivate(tools)
+    }
     var body: some View {
+        let _ = (initialScope, initialConfigured, initialWrites)
         NavigationLink { RoamExplorationGoalsView(tools: tools) } label: {
             RoamPassportTileLabel(title: "roam.goals.title", subtitle: "roam.goals.tile", systemImage: "flag")
+                .background {
+                    if openedLink == nil {
+                        RoamHostedAccessibilityAnchor(
+                            id: "roam.goals.open",
+                            action: { openedLink = OpenedLink(kind: .goals) }
+                        )
+                    }
+                }
         }.accessibilityIdentifier("roam.goals.open")
         NavigationLink { RoamCapsuleView(tools: tools) } label: {
             RoamPassportTileLabel(title: "roam.capsule.title", subtitle: "roam.capsule.tile", systemImage: "clock")
-        }.accessibilityIdentifier("roam.capsule.open")
+                .background {
+                    if openedLink == nil {
+                        RoamHostedAccessibilityAnchor(
+                            id: "roam.capsule.open",
+                            action: { openedLink = OpenedLink(kind: .capsule) }
+                        )
+                    }
+                }
+        }
+        .accessibilityIdentifier("roam.capsule.open")
+        .onAppear { openedLink = nil }
+        .navigationDestination(item: $openedLink) { item in
+            switch item.kind {
+            case .goals:
+                RoamExplorationGoalsView(tools: tools)
+            case .capsule:
+                RoamCapsuleView(tools: tools)
+            }
+        }
     }
 }
 
@@ -161,16 +204,37 @@ struct RoamPrivatePageScope: Hashable {
 
 @MainActor struct RoamCapsuleView: View {
     let tools: (any RoamPrivateToolsServing)?
+    private let initialScope: RoamPrivatePageScope?
+    private let initialConfigured: Bool?
+    private let initialWrites: Bool?
+    @ObservedObject private var scopeTracker = RoamHostedScopeTracker.shared
+    init(tools: (any RoamPrivateToolsServing)?) {
+        self.tools = tools
+        self.initialScope = tools.map { RoamPrivatePageScope($0) }
+        self.initialConfigured = tools?.isConfigured
+        self.initialWrites = tools?.allowsWrites
+        RoamHostedScopeTracker.shared.observePrivate(tools)
+    }
     var body: some View {
+        let _ = (scopeTracker.tick, initialScope, initialConfigured, initialWrites)
+        let _ = RoamHostedScopeTracker.shared.observePrivate(tools)
         Group {
-            if let tools { RoamCapsuleContent(tools: tools).id(RoamPrivatePageScope(tools)) }
-            else { List { RoamPrivateIssueView(issue: .notConfigured) }.accessibilityIdentifier("roam.capsule.screen") }
+            if let tools {
+                let scope = RoamPrivatePageScope(tools)
+                RoamCapsuleContent(tools: tools, isConfigured: tools.isConfigured, allowsWrites: tools.allowsWrites).id(scope)
+            } else {
+                List { RoamPrivateIssueView(issue: .notConfigured) }
+                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(id: "roam.private.issue")]) }
+                    .accessibilityIdentifier("roam.capsule.screen")
+            }
         }.appNavigationTitle("roam.capsule.title")
     }
 }
 
 @MainActor private struct RoamCapsuleContent: View {
     let tools: any RoamPrivateToolsServing
+    let isConfigured: Bool
+    let allowsWrites: Bool
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var page: RoamPrivatePageOwner
     @State private var model: RoamCapsuleCoordinator
@@ -179,8 +243,11 @@ struct RoamPrivatePageScope: Hashable {
     @State private var unlockDate = ""
     @State private var custom = false
     @State private var lockedTip = false
-    init(tools: any RoamPrivateToolsServing) {
-        self.tools = tools; _page = StateObject(wrappedValue: RoamPrivatePageOwner(tools: tools))
+    init(tools: any RoamPrivateToolsServing, isConfigured: Bool, allowsWrites: Bool) {
+        self.tools = tools
+        self.isConfigured = isConfigured
+        self.allowsWrites = allowsWrites
+        _page = StateObject(wrappedValue: RoamPrivatePageOwner(tools: tools))
         _model = State(initialValue: RoamCapsuleCoordinator(tools: tools))
     }
     private var options: [RoamCapsuleUnlockOption] { RoamCapsuleUnlockOption.options(now: tools.now) }
@@ -252,6 +319,9 @@ struct RoamPrivatePageScope: Hashable {
             else if phase == .active { activate() }
             else { page.inactive() }
         }
+        .onChange(of: isConfigured) { _, configured in
+            if configured { activate() } else { retire() }
+        }
         .onChange(of: tools.isConfigured) { _, configured in
             if configured { activate() } else { retire() }
         }
@@ -267,7 +337,83 @@ struct RoamPrivatePageScope: Hashable {
                 .accessibilityIdentifier("roam.capsule.confirmDelete")
             Button("roam.private.notNow", role: .cancel) { model.cancelDelete() }
         } message: { Text("roam.capsule.deleteMessage") }
+        .background { RoamHostedAccessibilityGroup(items: capsuleAccessibilityItems) }
         .accessibilityIdentifier("roam.capsule.screen")
+    }
+    private var capsuleAccessibilityItems: [RoamHostedAccessibilityItem] {
+        let _ = (isConfigured, allowsWrites)
+        var items: [RoamHostedAccessibilityItem] = []
+        if page.isPresented {
+            if let issue = model.issue {
+                items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+                if issue != .outcomeUnknown, issue != .signInRequired, issue != .notConfigured {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.private.retry",
+                            action: { page.read { await model.load() } }
+                        )
+                    )
+                }
+            }
+            if model.pending != nil || model.pendingRequestID != nil {
+                items.append(RoamHostedAccessibilityItem(id: "roam.capsule.pending"))
+                if !model.isBusy {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.capsule.verify",
+                            action: { page.settle(write: false, { await model.verifyPending() }, refresh: { await model.load() }) }
+                        )
+                    )
+                }
+                if model.pending != nil {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.capsule.retryOriginal",
+                            isEnabled: !model.isBusy && model.canWrite,
+                            action: { page.settle(write: true, { await model.retryPending() }, refresh: { await model.load() }) }
+                        )
+                    )
+                }
+            }
+            if model.opened != nil {
+                items.append(RoamHostedAccessibilityItem(id: "roam.capsule.body"))
+            }
+            if composing {
+                items.append(RoamHostedAccessibilityItem(id: "roam.capsule.text"))
+            }
+            if showsList {
+                if let openItem = model.items.first(where: { $0.state == .open }) {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.capsule.row.open",
+                            action: { page.read { await model.open(openItem) } }
+                        )
+                    )
+                }
+                if !model.isBusy && model.items.isEmpty && model.phase == .ready {
+                    items.append(RoamHostedAccessibilityItem(id: "roam.capsule.empty"))
+                }
+                if model.hasMore && !model.isBusy {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.capsule.more",
+                            action: { page.read { await model.load(more: true) } }
+                        )
+                    )
+                }
+            }
+            if page.acceptsInput && !page.settlementInFlight && !model.isBusy && !composing && tools.allowsWrites {
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.capsule.write",
+                        action: { startComposing() }
+                    )
+                )
+            }
+        } else if scenePhase == .active && (tools.identity == nil || !tools.isConfigured) {
+            items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+        }
+        return items
     }
     private func activate(appearing: Bool = false) {
         let started = appearing ? page.appear(foreground: scenePhase == .active) : page.activate(foreground: scenePhase == .active)
@@ -351,10 +497,29 @@ struct RoamPrivatePageScope: Hashable {
 
 @MainActor struct RoamExplorationGoalsView: View {
     let tools: (any RoamPrivateToolsServing)?
+    private let initialScope: RoamPrivatePageScope?
+    private let initialConfigured: Bool?
+    private let initialWrites: Bool?
+    @ObservedObject private var scopeTracker = RoamHostedScopeTracker.shared
+    init(tools: (any RoamPrivateToolsServing)?) {
+        self.tools = tools
+        self.initialScope = tools.map { RoamPrivatePageScope($0) }
+        self.initialConfigured = tools?.isConfigured
+        self.initialWrites = tools?.allowsWrites
+        RoamHostedScopeTracker.shared.observePrivate(tools)
+    }
     var body: some View {
+        let _ = (scopeTracker.tick, initialScope, initialConfigured, initialWrites)
+        let _ = RoamHostedScopeTracker.shared.observePrivate(tools)
         Group {
-            if let tools { RoamGoalsContent(tools: tools).id(RoamPrivatePageScope(tools)) }
-            else { List { RoamPrivateIssueView(issue: .notConfigured) }.accessibilityIdentifier("roam.goals.screen") }
+            if let tools {
+                let scope = RoamPrivatePageScope(tools)
+                RoamGoalsContent(tools: tools, isConfigured: tools.isConfigured, allowsWrites: tools.allowsWrites).id(scope)
+            } else {
+                List { RoamPrivateIssueView(issue: .notConfigured) }
+                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(id: "roam.private.issue")]) }
+                    .accessibilityIdentifier("roam.goals.screen")
+            }
         }.appNavigationTitle("roam.goals.title")
     }
 }
@@ -373,6 +538,8 @@ extension RoamGoalState {
 
 @MainActor private struct RoamGoalsContent: View {
     let tools: any RoamPrivateToolsServing
+    let isConfigured: Bool
+    let allowsWrites: Bool
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var page: RoamPrivatePageOwner
     @State private var model: RoamGoalsCoordinator
@@ -382,8 +549,11 @@ extension RoamGoalState {
     @State private var period: RoamGoalPeriod.Kind = .month
     @State private var startDate = ""
     @State private var endDate = ""
-    init(tools: any RoamPrivateToolsServing) {
-        self.tools = tools; _page = StateObject(wrappedValue: RoamPrivatePageOwner(tools: tools))
+    init(tools: any RoamPrivateToolsServing, isConfigured: Bool, allowsWrites: Bool) {
+        self.tools = tools
+        self.isConfigured = isConfigured
+        self.allowsWrites = allowsWrites
+        _page = StateObject(wrappedValue: RoamPrivatePageOwner(tools: tools))
         _model = State(initialValue: RoamGoalsCoordinator(tools: tools))
     }
     private func periodKey(_ kind: RoamGoalPeriod.Kind) -> LocalizedStringKey {
@@ -459,6 +629,9 @@ extension RoamGoalState {
             else if phase == .active { activate() }
             else { page.inactive() }
         }
+        .onChange(of: isConfigured) { _, configured in
+            if configured { activate() } else { retire() }
+        }
         .onChange(of: tools.isConfigured) { _, configured in
             if configured { activate() } else { retire() }
         }
@@ -473,7 +646,61 @@ extension RoamGoalState {
             Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }, refresh: { await model.load() }) }.accessibilityIdentifier("roam.goals.confirmCancel")
             Button("roam.goals.keep", role: .cancel) { model.keepGoal() }
         } message: { Text("roam.goals.cancelMessage") }
+        .background { RoamHostedAccessibilityGroup(items: goalsAccessibilityItems) }
         .accessibilityIdentifier("roam.goals.screen")
+    }
+    private var goalsAccessibilityItems: [RoamHostedAccessibilityItem] {
+        let _ = (isConfigured, allowsWrites)
+        var items: [RoamHostedAccessibilityItem] = []
+        if page.isPresented {
+            if let issue = model.issue, !(creating && (issue == .invalidDraft || isRejection(issue))) {
+                items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+                if issue != .outcomeUnknown, issue != .signInRequired, issue != .notConfigured {
+                    items.append(
+                        RoamHostedAccessibilityItem(
+                            id: "roam.private.retry",
+                            action: { page.read { await model.load() } }
+                        )
+                    )
+                }
+            }
+            if model.detail != nil {
+                items.append(RoamHostedAccessibilityItem(id: "roam.goals.detail"))
+            }
+            if creating {
+                items.append(RoamHostedAccessibilityItem(id: "roam.goals.metricPicker"))
+            }
+            if let first = model.rows.first {
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.goals.row",
+                        action: { page.read { await model.open(first.id) } }
+                    )
+                )
+            }
+            if !model.isBusy && model.rows.isEmpty && model.phase == .ready {
+                items.append(RoamHostedAccessibilityItem(id: "roam.goals.empty"))
+            }
+            if model.hasMore && !model.isBusy {
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.goals.more",
+                        action: { page.read { await model.load(more: true) } }
+                    )
+                )
+            }
+            if page.acceptsInput && !page.settlementInFlight && !model.isBusy && !creating && tools.allowsWrites {
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.goals.new",
+                        action: { startCreating() }
+                    )
+                )
+            }
+        } else if scenePhase == .active && (tools.identity == nil || !tools.isConfigured) {
+            items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+        }
+        return items
     }
     private func activate(appearing: Bool = false) {
         let started = appearing ? page.appear(foreground: scenePhase == .active) : page.activate(foreground: scenePhase == .active)
