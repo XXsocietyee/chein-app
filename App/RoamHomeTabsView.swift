@@ -21,12 +21,14 @@ struct RoamHomeTabPicker: View {
     let start: () -> AnyView
     let nearby: (() -> AnyView)?
     let myTeams: (() -> AnyView)?
+    var officialRoutes: (() -> AnyView)? = nil
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 card("roam.w208.intro.start", "roam.w208.intro.start.sub", "point.topleft.down.to.point.bottomright.curvepath", identifier: "roam.home.intro.start", destination: start)
                 if let nearby { card("roam.w208.intro.map", "roam.w208.intro.map.sub", "map", identifier: "roam.home.intro.map", destination: nearby) }
                 if let myTeams { card("roam.w208.intro.teams", "roam.w208.intro.teams.sub", "person.3", identifier: "roam.home.intro.teams", destination: myTeams) }
+                if let officialRoutes { card("officialRoute.intro", "officialRoute.intro.sub", "signpost.right.and.left", identifier: "roam.home.intro.officialRoutes", destination: officialRoutes) }
             }.padding(.vertical, 4)
         }
     }

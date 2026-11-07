@@ -6182,6 +6182,19 @@ final class AppSession: ObservableObject {
         await reader.loadNearby(.init(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude, radius: RoamEntryNearbyRoute.radius))
         return reader.messageKey == nil ? reader.teams : nil
     }
+    /// Mini-program 官方线路: public preset-route reads, run with the signed-in token like the other roam reads.
+    lazy var officialRouteReader: OfficialRouteReader? = {
+        guard roamService != nil else { return nil }
+        return OfficialRouteReader(
+            list: { [weak self] in
+                guard let self, let service = self.roamService, let token = self.token else { throw APIError.unauthorized }
+                return try await service.officialRoutes(token: token)
+            },
+            detail: { [weak self] id in
+                guard let self, let service = self.roamService, let token = self.token else { throw APIError.unauthorized }
+                return try await service.officialRoute(id: id, token: token)
+            })
+    }()
     private let roamService: RoamService?
     // Exact dormant IM adapter exists, but ordinary production composition has no live grant.
     private var imExpandedCoordinators: [IMScope: IMExpandedCoordinator] = [:]

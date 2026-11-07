@@ -54,6 +54,7 @@ public struct RoamService {
         guard result.merchant.id == id else { throw APIError.malformedResponse }
         return result
     }
+    func presetRead(_ path: String, query: [String: String], token: String) async throws -> Data { try await get(path, query: query, token: token) }
     private func validate(radiusM: Int) throws {
         guard (1...20000).contains(radiusM) else { throw APIError.invalidRequest }
     }
