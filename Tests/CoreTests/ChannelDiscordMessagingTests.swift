@@ -456,16 +456,14 @@ final class ChannelDiscordMessagingTests: XCTestCase {
         )
 
         // Unban member: platform ban (`source == "PLATFORM"`) cannot be unbanned by club admin
-        let platformBan = ClubOpsBanRow(
+        let platformBan = ChannelModerationBanRecord(
             id: 91,
             targetMemberID: 604,
             nickname: "普通队员",
-            source: .platform,
-            status: .active,
-            bannedAt: "04-17 10:00",
-            expiry: .permanent,
-            unbanReason: nil,
-            unbanSeed: nil
+            source: "PLATFORM",
+            status: "ACTIVE",
+            reasonCode: "FRAUD",
+            reasonText: "平台风控封禁"
         )
         XCTAssertEqual(
             adminPolicy.validateUnbanMember(banRow: platformBan, reason: "误封"),
