@@ -68,3 +68,34 @@ extension RoamNodeCompletion {
         try! JSONDecoder().decode(RoamNodeCompletion.self, from: Data(#"{"needRedeem":\#(needRedeem)}"#.utf8))
     }
 }
+
+final class RoamLiveWriteAllowlistTests: XCTestCase {
+    func testOnlyRoamWritePathsAreAccepted() {
+        for ok in ["api/city/nodes/7/favorite", "api/city/nodes/123/complete", "api/roam/stamp/create", "api/roam/stamp/exchange", "api/common/uploadOSS"] {
+            XCTAssertTrue(RoamLiveWriteTransport.accepts(ok), ok)
+        }
+        for bad in ["api/city/nodes/x/favorite", "api/city/nodes//favorite", "api/city/nodes/7/delete", "api/city/nodes/7/favorite/extra",
+                    "api/wallet/withdraw", "api/roam/stamp/list", "api/city/nodes/7", "../api/roam/stamp/create"] {
+            XCTAssertFalse(RoamLiveWriteTransport.accepts(bad), bad)
+        }
+    }
+    func testImageOriginsAreHTTPSOnlyAndConfigDriven() throws {
+        let base = try XCTUnwrap(URL(string: "https://api.example.com/native/"))
+        XCTAssertEqual(RetainedImageOrigin.configured(apiBase: base, extra: nil), ["https://api.example.com"])
+        let set = RetainedImageOrigin.configured(apiBase: base, extra: "https://cdn.example.com, http://insecure.example.com, https://img.example.com:8443")
+        XCTAssertEqual(set, ["https://api.example.com", "https://cdn.example.com", "https://img.example.com:8443"])
+    }
+    func testHiddenStampsPersist() throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "hidden-stamps-" + UUID().uuidString))
+        XCTAssertFalse(RoamHiddenStamps.contains(5, defaults: defaults))
+        RoamHiddenStamps.hide(5, defaults: defaults)
+        XCTAssertTrue(RoamHiddenStamps.contains(5, defaults: defaults)); XCTAssertFalse(RoamHiddenStamps.contains(6, defaults: defaults))
+    }
+    @MainActor func testExchangeReceiptDecodes() async throws {
+        let json = #"{"code":200,"data":{"exchanged":false,"reason":"no stamps yet"}}"#
+        final class W: HTTPTransport { let d: Data; init(_ d: Data) { self.d = d }; func send(_ r: URLRequest) async throws -> (Data, Int) { (d, 200) } }
+        let service = RoamService(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com/")!), transport: W(Data(json.utf8)))
+        let receipt = try await service.exchangeStamp(givenStampID: 3, token: "tok")
+        XCTAssertFalse(receipt.exchanged); XCTAssertEqual(receipt.reason, "no stamps yet")
+    }
+}

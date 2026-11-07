@@ -68,6 +68,12 @@ public struct RoamService {
         if let id = receipt.poiID ?? receipt.id, id != poiID { throw APIError.malformedResponse }
         return receipt
     }
+    /// Mini-program `exchange` step after a successful create. The server treats `givenStampId` as idempotent, so retry is safe.
+    public func exchangeStamp(givenStampID: Int, token: String) async throws -> RoamStampExchangeReceipt {
+        let data = try await writeMutation(.exchangeStamp(givenStampID: givenStampID), token: token)
+        guard let receipt = try decode(RoamActionEnvelope<RoamStampExchangeReceipt>.self, data).data else { throw APIError.malformedResponse }
+        return receipt
+    }
     /// Live write through the same authenticated transport as the reads. The mutation descriptor builds the request;
     /// a post-send failure is `RoamActionFailure.unknownOutcome` (the server may or may not have applied it).
     func writeMutation(_ mutation: RoamExperienceMutation, token: String) async throws -> Data {

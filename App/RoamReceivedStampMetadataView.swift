@@ -217,7 +217,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                         .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.empty") }
                         .accessibilityIdentifier("roam.receivedMetadata.empty")
                 }
-                ForEach(pager.stamps) { stamp in
+                ForEach(pager.stamps.filter { !RoamHiddenStamps.contains($0.id) }) { stamp in
                     Button {
                         openStamp(stamp)
                     } label: {
@@ -282,6 +282,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     let scope: RoamStampAlbumReadOnlyScope
     let isCurrent: () -> Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dismiss) private var dismiss
     var body: some View {
         List {
             if scenePhase == .active && scope.isCurrent && isCurrent() && stamp.isVisible {
@@ -293,6 +294,11 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     LabeledContent { receivedStampText(key) } label: { receivedStampText("kind") }
                 }
                 receivedStampText("boundary").font(.footnote).foregroundStyle(.secondary)
+                Section {
+                    Button(role: .destructive) { RoamHiddenStamps.hide(stamp.id); dismiss() } label: {
+                        Label("roam.stamp.hide", systemImage: "eye.slash").frame(minHeight: 44)
+                    }.accessibilityIdentifier("roam.receivedMetadata.hide")
+                } footer: { Text("roam.stamp.hide.footer") }
             } else { receivedStampText("changed") }
         }.navigationTitle(receivedStampText("detail"))
             .privacySensitive().accessibilityIdentifier("roam.receivedMetadata.detail")
@@ -303,4 +309,15 @@ enum RoamReceivedStampKind {
     static func key(_ value: Int?) -> String? {
         switch value { case 0: return "freePhoto"; case 1: return "cancelledStamp"; default: return nil }
     }
+}
+
+/// App Store 1.2 user-content control: a received stamp can be hidden for good on this device.
+enum RoamHiddenStamps {
+    private static let key = "hiddenStampIDsV1"
+    static func contains(_ id: Int, defaults: UserDefaults = .standard) -> Bool { ids(defaults).contains(id) }
+    static func hide(_ id: Int, defaults: UserDefaults = .standard) {
+        var all = ids(defaults); all.insert(id)
+        defaults.set(Array(all).sorted(), forKey: key)
+    }
+    private static func ids(_ defaults: UserDefaults) -> Set<Int> { Set((defaults.array(forKey: key) as? [Int]) ?? []) }
 }

@@ -15,7 +15,8 @@ import SwiftUI
     @State private var coordinator: RoamStampCaptureCoordinator?
     var body: some View {
         RoamStampCameraView(coordinator: coordinator, cameraEnabled: session.stampCameraEnabled,
-            album: RoamStampAlbumContinuation(reader: session.roamExperienceReader, camera: { AnyView(SessionRoamStampCameraView()) }))
+            album: RoamStampAlbumContinuation(reader: session.roamExperienceReader, camera: { AnyView(SessionRoamStampCameraView()) }),
+            exchange: { try await session.exchangeStamp(givenStampID: $0) })
             .id(coordinator.map { ObjectIdentifier($0) })
             .task(id: session.walletCommerceScope) { coordinator?.cancel(); coordinator = session.makeRoamStampCaptureCoordinator() }
             .onChange(of: session.walletCommerceScope) { _, _ in coordinator?.cancel(); coordinator = nil }

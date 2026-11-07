@@ -1598,6 +1598,12 @@ extension KeychainTokenStore: AppTokenStorage {}
         return result
     }
 
+    /// Narrow live-write wire for the roam/city features: signed-in viewer only, POST only, same deployment origin and an exact
+    /// relative-path allowlist. It forwards to the raw transport, so none of the reviewed read routes above are widened.
+    func makeRoamLiveWriteTransport() -> RoamLiveWriteTransport? {
+        guard let api = deployment?.regional.apiConfiguration else { return nil }
+        return RoamLiveWriteTransport(baseURL: api.baseURL, underlying: underlying, current: { [weak self] in self?.current() })
+    }
     func replacingUnderlying(_ underlying: any HTTPTransport) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: manualMapSelection)
     }
@@ -3510,3 +3516,30 @@ extension CompositionHTTPTransport {
         try await dispatch(request, authorization)
     }
 }
+
+@MainActor struct RoamLiveWriteTransport: HTTPTransport {
+    let baseURL: URL
+    let underlying: any HTTPTransport
+    let current: () -> CompositionHTTPTransport.SessionIdentity?
+    /// Relative paths the roam/city features may write. Digits-only ids, no query, no fragment.
+    nonisolated static func accepts(_ relative: String) -> Bool {
+        let exact: Set<String> = ["api/roam/stamp/create", "api/roam/stamp/exchange", "api/common/uploadOSS"]
+        if exact.contains(relative) { return true }
+        let parts = relative.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+        if parts.count == 5, parts[0] == "api", parts[1] == "city", parts[2] == "nodes", parts[3].allSatisfy(\.isASCIIDigit), !parts[3].isEmpty,
+           ["favorite", "complete"].contains(parts[4]) { return true }
+        return false
+    }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        guard let captured = current(), captured.isSignedInContentViewer, request.httpMethod == "POST",
+              let url = request.url, url.fragment == nil, url.query == nil, url.scheme == baseURL.scheme,
+              url.host == baseURL.host, url.port == baseURL.port else { throw APIError.notConfigured }
+        let basePath = baseURL.path.hasSuffix("/") ? String(baseURL.path.dropLast()) : baseURL.path
+        guard url.path.hasPrefix(basePath + "/"), Self.accepts(String(url.path.dropFirst(basePath.count + 1))) else { throw APIError.notConfigured }
+        try Task.checkCancellation()
+        let result = try await underlying.send(request)
+        guard current() == captured else { throw CancellationError() }
+        return result
+    }
+}
+private extension Character { var isASCIIDigit: Bool { isASCII && isNumber } }

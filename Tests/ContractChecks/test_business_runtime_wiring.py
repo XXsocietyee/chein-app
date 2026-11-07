@@ -34,7 +34,7 @@ class BusinessRuntimeWiringTests(unittest.TestCase):
         self.assertNotIn('func reset',s)
     def test_stamp_upload_create_origins_and_camera_are_separate(self):
         s=self.read('App/AppSession.swift').split('func makeRoamStampCaptureCoordinator')[1].split('func makeRoamPosterCoordinator')[0]
-        for text in ['factory.client([.stampUpload])','factory.permits(.stampUpload)','factory.client([.stampCreate])','factory.approval([.stampCreate])','approvedImageOrigins: factory.configuration.stampImageOrigins','StoredRoamStampPending']:self.assertIn(text,s)
+        for text in ['makeRoamLiveWriteTransport()','RetainedImageOrigin.configured(apiBase: configuration.baseURL','approvedImageOrigins: origins','requiresApproval: false','StoredRoamStampPending']:self.assertIn(text,s)
         self.assertIn('cameraEnabled: session.stampCameraEnabled',self.read('App/SessionRoamMediaViews.swift'))
     def test_im_default_disabled_but_configured_writer_reaches_real_client(self):
         s=self.read('App/AppSession.swift')

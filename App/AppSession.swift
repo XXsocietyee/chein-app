@@ -4395,19 +4395,27 @@ final class AppSession: ObservableObject {
         return try? RetainedImageScope(accountID: wallet.accountID, epoch: wallet.epoch,
             realm: credentials.realm, destination: .stamp, namespace: wallet.namespace)
     }
-    var stampCameraEnabled: Bool { businessRuntimeFactory?.configuration.stampCamera == true }
+    /// Live stamp camera: signed-in account on a configured deployment. Camera permission is asked at the shutter.
+    var stampCameraEnabled: Bool { token != nil && regionalConfiguration?.apiConfiguration != nil }
+    /// 投一张换一张: exchange the just-created stamp. Idempotent on the server for the same givenStampId.
+    func exchangeStamp(givenStampID: Int) async throws -> RoamStampExchangeReceipt {
+        guard let service = roamWriteService, let token else { throw APIError.unauthorized }
+        return try await service.exchangeStamp(givenStampID: givenStampID, token: token)
+    }
     func makeRoamStampCaptureCoordinator() -> RoamStampCaptureCoordinator? {
-        guard let factory = businessRuntimeFactory, let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
+        guard stampCameraEnabled, let scope = roamMediaScope, let configuration = regionalConfiguration?.apiConfiguration,
               let credentials = currentRetainedImageCredentials else { return nil }
         let current: () -> RetainedImageScope? = { [weak self] in
             guard let self, self.currentRetainedImageCredentials == credentials else { return nil }; return self.roamMediaScope
         }
         let token: () -> String? = { [weak self] in self?.currentRetainedImageCredentials == credentials ? credentials.token : nil }
-        let uploader = RetainedImageHTTPUploader(configuration: configuration, transport: factory.client([.stampUpload]),
-            enabled: factory.permits(.stampUpload), approvedOrigins: factory.configuration.stampImageOrigins, currentScope: current, token: token)
-        let executor = RoamMediaMutationService(configuration: configuration, transport: factory.client([.stampCreate]),
-            enabled: factory.permits(.stampCreate), approval: factory.approval([.stampCreate]),
-            approvedImageOrigins: factory.configuration.stampImageOrigins, currentScope: current, token: token)
+        let origins = RetainedImageOrigin.configured(apiBase: configuration.baseURL,
+            extra: Bundle.main.object(forInfoDictionaryKey: "CYStampImageOrigins") as? String)
+        guard let wire = compositionTransport.makeRoamLiveWriteTransport() else { return nil }
+        let uploader = RetainedImageHTTPUploader(configuration: configuration, transport: wire,
+            enabled: true, approvedOrigins: origins, currentScope: current, token: token)
+        let executor = RoamMediaMutationService(configuration: configuration, transport: wire, enabled: true,
+            approvedImageOrigins: origins, requiresApproval: false, currentScope: current, token: token)
         let storage = StoredRoamStampPending(read: { [unowned self] in try self.imageUploadStorage.read($0) },
             write: { [unowned self] in try self.imageUploadStorage.write($0, key: $1) })
         return RoamStampCaptureCoordinator(scope: scope,
@@ -6195,17 +6203,22 @@ final class AppSession: ObservableObject {
                 return try await service.officialRoute(id: id, token: token)
             })
     }()
+    /// Roam/city live writes use their own narrow, allowlisted wire (see RoamLiveWriteTransport), never the read-route firewall.
+    private var roamWriteService: RoamService? {
+        guard let configuration = regionalConfiguration?.apiConfiguration, let wire = compositionTransport.makeRoamLiveWriteTransport() else { return nil }
+        return RoamService(configuration: configuration, transport: wire)
+    }
     /// Live POI favorite / check-in writes through the signed-in session; nil when there is no roam service.
     func makeRoamPOIActions() -> RoamPOIActions? {
-        guard roamService != nil else { return nil }
+        guard roamService != nil, roamWriteService != nil else { return nil }
         let location = RuntimeNativeLocationProvider(enabled: true)
         return RoamPOIActions(
             toggleFavorite: { [weak self] poiID in
-                guard let self, let service = self.roamService, let token = self.token else { throw APIError.unauthorized }
+                guard let self, let service = self.roamWriteService, let token = self.token else { throw APIError.unauthorized }
                 return try await service.toggleFavorite(poiID: poiID, token: token)
             },
             complete: { [weak self] poiID in
-                guard let self, let service = self.roamService, self.token != nil else { throw APIError.unauthorized }
+                guard let self, let service = self.roamWriteService, self.token != nil else { throw APIError.unauthorized }
                 let fix = try await RoamDeviceFixGCJ.currentGCJ02Fix(provider: location)
                 // Re-read the token after the permission prompt: the account may have changed meanwhile.
                 guard let token = self.token else { throw APIError.unauthorized }

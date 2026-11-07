@@ -17,9 +17,12 @@ import FoundationNetworking
     private let currentScope: () -> RetainedImageScope?
     private let token: () -> String?
     public let enabled: Bool
+    /// Live sessions authorise writes through the signed-in account scope and the image-origin allowlist instead of a per-endpoint grant.
+    private let requiresApproval: Bool
     public var scope: RetainedImageScope? { currentScope() }
     public init(configuration: APIConfiguration, transport: any HTTPTransport, enabled: Bool = false,
-                approval: OperationEndpointApproval? = nil, approvedImageOrigins: Set<String> = [], currentScope: @escaping () -> RetainedImageScope?, token: @escaping () -> String?) {
+                approval: OperationEndpointApproval? = nil, approvedImageOrigins: Set<String> = [], requiresApproval: Bool = true, currentScope: @escaping () -> RetainedImageScope?, token: @escaping () -> String?) {
+        self.requiresApproval = requiresApproval
         self.configuration = configuration; self.transport = transport; self.enabled = enabled
         self.approvedImageOrigins = approvedImageOrigins; self.approval = approval; self.currentScope = currentScope; self.token = token
     }
@@ -31,11 +34,13 @@ import FoundationNetworking
         switch mutation {
         case .createStamp(let picture, _, _):
             guard captured.destination == .stamp, let url = URL(string: picture), RetainedImageOrigin.accepts(url, origins: approvedImageOrigins) else { throw RetainedImageFailure.invalid }
+        case .exchangeStamp:
+            guard captured.destination == .stamp else { throw RetainedImageFailure.invalid }
         case .completeNode(let id, _, _, _, _):
             guard captured.destination == .roamPoster(poiID: id) else { throw RetainedImageFailure.invalid }
         default: throw RetainedImageFailure.invalid
         }
-        guard approval?.allows(configuration: configuration, namespace: namespace, accountID: captured.accountID, path: mutation.path) == true else { throw RetainedImageFailure.disabled }
+        guard !requiresApproval || approval?.allows(configuration: configuration, namespace: namespace, accountID: captured.accountID, path: mutation.path) == true else { throw RetainedImageFailure.disabled }
         let request = try mutation.request(configuration: configuration, token: credential)
         try Task.checkCancellation()
         let (bytes, status) = try await transport.send(request)

@@ -8,7 +8,14 @@ import UIKit
     var coordinator: RoamStampCaptureCoordinator? = nil
     var cameraEnabled = false
     var album: RoamStampAlbumContinuation? = nil
+    /// 投一张换一张: exchange the created stamp (idempotent on the server). nil hides the step.
+    var exchange: (@MainActor (Int) async throws -> RoamStampExchangeReceipt)? = nil
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
+    @State private var cameraDenied = false
+    private enum ExchangePhase: Equatable { case idle, working, failed, done(RoamStampExchangeReceipt) }
+    @State private var exchangePhase: ExchangePhase = .idle
+    @State private var exchangeStarted = Date()
     private enum Focus: Hashable { case capture, status }
     @AccessibilityFocusState private var focusedControl: Focus?
     @State private var purposeAccepted = false
@@ -24,7 +31,15 @@ import UIKit
         Form {
             Section {
                 if !cameraEnabled { Label("media.stamp.disabled", systemImage: "camera.fill") }
-                if cameraIssue { Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(.orange) }
+                if cameraDenied {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Label("media.stamp.cameraDenied.title", systemImage: "camera.badge.ellipsis").font(.subheadline.weight(.semibold))
+                        Text("media.stamp.cameraDenied.message").font(.footnote).foregroundStyle(.secondary)
+                        Button("roam.poi.location.openSettings") {
+                            if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                        }.frame(minHeight: 44).accessibilityIdentifier("media.stamp.openSettings")
+                    }.accessibilityIdentifier("media.stamp.cameraDenied")
+                } else if cameraIssue { Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(.orange) }
                 Toggle("media.stamp.consent", isOn: $purposeAccepted).disabled(isBusy || showingCamera)
             } footer: { Text("media.stamp.purpose") }
             captionSection
@@ -47,6 +62,7 @@ import UIKit
                         Button("media.stamp.create") { run { await coordinator.create() } }
                             .buttonStyle(.questifyPrimary).disabled(!coordinator.canCreate)
                     }
+                    if case .created(let stampID) = coordinator.phase, let exchange { exchangeRows(stampID: stampID, exchange: exchange) }
                     if case .created = coordinator.phase, let album {
                         Button("roam.createdStamp.open", systemImage: "rectangle.stack") {
                             guard createdStampTarget == nil else { return }
@@ -107,6 +123,29 @@ import UIKit
             }
             .onChange(of: cameraEnabled) { _, enabled in if !enabled { invalidateCapture() } }
     }
+    @ViewBuilder private func exchangeRows(stampID: Int, exchange: @escaping @MainActor (Int) async throws -> RoamStampExchangeReceipt) -> some View {
+        switch exchangePhase {
+        case .done(let receipt):
+            RoamStampSlipView(slip: RoamStampSlip(receipt), place: Text("roamSub.w208.stamp.defaultPlace"), openedAt: exchangeStarted)
+        case .working:
+            ProgressView("roam.stamp.exchange.working")
+        case .idle, .failed:
+            if exchangePhase == .failed {
+                Label("roam.stamp.exchange.failed", systemImage: "exclamationmark.triangle").font(.footnote).foregroundStyle(.red)
+            }
+            Button {
+                guard exchangePhase != .working else { return }
+                exchangePhase = .working; exchangeStarted = Date()
+                Task {
+                    do { exchangePhase = .done(try await exchange(stampID)) }
+                    catch is CancellationError { exchangePhase = .idle }
+                    catch { exchangePhase = .failed }
+                }
+            } label: { Text(LocalizedStringKey(exchangePhase == .failed ? "action.retry" : "roam.stamp.exchange.button")).frame(maxWidth: .infinity, minHeight: 44) }
+                .buttonStyle(.questifyPrimary).accessibilityIdentifier("media.stamp.exchange")
+            Text("roam.stamp.exchange.footer").font(.footnote).foregroundStyle(.secondary)
+        }
+    }
     private var captionText: String { coordinator?.caption ?? localDraft.caption }
     private var captionSection: some View {
         Section("roam.experience.caption") {
@@ -140,6 +179,8 @@ import UIKit
             guard let reason = Bundle.main.object(forInfoDictionaryKey: "NSCameraUsageDescription") as? String, !reason.isEmpty,
                   UIImagePickerController.isSourceTypeAvailable(.camera) else { cameraIssue = true; return }
             let status = AVCaptureDevice.authorizationStatus(for: .video)
+            if status == .denied || status == .restricted { cameraDenied = true; cameraIssue = false; return }
+            cameraDenied = false
             let granted: Bool
             if status == .notDetermined { granted = await AVCaptureDevice.requestAccess(for: .video) }
             else { granted = status == .authorized }
