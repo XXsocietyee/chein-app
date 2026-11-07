@@ -24,9 +24,11 @@ public struct PlayCompletionIntent: Codable, Equatable {
     public let routeSessionID: Int?
     /// Missing mode identifies a legacy journal; never infer it from another run.
     public let gameplayMode: PlayGameplayMode?
+    /// Null legacy slots remain readable; non-null retired Venue payloads stay rejected and retained.
+    public let modVenue: OperationPendingRecord.RetiredPayload?
     init(review: PlayCompletionReview) {
         id = review.id; owner = .init(session: review.session); originEpoch = review.session.epoch
-        nodeID = review.nodeID; evidence = review.evidence; advance = review.advance; routeSessionID = review.routeSessionID; gameplayMode = review.gameplayMode
+        nodeID = review.nodeID; evidence = review.evidence; advance = review.advance; routeSessionID = review.routeSessionID; gameplayMode = review.gameplayMode; modVenue = nil
     }
     func review(session: PlayExperienceSession, generation: UInt64) throws -> PlayCompletionReview {
         guard owner.matches(session), nodeID > 0 else { throw PlayExperienceError.staleSession }
