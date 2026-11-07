@@ -200,7 +200,7 @@ struct MessagingHistoryView: View {
                 switch action {
                 case .hide: dismissHistory()                       // source navigateBack after hide
                 case .block, .unblock: Task { await reload() }     // blockedByMe is read back, not assumed
-                case .report: break
+                case .report, .reportWithReason: break
                 }
             }
         }

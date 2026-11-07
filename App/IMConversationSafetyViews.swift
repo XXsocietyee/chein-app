@@ -42,7 +42,7 @@ struct IMSafetyCopy {
             titleKey = "im.safety.unblock.title"; contentKey = nil; consequenceKeys = []
             confirmKey = "im.safety.unblock.confirm"; doneKey = "im.safety.unblock.done"; doneDetailKey = nil
             failureKey = "im.safety.unblock.failed"
-        case .report:
+        case .report, .reportWithReason:
             titleKey = "im.safety.report.title"; contentKey = "im.safety.report.content"; consequenceKeys = []
             confirmKey = "im.safety.report.confirm"; doneKey = "im.safety.report.done"; doneDetailKey = nil
             failureKey = "im.safety.report.failed"
@@ -129,6 +129,8 @@ struct IMSafetyCopy {
             Section {
                 Label("im.safety.unknown", systemImage: "questionmark.circle").accessibilityIdentifier("im.safety.unknown")
                 if case .report = action {
+                    Text("im.safety.unknownReport")
+                } else if case .reportWithReason = action {
                     Text("im.safety.unknownReport")
                 } else {
                     Text("im.safety.unknownHint")

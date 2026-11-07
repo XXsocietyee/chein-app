@@ -35,6 +35,7 @@ public struct AssetPointsCancellationRow: Identifiable, Equatable, Sendable {
         self.refundedPointsFromAuthority = refundedPointsFromAuthority
         self.state = state
         self.note = note
+        self.noteEnglish = noteEnglish
     }
 
     public var badgeText: String {

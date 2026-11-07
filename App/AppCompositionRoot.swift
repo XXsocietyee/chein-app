@@ -3869,7 +3869,7 @@ enum ReviewedOrientOfficialRoute {
         if exact("api/preset/route/info") {
             return items.count == 1 && items[0].name == "id" && OfficialRouteReader.isValidID(items[0].value ?? "")
         }
-        let prefix = baseURL.appendingPathComponent("api/official/v2/events/").path
+        let prefix = baseURL.appendingPathComponent("api/official/v2/events").path + "/"
         if parts.path.hasPrefix(prefix), parts.path.hasSuffix("/publish-check"), parts.query == nil, sameOrigin(url, baseURL) {
             let id = String(parts.path.dropFirst(prefix.count).dropLast("/publish-check".count))
             return positive(id)

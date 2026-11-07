@@ -99,7 +99,7 @@ final class MessagingFixtureSafetyWriter: IMSafetyWriting {
         case .hide(let id): reader.hiddenConversationIDs.insert(id)
         case .block: reader.blockedByMe = true
         case .unblock: reader.blockedByMe = false
-        case .report: break
+        case .report, .reportWithReason: break
         }
         if reader.scenario == .safetyUnknown { throw URLError(.networkConnectionLost) }
     }

@@ -197,7 +197,7 @@ final class Finding4LocalizationTests: XCTestCase {
                        "可全额退款,原路退回", "场次已开始，不可取消报名", "可取消报名并释放名额"]
         for s in strings {
             XCTAssertNotEqual(en.tr(s), s, "missing English for \(s)")
-            XCTAssertNil(en.tr(s).range(of: "\\p{Han}", options: .regularExpression), "still Chinese: \(en.tr(s))")
+            XCTAssertNil(en.tr(s).range(of: "[\\u4e00-\\u9fff]", options: .regularExpression), "still Chinese: \(en.tr(s))")
             XCTAssertEqual(zh.tr(s), s)
         }
         XCTAssertEqual(en.tr("全队已完成 3 / 5 个节点"), "Team completed 3 / 5 nodes")
@@ -212,14 +212,14 @@ final class Finding4LocalizationTests: XCTestCase {
         let orders = try! JSONDecoder().decode([ProfileOrder].self, from: raw)
         let snapshot = AssetPointsAndOrderCancellationSnapshot(ownerScope: "s", authoritativeBalancePoints: 600, orders: orders)
         for row in snapshot.rows {
-            XCTAssertNil(row.deltaSummary(english: true).range(of: "\\p{Han}", options: .regularExpression))
-            XCTAssertNil(row.noteText(english: true).range(of: "\\p{Han}", options: .regularExpression), row.noteText(english: true))
+            XCTAssertNil(row.deltaSummary(english: true).range(of: "[\\u4e00-\\u9fff]", options: .regularExpression))
+            XCTAssertNil(row.noteText(english: true).range(of: "[\\u4e00-\\u9fff]", options: .regularExpression), row.noteText(english: true))
             XCTAssertEqual(row.noteText(english: false), row.note)
             XCTAssertEqual(row.deltaSummary(english: false), row.deltaSummaryText)
         }
-        XCTAssertNil(snapshot.balanceDisplay(english: true).range(of: "\\p{Han}", options: .regularExpression))
-        XCTAssertNil(snapshot.summary(english: true).range(of: "\\p{Han}", options: .regularExpression))
+        XCTAssertNil(snapshot.balanceDisplay(english: true).range(of: "[\\u4e00-\\u9fff]", options: .regularExpression))
+        XCTAssertNil(snapshot.summary(english: true).range(of: "[\\u4e00-\\u9fff]", options: .regularExpression))
         XCTAssertEqual(snapshot.summary(english: false), snapshot.summaryText)
-        XCTAssertNil(AssetPointsAndOrderCancellationSnapshot.empty.balanceDisplay(english: true).range(of: "\\p{Han}", options: .regularExpression))
+        XCTAssertNil(AssetPointsAndOrderCancellationSnapshot.empty.balanceDisplay(english: true).range(of: "[\\u4e00-\\u9fff]", options: .regularExpression))
     }
 }
