@@ -340,6 +340,11 @@ struct RoamToolUnavailableView: View {
     var privateToolsReader: (any RoamPrivateToolsServing)? = nil
     @State private var homeScope: RoamPassportReaderScope?
     @State private var home: Result<RoamPassportHome, Error>?
+    @State private var openedTile: OpenedTile?
+    private struct OpenedTile: Identifiable, Hashable {
+        let id = UUID()
+        let tile: RoamPassportHome.Tile
+    }
     private var readerScope: RoamPassportReaderScope? { reader.map { RoamPassportReaderScope($0) } }
     private var currentHome: Result<RoamPassportHome, Error>? { homeScope == readerScope ? home : nil }
     var body: some View {
@@ -357,13 +362,57 @@ struct RoamToolUnavailableView: View {
             }
             RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
         }
-        .onAppear(perform: load)
+        .onAppear { openedTile = nil; load() }
         .refreshable { load() }
         .onChange(of: readerScope) { _, _ in
+            openedTile = nil
             home = nil; homeScope = nil
             load()
         }
+        .navigationDestination(item: $openedTile) { item in
+            tileDestination(item.tile)
+                .onDisappear {
+                    if openedTile?.id == item.id {
+                        openedTile = nil
+                        load()
+                    }
+                }
+        }
+        .background { RoamHostedAccessibilityGroup(items: passportAccessibilityItems) }
         .accessibilityIdentifier("roam.home.passport")
+    }
+    private var passportAccessibilityItems: [RoamHostedAccessibilityItem] {
+        guard openedTile == nil else { return [] }
+        var items: [RoamHostedAccessibilityItem] = []
+        if reader != nil {
+            switch currentHome {
+            case .none:
+                break
+            case .failure(let error)?:
+                items.append(RoamHostedAccessibilityItem(id: "roam.experience.error"))
+                if error as? APIError != .unauthorized, error as? APIError != .notConfigured {
+                    items.append(RoamHostedAccessibilityItem(id: "roam.experience.retry", action: load))
+                }
+            case .success(let value)?:
+                items.append(
+                    RoamHostedAccessibilityItem(
+                        id: "roam.home.passport.stat.trips",
+                        label: String(value.summary.trips)
+                    )
+                )
+            }
+        } else {
+            items.append(RoamHostedAccessibilityItem(id: "roam.home.passport.unavailable"))
+        }
+        for tile in RoamPassportHome.Tile.allCases where tileAvailable(tile) {
+            items.append(
+                RoamHostedAccessibilityItem(
+                    id: "roam.home.passport.tile.\(tile.rawValue)",
+                    action: { openedTile = OpenedTile(tile: tile) }
+                )
+            )
+        }
+        return items
     }
     private func load() {
         guard let reader else { home = nil; homeScope = nil; return }

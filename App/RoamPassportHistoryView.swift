@@ -20,13 +20,22 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
     func body(content: Content) -> some View {
         if let reader {
             let offered = RoamPassportHistoryOwner(reader)
+            let canOpen = offered.configured && offered.storageKey != nil
+            let openAction: () -> Void = {
+                guard offered == RoamPassportHistoryOwner(reader), offered.configured, offered.storageKey != nil, target == nil else { return }
+                target = Target(owner: offered)
+            }
             content.safeAreaInset(edge: .top) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Button {
-                        guard offered == RoamPassportHistoryOwner(reader), offered.configured, offered.storageKey != nil, target == nil else { return }
-                        target = Target(owner: offered)
-                    } label: { Label { passportText("open") } icon: { Image(systemName: "icloud") } }
-                        .disabled(!offered.configured || offered.storageKey == nil)
+                    Button(action: openAction) { Label { passportText("open") } icon: { Image(systemName: "icloud") } }
+                        .disabled(!canOpen)
+                        .background {
+                            RoamHostedAccessibilityAnchor(
+                                id: "roam.serverHistory.open",
+                                isEnabled: canOpen,
+                                action: openAction
+                            )
+                        }
                         .accessibilityIdentifier("roam.serverHistory.open")
                     if !offered.configured { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")).font(.caption) }
                 }.frame(maxWidth: .infinity, alignment: .leading).padding().background(.regularMaterial)
@@ -116,6 +125,38 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
             if selected.owner == RoamPassportHistoryOwner(reader) {
                 NavigationStack { RoamPassportRecordView(reader: reader, sessionID: selected.id, localReader: localReader, owner: selected.owner) }
             } else { passportText("changed") }
+        }
+        .background {
+            if owner == RoamPassportHistoryOwner(reader), reader.isConfigured, reader.identity != nil,
+               scenePhase == .active, model.isVisible {
+                ZStack {
+                    if let first = model.items.first {
+                        RoamHostedAccessibilityAnchor(
+                            id: "roam.serverHistory.record",
+                            action: {
+                                guard model.isVisible, owner == RoamPassportHistoryOwner(reader),
+                                      model.items.contains(first), selected == nil else { return }
+                                selected = .init(id: first.sessionID, owner: owner)
+                            }
+                        )
+                    }
+                    if model.loaded && model.items.isEmpty {
+                        RoamHostedAccessibilityAnchor(id: "roam.serverHistory.empty")
+                    }
+                    if !model.busy && model.hasMore {
+                        RoamHostedAccessibilityAnchor(
+                            id: "roam.serverHistory.more",
+                            action: { Task { await model.read(more) } }
+                        )
+                    }
+                    if !model.busy {
+                        RoamHostedAccessibilityAnchor(
+                            id: "roam.serverHistory.refresh",
+                            action: { Task { await model.read(refresh) } }
+                        )
+                    }
+                }
+            }
         }
         .privacySensitive().accessibilityIdentifier("roam.serverHistory.page")
     }

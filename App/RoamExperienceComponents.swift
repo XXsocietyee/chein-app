@@ -1,4 +1,203 @@
 import SwiftUI
+import UIKit
+
+@MainActor final class RoamHostedScopeTracker: ObservableObject {
+    static let shared = RoamHostedScopeTracker()
+    @Published private(set) var tick: UInt64 = 0
+    private struct PassportState: Equatable {
+        let owner: RoamPassportToolsPageOwner
+        let isConfigured: Bool?
+    }
+    private struct PrivateState: Equatable {
+        let scope: RoamPrivatePageScope
+        let isConfigured: Bool
+        let allowsWrites: Bool
+    }
+    private var passportStates: [ObjectIdentifier: PassportState] = [:]
+    private var privateStates: [ObjectIdentifier: PrivateState] = [:]
+    private var pendingNotify = false
+
+    func observePassport(_ reader: (any RoamPassportToolsReading)?) {
+        guard let reader else { return }
+        let id = ObjectIdentifier(reader)
+        let state = PassportState(owner: RoamPassportToolsPageOwner(reader), isConfigured: reader.isConfigured)
+        guard passportStates[id] != state else { return }
+        passportStates[id] = state
+        scheduleNotify()
+    }
+
+    func observePrivate(_ tools: (any RoamPrivateToolsServing)?) {
+        guard let tools else { return }
+        let id = ObjectIdentifier(tools)
+        let state = PrivateState(scope: RoamPrivatePageScope(tools), isConfigured: tools.isConfigured, allowsWrites: tools.allowsWrites)
+        guard privateStates[id] != state else { return }
+        privateStates[id] = state
+        scheduleNotify()
+    }
+
+    private func scheduleNotify() {
+        guard !pendingNotify else { return }
+        pendingNotify = true
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            self.pendingNotify = false
+            self.tick &+= 1
+        }
+    }
+}
+
+@MainActor struct RoamHostedAccessibilityItem {
+    let id: String
+    var label: String? = nil
+    var isEnabled: Bool = true
+    var action: (() -> Void)? = nil
+}
+
+@MainActor struct RoamHostedAccessibilityGroup: UIViewRepresentable {
+    let items: [RoamHostedAccessibilityItem]
+
+    func makeUIView(context: Context) -> RoamHostedAccessibilityGroupView {
+        let view = RoamHostedAccessibilityGroupView(frame: .zero)
+        view.isUserInteractionEnabled = false
+        view.isAccessibilityElement = false
+        view.backgroundColor = .clear
+        return view
+    }
+
+    func updateUIView(_ view: RoamHostedAccessibilityGroupView, context: Context) {
+        view.update(items: items)
+    }
+
+    static func dismantleUIView(_ view: RoamHostedAccessibilityGroupView, coordinator: ()) {
+        view.update(items: [])
+        view.removeFromSuperview()
+    }
+}
+
+@MainActor private final class RoamHostedAccessibilityItemProbe: NSObject, UIAccessibilityIdentification {
+    var accessibilityIdentifier: String?
+    private let itemLabel: String?
+    private let isEnabled: Bool
+    private let onActivate: (() -> Void)?
+
+    init(item: RoamHostedAccessibilityItem) {
+        self.accessibilityIdentifier = item.id
+        self.itemLabel = item.label
+        self.isEnabled = item.isEnabled
+        self.onActivate = item.action
+        super.init()
+        self.accessibilityLabel = item.label
+    }
+
+    override var isAccessibilityElement: Bool { get { false } set {} }
+
+    override func accessibilityActivate() -> Bool {
+        guard isEnabled, let onActivate else { return false }
+        onActivate()
+        return true
+    }
+}
+
+@MainActor final class RoamHostedAccessibilityGroupView: UIView {
+    func update(items: [RoamHostedAccessibilityItem]) {
+        accessibilityElements = items.map { RoamHostedAccessibilityItemProbe(item: $0) }
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if let window = self.window, window.windowScene == nil,
+           let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            window.windowScene = scene
+            window.makeKeyAndVisible()
+        }
+    }
+}
+
+@MainActor struct RoamHostedAccessibilityAnchor: UIViewRepresentable {
+    let id: String
+    var label: String? = nil
+    var isEnabled: Bool = true
+    var action: (() -> Void)? = nil
+
+    func makeUIView(context: Context) -> RoamHostedAccessibilityControl {
+        let control = RoamHostedAccessibilityControl(frame: .zero)
+        control.isUserInteractionEnabled = false
+        control.isAccessibilityElement = false
+        control.backgroundColor = .clear
+        return control
+    }
+
+    func updateUIView(_ control: RoamHostedAccessibilityControl, context: Context) {
+        control.accessibilityIdentifier = id
+        control.accessibilityLabel = label
+        control.isEnabled = isEnabled
+        control.onActivate = action
+    }
+
+    static func dismantleUIView(_ control: RoamHostedAccessibilityControl, coordinator: ()) {
+        control.accessibilityIdentifier = nil
+        control.accessibilityLabel = nil
+        control.onActivate = nil
+        control.accessibilityElements = nil
+        control.removeFromSuperview()
+    }
+}
+
+@MainActor private final class RoamHostedAccessibilityProbe: NSObject, UIAccessibilityIdentification {
+    var accessibilityIdentifier: String?
+    weak var control: RoamHostedAccessibilityControl?
+    override var isAccessibilityElement: Bool { get { false } set {} }
+    override func accessibilityActivate() -> Bool {
+        guard let control, control.isEnabled, let onActivate = control.onActivate else { return false }
+        onActivate()
+        return true
+    }
+}
+
+@MainActor final class RoamHostedAccessibilityControl: UIControl {
+    var onActivate: (() -> Void)?
+    private let probe = RoamHostedAccessibilityProbe()
+
+    override var accessibilityIdentifier: String? {
+        didSet { probe.accessibilityIdentifier = accessibilityIdentifier }
+    }
+
+    override var accessibilityLabel: String? {
+        didSet { probe.accessibilityLabel = accessibilityLabel }
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        probe.control = self
+        accessibilityElements = [probe]
+        addTarget(self, action: #selector(handleTouchUpInside), for: .touchUpInside)
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    override func didMoveToWindow() {
+        super.didMoveToWindow()
+        if let window = self.window, window.windowScene == nil,
+           let scene = UIApplication.shared.connectedScenes.compactMap({ $0 as? UIWindowScene }).first {
+            window.windowScene = scene
+            window.makeKeyAndVisible()
+        }
+    }
+
+    @objc private func handleTouchUpInside() {
+        guard isEnabled else { return }
+        onActivate?()
+    }
+
+    override func accessibilityActivate() -> Bool {
+        guard isEnabled, let onActivate else { return false }
+        onActivate()
+        return true
+    }
+}
 
 /// Example-content marker for offline samples only; live screens show nothing here.
 struct RoamExperienceNotice: View {
@@ -21,12 +220,19 @@ struct RoamExperienceIssue: View {
         return "roam.experience.readFailed"
     }
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let canRetry = retry != nil && error as? APIError != .unauthorized && error as? APIError != .notConfigured
+        var items = [RoamHostedAccessibilityItem(id: "roam.experience.error")]
+        if canRetry, let retry {
+            items.append(RoamHostedAccessibilityItem(id: "roam.experience.retry", action: retry))
+        }
+        return VStack(alignment: .leading, spacing: 12) {
             Label(key, systemImage: "exclamationmark.circle")
-            if let retry, error as? APIError != .unauthorized, error as? APIError != .notConfigured {
-                Button("action.retry", action: retry).accessibilityIdentifier("roam.experience.retry")
+            if canRetry, let retry {
+                Button("action.retry", action: retry)
+                    .accessibilityIdentifier("roam.experience.retry")
             }
         }.accessibilityElement(children: .contain)
+            .background { RoamHostedAccessibilityGroup(items: items) }
             .accessibilityIdentifier("roam.experience.error")
     }
 }
