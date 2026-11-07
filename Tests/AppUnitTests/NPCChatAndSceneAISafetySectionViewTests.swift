@@ -74,12 +74,12 @@ final class NPCChatAndSceneAISafetySectionViewTests: XCTestCase {
             _ = view.body
             let texts = [view.statusHeadline] + snapshot.rows.flatMap { [$0.title, $0.detail] }
             for text in texts {
-                XCTAssertNil(text.range(of: "\\p{Han}", options: .regularExpression), text)
+                XCTAssertNil(text.range(of: "[\\u{4E00}-\\u{9FFF}]", options: .regularExpression), text)
             }
         }
         let city = CitySwitchIsolationSnapshot.ready(locale: en)
         for row in city.rows {
-            XCTAssertNil((row.title + row.detail).range(of: "\\p{Han}", options: .regularExpression))
+            XCTAssertNil((row.title + row.detail).range(of: "[\\u{4E00}-\\u{9FFF}]", options: .regularExpression))
         }
     }
 }

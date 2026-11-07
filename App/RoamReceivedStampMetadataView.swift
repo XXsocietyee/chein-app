@@ -41,11 +41,31 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     }
 }
 
+/// Non-VoiceOver probe node. Hosted window probes cast with `as? UIAccessibilityIdentification`, which fails at
+/// runtime for plain UIKit views, so the anchor exposes this explicitly conforming element in `accessibilityElements`.
+@MainActor private final class RoamReceivedStampAccessibilityProbe: NSObject, UIAccessibilityIdentification {
+    var accessibilityIdentifier: String?
+    weak var control: RoamReceivedStampAccessibilityControl?
+    override var isAccessibilityElement: Bool { get { false } set {} }
+    override func accessibilityActivate() -> Bool {
+        guard let control, control.isEnabled, let onActivate = control.onActivate else { return false }
+        onActivate()
+        return true
+    }
+}
+
 @MainActor private final class RoamReceivedStampAccessibilityControl: UIControl {
     var onActivate: (() -> Void)?
+    private let probe = RoamReceivedStampAccessibilityProbe()
+
+    override var accessibilityIdentifier: String? {
+        didSet { probe.accessibilityIdentifier = accessibilityIdentifier }
+    }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
+        probe.control = self
+        accessibilityElements = [probe]
         addTarget(self, action: #selector(handleTouchUpInside), for: .touchUpInside)
     }
 
