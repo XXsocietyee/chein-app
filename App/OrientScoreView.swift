@@ -1,0 +1,234 @@
+import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
+
+// MARK: - Orient score (subpackageMember/orient-score) — read-only native screen
+// Shows the player's own round score, per-dimension breakdown, settlement, ledger timeline and
+// appeal/dispute status. Appeals, disputes, sync and settle are NOT offered here: they stay in the
+// existing OrientSessionCoordinator flow and this screen never reports a write as done.
+
+@available(macOS 14.0, *)
+@MainActor final class OrientScoreModel: ObservableObject {
+    @Published private(set) var state: OrientScoreLoadState = .loading
+    /// Returns the player's own score, or nil when there is no round to show.
+    private let loader: () async throws -> OrientSessionScore?
+    private var generation = 0
+
+    init(loader: @escaping () async throws -> OrientSessionScore?) {
+        self.loader = loader
+    }
+
+    func load() async {
+        generation += 1
+        let stamp = generation
+        state = .loading
+        do {
+            let score = try await loader()
+            guard stamp == generation else { return }
+            state = score.map { .ready(OrientScorePresentation.summary(from: $0)) } ?? .empty
+        } catch is CancellationError {
+            return
+        } catch {
+            guard stamp == generation else { return }
+            state = OrientScorePresentation.failure(for: error)
+        }
+    }
+}
+
+@available(macOS 14.0, *)
+@MainActor struct OrientScoreView: View {
+    @StateObject private var model: OrientScoreModel
+
+    init(model: OrientScoreModel) {
+        _model = StateObject(wrappedValue: model)
+    }
+
+    var body: some View {
+        ScrollView {
+            content
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
+        }
+        .background(CYColor.bgPage)
+        .navigationTitle(W8Text.t("本局计分", "Round score"))
+        .task { await model.load() }
+        .refreshable { await model.load() }
+    }
+
+    @ViewBuilder private var content: some View {
+        switch model.state {
+        case .loading:
+            ProgressView(W8Text.t("计分加载中", "Loading score"))
+                .frame(maxWidth: .infinity, minHeight: 240)
+                .accessibilityIdentifier("orientScore.loading")
+        case .empty:
+            CYEmptyStateView(
+                systemImage: "list.number",
+                title: LocalizedStringKey(W8Text.t("没有可查看的本人对局", "No round of yours to show")),
+                description: LocalizedStringKey(W8Text.t("参加一场定向后，成绩会显示在这里。", "Scores appear here after you play an orienteering round.")))
+                .accessibilityIdentifier("orientScore.empty")
+        case .failed(let message, let retryable):
+            CYErrorStateView(
+                title: LocalizedStringKey(W8Text.t("计分加载失败", "Couldn't load the score")),
+                message: LocalizedStringKey(message),
+                retryTitle: LocalizedStringKey(W8Text.t("重新读取", "Try again")),
+                onRetry: retryable ? { Task { await model.load() } } : nil)
+                .accessibilityIdentifier("orientScore.error")
+        case .ready(let summary):
+            OrientScoreReadyContent(summary: summary)
+        }
+    }
+}
+
+@available(macOS 14.0, *)
+@MainActor struct OrientScoreReadyContent: View {
+    let summary: OrientScoreSummary
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            totalCard
+            dimensionsCard
+            settlementCard
+            timelineCard
+            reviewsCard(title: W8Text.t("计分申诉", "Score appeals"), emptyText: W8Text.t("暂无计分申诉", "No score appeals"), rows: summary.appeals)
+            reviewsCard(title: W8Text.t("成绩争议", "Score disputes"), emptyText: W8Text.t("暂无成绩争议", "No score disputes"), rows: summary.disputes)
+            CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
+                Text(W8Text.t("申诉、争议和结算暂时只能在对局记录中提交；这里只显示结果，不会替你提交。",
+                              "Appeals, disputes and settlement can only be submitted from the round record for now. This screen only shows results and never submits for you."))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private var totalCard: some View {
+        CYCard(variant: .elevated) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(summary.phase).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(summary.total)
+                    .font(CYTypography.data2XL)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityLabel(summary.totalAccessibility)
+                Text(W8Text.t("计分精确到 0.01 分；积分与探索值以结算结果为准。", "Scores are exact to 0.01. Points and explore XP follow the settlement result."))
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+        }
+        .accessibilityIdentifier("orientScore.total")
+    }
+
+    private var dimensionsCard: some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(W8Text.t("得分构成", "Score breakdown")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                ForEach(summary.dimensions) { row in
+                    HStack {
+                        Text(row.label).font(CYTypography.bodyMedium)
+                        Spacer(minLength: CYSpacing.md)
+                        Text(row.value).font(CYTypography.bodyMedium.monospacedDigit())
+                    }
+                    .foregroundStyle(CYColor.textPrimary)
+                    .frame(minHeight: 44)
+                    .accessibilityElement(children: .combine)
+                }
+            }
+        }
+    }
+
+    private var settlementCard: some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(W8Text.t("结算结果", "Settlement")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                if let settlement = summary.settlement {
+                    Text(W8Text.t("本局已结算 · \(settlement.total)", "Settled · \(settlement.total)")).font(CYTypography.bodyMedium)
+                    Text(W8Text.t("积分 \(settlement.points) · 探索值 \(settlement.xp)", "Points \(settlement.points) · Explore XP \(settlement.xp)"))
+                        .font(CYTypography.bodyCompact)
+                }
+                Text(summary.settlementNotice).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .foregroundStyle(CYColor.textPrimary)
+        }
+    }
+
+    private var timelineCard: some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(W8Text.t("计分时间线", "Score timeline")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                if summary.timeline.isEmpty {
+                    Text(W8Text.t("还没有计分记录", "No score entries yet")).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                }
+                ForEach(summary.timeline) { row in
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        HStack {
+                            Text(row.dimension).font(CYTypography.bodyMedium)
+                            Spacer(minLength: CYSpacing.md)
+                            Text(row.delta).font(CYTypography.bodyMedium.monospacedDigit())
+                        }
+                        Text(W8Text.t("累计 \(row.running)", "Running total \(row.running)")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        if !row.reason.isEmpty { Text(row.reason).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        if let reversed = row.reversesEntryID {
+                            Text(W8Text.t("冲正原流水 \(reversed)", "Reverses entry \(reversed)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        }
+                        if row.appealPending {
+                            Text(W8Text.t("申诉待处理", "Appeal pending")).font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                        }
+                    }
+                    .foregroundStyle(CYColor.textPrimary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(row.accessibilitySummary + (row.appealPending ? W8Text.t("，申诉待处理", ", appeal pending") : ""))
+                }
+            }
+        }
+    }
+
+    private func reviewsCard(title: String, emptyText: String, rows: [OrientScoreReviewRow]) -> some View {
+        CYCard {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                if rows.isEmpty {
+                    Text(emptyText).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                }
+                ForEach(rows) { row in
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        Text(row.statusText).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        Text(row.reason).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        if let note = row.note {
+                            Text(W8Text.t("处理说明：\(note)", "Resolution note: \(note)")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        }
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+            }
+        }
+    }
+}
+
+#if DEBUG
+@available(macOS 14.0, *)
+private enum OrientScoreFixtures {
+    static let score: OrientSessionScore = {
+        let json = "{\"sessionId\":9,\"topicId\":3,\"activityId\":0,\"status\":1,\"totalCenti\":1700,"
+            + "\"byDimension\":{\"TASK\":2000,\"PUZZLE\":0,\"BONUS\":0,\"PENALTY\":-300,\"ADJUSTMENT\":0},"
+            + "\"timeline\":[{\"entryId\":30,\"dimension\":\"TASK\",\"deltaCenti\":2000,\"runningCenti\":2000,\"reasonCode\":\"TASK_DONE\"},"
+            + "{\"entryId\":31,\"dimension\":\"PENALTY\",\"deltaCenti\":-300,\"runningCenti\":1700,\"reasonCode\":\"LATE\"}],"
+            + "\"settlement\":null,\"appeals\":[],\"disputes\":[]}"
+        return try! JSONDecoder().decode(OrientSessionScore.self, from: Data(json.utf8))
+    }()
+}
+
+@available(macOS 14.0, *)
+private struct PreviewFailure: Error {}
+
+#Preview("Orient score · ready") {
+    NavigationStack { OrientScoreView(model: OrientScoreModel(loader: { OrientScoreFixtures.score })) }
+}
+#Preview("Orient score · empty") {
+    NavigationStack { OrientScoreView(model: OrientScoreModel(loader: { nil })) }
+}
+#Preview("Orient score · error") {
+    NavigationStack { OrientScoreView(model: OrientScoreModel(loader: { throw PreviewFailure() })) }
+}
+#endif
