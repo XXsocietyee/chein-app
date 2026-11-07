@@ -3418,8 +3418,38 @@ final class AppSession: ObservableObject {
                 return OfficialActionIdentity(accountID: account.id, epoch: self.officialEventReader.scope, namespace: storageScope.service)
             })
         let coordinator = OfficialActionCoordinator(access: access, locks: OfficialActionFileLocks(url: directory.appendingPathComponent("locks.json")))
+        if let api = regionalConfiguration?.apiConfiguration {
+            coordinator.organizer = OfficialOrganizerHTTPAccess(configuration: api, transport: runtimeHTTPTransport,
+                enabled: { [weak coordinator] in coordinator?.enabled ?? false }, session: { [weak self] in
+                    guard let self, let account = self.account, let token = self.token else { return nil }
+                    return (account.id, token)
+                })
+        }
         retainedOfficialActions = coordinator
         return coordinator
+    }
+    var activityHostCancelAccess: (any ActivityHostCancelAccess)? {
+        guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+        return ActivityHostCancelHTTPAccess(
+            configuration: api,
+            transport: runtimeHTTPTransport,
+            enabled: { [weak self] in self?.account != nil && self?.token != nil },
+            session: { [weak self] in
+                guard let self, let account = self.account, let token = self.token else { return nil }
+                return (account.id, token)
+            }
+        )
+    }
+    var teamOrientBoardAccess: (any TeamOrientBoardAccess)? {
+        guard let api = regionalConfiguration?.apiConfiguration else { return nil }
+        return TeamOrientBoardHTTPAccess(
+            configuration: api,
+            transport: runtimeHTTPTransport,
+            session: { [weak self] in
+                guard let self, let account = self.account, let token = self.token else { return nil }
+                return (account.id, token)
+            }
+        )
     }
     private let officialEventService:OfficialEventService?
     private var officialSourceObservation: OfficialReadInvalidationSubscription?

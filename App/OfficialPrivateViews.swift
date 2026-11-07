@@ -5,6 +5,8 @@ import SwiftUI
     var actions: OfficialActionCoordinator? = nil
     var publisher = false
     var onLogin: (() -> Void)? = nil
+    @Environment(\.locale) private var locale
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     /// Source official-inbox load failure: "邀约没有加载出来" above the retryable issue.
     nonisolated static func issueCopy(_ error: Error) -> OfficialIssueCopy? {
         guard case .failed = OfficialScreenIssue(error) else { return nil }
@@ -27,9 +29,20 @@ import SwiftUI
                         // Source meta line: "(city ‖ 全国) · role".
                         (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(.subheadline)
                         Text(LocalizedStringKey(row.scopeKey)).font(.caption)
+                        if let note = row.roleNoteTuple {
+                            Text(verbatim: c.t(note.zh, note.en)).font(.caption).foregroundStyle(.secondary)
+                        }
+                        if let cap = row.capacity {
+                            Text(verbatim: c.t("承接名额 \(cap)", "Capacity \(cap)")).font(.caption).foregroundStyle(.secondary)
+                        }
                         if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
                             Text(verbatim: summary).font(.footnote)
+                        }
+                        if row.isPaused {
+                            Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
+                                              "This event is paused. Updates will be shared by the organizer before resuming."))
+                                .font(.caption).foregroundStyle(.orange)
                         }
                         Label(LocalizedStringKey(row.sourceStatusKey), systemImage: "envelope")
                         if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status).font(.caption) }
@@ -73,6 +86,7 @@ import SwiftUI
                         // Source official-mine row: title + publisher-view status badge, then city.
                         NavigationLink { OfficialEventDetailView(id: event.id, reader: reader, actions: actions, onLogin: onLogin) } label: { publishedEventRow(event) }
                             .accessibilityIdentifier("official.published.event.\(event.id)")
+                        OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                     }
                 } header: { Text("official.published.eventsHeader \(events.count)") }
                 Section {

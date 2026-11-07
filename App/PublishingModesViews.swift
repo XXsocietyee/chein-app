@@ -303,6 +303,9 @@ import Combine
                     Button { picker = "collaborator" } label: {
                         chooserRow("publishModes.collaborators", value: draft.collaboratorMemberIDs.isEmpty ? nil : appLocalized("publishModes.selectedCount \(draft.collaboratorMemberIDs.count)", locale: locale))
                     }
+                    Text(verbatim: CoreLoopCopy(locale: locale).tr(ActivityPublishingWizard.collaboratorSettlementNotice))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     fieldError("collaborators")
                 }.disabled(!editable)
                 ForEach($draft.tickets) { $ticket in
@@ -336,6 +339,12 @@ import Combine
                 }
                 if requiresIdentity {
                     PublisherIdentityRegistrationSection(owner: identityRegistration, makeService: makeIdentityRegistration, enabled: mayClear)
+                }
+                Section {
+                    ActivityPublishingReviewSummaryCard(
+                        summary: ActivityPublishingWizard.reviewSummary(draft: draft),
+                        merchantHost: account?.role == "merchant"
+                    )
                 }
             }
             if account != nil && draftStore != nil {

@@ -119,7 +119,7 @@ struct RegistrationSheetView: View {
                     let base = "\(flow.activity.summary.name)\n\(flow.selectedTicket?.name ?? "")\n\(review.draft.trimmedName)\n\(review.draft.trimmedPhone)\n"
                     let amountText = RegistrationUIMoney.display(review.quote.payAmount, locale: locale) ?? "—"
                     let nonRefundableSuffix = review.quote.requiresNonRefundableConfirmation
-                        ? "\n\(NonRefundable24hNotice.modalTitle)：\(NonRefundable24hNotice.modalContent)"
+                        ? "\n\(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalTitle)): \(CoreLoopCopy(locale: locale).tr(NonRefundable24hNotice.modalContent))"
                         : ""
                     Text(verbatim: base + amountText + nonRefundableSuffix)
                 }
@@ -452,7 +452,7 @@ struct RegistrationSheetView: View {
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
                         .font(.headline).accessibilityIdentifier("registration.form.total")
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
-                        Text(verbatim: refundNotice)
+                        Text(verbatim: CoreLoopCopy(locale: locale).tr(refundNotice))
                             .font(.caption)
                             .foregroundStyle(quote.requiresNonRefundableConfirmation ? .orange : .secondary)
                             .accessibilityIdentifier("registration.fees.refundPolicy")
@@ -532,6 +532,7 @@ private struct RegistrationAmountRow: View {
 /// Do not display arbitrary Error descriptions, quote signatures, provider parameters,
 /// credentials or contact fields. Verified structured server messages remain available.
 private struct RegistrationIssueText: View {
+    @Environment(\.locale) private var locale
     let issue: RegistrationCoordinatorIssue
     private var message: String? {
         switch issue {
@@ -542,7 +543,7 @@ private struct RegistrationIssueText: View {
     }
     var body: some View {
         if let message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Text(verbatim: message).font(.callout).foregroundStyle(.secondary)
+            Text(verbatim: CoreLoopCopy(locale: locale).tr(message)).font(.callout).foregroundStyle(.secondary)
         }
     }
 }

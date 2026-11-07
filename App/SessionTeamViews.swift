@@ -6,6 +6,7 @@ import SwiftUI
     var body: some View {
         TeamHomeView(coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }, onLogin: { login = true }, nearbyDestination: { teams in AnyView(SessionNearbyTeamsView(context: session.nearbyTeamQueryContext, joinedTeams: teams)) }, onOpenInvitation: { session.receiveNativeIntent(.teamInvitation($0)) })
             .environment(\.teamChannelManagementHooks, session.normalTeamChannelManagementHooks)
+            .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
             .id(session.teamViewIdentity)
             .sheet(isPresented: $login) { LoginView(intent: .player) }
     }
@@ -19,6 +20,7 @@ import SwiftUI
     var body: some View {
         TeamDetailView(lookup: lookup, coordinator: session.makeTeamCoordinator(), makeCoordinator: { session.makeTeamCoordinator() }, onLogin: { login = true }).id(session.teamViewIdentity)
             .environment(\.teamChannelManagementHooks, session.normalTeamChannelManagementHooks)
+            .environment(\.teamOrientBoardAccess, session.teamOrientBoardAccess)
             .sheet(isPresented: $login) { LoginView(intent: .player) }
     }
 }

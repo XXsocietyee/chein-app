@@ -17,6 +17,8 @@ import SwiftUI
     let id: Int
     @StateObject private var model: OrderLifecycleScreenModel
     @Environment(\.scenePhase) private var phase
+    @Environment(\.locale) private var locale
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     init(id: Int, coordinator: OrderLifecycleCoordinator) {
         self.id = id; _model = StateObject(wrappedValue: OrderLifecycleScreenModel(coordinator: coordinator))
     }
@@ -77,6 +79,11 @@ import SwiftUI
     }
     private func summary(_ detail: OrderLifecycleDetail) -> some View {
         let state = detail.summary()
+        let fulfillment = FourShopCompensationPolicy.evaluateSoldContractFulfillment(
+            registrationStatus: detail.registrationStatus,
+            paymentStatus: detail.paymentStatus,
+            verificationStatus: detail.verificationStatus
+        )
         return Section {
             VStack(alignment: .leading, spacing: 12) {
                 Label(LocalizedStringKey("orderLifecycle.state." + state.state.rawValue), systemImage: "ticket")
@@ -85,6 +92,9 @@ import SwiftUI
                 else { Text("orderLifecycle.untitled").font(.title2.bold()) }
                 if let reason = state.serverReason { Text(verbatim: reason).foregroundStyle(.secondary) }
                 else { Text(LocalizedStringKey(state.explanationKey)).foregroundStyle(.secondary) }
+                if let notice = fulfillment.fulfillmentNotice {
+                    Text(verbatim: c.tr(notice)).font(.caption).foregroundStyle(.secondary)
+                }
             }.fixedSize(horizontal: false, vertical: true).padding(.vertical, 8)
             OrderLifecycleField(label: "orderLifecycle.number", value: detail.registrationNumber)
             OrderLifecycleField(label: "orderLifecycle.ticket", value: detail.ticketName)
@@ -117,6 +127,15 @@ import SwiftUI
     @ViewBuilder private func refund(_ detail: OrderLifecycleDetail) -> some View {
         if detail.refundApplication != nil || detail.refundReason != nil || detail.refundDeadline != nil {
             Section("orderLifecycle.refund.title") {
+                if let payout = TicketExpiryAndOrderStatusRules.payoutSummary(
+                    status: detail.refundApplication?.applicationStatus,
+                    payoutStatus: detail.refundApplication?.payoutStatus
+                ) {
+                    LabeledContent(c.t("退款进度", "Refund status")) {
+                        Text(verbatim: c.tr(payout.label))
+                    }
+                    Text(verbatim: c.tr(payout.hint)).font(.footnote).foregroundStyle(.secondary)
+                }
                 OrderLifecycleField(label: "orderLifecycle.refund.reason", value: detail.refundReason)
                 OrderLifecycleField(label: "orderLifecycle.refund.deadline", value: detail.refundDeadline)
                 if let amount = detail.refundApplication?.amount { LabeledContent("orderLifecycle.refund.amount") { AmountLabel(amount: amount) } }

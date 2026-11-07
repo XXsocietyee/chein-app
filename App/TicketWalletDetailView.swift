@@ -226,10 +226,24 @@ struct TicketWalletPlayProvider {
 
 private struct TicketWalletDetailHeader: View {
     let ticket: TicketWalletTicket
+    @Environment(\.locale) private var locale
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
+        let expiry = TicketExpiryAndOrderStatusRules.passExpiryText(validUntil: ticket.endDate)
+        let fulfillment = FourShopCompensationPolicy.evaluateSoldContractFulfillment(
+            registrationStatus: ticket.registrationStatus,
+            paymentStatus: nil,
+            verificationStatus: ticket.verificationStatus,
+            productType: ticket.productType
+        )
         VStack(alignment: .leading, spacing: 16) {
             HStack(alignment: .top, spacing: 12) {
                 TicketWalletStatusBadge(status: ticket.status)
+                if !expiry.isEmpty {
+                    Text(verbatim: c.tr(expiry))
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.orange)
+                }
                 Spacer(minLength: 0)
                 Image(systemName: "ticket")
                     .font(.title).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
@@ -242,6 +256,11 @@ private struct TicketWalletDetailHeader: View {
             }
             if let place = ticket.addressName, !place.isEmpty {
                 QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+            }
+            if let notice = fulfillment.fulfillmentNotice {
+                Text(verbatim: c.tr(notice))
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
         }
         .questifyCardSurface()

@@ -37,18 +37,18 @@ struct HomeHeroHeaderSectionView: View {
                                         Button {
                                             onSelectCity(nil, true)
                                         } label: {
-                                            Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale))
+                                            Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale)))
                                         }
                                         ForEach(HomeCitySwitchState.defaultSupportedCities, id: \.self) { city in
                                             Button {
                                                 onSelectCity(city, false)
                                             } label: {
-                                                Text(verbatim: city)
+                                                Text(verbatim: CoreLoopCopy(locale: locale).tr(city))
                                             }
                                         }
                                     } label: {
                                         Label {
-                                            Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
+                                            Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
                                         } icon: {
                                             Image(systemName: "location.fill")
                                         }
@@ -57,7 +57,7 @@ struct HomeHeroHeaderSectionView: View {
                                     .accessibilityIdentifier("homeIndex.hero.city")
                                 } else {
                                     Label {
-                                        Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
+                                        Text(verbatim: CoreLoopCopy(locale: locale).tr(HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale)))
                                     } icon: {
                                         Image(systemName: "location.fill")
                                     }
@@ -79,7 +79,7 @@ struct HomeHeroHeaderSectionView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "magnifyingglass")
                                     .foregroundStyle(.secondary)
-                                Text(verbatim: GlobalSearchParityPresentation.placeholderCopy)
+                                Text(verbatim: CoreLoopCopy(locale: locale).tr(GlobalSearchParityPresentation.placeholderCopy))
                                     .font(.subheadline)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
@@ -1238,11 +1238,12 @@ struct SessionMerchantRootContainerView: View {
 struct PublishTabFloatingButton: View {
     var title: String = PublishTabFloatingSheetParity.fabButtonTitle
     var action: () -> Void
+    @Environment(\.locale) private var locale
 
     var body: some View {
         Button(action: action) {
             Label {
-                Text(verbatim: title)
+                Text(verbatim: CoreLoopCopy(locale: locale).tr(title))
                     .font(.subheadline.weight(.semibold))
             } icon: {
                 Image(systemName: "plus.circle.fill")
@@ -1265,6 +1266,8 @@ struct PublishTabFloatingSheetView: View {
     let presentation: PublishTabFloatingSheetParity.SheetPresentation
     var onSelectAction: ((PublishTabFloatingSheetParity.ActionKind) -> Void)? = nil
     var onClose: (() -> Void)? = nil
+    @Environment(\.locale) private var locale
+    private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
         NavigationStack {
@@ -1272,7 +1275,7 @@ struct PublishTabFloatingSheetView: View {
                 if let quotaBadgeText = presentation.quotaBadgeText {
                     Section {
                         Label {
-                            Text(verbatim: quotaBadgeText)
+                            Text(verbatim: copy.tr(quotaBadgeText))
                                 .font(.subheadline.weight(.medium))
                         } icon: {
                             Image(systemName: "sparkles")
@@ -1294,14 +1297,14 @@ struct PublishTabFloatingSheetView: View {
                                     .foregroundStyle(item.isEnabled ? QuestifyPalette.accent : .secondary)
                                     .frame(width: 28)
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text(verbatim: item.title)
+                                    Text(verbatim: copy.tr(item.title))
                                         .font(.headline)
                                         .foregroundStyle(item.isEnabled ? .primary : .secondary)
-                                    Text(verbatim: item.subtitle)
+                                    Text(verbatim: copy.tr(item.subtitle))
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
                                     if let reason = item.disabledReason, !item.isEnabled {
-                                        Text(verbatim: reason)
+                                        Text(verbatim: copy.tr(reason))
                                             .font(.caption2)
                                             .foregroundStyle(.orange)
                                             .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
@@ -1319,11 +1322,11 @@ struct PublishTabFloatingSheetView: View {
                     }
                 }
             }
-            .navigationTitle(Text(verbatim: presentation.sheetTitle))
+            .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle)))
             .toolbar {
                 if let onClose {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button("关闭", action: onClose)
+                        Button(copy.t("关闭", "Close"), action: onClose)
                             .accessibilityIdentifier("publishTab.sheet.close")
                     }
                 }

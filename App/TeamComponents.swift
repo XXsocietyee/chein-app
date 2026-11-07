@@ -182,6 +182,7 @@ struct TeamMemberRow: View {
     @State private var copyMessageKey: String?
     @State private var copyPermit: TeamScreenModel.InviteCopyPermit?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     var body: some View {
         NavigationStack {
             Form {
@@ -192,6 +193,11 @@ struct TeamMemberRow: View {
                         Button("team.invite.copy") { copyInvitationCode(code) }
                             .frame(minHeight: 44)
                             .accessibilityIdentifier("team.invite.copy")
+                        ShareLink(item: code) {
+                            Label(CoreLoopCopy(locale: locale).t("分享邀请码", "Share invite code"), systemImage: "square.and.arrow.up")
+                                .frame(minHeight: 44)
+                        }
+                        .accessibilityIdentifier("team.invite.share")
                     }
                     else { Text("team.invite.unavailable") }
                     if let copyMessageKey {

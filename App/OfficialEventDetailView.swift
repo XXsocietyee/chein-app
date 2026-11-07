@@ -29,6 +29,8 @@ enum OfficialDetailID {
     var onLogin: (() -> Void)? = nil
     /// Optional bound-topic names and route; without it THEME missions stay plain rows.
     var topicLinks: OfficialTopicLinks? = nil
+    /// Optional Roam jump callback (`goRoam(missionCode)`); falls back to `rootTabSwitch(.roam)`.
+    var onOpenRoam: ((Int, String?) -> Void)? = nil
     @StateObject private var sourceObservation = OfficialReadInvalidationObserver()
     @State private var topicNames: [Int: String] = [:]
     @State private var topicNameFailed = false
@@ -64,6 +66,7 @@ enum OfficialDetailID {
             let namesVisit = visit
             List {
                 OfficialEventCard(event: event).questifyCardListRow()
+                OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                 HStack(spacing: 8) {
                     Text(LocalizedStringKey(presentation.categoryKey)).font(.caption.weight(.semibold)).foregroundStyle(.tint)
                     Text("official.detailParity.organizer").font(.subheadline).foregroundStyle(.secondary)
@@ -122,6 +125,7 @@ enum OfficialDetailID {
                             } else {
                                 OfficialDetailMissionRow(mission: mission, topicName: topicID.flatMap { topicNames[$0] })
                                     .accessibilityIdentifier("official.mission.\(mission.index)")
+                                OfficialMissionRoamJumpButton(event: event, missionIndex: mission.index, action: mission.action, onOpenRoam: onOpenRoam)
                             }
                         }
                     } header: {
@@ -208,6 +212,8 @@ enum OfficialDetailID {
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .accessibilityIdentifier(OfficialDetailID.cta)
                     }
+                } else {
+                    OfficialDetailRoamJumpSection(event: event, cta: presentation.cta, onOpenRoam: onOpenRoam)
                 }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
             }.accessibilityIdentifier("official.detail.content")

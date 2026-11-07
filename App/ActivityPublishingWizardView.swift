@@ -43,7 +43,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
-            Text(verbatim: ActivityPublishingWizard.heading(for: current))
+            Text(verbatim: CoreLoopCopy(locale: locale).wizardHeading(for: current))
                 .font(.subheadline.weight(.semibold))
                 .foregroundStyle(.primary)
                 .fixedSize(horizontal: false, vertical: true)
@@ -103,8 +103,15 @@ import SwiftUI
 
 /// Step 2 pre-publish / edit review summary card matching `pages/publish/activity/index.wxml` (`发布前摘要` / `修改摘要`).
 @MainActor struct ActivityPublishingReviewSummaryCard: View {
-    let summary: ActivityPublishingWizard.ReviewSummary
+    let rawSummary: ActivityPublishingWizard.ReviewSummary
     var merchantHost: Bool = false
+    @Environment(\.locale) private var locale
+    private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+    private var summary: ActivityPublishingWizard.ReviewSummary { copy.reviewSummary(rawSummary) }
+    init(summary: ActivityPublishingWizard.ReviewSummary, merchantHost: Bool = false) {
+        self.rawSummary = summary
+        self.merchantHost = merchantHost
+    }
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     var body: some View {
@@ -114,18 +121,18 @@ import SwiftUI
                 .accessibilityIdentifier("publishModes.activity.reviewSummary.heading")
 
             if merchantHost {
-                Text(verbatim: ActivityPublishingWizard.merchantFreeTicketOnlyNotice)
+                Text(verbatim: copy.merchantFreeTicketOnlyNotice)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("publishModes.activity.reviewSummary.merchantFreeNotice")
             }
 
-            summaryRow(label: "名称", value: summary.nameText, id: "name")
-            summaryRow(label: "时间", value: summary.timeText, id: "time")
-            summaryRow(label: "地点", value: summary.addressText, id: "address")
-            summaryRow(label: "关联模板", value: summary.templateText, id: "template")
+            summaryRow(label: copy.t("名称", "Name"), value: summary.nameText, id: "name")
+            summaryRow(label: copy.t("时间", "Time"), value: summary.timeText, id: "time")
+            summaryRow(label: copy.t("地点", "Place"), value: summary.addressText, id: "address")
+            summaryRow(label: copy.t("关联模板", "Linked template"), value: summary.templateText, id: "template")
             if let ticketText = summary.ticketSummaryText {
-                summaryRow(label: "票种", value: ticketText, id: "tickets")
+                summaryRow(label: copy.t("票种", "Tickets"), value: ticketText, id: "tickets")
             }
 
             Text(verbatim: summary.visibilityNotice)

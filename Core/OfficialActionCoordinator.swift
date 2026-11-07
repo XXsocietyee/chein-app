@@ -69,6 +69,8 @@ public enum OfficialActionState: Equatable { case idle, reviewing, checking, sub
     private var readbackIdentity: OfficialActionIdentity?
     public var readback: OfficialActionReadback? { access.identity == readbackIdentity ? verifiedReadback : nil }
     public private(set) var state: OfficialActionState = .idle
+    /// Organizer console reads/commands (publish / pause / resume); nil when the host injected none.
+    public var organizer: (any OfficialOrganizerAccess)?
     public var identity: OfficialActionIdentity? { access.identity }
     public var enabled: Bool { access.enabled }
     public init(access: any OfficialActionAccess, locks: any OfficialActionLockStore, now: @escaping () -> Date = Date.init) {

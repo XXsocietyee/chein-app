@@ -341,16 +341,39 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
     public let role: String?
     public let targetType: String?
     public let responsibilitySummary: String?
+    public let capacity: Int?
+    public let controlState: String?
     /// Source service window (windowStart/windowEnd); absent fields read as unbounded.
     public let windowFacts: OfficialInboxWindowFacts?
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         role = c.text("role"); targetType = c.text("targetType"); responsibilitySummary = c.text("responsibilitySummary")
+        capacity = c.integer("capacity").flatMap { $0 > 0 ? $0 : nil }
+        controlState = c.text("controlState")
         windowFacts = try? OfficialInboxWindowFacts(from: decoder)
         id = c.integer("partyId") ?? c.integer("id") ?? 0
         title = c.text("title") ?? c.text("partyName") ?? c.text("responsibilitySummary") ?? ""
         partyType = c.text("partyType"); eventTitle = c.text("eventTitle")
         status = c.text("status"); city = c.text("city") // Never read `state`.
+    }
+    public var isPaused: Bool { controlState == "PAUSED" }
+    public var roleNoteTuple: (zh: String, en: String)? {
+        switch role {
+        case "ORGANIZER":
+            return ("对整场活动负责，发布、暂停和恢复由主办操作。", "Responsible for the entire event; publishing, pausing, and resuming are managed by the organizer.")
+        case "CO_ORGANIZER":
+            return ("与主办方共同承办本场活动，按下方职责范围履约。", "Co-hosts this event with the organizer and fulfills within the scope below.")
+        case "FULFILLMENT_MERCHANT":
+            return ("以商家身份在指定范围和时段内提供履约服务。", "Provides fulfillment service as a merchant within the designated scope and window.")
+        case "FULFILLMENT_CLUB":
+            return ("以俱乐部身份在指定范围和时段内组织或协助履约。", "Organizes or assists fulfillment as a club within the designated scope and window.")
+        case "SPONSOR":
+            return ("作为支持方为本场活动提供支持。", "Supports this event as a sponsor.")
+        case "PROMOTION_PARTNER":
+            return ("作为推广伙伴协助本场活动的传播。", "Assists in promoting this event as a promotion partner.")
+        default:
+            return nil
+        }
     }
     public var statusKey: String {
         switch status {
