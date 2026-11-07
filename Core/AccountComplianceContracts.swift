@@ -70,9 +70,18 @@ public struct ComplianceDeregistration: Decodable, Equatable {
     /// The backend returns CANCELLED; NORMAL means no application exists.
     public var cancellationConfirmed: Bool { status == "CANCELLED" }
     public var completed: Bool { status == "COMPLETED" }
-    /// The date is informational, not a state discriminator. COMPLETED and unknown
-    /// states can retain executeAfter and must never expose a cancellation action.
-    public var pending: Bool { status == "PENDING" }
+    /// PENDING is the application state. The legacy WAITING state is pending only while it carries the
+    /// server's executeAfter date; COMPLETED, CANCELLED and unknown states can retain executeAfter and
+    /// must never expose a cancellation action.
+    public var pending: Bool { status == "PENDING" || legacyPendingOverride || (status == "WAITING" && Self.isServerDate(executeAfter)) }
+    /// Set only by the legacy (no original client) merchant-scoped service path, never by decoding.
+    var legacyPendingOverride: Bool = false
+    static func isServerDate(_ value: String?) -> Bool {
+        guard let value, !value.isEmpty else { return false }
+        let full = ISO8601DateFormatter(); full.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter(); plain.formatOptions = [.withInternetDateTime]
+        return full.date(from: value) != nil || plain.date(from: value) != nil
+    }
     public var startable: Bool { Self.startable.contains(status) }
     static let startable: Set<String> = ["NORMAL", "CANCELLED", "FAILED"]
     /// iOS can verify only by SMS. WECHAT reconfirmation needs a fresh mini-program wx.login

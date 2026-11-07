@@ -152,7 +152,7 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
             let heading = "Content-Disposition: form-data; name=\""
             guard chunk.hasPrefix(heading), chunk.hasSuffix("\r\n"), let split = chunk.range(of: "\"\r\n\r\n") else { return nil }
             let key = String(chunk[chunk.index(chunk.startIndex, offsetBy: heading.count)..<split.lowerBound])
-            guard fields[key] == nil else { return nil }; fields[key] = String(chunk[split.upperBound...].dropLast(2))
+            guard fields[key] == nil else { return nil }; fields[key] = String(chunk[split.upperBound...].dropLast("\r\n".count))
         }
         guard let expected = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: r.value(forHTTPHeaderField: "Authorization"), boundary: boundary), expected.httpBody == data else { return nil }; return fields
     }

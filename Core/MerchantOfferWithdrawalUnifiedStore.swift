@@ -120,6 +120,9 @@ import Glibc
     private func ensureDirectory(_ path: URL) throws {
         var info = stat()
         if lstat(path.path, &info) == 0 {
+            // Root-owned aliases such as /var -> /private/var are the platform's own layout (every iOS and
+            // macOS container path starts with one) and cannot be planted by the app user.
+            if info.st_mode & mode_t(S_IFMT) == mode_t(S_IFLNK), info.st_uid == 0 { return }
             guard info.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR) else { throw CoopFlowFailure.storage }
             // Inspect ancestors as well: O_NOFOLLOW on the leaf cannot reject a parent symlink.
             if path.path != "/" { try ensureDirectory(path.deletingLastPathComponent()) }
