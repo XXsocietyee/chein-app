@@ -103,5 +103,474 @@
     "en": "The server reported that submission as not displayed when checked.",
     "status": "DESIGNED",
     "note": "zh-Hans not taken from mini-program; written by C1 worker/predecessor"
+  },
+  {
+    "key": "characterCard.momentum",
+    "zh-Hans": "势头",
+    "en": "Momentum",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "characterCard.rpgStatus",
+    "zh-Hans": "本局状态",
+    "en": "Current Session Status",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "common.cancel",
+    "zh-Hans": "取消",
+    "en": "Cancel",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "common.close",
+    "zh-Hans": "关闭",
+    "en": "Close",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.byQr",
+    "zh-Hans": "二维码内容",
+    "en": "QR Code Content",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.byUrl",
+    "zh-Hans": "HTTPS 链接",
+    "en": "HTTPS Link",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.confirmInstall",
+    "zh-Hans": "确认安装",
+    "en": "Confirm Install",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.confirmInstallTitle",
+    "zh-Hans": "确认导入外部游戏",
+    "en": "Confirm Import of External Game",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.confirmPackage",
+    "zh-Hans": "游戏包来源与签名核验",
+    "en": "Package Source and Signature Verification",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.confirmUpdate",
+    "zh-Hans": "确认更新",
+    "en": "Confirm Update",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.confirmUpdateTitle",
+    "zh-Hans": "确认更新外部游戏",
+    "en": "Confirm External Game Update",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.domainsSection",
+    "zh-Hans": "允许访问的 HTTPS 域名白名单",
+    "en": "Allowed HTTPS Domains",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.emptyHint",
+    "zh-Hans": "支持通过 HTTPS 链接、二维码或文件导入带签名清单的 HTML5 互动包，仅在受限沙盒中运行。",
+    "en": "Import signed HTML5 interactive packages from an HTTPS link, QR code or file. They run only in a restricted sandbox.",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.entryBlocked",
+    "zh-Hans": "入口文件未通过沙盒校验",
+    "en": "The entry file did not pass sandbox validation",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.importAction",
+    "zh-Hans": "导入游戏",
+    "en": "Import Game",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.importFile",
+    "zh-Hans": "从文件导入 (.json)",
+    "en": "Import from File (.json)",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.importMethod",
+    "zh-Hans": "导入方式",
+    "en": "Import Method",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.importTitle",
+    "zh-Hans": "导入外部游戏",
+    "en": "Import External Game",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.importUrlOrQr",
+    "zh-Hans": "链接 / 扫码导入",
+    "en": "Link / Scan to Import",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.launch",
+    "zh-Hans": "运行",
+    "en": "Run",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.name",
+    "zh-Hans": "名称",
+    "en": "Name",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.noExternalNetwork",
+    "zh-Hans": "完全离线（禁止任何外部网络请求）",
+    "en": "Fully offline (no external network requests allowed)",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.noPermissions",
+    "zh-Hans": "无额外权限（纯离线静态互动）",
+    "en": "No extra permissions (offline static content only)",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.permissionsSection",
+    "zh-Hans": "申请的沙盒权限",
+    "en": "Requested Sandbox Permissions",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.qrSection",
+    "zh-Hans": "扫码识别出的安全链接",
+    "en": "Secure Link Found in QR Code",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.rating",
+    "zh-Hans": "内容分级",
+    "en": "Content Rating",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.remove",
+    "zh-Hans": "移除游戏",
+    "en": "Remove Game",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.sectionTitle",
+    "zh-Hans": "扩展小游戏库（沙盒）",
+    "en": "Extended Mini-Game Library (Sandbox)",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.securityNotice",
+    "zh-Hans": "安全承诺：该内容仅在隔离的 WKWebView 沙盒内运行，不共享登录凭据，禁止任何应用内购买或外部支付，且仅开放受版本控制的只读/存档桥接接口。",
+    "en": "Security commitment: this content runs only inside an isolated WKWebView sandbox, shares no sign-in credentials, allows no in-app purchases or external payments, and exposes only versioned read-only and save bridge interfaces.",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.source",
+    "zh-Hans": "导入来源",
+    "en": "Import Source",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.urlSection",
+    "zh-Hans": "游戏包 HTTPS 地址",
+    "en": "Package HTTPS Address",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.verifyManifest",
+    "zh-Hans": "校验签名清单并预览权限",
+    "en": "Verify Signed Manifest and Preview Permissions",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.version",
+    "zh-Hans": "版本",
+    "en": "Version",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.externalGame.webKitUnavailable",
+    "zh-Hans": "当前环境不支持 WebKit 沙盒视图",
+    "en": "This environment does not support the WebKit sandbox view",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.alreadyDone",
+    "zh-Hans": "已完成该地标挑战",
+    "en": "Landmark challenge already completed",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.answerPlaceholder",
+    "zh-Hans": "输入你的答案",
+    "en": "Enter your answer",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.completed",
+    "zh-Hans": "挑战通关！",
+    "en": "Challenge complete!",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.confirmPhoto",
+    "zh-Hans": "确认现场照片",
+    "en": "Confirm On-Site Photo",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.loading",
+    "zh-Hans": "正在加载地标挑战…",
+    "en": "Loading landmark challenge…",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.photoStep",
+    "zh-Hans": "第一步：现场拍照打卡",
+    "en": "Step 1: Take an on-site photo",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.photoUrlPlaceholder",
+    "zh-Hans": "已上传现场照片地址",
+    "en": "Uploaded on-site photo address",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.retry",
+    "zh-Hans": "重试",
+    "en": "Retry",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.submit",
+    "zh-Hans": "提交挑战",
+    "en": "Submit Challenge",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "playx.poi.verifyReceipt",
+    "zh-Hans": "刷新确认状态",
+    "en": "Refresh Confirmation Status",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "storyRule.conditionsTitle",
+    "zh-Hans": "触发条件",
+    "en": "Trigger Conditions",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "storyRule.addCondition",
+    "zh-Hans": "添加条件",
+    "en": "Add Condition",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "storyRule.effectsTitle",
+    "zh-Hans": "产生效果",
+    "en": "Resulting Effects",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "storyRule.addEffect",
+    "zh-Hans": "添加效果",
+    "en": "Add Effect",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "全部满足",
+    "zh-Hans": "全部满足",
+    "en": "All Must Match",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "任一满足",
+    "zh-Hans": "任一满足",
+    "en": "Any Can Match",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "换一个名字",
+    "zh-Hans": "换一个名字",
+    "en": "Choose Another Name",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "删除这一句",
+    "zh-Hans": "删除这一句",
+    "en": "Delete This Sentence",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "返回",
+    "zh-Hans": "返回",
+    "en": "Back",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "搜索或输入新名称",
+    "zh-Hans": "搜索或输入新名称",
+    "en": "Search or enter a new name",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "已作答",
+    "zh-Hans": "已作答",
+    "en": "Answered",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "输入你的回答",
+    "zh-Hans": "输入你的回答",
+    "en": "Enter your answer",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "提交章节回答",
+    "zh-Hans": "提交章节回答",
+    "en": "Submit Chapter Answer",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "目标：%@",
+    "zh-Hans": "目标：%@",
+    "en": "Target: %@",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "%lld 站",
+    "zh-Hans": "%lld 站",
+    "en": "%lld stops",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "分级 %@ · 沙盒隔离",
+    "zh-Hans": "分级 %@ · 沙盒隔离",
+    "en": "Rating %@ · Sandboxed",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "暂时无法加载内容",
+    "zh-Hans": "暂时无法加载内容",
+    "en": "Unable to load content right now",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "请检查网络连接后重试",
+    "zh-Hans": "请检查网络连接后重试",
+    "en": "Please check your network connection and try again",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "重试",
+    "zh-Hans": "重试",
+    "en": "Retry",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "有未读消息",
+    "zh-Hans": "有未读消息",
+    "en": "Unread messages",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "用户头像",
+    "zh-Hans": "用户头像",
+    "en": "User avatar",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "%@ 条未读消息",
+    "zh-Hans": "%@ 条未读消息",
+    "en": "%@ unread messages",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
+  },
+  {
+    "key": "%@的头像",
+    "zh-Hans": "%@的头像",
+    "en": "%@’s avatar",
+    "status": "DESIGNED",
+    "note": "used by W3/W8 source; staged under different key or absent; zh from source defaultValue/literal"
   }
 ]
