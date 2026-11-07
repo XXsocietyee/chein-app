@@ -22,6 +22,8 @@ struct RoamBrowserView: View {
     var nearbyEventDestination: ((RoamEventDestination) -> AnyView)? = nil
     var playerProfileDestination: ((Int) -> AnyView)? = nil
     var couponWalletDestination: (() -> AnyView)? = nil
+    /// 官方线路 (preset routes) read; nil hides the intro card.
+    var officialRouteReader: OfficialRouteReader? = nil
     var mediaScope: UUID = UUID()
     var makeExternalMaps: (@MainActor () -> PlatformExternalMaps)? = nil
     /// Mini-program 开始漫游 / 漫游护照 home. All optional: hosts without them keep the plain browser.
@@ -260,7 +262,8 @@ struct RoamBrowserView: View {
     /// 开始漫游 tab body above the browser: intro cards, recovery notice and the 附近活动 peek.
     @ViewBuilder private var startHeader: some View {
         if nearbyTeamsDestination != nil || liveDestination != nil {
-            RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination)
+            RoamHomeIntroCards(start: startDestination, nearby: nearbyTeamsDestination, myTeams: myTeamsDestination ?? nearbyTeamsDestination,
+                officialRoutes: officialRouteReader.map { reader in { AnyView(OfficialRouteListView(reader: reader)) } })
         }
         if let recoveryBanner, let experienceReader {
             let rendered = recoveryEntry.revision

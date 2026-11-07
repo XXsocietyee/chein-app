@@ -277,12 +277,13 @@ struct SessionRootView: View {
                     }, playerProfileDestination: { memberID in
                         AnyView(SocialPublicProfileView(memberID: memberID, reader: session.socialAccountReader,
                             squareReader: session.squareReader, actions: nil).id(session.socialAccountReader.identity))
-                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader, anniversaryRouteDestination: { topicID in
+                    }, couponWalletDestination: session.makeRoamCouponWalletDestination(reader: session.roamReader), officialRouteReader: session.officialRouteReader, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, entryReader: session.roamEntryNearbyReader, entryTeams: { await session.roamEntryTeams(area: $0) }, myTeamsDestination: { AnyView(SessionRoamNearbyTeamsView(initialTab: 1, onSignIn: { selectedTab = .mine })) }, nearbyTeamDestination: { AnyView(SessionRoamNearbyTeamsView(focusTeamID: $0, onSignIn: { selectedTab = .mine })) }, toolsReader: session.roamPassportToolsReader, passportToolsReader: session.roamPassportToolsReader, privateToolsReader: session.roamPrivateToolsReader, anniversaryRouteDestination: { topicID in
                         guard let id = Int(topicID), id > 0, String(id) == topicID else {
                             return AnyView(TopicIssueView(issue: .unavailable))
                         }
                         return AnyView(SessionTopicDetailView(id: id, session: session))
                     })
+                        .environment(\.roamPOIActions, session.makeRoamPOIActions())
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)

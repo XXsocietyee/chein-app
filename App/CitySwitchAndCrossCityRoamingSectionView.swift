@@ -45,6 +45,7 @@ public struct CitySwitchIsolationSnapshot: Sendable, Equatable {
     public let cancelsInFlightReadsOnCityChange: Bool
     public let resetsViewportAndDeltaCursorOnSwitch: Bool
     public let simulationLoopState: CitySimulationLoopState
+    public let locale: Locale
 
     public var isCrossCityIsolationSafe: Bool {
         !activeCityCode.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -60,8 +61,10 @@ public struct CitySwitchIsolationSnapshot: Sendable, Equatable {
         rows: [CityIsolationSurfaceRow],
         cancelsInFlightReadsOnCityChange: Bool = true,
         resetsViewportAndDeltaCursorOnSwitch: Bool = true,
-        simulationLoopState: CitySimulationLoopState = CitySimulationLoopState()
+        simulationLoopState: CitySimulationLoopState = CitySimulationLoopState(),
+        locale: Locale = .current
     ) {
+        self.locale = locale
         self.activeCityCode = activeCityCode
         self.previousCityCode = previousCityCode
         self.rows = rows
@@ -70,39 +73,47 @@ public struct CitySwitchIsolationSnapshot: Sendable, Equatable {
         self.simulationLoopState = simulationLoopState
     }
 
-    public static let defaultReady = CitySwitchIsolationSnapshot(
-        activeCityCode: "310100",
-        previousCityCode: "110100",
-        rows: [
-            CityIsolationSurfaceRow(
-                surface: .cityAndAccountCachePartition,
-                title: "cityCode + 账户双维缓存分区",
-                detail: "漫游瓦片、同城俱乐部与城市节点缓存均绑定 (accountID, epoch, cityCode)，严禁跨城串读。",
-                statusBadgeText: "PARTITIONED",
-                isIsolated: true
-            ),
-            CityIsolationSurfaceRow(
-                surface: .inFlightRequestCancellation,
-                title: "切城在途请求代际取消 (Generation Fence)",
-                detail: "切换城市时递增查询代际并取消旧城市在途请求，迟到的上一城响应一律丢弃。",
-                statusBadgeText: "FENCED",
-                isIsolated: true
-            ),
-            CityIsolationSurfaceRow(
-                surface: .mapViewportAndDeltaReset,
-                title: "地图视口与增量流游标重置",
-                detail: "跨城切换后重置地图 bbox 游标与 CityDeltaStream 序列号，从新城市快照重新同步。",
-                statusBadgeText: "CURSOR_RESET",
-                isIsolated: true
-            )
-        ],
-        cancelsInFlightReadsOnCityChange: true,
-        resetsViewportAndDeltaCursorOnSwitch: true
-    )
+    public static var defaultReady: CitySwitchIsolationSnapshot { ready(locale: .current) }
+
+    public static func ready(locale: Locale) -> CitySwitchIsolationSnapshot {
+        CitySwitchIsolationSnapshot(
+            activeCityCode: "310100",
+            previousCityCode: "110100",
+            rows: [
+                CityIsolationSurfaceRow(
+                    surface: .cityAndAccountCachePartition,
+                    title: bilingualCopy("cityCode + 账户双维缓存分区", "cityCode + account cache partition", locale: locale),
+                    detail: bilingualCopy("漫游瓦片、同城俱乐部与城市节点缓存均绑定 (accountID, epoch, cityCode)，严禁跨城串读。",
+                                          "Roam tiles, same-city clubs and city-node caches are all keyed by (accountID, epoch, cityCode); cross-city reads are forbidden.", locale: locale),
+                    statusBadgeText: "PARTITIONED",
+                    isIsolated: true
+                ),
+                CityIsolationSurfaceRow(
+                    surface: .inFlightRequestCancellation,
+                    title: bilingualCopy("切城在途请求代际取消 (Generation Fence)", "In-flight request cancellation on city switch (generation fence)", locale: locale),
+                    detail: bilingualCopy("切换城市时递增查询代际并取消旧城市在途请求，迟到的上一城响应一律丢弃。",
+                                          "Switching city bumps the query generation and cancels the previous city's requests; late responses are discarded.", locale: locale),
+                    statusBadgeText: "FENCED",
+                    isIsolated: true
+                ),
+                CityIsolationSurfaceRow(
+                    surface: .mapViewportAndDeltaReset,
+                    title: bilingualCopy("地图视口与增量流游标重置", "Map viewport and delta-stream cursor reset", locale: locale),
+                    detail: bilingualCopy("跨城切换后重置地图 bbox 游标与 CityDeltaStream 序列号，从新城市快照重新同步。",
+                                          "After a city switch the map bbox cursor and CityDeltaStream sequence reset and resync from the new city snapshot.", locale: locale),
+                    statusBadgeText: "CURSOR_RESET",
+                    isIsolated: true
+                )
+            ],
+            cancelsInFlightReadsOnCityChange: true,
+            resetsViewportAndDeltaCursorOnSwitch: true,
+            locale: locale
+        )
+    }
 }
 
 /// SwiftUI section view displaying `cityCode` + account cache partitioning, in-flight request cancellation
-/// on city switch, and map viewport delta reset using `Text(verbatim:)` exclusively (`0` new `.xcstrings` keys).
+/// on city switch, and map viewport delta reset with inline bilingual (zh-Hans / en) copy.
 @MainActor
 public struct CitySwitchAndCrossCityRoamingSectionView: View {
     public let snapshot: CitySwitchIsolationSnapshot
@@ -116,8 +127,8 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
             HStack {
                 Text(
                     verbatim: snapshot.isCrossCityIsolationSafe
-                        ? "跨城漫游与切城隔离：3/3 项已启用代际围栏与缓存分区"
-                        : "跨城漫游与切城隔离：检测到跨城缓存污染或在途请求串读风险"
+                        ? bilingualCopy("跨城漫游与切城隔离：3/3 项已启用代际围栏与缓存分区", "Cross-city roaming isolation: 3/3 generation fences and cache partitions active", locale: snapshot.locale)
+                        : bilingualCopy("跨城漫游与切城隔离：检测到跨城缓存污染或在途请求串读风险", "Cross-city roaming isolation: cache bleed or stale in-flight request risk detected", locale: snapshot.locale)
                 )
                 .font(.subheadline.weight(.semibold))
                 Spacer()
@@ -128,7 +139,7 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
             .accessibilityIdentifier("citySwitchIsolation.summary")
 
             HStack {
-                Text(verbatim: "当前生效城市代码 (cityCode)")
+                Text(verbatim: bilingualCopy("当前生效城市代码 (cityCode)", "Active city code (cityCode)", locale: snapshot.locale))
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 Spacer()
@@ -143,11 +154,17 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(
-                    verbatim: "同城沙盘闭环 (DESIGNED)：行动力 \(snapshot.simulationLoopState.actionsRemaining)/\(snapshot.simulationLoopState.actionsPerRound) · 持仓 \(snapshot.simulationLoopState.activeHoldCount)/\(snapshot.simulationLoopState.holdingLimit) · 公平分群 \(snapshot.simulationLoopState.fairnessCohortState.rawValue)"
+                    verbatim: bilingualCopy(
+                        "同城沙盘闭环 (DESIGNED)：行动力 \(snapshot.simulationLoopState.actionsRemaining)/\(snapshot.simulationLoopState.actionsPerRound) · 持仓 \(snapshot.simulationLoopState.activeHoldCount)/\(snapshot.simulationLoopState.holdingLimit) · 公平分群 \(snapshot.simulationLoopState.fairnessCohortState.rawValue)",
+                        "City sandbox loop (DESIGNED): actions \(snapshot.simulationLoopState.actionsRemaining)/\(snapshot.simulationLoopState.actionsPerRound) · holdings \(snapshot.simulationLoopState.activeHoldCount)/\(snapshot.simulationLoopState.holdingLimit) · fairness cohort \(snapshot.simulationLoopState.fairnessCohortState.rawValue)",
+                        locale: snapshot.locale)
                 )
                 .font(.caption2.weight(.medium))
                 Text(
-                    verbatim: "状态机阶段：\(snapshot.simulationLoopState.phase.rawValue) · 门店积分服务费：\(snapshot.simulationLoopState.memberPointsFee)"
+                    verbatim: bilingualCopy(
+                        "状态机阶段：\(snapshot.simulationLoopState.phase.rawValue) · 门店积分服务费：\(snapshot.simulationLoopState.memberPointsFee)",
+                        "Phase: \(snapshot.simulationLoopState.phase.rawValue) · store points service fee: \(snapshot.simulationLoopState.memberPointsFee)",
+                        locale: snapshot.locale)
                 )
                 .font(.caption2)
                 .foregroundStyle(.secondary)
@@ -174,13 +191,13 @@ public struct CitySwitchAndCrossCityRoamingSectionView: View {
             }
 
             if !snapshot.isCrossCityIsolationSafe {
-                Text(verbatim: "告警：检测到切换城市后未取消旧城市在途请求或未重置地图增量流游标，存在跨城数据串读风险。")
+                Text(verbatim: bilingualCopy("告警：检测到切换城市后未取消旧城市在途请求或未重置地图增量流游标，存在跨城数据串读风险。", "Warning: after the city switch the old city's in-flight requests were not cancelled or the map delta cursor was not reset, so cross-city data may bleed.", locale: snapshot.locale))
                     .font(.caption.weight(.medium))
                     .foregroundStyle(.red)
                     .accessibilityIdentifier("citySwitchIsolation.warningBanner")
             }
         } header: {
-            Text(verbatim: "城市切换与跨城漫游状态隔离")
+            Text(verbatim: bilingualCopy("城市切换与跨城漫游状态隔离", "City switch and cross-city roaming isolation", locale: snapshot.locale))
         }
         .accessibilityIdentifier("citySwitchIsolation.section")
     }

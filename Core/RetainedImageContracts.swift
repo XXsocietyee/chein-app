@@ -61,6 +61,18 @@ public struct RetainedUploadedImage: Equatable, Identifiable {
     fileprivate init(review: RetainedImageUploadReview, url: URL) { id = review.selection.id; scope = review.scope; self.url = url }
 }
 public enum RetainedImageOrigin {
+    /// Approved upload-result origins for a live deployment: the API origin plus the https origins listed in the
+    /// deployment config (`CYStampImageOrigins`, comma separated). Nothing is hardcoded and plain http is never accepted.
+    public static func configured(apiBase: URL, extra: String?) -> Set<String> {
+        var result = Set<String>()
+        func add(_ url: URL?) {
+            guard let url, url.scheme == "https", let host = url.host, !host.isEmpty, url.user == nil, url.password == nil else { return }
+            result.insert("https://" + host.lowercased() + (url.port.map { ":\($0)" } ?? ""))
+        }
+        add(apiBase)
+        for part in (extra ?? "").split(separator: ",") { add(URL(string: part.trimmingCharacters(in: .whitespacesAndNewlines))) }
+        return result
+    }
     public static func accepts(_ url: URL, origins: Set<String>) -> Bool {
         guard url.scheme == "https", let host = url.host, !host.isEmpty, url.user == nil, url.password == nil,
               url.fragment == nil, !url.path.isEmpty, url.path != "/" else { return false }

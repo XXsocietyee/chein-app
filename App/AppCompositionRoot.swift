@@ -1598,6 +1598,12 @@ extension KeychainTokenStore: AppTokenStorage {}
         return result
     }
 
+    /// Narrow live-write wire for the roam/city features: signed-in viewer only, POST only, same deployment origin and an exact
+    /// relative-path allowlist. It forwards to the raw transport, so none of the reviewed read routes above are widened.
+    func makeRoamLiveWriteTransport(profile: RoamLiveWriteTransport.Profile = .writes) -> RoamLiveWriteTransport? {
+        guard let api = deployment?.regional.apiConfiguration else { return nil }
+        return RoamLiveWriteTransport(baseURL: api.baseURL, underlying: underlying, profile: profile, current: { [weak self] in self?.current() })
+    }
     func replacingUnderlying(_ underlying: any HTTPTransport) -> CompositionHTTPTransport {
         copy(underlying: underlying, manualMapSelection: manualMapSelection)
     }
@@ -3510,3 +3516,53 @@ extension CompositionHTTPTransport {
         try await dispatch(request, authorization)
     }
 }
+
+@MainActor struct RoamLiveWriteTransport: HTTPTransport {
+    let baseURL: URL
+    let underlying: any HTTPTransport
+    enum Profile { case writes, liveRoam, privateTools }
+    var profile: Profile = .writes
+    let current: () -> CompositionHTTPTransport.SessionIdentity?
+    /// Live fog-reveal session: its GET reads carry a query string; only these exact routes are admitted.
+    nonisolated static func acceptsLiveRoam(method: String, relative: String, hasQuery: Bool) -> Bool {
+        switch (method, relative) {
+        case ("POST", "api/roam/reveal"), ("POST", "api/roam/finish"), ("POST", "api/roam/poi/discover"),
+             ("POST", "api/roam/shop/visit"), ("POST", "api/map/nearby"): return !hasQuery
+        case ("GET", "api/roam/session"), ("GET", "api/roam/pois"): return true
+        default: return false
+        }
+    }
+    /// Roam private tools (capsule, exploration goals, export) and passport tools (anniversary, recap): exact routes only.
+    nonisolated static func acceptsPrivateTools(method: String, relative: String) -> Bool {
+        guard method == "GET" || method == "POST" else { return false }
+        return RoamPrivateToolsRoute.reads.contains(relative) || RoamPrivateToolsRoute.writes.contains(relative)
+            || (method == "GET" && RoamPassportToolsService.paths.contains(relative))
+    }
+    /// Relative paths the roam/city features may write. Digits-only ids, no query, no fragment.
+    nonisolated static func accepts(_ relative: String) -> Bool {
+        let exact: Set<String> = ["api/roam/stamp/create", "api/roam/stamp/exchange", "api/common/uploadOSS"]
+        if exact.contains(relative) { return true }
+        let parts = relative.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+        if parts.count == 5, parts[0] == "api", parts[1] == "city", parts[2] == "nodes", parts[3].allSatisfy(\.isASCIIDigit), !parts[3].isEmpty,
+           ["favorite", "complete"].contains(parts[4]) { return true }
+        return false
+    }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        guard let captured = current(), captured.isSignedInContentViewer,
+              let url = request.url, url.fragment == nil, url.scheme == baseURL.scheme,
+              url.host == baseURL.host, url.port == baseURL.port else { throw APIError.notConfigured }
+        let basePath = baseURL.path.hasSuffix("/") ? String(baseURL.path.dropLast()) : baseURL.path
+        guard url.path.hasPrefix(basePath + "/") else { throw APIError.notConfigured }
+        let relative = String(url.path.dropFirst(basePath.count + 1)), method = request.httpMethod ?? "GET"
+        switch profile {
+        case .writes: guard method == "POST", url.query == nil, Self.accepts(relative) else { throw APIError.notConfigured }
+        case .privateTools: guard Self.acceptsPrivateTools(method: method, relative: relative) else { throw APIError.notConfigured }
+        case .liveRoam: guard Self.acceptsLiveRoam(method: method, relative: relative, hasQuery: url.query != nil) else { throw APIError.notConfigured }
+        }
+        try Task.checkCancellation()
+        let result = try await underlying.send(request)
+        guard current() == captured else { throw CancellationError() }
+        return result
+    }
+}
+private extension Character { var isASCIIDigit: Bool { isASCII && isNumber } }

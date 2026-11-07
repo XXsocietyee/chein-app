@@ -32,7 +32,8 @@ final class NPCChatAndSceneAISafetySectionViewTests: XCTestCase {
     func testEnabledGenerationOrStreamingFailsSceneAIKillSwitchGuard() {
         let generativeSnapshot = NPCChatAndSceneAISafetySnapshot(
             globalGenerationEnabled: true,
-            streamingDisplayAllowed: false
+            streamingDisplayAllowed: false,
+            locale: Locale(identifier: "zh-Hans")
         )
         let view = NPCChatAndSceneAISafetySectionView(snapshot: generativeSnapshot)
         _ = view.body
@@ -44,7 +45,8 @@ final class NPCChatAndSceneAISafetySectionViewTests: XCTestCase {
 
     func testDisabledNPCDeletionFenceOrNarrativeWhitelistReportsViolation() {
         let noDeletionFenceSnapshot = NPCChatAndSceneAISafetySnapshot(
-            enforcesNPCChatDeletionReReadFence: false
+            enforcesNPCChatDeletionReReadFence: false,
+            locale: Locale(identifier: "zh-Hans")
         )
         let fenceView = NPCChatAndSceneAISafetySectionView(snapshot: noDeletionFenceSnapshot)
         _ = fenceView.body
@@ -54,12 +56,30 @@ final class NPCChatAndSceneAISafetySectionViewTests: XCTestCase {
         XCTAssertTrue(fenceView.statusHeadline.contains("I08"))
 
         let unguardedEffectsSnapshot = NPCChatAndSceneAISafetySnapshot(
-            dropsForbiddenBusinessEffects: false
+            dropsForbiddenBusinessEffects: false,
+            locale: Locale(identifier: "zh-Hans")
         )
         let effectsView = NPCChatAndSceneAISafetySectionView(snapshot: unguardedEffectsSnapshot)
         _ = effectsView.body
 
         XCTAssertFalse(effectsView.snapshot.isAllCompliant)
         XCTAssertTrue(effectsView.statusHeadline.contains("白名单"))
+    }
+
+    func testEnglishLocaleShowsNoChineseCopy() {
+        let en = Locale(identifier: "en")
+        for snapshot in [NPCChatAndSceneAISafetySnapshot(locale: en),
+                         NPCChatAndSceneAISafetySnapshot(globalGenerationEnabled: true, enforcesNPCChatDeletionReReadFence: false, locale: en)] {
+            let view = NPCChatAndSceneAISafetySectionView(snapshot: snapshot)
+            _ = view.body
+            let texts = [view.statusHeadline] + snapshot.rows.flatMap { [$0.title, $0.detail] }
+            for text in texts {
+                XCTAssertNil(text.range(of: "[\\u{4E00}-\\u{9FFF}]", options: .regularExpression), text)
+            }
+        }
+        let city = CitySwitchIsolationSnapshot.ready(locale: en)
+        for row in city.rows {
+            XCTAssertNil((row.title + row.detail).range(of: "[\\u{4E00}-\\u{9FFF}]", options: .regularExpression))
+        }
     }
 }
