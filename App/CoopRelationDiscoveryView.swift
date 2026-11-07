@@ -18,6 +18,16 @@ extension EnvironmentValues {
         else { CoopRelationDiscoveryView(reader: reader) }
     }
 }
+private struct CoopRelationPostFeedKey: EnvironmentKey {
+    static let defaultValue: (@MainActor () -> AnyView)? = nil
+}
+extension EnvironmentValues {
+    /// Host-supplied club post feed (same source as the club tab's 帖文 list). Absent -> no Posts segment.
+    var cooperationRelationPostFeed: (@MainActor () -> AnyView)? {
+        get { self[CoopRelationPostFeedKey.self] }
+        set { self[CoopRelationPostFeedKey.self] = newValue }
+    }
+}
 @MainActor struct CoopRelationProfileContext {
     let scope: CoopRelationProfileScope
     let isCurrent: () -> Bool
@@ -34,7 +44,22 @@ extension EnvironmentValues {
     var profiles: CoopRelationProfileContext? = nil
     var displayContext = CoopRelationDisplayContext()
     @State private var model: CoopRelationDiscoveryModel
-    @State private var tab: CoopRelationDiscoveryKind = .merchants
+    @State private var selectedSection: CoopRelationSection?
+    @Environment(\.cooperationRelationPostFeed) private var postFeed
+    @Environment(\.locale) private var locale
+    private var section: CoopRelationSection { .effective(selected: selectedSection, feedAvailable: postFeed != nil) }
+    private var tab: CoopRelationDiscoveryKind { section.relationKind ?? .merchants }
+    private var sectionPicker: some View {
+        Picker("cooprelation.kind", selection: Binding(get: { section }, set: { selectedSection = $0 })) {
+            ForEach(CoopRelationSection.available(feedAvailable: postFeed != nil), id: \.self) { item in
+                switch item {
+                case .posts: Text(verbatim: ChannelCopy.text("帖子", "Posts", locale: locale)).tag(item)
+                case .merchants: Text("cooprelation.merchants").tag(item)
+                case .clubs: Text("cooprelation.clubs").tag(item)
+                }
+            }
+        }.pickerStyle(.segmented).accessibilityIdentifier("cooprelation.tabs")
+    }
     @StateObject private var presentation: CoopRelationPresentationOwner
     @State private var loadedKey: LoadKey?
     private struct LoadKey: Equatable {
@@ -52,14 +77,18 @@ extension EnvironmentValues {
         _presentation = StateObject(wrappedValue: presentation ?? .init(identityChanges: profiles?.identityChanges))
     }
     var body: some View {
+        if section == .posts, let postFeed {
+            // The feed owns its own List, loading, empty and retry states; the picker stays pinned above it.
+            VStack(spacing: 0) {
+                sectionPicker.padding(.horizontal).padding(.vertical, 8)
+                postFeed().accessibilityIdentifier("cooprelation.postFeed")
+            }.navigationTitle("coopflow.discovery")
+        } else { relationList }
+    }
+    private var relationList: some View {
         List {
             CoopRelationContextLabel(context: displayContext)
-            Section {
-                Picker("cooprelation.kind", selection: $tab) {
-                    Text("cooprelation.merchants").tag(CoopRelationDiscoveryKind.merchants)
-                    Text("cooprelation.clubs").tag(CoopRelationDiscoveryKind.clubs)
-                }.pickerStyle(.segmented).accessibilityIdentifier("cooprelation.tabs")
-            }
+            Section { sectionPicker }
             if reader.session == nil { Text("cooperation.login") }
             else if loadedKey == key && model.failed { Text("coopflow.read.failed").accessibilityIdentifier("cooprelation.failed") }
             else if loadedKey == key, model.isCurrent(reader: reader), let value = model.value {
