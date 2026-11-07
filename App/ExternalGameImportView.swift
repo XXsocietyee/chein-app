@@ -1,6 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 #if canImport(WebKit)
 import WebKit
 #endif

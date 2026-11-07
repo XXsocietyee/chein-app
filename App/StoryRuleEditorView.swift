@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 // MARK: - Story Rule Sentence Editor & Topic Story Participation Views
 // Ported from `pages/publish/components/story-rule-editor/index.wxml`, `pages/topic/components/project-join/index.wxml`, and `pages/club/topic-story/index.wxml`.

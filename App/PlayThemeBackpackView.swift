@@ -238,6 +238,7 @@ import SwiftUI
                 }
             }
         }
+    }
 
     private func copy(_ chinese: String, _ english: String) -> String {
         locale.language.languageCode?.identifier == "zh" ? chinese : english

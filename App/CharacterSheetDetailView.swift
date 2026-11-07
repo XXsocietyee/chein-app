@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// Rich character sheet and RPG status detail view (ported from `subpackageMember/character/index.wxml`).
 @available(macOS 14.0, *)

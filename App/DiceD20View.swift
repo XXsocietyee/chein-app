@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 // MARK: - 3D Icosahedron D20 & D6 Pips Interactive View (Ported from d20-renderer.js & playkit-journey-check)
 

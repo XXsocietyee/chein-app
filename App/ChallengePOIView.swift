@@ -1,5 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 // MARK: - POI Challenge View (Ported from pages/play/poi-challenge/index.wxml & index.js)
 

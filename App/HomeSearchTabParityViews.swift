@@ -1395,7 +1395,7 @@ struct UnifiedSearchContainerView<Destination: View>: View {
         initialQuery: GlobalSearchQuery = .init(),
         initialArea: RoamSearchArea? = nil,
         historyNamespace: String? = nil,
-        publicMerchant: PublicMerchantHomeContext = PublicMerchantHomeContext(),
+        publicMerchant: PublicMerchantHomeContext? = nil,
         onSignIn: (() -> Void)? = nil,
         recommendedKeywords: [String] = [],
         publicLayers: MapPublicLayerCaller? = nil,
@@ -1404,7 +1404,7 @@ struct UnifiedSearchContainerView<Destination: View>: View {
         self.reader = reader
         self.initialArea = initialArea
         self.historyNamespace = historyNamespace
-        self.publicMerchant = publicMerchant
+        self.publicMerchant = publicMerchant ?? PublicMerchantHomeContext()
         self.onSignIn = onSignIn
         self.recommendedKeywords = recommendedKeywords
         self.publicLayers = publicLayers

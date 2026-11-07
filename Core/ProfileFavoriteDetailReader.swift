@@ -46,7 +46,7 @@ import Observation
               let confirmedPost, confirmedPost.access == access.revision else { return nil }
         let commentItems = confirmedComments?.access == access.revision ? confirmedComments?.items ?? [] : []
         let parts = ([confirmedPost.post.contents] + commentItems.map(\.contents))
-            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
         return parts.isEmpty ? nil : parts.joined(separator: "\n")
     }
