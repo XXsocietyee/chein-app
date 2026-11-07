@@ -178,12 +178,12 @@ import SwiftUI
                             .font(.headline)
                             .foregroundStyle(CYColor.successText)
                         Text(
-                            serverMsg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
-                                ? c.tr(serverMsg!)
-                                : c.t("已提交全额退款，到账时间以微信通知为准",
-                                      "Full refund submitted; arrival depends on payment provider notification")
+                            ActivityHostCancelRules.completionNotice(serverMessage: serverMsg).map { c.tr($0) }
+                                ?? c.t("已提交全额退款，到账时间以微信通知为准",
+                                       "Full refund submitted; arrival depends on payment provider notification")
                         )
                         .font(.subheadline)
+                        .accessibilityIdentifier("activity.hostCancel.notice")
                         .foregroundStyle(.secondary)
 
                         Button(c.t("完成", "Done")) {
@@ -199,7 +199,10 @@ import SwiftUI
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(c.t("关闭", "Close")) { dismiss() }
+                    Button(c.t("关闭", "Close")) {
+                        // After a successful cancel, closing is the acknowledgement: refresh the parent as "Done" does.
+                        if case .cancelled = model.phase { Task { await onCompleted() } } else { dismiss() }
+                    }
                         .disabled(model.busy)
                         .accessibilityIdentifier("activity.hostCancel.close")
                 }
@@ -212,11 +215,9 @@ import SwiftUI
             ) {
                 Button(c.t("确认取消并退款", "Confirm cancel & refund"), role: .destructive) {
                     confirming = false
-                    Task {
-                        if await model.submit() {
-                            await onCompleted()
-                        }
-                    }
+                    // Success leaves the sheet open on the server notice (it may warn that verified tickets were
+                    // not refunded); "Done" / "Close" acknowledge it and then call onCompleted.
+                    Task { _ = await model.submit() }
                 }
                 Button(c.t("再想想", "Not now"), role: .cancel) { confirming = false }
             } message: {

@@ -671,8 +671,13 @@ public enum TicketExpiryAndOrderStatusRules {
     }
 
     /// Matches `payoutSummary` in `chengyinhub-xcx/utils/order-status.js`.
-    public static func payoutSummary(status: Int?, payoutStatus: Int?) -> PayoutSummary? {
-        guard status != nil || payoutStatus != nil else { return nil }
+    /// `refundAmount` mirrors `application.refundAmount` (present and not > 0 means nothing to refund, unless already
+    /// paid out). `applicationPresent` mirrors `application != null`; when nil it is inferred from any non-nil field,
+    /// which keeps the legacy two-argument call shape. Unknown/in-between states fall back to "退款处理中" like the source.
+    public static func payoutSummary(status: Int?, payoutStatus: Int?, refundAmount: Decimal? = nil,
+                                     applicationPresent: Bool? = nil) -> PayoutSummary? {
+        let present = applicationPresent ?? (status != nil || payoutStatus != nil || refundAmount != nil)
+        guard present else { return nil }
         if payoutStatus == 1 || payoutStatus == 4 {
             return PayoutSummary(label: "已退款", hint: "退款已原路退回", canCancelRefundApplication: false)
         }
@@ -682,6 +687,8 @@ public enum TicketExpiryAndOrderStatusRules {
         if payoutStatus == 3 {
             return PayoutSummary(label: "退款处理中", hint: "人工退款已处理，等待复核确认", canCancelRefundApplication: false)
         }
+        // Source: a zero-yuan order has no money to refund, so no in-flight promise.
+        if let refundAmount, !(refundAmount > 0) { return nil }
         // Source: a rejected application (status 2) is not a refund in flight.
         if status == 2 { return nil }
         if status == 0 {
@@ -693,7 +700,7 @@ public enum TicketExpiryAndOrderStatusRules {
         if status == 1 {
             return PayoutSummary(label: "退款处理中", hint: "退款已批准，正在提交原路退款", canCancelRefundApplication: false)
         }
-        return nil
+        return PayoutSummary(label: "退款处理中", hint: "退款进度更新中，请以微信退款通知为准", canCancelRefundApplication: false)
     }
 
     /// Matches `canRequestOrderRefund` in `chengyinhub-xcx/utils/order-status.js`.
@@ -704,10 +711,13 @@ public enum TicketExpiryAndOrderStatusRules {
         refundable: Bool?,
         manualRefundCaseStatus: Int? = nil,
         refundApplicationStatus: Int? = nil,
-        refundPayoutStatus: Int? = nil
+        refundPayoutStatus: Int? = nil,
+        refundAmount: Decimal? = nil,
+        refundApplicationPresent: Bool? = nil
     ) -> Bool {
         if let manualRefundCaseStatus, manualRefundCaseStatus != 0 { return false }
-        if payoutSummary(status: refundApplicationStatus, payoutStatus: refundPayoutStatus) != nil { return false }
+        if payoutSummary(status: refundApplicationStatus, payoutStatus: refundPayoutStatus, refundAmount: refundAmount,
+                         applicationPresent: refundApplicationPresent) != nil { return false }
         return registrationStatus == 2 && paymentStatus == 2 && verificationStatus != 1 && refundable == true
     }
 }

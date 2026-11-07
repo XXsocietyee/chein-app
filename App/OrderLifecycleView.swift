@@ -129,7 +129,9 @@ import SwiftUI
             Section("orderLifecycle.refund.title") {
                 if let payout = TicketExpiryAndOrderStatusRules.payoutSummary(
                     status: detail.refundApplication?.applicationStatus,
-                    payoutStatus: detail.refundApplication?.payoutStatus
+                    payoutStatus: detail.refundApplication?.payoutStatus,
+                    refundAmount: detail.refundApplication?.amount,
+                    applicationPresent: detail.refundApplication != nil
                 ) {
                     LabeledContent(c.t("退款进度", "Refund status")) {
                         Text(verbatim: c.tr(payout.label))
