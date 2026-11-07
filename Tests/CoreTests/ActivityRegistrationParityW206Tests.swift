@@ -230,5 +230,266 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
         XCTAssertEqual(RegistrationUncertainOutcomeEvidence.match(orders: rows, intent: intent, accountID: 1), .matchingOrders([3]))
         XCTAssertEqual(RegistrationUncertainOutcomeEvidence.match(orders: [], intent: intent, accountID: 1), .noMatchingOrder)
     }
+
+    // MARK: W4 Core Loop Business Rules (Four-Shop Policy, Limits, Quotas, Funds, Ownership, 24h Non-Refundable, Ticket & Refund)
+
+    func testFourShopFixedCompensationStopsNewSalesWhileSoldContractsContinueFulfillment() {
+        XCTAssertTrue(FourShopCompensationPolicy.requiresFourStoreContract(productType: 2, evidenceRule: "FOUR_STORE_REDEEM"))
+        XCTAssertTrue(FourShopCompensationPolicy.requiresFourStoreContract(productType: 2, evidenceRule: " four_store_redeem "))
+        XCTAssertTrue(FourShopCompensationPolicy.requiresFourStoreContract(productType: 2, evidenceRule: nil, requiresFourStoreContractFlag: true))
+        XCTAssertFalse(FourShopCompensationPolicy.requiresFourStoreContract(productType: 1, evidenceRule: "FOUR_STORE_REDEEM"))
+        XCTAssertFalse(FourShopCompensationPolicy.requiresFourStoreContract(productType: 2, evidenceRule: "SINGLE_STORE"))
+
+        let finalization = FourShopCompensationPolicy.evaluateNewSaleFinalization(productType: 2, evidenceRule: "FOUR_STORE_REDEEM")
+        XCTAssertEqual(
+            finalization,
+            .failure(.fourShopFixedCompensationStoppedNewSale(message: "四店固定补偿产品已停止新开售，已售合同继续履行"))
+        )
+
+        let ticketSale = FourShopCompensationPolicy.evaluateNewTicketSale(productType: 2, evidenceRule: "FOUR_STORE_REDEEM")
+        XCTAssertEqual(
+            ticketSale,
+            .failure(.fourShopFixedCompensationStoppedNewTicketSale(message: "四店固定补偿产品已停止新售票，已售合同继续履行"))
+        )
+
+        let soldContract = FourShopCompensationPolicy.evaluateSoldContractFulfillment(
+            registrationStatus: 2,
+            paymentStatus: 2,
+            verificationStatus: 0,
+            productType: 2,
+            evidenceRule: "FOUR_STORE_REDEEM"
+        )
+        XCTAssertTrue(soldContract.isSoldContract)
+        XCTAssertTrue(soldContract.requiresFourStoreContract)
+        XCTAssertTrue(soldContract.continuesFulfillment)
+        XCTAssertTrue(soldContract.allowsDynamicQRPass)
+        XCTAssertTrue(soldContract.allowsEntitlementRedemption)
+        XCTAssertEqual(soldContract.fulfillmentNotice, "已售合同继续履行")
+
+        let cancelledContract = FourShopCompensationPolicy.evaluateSoldContractFulfillment(
+            registrationStatus: 3,
+            paymentStatus: 3,
+            verificationStatus: 0,
+            productType: 2,
+            evidenceRule: "FOUR_STORE_REDEEM"
+        )
+        XCTAssertFalse(cancelledContract.continuesFulfillment)
+        XCTAssertFalse(cancelledContract.allowsDynamicQRPass)
+    }
+
+    func testExplorePassAndRegistrationLimitsQuotasFundsAndOwnershipRules() {
+        // 1. Four-shop stop-sale gate inside RegistrationCoreLoopRules.validate
+        let fourShopCtx = RegistrationCoreLoopRules.RegistrationRuleContext(
+            productType: 2,
+            ticketType: "EXPLORE_PASS",
+            evidenceRule: "FOUR_STORE_REDEEM"
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(fourShopCtx),
+            .failure(.fourShopFixedCompensationStoppedNewTicketSale(message: "四店固定补偿产品已停止新售票，已售合同继续履行"))
+        )
+
+        // 2. Explore Pass per-order limit = 1
+        let overOrderLimit = RegistrationCoreLoopRules.RegistrationRuleContext(
+            productType: 2,
+            ticketType: "EXPLORE_PASS",
+            quantity: 2
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(overOrderLimit),
+            .failure(.explorePassOrderLimitExceeded(message: "探索票每单限购 1 张"))
+        )
+
+        // 3. Explore Pass points forbidden
+        let pointsOnExplore = RegistrationCoreLoopRules.RegistrationRuleContext(
+            productType: 2,
+            ticketType: "EXPLORE_PASS",
+            quantity: 1,
+            usePoints: true
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(pointsOnExplore),
+            .failure(.explorePassPointsForbidden(message: "探店日不支持积分抵扣，请关闭积分后按全价购买"))
+        )
+
+        // 4. Explore Pass per-account live ticket limit = 1
+        let accountLimitReached = RegistrationCoreLoopRules.RegistrationRuleContext(
+            productType: 2,
+            ticketType: "EXPLORE_PASS",
+            quantity: 1,
+            existingLiveExploreTicketsForTopic: 1
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(accountLimitReached),
+            .failure(.explorePassAccountLimitReached(
+                code: "SHOP_DAY_ACCOUNT_TICKET_LIMIT_REACHED",
+                message: "当前账号已持有该主题的有效探索票，不能重复购买"
+            ))
+        )
+
+        // 5. Explore Pass cross-club session forbidden
+        let crossClub = RegistrationCoreLoopRules.RegistrationRuleContext(
+            productType: 2,
+            ticketType: "EXPLORE_PASS",
+            topicClubID: 10,
+            sessionClubID: 20
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(crossClub),
+            .failure(.explorePassCrossClubForbidden(message: "自由探索只开放内容所属俱乐部的场次，不能跨俱乐部售票"))
+        )
+
+        // 6. Collectible / Second-clearing ownership gate (#22 二清闸)
+        let nonPlatformPaid = RegistrationCoreLoopRules.RegistrationRuleContext(
+            productType: 1,
+            isPlatformOwned: false,
+            payableAmount: Decimal(38)
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(nonPlatformPaid),
+            .failure(.nonPlatformPaidProductBlocked(
+                message: "该产品暂不支持在线支付(平台正在办理支付资质,预计 2 个月内开放);如需报名请联系主办方"
+            ))
+        )
+
+        // Free non-platform activity is allowed
+        let nonPlatformFree = RegistrationCoreLoopRules.RegistrationRuleContext(
+            productType: 1,
+            isPlatformOwned: false,
+            payableAmount: .zero
+        )
+        XCTAssertEqual(RegistrationCoreLoopRules.validate(nonPlatformFree), .success(()))
+
+        // 7. Club membership & reserved quota gate
+        let clubRequired = RegistrationCoreLoopRules.RegistrationRuleContext(
+            activityClubID: 88,
+            requiresClubMembership: true,
+            viewerIsHost: false,
+            viewerIsClubMember: false
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(clubRequired),
+            .failure(.clubMembershipRequired(message: "请先加入俱乐部再报名"))
+        )
+
+        let reservedProtected = RegistrationCoreLoopRules.RegistrationRuleContext(
+            activityClubID: 88,
+            requiresClubMembership: false,
+            viewerIsHost: false,
+            viewerIsClubMember: false,
+            remainingInventory: 3,
+            memberReservedQuota: 3
+        )
+        XCTAssertEqual(
+            RegistrationCoreLoopRules.validate(reservedProtected),
+            .failure(.memberReservedQuotaProtected(message: "剩余名额已为俱乐部会员保留"))
+        )
+    }
+
+    func testOrderLevelPointsCapAnd24hNonRefundableQuoteRules() throws {
+        // Order-level points cap is 50 yuan per order (never 50 * quantity)
+        let computed = RegistrationCoreLoopRules.computeOrderPrice(
+            unitPrice: Decimal(100),
+            quantity: 2,
+            memberDiscountRate: Decimal(string: "0.9"),
+            couponDeductYuan: Decimal(10),
+            usePoints: true,
+            pointsUsableForProduct: true,
+            userAvailablePoints: 10_000,
+            pointDeductRate: Decimal(string: "0.01"),
+            maxPointsDeductPerOrderYuan: 50
+        )
+        XCTAssertEqual(computed.orderTotalYuan, Decimal(200))
+        XCTAssertEqual(computed.memberDiscountYuan, Decimal(20))
+        XCTAssertEqual(computed.couponDeductYuan, Decimal(10))
+        XCTAssertEqual(computed.pointsDeductYuan, Decimal(50))
+        XCTAssertEqual(computed.pointsUsed, 5_000)
+        XCTAssertEqual(computed.payAmount, Decimal(120))
+
+        // 24h non-refundable quote decoding & confirmation requirement
+        let nonRefundablePaid = try quote(#"{"payAmount":68,"pointsUsable":false,"refundableNow":false,"refundDeadline":"2026-11-08 14:00:00","quoteSign":"sig-1"}"#)
+        XCTAssertEqual(nonRefundablePaid.refundableNow, false)
+        XCTAssertEqual(nonRefundablePaid.refundDeadline, "2026-11-08 14:00:00")
+        XCTAssertTrue(nonRefundablePaid.requiresNonRefundableConfirmation)
+        XCTAssertEqual(NonRefundable24hNotice.feeRowNotice(for: nonRefundablePaid), "该场次已过集合前 24 小时退款截止时间，本单不可退")
+
+        let nonRefundableZeroPay = try quote(#"{"payAmount":0,"pointsUsable":true,"refundableNow":false,"quoteSign":"sig-2"}"#)
+        XCTAssertFalse(nonRefundableZeroPay.requiresNonRefundableConfirmation)
+        XCTAssertNil(NonRefundable24hNotice.feeRowNotice(for: nonRefundableZeroPay))
+
+        let refundableQuote = try quote(#"{"payAmount":68,"pointsUsable":true,"refundableNow":true,"refundDeadline":"2026-11-08 14:00:00","quoteSign":"sig-3"}"#)
+        XCTAssertFalse(refundableQuote.requiresNonRefundableConfirmation)
+        XCTAssertEqual(NonRefundable24hNotice.feeRowNotice(for: refundableQuote), "集合前 24 小时可退（截止 11-08 14:00）")
+
+        // Points auto-disable evaluation
+        let disableNoSupport = RegistrationCoreLoopRules.pointsAutoDisableEvaluation(
+            usePoints: true,
+            quote: nonRefundablePaid,
+            userAvailablePoints: 500
+        )
+        XCTAssertTrue(disableNoSupport.shouldDisable)
+        XCTAssertEqual(disableNoSupport.notice, "该票不支持积分抵扣")
+
+        let disableZeroBalance = RegistrationCoreLoopRules.pointsAutoDisableEvaluation(
+            usePoints: true,
+            quote: nonRefundablePaid,
+            userAvailablePoints: 0
+        )
+        XCTAssertTrue(disableZeroBalance.shouldDisable)
+        XCTAssertEqual(disableZeroBalance.notice, "暂无可用积分")
+    }
+
+    func testTicketWindowSessionSortingOrderRebuildAndExpiryRefundRules() throws {
+        let activity = try detail(#","omsTicketList":[{"id":1,"name":"晚场","price":68,"startTime":"2026-11-10 19:00:00","endTime":"2026-11-10 21:00:00"},{"id":2,"name":"早场","price":58,"startTime":"2026-11-10 09:00:00","endTime":"2026-11-10 11:00:00"},{"id":3,"name":"已开场","price":48,"startTime":"2026-11-01 09:00:00","endTime":"2026-11-01 11:00:00"}]"#)
+        let now = try XCTUnwrap(TicketWindowRule.parseTicketDate("2026-11-05 12:00:00"))
+        let selectable = TicketWindowRule.selectableSessionTickets(activity.tickets, now: now)
+        XCTAssertEqual(selectable.map(\.id), [2, 1])
+        XCTAssertEqual(TicketWindowRule.sessionOptionLabel(for: selectable[0]), "早场 · 11-10 09:00 · ¥58")
+        XCTAssertEqual(TicketWindowRule.state(for: activity.tickets[2], now: now), .ended)
+
+        // Checkout order rebuild classification
+        XCTAssertEqual(
+            CheckoutOrderRebuildRule.classifyPayFailure(code: 410, message: "订单已过期"),
+            .rebuildExpiredPayOrder(userMessage: "订单已过期,请重新报名")
+        )
+        XCTAssertEqual(
+            CheckoutOrderRebuildRule.classifyCreateFailure(code: 409, message: "该幂等键对应的报名已取消"),
+            .rebuildTerminalIdempotencyConflict
+        )
+        XCTAssertEqual(
+            CheckoutOrderRebuildRule.classifyCreateFailure(code: 409, message: "报价签名已失效"),
+            .refreshQuoteAndReconfirm(userMessage: "价格已更新，请重新确认")
+        )
+
+        // Ticket expiry and order refund payout summary
+        XCTAssertEqual(TicketExpiryAndOrderStatusRules.passExpiryText(validUntil: "2026-11-05 20:00:00", now: now), "今天过期")
+        XCTAssertEqual(TicketExpiryAndOrderStatusRules.passExpiryText(validUntil: "2026-11-08 20:00:00", now: now), "3 天内过期")
+        XCTAssertEqual(TicketExpiryAndOrderStatusRules.passExpiryText(validUntil: "2026-11-20 20:00:00", now: now), "")
+
+        XCTAssertEqual(
+            TicketExpiryAndOrderStatusRules.payoutSummary(status: 1, payoutStatus: 4),
+            .init(label: "已退款", hint: "退款已原路退回", canCancelRefundApplication: false)
+        )
+        XCTAssertEqual(
+            TicketExpiryAndOrderStatusRules.payoutSummary(status: 0, payoutStatus: nil),
+            .init(label: "退款审核中", hint: "退款申请已提交，等待平台审核", canCancelRefundApplication: true)
+        )
+        XCTAssertTrue(
+            TicketExpiryAndOrderStatusRules.canRequestOrderRefund(
+                registrationStatus: 2,
+                paymentStatus: 2,
+                verificationStatus: 0,
+                refundable: true
+            )
+        )
+        XCTAssertFalse(
+            TicketExpiryAndOrderStatusRules.canRequestOrderRefund(
+                registrationStatus: 2,
+                paymentStatus: 2,
+                verificationStatus: 1,
+                refundable: true
+            )
+        )
+    }
 }
 #endif

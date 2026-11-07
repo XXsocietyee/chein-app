@@ -8,10 +8,12 @@ struct HomeHeroHeaderSectionView: View {
     var selectedCity: String? = nil
     var isNationwide: Bool = false
     var avatarSource: String? = nil
+    var onSelectCity: ((String?, Bool) -> Void)? = nil
+    var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     var onSelectBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
 
     private var hasCity: Bool {
-        isNationwide || !(selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+        onSelectCity != nil || isNationwide || !(selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
     }
 
     var body: some View {
@@ -30,19 +32,82 @@ struct HomeHeroHeaderSectionView: View {
                                     .foregroundStyle(QuestifyPalette.accent)
                             }
                             if hasCity {
-                                Label {
-                                    Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
-                                } icon: {
-                                    Image(systemName: "location.fill")
+                                if let onSelectCity {
+                                    Menu {
+                                        Button {
+                                            onSelectCity(nil, true)
+                                        } label: {
+                                            Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: nil, isNationwide: true, locale: locale))
+                                        }
+                                        ForEach(HomeCitySwitchState.defaultSupportedCities, id: \.self) { city in
+                                            Button {
+                                                onSelectCity(city, false)
+                                            } label: {
+                                                Text(verbatim: city)
+                                            }
+                                        }
+                                    } label: {
+                                        Label {
+                                            Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
+                                        } icon: {
+                                            Image(systemName: "location.fill")
+                                        }
+                                        .foregroundStyle(.secondary)
+                                    }
+                                    .accessibilityIdentifier("homeIndex.hero.city")
+                                } else {
+                                    Label {
+                                        Text(verbatim: HomeIndexParityPresentation.citySelectorLabel(selectedCity: selectedCity, isNationwide: isNationwide, locale: locale))
+                                    } icon: {
+                                        Image(systemName: "location.fill")
+                                    }
+                                    .foregroundStyle(.secondary)
+                                    .accessibilityIdentifier("homeIndex.hero.city")
                                 }
-                                .foregroundStyle(.secondary)
-                                .accessibilityIdentifier("homeIndex.hero.city")
                             }
                         }
                         .font(.subheadline.weight(.medium))
                     }
                     Spacer(minLength: 0)
                     HomeHeroAvatar(source: avatarSource)
+                }
+                if let onOpenUnifiedSearch {
+                    HStack(spacing: 8) {
+                        Button {
+                            onOpenUnifiedSearch(.list)
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "magnifyingglass")
+                                    .foregroundStyle(.secondary)
+                                Text(verbatim: GlobalSearchParityPresentation.placeholderCopy)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                Spacer(minLength: 0)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(Color(uiColor: .secondarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("homeIndex.hero.searchEntry")
+
+                        Button {
+                            onOpenUnifiedSearch(.map)
+                        } label: {
+                            Label {
+                                Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale))
+                                    .font(.subheadline.weight(.medium))
+                            } icon: {
+                                Image(systemName: "map")
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 10)
+                            .background(Color(uiColor: .secondarySystemFill), in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
+                    }
                 }
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 10) {
@@ -1264,5 +1329,133 @@ struct PublishTabFloatingSheetView: View {
                 }
             }
         }
+    }
+}
+
+/// Inline segmented mode bar switching between List mode (`pages/search2`) and Map mode (`pages/searchmap`)
+/// inside the single unified search screen.
+@MainActor
+struct UnifiedSearchModeBar: View {
+    @Environment(\.locale) private var locale
+    @Binding var mode: UnifiedSearchExperience.PresentationMode
+    @Binding var mapScope: UnifiedSearchExperience.MapScope
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Picker("", selection: $mode) {
+                ForEach(UnifiedSearchExperience.PresentationMode.allCases, id: \.self) { item in
+                    Label {
+                        Text(verbatim: item.title(locale: locale))
+                    } icon: {
+                        Image(systemName: item.systemImage)
+                    }
+                    .tag(item)
+                    .accessibilityIdentifier("unifiedSearch.mode.\(item.rawValue)")
+                }
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .accessibilityIdentifier("unifiedSearch.modePicker")
+
+            if mode == .map {
+                Picker("", selection: $mapScope) {
+                    ForEach(UnifiedSearchExperience.MapScope.allCases, id: \.self) { scope in
+                        Text(verbatim: scope.title(locale: locale))
+                            .tag(scope)
+                            .accessibilityIdentifier("unifiedSearch.mapScope.\(scope.rawValue)")
+                    }
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityIdentifier("unifiedSearch.mapScopePicker")
+            }
+        }
+    }
+}
+
+/// Single unified search screen merging the 3 mini-program search entries (`pages/index`, `pages/search2`, `pages/searchmap`)
+/// where Map Search is an inline mode (`.map`) of the same screen rather than a separate pushed page.
+@MainActor
+struct UnifiedSearchContainerView<Destination: View>: View {
+    let reader: any SearchMapReading
+    var historyNamespace: String? = nil
+    var publicMerchant = PublicMerchantHomeContext()
+    var onSignIn: (() -> Void)? = nil
+    var recommendedKeywords: [String] = []
+    var publicLayers: MapPublicLayerCaller? = nil
+    var initialArea: RoamSearchArea? = nil
+    let destination: (SearchMapDestination) -> Destination
+
+    @State private var experience: UnifiedSearchExperience
+
+    init(
+        reader: any SearchMapReading,
+        origin: UnifiedSearchExperience.EntryOrigin = .homeSearchBar,
+        initialMode: UnifiedSearchExperience.PresentationMode? = nil,
+        initialQuery: GlobalSearchQuery = .init(),
+        initialArea: RoamSearchArea? = nil,
+        historyNamespace: String? = nil,
+        publicMerchant: PublicMerchantHomeContext = PublicMerchantHomeContext(),
+        onSignIn: (() -> Void)? = nil,
+        recommendedKeywords: [String] = [],
+        publicLayers: MapPublicLayerCaller? = nil,
+        destination: @escaping (SearchMapDestination) -> Destination
+    ) {
+        self.reader = reader
+        self.initialArea = initialArea
+        self.historyNamespace = historyNamespace
+        self.publicMerchant = publicMerchant
+        self.onSignIn = onSignIn
+        self.recommendedKeywords = recommendedKeywords
+        self.publicLayers = publicLayers
+        self.destination = destination
+        _experience = State(initialValue: UnifiedSearchExperience(
+            origin: origin,
+            mode: initialMode,
+            query: initialQuery
+        ))
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            UnifiedSearchModeBar(
+                mode: Binding(
+                    get: { experience.mode },
+                    set: { experience.switchMode($0) }
+                ),
+                mapScope: Binding(
+                    get: { experience.mapScope },
+                    set: { experience.switchMapScope($0) }
+                )
+            )
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+
+            switch experience.mode {
+            case .list:
+                GlobalSearchView(
+                    reader: reader,
+                    historyNamespace: historyNamespace,
+                    publicMerchant: publicMerchant,
+                    onSignIn: onSignIn,
+                    recommendedKeywords: recommendedKeywords,
+                    publicLayers: publicLayers,
+                    destination: destination
+                )
+                .accessibilityIdentifier("unifiedSearch.surface.list")
+            case .map:
+                SearchMapExplorerView(
+                    reader: reader,
+                    mode: experience.mapScope == .city ? .city : .nearby,
+                    initialFilter: experience.query,
+                    initialArea: initialArea,
+                    onSignIn: onSignIn,
+                    destination: destination
+                )
+                .id(experience.mapScope)
+                .accessibilityIdentifier("unifiedSearch.surface.map")
+            }
+        }
+        .accessibilityIdentifier("unifiedSearch.container")
     }
 }

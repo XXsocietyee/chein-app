@@ -152,4 +152,45 @@ final class ActivityPublishingWizardValidationPresentationTests: XCTestCase {
         XCTAssertEqual(ActivityPublishingWizard.located(99, draft: draft), 0)
         XCTAssertEqual(ActivityPublishingWizard.blockingField(0, draft), "name")
     }
+
+    func testActivityPublishingWizardMiniProgramHeadingsMerchantTicketRuleCollaboratorsAndReviewSummary() {
+        XCTAssertEqual(ActivityPublishingWizard.heading(for: 0), "这场活动叫什么、在哪儿办？")
+        XCTAssertEqual(ActivityPublishingWizard.heading(for: 1), "这场活动玩什么？")
+        XCTAssertEqual(ActivityPublishingWizard.heading(for: 2), "这场活动怎么卖票？")
+
+        var draft = readyDraft()
+        // Free tickets pass for merchantHost == true
+        XCTAssertEqual(ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true), .success(()))
+        XCTAssertFalse(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: false))
+
+        // Paid ticket fails for merchantHost == true with exact mini-program message
+        draft.tickets[0].price = "29.9"
+        XCTAssertEqual(
+            ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true),
+            .failure(.rejected("商家主办活动还没开通收款，票价只能是 0"))
+        )
+        // Paid ticket for non-merchant triggers publisher identity verification
+        XCTAssertTrue(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: false))
+        XCTAssertFalse(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: true))
+
+        // Collaborator owner-first deduplicated merge
+        let merged = ActivityPublishingWizard.mergeCollaboratorsWithOwner(
+            ownerMemberID: 100,
+            collaboratorMemberIDs: [200, 100, 300, 200]
+        )
+        XCTAssertEqual(merged.map(\.memberID), [100, 200, 300])
+        XCTAssertEqual(merged.map(\.isOwner), [true, false, false])
+
+        // Pre-publish vs edit review summary
+        let createSummary = ActivityPublishingWizard.reviewSummary(draft: draft, templateTitle: "外滩剧本", isEditMode: false)
+        XCTAssertEqual(createSummary.heading, "发布前摘要")
+        XCTAssertEqual(createSummary.templateText, "外滩剧本")
+        XCTAssertEqual(createSummary.ticketSummaryText, "2 个票种")
+        XCTAssertEqual(createSummary.visibilityNotice, "默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。")
+
+        let editSummary = ActivityPublishingWizard.reviewSummary(draft: draft, templateTitle: nil, isEditMode: true)
+        XCTAssertEqual(editSummary.heading, "修改摘要")
+        XCTAssertNil(editSummary.ticketSummaryText)
+        XCTAssertEqual(editSummary.visibilityNotice, "本次保存只更新上面这些内容，不会改变活动的公开范围。")
+    }
 }

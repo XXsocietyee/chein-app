@@ -1115,3 +1115,180 @@ public final class HomeContinuationCoordinator {
         }
     }
 }
+
+// MARK: - Unified Search Experience (Home + Search2 + SearchMap Merged; Map is a Mode)
+
+/// Merges the 3 mini-program search entries (`pages/index` home search entry,
+/// `pages/search2` global keyword/category/date/price search, and `pages/searchmap` map + nearby node search)
+/// into a single Apple-native search experience where Map Search is an inline mode of the same screen,
+/// never a separate pushed page.
+public struct UnifiedSearchExperience: Equatable {
+    /// The 3 mini-program search entry origins that converge into this single search screen.
+    public enum EntryOrigin: String, CaseIterable, Equatable, Hashable, Sendable {
+        case homeSearchBar = "pages/index"
+        case globalSearch = "pages/search2"
+        case mapSearch = "pages/searchmap"
+
+        public var defaultMode: PresentationMode {
+            switch self {
+            case .homeSearchBar, .globalSearch: return .list
+            case .mapSearch: return .map
+            }
+        }
+    }
+
+    /// Inline presentation mode of the unified search screen.
+    /// Switching between `.list` and `.map` happens in place without pushing a new route,
+    /// preserving keyword, category, date, price, and sort filters.
+    public enum PresentationMode: String, CaseIterable, Equatable, Hashable, Sendable {
+        case list
+        case map
+
+        public func title(locale: Locale = Locale(identifier: "zh-Hans")) -> String {
+            let english = HomeIndexParityPresentation.isEnglish(locale)
+            switch self {
+            case .list: return english ? "List" : "列表"
+            case .map: return english ? "Map" : "地图"
+            }
+        }
+
+        public var systemImage: String {
+            switch self {
+            case .list: return "list.bullet"
+            case .map: return "map"
+            }
+        }
+    }
+
+    /// Map sub-scope within `.map` mode (`城市节点与活动` vs `附近探索点`).
+    public enum MapScope: String, CaseIterable, Equatable, Hashable, Sendable {
+        case city
+        case nearby
+
+        public func title(locale: Locale = Locale(identifier: "zh-Hans")) -> String {
+            let english = HomeIndexParityPresentation.isEnglish(locale)
+            switch self {
+            case .city: return english ? "City & Activities" : "城市与活动"
+            case .nearby: return english ? "Nearby Nodes" : "附近节点"
+            }
+        }
+    }
+
+    public let origin: EntryOrigin
+    public private(set) var mode: PresentationMode
+    public private(set) var mapScope: MapScope
+    public private(set) var query: GlobalSearchQuery
+    public private(set) var selectedTab: GlobalSearchParityPresentation.ResultTabKind
+    public private(set) var sortType: Int
+    public private(set) var tag: String
+    public private(set) var cityRole: String
+    public private(set) var history: [String]
+
+    public init(
+        origin: EntryOrigin = .homeSearchBar,
+        mode: PresentationMode? = nil,
+        mapScope: MapScope = .city,
+        query: GlobalSearchQuery = .init(),
+        selectedTab: GlobalSearchParityPresentation.ResultTabKind = .all,
+        sortType: Int = 1,
+        tag: String = "",
+        cityRole: String = "",
+        history: [String] = []
+    ) {
+        self.origin = origin
+        self.mode = mode ?? origin.defaultMode
+        self.mapScope = mapScope
+        self.query = query
+        self.selectedTab = selectedTab
+        self.sortType = (sortType == 2) ? 2 : 1
+        self.tag = tag
+        self.cityRole = cityRole
+        self.history = GlobalSearchParityPresentation.deduplicateHistory(history)
+    }
+
+    /// Switches between `.list` and `.map` modes in place on the same screen, keeping all query and filter state intact.
+    public mutating func switchMode(_ nextMode: PresentationMode) {
+        mode = nextMode
+    }
+
+    public func switchingMode(to nextMode: PresentationMode) -> UnifiedSearchExperience {
+        var copy = self
+        copy.switchMode(nextMode)
+        return copy
+    }
+
+    public mutating func switchMapScope(_ nextScope: MapScope) {
+        mapScope = nextScope
+    }
+
+    public mutating func updateKeyword(_ rawKeyword: String) {
+        query.keyword = rawKeyword
+    }
+
+    public mutating func submitSearch() {
+        let trimmed = GlobalSearchParityPresentation.trimmedKeyword(query.keyword)
+        query.keyword = trimmed
+        if !trimmed.isEmpty {
+            history = GlobalSearchParityPresentation.recordHistory(keyword: trimmed, into: history)
+        }
+    }
+
+    public mutating func applyFilter(_ nextQuery: GlobalSearchQuery, sortType: Int? = nil, tag: String? = nil, cityRole: String? = nil) {
+        query = nextQuery
+        if let sortType { self.sortType = (sortType == 2) ? 2 : 1 }
+        if let tag { self.tag = tag }
+        if let cityRole { self.cityRole = cityRole }
+    }
+
+    public mutating func selectTab(_ tab: GlobalSearchParityPresentation.ResultTabKind) {
+        selectedTab = tab
+    }
+
+    public mutating func clearHistory() {
+        history = []
+    }
+}
+
+/// Interactive city switch state for the Home tab (`pages/index`).
+public struct HomeCitySwitchState: Equatable, Hashable, Sendable {
+    public static let defaultSupportedCities: [String] = ["上海", "北京", "杭州", "成都", "深圳", "广州"]
+
+    public private(set) var selectedCity: String?
+    public private(set) var isNationwide: Bool
+    public let availableCities: [String]
+
+    public init(
+        selectedCity: String? = nil,
+        isNationwide: Bool = false,
+        availableCities: [String] = HomeCitySwitchState.defaultSupportedCities
+    ) {
+        let trimmed = selectedCity?.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.selectedCity = (trimmed?.isEmpty == false) ? trimmed : nil
+        self.isNationwide = isNationwide
+        self.availableCities = availableCities
+    }
+
+    public func displayLabel(locale: Locale = Locale(identifier: "zh-Hans")) -> String {
+        HomeIndexParityPresentation.citySelectorLabel(
+            selectedCity: selectedCity,
+            isNationwide: isNationwide,
+            locale: locale
+        )
+    }
+
+    public mutating func selectCity(_ city: String?) {
+        let trimmed = city?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty || trimmed == HomeIndexParityPresentation.nationwideCityLabel {
+            selectedCity = nil
+            isNationwide = true
+        } else {
+            selectedCity = trimmed
+            isNationwide = false
+        }
+    }
+
+    public mutating func selectNationwide() {
+        selectedCity = nil
+        isNationwide = true
+    }
+}

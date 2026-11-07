@@ -15,6 +15,8 @@ import SwiftUI
     var onActionBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     var onContinuation: ((HomeIndexParityPresentation.ContinuationCard) -> Void)? = nil
     var onRetryContinuation: (() -> Void)? = nil
+    var onSelectCity: ((String?, Bool) -> Void)? = nil
+    var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -23,6 +25,8 @@ import SwiftUI
     @State private var keyword = ""
     @State private var categoryID: Int?
     @State private var submittedKeyword = ""
+    @State private var localSelectedCity: String? = nil
+    @State private var localIsNationwide: Bool = false
     private var query: HomeFeedQuery { HomeFeedQuery(kind: kind, keyword: submittedKeyword, categoryID: categoryID) }
     var body: some View {
         let binding = model.bind(reader, available: unavailableMessageKey == nil)
@@ -36,7 +40,18 @@ import SwiftUI
             } else {
                 List {
                     if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
-                        HomeHeroHeaderSectionView(nickname: viewerNickname, selectedCity: selectedCity, avatarSource: viewerAvatar) { banner in
+                        HomeHeroHeaderSectionView(
+                            nickname: viewerNickname,
+                            selectedCity: localSelectedCity ?? selectedCity,
+                            isNationwide: localIsNationwide,
+                            avatarSource: viewerAvatar,
+                            onSelectCity: onSelectCity != nil ? { city, nationwide in
+                                localSelectedCity = city
+                                localIsNationwide = nationwide
+                                onSelectCity?(city, nationwide)
+                            } : nil,
+                            onOpenUnifiedSearch: onOpenUnifiedSearch
+                        ) { banner in
                             if banner.id == "activity_list" { kind = .activities }
                             onActionBanner?(banner)
                         }

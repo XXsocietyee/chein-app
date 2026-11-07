@@ -416,4 +416,44 @@ final class HomeSearchTabParityTests: XCTestCase {
         XCTAssertTrue(coordinator.cards.isEmpty)
         XCTAssertNil(coordinator.ownerScope)
     }
+
+    func testUnifiedSearchExperienceMergesThreeEntriesAndSwitchesMapModeInPlace() {
+        var homeSearch = UnifiedSearchExperience(origin: .homeSearchBar)
+        XCTAssertEqual(homeSearch.mode, .list)
+        XCTAssertEqual(homeSearch.mapScope, .city)
+
+        let mapEntry = UnifiedSearchExperience(origin: .mapSearch)
+        XCTAssertEqual(mapEntry.mode, .map)
+
+        homeSearch.updateKeyword("  外滩夜行 ")
+        homeSearch.submitSearch()
+        XCTAssertEqual(homeSearch.query.keyword, "外滩夜行")
+        XCTAssertEqual(homeSearch.history, ["外滩夜行"])
+
+        var filteredQuery = homeSearch.query
+        filteredQuery.categoryID = 3
+        filteredQuery.minPrice = Decimal(20)
+        filteredQuery.maxPrice = Decimal(120)
+        homeSearch.applyFilter(filteredQuery, sortType: 2, tag: "沉浸", cityRole: "主办")
+
+        // Switching to Map mode keeps the exact query, filters, sortType, and history intact on the same screen
+        let mapModeState = homeSearch.switchingMode(to: .map)
+        XCTAssertEqual(mapModeState.mode, .map)
+        XCTAssertEqual(mapModeState.query, filteredQuery)
+        XCTAssertEqual(mapModeState.sortType, 2)
+        XCTAssertEqual(mapModeState.tag, "沉浸")
+        XCTAssertEqual(mapModeState.cityRole, "主办")
+        XCTAssertEqual(mapModeState.history, ["外滩夜行"])
+
+        var citySwitch = HomeCitySwitchState(selectedCity: nil, isNationwide: false)
+        XCTAssertEqual(citySwitch.displayLabel(), "选择城市")
+        citySwitch.selectCity("杭州")
+        XCTAssertEqual(citySwitch.selectedCity, "杭州")
+        XCTAssertFalse(citySwitch.isNationwide)
+        XCTAssertEqual(citySwitch.displayLabel(), "杭州")
+        citySwitch.selectNationwide()
+        XCTAssertNil(citySwitch.selectedCity)
+        XCTAssertTrue(citySwitch.isNationwide)
+        XCTAssertEqual(citySwitch.displayLabel(), "全国")
+    }
 }

@@ -94,6 +94,128 @@ public enum ActivityPublishingWizard {
         (try? draft.wire()) != nil
     }
 
+    // MARK: - Mini-Program `pages/publish/activity` Parity Rules
+
+    public static let timeLocationLockedNotice = "已售出，时间和地点不可改"
+    public static let collaboratorSettlementNotice = "合作者可编辑内容，不参与结算"
+    public static let merchantFreeTicketOnlyNotice = "商家活动暂时只支持免费票"
+    public static let merchantPaidTicketBlockedMessage = "商家主办活动还没开通收款，票价只能是 0"
+    public static let createReviewHeading = "发布前摘要"
+    public static let editReviewHeading = "修改摘要"
+    public static let createVisibilityNotice = "默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。"
+    public static let editVisibilityNotice = "本次保存只更新上面这些内容，不会改变活动的公开范围。"
+
+    /// Returns the conversational step heading from `pages/publish/activity/index.js` STEPS.
+    public static func heading(for step: Int) -> String {
+        steps[clamp(step)].heading
+    }
+
+    /// Validates the mini-program merchant-host ticket pricing rule (`pages/publish/activity/index.js`):
+    /// when `merchantHost == true`, all tickets must have price == 0 (`"商家主办活动还没开通收款，票价只能是 0"`).
+    public static func validateMerchantHostTickets(
+        _ draft: ActivityPublishDraft,
+        merchantHost: Bool
+    ) -> Result<Void, PublishModesError> {
+        guard merchantHost else { return .success(()) }
+        for ticket in draft.tickets {
+            guard let price = ProjectEditValidation.decimal(ticket.price), price == .zero else {
+                return .failure(.rejected(merchantPaidTicketBlockedMessage))
+            }
+        }
+        return .success(())
+    }
+
+    /// Returns true when the draft has at least one paid ticket (`price > 0`) and is not merchant-hosted,
+    /// matching `pages/publish/activity/index.js` `totalPrice > 0 && !this.data.merchantHost` identity check trigger.
+    public static func requiresPublisherIdentityVerification(
+        _ draft: ActivityPublishDraft,
+        merchantHost: Bool
+    ) -> Bool {
+        guard !merchantHost else { return false }
+        let totalPrice = draft.tickets.reduce(Decimal.zero) { partial, ticket in
+            let price = ProjectEditValidation.decimal(ticket.price) ?? .zero
+            return partial + max(.zero, price)
+        }
+        return totalPrice > .zero
+    }
+
+    /// Merges the activity owner (`ownerMemberID`, fixed first with `isOwner == true`) and additional collaborators,
+    /// deduplicating by `memberID` and preserving order, matching `mergeCollaboratorsWithOwner` in `pages/publish/activity/index.js`.
+    public struct CollaboratorEntry: Equatable, Identifiable {
+        public let memberID: Int
+        public let isOwner: Bool
+        public var id: Int { memberID }
+
+        public init(memberID: Int, isOwner: Bool) {
+            self.memberID = memberID
+            self.isOwner = isOwner
+        }
+    }
+
+    public static func mergeCollaboratorsWithOwner(
+        ownerMemberID: Int?,
+        collaboratorMemberIDs: [Int]
+    ) -> [CollaboratorEntry] {
+        var result: [CollaboratorEntry] = []
+        var seen = Set<Int>()
+        if let ownerMemberID, ownerMemberID > 0 {
+            seen.insert(ownerMemberID)
+            result.append(CollaboratorEntry(memberID: ownerMemberID, isOwner: true))
+        }
+        for id in collaboratorMemberIDs where id > 0 {
+            if seen.insert(id).inserted {
+                result.append(CollaboratorEntry(memberID: id, isOwner: false))
+            }
+        }
+        return result
+    }
+
+    /// Pre-publish / edit review summary matching `pages/publish/activity/index.wxml` lines 163-189.
+    public struct ReviewSummary: Equatable {
+        public let isEditMode: Bool
+        public let heading: String
+        public let nameText: String
+        public let timeText: String
+        public let addressText: String
+        public let templateText: String
+        public let ticketSummaryText: String?
+        public let visibilityNotice: String
+    }
+
+    public static func reviewSummary(
+        draft: ActivityPublishDraft,
+        templateTitle: String? = nil,
+        isEditMode: Bool = false
+    ) -> ReviewSummary {
+        let trimmedName = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedAddress = draft.addressName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedStart = draft.start.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedEnd = draft.end.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedTemplate = templateTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+
+        let resolvedTemplate: String
+        if !trimmedTemplate.isEmpty {
+            resolvedTemplate = trimmedTemplate
+        } else if let templateID = draft.playTemplateID {
+            resolvedTemplate = "#\(templateID.rawValue)"
+        } else if isEditMode {
+            resolvedTemplate = "保持当前关联模板不变"
+        } else {
+            resolvedTemplate = "未选择"
+        }
+
+        return ReviewSummary(
+            isEditMode: isEditMode,
+            heading: isEditMode ? editReviewHeading : createReviewHeading,
+            nameText: trimmedName.isEmpty ? "未填写名称" : trimmedName,
+            timeText: "\(trimmedStart) ~ \(trimmedEnd)",
+            addressText: trimmedAddress.isEmpty ? "未选择地点" : trimmedAddress,
+            templateText: resolvedTemplate,
+            ticketSummaryText: isEditMode ? nil : "\(draft.tickets.count) 个票种",
+            visibilityNotice: isEditMode ? editVisibilityNotice : createVisibilityNotice
+        )
+    }
+
     private static func filled(_ value: String) -> Bool {
         !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
