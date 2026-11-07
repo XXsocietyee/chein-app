@@ -262,3 +262,6 @@ f9ca1f42405122d54561193546a351753ac63c8b:Tests/AppUnitTests/InvoiceLaunchHostRea
 f9ca1f42405122d54561193546a351753ac63c8b:Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift:generic-api-key:62
 f9ca1f42405122d54561193546a351753ac63c8b:Tests/AppUnitTests/NativeFriendDirectoryNavigationHostingTests.swift:generic-api-key:65
 f9ca1f42405122d54561193546a351753ac63c8b:Tests/CoreTests/PlaySharedPlanR5RecoveryTests.swift:generic-api-key:23
+
+# Added 2026-11-07 by owner approval: 1 generic-api-key finding, a dotted localization key in a worker strings report (value verified key-shaped, not a credential).
+c7ce1a4af9bf8ea6454f4954334fa74b66c838a3:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
