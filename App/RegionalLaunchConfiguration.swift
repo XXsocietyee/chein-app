@@ -2,10 +2,6 @@ import Foundation
 
 /// Deployment metadata is independent of language. No endpoint has been approved yet.
 enum RegionalLaunchConfiguration {
-    static let defaultReviewedPlaceholderBaseURL = "https://api.example.com"
-    static let defaultReviewedBundleIdentifier = "com.questify.ios"
-    static let defaultReviewedRealm = "cn-reviewed"
-
     /// Shipped artifact deliberately has no reviewed deployment. Deployment integration replaces
     /// this typed composition input, never the runtime URL allowlist or a server feature flag.
     @MainActor static var composition: AppCompositionRoot {
@@ -16,63 +12,47 @@ enum RegionalLaunchConfiguration {
 
     static func reviewedDeployment(
         build: BuildMetadata = .current,
-        fallbackBaseURL: String = defaultReviewedPlaceholderBaseURL,
-        fallbackBundleIdentifier: String = defaultReviewedBundleIdentifier,
-        fallbackRealm: String = defaultReviewedRealm
+        reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        allowLoginRoleFallbackOnRolelessUserInfo: Bool = true
     ) throws -> ReviewedAppDeployment {
-        let market: RegionalMarket
-        if let rawMarket = build.market?.trimmingCharacters(in: .whitespacesAndNewlines), !rawMarket.isEmpty {
-            market = try RegionalConfiguration.market(buildValue: rawMarket)
-        } else {
-            market = .china
+        guard let market = try? RegionalConfiguration.market(buildValue: build.market) else {
+            throw ValidationIssue.marketMissingOrUnsupported
         }
-        let resolvedBaseURL: String
-        if let rawBase = build.baseURL?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBase.isEmpty {
-            resolvedBaseURL = rawBase
-        } else {
-            resolvedBaseURL = fallbackBaseURL
+        guard let rawBase = build.baseURL?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBase.isEmpty else {
+            throw ValidationIssue.endpointMismatch
         }
-        let resolvedBundle: String
-        if let rawBundle = build.bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBundle.isEmpty {
-            resolvedBundle = rawBundle
-        } else {
-            resolvedBundle = fallbackBundleIdentifier
-        }
-        let resolvedRealm: String
-        if let rawRealm = build.realm?.trimmingCharacters(in: .whitespacesAndNewlines), !rawRealm.isEmpty {
-            resolvedRealm = rawRealm
-        } else {
-            resolvedRealm = fallbackRealm
+        guard let rawBundle = build.bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBundle.isEmpty,
+              let rawRealm = build.realm?.trimmingCharacters(in: .whitespacesAndNewlines), !rawRealm.isEmpty else {
+            throw ValidationIssue.storageScopeMismatch
         }
         return try ReviewedAppDeployment(
             market: market,
-            baseURL: resolvedBaseURL,
-            approvedBaseURLs: [market: [resolvedBaseURL]],
+            baseURL: rawBase,
+            approvedBaseURLs: [market: [rawBase]],
             verifiedCapabilities: market == .china ? [.domesticChinaPhone] : [],
-            bundleIdentifier: resolvedBundle,
-            realm: resolvedRealm,
-            reads: [.homeAndSearch, .manualMap, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
-            contentDetails: .activityAndTopic,
-            productionGatesEnabled: true
+            bundleIdentifier: rawBundle,
+            realm: rawRealm,
+            reads: reads,
+            productionGatesEnabled: true,
+            allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
         )
     }
 
     @MainActor static func reviewedComposition(
         build: BuildMetadata = .current,
-        fallbackBaseURL: String = defaultReviewedPlaceholderBaseURL,
+        reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        allowLoginRoleFallbackOnRolelessUserInfo: Bool = true,
         storage: AppScopedStorageFactory? = nil,
         makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() }
     ) -> AppCompositionRoot {
-        guard let deployment = try? reviewedDeployment(build: build, fallbackBaseURL: fallbackBaseURL) else {
+        guard let deployment = try? reviewedDeployment(
+            build: build,
+            reads: reads,
+            allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
+        ) else {
             return .init(deployment: .incompatibleBuild, storage: storage, makeTransport: makeTransport)
         }
-        let effectiveBuild = BuildMetadata(
-            market: deployment.regional.market.rawValue,
-            baseURL: deployment.regional.apiConfiguration?.baseURL.absoluteString,
-            bundleIdentifier: deployment.storageScope.bundleIdentifier,
-            realm: deployment.storageScope.realm
-        )
-        return makeComposition(reviewed: deployment, build: effectiveBuild, storage: storage, makeTransport: makeTransport)
+        return makeComposition(reviewed: deployment, build: build, storage: storage, makeTransport: makeTransport)
     }
 
     struct BuildMetadata {
@@ -107,18 +87,7 @@ enum RegionalLaunchConfiguration {
     @MainActor static func makeComposition(reviewed: ReviewedAppDeployment?, build: BuildMetadata,
         storage: AppScopedStorageFactory? = nil,
         makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() }) -> AppCompositionRoot {
-        let candidate: ReviewedAppDeployment?
-        if let reviewed {
-            candidate = reviewed
-        } else if let rawBase = build.baseURL?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBase.isEmpty,
-                  let rawMarket = build.market?.trimmingCharacters(in: .whitespacesAndNewlines), !rawMarket.isEmpty,
-                  let rawBundle = build.bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBundle.isEmpty,
-                  let rawRealm = build.realm?.trimmingCharacters(in: .whitespacesAndNewlines), !rawRealm.isEmpty {
-            candidate = try? reviewedDeployment(build: .init(market: rawMarket, baseURL: rawBase, bundleIdentifier: rawBundle, realm: rawRealm))
-        } else {
-            candidate = nil
-        }
-        guard let reviewed = candidate else {
+        guard let reviewed else {
             return .init(deployment: .unconfigured, storage: storage, makeTransport: makeTransport)
         }
         do {

@@ -87,10 +87,11 @@ public final class AuthChannelCoordinator {
     private var appleAttempt: AuthChannelAppleAttempt?
 
     public init(service: (any AuthChannelServing)?, appleConfigurationVerified: Bool = false,
+                appleSignInApproved: Bool? = nil,
                 currentSession: @escaping () -> AuthChannelSessionSnapshot,
                 commitLogin: @escaping (LoginResult, AuthChannelSessionSnapshot) throws -> Bool,
                 now: @escaping () -> Date = Date.init) {
-        self.service = service; self.appleConfigurationVerified = appleConfigurationVerified
+        self.service = service; self.appleConfigurationVerified = appleSignInApproved ?? appleConfigurationVerified
         self.currentSession = currentSession; self.commitLogin = commitLogin; self.now = now
     }
     /// Claim only when a new form model is constructed, not on each view body update.
@@ -266,7 +267,8 @@ public final class AuthChannelCoordinator {
         guard isCurrent(id, snapshot) else { return }
         guard AuthRequestBuilder.isValidToken(result.token), result.account.id > 0 else { throw APIError.malformedResponse }
         // Reuse the established userInfo contract before giving the host a credential.
-        let account = try await service.currentAccount(token: result.token)
+        let fallbackRole = ["player", "club", "merchant"].contains(result.account.role) ? result.account.role : nil
+        let account = try await service.currentAccount(token: result.token, loginFallbackRole: fallbackRole)
         try Task.checkCancellation()
         guard isCurrent(id, snapshot) else { return }
         guard account.id == result.account.id, account.id > 0 else { throw APIError.malformedResponse }

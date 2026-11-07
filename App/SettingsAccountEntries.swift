@@ -27,6 +27,7 @@ import SwiftUI
     @State private var confirms = false
     @State private var confirmation: AuthChannelSessionSnapshot?
     var body: some View {
+        if session.account != nil {
         if let accountID = session.account?.id {
             Section {
                 Button("auth.signOut") {
@@ -49,6 +50,7 @@ import SwiftUI
                 confirmation = nil; confirms = false
             }
             .onDisappear { confirmation = nil; confirms = false }
+        }
         }
     }
 }

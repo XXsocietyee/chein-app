@@ -32,6 +32,13 @@ public protocol AuthChannelServing {
     func loginWithPhone(phone: String, code: String) async throws -> LoginResult
     func loginWithApple(identityToken: String) async throws -> LoginResult
     func currentAccount(token: String) async throws -> Account
+    func currentAccount(token: String, loginFallbackRole: String?) async throws -> Account
+}
+
+public extension AuthChannelServing {
+    func currentAccount(token: String, loginFallbackRole: String?) async throws -> Account {
+        try await currentAccount(token: token)
+    }
 }
 
 /// No retries, persistence, OAuth launch, production defaults or diagnostic credential
@@ -40,10 +47,12 @@ public struct AuthChannelService: AuthChannelServing {
     private let builder: AuthRequestBuilder
     private let transport: any HTTPTransport
     private let auth: AuthService
-    public init(configuration: APIConfiguration, transport: any HTTPTransport) {
+    public let allowLoginRoleFallback: Bool
+    public init(configuration: APIConfiguration, transport: any HTTPTransport, allowLoginRoleFallback: Bool = false) {
         builder = AuthRequestBuilder(configuration: configuration)
         self.transport = transport
         auth = AuthService(configuration: configuration, transport: transport)
+        self.allowLoginRoleFallback = allowLoginRoleFallback
     }
     private struct Envelope: Decodable {
         let code: Int
@@ -89,8 +98,15 @@ public struct AuthChannelService: AuthChannelServing {
         return LoginResult(token: token, account: account)
     }
     public func currentAccount(token: String) async throws -> Account {
+        try await currentAccount(token: token, loginFallbackRole: nil)
+    }
+    public func currentAccount(token: String, loginFallbackRole: String?) async throws -> Account {
         try Task.checkCancellation()
-        let result = try await auth.currentAccount(token: token)
+        var result = try await auth.currentAccount(token: token)
+        if result.role.isEmpty, allowLoginRoleFallback,
+           let fallback = loginFallbackRole, ["player", "club", "merchant"].contains(fallback) {
+            result = result.withFallbackRole(fallback)
+        }
         guard ["player", "club", "merchant"].contains(result.role) else { throw APIError.malformedResponse }
         try Task.checkCancellation()
         return result

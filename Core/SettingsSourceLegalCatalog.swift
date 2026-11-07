@@ -6,10 +6,11 @@ public enum SettingsSourceLegalCatalog {
     public static func document(type: SettingsLegalType, market: RegionalMarket?, privacyPolicyApproved: Bool = false) -> SettingsLegalAvailability {
         guard let market else { return .missing(.missingMarket) }
         guard market == .china else { return .missing(.regionalTextNotProvided) }
+        if privacyPolicyApproved && type == .privacyPolicy { return .sourceDocument(privacyPolicy) }
         switch type {
         case .userAgreement: return .sourceDocument(userAgreement)
         case .cancellationNotice: return .sourceDocument(cancellationNotice)
-        case .privacyPolicy: return privacyPolicyApproved ? .sourceDocument(privacyPolicy) : .missing(.pendingSourceText)
+        case .privacyPolicy: return .missing(.pendingSourceText)
         }
     }
     public static let privacyPolicy = SettingsLegalDocument(

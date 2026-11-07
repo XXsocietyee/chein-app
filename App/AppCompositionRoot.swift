@@ -16,6 +16,8 @@ struct ReviewedAppDeployment {
     /// Reviewed production gate bundle (account deletion, legal catalog, Apple+SMS sign-in,
     /// wallet history/overview reads, and orders/addresses/favorites/coupons leases).
     let productionGatesEnabled: Bool
+    /// Safe opt-in for test backends whose `/api/userInfo` projection omits `role` after `/api/auth/login/phone`.
+    let allowLoginRoleFallbackOnRolelessUserInfo: Bool
     var appleSignInApproved: Bool {
         productionGatesEnabled && regional.market == .china && regional.canUseDomesticChinaPhone
     }
@@ -39,7 +41,8 @@ struct ReviewedAppDeployment {
          reads: Set<ReadGrant> = [], contentDetails: SignedInContentDetailReadApproval? = nil, privateHome: PrivateHomeTransportGrant? = nil,
          nativeChannelAppeals: NativeChannelAppealPolicyStore? = nil,
          accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource? = nil,
-         productionGatesEnabled: Bool = false) throws {
+         productionGatesEnabled: Bool = false,
+         allowLoginRoleFallbackOnRolelessUserInfo: Bool = false) throws {
         regional = try RegionalConfiguration(market: market, baseURL: baseURL,
             approvedBaseURLs: approvedBaseURLs, verifiedCapabilities: verifiedCapabilities)
         storageScope = try RegionalSessionStorageScope(configuration: regional, bundleIdentifier: bundleIdentifier, realm: realm)
@@ -48,6 +51,7 @@ struct ReviewedAppDeployment {
         self.nativeChannelAppeals = nativeChannelAppeals
         self.accountDeregistrationOriginalSource = accountDeregistrationOriginalSource
         self.productionGatesEnabled = productionGatesEnabled
+        self.allowLoginRoleFallbackOnRolelessUserInfo = allowLoginRoleFallbackOnRolelessUserInfo
     }
 }
 
@@ -437,7 +441,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     let memberReportProgressSelection = MemberReportProgressSourceSelection()
     let usageConsentReadSelection = UsageConsentReadSourceSelection()
     private let productionGateLeases = ReviewedProductionGateLeases()
-    let sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
+    var sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
     init(deployment: DeploymentState = .unconfigured, storage: AppScopedStorageFactory? = nil,
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
          invoiceLaunchReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> InvoiceLaunchReadApproval? = { _ in nil },
@@ -513,7 +517,10 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.invoiceLaunchReadApproval = invoiceLaunchReadApproval
         self.clubBadgeManagementApproval = clubBadgeManagementApproval
         self.merchantReviewOriginalReadApproval = merchantReviewOriginalReadApproval
-        self.sessionDependencies = sessionDependencies ?? (productionGatesEnabled ? { [gates] in gates.sessionDependencies($0) } : { _ in .dormant })
+        self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
+        if sessionDependencies == nil, productionGatesEnabled {
+            self.sessionDependencies = { [gates] in gates.sessionDependencies($0) }
+        }
         self.couponLocks = couponLocks
         self.couponReadApproval = couponReadApproval ?? (productionGatesEnabled ? { [gates] in gates.couponRead($0) } : { _ in nil })
         self.couponWriteApproval = couponWriteApproval ?? (productionGatesEnabled ? { [gates] in gates.couponWrite($0) } : { _ in nil })
@@ -3678,81 +3685,91 @@ private enum ReviewedProductionFormMutationRoute {
 }
 
 @MainActor private final class ReviewedProductionGateLeases {
-    private var walletHistoryByContext: [RuntimeDependencyContext: WalletHistoryReadApproval] = [:]
-    private var ownedOrderByContext: [RuntimeDependencyContext: OwnedOrderReadApproval] = [:]
-    private var profileOwnedCouponByContext: [RuntimeDependencyContext: ProfileOwnedCouponReadAccess] = [:]
-    private var profileFavoritesByContext: [RuntimeDependencyContext: ProfileFavoritesReadAccess] = [:]
-    private var profileFavoriteTopicByContext: [RuntimeDependencyContext: ProfileFavoriteTopicReadAccess] = [:]
-    private var profileFavoriteDetailByContext: [RuntimeDependencyContext: ProfileFavoriteDetailAccess] = [:]
+    private var walletHistoryByContext: [String: WalletHistoryReadApproval] = [:]
+    private var ownedOrderByContext: [String: OwnedOrderReadApproval] = [:]
+    private var profileOwnedCouponByContext: [String: ProfileOwnedCouponReadAccess] = [:]
+    private var profileFavoritesByContext: [String: ProfileFavoritesReadAccess] = [:]
+    private var profileFavoriteTopicByContext: [String: ProfileFavoriteTopicReadAccess] = [:]
+    private var profileFavoriteDetailByContext: [String: ProfileFavoriteDetailAccess] = [:]
     private var profileFavoriteRemovalByScope: [String: [ProfileFavoriteRemovalAccess]] = [:]
-    private var profileParticipantByContext: [RuntimeDependencyContext: ProfileParticipantAccess] = [:]
-    private var topicUnlikeByContext: [RuntimeDependencyContext: TopicUnlikeApproval] = [:]
-    private var couponReadByContext: [RuntimeDependencyContext: CouponManagementReadApproval] = [:]
-    private var couponWriteByContext: [RuntimeDependencyContext: CouponManagementWriteApproval] = [:]
+    private var profileParticipantByContext: [String: ProfileParticipantAccess] = [:]
+    private var topicUnlikeByContext: [String: TopicUnlikeApproval] = [:]
+    private var couponReadByContext: [String: CouponManagementReadApproval] = [:]
+    private var couponWriteByContext: [String: CouponManagementWriteApproval] = [:]
+
+    private func contextKey(_ context: RuntimeDependencyContext) -> String {
+        "\(context.market.rawValue)|\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
+    }
+
+    private func makeEndpoint(_ context: RuntimeDependencyContext, paths: Set<String>) -> OperationEndpointApproval? {
+        try? .init(baseURL: context.baseURL, namespace: context.session.namespace,
+                   accountID: context.session.accountID, paths: paths)
+    }
 
     func walletHistory(_ context: RuntimeDependencyContext) -> WalletHistoryReadApproval? {
         guard context.market == .china else { return nil }
-        if let existing = walletHistoryByContext[context], !existing.isRevoked { return existing }
+        let key = contextKey(context)
+        if let existing = walletHistoryByContext[key], !existing.isRevoked { return existing }
         guard let approval = try? WalletHistoryReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
-        walletHistoryByContext[context] = approval
+        walletHistoryByContext[key] = approval
         return approval
     }
 
     func ownedOrder(_ context: RuntimeDependencyContext) -> OwnedOrderReadApproval? {
         guard context.market == .china else { return nil }
-        if let existing = ownedOrderByContext[context], !existing.isRevoked { return existing }
+        let key = contextKey(context)
+        if let existing = ownedOrderByContext[key], !existing.isRevoked { return existing }
         guard let approval = try? OwnedOrderReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
-        ownedOrderByContext[context] = approval
+        ownedOrderByContext[key] = approval
         return approval
     }
 
     func profileOwnedCoupon(_ context: RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? {
         guard context.market == .china else { return nil }
-        if let existing = profileOwnedCouponByContext[context], !existing.isRevoked { return existing }
-        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: [ProfileOwnedCouponReadRoute.path]),
+        let key = contextKey(context)
+        if let existing = profileOwnedCouponByContext[key], !existing.isRevoked { return existing }
+        guard let endpoints = makeEndpoint(context, paths: [ProfileOwnedCouponReadRoute.path]),
               let access = try? ProfileOwnedCouponReadAccess(context: context, approval: endpoints) else { return nil }
-        profileOwnedCouponByContext[context] = access
+        profileOwnedCouponByContext[key] = access
         return access
     }
 
     func profileFavorites(_ context: RuntimeDependencyContext) -> ProfileFavoritesReadAccess? {
         guard context.market == .china else { return nil }
-        if let existing = profileFavoritesByContext[context], !existing.isRevoked { return existing }
-        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: ProfileFavoritesReadRoute.paths),
+        let key = contextKey(context)
+        if let existing = profileFavoritesByContext[key], !existing.isRevoked { return existing }
+        guard let endpoints = makeEndpoint(context, paths: ProfileFavoritesReadRoute.paths),
               let access = try? ProfileFavoritesReadAccess(context: context, approval: endpoints) else { return nil }
-        profileFavoritesByContext[context] = access
+        profileFavoritesByContext[key] = access
         return access
     }
 
     func profileFavoriteTopic(_ context: RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess? {
         guard context.market == .china else { return nil }
-        if let existing = profileFavoriteTopicByContext[context], !existing.isRevoked { return existing }
-        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: [ProfileFavoriteTopicReadRoute.path]),
+        let key = contextKey(context)
+        if let existing = profileFavoriteTopicByContext[key], !existing.isRevoked { return existing }
+        guard let endpoints = makeEndpoint(context, paths: [ProfileFavoriteTopicReadRoute.path]),
               let access = try? ProfileFavoriteTopicReadAccess(context: context, approval: endpoints) else { return nil }
-        profileFavoriteTopicByContext[context] = access
+        profileFavoriteTopicByContext[key] = access
         return access
     }
 
     func profileFavoriteDetail(_ context: RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? {
         guard context.market == .china else { return nil }
-        if let existing = profileFavoriteDetailByContext[context], !existing.isRevoked { return existing }
-        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: ProfileFavoriteDetailRoute.paths),
+        let key = contextKey(context)
+        if let existing = profileFavoriteDetailByContext[key], !existing.isRevoked { return existing }
+        guard let endpoints = makeEndpoint(context, paths: ProfileFavoriteDetailRoute.paths),
               let access = try? ProfileFavoriteDetailAccess(context: context, approval: endpoints) else { return nil }
-        profileFavoriteDetailByContext[context] = access
+        profileFavoriteDetailByContext[key] = access
         return access
     }
 
     func profileFavoriteRemoval(_ context: RuntimeDependencyContext, scope: UUID) -> [ProfileFavoriteRemovalAccess] {
         guard context.market == .china else { return [] }
-        let key = "\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(scope.uuidString)"
+        let key = "\(contextKey(context))|\(scope.uuidString)"
         if let existing = profileFavoriteRemovalByScope[key], existing.allSatisfy({ !$0.isRevoked }) { return existing }
         let identity = SocialAccountIdentity(accountID: context.session.accountID, epoch: context.session.epoch, role: context.role)
-        guard let endpoint = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: ProfileFavoriteRemovalApproval.paths),
+        guard let endpoint = makeEndpoint(context, paths: ProfileFavoriteRemovalApproval.paths),
               let approval = try? ProfileFavoriteRemovalApproval(endpoint: endpoint, identity: identity,
                   postID: 1, expiresAt: Date().addingTimeInterval(3600), allowsAnyPositivePostID: true),
               let access = try? ProfileFavoriteRemovalAccess(context: context, collectionScope: scope, approval: approval) else { return [] }
@@ -3762,53 +3779,56 @@ private enum ReviewedProductionFormMutationRoute {
 
     func profileParticipant(_ context: RuntimeDependencyContext) -> ProfileParticipantAccess? {
         guard context.market == .china else { return nil }
-        if let existing = profileParticipantByContext[context], !existing.isRevoked { return existing }
+        let key = contextKey(context)
+        if let existing = profileParticipantByContext[key], !existing.isRevoked { return existing }
         guard let access = try? ProfileParticipantAccess(context: context, permitsWrites: true, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
-        profileParticipantByContext[context] = access
+        profileParticipantByContext[key] = access
         return access
     }
 
     func topicUnlike(_ context: RuntimeDependencyContext) -> TopicUnlikeApproval? {
         guard context.market == .china else { return nil }
-        if let existing = topicUnlikeByContext[context] { return existing }
-        guard let endpoint = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: TopicUnlikeApproval.paths),
+        let key = contextKey(context)
+        if let existing = topicUnlikeByContext[key] { return existing }
+        guard let endpoint = makeEndpoint(context, paths: TopicUnlikeApproval.paths),
               let approval = try? TopicUnlikeApproval(endpoint: endpoint, accountID: context.session.accountID, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
-        topicUnlikeByContext[context] = approval
+        topicUnlikeByContext[key] = approval
         return approval
     }
 
     func couponRead(_ context: RuntimeDependencyContext) -> CouponManagementReadApproval? {
         guard context.market == .china, context.role == "merchant" else { return nil }
-        if let existing = couponReadByContext[context], !existing.isRevoked { return existing }
+        let key = contextKey(context)
+        if let existing = couponReadByContext[key], !existing.isRevoked { return existing }
         guard let approval = try? CouponManagementReadApproval(context: context, merchantID: context.session.accountID, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
-        couponReadByContext[context] = approval
+        couponReadByContext[key] = approval
         return approval
     }
 
     func couponWrite(_ context: RuntimeDependencyContext) -> CouponManagementWriteApproval? {
         guard context.market == .china, context.role == "merchant" else { return nil }
-        if let existing = couponWriteByContext[context], !existing.isRevoked { return existing }
+        let key = contextKey(context)
+        if let existing = couponWriteByContext[key], !existing.isRevoked { return existing }
         let actions = Set(CouponManagementWriteApproval.Action.allCases)
         guard let approval = try? CouponManagementWriteApproval(context: context, merchantID: context.session.accountID, actions: actions, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
-        couponWriteByContext[context] = approval
+        couponWriteByContext[key] = approval
         return approval
     }
 
     func sessionDependencies(_ context: RuntimeDependencyContext) -> NativeRuntimeDependencies {
         guard context.market == .china else { return .dormant }
         let couponPaths: Set<String> = ["api/coupon/qr-token", "api/coupon/status"]
-        let couponEndpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: couponPaths)
+        let couponEndpoints = makeEndpoint(context, paths: couponPaths)
         let couponCodeApproval = couponEndpoints.map {
             CouponCodeApproval(market: .china, endpoints: $0, imageOrigins: [context.baseURL.absoluteString])
         }
-        let orderEndpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: ["api/registration/info", "api/registration/cancel", "api/registration/cancel-refund"])
-        let orderConfiguration = orderEndpoints.flatMap {
-            try? OrderLifecycleProductionConfiguration(market: .china, endpoints: $0, approvals: [],
-                externalCheckoutApproved: false, devicePaymentApproved: false, allowsReviewedCancellationAndRefund: true)
-        }
+        let orderConfiguration = try? OrderLifecycleProductionConfiguration(
+            market: .china, baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, role: context.role,
+            sourceRevision: OrderLifecycleSourceContract.revision, approvals: [],
+            externalCheckoutApproved: false, devicePaymentApproved: false,
+            allowsReviewedCancellationAndRefund: true
+        )
         return NativeRuntimeDependencies(
             couponCodeApproval: couponCodeApproval,
             orderLifecycleConfiguration: orderConfiguration

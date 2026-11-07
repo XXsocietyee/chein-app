@@ -10,10 +10,13 @@ import Observation
     private var selected: UsageConsentReadApproval?
     private var usedIssuances: Set<UUID> = []
     private var owners: [WeakOwner] = []
-    private var defaultApprovals: [RuntimeDependencyContext: UsageConsentReadApproval] = [:]
+    private var defaultApprovals: [String: UsageConsentReadApproval] = [:]
     private(set) var wasExplicitlyRevoked = false
     private(set) var revision = UUID()
     init() {}
+    private func contextKey(_ context: RuntimeDependencyContext) -> String {
+        "\(context.market.rawValue)|\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
+    }
     func replace(with value: UsageConsentReadApproval?) throws {
         if let value, usedIssuances.contains(value.revision) { throw APIError.invalidConfiguration }
         selected = nil; wasExplicitlyRevoked = value == nil; retire(); revision = UUID()
@@ -27,14 +30,15 @@ import Observation
     }
     func defaultApproval(for context: RuntimeDependencyContext) -> UsageConsentReadApproval? {
         guard !wasExplicitlyRevoked, context.market == .china, context.session.accountID > 0 else { return nil }
-        if let cached = defaultApprovals[context], cached.endpoint.paths.contains(where: { cached.allows(context, path: $0) }) {
+        let key = contextKey(context)
+        if let cached = defaultApprovals[key], cached.endpoint.paths.contains(where: { cached.allows(context, path: $0) }) {
             return cached
         }
         guard let endpoint = try? OperationEndpointApproval(
             baseURL: context.baseURL, namespace: context.session.namespace,
-            accountID: context.session.accountID, paths: UsageConsentReadRoute.paths
-        ), let created = try? UsageConsentReadApproval(endpoint: endpoint) else { return nil }
-        defaultApprovals[context] = created
+            accountID: context.session.accountID, paths: Set(UsageConsentReadRoute.paths)
+        ), let created = try? UsageConsentReadApproval(market: .china, endpoint: endpoint) else { return nil }
+        defaultApprovals[key] = created
         return created
     }
     func register(_ coordinator: UsageConsentReadCoordinator) {

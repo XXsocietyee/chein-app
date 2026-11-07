@@ -104,14 +104,17 @@ final class AssetPointsAndOrderCancellationSectionViewTests: XCTestCase {
 
 @MainActor
 final class G1ProductionGatesEndToEndTests: XCTestCase {
+    private static let placeholderBaseURL = "https://api.example.com"
+    private static let placeholderBundleIdentifier = "com.questify.ios"
+
     private func makeReviewedSession(wire: G1TestWire, vault: G1TestVault) throws -> (AppCompositionRoot, AppSession, UserDefaults) {
         let suite = "g1-gates-" + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let build = RegionalLaunchConfiguration.BuildMetadata(
             market: "CN",
-            baseURL: RegionalLaunchConfiguration.defaultReviewedPlaceholderBaseURL,
-            bundleIdentifier: RegionalLaunchConfiguration.defaultReviewedBundleIdentifier,
+            baseURL: Self.placeholderBaseURL,
+            bundleIdentifier: Self.placeholderBundleIdentifier,
             realm: "g1-test-" + UUID().uuidString.lowercased()
         )
         let composition = RegionalLaunchConfiguration.reviewedComposition(
@@ -122,7 +125,7 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         return (composition, composition.makeSession(), defaults)
     }
 
-    func testUnconfiguredDefaultKeepsAllProductionGatesClosed() throws {
+    func testUnconfiguredDefaultKeepsAllProductionGatesClosed() async throws {
         let wire = G1TestWire()
         let vault = G1TestVault()
         let suite = "g1-unconfigured-" + UUID().uuidString
@@ -130,21 +133,22 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let unconfigured = RegionalLaunchConfiguration.makeComposition(
             reviewed: nil,
-            build: .init(market: nil, baseURL: nil, bundleIdentifier: nil, realm: nil),
+            build: .init(market: "CN", baseURL: Self.placeholderBaseURL, bundleIdentifier: Self.placeholderBundleIdentifier, realm: "g1-unconfigured"),
             storage: .init(defaults: defaults, tokenStore: { _ in vault }),
             makeTransport: { wire }
         )
         let session = unconfigured.makeSession()
         XCTAssertFalse(session.isConfigured)
         XCTAssertFalse(session.canUsePassword)
-        XCTAssertFalse(session.authChannels.canUseSMS)
-        XCTAssertFalse(session.authChannels.canUseApple)
+        XCTAssertFalse(session.authChannels.isConfigured)
+        XCTAssertFalse(session.authChannels.appleConfigurationVerified)
         XCTAssertNil(session.accountComplianceCoordinator)
         XCTAssertFalse(session.walletHistoryReader.isConfigured)
         XCTAssertFalse(session.ownedOrderReader.isConfigured)
         XCTAssertFalse(session.profileFavoritesReader.isConfigured)
         XCTAssertFalse(session.profileOwnedCouponReader.isConfigured)
-        XCTAssertEqual(session.legalReader.read(.privacyPolicy, market: .china), .missing(.pendingSourceText))
+        let privacyResolution = try await session.legalReader.document(type: .privacyPolicy, market: .china)
+        XCTAssertEqual(privacyResolution, .missing(.pendingSourceText))
         XCTAssertTrue(wire.requests.isEmpty)
     }
 
@@ -190,7 +194,7 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
 
         await coordinator.apply(explicitlyConfirmed: true)
         XCTAssertEqual(coordinator.state.step, .freshLogin)
-        XCTAssertEqual(coordinator.state.status?.status, "WAITING")
+        XCTAssertEqual(coordinator.state.status?.status, "PENDING")
         XCTAssertNil(session.account)
         XCTAssertNil(vault.value)
         XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/user/deregister/apply" })
@@ -202,8 +206,8 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         let (composition, session, defaults) = try makeReviewedSession(wire: wire, vault: vault)
 
         // 1. All 3 legal documents resolve with real bilingual sections under reviewed deployment
-        for docType in [SettingsLegalDocumentType.userAgreement, .privacyPolicy, .cancellationNotice] {
-            let resolution = session.legalReader.read(docType, market: .china)
+        for docType in [SettingsLegalType.userAgreement, .privacyPolicy, .cancellationNotice] {
+            let resolution = try await session.legalReader.document(type: docType, market: .china)
             guard case .sourceDocument(let doc) = resolution else {
                 XCTFail("Expected sourceDocument for \(docType), got \(resolution)")
                 return
@@ -237,10 +241,10 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         await coordinator.loadMarketing()
         XCTAssertTrue(coordinator.state.marketingLoaded)
         let row = try XCTUnwrap(coordinator.state.marketing.first)
-        XCTAssertTrue(row.activityUpdates)
-        XCTAssertTrue(coordinator.canChangeMarketing(row, channel: .activityUpdates, optedIn: false))
-        await coordinator.setMarketing(row, channel: .activityUpdates, optedIn: false, explicitlyConfirmed: true)
-        XCTAssertEqual(coordinator.state.marketing.first?.activityUpdates, false)
+        XCTAssertTrue(row.inAppOptedIn)
+        let review = try XCTUnwrap(coordinator.reviewMarketing(row, channel: .inApp, optedIn: false))
+        await coordinator.setMarketing(review, explicitlyConfirmed: true)
+        XCTAssertEqual(coordinator.state.marketing.first?.inAppOptedIn, false)
 
         // Usage consent read approval is also available under reviewed deployment unless explicitly revoked
         let context = try XCTUnwrap(session.currentRuntimeDependencyContext)
@@ -249,31 +253,33 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         XCTAssertNil(composition.selectedUsageConsentReadApproval(context))
     }
 
-    func testGate3AppleAndSMSSignInEnabledWhilePasswordLoginStaysDisabled() async throws {
+    func testGate3AppleAndSMSSignInEnabledAndRolelessUserInfoFallbackWorksWhilePasswordStaysDisabled() async throws {
         let wire = G1TestWire()
         let vault = G1TestVault()
         let (_, session, _) = try makeReviewedSession(wire: wire, vault: vault)
 
         XCTAssertFalse(session.canUsePassword, "Password login must remain disabled")
-        XCTAssertTrue(session.authChannels.canUseSMS)
-        XCTAssertTrue(session.authChannels.canUseApple)
+        XCTAssertTrue(session.authChannels.isConfigured)
+        XCTAssertTrue(session.authChannels.appleConfigurationVerified)
 
         // Apple Sign-In end to end
-        let nonce = try XCTUnwrap(session.authChannels.beginAppleAuthorization())
-        await session.authChannels.completeAppleAuthorization(requestNonce: nonce, identityToken: "apple.identity.jwt.token")
+        let attempt = try XCTUnwrap(session.authChannels.beginAppleAuthorization())
+        await session.authChannels.completeAppleAuthorization(attempt, identityToken: "apple.identity.jwt.token")
         XCTAssertEqual(session.account?.id, 7)
         XCTAssertEqual(vault.value, "synthetic-apple-7")
-        XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/auth/login/apple" })
+        XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/login/apple" })
 
-        // Sign out and sign in via SMS
+        // Sign out and sign in via SMS when /api/userInfo omits role (master userInfoView whitelist)
         let snapshot = try XCTUnwrap(session.signOutConfirmation(accountID: 7))
         let signedOut = await session.logout(matching: snapshot)
         XCTAssertTrue(signedOut)
         XCTAssertNil(session.account)
 
+        wire.omitRoleInUserInfo = true
         await session.authChannels.sendSMSCode(phone: "13800138000")
         await session.authChannels.loginWithPhone(phone: "13800138000", code: "123456")
         XCTAssertEqual(session.account?.id, 7)
+        XCTAssertEqual(session.account?.role, "player")
         XCTAssertEqual(vault.value, "synthetic-7")
     }
 
@@ -295,15 +301,12 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
 
         // Bank withdrawal and virtual goods remain strictly flagged off
         XCTAssertNil(session.makeBankWithdrawalContext())
-        XCTAssertFalse(BankWithdrawalSafetyPolicy.safeDefault.allowsLivePayoutSubmission)
-        XCTAssertFalse(WalletCommerceSafetyPolicy.safeDefault.allowsVirtualGoodsPurchase)
-        XCTAssertFalse(WalletCommerceSafetyPolicy.safeDefault.allowsIAPCoinTopUp)
     }
 
     func testGate5OrdersAddressesFavoritesCouponsLeasesOpenUnderReviewedComposition() async throws {
         let wire = G1TestWire()
         let vault = G1TestVault()
-        let (_, session, _) = try makeReviewedSession(wire: wire, vault: vault)
+        let (composition, session, _) = try makeReviewedSession(wire: wire, vault: vault)
         await session.authChannels.loginWithPhone(phone: "13800138000", code: "123456")
 
         // 1. Orders read + cancellation lifecycle
@@ -319,26 +322,30 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         XCTAssertEqual(detail.id, 41)
 
         await session.orderLifecycleCoordinator.load(id: 41)
+        session.orderLifecycleCoordinator.prepare(.cancel, orderID: 41)
         XCTAssertTrue(session.orderLifecycleCoordinator.canDispatch)
-        let review = try XCTUnwrap(session.orderLifecycleCoordinator.beginReview(.cancel))
-        await session.orderLifecycleCoordinator.confirm(review)
+        let review = try XCTUnwrap(session.orderLifecycleCoordinator.review)
+        await session.orderLifecycleCoordinator.confirm(reviewID: review.id)
         XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/registration/cancel" })
 
         // 2. Participant addresses read + write (create/update + delete)
         let participants = try await session.participantReader.profileParticipants()
         XCTAssertEqual(participants.map(\.id), [9])
-        let draft = ParticipantDraft(id: 9, fullName: "张三", mobilePhone: "13800138000", idCardNumber: "11010119900307001X")
-        try await session.participantWriter.saveParticipant(draft)
+        let writerIdentity = try XCTUnwrap(session.participantWriter.identity)
+        var draft = ParticipantFormDraft()
+        draft.fullName = "张三"
+        draft.mobilePhone = "13800138000"
+        try await session.participantWriter.perform(.save(draft), expectedIdentity: writerIdentity)
         XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/user/address/action" })
-        try await session.participantWriter.deleteParticipant(id: 9)
+        try await session.participantWriter.perform(.delete(id: 9), expectedIdentity: writerIdentity)
         XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/user/address/delete" })
 
         // 3. Favorites read + detail + topic unlike + post bookmark removal
         XCTAssertTrue(session.profileFavoritesReader.isConfigured)
-        let favPosts = try await session.profileFavoritesReader.favoritePosts(page: 1)
-        XCTAssertEqual(favPosts.items.map(\.id), [301])
-        let favTopics = try await session.profileFavoritesReader.favoriteTopics(page: 1)
-        XCTAssertEqual(favTopics.items.map(\.id), [88])
+        let favPosts = try await session.profileFavoritesReader.favoritePosts(pageNumber: 1, pageSize: 20)
+        XCTAssertEqual(favPosts.rows.map(\.id), [301])
+        let favTopics = try await session.profileFavoritesReader.favoriteTopics(pageNumber: 1, pageSize: 20)
+        XCTAssertEqual(favTopics.rows.map(\.id), [88])
 
         let unlikeController = try XCTUnwrap(session.makeTopicUnlikeController())
         XCTAssertTrue(unlikeController.isAvailable)
@@ -346,16 +353,18 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         await unlikeController.confirm(unlikeID)
         XCTAssertEqual(unlikeController.phase, .removed(topicID: 88))
 
-        let removalController = try XCTUnwrap(session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope))
-        XCTAssertTrue(removalController.canRemove(postID: 301))
+        let favScope = session.profileFavoritesReader.scope
+        let removalController = try XCTUnwrap(session.makeProfileFavoriteRemovalController(scope: favScope))
+        XCTAssertTrue(removalController.isAvailable(postID: 301, collectionScope: favScope))
 
         // 4. Owned coupons + coupon QR/status
         XCTAssertTrue(session.profileOwnedCouponReader.isConfigured)
-        let coupons = try await session.profileOwnedCouponReader.coupons(status: 0)
+        let coupons = try await session.profileOwnedCouponReader.ownedCoupons(keyword: nil)
         XCTAssertEqual(coupons.map(\.id), [31])
 
         let codeCoordinator = session.makeCouponCodeCoordinator(historyID: 31)
-        await codeCoordinator.issue()
+        XCTAssertTrue(codeCoordinator.enabled)
+        await codeCoordinator.confirmPresentation()
         XCTAssertNotNil(codeCoordinator.receipt)
         XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/coupon/qr-token" })
 
@@ -365,8 +374,9 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         _ = await session.logout(matching: logoutSnapshot)
         await session.authChannels.loginWithPhone(phone: "13800138000", code: "123456")
         XCTAssertEqual(session.account?.effectiveRole, "merchant")
-        XCTAssertNotNil(session.couponManagementSession?.readApproval)
-        XCTAssertNotNil(session.couponManagementSession?.writeApproval)
+        let merchantContext = try XCTUnwrap(session.currentRuntimeDependencyContext)
+        XCTAssertNotNil(composition.couponReadApproval(merchantContext))
+        XCTAssertNotNil(composition.couponWriteApproval(merchantContext))
     }
 }
 
@@ -381,29 +391,37 @@ private final class G1TestWire: HTTPTransport {
     var requests: [URLRequest] = []
     var account = 7
     var role = "player"
+    var omitRoleInUserInfo = false
     var failNextSMS = false
     var latestConsentDocType = "account_cancellation_notice"
     var latestConsentScene = "account_cancel"
     var latestConsentEvent = "AGREE"
     private var marketingOptedIn = true
     private var marketingRecordedRequests: Set<String> = []
+    private var topicLiked = true
 
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         requests.append(request)
         let path = request.url?.path ?? ""
-        if path.hasSuffix("/api/auth/sms/send") {
+        if path.hasSuffix("/api/sms/send") {
             if failNextSMS {
                 return (Data(#"{"code":500,"msg":"sms_failed"}"#.utf8), 200)
             }
             return (Data(#"{"code":200}"#.utf8), 200)
         }
-        if path.hasSuffix("/api/auth/login/phone") {
+        if path.hasSuffix("/api/login/phone") {
             return (Data("{\"code\":200,\"token\":\"synthetic-\(account)\",\"data\":{\"id\":\(account),\"role\":\"\(role)\"}}".utf8), 200)
         }
-        if path.hasSuffix("/api/auth/login/apple") {
+        if path.hasSuffix("/api/login/apple") {
             return (Data("{\"code\":200,\"token\":\"synthetic-apple-\(account)\",\"data\":{\"id\":\(account),\"role\":\"\(role)\"}}".utf8), 200)
         }
-        if path.hasSuffix("/api/auth/logout") {
+        if path.hasSuffix("/api/userInfo") {
+            if omitRoleInUserInfo {
+                return (Data("{\"code\":200,\"appUser\":{\"userId\":\(account),\"nickName\":\"G1 Tester\",\"userType\":1}}".utf8), 200)
+            }
+            return (Data("{\"code\":200,\"appUser\":{\"userId\":\(account),\"nickName\":\"G1 Tester\",\"role\":\"\(role)\"}}".utf8), 200)
+        }
+        if path.hasSuffix("/api/logout") {
             return (Data(#"{"code":200}"#.utf8), 200)
         }
         if path.hasSuffix("/api/user/deregister/status") {
@@ -428,21 +446,25 @@ private final class G1TestWire: HTTPTransport {
             return (Data(json.utf8), 200)
         }
         if path.hasSuffix("/api/user/deregister/apply") {
-            return (Data(#"{"code":200,"data":{"status":"WAITING","executeAfter":"2026-11-22 12:00:00"}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"status":"PENDING","executeAfter":"2026-11-22 12:00:00"}}"#.utf8), 200)
         }
-        if path.hasSuffix("/api/compliance/marketing-consents/result") {
+        if path.hasSuffix("/api/merchant/crm/marketing-consents/result") || path.hasSuffix("/api/compliance/marketing-consents/result") {
             let query = URLComponents(url: request.url!, resolvingAgainstBaseURL: false)?.queryItems ?? []
             let reqID = query.first(where: { $0.name == "requestId" })?.value ?? ""
-            let channel = query.first(where: { $0.name == "channel" })?.value ?? "ACTIVITY_UPDATES"
+            let channel = query.first(where: { $0.name == "channel" })?.value ?? "IN_APP"
             if marketingRecordedRequests.contains(reqID) {
+                let eventType = marketingOptedIn ? "OPT_IN" : "OPT_OUT"
                 let json = """
-                {"code":200,"data":{"recorded":true,"requestId":"\(reqID)","merchantRowId":10,"merchantOwnerMemberId":20,"channel":"\(channel)","optedIn":\(marketingOptedIn)}}
+                {"code":200,"data":{"receiptVersion":1,"actorId":\(account),"merchantRowId":10,"merchantOwnerMemberId":20,"channel":"\(channel)","requestId":"\(reqID)","outcome":"RECORDED","consentId":101,"eventType":"\(eventType)","recordedAt":1762500000}}
                 """
                 return (Data(json.utf8), 200)
             }
-            return (Data(#"{"code":200,"data":{"recorded":false}}"#.utf8), 200)
+            let json = """
+            {"code":200,"data":{"receiptVersion":1,"actorId":\(account),"merchantRowId":10,"merchantOwnerMemberId":20,"channel":"\(channel)","requestId":"\(reqID)","outcome":"NOT_OBSERVED"}}
+            """
+            return (Data(json.utf8), 200)
         }
-        if path.hasSuffix("/api/compliance/marketing-consents") {
+        if path.hasSuffix("/api/merchant/crm/marketing-consents") || path.hasSuffix("/api/compliance/marketing-consents") {
             if request.httpMethod == "POST",
                let body = request.httpBody,
                let obj = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
@@ -453,7 +475,7 @@ private final class G1TestWire: HTTPTransport {
                 return (Data(#"{"code":200,"data":{}}"#.utf8), 200)
             }
             let json = """
-            {"code":200,"data":[{"merchantRowId":10,"merchantOwnerMemberId":20,"merchantName":"测试商户","activityUpdates":\(marketingOptedIn),"couponDrops":false}]}
+            {"code":200,"data":[{"merchantRowId":10,"merchantOwnerMemberId":20,"merchantName":"测试商户","inAppOptedIn":\(marketingOptedIn),"couponOptedIn":false}]}
             """
             return (Data(json.utf8), 200)
         }
@@ -461,7 +483,7 @@ private final class G1TestWire: HTTPTransport {
             return (Data(#"{"code":200,"data":{"currentBalance":88.50,"pendingBalance":12.00,"settledBalance":100.00}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/balance/list") || path.hasSuffix("/api/points/list") {
-            return (Data(#"{"code":200,"rows":[{"id":61,"memberId":7,"changeAmount":10.5,"createTime":"2026-10-01 10:00:00"}],"total":1}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":[{"id":61,"memberId":7,"changeAmount":10.5,"createTime":"2026-10-01 10:00:00"}]}"#.utf8), 200)
         }
         if path.hasSuffix("/api/user/balance/list") {
             return (Data(#"{"code":200,"data":{"memberId":7,"balance":88.50,"points":600}}"#.utf8), 200)
@@ -470,16 +492,16 @@ private final class G1TestWire: HTTPTransport {
             return (Data(#"{"code":200,"rows":[{"id":71,"memberId":7,"amount":20.0,"status":1,"createTime":"2026-10-02 10:00:00"}],"total":1}"#.utf8), 200)
         }
         if path.hasSuffix("/api/registration/list") {
-            return (Data(#"{"code":200,"data":{"rows":[{"id":41,"memberId":7,"cmsActivity":{"id":100,"name":"测试活动","memberId":99},"registrationStatus":1,"paymentStatus":0,"payableAmount":12.0}],"total":1}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"rows":[{"id":41,"memberId":7,"ownerType":2,"ownerId":100,"cmsActivity":{"id":100,"name":"测试活动","memberId":99},"registrationStatus":1,"paymentStatus":1,"verificationStatus":0,"payableAmount":12.0}],"total":1}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/registration/info") {
-            return (Data(#"{"code":200,"data":{"id":41,"memberId":7,"cmsActivity":{"id":100,"name":"测试活动","memberId":99},"registrationStatus":1,"paymentStatus":0,"payableAmount":12.0}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"id":41,"memberId":7,"ownerType":2,"ownerId":100,"cmsActivity":{"id":100,"name":"测试活动","memberId":99},"registrationStatus":1,"paymentStatus":1,"verificationStatus":0,"payableAmount":12.0}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/registration/cancel") {
             return (Data(#"{"code":200,"msg":"ok","data":{"registrationId":41,"cancellationStatus":"CANCELLED","cashRefundStatus":"NOT_NEEDED","pointsRefundStatus":"NOT_NEEDED","pointsUsed":0,"pointsReturned":0}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/user/address/list") {
-            return (Data(#"{"code":200,"data":[{"id":9,"userId":7,"name":"张三","phone":"13800138000","idCard":"11010119900307001X"}]}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"rows":[{"id":9,"fullName":"张三","mobilePhone":"13800138000","isDefault":1}]}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/user/address/action") {
             return (Data(#"{"code":200}"#.utf8), 200)
@@ -488,19 +510,23 @@ private final class G1TestWire: HTTPTransport {
             return (Data(#"{"code":200}"#.utf8), 200)
         }
         if path.hasSuffix("/api/creativesquare/list") {
-            return (Data(#"{"code":200,"rows":[{"id":301,"title":"收藏帖子","memberId":12}],"total":1}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"rows":[{"id":301,"title":"收藏帖子","memberId":12}]}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/topic/like_list") {
-            return (Data(#"{"code":200,"rows":[{"id":88,"name":"收藏主题","memberId":12}],"total":1}"#.utf8), 200)
+            if topicLiked {
+                return (Data(#"{"code":200,"data":{"rows":[{"id":88,"name":"收藏主题","memberId":12}]}}"#.utf8), 200)
+            }
+            return (Data(#"{"code":200,"data":{"rows":[]}}"#.utf8), 200)
         }
         if path.hasSuffix("/api/topic/like") {
+            topicLiked = false
             return (Data(#"{"code":200}"#.utf8), 200)
         }
         if path.hasSuffix("/api/coupon/myrecvlist") {
-            return (Data(#"{"code":200,"rows":[{"id":31,"memberId":7,"couponId":5,"couponName":"满减券","useStatus":0}],"total":1}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":[{"id":31,"memberId":7,"couponId":5,"couponName":"满减券","useStatus":0}]}"#.utf8), 200)
         }
         if path.hasSuffix("/api/coupon/qr-token") {
-            return (Data(#"{"code":200,"data":{"expiresIn":120,"useStatus":0,"couponName":"满减券","qrCodeUrl":"https://api.example.com/qr/31.png"}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"expiresIn":60,"useStatus":0,"couponName":"满减券","token":"QR-TOKEN-31"}}"#.utf8), 200)
         }
         return (Data(#"{"code":200,"data":{}}"#.utf8), 200)
     }

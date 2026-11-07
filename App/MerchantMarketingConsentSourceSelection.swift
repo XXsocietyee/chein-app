@@ -9,9 +9,12 @@ import Foundation
     private var selected: MerchantMarketingConsentRuntimeConfiguration?
     private var usedIssuances: Set<UUID> = []
     private var owners: [WeakOwner] = []
-    private var defaultApprovals: [RuntimeDependencyContext: MerchantMarketingConsentOriginalApproval] = [:]
+    private var defaultApprovals: [String: MerchantMarketingConsentOriginalApproval] = [:]
     private(set) var wasExplicitlyRevoked = false
     init() {}
+    private func contextKey(_ context: RuntimeDependencyContext) -> String {
+        "\(context.market.rawValue)|\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
+    }
     func replace(with configuration: MerchantMarketingConsentRuntimeConfiguration?) throws {
         if let configuration, usedIssuances.contains(configuration.issuanceID) { throw APIError.invalidConfiguration }
         selected = nil
@@ -26,12 +29,13 @@ import Foundation
     }
     func defaultApproval(for context: RuntimeDependencyContext) -> MerchantMarketingConsentOriginalApproval? {
         guard !wasExplicitlyRevoked, context.market == .china, context.session.accountID > 0 else { return nil }
-        if let cached = defaultApprovals[context], cached.matches(context) { return cached }
+        let key = contextKey(context)
+        if let cached = defaultApprovals[key], cached.matches(context) { return cached }
         guard let created = try? MerchantMarketingConsentOriginalApproval(
             baseURL: context.baseURL, namespace: context.session.namespace,
             accountID: context.session.accountID, allowsAllValidRows: true
         ) else { return nil }
-        defaultApprovals[context] = created
+        defaultApprovals[key] = created
         return created
     }
     func register(_ coordinator: AccountComplianceCoordinator) {

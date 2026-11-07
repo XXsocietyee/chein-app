@@ -40,9 +40,10 @@ public enum SettingsLegalAvailability: Equatable {
     func document(type: SettingsLegalType, market: RegionalMarket?) async throws -> SettingsLegalAvailability
 }
 @MainActor public final class SettingsBundledLegalReader: SettingsLegalReading {
+    public static var defaultPrivacyPolicyApproved = false
     public let privacyPolicyApproved: Bool
-    public init(privacyPolicyApproved: Bool = false) {
-        self.privacyPolicyApproved = privacyPolicyApproved
+    public init(privacyPolicyApproved: Bool? = nil) {
+        self.privacyPolicyApproved = privacyPolicyApproved ?? Self.defaultPrivacyPolicyApproved
     }
     public func document(type: SettingsLegalType, market: RegionalMarket?) async throws -> SettingsLegalAvailability {
         try Task.checkCancellation()

@@ -312,7 +312,9 @@ public struct AccountMarketingReadIntent {
     }
     public func backToVerification() { guard !state.busy else { return }; reviewCode = nil; state.step = .verify; changed() }
     public func apply(explicitlyConfirmed: Bool, intent: AccountDeregistrationIntent? = nil) async {
-        guard acceptsDeregistrationIntent(intent), explicitlyConfirmed, noticeAccepted, state.localCancellationConsent.allowsNewConsent, state.smsSent, state.step == .review, let code = reviewCode, reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision else { return }
+        guard explicitlyConfirmed, noticeAccepted, state.smsSent, state.step == .review, let code = reviewCode else { return }
+        guard acceptsDeregistrationIntent(intent), state.localCancellationConsent.allowsNewConsent,
+              reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision else { return }
         reviewCode = nil
         let issuance = service.deregistrationOriginalRevision
         await run(deregistration: true) { session, stamp in
