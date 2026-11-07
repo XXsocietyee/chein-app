@@ -18,14 +18,16 @@ import WebKit
     @State private var importError: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack(alignment: .center, spacing: CYSpacing.sm) {
                 Label(
                     String(localized: LocalizedStringResource("playx.externalGame.sectionTitle", defaultValue: "扩展小游戏库（沙盒）", locale: locale)),
                     systemImage: "puzzlepiece.extension"
                 )
-                .font(.subheadline.weight(.semibold))
-                Spacer()
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+                Spacer(minLength: CYSpacing.sm)
                 Menu {
                     Button {
                         showingImportSheet = true
@@ -39,62 +41,27 @@ import WebKit
                     }
                 } label: {
                     Label(String(localized: LocalizedStringResource("playx.externalGame.importAction", defaultValue: "导入游戏", locale: locale)), systemImage: "square.and.arrow.down")
-                        .font(.caption.weight(.semibold))
+                        .font(CYTypography.label)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
                 }
-                .buttonStyle(.bordered)
                 .accessibilityIdentifier("externalGameImportButton")
             }
 
             if let importError, !importError.isEmpty {
-                Text(importError)
-                    .font(.caption)
-                    .foregroundStyle(.red)
+                Label(importError, systemImage: "exclamationmark.triangle.fill")
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("externalGameImportError")
             }
 
             if store.installedGames.isEmpty {
-                Text(String(localized: LocalizedStringResource("playx.externalGame.emptyHint", defaultValue: "支持通过 HTTPS 链接、二维码或文件导入带签名清单的 HTML5 互动包，仅在受限沙盒中运行。", locale: locale)))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                CYEmptyStateView(
+                    systemImage: "puzzlepiece.extension",
+                    title: LocalizedStringKey(W8Text.t("还没有导入的游戏", "No imported games yet")),
+                    description: LocalizedStringKey("playx.externalGame.emptyHint"))
             } else {
                 ForEach(store.installedGames) { game in
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                HStack(spacing: 6) {
-                                    Text(game.manifest.name)
-                                        .font(.subheadline.weight(.semibold))
-                                    Text("v\(game.manifest.version)")
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                    Text(game.manifest.contentRating)
-                                        .font(.caption2.weight(.semibold))
-                                        .padding(.horizontal, 5)
-                                        .padding(.vertical, 1)
-                                        .background(Color.secondary.opacity(0.15), in: Capsule())
-                                }
-                                Text("\(game.manifest.id) · \(game.source.sourceKindLabel)")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                            }
-                            Spacer()
-                            Button(String(localized: LocalizedStringResource("playx.externalGame.launch", defaultValue: "运行", locale: locale))) {
-                                store.activeLaunchingGame = game
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .controlSize(.small)
-
-                            Button(role: .destructive) {
-                                try? store.remove(id: game.manifest.id)
-                            } label: {
-                                Image(systemName: "trash")
-                            }
-                            .buttonStyle(.bordered)
-                            .controlSize(.small)
-                            .accessibilityLabel(String(localized: LocalizedStringResource("playx.externalGame.remove", defaultValue: "移除游戏", locale: locale)))
-                        }
-                    }
-                    .padding(10)
-                    .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
+                    installedRow(game)
                 }
             }
         }
@@ -142,6 +109,43 @@ import WebKit
             }
         }
     }
+
+    private func installedRow(_ game: InstalledExternalGame) -> some View {
+        CYCard(variant: .subtle, radius: CYRadius.sm, padding: CYSpacing.md) {
+            HStack(alignment: .center, spacing: CYSpacing.md) {
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    Text(game.manifest.name)
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                    Text("v\(game.manifest.version) · \(game.manifest.contentRating)")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                    Text("\(game.manifest.id) · \(game.source.sourceKindLabel)")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                }
+                Spacer(minLength: CYSpacing.sm)
+                Button(String(localized: LocalizedStringResource("playx.externalGame.launch", defaultValue: "运行", locale: locale))) {
+                    store.activeLaunchingGame = game
+                }
+                .buttonStyle(.cyPrimary(fullWidth: false))
+
+                Button(role: .destructive) {
+                    do {
+                        try store.remove(id: game.manifest.id)
+                        importError = nil
+                    } catch {
+                        importError = error.localizedDescription
+                    }
+                } label: {
+                    Image(systemName: "trash")
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                }
+                .accessibilityLabel(String(localized: LocalizedStringResource("playx.externalGame.remove", defaultValue: "移除游戏", locale: locale)))
+            }
+        }
+        .accessibilityElement(children: .contain)
+    }
 }
 
 @available(macOS 14.0, *)
@@ -151,9 +155,8 @@ import WebKit
     let store: ExternalGameStore
     let onError: (String) -> Void
     @State private var mode: String = "url"
-    @State private var urlInput: String = "https://example.com/games/campfire-riddle.json"
-    @State private var qrInput: String = "https://example.com/games/campfire-riddle.json"
-    @State private var localError: String = ""
+    @State private var linkInput: String = ""
+    @State private var check: ExternalGameLinkCheck?
 
     var body: some View {
         NavigationStack {
@@ -164,58 +167,49 @@ import WebKit
                 }
                 .pickerStyle(.segmented)
 
-                if mode == "url" {
-                    Section(String(localized: LocalizedStringResource("playx.externalGame.urlSection", defaultValue: "游戏包 HTTPS 地址", locale: locale))) {
-                        TextField("https://example.com/game.json", text: $urlInput)
-                            .autocorrectionDisabled()
-                    }
-                } else {
-                    Section(String(localized: LocalizedStringResource("playx.externalGame.qrSection", defaultValue: "扫码识别出的安全链接", locale: locale))) {
-                        TextField("https://example.com/game.json", text: $qrInput)
-                            .autocorrectionDisabled()
-                    }
+                Section(mode == "url"
+                    ? String(localized: LocalizedStringResource("playx.externalGame.urlSection", defaultValue: "游戏包 HTTPS 地址", locale: locale))
+                    : String(localized: LocalizedStringResource("playx.externalGame.qrSection", defaultValue: "扫码识别出的安全链接", locale: locale))) {
+                    TextField("https://example.com/game.json", text: $linkInput)
+                        .font(CYTypography.body)
+                        .keyboardType(.URL)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                        .frame(minHeight: CYSpacing.minTouchTarget)
                 }
 
-                if !localError.isEmpty {
+                if let check {
                     Section {
-                        Text(localError)
-                            .foregroundStyle(.red)
-                            .font(.caption)
+                        Label(ExternalGameLibraryPresentation.message(for: check),
+                              systemImage: check == .validButNotDownloadable ? "info.circle" : "exclamationmark.triangle.fill")
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(check == .validButNotDownloadable ? CYColor.infoText : CYColor.dangerText)
+                            .accessibilityIdentifier("externalGameLinkResult")
                     }
                 }
 
                 Section {
                     Button(String(localized: LocalizedStringResource("playx.externalGame.verifyManifest", defaultValue: "校验签名清单并预览权限", locale: locale))) {
-                        verifyAndStage()
+                        // Honest: a link is only checked for shape. No package is fetched or staged from it.
+                        check = ExternalGameLibraryPresentation.checkLink(linkInput)
+                        if let check, check != .validButNotDownloadable {
+                            onError(ExternalGameLibraryPresentation.message(for: check))
+                        }
                     }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("externalGameLinkCheck")
                 }
             }
             .navigationTitle(String(localized: LocalizedStringResource("playx.externalGame.importTitle", defaultValue: "导入外部游戏", locale: locale)))
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("common.cancel", defaultValue: "取消", locale: locale))) { dismiss() }
                 }
             }
         }
-    }
-
-    private func verifyAndStage() {
-        localError = ""
-        do {
-            let sample = ExternalGameStore.makeSampleSignedArchive()
-            if mode == "url" {
-                guard let url = URL(string: urlInput.trimmingCharacters(in: .whitespacesAndNewlines)) else {
-                    throw ExternalGameValidationError.insecureImportURL(urlInput)
-                }
-                _ = try store.prepareImport(archive: sample, source: .url(url))
-            } else {
-                _ = try store.prepareImport(archive: sample, source: .qrCode(qrInput))
-            }
-            dismiss()
-        } catch {
-            localError = error.localizedDescription
-            onError(error.localizedDescription)
-        }
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
     }
 }
 
@@ -247,7 +241,7 @@ import WebKit
                 Section(String(localized: LocalizedStringResource("playx.externalGame.permissionsSection", defaultValue: "申请的沙盒权限", locale: locale))) {
                     if confirmation.permissionsList.isEmpty {
                         Text(String(localized: LocalizedStringResource("playx.externalGame.noPermissions", defaultValue: "无额外权限（纯离线静态互动）", locale: locale)))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(CYColor.textSecondary)
                     } else {
                         ForEach(confirmation.permissionsList, id: \.rawValue) { perm in
                             Label(perm.displayName, systemImage: "checkmark.shield")
@@ -258,7 +252,7 @@ import WebKit
                 Section(String(localized: LocalizedStringResource("playx.externalGame.domainsSection", defaultValue: "允许访问的 HTTPS 域名白名单", locale: locale))) {
                     if confirmation.archive.manifest.allowedDomains.isEmpty {
                         Text(String(localized: LocalizedStringResource("playx.externalGame.noExternalNetwork", defaultValue: "完全离线（禁止任何外部网络请求）", locale: locale)))
-                            .foregroundStyle(.secondary)
+                            .foregroundStyle(CYColor.textSecondary)
                     } else {
                         ForEach(confirmation.archive.manifest.allowedDomains, id: \.self) { domain in
                             Label("https://\(domain)", systemImage: "lock.shield")
@@ -268,8 +262,8 @@ import WebKit
 
                 Section {
                     Text(String(localized: LocalizedStringResource("playx.externalGame.securityNotice", defaultValue: "安全承诺：该内容仅在隔离的 WKWebView 沙盒内运行，不共享登录凭据，禁止任何应用内购买或外部支付，且仅开放受版本控制的只读/存档桥接接口。", locale: locale)))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
                 }
             }
             .navigationTitle(confirmation.isUpdate
@@ -301,15 +295,16 @@ import WebKit
             VStack(spacing: 0) {
                 HStack {
                     Label("\(game.manifest.name) (v\(game.manifest.version))", systemImage: "lock.shield")
-                        .font(.caption.weight(.semibold))
+                        .font(CYTypography.label)
+                        .foregroundStyle(CYColor.textPrimary)
                     Spacer()
-                    Text("分级 \(game.manifest.contentRating) · 沙盒隔离")
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+                    Text(W8Text.t("分级 \(game.manifest.contentRating) · 沙盒隔离", "Rated \(game.manifest.contentRating) · sandboxed"))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
-                .background(Color.secondary.opacity(0.1))
+                .padding(.horizontal, CYSpacing.md)
+                .padding(.vertical, CYSpacing.sm)
+                .background(CYColor.bgSurfaceSubtle)
 
                 #if canImport(WebKit)
                 if let entryURL = store.entryFileURL(for: game) {

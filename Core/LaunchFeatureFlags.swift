@@ -9,7 +9,8 @@ import FoundationNetworking
 /// account or token changed is discarded.
 public struct LaunchFeatureFlags: Equatable {
     public static let knownKeys = ["drops", "roamDemoPois", "finishNearbyRoute", "clubMembership", "roamNpcEvent", "roamNpcChat",
-                                   "shopNpcChat", "shopNpcVoice", "shopNpcVoiceAvailable", "merchantNpcChat", "communityPostRead", "communityPostWrite"]
+                                   "shopNpcChat", "shopNpcVoice", "shopNpcVoiceAvailable", "merchantNpcChat", "communityPostRead", "communityPostWrite",
+                                   "externalGames"]
     public let enabled: Set<String>
     public static let allOff = LaunchFeatureFlags(enabled: [])
     public init(enabled: Set<String>) { self.enabled = enabled.intersection(Self.knownKeys) }
