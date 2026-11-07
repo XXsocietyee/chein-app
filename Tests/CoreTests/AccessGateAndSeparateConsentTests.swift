@@ -78,7 +78,3 @@ final class AccessGateAndSeparateConsentTests: XCTestCase {
     }
 }
 #endif
-<<<<<<< HEAD
-
-=======
->>>>>>> origin/wip/gm-test
