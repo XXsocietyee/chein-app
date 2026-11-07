@@ -1,0 +1,59 @@
+{
+  "task_id": "task_076e269e76e5",
+  "worker": "g2-club-safety",
+  "languages": ["zh-Hans", "en"],
+  "strings": {
+    "club.channel.rulesGate.title": {
+      "zh-Hans": "俱乐部频道公约与安全守则（App Store 1.2）",
+      "en": "Club Channel Rules & Safety EULA"
+    },
+    "club.channel.rulesGate.body": {
+      "zh-Hans": "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。",
+      "en": "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
+    },
+    "club.channel.rulesGate.accept": {
+      "zh-Hans": "我已阅读并同意频道公约",
+      "en": "Accept Channel Rules & EULA"
+    },
+    "club.channel.rulesGate.acceptedBanner": {
+      "zh-Hans": "已同意俱乐部频道公约与安全守则，现在可以发言与参与互动。",
+      "en": "Channel rules and safety guidelines accepted. You may now post and participate."
+    },
+    "club.channel.composer.rulesLocked": {
+      "zh-Hans": "请先在上方阅读并同意《俱乐部频道公约》后再发言。",
+      "en": "Please accept the Channel Rules & EULA above before sending messages."
+    },
+    "club.channel.reportChannel.action": {
+      "zh-Hans": "举报该频道",
+      "en": "Report channel"
+    },
+    "club.channel.reportChannel.reason.spam": {
+      "zh-Hans": "垃圾广告或诈骗信息",
+      "en": "Spam or scam"
+    },
+    "club.channel.reportChannel.reason.harassment": {
+      "zh-Hans": "骚扰、辱骂或不当言论",
+      "en": "Harassment or abusive content"
+    },
+    "club.channel.reportChannel.reason.illegal": {
+      "zh-Hans": "违法违规或色情低俗",
+      "en": "Illegal or objectionable content"
+    },
+    "club.channel.moderation.retry": {
+      "zh-Hans": "重试",
+      "en": "Retry"
+    },
+    "club.channel.roster.ban": {
+      "zh-Hans": "封禁",
+      "en": "Ban"
+    },
+    "club.channel.roster.unban": {
+      "zh-Hans": "解除封禁",
+      "en": "Unban"
+    },
+    "club.channel.roster.activeBansSection": {
+      "zh-Hans": "封禁名单（管理员）",
+      "en": "Active Bans (Admin)"
+    }
+  }
+}

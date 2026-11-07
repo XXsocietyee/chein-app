@@ -90,7 +90,17 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         NavigationLink { SessionClubChatView(clubID: id, session: session) } label: { Label("club.chat.title", systemImage: "person.3") }
                             .accessibilityIdentifier("club.chat.entry")
                         NavigationLink {
-                            ClubChannelMessagingHostView(club: club, reader: reader, manageGrant: manageGrant, onSignIn: onSignIn)
+                            ClubChannelMessagingHostView(
+                                club: club,
+                                reader: reader,
+                                manageGrant: manageGrant,
+                                safetyService: session.makeClubChannelSafetyService(
+                                    club: club,
+                                    management: management,
+                                    community: community
+                                ),
+                                onSignIn: onSignIn
+                            )
                         } label: {
                             Label(locale.pick("俱乐部频道", "Club Channels"), systemImage: "number.square")
                         }

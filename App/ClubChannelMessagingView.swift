@@ -3,16 +3,18 @@ import SwiftUI
 import QuestifyCore
 #endif
 
-// MARK: - W6 Apple-Native Discord-Style Club Channel Messaging, Safety (1.2), and Club Admin Views
+// MARK: - W6 / G2 Apple-Native Discord-Style Club Channel Messaging, Safety (1.2), and Club Admin Views
 
-/// Embedded Discord-style channel messaging view inside Club Detail (Deliverables 2 & 3, no new top-level pages).
+/// Embedded Discord-style channel messaging view inside Club Detail (Deliverables 2 & 3, App Store Guideline 1.2).
 public struct ClubChannelMessagingView: View {
     public let club: ClubRecord
     public let viewerMemberID: Int
     public let viewerRoleTier: ChannelMemberRoleTier
     public let capabilities: ChannelModerationCapabilities
+    @StateObject private var moderationCoordinator: ClubChannelModerationCoordinator
     @State private var directoryProjection: ChannelCategoryDirectoryProjection
     @State private var selectedChannelID: Int64
+    @State private var messagesByChannelID: [Int64: [ChannelTranscriptMessage]]
     @State private var viewportState: ChannelTranscriptViewportState
     @State private var sendStateMachine: ChannelSendStateMachine
     @State private var contentFilter: ChannelContentFilterHook
@@ -23,8 +25,7 @@ public struct ClubChannelMessagingView: View {
     @State private var composerText: String = ""
     @State private var showChannelSidebar: Bool = true
     @State private var showMemberRosterSheet: Bool = false
-    @State private var activeSafetyBanner: String?
-    @State private var mutedByChannelID: [Int64: Bool] = [:]
+    @State private var showReportChannelDialog: Bool = false
     @State private var unreadByChannelID: [Int64: Int] = [:]
     @State private var mentionByChannelID: [Int64: Int] = [:]
     @Environment(\.locale) private var locale
@@ -33,6 +34,7 @@ public struct ClubChannelMessagingView: View {
 
     private let rawListing: ChannelDirectoryListing
     private let roleBadgesByMemberID: [Int: String]
+    private let safetyService: (any ClubChannelSafetyServing)?
 
     public init(
         club: ClubRecord,
@@ -41,9 +43,15 @@ public struct ClubChannelMessagingView: View {
         capabilities: ChannelModerationCapabilities = ChannelModerationCapabilities(),
         listing: ChannelDirectoryListing,
         initialMessages: [ChannelTranscriptMessage] = [],
+        initialMessagesByChannelID: [Int64: [ChannelTranscriptMessage]] = [:],
         memberRoster: [ChannelMemberRoleItem] = [],
         mentionCountsByChannelID: [Int64: Int] = [:],
-        blockedSenderIDs: Set<Int> = []
+        blockedSenderIDs: Set<Int> = [],
+        activeBans: [ChannelModerationBanRecord] = [],
+        rulesVersion: Int = 1,
+        rulesStore: any ChannelRulesAcceptanceStoring = UserDefaultsChannelRulesAcceptanceStore(),
+        blockedUsersStore: any ChannelBlockedUsersStoring = UserDefaultsChannelBlockedUsersStore(),
+        safetyService: (any ClubChannelSafetyServing)? = nil
     ) {
         self.club = club
         self.viewerMemberID = viewerMemberID
@@ -51,6 +59,20 @@ public struct ClubChannelMessagingView: View {
         self.capabilities = capabilities
         self.rawListing = listing
         self.memberRoster = memberRoster
+        self.safetyService = safetyService
+
+        for senderID in blockedSenderIDs where senderID > 0 {
+            blockedUsersStore.addBlockedUser(
+                targetMemberID: senderID,
+                clubID: club.id,
+                viewerMemberID: viewerMemberID
+            )
+        }
+        let persistedBlocked = blockedUsersStore.blockedUserIDs(
+            clubID: club.id,
+            viewerMemberID: viewerMemberID
+        ).union(blockedSenderIDs)
+
         let badges = Dictionary(
             uniqueKeysWithValues: memberRoster.map { ($0.memberID, $0.badgeLabel) }
         )
@@ -60,12 +82,40 @@ public struct ClubChannelMessagingView: View {
             mentionCountsByChannelID: mentionCountsByChannelID
         )
         _directoryProjection = State(initialValue: initialProjection)
-        let firstChannelID = initialProjection.groups.first?.channels.first?.id ?? 1
+        let firstChannelID = initialProjection.groups.first?.channels.first?.id ?? listing.channels.first?.id ?? 1
         _selectedChannelID = State(initialValue: firstChannelID)
-        _viewportState = State(initialValue: ChannelTranscriptViewportState(initialMessages: initialMessages, hasMoreOlderPages: true))
+
+        var mergedByChannel = initialMessagesByChannelID
+        if mergedByChannel[firstChannelID] == nil && !initialMessages.isEmpty {
+            mergedByChannel[firstChannelID] = initialMessages
+        }
+        _messagesByChannelID = State(initialValue: mergedByChannel)
+        let startingMessages = mergedByChannel[firstChannelID] ?? initialMessages
+        _viewportState = State(initialValue: ChannelTranscriptViewportState(initialMessages: startingMessages, hasMoreOlderPages: true))
         _sendStateMachine = State(initialValue: ChannelSendStateMachine(conversationID: Int(firstChannelID)))
-        _contentFilter = State(initialValue: ChannelContentFilterHook(blockedSenderIDs: blockedSenderIDs))
+        _contentFilter = State(initialValue: ChannelContentFilterHook(blockedSenderIDs: persistedBlocked))
         _mentionByChannelID = State(initialValue: mentionCountsByChannelID)
+
+        let initialMuted = Set(
+            listing.channels.compactMap { entry in
+                entry.myState?.notifyPref == 2 ? entry.id : nil
+            }
+        )
+        _moderationCoordinator = StateObject(
+            wrappedValue: ClubChannelModerationCoordinator(
+                clubID: club.id,
+                viewerMemberID: viewerMemberID,
+                viewerRoleTier: viewerRoleTier,
+                capabilities: capabilities,
+                isChannelAccessRevoked: false,
+                rulesVersion: rulesVersion,
+                rulesStore: rulesStore,
+                blockedUsersStore: blockedUsersStore,
+                service: safetyService,
+                initialMutedChannelIDs: initialMuted,
+                initialActiveBans: activeBans
+            )
+        )
     }
 
     private var selectedChannel: ChannelDiscordItemProjection? {
@@ -78,17 +128,19 @@ public struct ClubChannelMessagingView: View {
     }
 
     private var safetyPolicy: ChannelSafetyModerationPolicy {
-        ChannelSafetyModerationPolicy(
-            clubID: club.id,
-            viewerMemberID: viewerMemberID,
-            viewerRoleTier: viewerRoleTier,
-            capabilities: capabilities
-        )
+        moderationCoordinator.policy
+    }
+
+    private var effectiveMemberRoster: [ChannelMemberRoleItem] {
+        memberRoster.filter { !moderationCoordinator.removedMemberIDs.contains($0.memberID) }
     }
 
     private var burstGroups: [ChannelMessageBurstGroup] {
         var machine = sendStateMachine
-        let combined = machine.mergedTranscript(serverMessages: viewportState.messages)
+        let visibleServerMessages = viewportState.messages.filter { item in
+            !moderationCoordinator.deletedMessageIDs.contains(item.wireMessage.id)
+        }
+        let combined = machine.mergedTranscript(serverMessages: visibleServerMessages)
         return ChannelMessageBurstGrouper.group(
             messages: combined,
             roleBadgeByMemberID: roleBadgesByMemberID,
@@ -99,36 +151,31 @@ public struct ClubChannelMessagingView: View {
 
     private var localizedFilter: ChannelContentFilterHook {
         ChannelContentFilterHook(
-            blockedSenderIDs: contentFilter.blockedSenderIDs,
+            blockedSenderIDs: moderationCoordinator.blockedSenderIDs.union(contentFilter.blockedSenderIDs),
             mutedKeywords: contentFilter.mutedKeywords,
             maskObjectionableContent: contentFilter.maskObjectionableContent,
             locale: locale
         )
     }
 
+    private var mutedByChannelID: [Int64: Bool] {
+        var map: [Int64: Bool] = [:]
+        for channel in rawListing.channels {
+            map[channel.id] = moderationCoordinator.mutedChannelIDs.contains(channel.id)
+        }
+        return map
+    }
+
     public var body: some View {
         VStack(spacing: 0) {
             channelTopBar
             Divider()
-            if let activeSafetyBanner {
-                HStack(spacing: CYSpacing.sm) {
-                    Image(systemName: "checkmark.shield.fill")
-                        .foregroundStyle(CYColor.successText)
-                    Text(activeSafetyBanner)
-                        .font(CYTypography.caption)
-                        .foregroundStyle(CYColor.textPrimary)
-                    Spacer()
-                    Button(copy("关闭", "Dismiss")) {
-                        self.activeSafetyBanner = nil
-                    }
-                    .frame(minHeight: CYSpacing.minTouchTarget)
-                    .font(CYTypography.label)
-                    .foregroundStyle(CYColor.accentText)
-                }
-                .padding(.horizontal, CYSpacing.md)
-                .padding(.vertical, CYSpacing.sm)
-                .background(CYColor.successSoft)
-                .accessibilityElement(children: .combine)
+            if let banner = moderationCoordinator.feedbackBanner {
+                moderationBannerView(banner)
+            }
+            if !moderationCoordinator.hasAcceptedRules {
+                channelRulesGateBanner
+                Divider()
             }
             if directoryProjection.groups.isEmpty {
                 let emptyTitle = copy("暂无频道", "No channels yet")
@@ -151,33 +198,104 @@ public struct ClubChannelMessagingView: View {
             }
         }
         .background(CYColor.bgPage)
+        .confirmationDialog(
+            copy("举报频道「#\(selectedChannel?.name ?? "")」", "Report Channel #\(selectedChannel?.name ?? "")"),
+            isPresented: $showReportChannelDialog,
+            titleVisibility: .visible
+        ) {
+            Button(copy("垃圾广告或诈骗信息", "Spam or scam"), role: .destructive) {
+                submitChannelReport(reasonCode: "SPAM_SCAM", detail: "Spam or scam content in channel")
+            }
+            Button(copy("骚扰、辱骂或不当言论", "Harassment or abusive content"), role: .destructive) {
+                submitChannelReport(reasonCode: "HARASSMENT", detail: "Harassment or abusive content in channel")
+            }
+            Button(copy("违法违规或色情低俗", "Illegal or objectionable content"), role: .destructive) {
+                submitChannelReport(reasonCode: "OBJECT_CONTENT", detail: "Illegal or objectionable content in channel")
+            }
+            Button(copy("取消", "Cancel"), role: .cancel) {}
+        }
         .sheet(isPresented: $showMemberRosterSheet) {
             ClubChannelMemberRosterSheet(
                 clubName: club.name,
-                sections: ChannelMemberRoleRoster.buildSections(from: memberRoster, locale: locale),
-                policy: safetyPolicy,
-                blockedSenderIDs: contentFilter.blockedSenderIDs,
-                onSafetyActionFeedback: { message in
-                    activeSafetyBanner = message
-                },
-                onToggleBlockMember: { targetID, shouldBlock in
-                    var nextBlocked = contentFilter.blockedSenderIDs
-                    if shouldBlock {
-                        nextBlocked.insert(targetID)
-                    } else {
-                        nextBlocked.remove(targetID)
-                    }
-                    contentFilter = ChannelContentFilterHook(
-                        blockedSenderIDs: nextBlocked,
-                        mutedKeywords: contentFilter.mutedKeywords,
-                        maskObjectionableContent: contentFilter.maskObjectionableContent
-                    )
-                },
-                onRemoveMember: { removedID in
-                    memberRoster.removeAll { $0.memberID == removedID }
-                }
+                sections: ChannelMemberRoleRoster.buildSections(from: effectiveMemberRoster, locale: locale),
+                activeChannelID: Int(selectedChannelID),
+                coordinator: moderationCoordinator
             )
         }
+    }
+
+    @ViewBuilder
+    private func moderationBannerView(_ banner: ChannelModerationFeedbackBanner) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
+                .foregroundStyle(banner.isError ? CYColor.dangerText : CYColor.successText)
+            Text(banner.message)
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textPrimary)
+            Spacer()
+            if banner.canRetry {
+                Button(copy("重试", "Retry")) {
+                    Task {
+                        _ = await moderationCoordinator.retryLastFailedAction(locale: locale)
+                        refreshDirectoryProjection()
+                    }
+                }
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .font(CYTypography.label)
+                .foregroundStyle(CYColor.dangerText)
+                .accessibilityIdentifier("club.channel.moderation.retryButton")
+            }
+            Button(copy("关闭", "Dismiss")) {
+                moderationCoordinator.clearBanner()
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .font(CYTypography.label)
+            .foregroundStyle(CYColor.accentText)
+        }
+        .padding(.horizontal, CYSpacing.md)
+        .padding(.vertical, CYSpacing.sm)
+        .background(banner.isError ? CYColor.dangerSoft : CYColor.successSoft)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("club.channel.moderation.banner")
+    }
+
+    private var channelRulesGateBanner: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            HStack(spacing: CYSpacing.xs) {
+                Image(systemName: "hand.raised.shield.fill")
+                    .foregroundStyle(CYColor.warningText)
+                Text(copy("俱乐部频道公约与安全守则（App Store 1.2）", "Club Channel Rules & Safety EULA"))
+                    .font(CYTypography.label)
+                    .foregroundStyle(CYColor.textPrimary)
+            }
+            Text(
+                copy(
+                    "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。",
+                    "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
+                )
+            )
+            .font(CYTypography.caption)
+            .foregroundStyle(CYColor.textSecondary)
+
+            HStack {
+                Spacer()
+                Button {
+                    moderationCoordinator.acceptChannelRules(locale: locale)
+                } label: {
+                    Text(copy("我已阅读并同意频道公约", "Accept Channel Rules & EULA"))
+                        .font(CYTypography.label)
+                        .padding(.horizontal, CYSpacing.md)
+                        .padding(.vertical, CYSpacing.xs)
+                }
+                .buttonStyle(.borderedProminent)
+                .frame(minHeight: CYSpacing.minTouchTarget)
+                .accessibilityIdentifier("club.channel.rulesGate.accept")
+            }
+        }
+        .padding(.horizontal, CYSpacing.md)
+        .padding(.vertical, CYSpacing.sm)
+        .background(CYColor.warningSoft)
+        .accessibilityIdentifier("club.channel.rulesGate")
     }
 
     // MARK: - Top Header Bar
@@ -237,11 +355,16 @@ public struct ClubChannelMessagingView: View {
             Button {
                 guard let channel = selectedChannel else { return }
                 let nextMuted = !channel.isMuted
-                mutedByChannelID[channel.id] = nextMuted
-                refreshDirectoryProjection()
-                activeSafetyBanner = nextMuted
-                    ? copy("已开启「#\(channel.name)」免打扰", "Muted #\(channel.name)")
-                    : copy("已恢复「#\(channel.name)」消息提醒", "Unmuted #\(channel.name)")
+                Task {
+                    let ok = await moderationCoordinator.muteChannel(
+                        conversationID: Int(channel.id),
+                        muted: nextMuted,
+                        locale: locale
+                    )
+                    if ok {
+                        refreshDirectoryProjection()
+                    }
+                }
             } label: {
                 Image(systemName: selectedChannel?.isMuted == true ? "bell.slash.fill" : "bell")
                     .foregroundStyle(CYColor.textPrimary)
@@ -250,13 +373,26 @@ public struct ClubChannelMessagingView: View {
             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             .contentShape(Rectangle())
             .accessibilityLabel(selectedChannel?.isMuted == true ? copy("取消频道免打扰", "Unmute channel") : copy("频道免打扰", "Mute channel"))
+            .accessibilityIdentifier("club.channel.muteButton")
+
+            Button {
+                showReportChannelDialog = true
+            } label: {
+                Image(systemName: "flag")
+                    .foregroundStyle(CYColor.textPrimary)
+            }
+            .buttonStyle(.borderless)
+            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
+            .accessibilityLabel(copy("举报当前频道", "Report channel"))
+            .accessibilityIdentifier("club.channel.reportChannelButton")
 
             Button {
                 showMemberRosterSheet = true
             } label: {
                 HStack(spacing: CYSpacing.xs) {
                     Image(systemName: "person.2.fill")
-                    Text("\(memberRoster.count)")
+                    Text("\(effectiveMemberRoster.count)")
                         .font(CYTypography.caption)
                 }
                 .foregroundStyle(CYColor.textPrimary)
@@ -265,7 +401,7 @@ public struct ClubChannelMessagingView: View {
             .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             .contentShape(Rectangle())
             .accessibilityLabel(copy("频道成员与身份组", "Channel members and roles"))
-
+            .accessibilityIdentifier("club.channel.memberRosterButton")
         }
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.sm)
@@ -347,6 +483,21 @@ public struct ClubChannelMessagingView: View {
         }
         .buttonStyle(.plain)
         .padding(.horizontal, 6)
+        .contextMenu {
+            Button(role: .destructive) {
+                Task {
+                    _ = await moderationCoordinator.reportChannel(
+                        channelID: Int(channel.id),
+                        channelName: channel.name,
+                        reasonCode: "OBJECT_CONTENT",
+                        detail: "Reported channel #\(channel.name)",
+                        locale: locale
+                    )
+                }
+            } label: {
+                Label(copy("举报该频道", "Report channel"), systemImage: "flag")
+            }
+        }
     }
 
     // MARK: - Transcript + Paging Up + New-Message Jump + Composer
@@ -396,40 +547,35 @@ public struct ClubChannelMessagingView: View {
                                         retryFailedMessage(clientMessageID: clientMessageID)
                                     },
                                     onReportMessage: { msg in
-                                        switch safetyPolicy.validateReportMessage(message: msg, reason: "Objectionable content") {
-                                        case let .success(endpoint):
-                                            _ = endpoint
-                                            activeSafetyBanner = copy("举报已提交，安全团队将在 24 小时内处理。", "Report submitted. Our safety team will review it within 24 hours.")
-                                        case let .failure(reason):
-                                            _ = reason
-                                            activeSafetyBanner = copy("无法举报该消息，请稍后重试。", "Couldn't report this message. Please try again later.")
+                                        Task {
+                                            _ = await moderationCoordinator.reportMessage(
+                                                message: msg,
+                                                reason: "Objectionable content",
+                                                activeChannelID: Int(selectedChannelID),
+                                                locale: locale
+                                            )
                                         }
                                     },
                                     onBlockAuthor: { authorID in
-                                        switch safetyPolicy.validateBlockUser(targetMemberID: authorID, shouldBlock: true) {
-                                        case let .success(endpoint):
-                                            var next = contentFilter.blockedSenderIDs
-                                            next.insert(authorID)
-                                            _ = endpoint
-                                            contentFilter = ChannelContentFilterHook(
-                                                blockedSenderIDs: next,
-                                                mutedKeywords: contentFilter.mutedKeywords,
-                                                maskObjectionableContent: contentFilter.maskObjectionableContent
+                                        let nickname = effectiveMemberRoster.first(where: { $0.memberID == authorID })?.nickname
+                                            ?? copy("成员 #\(authorID)", "Member #\(authorID)")
+                                        Task {
+                                            _ = await moderationCoordinator.blockUser(
+                                                targetMemberID: authorID,
+                                                nickname: nickname,
+                                                shouldBlock: true,
+                                                activeChannelID: Int(selectedChannelID),
+                                                locale: locale
                                             )
-                                            activeSafetyBanner = copy("已拉黑成员 #\(authorID)，其消息已隐藏。", "Blocked member #\(authorID). Their messages are hidden.")
-                                        case let .failure(reason):
-                                            _ = reason
-                                            activeSafetyBanner = copy("无法拉黑该用户。", "Couldn't block this user.")
                                         }
                                     },
                                     onDeleteMessage: { msg in
-                                        switch safetyPolicy.validateDeleteMessage(channelID: Int(selectedChannelID), message: msg) {
-                                        case let .success(endpoint):
-                                            _ = endpoint
-                                            activeSafetyBanner = copy("消息 #\(msg.id) 已撤回/删除。", "Message #\(msg.id) was recalled or deleted.")
-                                        case let .failure(reason):
-                                            _ = reason
-                                            activeSafetyBanner = copy("你没有权限删除该消息。", "You don't have permission to delete this message.")
+                                        Task {
+                                            _ = await moderationCoordinator.deleteMessage(
+                                                channelID: Int(selectedChannelID),
+                                                message: msg,
+                                                locale: locale
+                                            )
                                         }
                                     }
                                 )
@@ -498,7 +644,18 @@ public struct ClubChannelMessagingView: View {
                 .padding(.top, 6)
             }
 
-            if selectedChannel?.isReadOnlyAnnouncement == true && !safetyPolicy.canModerateMessages {
+            if !moderationCoordinator.hasAcceptedRules {
+                HStack(spacing: 6) {
+                    Image(systemName: "lock.shield")
+                        .foregroundStyle(CYColor.warningText)
+                    Text(copy("请先在上方阅读并同意《俱乐部频道公约》后再发言。", "Please accept the Channel Rules & EULA above before sending messages."))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+                .accessibilityIdentifier("club.channel.composer.rulesLocked")
+            } else if selectedChannel?.isReadOnlyAnnouncement == true && !safetyPolicy.canModerateMessages {
                 HStack(spacing: 6) {
                     Image(systemName: "megaphone")
                         .foregroundStyle(.secondary)
@@ -532,10 +689,27 @@ public struct ClubChannelMessagingView: View {
 
     // MARK: - Actions
 
+    private func submitChannelReport(reasonCode: String, detail: String) {
+        guard let channel = selectedChannel else { return }
+        Task {
+            _ = await moderationCoordinator.reportChannel(
+                channelID: Int(channel.id),
+                channelName: channel.name,
+                reasonCode: reasonCode,
+                detail: detail,
+                locale: locale
+            )
+        }
+    }
+
     private func selectChannel(_ channelID: Int64) {
+        messagesByChannelID[selectedChannelID] = viewportState.messages
         selectedChannelID = channelID
         unreadByChannelID[channelID] = 0
         mentionByChannelID[channelID] = 0
+        let nextMessages = messagesByChannelID[channelID] ?? []
+        viewportState = ChannelTranscriptViewportState(initialMessages: nextMessages, hasMoreOlderPages: true)
+        sendStateMachine = ChannelSendStateMachine(conversationID: Int(channelID))
         refreshDirectoryProjection()
     }
 
@@ -550,32 +724,92 @@ public struct ClubChannelMessagingView: View {
     }
 
     private func sendOptimisticChannelMessage() {
+        guard moderationCoordinator.hasAcceptedRules else { return }
         let trimmed = composerText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
+        let replyID = activeReplyTarget?.id
         let body: String
         if let reply = activeReplyTarget {
             body = "> #\(reply.id) \(trimmed)"
         } else {
             body = trimmed
         }
+        let channelID = Int(selectedChannelID)
         let clientID = "w6-\(selectedChannelID)-\(UUID().uuidString.lowercased())"
         _ = sendStateMachine.enqueueOptimistic(
             clientMessageID: clientID,
             senderID: viewerMemberID,
             content: body,
-            replyToMessageID: activeReplyTarget?.id
+            replyToMessageID: replyID
         )
         _ = sendStateMachine.markSending(clientMessageID: clientID)
         composerText = ""
         activeReplyTarget = nil
+
+        Task {
+            await dispatchOutboundMessage(
+                channelID: channelID,
+                clientMessageID: clientID,
+                content: body,
+                replyToMessageID: replyID
+            )
+        }
     }
 
     private func retryFailedMessage(clientMessageID: String) {
+        guard let existing = sendStateMachine.recordsByClientID[clientMessageID] else { return }
         guard sendStateMachine.beginRetryWithReceiptCheck(clientMessageID: clientMessageID) else { return }
         _ = sendStateMachine.resolveRetryAfterReceiptCheck(
             clientMessageID: clientMessageID,
             receiptResult: .notFound
         )
+        let channelID = Int(selectedChannelID)
+        Task {
+            await dispatchOutboundMessage(
+                channelID: channelID,
+                clientMessageID: clientMessageID,
+                content: existing.content,
+                replyToMessageID: existing.replyToMessageID
+            )
+        }
+    }
+
+    private func dispatchOutboundMessage(
+        channelID: Int,
+        clientMessageID: String,
+        content: String,
+        replyToMessageID: Int?
+    ) async {
+        guard let safetyService else {
+            _ = sendStateMachine.markFailed(
+                clientMessageID: clientMessageID,
+                reason: copy("发信服务不可用", "Send service unavailable")
+            )
+            return
+        }
+        do {
+            let serverID = try await safetyService.sendChannelMessage(
+                clubID: club.id,
+                channelID: channelID,
+                clientMessageID: clientMessageID,
+                content: content,
+                replyToMessageID: replyToMessageID
+            )
+            let serverMessage = ChannelTranscriptMessage.make(
+                id: max(serverID, 1),
+                conversationID: max(channelID, 1),
+                senderID: viewerMemberID,
+                type: 1,
+                content: content,
+                clientMessageID: clientMessageID
+            ).wireMessage
+            _ = sendStateMachine.markSent(clientMessageID: clientMessageID, serverMessage: serverMessage)
+        } catch {
+            _ = sendStateMachine.markFailed(
+                clientMessageID: clientMessageID,
+                reason: copy("发送失败，请重试", "Send failed, please retry")
+            )
+        }
     }
 }
 
@@ -750,96 +984,185 @@ private struct ChannelBurstGroupCard: View {
 public struct ClubChannelMemberRosterSheet: View {
     public let clubName: String
     public let sections: [ChannelMemberRoleSection]
-    public let policy: ChannelSafetyModerationPolicy
-    public let blockedSenderIDs: Set<Int>
-    public let onSafetyActionFeedback: (String) -> Void
-    public let onToggleBlockMember: (Int, Bool) -> Void
-    public let onRemoveMember: (Int) -> Void
+    public let activeChannelID: Int
+    @ObservedObject public var coordinator: ClubChannelModerationCoordinator
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
+    public init(
+        clubName: String,
+        sections: [ChannelMemberRoleSection],
+        activeChannelID: Int,
+        coordinator: ClubChannelModerationCoordinator
+    ) {
+        self.clubName = clubName
+        self.sections = sections
+        self.activeChannelID = activeChannelID
+        self.coordinator = coordinator
+    }
+
     public var body: some View {
+        let policy = coordinator.policy
         NavigationStack {
-            List {
-                ForEach(sections) { section in
-                    Section(section.title) {
-                        ForEach(section.members) { member in
-                            HStack(spacing: 10) {
-                                Circle()
-                                    .fill(Color.accentColor.opacity(0.16))
-                                    .frame(width: 32, height: 32)
-                                    .overlay(
-                                        Text(String(member.nickname.prefix(1)))
-                                            .font(.caption.weight(.bold))
-                                    )
-                                VStack(alignment: .leading, spacing: 2) {
-                                    HStack(spacing: 6) {
-                                        Text(member.nickname)
-                                            .font(.subheadline.weight(.medium))
-                                        Text(member.badgeLabel)
-                                            .font(.caption2.weight(.semibold))
-                                            .padding(.horizontal, 6)
-                                            .padding(.vertical, 1)
-                                            .background(Color.accentColor.opacity(0.14), in: Capsule())
-                                            .foregroundStyle(Color.accentColor)
-                                        if blockedSenderIDs.contains(member.memberID) {
-                                            Text(copy("已拉黑", "Blocked"))
-                                                .font(.caption2)
-                                                .foregroundStyle(.red)
-                                        }
-                                    }
-                                    if let expires = member.expiresText, !expires.isEmpty {
-                                        Text(copy("角色有效期至 \(expires)", "Role valid until \(expires)"))
-                                            .font(.caption2)
-                                            .foregroundStyle(.secondary)
-                                    }
+            VStack(spacing: 0) {
+                if let banner = coordinator.feedbackBanner {
+                    HStack(spacing: CYSpacing.sm) {
+                        Image(systemName: banner.isError ? "exclamationmark.triangle.fill" : "checkmark.shield.fill")
+                            .foregroundStyle(banner.isError ? CYColor.dangerText : CYColor.successText)
+                        Text(banner.message)
+                            .font(CYTypography.caption)
+                            .foregroundStyle(CYColor.textPrimary)
+                        Spacer()
+                        if banner.canRetry {
+                            Button(copy("重试", "Retry")) {
+                                Task {
+                                    _ = await coordinator.retryLastFailedAction(locale: locale)
                                 }
-                                Spacer()
                             }
-                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                if member.memberID != policy.viewerMemberID {
-                                    let isBlocked = blockedSenderIDs.contains(member.memberID)
-                                    Button(isBlocked ? copy("取消拉黑", "Unblock") : copy("拉黑", "Block")) {
-                                        onToggleBlockMember(member.memberID, !isBlocked)
-                                        onSafetyActionFeedback(
-                                            isBlocked
-                                                ? copy("已取消拉黑 \(member.nickname)", "Unblocked \(member.nickname)")
-                                                : copy("已拉黑 \(member.nickname)", "Blocked \(member.nickname)")
-                                        )
-                                    }
-                                    .tint(.orange)
+                            .font(CYTypography.label)
+                            .foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("club.channel.roster.retryButton")
+                        }
+                        Button(copy("关闭", "Dismiss")) {
+                            coordinator.clearBanner()
+                        }
+                        .font(CYTypography.label)
+                        .foregroundStyle(CYColor.accentText)
+                    }
+                    .padding(.horizontal, CYSpacing.md)
+                    .padding(.vertical, CYSpacing.sm)
+                    .background(banner.isError ? CYColor.dangerSoft : CYColor.successSoft)
+                }
 
-                                    Button(copy("举报", "Report")) {
-                                        switch policy.validateReportUser(
-                                            targetMemberID: member.memberID,
-                                            reasonCode: "HARASSMENT",
-                                            detail: "Channel member report"
-                                        ) {
-                                        case let .success(endpoint):
-                                            _ = endpoint
-                                            onSafetyActionFeedback(copy("已提交对 \(member.nickname) 的举报", "Report on \(member.nickname) submitted"))
-                                        case let .failure(denial):
-                                            _ = denial
-                                            onSafetyActionFeedback(copy("举报失败，请稍后重试。", "Couldn't submit the report. Please try again later."))
+                List {
+                    ForEach(sections) { section in
+                        Section(section.title) {
+                            ForEach(section.members) { member in
+                                HStack(spacing: 10) {
+                                    Circle()
+                                        .fill(Color.accentColor.opacity(0.16))
+                                        .frame(width: 32, height: 32)
+                                        .overlay(
+                                            Text(String(member.nickname.prefix(1)))
+                                                .font(.caption.weight(.bold))
+                                        )
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(spacing: 6) {
+                                            Text(member.nickname)
+                                                .font(.subheadline.weight(.medium))
+                                            Text(member.badgeLabel)
+                                                .font(.caption2.weight(.semibold))
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 1)
+                                                .background(Color.accentColor.opacity(0.14), in: Capsule())
+                                                .foregroundStyle(Color.accentColor)
+                                            if coordinator.blockedSenderIDs.contains(member.memberID) {
+                                                Text(copy("已拉黑", "Blocked"))
+                                                    .font(.caption2)
+                                                    .foregroundStyle(.red)
+                                            }
+                                        }
+                                        if let expires = member.expiresText, !expires.isEmpty {
+                                            Text(copy("角色有效期至 \(expires)", "Role valid until \(expires)"))
+                                                .font(.caption2)
+                                                .foregroundStyle(.secondary)
                                         }
                                     }
-                                    .tint(.yellow)
+                                    Spacer()
+                                }
+                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                    if member.memberID != policy.viewerMemberID {
+                                        let isBlocked = coordinator.blockedSenderIDs.contains(member.memberID)
+                                        Button(isBlocked ? copy("取消拉黑", "Unblock") : copy("拉黑", "Block")) {
+                                            Task {
+                                                _ = await coordinator.blockUser(
+                                                    targetMemberID: member.memberID,
+                                                    nickname: member.nickname,
+                                                    shouldBlock: !isBlocked,
+                                                    activeChannelID: activeChannelID,
+                                                    locale: locale
+                                                )
+                                            }
+                                        }
+                                        .tint(.orange)
 
-                                    if policy.canRemoveOrBanMembers {
-                                        Button(copy("移除", "Remove"), role: .destructive) {
-                                            switch policy.validateRemoveMember(target: member) {
-                                            case let .success(endpoint):
-                                                onRemoveMember(member.memberID)
-                                                _ = endpoint
-                                                onSafetyActionFeedback(copy("已移除成员 \(member.nickname)", "Removed \(member.nickname)"))
-                                            case let .failure(denial):
-                                                _ = denial
-                                                onSafetyActionFeedback(copy("无法移除成员。", "Couldn't remove this member."))
+                                        Button(copy("举报", "Report")) {
+                                            Task {
+                                                _ = await coordinator.reportUser(
+                                                    targetMemberID: member.memberID,
+                                                    nickname: member.nickname,
+                                                    reasonCode: "HARASSMENT",
+                                                    detail: "Channel member report",
+                                                    activeChannelID: activeChannelID,
+                                                    locale: locale
+                                                )
+                                            }
+                                        }
+                                        .tint(.yellow)
+
+                                        if policy.canRemoveOrBanMembers {
+                                            Button(copy("移除", "Remove"), role: .destructive) {
+                                                Task {
+                                                    _ = await coordinator.removeMember(
+                                                        target: member,
+                                                        activeChannelID: activeChannelID,
+                                                        locale: locale
+                                                    )
+                                                }
+                                            }
+
+                                            Button(copy("封禁", "Ban"), role: .destructive) {
+                                                Task {
+                                                    _ = await coordinator.banMember(
+                                                        target: member,
+                                                        reasonCode: "HARASSMENT",
+                                                        reasonText: "Banned by club administrator for violating channel safety rules",
+                                                        activeChannelID: activeChannelID,
+                                                        locale: locale
+                                                    )
+                                                }
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+                    }
+
+                    if policy.canRemoveOrBanMembers && !coordinator.activeBans.isEmpty {
+                        Section(copy("封禁名单（管理员）", "Active Bans (Admin)")) {
+                            ForEach(coordinator.activeBans) { ban in
+                                HStack {
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        HStack(spacing: 6) {
+                                            Text(ban.nickname)
+                                                .font(.subheadline.weight(.medium))
+                                            Text(ban.platformOnly ? copy("平台封禁", "Platform Ban") : copy("俱乐部封禁", "Club Ban"))
+                                                .font(.caption2.weight(.semibold))
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 1)
+                                                .background(Color.red.opacity(0.14), in: Capsule())
+                                                .foregroundStyle(.red)
+                                        }
+                                        Text("\(ban.reasonCode): \(ban.reasonText)")
+                                            .font(.caption2)
+                                            .foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Button(copy("解除封禁", "Unban")) {
+                                        Task {
+                                            _ = await coordinator.unbanMember(
+                                                banRow: ban,
+                                                reason: "Unbanned by club admin",
+                                                activeChannelID: activeChannelID,
+                                                locale: locale
+                                            )
+                                        }
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .disabled(ban.platformOnly)
                                 }
                             }
                         }
@@ -858,22 +1181,24 @@ public struct ClubChannelMemberRosterSheet: View {
 
 // MARK: - Club Detail Host Entry (`ClubChannelMessagingHostView`)
 
-/// Loads club member roster and channel directory from `ClubReading` for the signed-in viewer,
+/// Loads club member roster and real channel directory via `ClubReading` and injected `ClubChannelSafetyServing`,
 /// with loading, empty, and error-with-retry states built on `App/DesignSystem`.
 @MainActor
 public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
     public let club: ClubRecord
     public let reader: Reader
     public let manageGrant: ClubDetailManageGrant?
+    public let safetyService: (any ClubChannelSafetyServing)?
+    public let rulesStore: any ChannelRulesAcceptanceStoring
+    public let blockedUsersStore: any ChannelBlockedUsersStoring
     public var onSignIn: (() -> Void)?
 
     private enum LoadPhase: Equatable {
         case loading
         case failed(String)
         case loaded(
-            listing: ChannelDirectoryListing,
+            workspace: ClubChannelWorkspacePayload,
             roster: [ChannelMemberRoleItem],
-            initialMessages: [ChannelTranscriptMessage],
             viewerMemberID: Int,
             viewerTier: ChannelMemberRoleTier,
             capabilities: ChannelModerationCapabilities
@@ -890,11 +1215,17 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
         club: ClubRecord,
         reader: Reader,
         manageGrant: ClubDetailManageGrant? = nil,
+        safetyService: (any ClubChannelSafetyServing)? = nil,
+        rulesStore: any ChannelRulesAcceptanceStoring = UserDefaultsChannelRulesAcceptanceStore(),
+        blockedUsersStore: any ChannelBlockedUsersStoring = UserDefaultsChannelBlockedUsersStore(),
         onSignIn: (() -> Void)? = nil
     ) {
         self.club = club
         self.reader = reader
         self.manageGrant = manageGrant
+        self.safetyService = safetyService
+        self.rulesStore = rulesStore
+        self.blockedUsersStore = blockedUsersStore
         self.onSignIn = onSignIn
     }
 
@@ -925,15 +1256,22 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
                 .background(CYColor.bgPage)
                 .accessibilityIdentifier("club.channels.error")
 
-            case let .loaded(listing, roster, initialMessages, viewerMemberID, viewerTier, capabilities):
+            case let .loaded(workspace, roster, viewerMemberID, viewerTier, capabilities):
+                let firstChannelID = workspace.listing.channels.first?.id ?? 1
                 ClubChannelMessagingView(
                     club: club,
                     viewerMemberID: viewerMemberID,
                     viewerRoleTier: viewerTier,
                     capabilities: capabilities,
-                    listing: listing,
-                    initialMessages: initialMessages,
-                    memberRoster: roster
+                    listing: workspace.listing,
+                    initialMessages: workspace.initialMessagesByChannelID[firstChannelID] ?? [],
+                    initialMessagesByChannelID: workspace.initialMessagesByChannelID,
+                    memberRoster: roster,
+                    activeBans: workspace.activeBans,
+                    rulesVersion: workspace.rulesVersion,
+                    rulesStore: rulesStore,
+                    blockedUsersStore: blockedUsersStore,
+                    safetyService: safetyService
                 )
                 .accessibilityIdentifier("club.channels.ready")
             }
@@ -1014,7 +1352,6 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
             phase = .failed(copy("登录状态已失效，请重新登录后重试。", "Your session expired. Please sign in again."))
             return
         } catch {
-            // Fall back to viewer-only roster if member list is temporarily unreachable
             mappedRoster = [
                 ChannelMemberRoleItem(
                     memberID: viewerID,
@@ -1026,66 +1363,29 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
             ]
         }
 
-        let clubID64 = Int64(max(1, club.id))
-        let categories = [
-            ChannelDirectoryCategory(id: 1, clubID: clubID64, name: copy("俱乐部公告与必读", "Announcements & Rules"), position: 0),
-            ChannelDirectoryCategory(id: 2, clubID: clubID64, name: copy("核心交流区", "Club Channels"), position: 1)
-        ]
-        let channels = [
-            ChannelDirectoryEntry(
-                id: 101,
-                clubID: clubID64,
-                categoryID: 1,
-                name: copy("公告通知", "announcements"),
-                kind: 2,
-                visibility: 0,
-                position: 0,
-                myState: ChannelDirectoryMyState(lastReadMessageID: nil, lastReadAt: nil, notifyPref: 0, unreadCount: 0, readStateAvailable: true)
-            ),
-            ChannelDirectoryEntry(
-                id: 102,
-                clubID: clubID64,
-                categoryID: 2,
-                name: copy("综合大厅", "general"),
-                kind: 1,
-                visibility: 0,
-                position: 0,
-                myState: ChannelDirectoryMyState(lastReadMessageID: nil, lastReadAt: nil, notifyPref: 0, unreadCount: 0, readStateAvailable: true)
-            ),
-            ChannelDirectoryEntry(
-                id: 103,
-                clubID: clubID64,
-                categoryID: 2,
-                name: copy("活动组队与约局", "events-and-lfg"),
-                kind: 1,
-                visibility: 0,
-                position: 1,
-                myState: ChannelDirectoryMyState(lastReadMessageID: nil, lastReadAt: nil, notifyPref: 0, unreadCount: 0, readStateAvailable: true)
+        guard let safetyService else {
+            phase = .failed(
+                ChannelSafetyServiceError.channelDirectoryUnavailable.localizedDescription(locale: locale)
             )
-        ]
-        let listing = ChannelDirectoryListing(clubID: clubID64, categories: categories, channels: channels)
-
-        var initialMessages: [ChannelTranscriptMessage] = []
-        let welcomeText = club.welcomeNote?.trimmingCharacters(in: .whitespacesAndNewlines)
-        if let welcomeText, !welcomeText.isEmpty {
-            initialMessages.append(
-                ChannelTranscriptMessage.make(
-                    id: 1,
-                    conversationID: 101,
-                    senderID: mappedRoster.first(where: { $0.tier == .owner })?.memberID ?? 1,
-                    senderName: club.leaderName ?? club.name,
-                    content: welcomeText
-                )
-            )
+            return
         }
 
-        phase = .loaded(
-            listing: listing,
-            roster: mappedRoster,
-            initialMessages: initialMessages,
-            viewerMemberID: viewerID,
-            viewerTier: viewerTier,
-            capabilities: capabilities
-        )
+        do {
+            let workspace = try await safetyService.loadChannelWorkspace(club: club, viewerMemberID: viewerID)
+            guard !Task.isCancelled, reader.clubIdentity == identity else { return }
+            phase = .loaded(
+                workspace: workspace,
+                roster: mappedRoster,
+                viewerMemberID: viewerID,
+                viewerTier: viewerTier,
+                capabilities: capabilities
+            )
+        } catch is CancellationError {
+            return
+        } catch let serviceError as ChannelSafetyServiceError {
+            phase = .failed(serviceError.localizedDescription(locale: locale))
+        } catch {
+            phase = .failed(copy("无法加载俱乐部频道列表，请点击重试。", "Failed to load club channels. Tap Retry to try again."))
+        }
     }
 }

@@ -1393,6 +1393,8 @@ public enum ChannelSafetyModerationEndpoint: Equatable, Sendable {
     case reportMessage(messageID: Int, reason: String)
     /// `POST /api/club/governance/cases/report` (`club_id`, `target_type`, `target_id`, `reason_code`, `detail`)
     case reportClubUser(clubID: Int, targetMemberID: Int, reasonCode: String, detail: String)
+    /// `POST /api/club/governance/cases/report` or `POST /api/im/report` (`club_id`, `channel_id`, `reason_code`, `detail`)
+    case reportChannel(clubID: Int, channelID: Int, reasonCode: String, detail: String)
     /// `POST /api/im/block` (`target_member_id`)
     case blockUser(targetMemberID: Int)
     /// `POST /api/im/unblock` (`target_member_id`)
@@ -1412,7 +1414,7 @@ public enum ChannelSafetyModerationEndpoint: Equatable, Sendable {
         switch self {
         case .reportMessage:
             return "api/im/report"
-        case .reportClubUser:
+        case .reportClubUser, .reportChannel:
             return "api/club/governance/cases/report"
         case .blockUser:
             return "api/im/block"
@@ -1521,7 +1523,7 @@ public struct ChannelSafetyModerationPolicy: Equatable, Sendable {
         viewerMemberID: Int,
         viewerRoleTier: ChannelMemberRoleTier,
         capabilities: ChannelModerationCapabilities = ChannelModerationCapabilities(),
-        hasAcceptedChannelRules: Bool = true,
+        hasAcceptedChannelRules: Bool = false,
         isChannelAccessRevoked: Bool = false
     ) {
         self.clubID = clubID
@@ -1670,6 +1672,7 @@ public struct ChannelSafetyModerationPolicy: Equatable, Sendable {
     ) -> Result<ChannelSafetyModerationEndpoint, ChannelModerationDenialReason> {
         guard viewerMemberID > 0 else { return .failure(.unauthenticated) }
         guard !isChannelAccessRevoked else { return .failure(.channelRevokedOrBanned) }
+        guard hasAcceptedChannelRules else { return .failure(.channelAdmissionRequired) }
         guard capabilities.canManageBans || viewerRoleTier == .owner || viewerRoleTier == .coOwner else {
             return .failure(.insufficientModerationPermission)
         }
@@ -1683,6 +1686,1269 @@ public struct ChannelSafetyModerationPolicy: Equatable, Sendable {
                 reason: reason.trimmingCharacters(in: .whitespacesAndNewlines)
             )
         )
+    }
+
+    /// Evaluates whether the viewer can report a channel (`POST /api/club/governance/cases/report` or `POST /api/im/report`).
+    public func validateReportChannel(
+        channelID: Int,
+        reasonCode: String,
+        detail: String
+    ) -> Result<ChannelSafetyModerationEndpoint, ChannelModerationDenialReason> {
+        guard viewerMemberID > 0 else { return .failure(.unauthenticated) }
+        guard clubID > 0, channelID > 0 else { return .failure(.invalidMessageOrReason) }
+        let code = reasonCode.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedDetail = detail.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !code.isEmpty, trimmedDetail.count <= 500 else {
+            return .failure(.invalidMessageOrReason)
+        }
+        return .success(
+            .reportChannel(
+                clubID: clubID,
+                channelID: channelID,
+                reasonCode: code,
+                detail: trimmedDetail
+            )
+        )
+    }
+
+    /// Evaluates whether the viewer can mute or unmute a channel (`POST /api/im/mute`).
+    public func validateMuteChannel(
+        conversationID: Int,
+        muted: Bool
+    ) -> Result<ChannelSafetyModerationEndpoint, ChannelModerationDenialReason> {
+        guard viewerMemberID > 0 else { return .failure(.unauthenticated) }
+        guard !isChannelAccessRevoked else { return .failure(.channelRevokedOrBanned) }
+        guard hasAcceptedChannelRules else { return .failure(.channelAdmissionRequired) }
+        guard conversationID > 0 else { return .failure(.invalidMessageOrReason) }
+        return .success(.muteChannel(conversationID: conversationID, muted: muted))
+    }
+}
+
+// MARK: - Persistent Channel Rules / EULA Gate & Blocked Users Stores (App Store 1.2)
+
+public protocol ChannelRulesAcceptanceStoring: Sendable {
+    func hasAcceptedRules(clubID: Int, viewerMemberID: Int, rulesVersion: Int) -> Bool
+    func recordAcceptedRules(clubID: Int, viewerMemberID: Int, rulesVersion: Int)
+    func revokeAcceptedRules(clubID: Int, viewerMemberID: Int)
+}
+
+public final class UserDefaultsChannelRulesAcceptanceStore: ChannelRulesAcceptanceStoring, @unchecked Sendable {
+    private let defaults: UserDefaults
+    private let namespace: String
+    private let lock = NSLock()
+
+    public init(defaults: UserDefaults = .standard, namespace: String = "default") {
+        self.defaults = defaults
+        self.namespace = namespace
+    }
+
+    private func storageKey(clubID: Int, viewerMemberID: Int) -> String {
+        "questify.channel.rules.accepted.\(namespace).club.\(clubID).member.\(viewerMemberID)"
+    }
+
+    public func hasAcceptedRules(clubID: Int, viewerMemberID: Int, rulesVersion: Int) -> Bool {
+        guard clubID > 0, viewerMemberID > 0, rulesVersion > 0 else { return false }
+        lock.lock()
+        defer { lock.unlock() }
+        let acceptedVersion = defaults.integer(forKey: storageKey(clubID: clubID, viewerMemberID: viewerMemberID))
+        return acceptedVersion >= rulesVersion
+    }
+
+    public func recordAcceptedRules(clubID: Int, viewerMemberID: Int, rulesVersion: Int) {
+        guard clubID > 0, viewerMemberID > 0, rulesVersion > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        defaults.set(rulesVersion, forKey: storageKey(clubID: clubID, viewerMemberID: viewerMemberID))
+    }
+
+    public func revokeAcceptedRules(clubID: Int, viewerMemberID: Int) {
+        guard clubID > 0, viewerMemberID > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        defaults.removeObject(forKey: storageKey(clubID: clubID, viewerMemberID: viewerMemberID))
+    }
+}
+
+public final class InMemoryChannelRulesAcceptanceStore: ChannelRulesAcceptanceStoring, @unchecked Sendable {
+    private var acceptedVersionsByScope: [String: Int] = [:]
+    private let lock = NSLock()
+
+    public init(initialAcceptedVersions: [String: Int] = [:]) {
+        self.acceptedVersionsByScope = initialAcceptedVersions
+    }
+
+    private func storageKey(clubID: Int, viewerMemberID: Int) -> String {
+        "\(clubID):\(viewerMemberID)"
+    }
+
+    public func hasAcceptedRules(clubID: Int, viewerMemberID: Int, rulesVersion: Int) -> Bool {
+        guard clubID > 0, viewerMemberID > 0, rulesVersion > 0 else { return false }
+        lock.lock()
+        defer { lock.unlock() }
+        guard let version = acceptedVersionsByScope[storageKey(clubID: clubID, viewerMemberID: viewerMemberID)] else {
+            return false
+        }
+        return version >= rulesVersion
+    }
+
+    public func recordAcceptedRules(clubID: Int, viewerMemberID: Int, rulesVersion: Int) {
+        guard clubID > 0, viewerMemberID > 0, rulesVersion > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        acceptedVersionsByScope[storageKey(clubID: clubID, viewerMemberID: viewerMemberID)] = rulesVersion
+    }
+
+    public func revokeAcceptedRules(clubID: Int, viewerMemberID: Int) {
+        guard clubID > 0, viewerMemberID > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        acceptedVersionsByScope.removeValue(forKey: storageKey(clubID: clubID, viewerMemberID: viewerMemberID))
+    }
+}
+
+public protocol ChannelBlockedUsersStoring: Sendable {
+    func blockedUserIDs(clubID: Int, viewerMemberID: Int) -> Set<Int>
+    func addBlockedUser(targetMemberID: Int, clubID: Int, viewerMemberID: Int)
+    func removeBlockedUser(targetMemberID: Int, clubID: Int, viewerMemberID: Int)
+}
+
+public final class UserDefaultsChannelBlockedUsersStore: ChannelBlockedUsersStoring, @unchecked Sendable {
+    private let defaults: UserDefaults
+    private let namespace: String
+    private let lock = NSLock()
+
+    public init(defaults: UserDefaults = .standard, namespace: String = "default") {
+        self.defaults = defaults
+        self.namespace = namespace
+    }
+
+    private func storageKey(clubID: Int, viewerMemberID: Int) -> String {
+        "questify.channel.blocked.users.\(namespace).club.\(clubID).member.\(viewerMemberID)"
+    }
+
+    public func blockedUserIDs(clubID: Int, viewerMemberID: Int) -> Set<Int> {
+        guard clubID > 0, viewerMemberID > 0 else { return [] }
+        lock.lock()
+        defer { lock.unlock() }
+        let raw = defaults.array(forKey: storageKey(clubID: clubID, viewerMemberID: viewerMemberID)) as? [Int] ?? []
+        return Set(raw.filter { $0 > 0 })
+    }
+
+    public func addBlockedUser(targetMemberID: Int, clubID: Int, viewerMemberID: Int) {
+        guard targetMemberID > 0, clubID > 0, viewerMemberID > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        let key = storageKey(clubID: clubID, viewerMemberID: viewerMemberID)
+        var current = Set((defaults.array(forKey: key) as? [Int] ?? []).filter { $0 > 0 })
+        current.insert(targetMemberID)
+        defaults.set(Array(current).sorted(), forKey: key)
+    }
+
+    public func removeBlockedUser(targetMemberID: Int, clubID: Int, viewerMemberID: Int) {
+        guard targetMemberID > 0, clubID > 0, viewerMemberID > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        let key = storageKey(clubID: clubID, viewerMemberID: viewerMemberID)
+        var current = Set((defaults.array(forKey: key) as? [Int] ?? []).filter { $0 > 0 })
+        current.remove(targetMemberID)
+        defaults.set(Array(current).sorted(), forKey: key)
+    }
+}
+
+public final class InMemoryChannelBlockedUsersStore: ChannelBlockedUsersStoring, @unchecked Sendable {
+    private var blockedByScope: [String: Set<Int>] = [:]
+    private let lock = NSLock()
+
+    public init(initialBlockedByScope: [String: Set<Int>] = [:]) {
+        self.blockedByScope = initialBlockedByScope
+    }
+
+    private func storageKey(clubID: Int, viewerMemberID: Int) -> String {
+        "\(clubID):\(viewerMemberID)"
+    }
+
+    public func blockedUserIDs(clubID: Int, viewerMemberID: Int) -> Set<Int> {
+        guard clubID > 0, viewerMemberID > 0 else { return [] }
+        lock.lock()
+        defer { lock.unlock() }
+        return blockedByScope[storageKey(clubID: clubID, viewerMemberID: viewerMemberID)] ?? []
+    }
+
+    public func addBlockedUser(targetMemberID: Int, clubID: Int, viewerMemberID: Int) {
+        guard targetMemberID > 0, clubID > 0, viewerMemberID > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        let key = storageKey(clubID: clubID, viewerMemberID: viewerMemberID)
+        var set = blockedByScope[key] ?? []
+        set.insert(targetMemberID)
+        blockedByScope[key] = set
+    }
+
+    public func removeBlockedUser(targetMemberID: Int, clubID: Int, viewerMemberID: Int) {
+        guard targetMemberID > 0, clubID > 0, viewerMemberID > 0 else { return }
+        lock.lock()
+        defer { lock.unlock() }
+        let key = storageKey(clubID: clubID, viewerMemberID: viewerMemberID)
+        var set = blockedByScope[key] ?? []
+        set.remove(targetMemberID)
+        blockedByScope[key] = set
+    }
+}
+
+// MARK: - Core Club Channel Safety & Directory Service Bridge
+
+public struct ClubChannelWorkspacePayload: Equatable, Sendable {
+    public let listing: ChannelDirectoryListing
+    public let initialMessagesByChannelID: [Int64: [ChannelTranscriptMessage]]
+    public let activeBans: [ChannelModerationBanRecord]
+    public let rulesVersion: Int
+
+    public init(
+        listing: ChannelDirectoryListing,
+        initialMessagesByChannelID: [Int64: [ChannelTranscriptMessage]],
+        activeBans: [ChannelModerationBanRecord] = [],
+        rulesVersion: Int = 1
+    ) {
+        self.listing = listing
+        self.initialMessagesByChannelID = initialMessagesByChannelID
+        self.activeBans = activeBans
+        self.rulesVersion = max(1, rulesVersion)
+    }
+}
+
+public enum ChannelSafetyServiceError: Error, Equatable, Sendable {
+    case unauthenticated
+    case channelDirectoryUnavailable
+    case serviceUnavailable(endpoint: ChannelSafetyModerationEndpoint)
+    case messageSendUnavailable
+    case operationFailed(reason: String)
+
+    public func localizedDescription(locale: Locale) -> String {
+        switch self {
+        case .unauthenticated:
+            return ChannelCopy.text("请先登录后再执行该操作。", "Please sign in before performing this action.", locale: locale)
+        case .channelDirectoryUnavailable:
+            return ChannelCopy.text("该俱乐部暂未开通频道列表或频道读取服务不可用。", "Channel directory is unavailable for this club.", locale: locale)
+        case .serviceUnavailable(let endpoint):
+            return ChannelCopy.text("安全治理服务暂不可用（\(endpoint.apiPath)），请稍后重试。", "Safety moderation service is unavailable (\(endpoint.apiPath)). Please retry.", locale: locale)
+        case .messageSendUnavailable:
+            return ChannelCopy.text("频道发信服务暂不可用，请检查网络或重试。", "Channel message sending service is unavailable. Please retry.", locale: locale)
+        case .operationFailed(let reason):
+            return reason.isEmpty
+                ? ChannelCopy.text("操作请求失败，请重试。", "Operation failed. Please retry.", locale: locale)
+                : reason
+        }
+    }
+}
+
+@MainActor
+public protocol ClubChannelSafetyServing: AnyObject {
+    func loadChannelWorkspace(club: ClubRecord, viewerMemberID: Int) async throws -> ClubChannelWorkspacePayload
+    func performModeration(_ endpoint: ChannelSafetyModerationEndpoint, activeChannelID: Int) async throws
+    func sendChannelMessage(
+        clubID: Int,
+        channelID: Int,
+        clientMessageID: String,
+        content: String,
+        replyToMessageID: Int?
+    ) async throws -> Int
+}
+
+/// Routes club channel directory loading and all safety/moderation endpoints through the existing Core services:
+/// - `IMSafetyWriting` (`api/im/report`, `api/im/block`, `api/im/unblock`, `api/im/delete`)
+/// - `IMExpandedWriting` (`api/im/mute`, `api/im/send`)
+/// - `ClubManagementAccess` (`api/club/remove-member`)
+/// - `ClubGovernanceAccess` / `ClubGovernanceCoordinator` (`api/club/governance/cases/report`, `api/club/governance/ban`, `api/club/governance/unban`)
+/// - `NativeChannelManagementCoordinator` (`GET api/guilds/1/{clubID}/channels`) & `MessagingReading` (`NativeChannelSpace.project`)
+@MainActor
+public final class CoreClubChannelSafetyService: ClubChannelSafetyServing {
+    private let imSafetyWriterProvider: () -> (any IMSafetyWriting)?
+    private let imExpandedWriterProvider: () -> (any IMExpandedWriting)?
+    private let messageWriterProvider: () -> (any MessageActionWriting)?
+    private let messagingReaderProvider: () -> (any MessagingReading)?
+    private let clubManagementAccessProvider: () -> (any ClubManagementAccess)?
+    private let clubGovernanceAccessProvider: () -> (any ClubGovernanceAccess)?
+    private let clubGovernanceCoordinatorProvider: () -> ClubGovernanceCoordinator?
+    private let nativeChannelDirectoryLoader: ((Int) async throws -> NativeChannelManagementDirectory?)?
+    private let messageDeleteDispatcher: ((Int, Int, Int) async throws -> Void)?
+
+    public init(
+        imSafetyWriter: @escaping () -> (any IMSafetyWriting)? = { nil },
+        imExpandedWriter: @escaping () -> (any IMExpandedWriting)? = { nil },
+        messageWriter: @escaping () -> (any MessageActionWriting)? = { nil },
+        messagingReader: @escaping () -> (any MessagingReading)? = { nil },
+        clubManagementAccess: @escaping () -> (any ClubManagementAccess)? = { nil },
+        clubGovernanceAccess: @escaping () -> (any ClubGovernanceAccess)? = { nil },
+        clubGovernanceCoordinator: @escaping () -> ClubGovernanceCoordinator? = { nil },
+        nativeChannelDirectoryLoader: ((Int) async throws -> NativeChannelManagementDirectory?)? = nil,
+        messageDeleteDispatcher: ((Int) async throws -> Void)? = nil
+    ) {
+        self.imSafetyWriterProvider = imSafetyWriter
+        self.imExpandedWriterProvider = imExpandedWriter
+        self.messageWriterProvider = messageWriter
+        self.messagingReaderProvider = messagingReader
+        self.clubManagementAccessProvider = clubManagementAccess
+        self.clubGovernanceAccessProvider = clubGovernanceAccess
+        self.clubGovernanceCoordinatorProvider = clubGovernanceCoordinator
+        self.nativeChannelDirectoryLoader = nativeChannelDirectoryLoader
+        if let messageDeleteDispatcher {
+            self.messageDeleteDispatcher = { _, channelID, _ in try await messageDeleteDispatcher(channelID) }
+        } else {
+            self.messageDeleteDispatcher = nil
+        }
+    }
+
+    public init(
+        imSafetyWriter: @escaping () -> (any IMSafetyWriting)? = { nil },
+        imExpandedWriter: @escaping () -> (any IMExpandedWriting)? = { nil },
+        messageWriter: @escaping () -> (any MessageActionWriting)? = { nil },
+        messagingReader: @escaping () -> (any MessagingReading)? = { nil },
+        clubManagementAccess: @escaping () -> (any ClubManagementAccess)? = { nil },
+        clubGovernanceAccess: @escaping () -> (any ClubGovernanceAccess)? = { nil },
+        clubGovernanceCoordinator: @escaping () -> ClubGovernanceCoordinator? = { nil },
+        nativeChannelDirectoryLoader: ((Int) async throws -> NativeChannelManagementDirectory?)? = nil,
+        channelMessageDeleteDispatcher: ((Int, Int, Int) async throws -> Void)?
+    ) {
+        self.imSafetyWriterProvider = imSafetyWriter
+        self.imExpandedWriterProvider = imExpandedWriter
+        self.messageWriterProvider = messageWriter
+        self.messagingReaderProvider = messagingReader
+        self.clubManagementAccessProvider = clubManagementAccess
+        self.clubGovernanceAccessProvider = clubGovernanceAccess
+        self.clubGovernanceCoordinatorProvider = clubGovernanceCoordinator
+        self.nativeChannelDirectoryLoader = nativeChannelDirectoryLoader
+        self.messageDeleteDispatcher = channelMessageDeleteDispatcher
+    }
+
+    public func loadChannelWorkspace(club: ClubRecord, viewerMemberID: Int) async throws -> ClubChannelWorkspacePayload {
+        guard club.id > 0, viewerMemberID > 0 else {
+            throw ChannelSafetyServiceError.unauthenticated
+        }
+
+        var resolvedListing: ChannelDirectoryListing?
+        var messagesByChannelID: [Int64: [ChannelTranscriptMessage]] = [:]
+
+        if let loader = nativeChannelDirectoryLoader,
+           let nativeDirectory = try await loader(club.id) {
+            resolvedListing = Self.projectNativeDirectory(nativeDirectory, clubID: club.id)
+        }
+
+        if let reader = messagingReaderProvider(), reader.isConfigured {
+            let conversations = try await reader.messagingConversations()
+            let clubSpaces = NativeChannelSpace.project(conversations).filter {
+                $0.kind == .club && $0.spaceID == club.id
+            }
+            let directClubConversations = conversations.filter { conv in
+                conv.kind == .group && (
+                    conv.directoryContext?.spaceID == Int64(club.id)
+                    || conv.counterparty?.bizKey == "club_\(club.id)"
+                )
+            }
+            let mergedConversations: [MessagingConversation]
+            if let firstSpace = clubSpaces.first, !firstSpace.channels.isEmpty {
+                mergedConversations = firstSpace.channels
+            } else {
+                mergedConversations = directClubConversations
+            }
+
+            if resolvedListing == nil, !mergedConversations.isEmpty {
+                resolvedListing = Self.projectMessagingConversations(mergedConversations, club: club)
+            }
+
+            if let listing = resolvedListing {
+                for channel in listing.channels {
+                    let page = try? await reader.messagingMessages(
+                        conversationID: Int(channel.id),
+                        cursor: 0
+                    )
+                    let items = (page?.messages ?? []).map { ChannelTranscriptMessage(wireMessage: $0) }
+                    messagesByChannelID[channel.id] = items
+                }
+            }
+        }
+
+        guard let listing = resolvedListing, !listing.channels.isEmpty else {
+            throw ChannelSafetyServiceError.channelDirectoryUnavailable
+        }
+
+        var loadedBans: [ChannelModerationBanRecord] = []
+        if let governance = clubGovernanceAccessProvider(), governance.isConfigured {
+            if let snapshot = try? await governance.read(.bans, scope: .init(clubID: club.id), options: [:]) {
+                loadedBans = Self.projectBanRecords(from: snapshot)
+            }
+        }
+
+        for ch in listing.channels where messagesByChannelID[ch.id] == nil {
+            messagesByChannelID[ch.id] = []
+        }
+
+        return ClubChannelWorkspacePayload(
+            listing: listing,
+            initialMessagesByChannelID: messagesByChannelID,
+            activeBans: loadedBans,
+            rulesVersion: 1
+        )
+    }
+
+    public func performModeration(_ endpoint: ChannelSafetyModerationEndpoint, activeChannelID: Int) async throws {
+        let conversationID = max(activeChannelID, 1)
+        switch endpoint {
+        case .reportMessage(let messageID, _):
+            let action = IMSafetyAction.report(conversationID: conversationID, messageID: messageID)
+            guard let writer = imSafetyWriterProvider(), writer.permits(action), let identity = writer.identity else {
+                throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+            }
+            try await writer.perform(action, expectedIdentity: identity)
+
+        case .reportClubUser(let clubID, let targetMemberID, let reasonCode, let detail):
+            let formattedReason = detail.isEmpty ? reasonCode : "\(reasonCode): \(detail)"
+            if try await dispatchGovernanceReportIfAvailable(
+                clubID: clubID,
+                targetType: "MEMBER",
+                targetID: targetMemberID,
+                reason: formattedReason
+            ) {
+                return
+            }
+            let fallbackAction = IMSafetyAction.report(conversationID: conversationID, messageID: targetMemberID)
+            if let writer = imSafetyWriterProvider(), writer.permits(fallbackAction), let identity = writer.identity {
+                try await writer.perform(fallbackAction, expectedIdentity: identity)
+                return
+            }
+            throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+
+        case .reportChannel(let clubID, let channelID, let reasonCode, let detail):
+            let formattedReason = detail.isEmpty ? reasonCode : "\(reasonCode): \(detail)"
+            let imAction = IMSafetyAction.report(conversationID: channelID, messageID: channelID)
+            if let writer = imSafetyWriterProvider(), writer.permits(imAction), let identity = writer.identity {
+                try await writer.perform(imAction, expectedIdentity: identity)
+                return
+            }
+            if try await dispatchGovernanceReportIfAvailable(
+                clubID: clubID,
+                targetType: "CLUB",
+                targetID: clubID,
+                reason: "[Channel #\(channelID)] \(formattedReason)"
+            ) {
+                return
+            }
+            throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+
+        case .blockUser(let targetMemberID):
+            let action = IMSafetyAction.block(conversationID: conversationID, targetMemberID: targetMemberID)
+            guard let writer = imSafetyWriterProvider(), writer.permits(action), let identity = writer.identity else {
+                throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+            }
+            try await writer.perform(action, expectedIdentity: identity)
+
+        case .unblockUser(let targetMemberID):
+            let action = IMSafetyAction.unblock(conversationID: conversationID, targetMemberID: targetMemberID)
+            guard let writer = imSafetyWriterProvider(), writer.permits(action), let identity = writer.identity else {
+                throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+            }
+            try await writer.perform(action, expectedIdentity: identity)
+
+        case .muteChannel(let channelConversationID, let muted):
+            guard let writer = imExpandedWriterProvider(), writer.isConfigured, let identity = writer.identity else {
+                throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+            }
+            _ = try await writer.perform(.mute(conversationID: channelConversationID, muted: muted), expectedIdentity: identity)
+
+        case .deleteMessage(let clubID, let channelID, let messageID):
+            if let deleteDispatcher = messageDeleteDispatcher {
+                try await deleteDispatcher(clubID, channelID, messageID)
+                return
+            }
+            let hideAction = IMSafetyAction.hide(conversationID: channelID)
+            if let writer = imSafetyWriterProvider(), writer.permits(hideAction), let identity = writer.identity {
+                try await writer.perform(hideAction, expectedIdentity: identity)
+                return
+            }
+            throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+
+        case .removeMember(let clubID, let targetMemberID):
+            guard let access = clubManagementAccessProvider(), access.isConfigured, let identity = access.identity else {
+                throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+            }
+            _ = try await access.perform(.remove, clubID: clubID, memberID: targetMemberID, expectedIdentity: identity)
+
+        case .banMember(let clubID, let targetMemberID, let reasonCode, let reasonText):
+            let formattedReason = reasonText.isEmpty ? reasonCode : "\(reasonCode): \(reasonText)"
+            let nowMs = Int((Date().timeIntervalSince1970 * 1000).rounded(.down))
+            let expiryMs = nowMs + (30 * 86_400_000)
+            let command = try ClubGovernanceCommand(
+                operation: .ban,
+                scope: .init(clubID: clubID),
+                values: [
+                    "targetMemberId": .integer(targetMemberID),
+                    "reason": .string(formattedReason),
+                    "requestId": .string("channel-ban-\(clubID)-\(targetMemberID)-\(UUID().uuidString.prefix(8))"),
+                    "expiresAtEpochMs": .integer(expiryMs)
+                ]
+            )
+            try await dispatchGovernanceCommand(command, endpoint: endpoint)
+
+        case .unbanMember(let clubID, let banID, let reason):
+            let command = try ClubGovernanceCommand(
+                operation: .unban,
+                scope: .init(clubID: clubID),
+                values: [
+                    "banId": .integer(banID),
+                    "version": .integer(1),
+                    "reason": .string(reason),
+                    "requestId": .string("channel-unban-\(clubID)-\(banID)-\(UUID().uuidString.prefix(8))")
+                ]
+            )
+            try await dispatchGovernanceCommand(command, endpoint: endpoint)
+        }
+    }
+
+    public func sendChannelMessage(
+        clubID: Int,
+        channelID: Int,
+        clientMessageID: String,
+        content: String,
+        replyToMessageID: Int?
+    ) async throws -> Int {
+        guard let writer = messageWriterProvider(), writer.isConfigured, let identity = writer.identity else {
+            throw ChannelSafetyServiceError.messageSendUnavailable
+        }
+        let hexID: String
+        let cleaned = clientMessageID.lowercased().filter { ("0"..."9").contains($0) || ("a"..."f").contains($0) }
+        if cleaned.count == 32 {
+            hexID = cleaned
+        } else {
+            hexID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
+        }
+        let intent = try MessageTextIntent(
+            conversationID: channelID,
+            content: content,
+            clientMessageID: hexID
+        )
+        let sentMessage = try await writer.send(intent, expectedIdentity: identity)
+        return sentMessage.id
+    }
+
+    private func dispatchGovernanceReportIfAvailable(
+        clubID: Int,
+        targetType: String,
+        targetID: Int,
+        reason: String
+    ) async throws -> Bool {
+        let command = try ClubGovernanceCommand(
+            operation: .report,
+            scope: .init(clubID: clubID),
+            values: [
+                "targetType": .string(targetType),
+                "targetId": .integer(targetID),
+                "reason": .string(reason),
+                "requestId": .string("channel-report-\(clubID)-\(targetID)-\(UUID().uuidString.prefix(8))")
+            ]
+        )
+        if let coordinator = clubGovernanceCoordinatorProvider(), coordinator.canDispatch(command) {
+            let review = try await coordinator.prepare(command)
+            _ = try await coordinator.confirm(review)
+            return true
+        }
+        if let access = clubGovernanceAccessProvider(), access.isConfigured, access.canDispatch(command) {
+            let coordinator = ClubGovernanceCoordinator(access: access)
+            let review = try await coordinator.prepare(command)
+            _ = try await coordinator.confirm(review)
+            return true
+        }
+        return false
+    }
+
+    private func dispatchGovernanceCommand(
+        _ command: ClubGovernanceCommand,
+        endpoint: ChannelSafetyModerationEndpoint
+    ) async throws {
+        if let coordinator = clubGovernanceCoordinatorProvider(), coordinator.canDispatch(command) {
+            let review = try await coordinator.prepare(command)
+            _ = try await coordinator.confirm(review)
+            return
+        }
+        if let access = clubGovernanceAccessProvider(), access.isConfigured, access.canDispatch(command) {
+            let coordinator = ClubGovernanceCoordinator(access: access)
+            let review = try await coordinator.prepare(command)
+            _ = try await coordinator.confirm(review)
+            return
+        }
+        throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+    }
+
+    public static func projectNativeDirectory(
+        _ directory: NativeChannelManagementDirectory,
+        clubID: Int
+    ) -> ChannelDirectoryListing {
+        let clubID64 = Int64(max(1, clubID))
+        var categories: [ChannelDirectoryCategory] = []
+        var channels: [ChannelDirectoryEntry] = []
+
+        for (index, group) in directory.groups.enumerated() {
+            let catID = Int64(group.category.id.rawValue) ?? Int64(index + 1)
+            categories.append(
+                ChannelDirectoryCategory(
+                    id: catID,
+                    clubID: clubID64,
+                    name: group.category.name,
+                    position: (index + 1) * 10
+                )
+            )
+            for ch in group.channels {
+                guard let chID = Int64(ch.id.rawValue) else { continue }
+                let resolvedKind = ch.kind == 2 ? 2 : 1
+                let resolvedVisibility = max(0, ch.visibility - 1)
+                channels.append(
+                    ChannelDirectoryEntry(
+                        id: chID,
+                        clubID: clubID64,
+                        categoryID: catID,
+                        name: ch.name,
+                        kind: resolvedKind,
+                        visibility: resolvedVisibility,
+                        position: ch.position,
+                        archivedAt: ch.status >= 2 ? (ch.purgeAt ?? "archived") : nil,
+                        myState: ChannelDirectoryMyState(
+                            lastReadMessageID: nil,
+                            lastReadAt: nil,
+                            notifyPref: 0,
+                            unreadCount: 0,
+                            readStateAvailable: true
+                        ),
+                        lastMessagePreview: nil
+                    )
+                )
+            }
+        }
+
+        for ch in directory.ungrouped {
+            guard let chID = Int64(ch.id.rawValue) else { continue }
+            let resolvedKind = ch.kind == 2 ? 2 : 1
+            let resolvedVisibility = max(0, ch.visibility - 1)
+            channels.append(
+                ChannelDirectoryEntry(
+                    id: chID,
+                    clubID: clubID64,
+                    categoryID: nil,
+                    name: ch.name,
+                    kind: resolvedKind,
+                    visibility: resolvedVisibility,
+                    position: ch.position,
+                    archivedAt: ch.status >= 2 ? (ch.purgeAt ?? "archived") : nil,
+                    myState: ChannelDirectoryMyState(
+                        lastReadMessageID: nil,
+                        lastReadAt: nil,
+                        notifyPref: 0,
+                        unreadCount: 0,
+                        readStateAvailable: true
+                    ),
+                    lastMessagePreview: nil
+                )
+            )
+        }
+
+        return ChannelDirectoryListing(
+            clubID: clubID64,
+            categories: categories,
+            channels: channels
+        )
+    }
+
+    public static func projectMessagingConversations(
+        _ conversations: [MessagingConversation],
+        club: ClubRecord
+    ) -> ChannelDirectoryListing {
+        let clubID64 = Int64(max(1, club.id))
+        let categoryID: Int64 = 1
+        let category = ChannelDirectoryCategory(
+            id: categoryID,
+            clubID: clubID64,
+            name: club.name.isEmpty ? "俱乐部频道" : club.name,
+            position: 10
+        )
+        let channels: [ChannelDirectoryEntry] = conversations.enumerated().map { index, conv in
+            let channelID = Int64(conv.directoryContext?.channelID ?? conv.id)
+            let rawName = conv.counterparty?.nickname?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let displayName = rawName.isEmpty ? "channel-\(channelID)" : rawName
+            return ChannelDirectoryEntry(
+                id: channelID,
+                clubID: clubID64,
+                categoryID: categoryID,
+                name: displayName,
+                kind: 1,
+                visibility: 0,
+                position: (index + 1) * 10,
+                archivedAt: nil,
+                myState: ChannelDirectoryMyState(
+                    lastReadMessageID: nil,
+                    lastReadAt: conv.lastMessageAt,
+                    notifyPref: conv.muted == true ? 2 : 0,
+                    unreadCount: max(0, conv.unread ?? 0),
+                    readStateAvailable: true
+                ),
+                lastMessagePreview: nil
+            )
+        }
+        return ChannelDirectoryListing(
+            clubID: clubID64,
+            categories: channels.isEmpty ? [] : [category],
+            channels: channels
+        )
+    }
+
+    public static func projectBanRecords(from snapshot: ClubGovernanceSnapshot) -> [ChannelModerationBanRecord] {
+        guard let rows = snapshot.value.array else { return [] }
+        return rows.compactMap { row -> ChannelModerationBanRecord? in
+            guard let id = row["id"].int ?? row["banId"].int, id > 0,
+                  let memberID = row["memberId"].int ?? row["targetMemberId"].int, memberID > 0 else {
+                return nil
+            }
+            let nickname = row["nickname"].string ?? "用户#\(memberID)"
+            let source = row["source"].string ?? (row["platformOnly"].bool == true ? "PLATFORM" : "CLUB")
+            let status = row["status"].string ?? "ACTIVE"
+            let reasonCode = row["reasonCode"].string ?? "VIOLATION"
+            let reasonText = row["reason"].string ?? row["reasonText"].string ?? ""
+            return ChannelModerationBanRecord(
+                id: id,
+                targetMemberID: memberID,
+                nickname: nickname,
+                source: source,
+                status: status,
+                reasonCode: reasonCode,
+                reasonText: reasonText
+            )
+        }
+    }
+}
+
+// MARK: - Stateful Club Channel Moderation Coordinator (Success / Failure / Retry + Rules Gate)
+
+public enum ChannelModerationFeedbackBanner: Equatable, Sendable {
+    case success(message: String)
+    case error(message: String, canRetry: Bool)
+
+    public var message: String {
+        switch self {
+        case .success(let message), .error(let message, _):
+            return message
+        }
+    }
+
+    public var isError: Bool {
+        if case .error = self { return true }
+        return false
+    }
+
+    public var canRetry: Bool {
+        if case .error(_, let canRetry) = self { return canRetry }
+        return false
+    }
+}
+
+public struct ChannelModerationRetryableAction: Equatable, Sendable {
+    public let endpoint: ChannelSafetyModerationEndpoint
+    public let activeChannelID: Int
+    public let targetNickname: String?
+    public let channelName: String?
+
+    public init(
+        endpoint: ChannelSafetyModerationEndpoint,
+        activeChannelID: Int,
+        targetNickname: String? = nil,
+        channelName: String? = nil
+    ) {
+        self.endpoint = endpoint
+        self.activeChannelID = activeChannelID
+        self.targetNickname = targetNickname
+        self.channelName = channelName
+    }
+}
+
+@MainActor
+public final class ClubChannelModerationCoordinator: ObservableObject {
+    public let clubID: Int
+    public let viewerMemberID: Int
+    public let viewerRoleTier: ChannelMemberRoleTier
+    public let capabilities: ChannelModerationCapabilities
+    public let isChannelAccessRevoked: Bool
+    public let rulesVersion: Int
+    public let rulesStore: any ChannelRulesAcceptanceStoring
+    public let blockedUsersStore: any ChannelBlockedUsersStoring
+    public let service: (any ClubChannelSafetyServing)?
+
+    @Published public private(set) var hasAcceptedRules: Bool
+    @Published public private(set) var blockedSenderIDs: Set<Int>
+    @Published public private(set) var mutedChannelIDs: Set<Int64>
+    @Published public private(set) var deletedMessageIDs: Set<Int> = []
+    @Published public private(set) var removedMemberIDs: Set<Int> = []
+    @Published public private(set) var activeBans: [ChannelModerationBanRecord]
+    @Published public private(set) var isSubmitting: Bool = false
+    @Published public private(set) var feedbackBanner: ChannelModerationFeedbackBanner? = nil
+    @Published public private(set) var lastFailedAction: ChannelModerationRetryableAction? = nil
+
+    public init(
+        clubID: Int,
+        viewerMemberID: Int,
+        viewerRoleTier: ChannelMemberRoleTier,
+        capabilities: ChannelModerationCapabilities = ChannelModerationCapabilities(),
+        isChannelAccessRevoked: Bool = false,
+        rulesVersion: Int = 1,
+        rulesStore: any ChannelRulesAcceptanceStoring = UserDefaultsChannelRulesAcceptanceStore(),
+        blockedUsersStore: any ChannelBlockedUsersStoring = UserDefaultsChannelBlockedUsersStore(),
+        service: (any ClubChannelSafetyServing)? = nil,
+        initialMutedChannelIDs: Set<Int64> = [],
+        initialActiveBans: [ChannelModerationBanRecord] = []
+    ) {
+        let normalizedRulesVersion = max(1, rulesVersion)
+        self.clubID = clubID
+        self.viewerMemberID = viewerMemberID
+        self.viewerRoleTier = viewerRoleTier
+        self.capabilities = capabilities
+        self.isChannelAccessRevoked = isChannelAccessRevoked
+        self.rulesVersion = normalizedRulesVersion
+        self.rulesStore = rulesStore
+        self.blockedUsersStore = blockedUsersStore
+        self.service = service
+        self.hasAcceptedRules = rulesStore.hasAcceptedRules(
+            clubID: clubID,
+            viewerMemberID: viewerMemberID,
+            rulesVersion: normalizedRulesVersion
+        )
+        self.blockedSenderIDs = blockedUsersStore.blockedUserIDs(
+            clubID: clubID,
+            viewerMemberID: viewerMemberID
+        )
+        self.mutedChannelIDs = initialMutedChannelIDs
+        self.activeBans = initialActiveBans
+    }
+
+    public var policy: ChannelSafetyModerationPolicy {
+        ChannelSafetyModerationPolicy(
+            clubID: clubID,
+            viewerMemberID: viewerMemberID,
+            viewerRoleTier: viewerRoleTier,
+            capabilities: capabilities,
+            hasAcceptedChannelRules: hasAcceptedRules,
+            isChannelAccessRevoked: isChannelAccessRevoked
+        )
+    }
+
+    public func acceptChannelRules(locale: Locale = ChannelCopy.defaultLocale) {
+        guard clubID > 0, viewerMemberID > 0 else { return }
+        rulesStore.recordAcceptedRules(
+            clubID: clubID,
+            viewerMemberID: viewerMemberID,
+            rulesVersion: rulesVersion
+        )
+        hasAcceptedRules = rulesStore.hasAcceptedRules(
+            clubID: clubID,
+            viewerMemberID: viewerMemberID,
+            rulesVersion: rulesVersion
+        )
+        feedbackBanner = .success(
+            message: ChannelCopy.text(
+                "已同意俱乐部频道公约与安全守则，现在可以发言与参与互动。",
+                "Channel rules and safety guidelines accepted. You may now post and participate.",
+                locale: locale
+            )
+        )
+    }
+
+    public func clearBanner() {
+        feedbackBanner = nil
+    }
+
+    public func updateActiveBans(_ bans: [ChannelModerationBanRecord]) {
+        activeBans = bans
+    }
+
+    @discardableResult
+    public func reportMessage(
+        message: MessagingMessage,
+        reason: String,
+        activeChannelID: Int,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateReportMessage(message: message, reason: reason) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(endpoint: endpoint, activeChannelID: activeChannelID),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func reportUser(
+        targetMemberID: Int,
+        nickname: String,
+        reasonCode: String,
+        detail: String,
+        activeChannelID: Int,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateReportUser(targetMemberID: targetMemberID, reasonCode: reasonCode, detail: detail) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(
+                    endpoint: endpoint,
+                    activeChannelID: activeChannelID,
+                    targetNickname: nickname
+                ),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func reportChannel(
+        channelID: Int,
+        channelName: String,
+        reasonCode: String,
+        detail: String,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateReportChannel(channelID: channelID, reasonCode: reasonCode, detail: detail) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(
+                    endpoint: endpoint,
+                    activeChannelID: channelID,
+                    channelName: channelName
+                ),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func blockUser(
+        targetMemberID: Int,
+        nickname: String,
+        shouldBlock: Bool,
+        activeChannelID: Int,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateBlockUser(targetMemberID: targetMemberID, shouldBlock: shouldBlock) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(
+                    endpoint: endpoint,
+                    activeChannelID: activeChannelID,
+                    targetNickname: nickname
+                ),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func muteChannel(
+        conversationID: Int,
+        muted: Bool,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateMuteChannel(conversationID: conversationID, muted: muted) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(endpoint: endpoint, activeChannelID: conversationID),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func deleteMessage(
+        channelID: Int,
+        message: MessagingMessage,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateDeleteMessage(channelID: channelID, message: message) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(endpoint: endpoint, activeChannelID: channelID),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func removeMember(
+        target: ChannelMemberRoleItem,
+        activeChannelID: Int,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateRemoveMember(target: target) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(
+                    endpoint: endpoint,
+                    activeChannelID: activeChannelID,
+                    targetNickname: target.nickname
+                ),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func banMember(
+        target: ChannelMemberRoleItem,
+        reasonCode: String,
+        reasonText: String,
+        activeChannelID: Int,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateBanMember(target: target, reasonCode: reasonCode, reasonText: reasonText) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(
+                    endpoint: endpoint,
+                    activeChannelID: activeChannelID,
+                    targetNickname: target.nickname
+                ),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func unbanMember(
+        banRow: ChannelModerationBanRecord,
+        reason: String,
+        activeChannelID: Int,
+        locale: Locale = ChannelCopy.defaultLocale
+    ) async -> Bool {
+        switch policy.validateUnbanMember(banRow: banRow, reason: reason) {
+        case .failure(let denial):
+            recordValidationFailure(denial, locale: locale)
+            return false
+        case .success(let endpoint):
+            return await executeModeration(
+                ChannelModerationRetryableAction(
+                    endpoint: endpoint,
+                    activeChannelID: activeChannelID,
+                    targetNickname: banRow.nickname
+                ),
+                locale: locale
+            )
+        }
+    }
+
+    @discardableResult
+    public func retryLastFailedAction(locale: Locale = ChannelCopy.defaultLocale) async -> Bool {
+        guard let action = lastFailedAction else { return false }
+        return await executeModeration(action, locale: locale)
+    }
+
+    private func executeModeration(
+        _ action: ChannelModerationRetryableAction,
+        locale: Locale
+    ) async -> Bool {
+        guard let service else {
+            lastFailedAction = action
+            let err = ChannelSafetyServiceError.serviceUnavailable(endpoint: action.endpoint)
+            feedbackBanner = .error(message: err.localizedDescription(locale: locale), canRetry: true)
+            return false
+        }
+
+        isSubmitting = true
+        defer { isSubmitting = false }
+
+        do {
+            try await service.performModeration(action.endpoint, activeChannelID: action.activeChannelID)
+            lastFailedAction = nil
+            applyConfirmedMutation(action)
+            feedbackBanner = .success(message: successMessage(for: action, locale: locale))
+            return true
+        } catch let error as ChannelSafetyServiceError {
+            lastFailedAction = action
+            feedbackBanner = .error(message: error.localizedDescription(locale: locale), canRetry: true)
+            return false
+        } catch {
+            lastFailedAction = action
+            let fallback = ChannelCopy.text(
+                "操作未完成（\(action.endpoint.apiPath)），请点击重试。",
+                "Action failed (\(action.endpoint.apiPath)). Tap Retry to try again.",
+                locale: locale
+            )
+            feedbackBanner = .error(message: fallback, canRetry: true)
+            return false
+        }
+    }
+
+    private func applyConfirmedMutation(_ action: ChannelModerationRetryableAction) {
+        switch action.endpoint {
+        case .blockUser(let targetMemberID):
+            blockedUsersStore.addBlockedUser(
+                targetMemberID: targetMemberID,
+                clubID: clubID,
+                viewerMemberID: viewerMemberID
+            )
+            blockedSenderIDs = blockedUsersStore.blockedUserIDs(
+                clubID: clubID,
+                viewerMemberID: viewerMemberID
+            )
+        case .unblockUser(let targetMemberID):
+            blockedUsersStore.removeBlockedUser(
+                targetMemberID: targetMemberID,
+                clubID: clubID,
+                viewerMemberID: viewerMemberID
+            )
+            blockedSenderIDs = blockedUsersStore.blockedUserIDs(
+                clubID: clubID,
+                viewerMemberID: viewerMemberID
+            )
+        case .muteChannel(let conversationID, let muted):
+            let channelKey = Int64(conversationID)
+            if muted {
+                mutedChannelIDs.insert(channelKey)
+            } else {
+                mutedChannelIDs.remove(channelKey)
+            }
+        case .deleteMessage(_, _, let messageID):
+            deletedMessageIDs.insert(messageID)
+        case .removeMember(_, let targetMemberID):
+            removedMemberIDs.insert(targetMemberID)
+        case .banMember(_, let targetMemberID, let reasonCode, let reasonText):
+            removedMemberIDs.insert(targetMemberID)
+            let nextBanID = (activeBans.map(\.id).max() ?? 1000) + 1
+            let nickname = action.targetNickname ?? "用户#\(targetMemberID)"
+            activeBans.removeAll { $0.targetMemberID == targetMemberID }
+            activeBans.append(
+                ChannelModerationBanRecord(
+                    id: nextBanID,
+                    targetMemberID: targetMemberID,
+                    nickname: nickname,
+                    source: "CLUB",
+                    status: "ACTIVE",
+                    reasonCode: reasonCode,
+                    reasonText: reasonText
+                )
+            )
+        case .unbanMember(_, let banID, _):
+            activeBans.removeAll { $0.id == banID }
+        case .reportMessage, .reportClubUser, .reportChannel:
+            break
+        }
+    }
+
+    private func successMessage(for action: ChannelModerationRetryableAction, locale: Locale) -> String {
+        let name = action.targetNickname ?? ""
+        switch action.endpoint {
+        case .reportMessage:
+            return ChannelCopy.text(
+                "举报已提交，安全团队将在 24 小时内审核处理。",
+                "Report submitted. Our safety team will review it within 24 hours.",
+                locale: locale
+            )
+        case .reportClubUser:
+            return ChannelCopy.text(
+                "已提交对「\(name)」的举报，安全与治理团队将在 24 小时内处理。",
+                "Report for \(name) submitted. Our safety team will review it within 24 hours.",
+                locale: locale
+            )
+        case .reportChannel(_, let channelID, _, _):
+            let label = action.channelName ?? "#\(channelID)"
+            return ChannelCopy.text(
+                "已提交对频道「\(label)」的举报，安全团队将在 24 小时内审核处理。",
+                "Report for channel \(label) submitted. Our safety team will review it within 24 hours.",
+                locale: locale
+            )
+        case .blockUser:
+            return ChannelCopy.text(
+                "已屏蔽「\(name)」，该用户的消息已从当前会话立即隐藏。",
+                "Blocked \(name). Messages from this user are immediately hidden.",
+                locale: locale
+            )
+        case .unblockUser:
+            return ChannelCopy.text(
+                "已取消屏蔽「\(name)」。",
+                "Unblocked \(name).",
+                locale: locale
+            )
+        case .muteChannel(_, let muted):
+            return muted
+                ? ChannelCopy.text("已开启该频道免打扰。", "Channel notifications muted.", locale: locale)
+                : ChannelCopy.text("已恢复该频道消息提醒。", "Channel notifications unmuted.", locale: locale)
+        case .deleteMessage(_, _, let messageID):
+            return ChannelCopy.text(
+                "消息 #\(messageID) 已撤回并移除。",
+                "Message #\(messageID) has been deleted.",
+                locale: locale
+            )
+        case .removeMember:
+            return ChannelCopy.text(
+                "已将「\(name)」移出俱乐部。",
+                "Removed \(name) from the club.",
+                locale: locale
+            )
+        case .banMember:
+            return ChannelCopy.text(
+                "已封禁成员「\(name)」并撤回其频道访问权限。",
+                "Banned \(name) and revoked channel access.",
+                locale: locale
+            )
+        case .unbanMember:
+            return ChannelCopy.text(
+                "已解除对「\(name)」的俱乐部封禁。",
+                "Unbanned \(name).",
+                locale: locale
+            )
+        }
+    }
+
+    private func recordValidationFailure(_ reason: ChannelModerationDenialReason, locale: Locale) {
+        lastFailedAction = nil
+        feedbackBanner = .error(message: Self.denialMessage(for: reason, locale: locale), canRetry: false)
+    }
+
+    public static func denialMessage(for reason: ChannelModerationDenialReason, locale: Locale) -> String {
+        switch reason {
+        case .unauthenticated:
+            return ChannelCopy.text("请先登录后再操作。", "Please sign in first.", locale: locale)
+        case .channelAdmissionRequired:
+            return ChannelCopy.text("请先阅读并同意俱乐部频道公约与用户协议（EULA）后再执行此操作。", "Please review and accept the channel rules & EULA before performing this action.", locale: locale)
+        case .channelRevokedOrBanned:
+            return ChannelCopy.text("当前账号在该俱乐部已被限制发言或移除权限。", "Your channel access has been revoked or restricted in this club.", locale: locale)
+        case .cannotTargetSelf:
+            return ChannelCopy.text("不能对自己执行该操作。", "You cannot target yourself with this action.", locale: locale)
+        case .cannotTargetClubOwner:
+            return ChannelCopy.text("不能对俱乐部主理人执行移除或封禁。", "The club owner cannot be removed or banned.", locale: locale)
+        case .targetHoldsActiveRoleAssignment:
+            return ChannelCopy.text("该成员仍持有生效中的管理职务，请先撤销职务后再移除。", "This member holds an active role assignment. Revoke the role before removing them.", locale: locale)
+        case .insufficientModerationPermission:
+            return ChannelCopy.text("当前账号缺少执行该管理操作的权限。", "You do not have permission to perform this moderation action.", locale: locale)
+        case .platformBanCannotBeUnbannedByClubAdmin:
+            return ChannelCopy.text("平台级封禁不可由俱乐部管理员解除。", "Platform-level bans cannot be lifted by club administrators.", locale: locale)
+        case .invalidMessageOrReason:
+            return ChannelCopy.text("操作目标或原因无效，请补充后重试。", "Invalid target or empty reason.", locale: locale)
+        }
     }
 }
 

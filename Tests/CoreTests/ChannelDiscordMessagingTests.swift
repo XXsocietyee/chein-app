@@ -358,11 +358,20 @@ final class ChannelDiscordMessagingTests: XCTestCase {
     // MARK: - 4. Moderation Permission Checks & App Store Guideline 1.2 Safety
 
     func testModerationPermissionChecksAndSafetyRules() {
-        let memberPolicy = ChannelSafetyModerationPolicy(
+        let unacceptedDefaultPolicy = ChannelSafetyModerationPolicy(
             clubID: 77,
             viewerMemberID: 601,
             viewerRoleTier: .member,
             capabilities: ChannelModerationCapabilities()
+        )
+        XCTAssertFalse(unacceptedDefaultPolicy.hasAcceptedChannelRules)
+
+        let memberPolicy = ChannelSafetyModerationPolicy(
+            clubID: 77,
+            viewerMemberID: 601,
+            viewerRoleTier: .member,
+            capabilities: ChannelModerationCapabilities(),
+            hasAcceptedChannelRules: true
         )
         let adminPolicy = ChannelSafetyModerationPolicy(
             clubID: 77,
@@ -372,7 +381,8 @@ final class ChannelDiscordMessagingTests: XCTestCase {
                 canManageMembers: true,
                 canManageBans: true,
                 canManageContent: true
-            )
+            ),
+            hasAcceptedChannelRules: true
         )
 
         let otherMessage = ChannelTranscriptMessage.make(
@@ -591,4 +601,600 @@ final class ChannelDiscordMessagingTests: XCTestCase {
         XCTAssertEqual(blank.myJoinStatus, 2)
         XCTAssertNil(blank.myJoinReviewReason)
     }
+
+    // MARK: - 6. G2 Real Club/Channel Moderation, Rules Gate, Channel Reporting & Dynamic Channel Loading
+
+    @MainActor
+    func testRulesAcceptanceGateDefaultsToFalseAndPersistsAcrossCoordinators() async {
+        let rulesStore = InMemoryChannelRulesAcceptanceStore()
+        let blockedStore = InMemoryChannelBlockedUsersStore()
+        let service = ControllableSafetyServiceSpy()
+
+        let coordinator = ClubChannelModerationCoordinator(
+            clubID: 88,
+            viewerMemberID: 501,
+            viewerRoleTier: .owner,
+            capabilities: ChannelModerationCapabilities(
+                canManageMembers: true,
+                canManageBans: true,
+                canManageContent: true,
+                canManageRoles: true
+            ),
+            rulesVersion: 2,
+            rulesStore: rulesStore,
+            blockedUsersStore: blockedStore,
+            service: service
+        )
+
+        XCTAssertFalse(coordinator.hasAcceptedRules)
+        XCTAssertFalse(coordinator.policy.hasAcceptedChannelRules)
+
+        // Gated action fails with .channelAdmissionRequired before rules are accepted
+        let ownMsg = ChannelTranscriptMessage.make(
+            id: 7100,
+            conversationID: 2001,
+            senderID: 501,
+            type: 1,
+            content: "测试撤回"
+        ).wireMessage
+        let deleteBeforeAccept = await coordinator.deleteMessage(channelID: 2001, message: ownMsg)
+        XCTAssertFalse(deleteBeforeAccept)
+        XCTAssertTrue(service.recordedEndpoints.isEmpty)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, true)
+        XCTAssertEqual(coordinator.feedbackBanner?.canRetry, false)
+
+        // Accept rules -> persists in store and unlocks gated actions
+        coordinator.acceptChannelRules()
+        XCTAssertTrue(coordinator.hasAcceptedRules)
+        XCTAssertTrue(rulesStore.hasAcceptedRules(clubID: 88, viewerMemberID: 501, rulesVersion: 2))
+
+        // Re-instantiating with same rulesVersion preserves acceptance; higher rulesVersion requires re-acceptance
+        let reloadedSameVersion = ClubChannelModerationCoordinator(
+            clubID: 88,
+            viewerMemberID: 501,
+            viewerRoleTier: .owner,
+            rulesVersion: 2,
+            rulesStore: rulesStore,
+            blockedUsersStore: blockedStore,
+            service: service
+        )
+        XCTAssertTrue(reloadedSameVersion.hasAcceptedRules)
+
+        let reloadedNewerVersion = ClubChannelModerationCoordinator(
+            clubID: 88,
+            viewerMemberID: 501,
+            viewerRoleTier: .owner,
+            rulesVersion: 3,
+            rulesStore: rulesStore,
+            blockedUsersStore: blockedStore,
+            service: service
+        )
+        XCTAssertFalse(reloadedNewerVersion.hasAcceptedRules)
+    }
+
+    @MainActor
+    func testAllModerationHandlersEnforceSuccessOnlyAfterServiceReturnsAndSupportRetry() async {
+        let rulesStore = InMemoryChannelRulesAcceptanceStore(initialAcceptedVersions: ["77:501": 1])
+        let blockedStore = InMemoryChannelBlockedUsersStore()
+        let service = ControllableSafetyServiceSpy()
+        let en = Locale(identifier: "en")
+
+        let coordinator = ClubChannelModerationCoordinator(
+            clubID: 77,
+            viewerMemberID: 501,
+            viewerRoleTier: .owner,
+            capabilities: ChannelModerationCapabilities(
+                canManageMembers: true,
+                canManageBans: true,
+                canManageContent: true,
+                canManageRoles: true
+            ),
+            rulesVersion: 1,
+            rulesStore: rulesStore,
+            blockedUsersStore: blockedStore,
+            service: service
+        )
+        XCTAssertTrue(coordinator.hasAcceptedRules)
+
+        let targetMessage = ChannelTranscriptMessage.make(
+            id: 9101,
+            conversationID: 3001,
+            senderID: 602,
+            type: 1,
+            content: "违规内容"
+        ).wireMessage
+        let targetMember = ChannelMemberRoleItem(
+            memberID: 602,
+            nickname: "违规成员",
+            tier: .member,
+            roleCode: "MEMBER",
+            badgeLabel: "成员"
+        )
+
+        // 1. reportMessage: failure -> error banner + retryable, no false success; retry -> success
+        service.shouldFail = true
+        let reportMsgFail = await coordinator.reportMessage(
+            message: targetMessage,
+            reason: "Spam advertisement",
+            activeChannelID: 3001,
+            locale: en
+        )
+        XCTAssertFalse(reportMsgFail)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, true)
+        XCTAssertEqual(coordinator.feedbackBanner?.canRetry, true)
+        XCTAssertFalse(coordinator.feedbackBanner?.message.contains("Report submitted") ?? true)
+
+        service.shouldFail = false
+        let reportMsgRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(reportMsgRetry)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, false)
+        XCTAssertTrue(coordinator.feedbackBanner?.message.contains("Report submitted") ?? false)
+        XCTAssertEqual(service.recordedEndpoints.last, .reportMessage(messageID: 9101, reason: "Spam advertisement"))
+
+        // 2. reportUser: failure -> retry -> success
+        service.shouldFail = true
+        let reportUserFail = await coordinator.reportUser(
+            targetMemberID: 602,
+            nickname: "违规成员",
+            reasonCode: "HARASSMENT",
+            detail: "Harassing DMs",
+            activeChannelID: 3001,
+            locale: en
+        )
+        XCTAssertFalse(reportUserFail)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, true)
+        XCTAssertEqual(coordinator.feedbackBanner?.canRetry, true)
+
+        service.shouldFail = false
+        let reportUserRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(reportUserRetry)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, false)
+        XCTAssertEqual(
+            service.recordedEndpoints.last,
+            .reportClubUser(clubID: 77, targetMemberID: 602, reasonCode: "HARASSMENT", detail: "Harassing DMs")
+        )
+
+        // 3. reportChannel: failure -> retry -> success
+        service.shouldFail = true
+        let reportChannelFail = await coordinator.reportChannel(
+            channelID: 3001,
+            channelName: "general-chat",
+            reasonCode: "SPAM_SCAM",
+            detail: "Phishing links in channel",
+            locale: en
+        )
+        XCTAssertFalse(reportChannelFail)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, true)
+        XCTAssertEqual(coordinator.feedbackBanner?.canRetry, true)
+
+        service.shouldFail = false
+        let reportChannelRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(reportChannelRetry)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, false)
+        XCTAssertEqual(
+            service.recordedEndpoints.last,
+            .reportChannel(clubID: 77, channelID: 3001, reasonCode: "SPAM_SCAM", detail: "Phishing links in channel")
+        )
+
+        // 4. blockUser & unblockUser: failure does NOT hide content or persist block; retry DOES hide & persist
+        service.shouldFail = true
+        let blockFail = await coordinator.blockUser(
+            targetMemberID: 602,
+            nickname: "违规成员",
+            shouldBlock: true,
+            activeChannelID: 3001,
+            locale: en
+        )
+        XCTAssertFalse(blockFail)
+        XCTAssertFalse(coordinator.blockedSenderIDs.contains(602))
+        XCTAssertFalse(blockedStore.blockedUserIDs(clubID: 77, viewerMemberID: 501).contains(602))
+
+        service.shouldFail = false
+        let blockRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(blockRetry)
+        XCTAssertTrue(coordinator.blockedSenderIDs.contains(602))
+        XCTAssertTrue(blockedStore.blockedUserIDs(clubID: 77, viewerMemberID: 501).contains(602))
+        XCTAssertEqual(service.recordedEndpoints.last, .blockUser(targetMemberID: 602))
+
+        // Verify blocked user's content is immediately hidden in burst groups
+        let filterAfterBlock = ChannelContentFilterHook(blockedSenderIDs: coordinator.blockedSenderIDs)
+        let groupsAfterBlock = ChannelMessageBurstGrouper.group(
+            messages: [ChannelTranscriptMessage(wireMessage: targetMessage)],
+            contentFilter: filterAfterBlock
+        )
+        XCTAssertTrue(groupsAfterBlock.isEmpty)
+
+        // Unblock user: failure keeps user blocked; retry unblocks
+        service.shouldFail = true
+        let unblockFail = await coordinator.blockUser(
+            targetMemberID: 602,
+            nickname: "违规成员",
+            shouldBlock: false,
+            activeChannelID: 3001,
+            locale: en
+        )
+        XCTAssertFalse(unblockFail)
+        XCTAssertTrue(coordinator.blockedSenderIDs.contains(602))
+
+        service.shouldFail = false
+        let unblockRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(unblockRetry)
+        XCTAssertFalse(coordinator.blockedSenderIDs.contains(602))
+        XCTAssertEqual(service.recordedEndpoints.last, .unblockUser(targetMemberID: 602))
+
+        // 5. muteChannel: failure does NOT toggle mute; retry toggles mute
+        service.shouldFail = true
+        let muteFail = await coordinator.muteChannel(conversationID: 3001, muted: true, locale: en)
+        XCTAssertFalse(muteFail)
+        XCTAssertFalse(coordinator.mutedChannelIDs.contains(3001))
+
+        service.shouldFail = false
+        let muteRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(muteRetry)
+        XCTAssertTrue(coordinator.mutedChannelIDs.contains(3001))
+        XCTAssertEqual(service.recordedEndpoints.last, .muteChannel(conversationID: 3001, muted: true))
+
+        // 6. deleteMessage: failure does NOT delete message; retry deletes message
+        service.shouldFail = true
+        let deleteFail = await coordinator.deleteMessage(channelID: 3001, message: targetMessage, locale: en)
+        XCTAssertFalse(deleteFail)
+        XCTAssertFalse(coordinator.deletedMessageIDs.contains(9101))
+
+        service.shouldFail = false
+        let deleteRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(deleteRetry)
+        XCTAssertTrue(coordinator.deletedMessageIDs.contains(9101))
+        XCTAssertEqual(service.recordedEndpoints.last, .deleteMessage(clubID: 77, channelID: 3001, messageID: 9101))
+
+        // 7. removeMember: failure does NOT remove member; retry removes member
+        service.shouldFail = true
+        let removeFail = await coordinator.removeMember(target: targetMember, activeChannelID: 3001, locale: en)
+        XCTAssertFalse(removeFail)
+        XCTAssertFalse(coordinator.removedMemberIDs.contains(602))
+
+        service.shouldFail = false
+        let removeRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(removeRetry)
+        XCTAssertTrue(coordinator.removedMemberIDs.contains(602))
+        XCTAssertEqual(service.recordedEndpoints.last, .removeMember(clubID: 77, targetMemberID: 602))
+
+        // 8. banMember & unbanMember: failure does NOT add/remove ban; retry adds/removes ban
+        let secondMember = ChannelMemberRoleItem(
+            memberID: 603,
+            nickname: "恶意刷屏号",
+            tier: .member,
+            roleCode: "MEMBER",
+            badgeLabel: "成员"
+        )
+        service.shouldFail = true
+        let banFail = await coordinator.banMember(
+            target: secondMember,
+            reasonCode: "SPAM",
+            reasonText: "Repeated spam flooding",
+            activeChannelID: 3001,
+            locale: en
+        )
+        XCTAssertFalse(banFail)
+        XCTAssertTrue(coordinator.activeBans.isEmpty)
+
+        service.shouldFail = false
+        let banRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(banRetry)
+        XCTAssertEqual(coordinator.activeBans.count, 1)
+        XCTAssertEqual(coordinator.activeBans.first?.targetMemberID, 603)
+        XCTAssertEqual(
+            service.recordedEndpoints.last,
+            .banMember(clubID: 77, targetMemberID: 603, reasonCode: "SPAM", reasonText: "Repeated spam flooding")
+        )
+
+        let createdBan = coordinator.activeBans[0]
+        service.shouldFail = true
+        let unbanFail = await coordinator.unbanMember(
+            banRow: createdBan,
+            reason: "Appeal approved",
+            activeChannelID: 3001,
+            locale: en
+        )
+        XCTAssertFalse(unbanFail)
+        XCTAssertEqual(coordinator.activeBans.count, 1)
+
+        service.shouldFail = false
+        let unbanRetry = await coordinator.retryLastFailedAction(locale: en)
+        XCTAssertTrue(unbanRetry)
+        XCTAssertTrue(coordinator.activeBans.isEmpty)
+        XCTAssertEqual(
+            service.recordedEndpoints.last,
+            .unbanMember(clubID: 77, banID: createdBan.id, reason: "Appeal approved")
+        )
+    }
+
+    @MainActor
+    func testCoreClubChannelSafetyServiceRoutesThroughCoreWritersAndLoadsRealClubChannels() async throws {
+        let imSafetySpy = IMSafetyWriterSpy()
+        let imExpandedSpy = IMExpandedWriterSpy()
+        let messageWriterSpy = MessageActionWriterSpy()
+        let clubManagementSpy = ClubManagementAccessSpy()
+        let messagingReaderSpy = ClubChannelMessagingReaderSpy(clubID: 77)
+        var deletedTriplets: [(Int, Int, Int)] = []
+
+        let coreService = CoreClubChannelSafetyService(
+            imSafetyWriter: { imSafetySpy },
+            imExpandedWriter: { imExpandedSpy },
+            messageWriter: { messageWriterSpy },
+            messagingReader: { messagingReaderSpy },
+            clubManagementAccess: { clubManagementSpy },
+            channelMessageDeleteDispatcher: { clubID, channelID, messageID in
+                deletedTriplets.append((clubID, channelID, messageID))
+            }
+        )
+
+        let clubData = Data("""
+        {"id": 77, "name": "山野俱乐部", "isOwner": true, "isJoined": true}
+        """.utf8)
+        let club = try JSONDecoder().decode(ClubRecord.self, from: clubData)
+
+        // 1. Dynamic channel loading from MessagingReading (verifying NO hardcoded 101/102/103)
+        let workspace = try await coreService.loadChannelWorkspace(club: club, viewerMemberID: 501)
+        let loadedChannelIDs = workspace.listing.channels.map(\.id)
+        XCTAssertEqual(loadedChannelIDs, [8801, 8802])
+        XCTAssertFalse(loadedChannelIDs.contains(101))
+        XCTAssertFalse(loadedChannelIDs.contains(102))
+        XCTAssertFalse(loadedChannelIDs.contains(103))
+        XCTAssertEqual(workspace.initialMessagesByChannelID[8801]?.count, 1)
+        XCTAssertEqual(workspace.initialMessagesByChannelID[8801]?.first?.wireMessage.content, "真实频道历史消息")
+
+        // 2. Route reportMessage, reportChannel, blockUser, unblockUser through IMSafetyWriting
+        try await coreService.performModeration(.reportMessage(messageID: 555, reason: "Abuse"), activeChannelID: 8801)
+        XCTAssertEqual(imSafetySpy.actions.last, .report(conversationID: 8801, messageID: 555))
+
+        try await coreService.performModeration(
+            .reportChannel(clubID: 77, channelID: 8801, reasonCode: "SPAM", detail: "Raid"),
+            activeChannelID: 8801
+        )
+        XCTAssertEqual(
+            imSafetySpy.actions.last,
+            .report(conversationID: 8801, messageID: 8801)
+        )
+
+        try await coreService.performModeration(.blockUser(targetMemberID: 602), activeChannelID: 8801)
+        XCTAssertEqual(imSafetySpy.actions.last, .block(conversationID: 8801, targetMemberID: 602))
+
+        try await coreService.performModeration(.unblockUser(targetMemberID: 602), activeChannelID: 8801)
+        XCTAssertEqual(imSafetySpy.actions.last, .unblock(conversationID: 8801, targetMemberID: 602))
+
+        // 3. Route muteChannel & sendChannelMessage through IMExpandedWriting
+        try await coreService.performModeration(.muteChannel(conversationID: 8801, muted: true), activeChannelID: 8801)
+        XCTAssertEqual(imExpandedSpy.mutations.last, .mute(conversationID: 8801, muted: true))
+
+        let sentServerID = try await coreService.sendChannelMessage(
+            clubID: 77,
+            channelID: 8801,
+            clientMessageID: "client-msg-01",
+            content: "Hello channel",
+            replyToMessageID: nil
+        )
+        XCTAssertEqual(sentServerID, 9901)
+
+        // 4. Route removeMember through ClubManagementAccess & deleteMessage through dispatcher
+        try await coreService.performModeration(.removeMember(clubID: 77, targetMemberID: 602), activeChannelID: 8801)
+        XCTAssertEqual(clubManagementSpy.removedMembers.last?.clubID, 77)
+        XCTAssertEqual(clubManagementSpy.removedMembers.last?.memberID, 602)
+
+        try await coreService.performModeration(
+            .deleteMessage(clubID: 77, channelID: 8801, messageID: 555),
+            activeChannelID: 8801
+        )
+        XCTAssertEqual(deletedTriplets.count, 1)
+        XCTAssertEqual(deletedTriplets.first?.0, 77)
+        XCTAssertEqual(deletedTriplets.first?.1, 8801)
+        XCTAssertEqual(deletedTriplets.first?.2, 555)
+    }
 }
+
+// MARK: - Test Doubles for G2 Moderation & Channel Directory
+
+@MainActor
+private final class ControllableSafetyServiceSpy: ClubChannelSafetyServing {
+    var shouldFail = false
+    private(set) var recordedEndpoints: [ChannelSafetyModerationEndpoint] = []
+
+    func loadChannelWorkspace(club: ClubRecord, viewerMemberID: Int) async throws -> ClubChannelWorkspacePayload {
+        if shouldFail {
+            throw ChannelSafetyServiceError.channelDirectoryUnavailable
+        }
+        let listing = ChannelDirectoryListing(
+            clubID: Int64(club.id),
+            categories: [ChannelDirectoryCategory(id: 10, clubID: Int64(club.id), name: "动态分组", position: 10)],
+            channels: [
+                ChannelDirectoryEntry(
+                    id: 8801,
+                    clubID: Int64(club.id),
+                    categoryID: 10,
+                    name: "路线交流",
+                    kind: 1,
+                    visibility: 0,
+                    position: 10
+                )
+            ]
+        )
+        return ClubChannelWorkspacePayload(listing: listing, initialMessagesByChannelID: [8801: []])
+    }
+
+    func performModeration(_ endpoint: ChannelSafetyModerationEndpoint, activeChannelID: Int) async throws {
+        if shouldFail {
+            throw ChannelSafetyServiceError.operationFailed(reason: "Simulated network error")
+        }
+        recordedEndpoints.append(endpoint)
+    }
+
+    func sendChannelMessage(
+        clubID: Int,
+        channelID: Int,
+        clientMessageID: String,
+        content: String,
+        replyToMessageID: Int?
+    ) async throws -> Int {
+        if shouldFail {
+            throw ChannelSafetyServiceError.messageSendUnavailable
+        }
+        return 9001
+    }
+}
+
+@MainActor
+private final class IMSafetyWriterSpy: IMSafetyWriting {
+    var identity: MessagingReadIdentity? = MessagingReadIdentity(accountID: 501, epoch: 1)
+    private(set) var actions: [IMSafetyAction] = []
+
+    func permits(_ action: IMSafetyAction) -> Bool {
+        true
+    }
+
+    func perform(_ action: IMSafetyAction, expectedIdentity: MessagingReadIdentity) async throws {
+        actions.append(action)
+    }
+}
+
+@MainActor
+private final class IMExpandedWriterSpy: IMExpandedWriting {
+    var isConfigured: Bool = true
+    var identity: MessagingReadIdentity? = MessagingReadIdentity(accountID: 501, epoch: 1)
+    private(set) var mutations: [IMMutation] = []
+
+    func perform(_ mutation: IMMutation, expectedIdentity: MessagingReadIdentity) async throws -> IMMutationReceipt {
+        mutations.append(mutation)
+        switch mutation {
+        case .start(let targetMemberID):
+            return .started(conversationID: targetMemberID)
+        case .read, .readCursor:
+            return .read
+        case .mute(_, let muted):
+            return .muted(muted)
+        case .send:
+            let msg = ChannelTranscriptMessage.make(
+                id: 9901,
+                conversationID: 8801,
+                senderID: 501,
+                type: 1,
+                content: "Hello channel"
+            ).wireMessage
+            return .sent(msg)
+        }
+    }
+
+    func upload(_ selection: IMMediaSelection, consent: IMMediaConsent, expectedIdentity: MessagingReadIdentity) async throws -> URL {
+        throw APIError.notConfigured
+    }
+}
+
+@MainActor
+private final class MessageActionWriterSpy: MessageActionWriting {
+    var isConfigured: Bool = true
+    var identity: MessagingReadIdentity? = MessagingReadIdentity(accountID: 501, epoch: 1)
+    private(set) var intents: [MessageTextIntent] = []
+
+    func send(_ intent: MessageTextIntent, expectedIdentity: MessagingReadIdentity) async throws -> MessagingMessage {
+        intents.append(intent)
+        return ChannelTranscriptMessage.make(
+            id: 9901,
+            conversationID: intent.conversationID,
+            senderID: expectedIdentity.accountID,
+            type: 1,
+            content: intent.content
+        ).wireMessage
+    }
+}
+
+@MainActor
+private final class ClubManagementAccessSpy: ClubManagementAccess {
+    var identity: ClubReadIdentity? = ClubReadIdentity(accountID: 501, epoch: 1)
+    var isConfigured: Bool = true
+    private(set) var removedMembers: [(clubID: Int, memberID: Int)] = []
+
+    func snapshot(clubID: Int) async throws -> ClubManagementSnapshot {
+        throw APIError.notConfigured
+    }
+
+    func perform(
+        _ action: ClubManagementAction,
+        clubID: Int,
+        memberID: Int,
+        expectedIdentity: ClubReadIdentity
+    ) async throws -> ClubActionReceipt {
+        if action == .remove {
+            removedMembers.append((clubID, memberID))
+        }
+        return ClubActionReceipt(state: "removed", message: "OK")
+    }
+}
+
+@MainActor
+private final class ClubChannelMessagingReaderSpy: MessagingReading {
+    let clubID: Int
+    var isConfigured: Bool = true
+    var identity: MessagingReadIdentity? = MessagingReadIdentity(accountID: 501, epoch: 1)
+
+    init(clubID: Int) {
+        self.clubID = clubID
+    }
+
+    func messagingConversations() async throws -> [MessagingConversation] {
+        let json = Data("""
+        [
+            {
+                "conversationId": 8801,
+                "type": 4,
+                "unread": 2,
+                "muted": 0,
+                "counterparty": {
+                    "id": 8801,
+                    "nickname": "山野路线讨论",
+                    "bizKey": "club_\(clubID)"
+                }
+            },
+            {
+                "conversationId": 8802,
+                "type": 4,
+                "unread": 0,
+                "muted": 1,
+                "counterparty": {
+                    "id": 8802,
+                    "nickname": "装备跳蚤市场",
+                    "bizKey": "club_\(clubID)"
+                }
+            }
+        ]
+        """.utf8)
+        return try JSONDecoder().decode([MessagingConversation].self, from: json)
+    }
+
+    func messagingMessages(conversationID: Int, cursor: Int) async throws -> MessagingPage {
+        let msg = ChannelTranscriptMessage.make(
+            id: 7701,
+            conversationID: conversationID,
+            senderID: 602,
+            type: 1,
+            content: "真实频道历史消息"
+        ).wireMessage
+        let pageJSON = Data("""
+        {
+            "list": [
+                {
+                    "id": 7701,
+                    "conversationId": \(conversationID),
+                    "senderId": 602,
+                    "msgType": 1,
+                    "content": "真实频道历史消息",
+                    "status": 0
+                }
+            ],
+            "hasMore": false,
+            "blocked": false,
+            "blockedByMe": false
+        }
+        """.utf8)
+        _ = msg
+        return try JSONDecoder().decode(MessagingPage.self, from: pageJSON)
+    }
+}
+
