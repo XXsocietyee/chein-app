@@ -9,7 +9,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 class SettingsNativeSourceChecks(unittest.TestCase):
     def test_attribution_copy_reuses_local_button_and_keeps_selectable_addresses(self):
         source = (ROOT/'App/SettingsSupportSections.swift').read_text()
-        self.assertIn('SettingsAttributionsSection(copyText: copyText)', source)
+        self.assertIn('SettingsAttributionsSection(copyText: copyText)', (ROOT/'App/SettingsAboutView.swift').read_text())
         attribution = source.split('@MainActor struct SettingsAttributionsSection: View {', 1)[1]
         self.assertIn('let copyText: (String) throws -> Void', attribution)
         self.assertIn('NativeCopyTextButton(text: attribution.sourceURL,', attribution)

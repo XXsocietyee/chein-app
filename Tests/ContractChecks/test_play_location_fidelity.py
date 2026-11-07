@@ -130,7 +130,7 @@ class PlayLocationFidelitySourceChecks(unittest.TestCase):
         strings = json.loads(read('Resources/Localizable.xcstrings'))['strings']
         for key in ['playx.device.accuracy', 'playx.device.lowAccuracy']:
             self.assertEqual(set(strings[key]['localizations']), {'en', 'zh-Hans'}, key)
-        self.assertEqual(strings['playx.device.lowAccuracy']['localizations']['zh-Hans']['stringUnit']['value'], '定位精度不足 · 可扫码完成')
+        self.assertEqual(strings['playx.device.lowAccuracy']['localizations']['zh-Hans']['stringUnit']['value'], '定位不够精确 · 扫码也能完成')
         core = read('Tests/CoreTests/PlayExperienceTests.swift')
         for test in ['testMissingAccuracyStaysLegacyAndInsideThresholdIsSentExactly',
                      'testOutsideThresholdIsStillSentAndServerVerdictIsARejectionNotUnknown',

@@ -13,7 +13,7 @@ class CouponValidityParityTests(unittest.TestCase):
   self.assertIn('dormantWritesEnabled: Bool = false',s)
  def test_picker_review_and_readback_keep_time(self):
   s=(ROOT/'App/CouponManagementView.swift').read_text()
-  self.assertEqual(s.count('displayedComponents: [.date, .hourAndMinute]'),2)
+  self.assertEqual((ROOT/'App/CouponValidityRangeEditor.swift').read_text().count('displayedComponents: [.date, .hourAndMinute]'),2)
   self.assertIn('.environment(\\.timeZone, CouponValidityTime.timeZone)',s)
   self.assertIn('.environment(\\.calendar, CouponValidityTime.calendar)',s)
   self.assertNotIn('startOfDay',s)

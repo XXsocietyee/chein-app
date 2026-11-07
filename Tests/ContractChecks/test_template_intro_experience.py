@@ -2,7 +2,7 @@
 """Focused source checks only; Swift behavior and Apple compilation are separate."""
 from pathlib import Path
 import json,re,sys,unittest
-R=Path(sys.argv.pop(1)).resolve() if len(sys.argv)>1 and not sys.argv[1].startswith('-') else Path(__file__).resolve().parents[2]
+R=Path(sys.argv.pop(1)).resolve() if len(sys.argv)>1 and (Path(sys.argv[1])/'Core').is_dir() else Path(__file__).resolve().parents[2]
 C=(R/'Core/TemplateAuthoringIntroExamples.swift').read_text();A=(R/'App/TemplateAuthoringIntroExperience.swift').read_text();H=(R/'App/TemplateAuthoringView.swift').read_text();D=(R/'docs/template-intro-experience.md').read_text();L=json.loads((R/'Resources/CreatorIntroExamples.xcstrings').read_text())['strings'];G=json.loads((R/'docs/registration/template-intro-experience.json').read_text());CT=(R/'Tests/CoreTests/TemplateAuthoringIntroExamplesTests.swift').read_text();AT=(R/'Tests/AppUnitTests/TemplateIntroExperienceTests.swift').read_text()
 class IntroSourceContracts(unittest.TestCase):
  def test_priority_and_prefix_are_source_ordered(self):

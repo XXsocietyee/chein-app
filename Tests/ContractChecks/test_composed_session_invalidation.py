@@ -22,6 +22,6 @@ class ComposedSessionInvalidationChecks(unittest.TestCase):
         entry = source.split('private func synchronizeAccountMarketingEntry() {', 1)[1]
         before_identity, after_identity = entry.split('if identityChanged {', 1)
         self.assertIn('synchronizePrivateHome()', before_identity)
-        self.assertTrue(after_identity.lstrip().startswith('publicTemplateDetails.invalidate()'))
-        context = source.split('private var currentRuntimeDependencyContext: RuntimeDependencyContext? {', 1)[1]
+        self.assertTrue(after_identity.lstrip().startswith('invalidateInvoiceLaunch()\n            publicTemplateDetails.invalidate()'))
+        context = source.split('var currentRuntimeDependencyContext: RuntimeDependencyContext? {', 1)[1]
         self.assertTrue(context.lstrip().startswith('guard !committingAuthenticatedSession,'))

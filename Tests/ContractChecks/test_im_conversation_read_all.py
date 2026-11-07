@@ -52,7 +52,7 @@ class IMConversationReadAllContractTests(unittest.TestCase):
         app = self.read('App/IMConversationReadAllView.swift')
         self.assertIn('guard queued == token, appearance == token.appearance else { return }', app)
         self.assertIn('appearance = nil; queued = nil; executing = nil; isActionPending = false', app)
-        self.assertIn('Button("action.close") { model.dismiss(); dismiss() }', app)
+        self.assertIn('Button(model.phase == .reviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }', app)
         self.assertIn('.onDisappear { model.dismiss() }', app)
         self.assertIn('guard appearance == token.appearance, executing == token else { return }', app)
         home = self.read('App/MessagingHomeView.swift')

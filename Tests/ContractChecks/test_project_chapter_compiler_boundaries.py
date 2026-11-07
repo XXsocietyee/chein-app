@@ -24,8 +24,8 @@ class ProjectEditChapterCompilerBoundaries(unittest.TestCase):
         for token in ['let nodeCount = chapter.nodes.count',
                       r'let nodeCountLabel: Text = Text("projectEdit.nodeCount") + Text(verbatim: ": \(nodeCount)")',
                       'ProjectEditName(value: chapter.name, fallback: "projectEdit.untitledChapter")',
-                      'Text(verbatim: String(nodeCount)).font(.caption).foregroundStyle(.secondary)',
-                      '.accessibilityLabel(nodeCountLabel)', 'VStack(alignment: .leading, spacing: 4)']:
+                      'Text("projectEdit.nodeCountValue \\(nodeCount)").foregroundStyle(.secondary)',
+                      '.accessibilityLabel(nodeCountLabel)']:
             self.assertIn(token, self.label)
         self.assertNotIn('String(localized:', self.label)
         self.assertNotIn('Locale(', self.label)
@@ -53,7 +53,7 @@ class ProjectEditChapterCompilerBoundaries(unittest.TestCase):
                       'guard !saving, !saveUnconfirmed, isCurrent(value)',
                       'model.coordinator.suspendLocalWritesAfterChapterRemoval(value.readback)']:
             self.assertIn(guard, host)
-        self.assertIn('ownsVisit && !coordinator.hasUnconfirmedChapterRemoval', self.source)
+        self.assertIn('ownsVisit && !coordinator.isReadOnly && !coordinator.hasUnconfirmedChapterRemoval', self.source)
         # These negative checks deliberately reject a regression to direct removal,
         # a new unconfirmed deletion path, or a raw store/remote-submit bypass.
         for forbidden in ['chapters.remove(', 'chapters.removeAll', 'persistLocalChange(',

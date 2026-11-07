@@ -13,7 +13,8 @@ class IMExpandedIntegrationTests(unittest.TestCase):
             self.assertIn(field,s)
         self.assertIn('name=\\"file\\"',s)
     def test_normal_account_host_wires_optional_context(self):
-        self.assertIn('expanded:session.imExpandedNavigation',self.read('App/AccountView.swift'))
+        self.assertIn('SessionMessagingHome(session: session)',self.read('App/AccountView.swift'))
+        self.assertIn('expanded: session.imExpandedNavigation',self.read('App/SessionMessagingEntry.swift'))
         self.assertIn('IMStartConversationView',self.read('App/MessagingHomeView.swift'))
         self.assertIn('IMConversationControlsView',self.read('App/MessagingHistoryView.swift'))
         self.assertIn('IMImageComposeView',self.read('App/IMExpandedViews.swift'))

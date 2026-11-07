@@ -27,8 +27,10 @@ class PublicMerchantReviewFilterChecks(unittest.TestCase):
         self.assertIn('RetainedPublicReviewImages(urls: item.imageUrls, reader: imageReader)', source)
         self.assertIn('if item.canReport, let writes, let page = itemPages[item.id]', source)
         self.assertIn('PublicMerchantReviewEditor(target: target, reportItem: item, page: page, context: writes)', source)
-        self.assertIn('for item in result.items { itemPages[item.id] = page }', source)
-        self.assertIn('items.append(contentsOf: result.items)', source)
+        rows = self.text('App/PublicMerchantReviewRows.swift')
+        self.assertIn('loadedRows.accept(result)', source)
+        self.assertIn('pages[item.id] = page.pageNum', rows)
+        self.assertIn('items.append(item)', rows)
 
     def test_empty_history_and_filtered_empty_are_distinct_and_do_not_gate_pagination(self):
         source = self.text('App/PublicMerchantReviewsView.swift')

@@ -42755,13 +42755,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Estimated time"
+            "value" : "Duration (seconds)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "预计用时"
+            "value" : "时长（秒）"
           }
         }
       }

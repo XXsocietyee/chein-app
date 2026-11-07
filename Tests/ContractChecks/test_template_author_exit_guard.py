@@ -2,7 +2,7 @@
 """Focused source checks only; not native build or behavioral execution."""
 from pathlib import Path
 import json,re,sys,unittest
-ROOT=Path(sys.argv.pop(1)).resolve() if len(sys.argv)>1 and not sys.argv[1].startswith('-') else Path(__file__).resolve().parents[2]
+ROOT=Path(sys.argv.pop(1)).resolve() if len(sys.argv)>1 and (Path(sys.argv[1])/'Core').is_dir() else Path(__file__).resolve().parents[2]
 CORE=(ROOT/'Core/TemplateAuthoringExitDecision.swift').read_text();APP=(ROOT/'App/TemplateAuthoringExitGuard.swift').read_text();HOST=(ROOT/'App/TemplateAuthoringView.swift').read_text();COORD=(ROOT/'Core/TemplateAuthoringCoordinator.swift').read_text();CHECKPOINT=COORD.split('public func localCheckpointForExit()',1)[1].split('public func saveLocal()',1)[0]
 CT=(ROOT/'Tests/CoreTests/TemplateAuthoringExitDecisionTests.swift').read_text();AT=(ROOT/'Tests/AppUnitTests/TemplateAuthoringExitGuardTests.swift').read_text();LOC=json.loads((ROOT/'Resources/CreatorExitGuard.xcstrings').read_text())['strings'];REG=json.loads((ROOT/'docs/registration/template-author-exit-guard.json').read_text());DOC=(ROOT/'docs/template-author-exit-guard.md').read_text()
 class ExitGuardSourceContracts(unittest.TestCase):

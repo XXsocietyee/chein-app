@@ -17,12 +17,12 @@ class MerchantCustomerNoteDraftContract(unittest.TestCase):
  def test_review_boundary_retires_before_prepare(self):
   self.assertIn('guard noteDrafts.retireForReview(editorID: context.id)',self.host)
   self.assertIn('discard(); return true',self.flow)
-  self.assertIn('if sourcePageCanPrepare(mutation) { model.prepare(mutation) }',self.host)
+  self.assertRegex(self.host,r'if sourcePageCanPrepare\(mutation\) \{[^{}]*?model\.prepare\(mutation\)')
  def test_background_and_source_changes_clear_drafts(self):
   self.assertIn('noteDrafts.synchronize()',self.host);self.assertIn('phase != .active, let retired = noteDrafts.retire()',self.host)
   for line in self.host.splitlines():
    if '.onChange(of: reader.scope)' in line or '.onChange(of: reader.authorizationGeneration)' in line:self.assertIn('noteDrafts.discard()',line)
-  self.assertIn('.onDisappear { noteDrafts.retire();',self.host)
+  self.assertRegex(self.host,r'\.onDisappear \{[^\n]*?noteDrafts\.retire\(\);')
  def test_clear_close_and_cancelled_mode_are_explicit(self):
   self.assertIn('.confirmationDialog("merchant.noteDraft.clearTitle"',self.editor)
   self.assertIn('saveNoteDraft(); noteDrafts?.close(editorID: context.id)',self.editor)

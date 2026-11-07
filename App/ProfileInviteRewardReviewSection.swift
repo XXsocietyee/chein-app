@@ -21,6 +21,7 @@ import SwiftUI
                 Button("profile.inviteRewards.reload", action: reload).disabled(isLoading)
                     .accessibilityIdentifier("profile.inviteRewards.reload")
             }
+            Text("profile.inviteRewards.monthScope").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
         }
     }
 }

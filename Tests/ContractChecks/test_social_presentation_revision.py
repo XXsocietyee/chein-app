@@ -19,7 +19,7 @@ class SocialPresentationRevisionContracts(unittest.TestCase):
         block=session.split('let identityChanged =',1)[1].split('let oldAccount =',1)[0]
         for identity in ['entryObservedStamp','entryObservedAccountID','entryObservedToken','entryObservedRole']:
             self.assertIn(identity,block)
-        self.assertIn('compositionViewerRevision &+= 1\n            socialAccountReader.invalidatePresentation()',block)
+        self.assertIn('compositionViewerRevision &+= 1\n            // Publish the existing reader scope even while a retained benefits destination is visible.\n            _ = memberHomeReader.scope\n            socialAccountReader.invalidatePresentation()',block)
     def test_reader_fences_presentation_revision_before_current_401_side_effect(self):
         core=self.read('Core/SocialAccountReading.swift')
         self.assertIn('let snapshot = currentSession(), revision = presentationRevision',core)

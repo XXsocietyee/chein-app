@@ -27,20 +27,20 @@ class ProfileSelfEditSourceChecks(unittest.TestCase):
  def test_stale_return_cannot_refresh(self):
   self.assertIn('guard context == value.context else { return false }',self.core)
  def test_normal_account_actually_injects_owned_editor(self):
-  self.assertIn('selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session)',self.account)
+  self.assertIn('selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session,',self.account)
  def test_other_public_callers_default_to_no_self_access(self):
   self.assertIn('var selfEditAccess: ProfileSelfEditAccess? = nil',self.view)
  def test_entry_only_exists_in_about_when_context_available(self):
   body=self.view.split('case .about:')[1];self.assertIn('if selfEditContext != nil',body)
   self.assertIn('Button("profile.selfEdit.open") { selfEditNavigation.open(selfEditContext) }',body)
  def test_return_rekeys_existing_public_read(self):
-  self.assertIn('requestKey: "profile-\\(memberID)-\\(selfEditNavigation.refreshID)"',self.view)
-  self.assertIn('let loaded = try await reader.publicProfile(memberID: memberID)',self.view)
+  self.assertIn('"profile-\\(memberID)-\\(selfEditNavigation.refreshID)-\\(reader.presentationRevision)"',self.view)
+  self.assertIn('loaded = try await reader.publicProfile(memberID: memberID)',self.view)
  def test_public_projection_still_has_parent_read_fence(self):
   self.assertEqual(self.view.count('guard isCurrent() else { throw CancellationError() }'),2)
  def test_destination_reuses_existing_whole_editor(self):
   self.assertIn('ProfileEditView(coordinator: access.coordinator, sessionRevision: access.sessionRevision,',self.access)
-  self.assertIn('categoryReader: access.categoryReader)',self.access)
+  self.assertIn('categoryReader: access.categoryReader,',self.access)
   self.assertIn('.id(ticket.id)',self.access)
  def test_stale_destination_hides_editor(self):
   self.assertIn('if isCurrent(), let access',self.access)
@@ -67,5 +67,5 @@ class ProfileSelfEditSourceChecks(unittest.TestCase):
  def test_native_case_inventory(self):
   self.assertEqual(read('Tests/CoreTests/ProfileSelfEditNavigationTests.swift').count('func test'),17)
   self.assertEqual(read('Tests/AppUnitTests/ProfileSelfEditReturnTests.swift').count('func test'),8)
-  self.assertEqual(read('Tests/AppUITests/ProfileSelfEditReturnFlowTests.swift').count('func test'),6)
+  self.assertEqual(read('Tests/AppUITests/ProfileSelfEditReturnFlowTests.swift').count('func test'),11)
 if __name__=='__main__':unittest.main()

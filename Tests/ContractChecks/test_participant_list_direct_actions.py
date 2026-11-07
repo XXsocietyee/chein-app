@@ -14,7 +14,7 @@ class ParticipantListDirectActionsContract(unittest.TestCase):
         self.assertIn('.swipeActions', self.list)
         self.assertIn('ParticipantFormView(id: target.id', self.list)
         self.assertIn('ParticipantListDeleteView(id: target.id', self.list)
-        self.assertIn('coordinator.isConfigured, reader.identity != nil', self.list)
+        self.assertIn('coordinator.canPrepare, reader.identity != nil', self.list)
 
     def test_delete_requires_review_and_confirmation_and_cancel_is_local(self):
         self.assertIn('model.prepareDelete()', self.list)

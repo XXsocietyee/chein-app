@@ -54,7 +54,10 @@ class OfficialPrivateParityChecks(unittest.TestCase):
         self.assertNotIn('HTTPTransport', fixture)
         self.assertIn('OfficialInboxView(reader: OfficialFixtureReader(), actions: coordinator)', fixture)
         sheet = read('App/OfficialActionViews.swift').split('struct OfficialActionSheet', 1)[1].split('struct OfficialPublishEditor', 1)[0]
-        self.assertIn('.disabled(busy || !coordinator.enabled || receipt != nil)', sheet)
+        self.assertIn('.disabled(!model.canConfirm)', sheet)
+        gate = read('App/OfficialActionPresentationModel.swift').split('var canConfirm: Bool {', 1)[1].split('var canReview', 1)[0]
+        self.assertIn('!busy, review != nil, receipt == nil', gate)
+        self.assertIn('return coordinator.enabled && coordinator.ownsPresentation(presentation)', gate)
 
     def test_published_owner_status_wiring(self):
         view = read('App/OfficialPrivateViews.swift')

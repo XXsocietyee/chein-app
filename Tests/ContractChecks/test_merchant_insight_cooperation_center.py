@@ -2,7 +2,7 @@ import pathlib,unittest
 ROOT=pathlib.Path(__file__).resolve().parents[2]
 class InsightCooperationCenterContract(unittest.TestCase):
  def test_stale_button_cannot_navigate(self):
-  s=(ROOT/'App/MerchantMarketingView.swift').read_text().split('Button("merchant.insightCooperationCenter.open")')[1].split('}.accessibilityIdentifier')[0]
+  s=(ROOT/'App/MerchantMarketingView.swift').read_text().split('private func cooperationCenterAction')[1].split('@ViewBuilder private func insightSections')[0]
   for t in ['scenePhase == .active','model.service.scope == scope','!model.busy','model.failure == nil','model.insight == insight','recommendationOrigin == origin','loadedRecommendationOrigin == origin','onSuggestion(.cooperationCenter(origin))']:self.assertIn(t,s)
  def test_normal_host_uses_existing_read_and_current_merchant(self):
   s=(ROOT/'App/NativeEntryLandingView.swift').read_text().split('case .cooperationCenter(let origin):')[1].split('case .cooperationSettings')[0]

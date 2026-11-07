@@ -20,7 +20,8 @@ class TopicCreatorAttributionChecks(unittest.TestCase):
         view = (ROOT / 'App/TopicDetailView.swift').read_text()
         self.assertNotIn('topic.initiator', view)
         self.assertNotIn('initiatorName', view)
-        self.assertIn('if let club = value.clubName { Text(verbatim: club) }', view)
+        self.assertIn('TopicXcxHero(topic: value)', view)
+        self.assertIn('if let club = topic.clubName { Label { Text("topicXcx.clubHost \\(club)") }', (ROOT / 'App/TopicXcxSections.swift').read_text())
         self.assertIn('if let publisherDestination { publisherDestination(value) }', view)
         self.assertIn('if let activities = value.activities', view)
 

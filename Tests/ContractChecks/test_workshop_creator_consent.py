@@ -39,7 +39,7 @@ class CreatorConsentContracts(unittest.TestCase):
  def test_queued_buttons_capture_action_before_task_and_close_revokes(self):
   v=read('App/WorkshopCreatorConsentView.swift');c=read('Core/WorkshopCreatorConsentController.swift')
   self.assertIn('run(controller.offerConfirm(appearance))',v)
-  self.assertIn('guard let action else { return }',v)
+  self.assertIn('guard isVisible, scenePhase == .active, let action else { return }',v)
   self.assertIn('controller.close(appearance); task?.cancel()',v)
   self.assertIn('!displayed.started, !displayed.closed',c)
   self.assertIn('displayed.action == ticket',c)

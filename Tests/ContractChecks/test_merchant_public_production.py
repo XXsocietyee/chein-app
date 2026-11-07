@@ -11,7 +11,7 @@ class MerchantPublicFactoryContractTests(unittest.TestCase):
 
     def test_normal_host_consumes_factory_and_resets_retained_context(self):
         session = self.read('App/AppSession.swift')
-        self.assertIn('runtimeDependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal', session)
+        self.assertIn('dependencies.makeMerchantPublicFactory(api: api, journal: merchantNPCJournal', session)
         self.assertIn('merchantPublicFactory?.homeReader ?? disabledPublicMerchantHomeReader', session)
         self.assertIn('retainedMerchantPublicFactory = nil', session)
         self.assertIn('return factory.chatClient(currentScope:', session)

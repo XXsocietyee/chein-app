@@ -54,8 +54,8 @@ class CityPointSelectionContracts(unittest.TestCase):
         for marker in ['selection?.id == renderedSelection.id',
                        'renderedSelection.point(in: reader.pointMapContext) != nil',
                        '.onChange(of: reader.pointMapContext) { _, _ in selection = nil }',
-                       '.onDisappear { visible = false; selection = nil; reader.cancel() }',
-                       'Button("action.retry") { selection = nil; reader.cancel(); readRequest = UUID() }']:
+                       '.onDisappear { visible = false; rulesSheet?.flow.cancel(); selection = nil; reader.cancel() }',
+                       'Button { selection = nil; reader.cancel(); readRequest = UUID() } label: { Label("action.retry", systemImage: "arrow.clockwise") }']:
             self.assertIn(marker, self.view)
 
     def test_card_and_list_use_exact_title_own_flag_and_accessible_selected_shape(self):
@@ -67,7 +67,7 @@ class CityPointSelectionContracts(unittest.TestCase):
             self.assertIn(marker, self.view)
         self.assertIn('point.mine ? "city.read.point.mine" : "city.read.point.notMine"', self.view)
         self.assertIn('if context.points.isEmpty { Text("city.read.points.empty") }', self.view)
-        self.assertIn('else { Text("city.read.points.unavailable") }', self.view)
+        self.assertIn('else { Text("city.read.points.unavailable").foregroundStyle(.secondary) }', self.view)
 
     def test_no_network_location_persistence_or_gameplay_actions_added(self):
         for source in [self.core, self.view]:

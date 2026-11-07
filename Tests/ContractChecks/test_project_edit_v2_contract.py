@@ -14,7 +14,13 @@ class ProjectEditV2Contract(unittest.TestCase):
             self.assertIn(token, self.contract)
         self.assertIn('ProjectEditStoryContract.path(payload: operation.payload, baseline: operation.baseline)', self.adapter)
         self.assertIn('path: path)', self.adapter.split('approval.allows', 1)[1])
-        self.assertNotIn('OperationEndpointApproval(', (ROOT / 'App/AppSession.swift').read_text())
+        session = (ROOT / 'App/AppSession.swift').read_text()
+        # AppSession builds endpoint approvals only for the Roam grants; project edit never gets its own.
+        for part in session.split('OperationEndpointApproval(')[1:]:
+            window = part[:400]
+            self.assertIn('Roam', window)
+            self.assertNotIn('ProjectEdit', window)
+            self.assertNotIn('api/topic', window)
         self.assertIn('else { service = ProjectEditDisabledService() }', (ROOT / 'App/AppSession.swift').read_text())
     def test_schema_validation_precedes_dispatch_marker(self):
         body = self.adapter.split('public func submit(', 1)[1]

@@ -15,9 +15,16 @@ class W207PricingApplyParity(unittest.TestCase):
         for exact in ['accessibilityIdentifier("publisher.subtype")', 'accessibilityIdentifier("publisher.preview")',
                       'accessibilityIdentifier("publisher.finalPrice")', 'accessibilityIdentifier("publisher.reviewPrice")',
                       'accessibilityIdentifier("publisher.confirmPrice")', 'coordinator.confirm(review, consequentialApproval: true)',
-                      'TopicPricingXcx.sliderMax(floor: preview.minimum, reference: preview.reference)', '"确认终价并提交开售审核"',
-                      'preview.canConfirm == false', '"合作链接已失效"', '"开售即冻结"']:
+                      'TopicPricingXcx.sliderMax(floor: preview.minimum, reference: preview.reference)', 'text("publisherPricing.confirmFinalPriceAndSubmitFor")',
+                      'preview.canConfirm == false', 'text("publisherPricing.thisPartnerLinkIsNoLonger")',
+                      'text("publisherPricing.theLineupFreezesWhenSalesOpen")']:
             self.assertIn(exact, view)
+        # The former literals are now localized; the catalog must still carry the same Chinese wording.
+        catalog = read('Resources/Localizable.xcstrings')
+        for key, zh in [('publisherPricing.confirmFinalPriceAndSubmitFor', '确认终价并提交开售审核'),
+                        ('publisherPricing.thisPartnerLinkIsNoLonger', '合作链接已失效')]:
+            self.assertIn('"%s" : {' % key, catalog)
+            self.assertIn('"value" : "%s"' % zh, catalog)
         self.assertIn('"api/topic/pricing/preview"', read('Core/PublisherLifecycleHTTP.swift'))
         self.assertIn('public func partnerName(type: String, id: Int) async throws -> String', read('Core/PublisherLifecycleHTTP.swift'))
         self.assertIn('try? await client.partnerName(type: row.type, id: row.partnerID), generation == stamp', view)

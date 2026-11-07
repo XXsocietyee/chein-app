@@ -47,7 +47,7 @@ class LiveRoamContracts(unittest.TestCase):
         host = source('App/RoamNearbyTeamsView.swift')
         self.assertIn('await reader.loadTeams()', host)
         self.assertIn('if let message = reader.messageKey { failureKey = message }', host)
-        self.assertIn('joinedTeams: rows', host)
+        self.assertIn('joinedTeams: owned.currentRows(owner: expectedOwner)', host)
         self.assertIn('SessionRoamNearbyTeamsView()', source('App/QuestifyApp.swift'))
     def test_share_is_local_preview_then_explicit_system_gesture(self):
         view = source('App/RoamHistoryShareView.swift')

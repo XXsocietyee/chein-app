@@ -32,7 +32,7 @@ class MerchantStationOptionalFallbackContracts(unittest.TestCase):
         self.assertIn('Text("merchant.stationPause.noFallback").tag(nil as MerchantStationPauseChoice?)', source)
         self.assertIn('selection: pauseFallback, projection: p, nodeID: node', source)
         self.assertIn('pauseFallback = $0; dirty = true; model.cancel()', source)
-        self.assertIn('text = [:]; checked = [:]; pauseFallback = nil; dirty = false', source)
+        self.assertIn('text = [:]; checked = [:]; availabilityReplacement = nil; pauseFallback = nil; dirty = false', source)
         self.assertIn('guard c.isCurrent, !c.busy, !c.locked, c.review == nil', source)
 
     def test_stale_choice_is_not_replaced_and_current_option_is_required_once(self):
@@ -53,7 +53,7 @@ class MerchantStationOptionalFallbackContracts(unittest.TestCase):
         self.assertIn('merchant.stationPause.noFallbackConsequence', editor)
         self.assertIn('if case .station(let command) = review.command, command.pausesWithoutFallback', review)
         self.assertLess(review.index('merchant.stationPause.noFallbackConsequence'), review.index('Button("merchant.content.confirm")'))
-        self.assertIn('!model.coordinator.service.permitsWrites', review)
+        self.assertIn('!model.coordinator.service.permits(review.command)', review)
         self.assertIn('await model.confirm(review)', review)
 
     def test_existing_frozen_review_unknown_lock_and_endpoint_are_reused(self):

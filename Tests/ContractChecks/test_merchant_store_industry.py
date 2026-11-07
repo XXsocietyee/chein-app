@@ -104,7 +104,7 @@ class MerchantStoreIndustryChecks(unittest.TestCase):
         tests = read('Tests/AppUITests/MerchantStoreIndustryFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', tests)), 3)
         for text in ['merchant.industry.cancel', 'merchant.industry.review.previous', 'merchant.industry.review.new',
-                     'app.alerts.buttons["merchant.operations.keepEditing"]', 'app.alerts.buttons["merchant.operations.discardReload"]',
+                     'nativeAlertAction("merchant.operations.keepEditing", in: app)', 'nativeAlertAction("merchant.operations.discardReload", in: app)',
                      'keepEditing.waitForExistence(timeout: 5)', 'discardReload.waitForExistence(timeout: 5)',
                      'merchant.operations.exampleSaved', 'merchant.industry.reload']:
             self.assertIn(text, tests)
