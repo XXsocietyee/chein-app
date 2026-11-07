@@ -23,7 +23,7 @@ extension EnvironmentValues {
     @State private var loadError = false
     @State private var showingReportSheet = false
     @State private var reportReason = ""
-    @State private var reportSubmitted = false
+    @State private var reportState: TeamReportState = .idle
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
 
     var body: some View {
@@ -185,11 +185,19 @@ extension EnvironmentValues {
     private var reportSheet: some View {
         NavigationStack {
             Form {
-                if reportSubmitted {
+                if reportState == .submitted {
                     Section {
                         Label(c.t("举报已记录，平台将核查处理", "Report recorded. Platform support will review it."),
                               systemImage: "checkmark.circle.fill")
                             .foregroundStyle(CYColor.successText)
+                            .accessibilityIdentifier("team.orient.reportSuccess")
+                    }
+                } else if reportState == .unavailable {
+                    Section {
+                        Label(c.t("举报功能暂不可用，请稍后再试", "Reporting is currently unavailable. Please try again later."),
+                              systemImage: "exclamationmark.triangle")
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("team.orient.reportUnavailable")
                     }
                 } else {
                     Section(c.t("举报原因", "Reason for report")) {
@@ -198,11 +206,21 @@ extension EnvironmentValues {
                             .lineLimit(3...6)
                             .accessibilityIdentifier("team.orient.reportReason")
                     }
-                    Section {
-                        Button(c.t("提交举报", "Submit report")) {
-                            reportSubmitted = true
+                    if case .failed = reportState {
+                        Section {
+                            Text(c.t("举报未能提交，请检查网络后重试", "Your report could not be submitted. Check your connection and try again."))
+                                .font(.footnote)
+                                .foregroundStyle(CYColor.dangerText)
+                                .accessibilityIdentifier("team.orient.reportError")
                         }
-                        .disabled(reportReason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                    Section {
+                        Button(reportState == .submitting ? c.t("提交中…", "Submitting…") : c.t("提交举报", "Submit report")) {
+                            Task { await submitReport() }
+                        }
+                        .disabled(reportState == .submitting
+                                  || TeamReportRules.trimmedReason(reportReason).isEmpty
+                                  || TeamReportRules.trimmedReason(reportReason).count > TeamReportRules.reasonLimit)
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("team.orient.reportSubmit")
                     }
@@ -214,12 +232,17 @@ extension EnvironmentValues {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(c.t("关闭", "Close")) {
                         showingReportSheet = false
-                        reportSubmitted = false
+                        reportState = .idle
                         reportReason = ""
                     }
                 }
             }
         }
+    }
+
+    private func submitReport() async {
+        reportState = .submitting
+        reportState = await TeamReportSubmission.run(access: access, teamID: detail.team.id, reason: reportReason)
     }
 
     private func load() async {

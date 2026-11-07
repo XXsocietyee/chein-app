@@ -17,6 +17,8 @@ public struct AssetPointsCancellationRow: Identifiable, Equatable, Sendable {
     public let refundedPointsFromAuthority: Int?
     public let state: ConservationState
     public let note: String
+    /// English counterpart of `note` (nil = no translation known; the view then shows `note`).
+    public let noteEnglish: String?
 
     public init(
         id: String,
@@ -24,7 +26,8 @@ public struct AssetPointsCancellationRow: Identifiable, Equatable, Sendable {
         deductedPoints: Int,
         refundedPointsFromAuthority: Int?,
         state: ConservationState,
-        note: String
+        note: String,
+        noteEnglish: String? = nil
     ) {
         self.id = id
         self.orderNumber = orderNumber
@@ -44,6 +47,16 @@ public struct AssetPointsCancellationRow: Identifiable, Equatable, Sendable {
             return "MISMATCH"
         }
     }
+
+    public func deltaSummary(english: Bool) -> String {
+        guard english else { return deltaSummaryText }
+        if let refunded = refundedPointsFromAuthority {
+            return "Deducted -\(deductedPoints) · Authoritative refund +\(refunded)"
+        }
+        return "Deducted -\(deductedPoints) · Refund awaiting server readback"
+    }
+
+    public func noteText(english: Bool) -> String { english ? (noteEnglish ?? note) : note }
 
     public var deltaSummaryText: String {
         if let refunded = refundedPointsFromAuthority {
@@ -87,17 +100,21 @@ public struct AssetPointsAndOrderCancellationSnapshot: Equatable, Sendable {
             let refunded = order.pointsReturned
             let state: AssetPointsCancellationRow.ConservationState
             let note: String
+            let noteEnglish: String
             if let refunded {
                 if refunded == deducted {
                     state = .conservedByAuthority
                     note = "订单取消后经服务端流水回读确认 \(refunded) 积分原路退回，本地不自造余额"
+                    noteEnglish = "After the cancellation, the server ledger confirmed \(refunded) points were returned to the original account; no balance is computed locally"
                 } else {
                     state = .discrepancyDetected
                     note = "退回积分与扣减积分不一致，需人工复核"
+                    noteEnglish = "Returned points do not match deducted points; manual review is required"
                 }
             } else {
                 state = .awaitingServerReadback
                 note = "取消请求已受理，积分余额与退回明细等待服务端权威回读 (I04)"
+                noteEnglish = "Cancellation accepted; the points balance and refund details are awaiting authoritative server readback (I04)"
             }
             return AssetPointsCancellationRow(
                 id: "order-\(order.id)",
@@ -105,7 +122,8 @@ public struct AssetPointsAndOrderCancellationSnapshot: Equatable, Sendable {
                 deductedPoints: deducted,
                 refundedPointsFromAuthority: refunded,
                 state: state,
-                note: note
+                note: note,
+                noteEnglish: noteEnglish
             )
         }
     }
@@ -126,6 +144,16 @@ public struct AssetPointsAndOrderCancellationSnapshot: Equatable, Sendable {
         discrepancyCount == 0
     }
 
+    public func balanceDisplay(english: Bool) -> String {
+        guard english else { return balanceDisplayText }
+        if let balance = authoritativeBalancePoints { return "\(balance) points (authoritative server readback)" }
+        return "— (awaiting authoritative server readback)"
+    }
+
+    public func summary(english: Bool) -> String {
+        english ? "Conserved \(conservedCount) · Pending readback \(pendingReadbackCount) · Mismatched \(discrepancyCount)" : summaryText
+    }
+
     public var balanceDisplayText: String {
         if let balance = authoritativeBalancePoints {
             return "\(balance) 积分（服务端权威回读）"
@@ -142,6 +170,8 @@ public struct AssetPointsAndOrderCancellationSnapshot: Equatable, Sendable {
 @MainActor
 public struct AssetPointsAndOrderCancellationSectionView: View {
     public let snapshot: AssetPointsAndOrderCancellationSnapshot
+    @Environment(\.locale) private var locale
+    private var english: Bool { locale.language.languageCode?.identifier != "zh" }
 
     public init(snapshot: AssetPointsAndOrderCancellationSnapshot = .empty) {
         self.snapshot = snapshot
@@ -150,10 +180,10 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
     public var body: some View {
         Section {
             HStack {
-                Text(verbatim: "积分流水与退单守恒 (I04)")
+                Text(verbatim: english ? "Points ledger and refund conservation (I04)" : "积分流水与退单守恒 (I04)")
                     .font(.subheadline.weight(.semibold))
                 Spacer()
-                Text(verbatim: snapshot.isConservationCompliant ? "守恒合规 (I04_OK)" : "存在账目偏差")
+                Text(verbatim: snapshot.isConservationCompliant ? (english ? "Conserved (I04_OK)" : "守恒合规 (I04_OK)") : (english ? "Ledger mismatch" : "存在账目偏差"))
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
@@ -163,18 +193,18 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
             }
 
             LabeledContent {
-                Text(verbatim: snapshot.balanceDisplayText)
+                Text(verbatim: snapshot.balanceDisplay(english: english))
                     .font(.footnote.monospacedDigit())
             } label: {
-                Text(verbatim: "当前权威积分余额")
+                Text(verbatim: english ? "Authoritative points balance" : "当前权威积分余额")
             }
             .accessibilityIdentifier("assetPointsCancellation.balance")
 
             LabeledContent {
-                Text(verbatim: snapshot.summaryText)
+                Text(verbatim: snapshot.summary(english: english))
                     .font(.footnote.monospacedDigit())
             } label: {
-                Text(verbatim: "退单守恒统计")
+                Text(verbatim: english ? "Refund conservation summary" : "退单守恒统计")
             }
             .accessibilityIdentifier("assetPointsCancellation.summary")
 
@@ -191,9 +221,9 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
                             .background(badgeColor(for: row.state).opacity(0.15), in: Capsule())
                             .foregroundStyle(badgeColor(for: row.state))
                     }
-                    Text(verbatim: row.deltaSummaryText)
+                    Text(verbatim: row.deltaSummary(english: english))
                         .font(.caption.monospacedDigit())
-                    Text(verbatim: row.note)
+                    Text(verbatim: row.noteText(english: english))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -201,7 +231,7 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
                 .accessibilityIdentifier("assetPointsCancellation.row.\(row.id)")
             }
         } header: {
-            Text(verbatim: "资产积分与订单取消守恒核查 (I04)")
+            Text(verbatim: english ? "Asset points and order cancellation conservation check (I04)" : "资产积分与订单取消守恒核查 (I04)")
         }
         .accessibilityIdentifier("assetPointsCancellation.section")
     }

@@ -25,9 +25,24 @@ struct CoreLoopCopy {
             let count = zh.dropFirst("将给 ".count).dropLast(" 位已付款玩家全额退款,不可撤销。活动同时下架。".count)
             return "\(count) paid attendee(s) will receive a full refund. This cannot be undone and the event will be unlisted."
         }
+        if zh.hasPrefix("全队已完成 "), zh.hasSuffix(" 个节点") {
+            return "Team completed \(zh.dropFirst("全队已完成 ".count).dropLast(" 个节点".count)) nodes"
+        }
         return zh
     }
     private static let table: [String: String] = [
+        // Core/TeamOrientBoard.swift summaryText
+        "当前场次暂无定向任务": "No orienteering tasks for this session yet",
+        // Core/MoneyParityRules.swift MoneyRefundPolicy reasons
+        "未支付订单无需退款": "Unpaid order; no refund needed",
+        "已核销订单需人工核实,请联系客服": "Verified order needs manual review. Please contact support",
+        "已核销报名不可退款": "Verified registrations are not refundable",
+        "集合时间缺失，需人工核实，请联系客服": "Meeting time is missing; manual review is needed. Please contact support",
+        "可取消报名并释放名额": "Registration can be cancelled and the spot released",
+        "场次已开始，不可取消报名": "The session has started; registration can no longer be cancelled",
+        "退款截止时间缺失,需人工核实,请联系客服": "Refund deadline is missing; manual review is needed. Please contact support",
+        "已过退款截止时间": "The refund deadline has passed",
+        "可全额退款,原路退回": "Full refund to the original payment method",
         "上海": "Shanghai", "杭州": "Hangzhou", "北京": "Beijing",
         "深圳": "Shenzhen", "广州": "Guangzhou", "成都": "Chengdu",
         "搜索主题、活动、俱乐部、商家": "Search topics, events, clubs, merchants",

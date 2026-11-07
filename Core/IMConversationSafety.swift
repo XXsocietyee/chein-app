@@ -9,6 +9,8 @@ import FoundationNetworking
 public enum IMSafetyAction: Equatable {
     case hide(conversationID: Int)
     case report(conversationID: Int, messageID: Int)
+    /// Same `api/im/report` route carrying the reason the user actually chose (channel/club report UI).
+    case reportWithReason(conversationID: Int, messageID: Int, reason: String)
     case block(conversationID: Int, targetMemberID: Int)
     case unblock(conversationID: Int, targetMemberID: Int)
 
@@ -17,19 +19,20 @@ public enum IMSafetyAction: Equatable {
 
     public var conversationID: Int {
         switch self {
-        case .hide(let id), .report(let id, _), .block(let id, _), .unblock(let id, _): return id
+        case .hide(let id), .report(let id, _), .reportWithReason(let id, _, _), .block(let id, _), .unblock(let id, _): return id
         }
     }
     public var feature: BusinessRuntimeFeature {
-        switch self { case .hide: return .imDelete; case .report: return .imReport; case .block: return .imBlock; case .unblock: return .imUnblock }
+        switch self { case .hide: return .imDelete; case .report, .reportWithReason: return .imReport; case .block: return .imBlock; case .unblock: return .imUnblock }
     }
     public var path: String {
-        switch self { case .hide: return "api/im/delete"; case .report: return "api/im/report"; case .block: return "api/im/block"; case .unblock: return "api/im/unblock" }
+        switch self { case .hide: return "api/im/delete"; case .report, .reportWithReason: return "api/im/report"; case .block: return "api/im/block"; case .unblock: return "api/im/unblock" }
     }
     public var fields: [String: String] {
         switch self {
         case .hide(let id): return ["conversation_id": String(id)]
         case .report(_, let message): return ["message_id": String(message), "reason": Self.reportReason]
+        case .reportWithReason(_, let message, let reason): return ["message_id": String(message), "reason": reason]
         case .block(_, let target), .unblock(_, let target): return ["target_member_id": String(target)]
         }
     }
@@ -37,6 +40,8 @@ public enum IMSafetyAction: Equatable {
         switch self {
         case .hide(let id): return id > 0
         case .report(let id, let message): return id > 0 && message > 0
+        case .reportWithReason(let id, let message, let reason):
+            return id > 0 && message > 0 && !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
         case .block(let id, let target), .unblock(let id, let target): return id > 0 && target > 0
         }
     }
@@ -264,6 +269,7 @@ public enum IMSafetyState: Equatable {
     public func verify() async {
         guard case .outcomeUnknown(let action) = state, isCurrent else { return }
         if case .report = action { return }
+        if case .reportWithReason = action { return }
         set(.verifying(action))
         do {
             let applied: Bool
@@ -275,7 +281,7 @@ public enum IMSafetyState: Equatable {
                 let page = try await reader.messagingMessages(conversationID: id, cursor: 0)
                 guard let byMe = page.blockedByMe else { throw APIError.malformedResponse }
                 if case .block = action { applied = byMe } else { applied = !byMe }
-            case .report: return
+            case .report, .reportWithReason: return
             }
             guard isCurrent, state == .verifying(action) else { return }
             set(applied ? .acknowledged(action) : .notApplied(action))

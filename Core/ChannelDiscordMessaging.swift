@@ -1,4 +1,5 @@
 import Foundation
+import CryptoKit
 
 // MARK: - W6 Discord-Style Club Channel Directory Models & Projections
 
@@ -1921,6 +1922,8 @@ public enum ChannelSafetyServiceError: Error, Equatable, Sendable {
     case channelDirectoryUnavailable
     case serviceUnavailable(endpoint: ChannelSafetyModerationEndpoint)
     case messageSendUnavailable
+    /// The backend contract has no safe route for this action; it is refused rather than approximated.
+    case unsupported(endpoint: ChannelSafetyModerationEndpoint)
     case operationFailed(reason: String)
 
     public func localizedDescription(locale: Locale) -> String {
@@ -1931,6 +1934,11 @@ public enum ChannelSafetyServiceError: Error, Equatable, Sendable {
             return ChannelCopy.text("该俱乐部暂未开通频道列表或频道读取服务不可用。", "Channel directory is unavailable for this club.", locale: locale)
         case .serviceUnavailable(let endpoint):
             return ChannelCopy.text("安全治理服务暂不可用（\(endpoint.apiPath)），请稍后重试。", "Safety moderation service is unavailable (\(endpoint.apiPath)). Please retry.", locale: locale)
+        case .unsupported(let endpoint):
+            if case .deleteMessage = endpoint {
+                return ChannelCopy.text("暂不支持删除单条消息，该消息未被删除。你可以举报该消息。", "Deleting a single message isn't supported yet, and the message was not deleted. You can report it instead.", locale: locale)
+            }
+            return ChannelCopy.text("该操作暂不支持，未执行任何更改。", "This action isn't supported yet. Nothing was changed.", locale: locale)
         case .messageSendUnavailable:
             return ChannelCopy.text("频道发信服务暂不可用，请检查网络或重试。", "Channel message sending service is unavailable. Please retry.", locale: locale)
         case .operationFailed(let reason):
@@ -2093,8 +2101,8 @@ public final class CoreClubChannelSafetyService: ClubChannelSafetyServing {
     public func performModeration(_ endpoint: ChannelSafetyModerationEndpoint, activeChannelID: Int) async throws {
         let conversationID = max(activeChannelID, 1)
         switch endpoint {
-        case .reportMessage(let messageID, _):
-            let action = IMSafetyAction.report(conversationID: conversationID, messageID: messageID)
+        case .reportMessage(let messageID, let reason):
+            let action = IMSafetyAction.reportWithReason(conversationID: conversationID, messageID: messageID, reason: reason)
             guard let writer = imSafetyWriterProvider(), writer.permits(action), let identity = writer.identity else {
                 throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
             }
@@ -2110,20 +2118,12 @@ public final class CoreClubChannelSafetyService: ClubChannelSafetyServing {
             ) {
                 return
             }
-            let fallbackAction = IMSafetyAction.report(conversationID: conversationID, messageID: targetMemberID)
-            if let writer = imSafetyWriterProvider(), writer.permits(fallbackAction), let identity = writer.identity {
-                try await writer.perform(fallbackAction, expectedIdentity: identity)
-                return
-            }
+            // api/im/report takes a message id; a member id must never be sent as one. Governance route only.
             throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
 
         case .reportChannel(let clubID, let channelID, let reasonCode, let detail):
             let formattedReason = detail.isEmpty ? reasonCode : "\(reasonCode): \(detail)"
-            let imAction = IMSafetyAction.report(conversationID: channelID, messageID: channelID)
-            if let writer = imSafetyWriterProvider(), writer.permits(imAction), let identity = writer.identity {
-                try await writer.perform(imAction, expectedIdentity: identity)
-                return
-            }
+            // api/im/report takes a message id; a channel id must never be sent as one. Governance route only.
             if try await dispatchGovernanceReportIfAvailable(
                 clubID: clubID,
                 targetType: "CLUB",
@@ -2155,16 +2155,11 @@ public final class CoreClubChannelSafetyService: ClubChannelSafetyServing {
             _ = try await writer.perform(.mute(conversationID: channelConversationID, muted: muted), expectedIdentity: identity)
 
         case .deleteMessage(let clubID, let channelID, let messageID):
-            if let deleteDispatcher = messageDeleteDispatcher {
-                try await deleteDispatcher(clubID, channelID, messageID)
-                return
+            // Never fall back to api/im/delete: that hides the whole conversation, not one message.
+            guard let deleteDispatcher = messageDeleteDispatcher else {
+                throw ChannelSafetyServiceError.unsupported(endpoint: endpoint)
             }
-            let hideAction = IMSafetyAction.hide(conversationID: channelID)
-            if let writer = imSafetyWriterProvider(), writer.permits(hideAction), let identity = writer.identity {
-                try await writer.perform(hideAction, expectedIdentity: identity)
-                return
-            }
-            throw ChannelSafetyServiceError.serviceUnavailable(endpoint: endpoint)
+            try await deleteDispatcher(clubID, channelID, messageID)
 
         case .removeMember(let clubID, let targetMemberID):
             guard let access = clubManagementAccessProvider(), access.isConfigured, let identity = access.identity else {
@@ -2213,13 +2208,7 @@ public final class CoreClubChannelSafetyService: ClubChannelSafetyServing {
         guard let writer = messageWriterProvider(), writer.isConfigured, let identity = writer.identity else {
             throw ChannelSafetyServiceError.messageSendUnavailable
         }
-        let hexID: String
-        let cleaned = clientMessageID.lowercased().filter { ("0"..."9").contains($0) || ("a"..."f").contains($0) }
-        if cleaned.count == 32 {
-            hexID = cleaned
-        } else {
-            hexID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
-        }
+        let hexID = Self.stableIdempotencyID(for: clientMessageID)
         let intent = try MessageTextIntent(
             conversationID: channelID,
             content: content,
@@ -2227,6 +2216,15 @@ public final class CoreClubChannelSafetyService: ClubChannelSafetyServing {
         )
         let sentMessage = try await writer.send(intent, expectedIdentity: identity)
         return sentMessage.id
+    }
+
+    /// One draft, one idempotency id: a 32-hex client id is used as-is; anything else is hashed deterministically
+    /// so every retry of the same draft sends the same id (never a fresh random UUID).
+    public static func stableIdempotencyID(for clientMessageID: String) -> String {
+        let lowered = clientMessageID.lowercased()
+        if lowered.count == 32, lowered.allSatisfy({ ("0"..."9").contains($0) || ("a"..."f").contains($0) }) { return lowered }
+        let digest = SHA256.hash(data: Data(clientMessageID.utf8))
+        return digest.prefix(16).map { String(format: "%02x", $0) }.joined()
     }
 
     private func dispatchGovernanceReportIfAvailable(
@@ -2787,6 +2785,11 @@ public final class ClubChannelModerationCoordinator: ObservableObject {
             feedbackBanner = .success(message: successMessage(for: action, locale: locale))
             return true
         } catch let error as ChannelSafetyServiceError {
+            if case .unsupported = error {
+                lastFailedAction = nil
+                feedbackBanner = .error(message: error.localizedDescription(locale: locale), canRetry: false)
+                return false
+            }
             lastFailedAction = action
             feedbackBanner = .error(message: error.localizedDescription(locale: locale), canRetry: true)
             return false

@@ -735,7 +735,8 @@ public struct ClubChannelMessagingView: View {
             body = trimmed
         }
         let channelID = Int(selectedChannelID)
-        let clientID = "w6-\(selectedChannelID)-\(UUID().uuidString.lowercased())"
+        // One stable 32-hex idempotency id per draft; retries reuse it (see CoreClubChannelSafetyService.sendChannelMessage).
+        let clientID = UUID().uuidString.replacingOccurrences(of: "-", with: "").lowercased()
         _ = sendStateMachine.enqueueOptimistic(
             clientMessageID: clientID,
             senderID: viewerMemberID,

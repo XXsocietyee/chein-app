@@ -945,16 +945,22 @@ final class ChannelDiscordMessagingTests: XCTestCase {
 
         // 2. Route reportMessage, reportChannel, blockUser, unblockUser through IMSafetyWriting
         try await coreService.performModeration(.reportMessage(messageID: 555, reason: "Abuse"), activeChannelID: 8801)
-        XCTAssertEqual(imSafetySpy.actions.last, .report(conversationID: 8801, messageID: 555))
+        // The real message id and the reason the user chose are sent (not the fixed literal).
+        XCTAssertEqual(imSafetySpy.actions.last, .reportWithReason(conversationID: 8801, messageID: 555, reason: "Abuse"))
 
-        try await coreService.performModeration(
-            .reportChannel(clubID: 77, channelID: 8801, reasonCode: "SPAM", detail: "Raid"),
-            activeChannelID: 8801
-        )
-        XCTAssertEqual(
-            imSafetySpy.actions.last,
-            .report(conversationID: 8801, messageID: 8801)
-        )
+        // A channel report has no message id: it must not be sent to api/im/report as one. With no governance
+        // route configured it fails closed and the IM writer sees nothing new.
+        let actionsBeforeChannelReport = imSafetySpy.actions
+        do {
+            try await coreService.performModeration(
+                .reportChannel(clubID: 77, channelID: 8801, reasonCode: "SPAM", detail: "Raid"),
+                activeChannelID: 8801
+            )
+            XCTFail("reportChannel must fail closed without a governance route")
+        } catch let error as ChannelSafetyServiceError {
+            guard case .serviceUnavailable = error else { return XCTFail("unexpected \(error)") }
+        }
+        XCTAssertEqual(imSafetySpy.actions, actionsBeforeChannelReport)
 
         try await coreService.performModeration(.blockUser(targetMemberID: 602), activeChannelID: 8801)
         XCTAssertEqual(imSafetySpy.actions.last, .block(conversationID: 8801, targetMemberID: 602))
@@ -1198,3 +1204,76 @@ private final class ClubChannelMessagingReaderSpy: MessagingReading {
     }
 }
 
+
+// MARK: - Finding 3 fail-closed safety tests
+
+@MainActor
+final class ChannelSafetyFailClosedTests: XCTestCase {
+    private func service(imSafety: IMSafetyWriterSpy, messageWriter: MessageActionWriterSpy? = nil,
+                         deleteDispatcher: ((Int, Int, Int) async throws -> Void)? = nil) -> CoreClubChannelSafetyService {
+        CoreClubChannelSafetyService(
+            imSafetyWriter: { imSafety },
+            messageWriter: { messageWriter ?? MessageActionWriterSpy() },
+            channelMessageDeleteDispatcher: deleteDispatcher
+        )
+    }
+
+    func testSingleMessageDeleteWithoutPerMessageRouteFailsClosedAndNeverHidesChannel() async {
+        let spy = IMSafetyWriterSpy()
+        let core = service(imSafety: spy)
+        do {
+            try await core.performModeration(.deleteMessage(clubID: 77, channelID: 8801, messageID: 555), activeChannelID: 8801)
+            XCTFail("delete must fail closed")
+        } catch let error as ChannelSafetyServiceError {
+            guard case .unsupported(let endpoint) = error else { return XCTFail("unexpected \(error)") }
+            XCTAssertEqual(endpoint, .deleteMessage(clubID: 77, channelID: 8801, messageID: 555))
+            XCTAssertTrue(error.localizedDescription(locale: Locale(identifier: "en")).contains("not deleted")
+                          || error.localizedDescription(locale: Locale(identifier: "en")).contains("was not deleted"))
+        } catch { XCTFail("unexpected \(error)") }
+        XCTAssertTrue(spy.actions.isEmpty, "no api/im/delete (hide conversation) may be issued for one message")
+    }
+
+    func testMemberAndChannelReportsNeverSendAnIDAsMessageID() async {
+        let spy = IMSafetyWriterSpy()
+        let core = service(imSafety: spy)
+        for endpoint in [ChannelSafetyModerationEndpoint.reportClubUser(clubID: 77, targetMemberID: 602, reasonCode: "SPAM", detail: ""),
+                         .reportChannel(clubID: 77, channelID: 8801, reasonCode: "SPAM", detail: "")] {
+            do {
+                try await core.performModeration(endpoint, activeChannelID: 8801)
+                XCTFail("must fail closed without a governance route")
+            } catch let error as ChannelSafetyServiceError {
+                guard case .serviceUnavailable = error else { return XCTFail("unexpected \(error)") }
+            } catch { XCTFail("unexpected \(error)") }
+        }
+        XCTAssertTrue(spy.actions.isEmpty)
+    }
+
+    func testMessageReportCarriesRealMessageIDAndUserChosenReason() async throws {
+        let spy = IMSafetyWriterSpy()
+        let core = service(imSafety: spy)
+        try await core.performModeration(.reportMessage(messageID: 555, reason: "HARASSMENT: rude"), activeChannelID: 8801)
+        let action = try XCTUnwrap(spy.actions.last)
+        XCTAssertEqual(action.path, "api/im/report")
+        XCTAssertEqual(action.fields, ["message_id": "555", "reason": "HARASSMENT: rude"])
+        XCTAssertNotEqual(action.fields["reason"], IMSafetyAction.reportReason)
+        XCTAssertEqual(IMSafetyAction.report(conversationID: 1, messageID: 2).fields["reason"], IMSafetyAction.reportReason,
+                       "the 1:1 chat literal stays unchanged")
+    }
+
+    func testRetryOfSameDraftSendsSameIdempotencyID() async throws {
+        let writer = MessageActionWriterSpy()
+        let core = service(imSafety: IMSafetyWriterSpy(), messageWriter: writer)
+        let draftID = "w6-12-" + UUID().uuidString.lowercased()
+        for _ in 0..<3 {
+            _ = try await core.sendChannelMessage(clubID: 77, channelID: 8801, clientMessageID: draftID, content: "hi", replyToMessageID: nil)
+        }
+        let ids = writer.intents.map(\.clientMessageID)
+        XCTAssertEqual(ids.count, 3)
+        XCTAssertEqual(Set(ids).count, 1, "retries must reuse one idempotency id")
+        XCTAssertEqual(ids[0].count, 32)
+        let other = "w6-12-" + UUID().uuidString.lowercased()
+        XCTAssertNotEqual(CoreClubChannelSafetyService.stableIdempotencyID(for: other), ids[0])
+        let hex = String(repeating: "ab", count: 16)
+        XCTAssertEqual(CoreClubChannelSafetyService.stableIdempotencyID(for: hex), hex)
+    }
+}

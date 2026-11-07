@@ -49,18 +49,10 @@ enum ClubSafetyComposition {
                     return nil
                 }
                 return try await coordinator.service.directory()
-            },
-            channelMessageDeleteDispatcher: { [weak session] _, channelID, _ in
-                let hideAction = IMSafetyAction.hide(conversationID: channelID)
-                guard let writer = session?.imSafetyWriter,
-                      writer.permits(hideAction),
-                      let identity = writer.identity else {
-                    throw ChannelSafetyServiceError.serviceUnavailable(
-                        endpoint: .deleteMessage(clubID: club.id, channelID: channelID, messageID: 0)
-                    )
-                }
-                try await writer.perform(hideAction, expectedIdentity: identity)
             }
+            // No `channelMessageDeleteDispatcher`: the backend has no per-message delete route wired here, and
+            // `api/im/delete` hides the whole conversation. Single-message delete therefore fails closed
+            // (`ChannelSafetyServiceError.unsupported`) instead of hiding the channel.
         )
     }
 

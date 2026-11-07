@@ -146,10 +146,56 @@ public enum TeamOrientBoardRules {
     }
 }
 
+/// Why a team report was not recorded. Success is only ever a returned (non-throwing) `reportTeam`.
+public enum TeamReportFailure: Error, Equatable {
+    /// No signed-in, configured report path (or no service wired at all).
+    case unavailable
+    case invalid
+    case unauthorized
+    /// The server answered but did not accept the report.
+    case rejected(String?)
+    /// Transport failure or malformed answer: the report may or may not have been received.
+    case network
+}
+
 @MainActor public protocol TeamOrientBoardAccess: AnyObject {
     var enabled: Bool { get }
     func loadBoard(teamID: Int) async throws -> TeamOrientBoardDetail?
     func loadRanking(ownerType: Int, ownerID: Int) async throws -> [TeamOrientRankingRow]
+    /// `POST /api/team/report {teamId, reason}` (mini-program `pages/team/detail`). Returns only after the server accepted it.
+    func reportTeam(teamID: Int, reason: String) async throws
+}
+
+/// UI state of one report attempt. `.submitted` is reachable only through a non-throwing service call.
+public enum TeamReportState: Equatable {
+    case idle, submitting, submitted
+    /// No service is wired (or not signed in): honest "unavailable", never success.
+    case unavailable
+    /// Retryable: the report is not known to be recorded.
+    case failed(TeamReportFailure)
+}
+
+public enum TeamReportSubmission {
+    @MainActor public static func run(access: (any TeamOrientBoardAccess)?, teamID: Int, reason: String) async -> TeamReportState {
+        guard let access, access.enabled else { return .unavailable }
+        do {
+            try await access.reportTeam(teamID: teamID, reason: reason)
+            return .submitted
+        } catch TeamReportFailure.unavailable {
+            return .unavailable
+        } catch is CancellationError {
+            return .idle
+        } catch let failure as TeamReportFailure {
+            return .failed(failure)
+        } catch {
+            return .failed(.network)
+        }
+    }
+}
+
+public enum TeamReportRules {
+    public static let reasonLimit = 200
+    public static func trimmedReason(_ raw: String) -> String { raw.trimmingCharacters(in: .whitespacesAndNewlines) }
 }
 
 @MainActor public final class TeamOrientBoardHTTPAccess: TeamOrientBoardAccess {
@@ -206,5 +252,30 @@ public enum TeamOrientBoardRules {
             URLQueryItem(name: "ownerId", value: String(ownerID))
         ])
         return TeamOrientBoardRules.decodeRanking(data)
+    }
+
+    public func reportTeam(teamID: Int, reason: String) async throws {
+        let text = TeamReportRules.trimmedReason(reason)
+        guard teamID > 0, !text.isEmpty, text.count <= TeamReportRules.reasonLimit else { throw TeamReportFailure.invalid }
+        guard enabled, let token = session()?.token else { throw TeamReportFailure.unavailable }
+        guard AuthRequestBuilder.isValidToken(token) else { throw TeamReportFailure.unauthorized }
+        var request = URLRequest(url: configuration.baseURL.appendingPathComponent("api/team/report"))
+        request.httpMethod = "POST"
+        request.timeoutInterval = 20
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["teamId": teamID, "reason": text], options: [.sortedKeys])
+        request.setValue(token, forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        let data: Data, status: Int
+        do { (data, status) = try await transport.send(request) }
+        catch is CancellationError { throw CancellationError() }
+        catch APIError.notConfigured { throw TeamReportFailure.unavailable }
+        catch { throw TeamReportFailure.network }
+        if status == 401 { throw TeamReportFailure.unauthorized }
+        guard (200..<300).contains(status),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let code = obj["code"] as? NSNumber, CFGetTypeID(code) != CFBooleanGetTypeID() else { throw TeamReportFailure.network }
+        guard code.intValue == 200 else { throw TeamReportFailure.rejected(obj["msg"] as? String) }
     }
 }

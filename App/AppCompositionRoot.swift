@@ -2562,7 +2562,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -3446,6 +3446,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if AccountComplianceCompositionRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if let orientOfficial = ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: captured.token) {
+            guard captured.isSignedInContentViewer else { throw APIError.notConfigured }
+            if orientOfficial == .write {
+                guard deployment.productionGatesEnabled, deployment.regional.market == .china else { throw APIError.notConfigured }
+            }
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
@@ -3808,6 +3813,101 @@ private enum AccountComplianceCompositionRoute {
             }
             let canonical = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys)
             return canonical == body
+        }
+        return false
+    }
+}
+
+/// Exact-route allowlist for the orient board, official organizer, preset official routes, host-cancel and team-report
+/// requests that the Core `*HTTPAccess` types build. Anything that differs in method, path, query, headers or body
+/// shape is refused. Reads need a signed-in viewer; every POST additionally needs `productionGatesEnabled` (China).
+enum ReviewedOrientOfficialRoute {
+    enum Kind: Equatable { case read, write }
+
+    static func kind(_ request: URLRequest, baseURL: URL, token: String?) -> Kind? {
+        guard let token, AuthRequestBuilder.isValidToken(token), request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              let url = request.url, url.fragment == nil,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil else { return nil }
+        if request.httpMethod == "GET" {
+            guard request.httpBody == nil, request.value(forHTTPHeaderField: "Content-Type") == nil else { return nil }
+            return acceptsRead(url: url, parts: parts, baseURL: baseURL) ? .read : nil
+        }
+        if request.httpMethod == "POST" {
+            guard url.query == nil, request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                  let body = request.httpBody, body.count <= 4096,
+                  let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+                  (try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys)) == body else { return nil }
+            return acceptsWrite(url: url, object: object, baseURL: baseURL) ? .write : nil
+        }
+        return nil
+    }
+
+    private static func positive(_ raw: String?) -> Bool {
+        guard let raw, let value = Int(raw), value > 0 else { return false }
+        return String(value) == raw
+    }
+    private static func positiveInt(_ any: Any?) -> Int? {
+        guard let n = any as? NSNumber, CFGetTypeID(n) != CFBooleanGetTypeID(), n.intValue > 0,
+              n.doubleValue == Double(n.intValue) else { return nil }
+        return n.intValue
+    }
+
+    private static func acceptsRead(url: URL, parts: URLComponents, baseURL: URL) -> Bool {
+        func exact(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path && sameOrigin(url, baseURL) }
+        let items = parts.queryItems ?? []
+        if exact("api/orient/team/detail") {
+            return items.count == 1 && items[0].name == "teamId" && positive(items[0].value)
+        }
+        if exact("api/orient/team/ranking") {
+            return items.count == 2 && items[0].name == "ownerType" && positive(items[0].value)
+                && items[1].name == "ownerId" && positive(items[1].value)
+        }
+        if exact("api/preset/route/list") || exact("api/official/my-published") { return items.isEmpty && parts.query == nil }
+        if exact("api/preset/route/info") {
+            return items.count == 1 && items[0].name == "id" && OfficialRouteReader.isValidID(items[0].value ?? "")
+        }
+        let prefix = baseURL.appendingPathComponent("api/official/v2/events/").path
+        if parts.path.hasPrefix(prefix), parts.path.hasSuffix("/publish-check"), parts.query == nil, sameOrigin(url, baseURL) {
+            let id = String(parts.path.dropFirst(prefix.count).dropLast("/publish-check".count))
+            return positive(id)
+        }
+        return false
+    }
+
+    private static func sameOrigin(_ url: URL, _ baseURL: URL) -> Bool {
+        url.scheme == baseURL.scheme && url.host == baseURL.host && url.port == baseURL.port
+    }
+
+    private static func acceptsWrite(url: URL, object: [String: Any], baseURL: URL) -> Bool {
+        guard sameOrigin(url, baseURL) else { return false }
+        func exact(_ path: String) -> Bool { url.absoluteString == baseURL.appendingPathComponent(path).absoluteString }
+        let keys = Set(object.keys)
+        func scopeOK() -> Bool { object["scope"] == nil || (object["scope"] as? String) == ActivityHostCancelScope.merchant.rawValue }
+        if exact("api/activity/cancel_preview") {
+            return keys.subtracting(["scope"]) == ["id"] && positiveInt(object["id"]) != nil && scopeOK()
+        }
+        if exact("api/activity/cancel") {
+            guard keys.subtracting(["scope"]) == ["id", "reason"], positiveInt(object["id"]) != nil, scopeOK(),
+                  let reason = object["reason"] as? String else { return false }
+            return !reason.isEmpty && reason == ActivityHostCancelRules.trimmedReason(reason) && reason.count <= ActivityHostCancelRules.reasonLimit
+        }
+        if exact("api/team/report") {
+            guard keys == ["teamId", "reason"], positiveInt(object["teamId"]) != nil, let reason = object["reason"] as? String else { return false }
+            return !reason.isEmpty && reason == TeamReportRules.trimmedReason(reason) && reason.count <= TeamReportRules.reasonLimit
+        }
+        func hex32(_ any: Any?) -> Bool {
+            guard let text = any as? String, text.count == 32 else { return false }
+            return text.utf8.allSatisfy { (48...57).contains($0) || (97...102).contains($0) }
+        }
+        if exact("api/official/command/query") { return keys == ["requestId"] && hex32(object["requestId"]) }
+        if exact("api/official/command") || exact("api/official/command/cancel") {
+            guard keys.isSuperset(of: ["targetId", "action", "requestId"]), keys.count <= 24, hex32(object["requestId"]),
+                  positive(object["targetId"] as? String),
+                  let action = object["action"] as? String, OfficialOrganizerAction(rawValue: action) != nil else { return false }
+            return object.values.allSatisfy { $0 is String }
         }
         return false
     }
