@@ -196,7 +196,7 @@ struct ActivityDetailView: View {
                 .accessibilityIdentifier("activity.requiredClub.open")
         }
         if requiredClubDestination == nil || renderedScope == nil || (clubID ?? 0) <= 0 {
-            Text("activity.requiredClub.unavailable").font(.footnote).foregroundStyle(.secondary)
+            Text("activity.requiredClub.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("activity.requiredClub.unavailable")
         }
@@ -210,9 +210,9 @@ struct ActivityDetailView: View {
             if detail.isCancelled {
                 Section {
                     VStack(alignment:.leading,spacing:6) {
-                        Text("activity.cancelled.title").font(.headline)
+                        Text("activity.cancelled.title").font(CYTypography.cardTitle)
                         if let reason = detail.cancelReason { Text("activity.cancelled.reason \(reason)") }
-                        Text("activity.cancelled.hint").font(.footnote).foregroundStyle(.secondary)
+                        Text("activity.cancelled.hint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     }
                     .fixedSize(horizontal:false,vertical:true)
                     .questifyCardSurface()
@@ -262,7 +262,7 @@ struct ActivityDetailView: View {
                 if detail.tickets.isEmpty {
                     // Source empty ticket copy: title plus host explanation.
                     Text("activity.source.noTickets")
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
                 ForEach(detail.tickets) { ticket in
                     ActivityTicketCard(ticket:ticket)
@@ -277,8 +277,8 @@ struct ActivityDetailView: View {
                     Text("activity.reviewPointsNote")
                         .accessibilityIdentifier("activity.detail.readOnly")
                 } icon: { Image(systemName:"star").accessibilityHidden(true) }
-                .font(.footnote)
-                .foregroundStyle(.secondary)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal:false,vertical:true)
             }
             if let playReaderForActivity {
@@ -363,7 +363,7 @@ struct ActivityDetailView: View {
     }
     private func primaryActionLabel(_ action: ActivityPrimaryAction) -> some View {
         Text(LocalizedStringKey(action.titleKey))
-            .font(.headline)
+            .font(CYTypography.cardTitle)
             .fixedSize(horizontal:false,vertical:true)
             .frame(maxWidth:.infinity,minHeight:44)
     }

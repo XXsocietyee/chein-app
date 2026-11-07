@@ -101,8 +101,8 @@ import SwiftUI
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
                             Text(verbatim: HomeIndexParityPresentation.noMoreFooterCopy(locale: locale))
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textTertiary)
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
@@ -177,7 +177,8 @@ import SwiftUI
                 } else if let items {
                     if items.isEmpty {
                         Text(section == .recommended ? LocalizedStringKey("homeFeed.editorsPicksEmpty") : LocalizedStringKey("homeFeed.activitiesEmpty"))
-                            .foregroundStyle(.secondary)
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(CYColor.textSecondary)
                     } else if dynamicTypeSize.isAccessibilitySize {
                         ForEach(items) { item in row(item, section: section.rawValue) }
                     } else {
@@ -211,10 +212,13 @@ import SwiftUI
             .questifyCardListRow()
     }
     private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () -> Void) -> some View {
-        VStack(alignment: .leading) {
-            Text(message)
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Label { Text(message) } icon: { Image(systemName: "exclamationmark.triangle") }
+                .font(CYTypography.bodyCompact)
+                .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
                 .buttonStyle(.bordered).controlSize(.large)
+                .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }
     }

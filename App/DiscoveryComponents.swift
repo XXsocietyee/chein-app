@@ -98,10 +98,10 @@ struct DiscoveryPlayRow: View {
     let item: DiscoveryPlayTemplate
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(.headline)
+            DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(CYTypography.cardTitle)
             DiscoveryPlayMetadata(item: item)
             if let text = item.description, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(text).lineLimit(3).font(.subheadline).foregroundStyle(.secondary)
+                Text(text).lineLimit(3).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
             }
         }.padding(.vertical, 6)
     }
@@ -111,7 +111,7 @@ struct DiscoveryPlayMetadata: View {
     let item: DiscoveryPlayTemplate
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            if let pack = item.pack { Text(pack.label).font(.caption).foregroundStyle(.secondary) }
+            if let pack = item.pack { Text(pack.label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             if let players = item.playersText {
                 LabeledContent("discovery.players", value: players)
             }
@@ -121,7 +121,7 @@ struct DiscoveryPlayMetadata: View {
             if let difficulty = item.difficulty, !difficulty.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 LabeledContent("discovery.difficulty", value: difficulty)
             }
-        }.font(.subheadline).foregroundStyle(.secondary)
+        }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
     }
 }
 
@@ -134,7 +134,7 @@ struct DiscoveryTopicMetadata: View {
             if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds", value: String(seconds)) }
             if item.previewOnly { Label("discovery.preview", systemImage: "flask") }
             else if !item.isVerified { Label("discovery.experimental", systemImage: "flask") }
-        }.font(.subheadline).foregroundStyle(.secondary)
+        }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
     }
 }
 
