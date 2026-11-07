@@ -333,7 +333,11 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         let participants = try await session.participantReader.profileParticipants()
         XCTAssertEqual(participants.map(\.id), [9])
         let writerIdentity = try XCTUnwrap(session.participantWriter.identity)
-        var draft = ParticipantFormDraft()
+        var createDraft = ParticipantFormDraft()
+        createDraft.fullName = "张三"
+        createDraft.mobilePhone = "13800138000"
+        _ = try await session.participantWriter.performReturningParticipant(.save(createDraft), requestID: UUID(), expectedIdentity: writerIdentity)
+        var draft = ParticipantFormDraft(detail: participants[0])
         draft.fullName = "张三"
         draft.mobilePhone = "13800138000"
         try await session.participantWriter.perform(.save(draft), expectedIdentity: writerIdentity)

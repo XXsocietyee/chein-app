@@ -3597,7 +3597,7 @@ extension CompositionHTTPTransport {
 private enum AccountComplianceCompositionRoute {
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         guard let token, AuthRequestBuilder.isValidToken(token),
-              request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+              request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
               request.value(forHTTPHeaderField: "Accept") == "application/json",
               let url = request.url, url.query == nil, url.fragment == nil else { return false }
@@ -3651,7 +3651,7 @@ private enum AccountComplianceCompositionRoute {
 private enum ReviewedProductionFormMutationRoute {
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         guard let token, AuthRequestBuilder.isValidToken(token),
-              request.httpMethod == "POST", request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+              request.httpMethod == "POST", request.httpBodyStream == nil,
               request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
               let url = request.url, url.query == nil, url.fragment == nil,
               let type = request.value(forHTTPHeaderField: "Content-Type"),
@@ -3871,8 +3871,8 @@ private enum ReviewedProductionFormMutationRoute {
             accountID: context.session.accountID, routes: imRoutes
         )
         return NativeRuntimeDependencies(
-            couponCodeApproval: couponCodeApproval,
             businessConfiguration: businessConfiguration,
+            couponCodeApproval: couponCodeApproval,
             orderLifecycleConfiguration: orderConfiguration
         )
     }
