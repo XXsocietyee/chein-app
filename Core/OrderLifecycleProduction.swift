@@ -39,9 +39,11 @@ public struct OrderLifecycleProductionConfiguration {
     public let approvals: [OrderLifecycleOrderApproval]
     public let externalCheckoutApproved: Bool
     public let devicePaymentApproved: Bool
+    public let allowsReviewedCancellationAndRefund: Bool
     public init(market: RegionalMarket, baseURL: URL, namespace: String, accountID: Int, role: String,
                 sourceRevision: String, approvals: [OrderLifecycleOrderApproval] = [],
-                externalCheckoutApproved: Bool = false, devicePaymentApproved: Bool = false) throws {
+                externalCheckoutApproved: Bool = false, devicePaymentApproved: Bool = false,
+                allowsReviewedCancellationAndRefund: Bool = false) throws {
         _ = try APIConfiguration(baseURL: baseURL)
         guard market == .china, !namespace.isEmpty, accountID > 0, ["player", "club"].contains(role),
               sourceRevision == OrderLifecycleSourceContract.revision,
@@ -49,6 +51,7 @@ public struct OrderLifecycleProductionConfiguration {
         self.market = market; self.baseURL = baseURL; self.namespace = namespace; self.accountID = accountID; self.role = role
         self.sourceRevision = sourceRevision; self.approvals = approvals
         self.externalCheckoutApproved = externalCheckoutApproved; self.devicePaymentApproved = devicePaymentApproved
+        self.allowsReviewedCancellationAndRefund = allowsReviewedCancellationAndRefund
     }
     public func matches(_ context: RuntimeDependencyContext) -> Bool {
         market == .china && context.market == market && context.baseURL == baseURL && context.role == role &&
@@ -193,7 +196,15 @@ public enum OrderLifecycleProductionResult {
     private func approval(_ review: OrderLifecycleReview) -> OrderLifecycleOrderApproval? {
         guard current() == captured, configuration.matches(captured), review.accountID == captured.session.accountID,
               review.scope == openedReviewScope, currentReviewScope() == openedReviewScope else { return nil }
-        return configuration.approvals.first { $0.matches(review, now: now()) }
+        if let explicit = configuration.approvals.first(where: { $0.matches(review, now: now()) }) {
+            return explicit
+        }
+        guard configuration.allowsReviewedCancellationAndRefund,
+              review.action == .cancel || review.action == .refund,
+              now() < review.expiresAt,
+              let ownerType = review.detail.ownerType, let ownerID = review.detail.ownerID else { return nil }
+        return try? OrderLifecycleOrderApproval(orderID: review.detail.id, ownerType: ownerType,
+            ownerID: ownerID, action: review.action, expiresAt: review.expiresAt)
     }
     public func canDispatch(_ review: OrderLifecycleReview) -> Bool {
         guard approval(review) != nil, now() < review.expiresAt else { return false }

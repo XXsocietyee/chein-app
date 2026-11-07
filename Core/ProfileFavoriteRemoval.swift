@@ -22,10 +22,13 @@ public struct ProfileFavoriteRemovalApproval: Equatable {
     public let identity: SocialAccountIdentity
     public let postID: Int
     public let expiresAt: Date
-    public init(endpoint: OperationEndpointApproval, identity: SocialAccountIdentity, postID: Int, expiresAt: Date) throws {
+    public let allowsAnyPositivePostID: Bool
+    public init(endpoint: OperationEndpointApproval, identity: SocialAccountIdentity, postID: Int, expiresAt: Date,
+                allowsAnyPositivePostID: Bool = false) throws {
         guard endpoint.paths == Self.paths, endpoint.accountID == identity.accountID, postID > 0,
               expiresAt.timeIntervalSince1970.isFinite else { throw APIError.invalidConfiguration }
         self.endpoint = endpoint; self.identity = identity; self.postID = postID; self.expiresAt = expiresAt
+        self.allowsAnyPositivePostID = allowsAnyPositivePostID
     }
 }
 public enum ProfileFavoriteRemovalFailure: Error { case disabled, stale, response, pending }
@@ -84,7 +87,7 @@ public struct ProfileFavoriteRemovalReview: Equatable, Identifiable {
     }
     private func approved(_ postID: Int, session: ProfileFavoriteRemovalSession) -> Bool {
         session.market == .china && approvals.filter {
-            $0.postID == postID && $0.identity == session.identity && now() < $0.expiresAt &&
+            ($0.allowsAnyPositivePostID ? postID > 0 : $0.postID == postID) && $0.identity == session.identity && now() < $0.expiresAt &&
             $0.endpoint.allows(configuration: configuration, namespace: session.namespace,
                 accountID: session.identity.accountID ?? 0, path: "api/creativesquare/bookmark")
         }.count == 1

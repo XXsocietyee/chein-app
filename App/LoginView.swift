@@ -75,8 +75,8 @@ struct LoginView: View {
                     .sheet(item: $legalDocument) { sheet in
                         NavigationStack {
                             Group {
-                                if sheet.type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket) }
-                                else { SettingsLegalDocumentView(type: sheet.type, market: session.operationalMarket, reader: SettingsBundledLegalReader()) }
+                                if sheet.type == .privacyPolicy { PrivacyProtectionView(market: session.operationalMarket, legalReader: session.legalReader) }
+                                else { SettingsLegalDocumentView(type: sheet.type, market: session.operationalMarket, reader: session.legalReader) }
                             }
                             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { legalDocument = nil } } }
                         }

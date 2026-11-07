@@ -3383,7 +3383,8 @@ final class AppSession: ObservableObject {
     var authChannelSnapshot: AuthChannelSessionSnapshot {
         AuthChannelSessionSnapshot(epoch:gate.currentStamp,accountID:account?.id,isBusy:isWorking)
     }
-    lazy var authChannels=AuthChannelCoordinator(service:authChannelService,currentSession:{ [weak self] in
+    var legalReader: any SettingsLegalReading { composition.legalReader }
+    lazy var authChannels=AuthChannelCoordinator(service:authChannelService,appleConfigurationVerified:composition.reviewed?.appleSignInApproved ?? false,currentSession:{ [weak self] in
         self?.authChannelSnapshot ?? AuthChannelSessionSnapshot(epoch:0,accountID:nil,isBusy:true)
     },commitLogin:{ [weak self] result,expected in
         guard let self else { return false }
@@ -4551,11 +4552,12 @@ final class AppSession: ObservableObject {
     func makeWalletCommerceReader(readApproval: OperationEndpointApproval? = nil,
                                   transport: (any HTTPTransport)? = nil) -> WalletCommerceReader {
         let transport = scopedTransport(transport)
+        let effectiveApproval = readApproval ?? (composition.reviewed?.productionGatesEnabled == true ? currentWalletHistoryApproval?.endpoints : nil)
         var service: WalletCommerceService?
-        if let configuration = regionalConfiguration?.apiConfiguration, let readApproval,
-           let storageScope, readApproval.baseURL == configuration.baseURL,
-           readApproval.namespace == storageScope.service {
-            let guarded = WalletCommerceApprovedReadTransport(configuration: configuration, approval: readApproval,
+        if let configuration = regionalConfiguration?.apiConfiguration, let effectiveApproval,
+           let storageScope, effectiveApproval.baseURL == configuration.baseURL,
+           effectiveApproval.namespace == storageScope.service {
+            let guarded = WalletCommerceApprovedReadTransport(configuration: configuration, approval: effectiveApproval,
                 transport: transport, currentSession: { [weak self] in
                     guard let self, let scope = self.walletCommerceScope, let token = self.token else { return nil }
                     return (scope, token)
@@ -4965,6 +4967,21 @@ final class AppSession: ObservableObject {
         favoriteRemovalControllerCache = (context, scope, revisions, controller)
         retained = true
         return controller
+    }
+    func makeTopicUnlikeController() -> TopicUnlikeController? {
+        guard let context = currentRuntimeDependencyContext, let api = regionalConfiguration?.apiConfiguration,
+              let approval = composition.topicUnlikeApproval(context) else { return nil }
+        return TopicUnlikeController(configuration: api, approvals: [approval], transport: runtimeHTTPTransport,
+            current: { [weak self] in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return nil }
+                return try? TopicUnlikeSession(accountID: fresh.session.accountID, epoch: fresh.session.epoch,
+                    namespace: fresh.session.namespace, market: fresh.market, token: fresh.session.token)
+            }, onUnauthorized: { [weak self] in
+                guard let self, let fresh = self.currentRuntimeDependencyContext,
+                      ContentDraftContextFence.matches(context, fresh) else { return }
+                self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
+            })
     }
     func makeProfileFavoriteDetailReader(_ selection: ProfileFavoritePostSelection) -> ProfileFavoriteDetailReader {
         let api = regionalConfiguration?.apiConfiguration
@@ -6938,21 +6955,45 @@ final class AppSession: ObservableObject {
                 self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
             })
     }
+    @MainActor private final class ReviewedComplianceRoamEffects: ComplianceRoamEffects {
+        weak var session: AppSession?
+        init(session: AppSession) { self.session = session }
+        func stopTracking() async throws {
+            session?.roamCoordinator.invalidateSession()
+        }
+        func clearMapPrivacy() async throws {
+            session?.invalidatePersonalLocationShare()
+        }
+        func invalidateMapPrivacyCaches() {
+            session?.invalidatePersonalLocationShare()
+        }
+    }
     var accountComplianceCoordinator: AccountComplianceCoordinator? {
         if let retainedCompliance { return retainedCompliance }
         guard let configuration = regionalConfiguration?.apiConfiguration, let authChannelService,
               let directory = safetyDirectory("AccountComplianceSafety") else { return nil }
+        let enabled = composition.isAccountComplianceEnabled
         let service = AccountComplianceService(configuration: configuration, transport: runtimeHTTPTransport,
             journal: ComplianceFileJournal(url: directory.appendingPathComponent("operations-v1.json")),
             current: { [weak self] in self?.complianceSession }, token: { [weak self] in self?.token },
-            readsEnabled: false, writesEnabled: false, legalApproved: { _, _ in false }, authoritativeMerchantID: { nil },
+            readsEnabled: enabled, writesEnabled: enabled,
+            legalApproved: { [weak self] subject, session in
+                guard let self, self.composition.isAccountComplianceEnabled, self.complianceSession == session else { return false }
+                return subject == .cancellation || subject == .roamLocation
+            }, authoritativeMerchantID: { nil },
             marketingOriginal: { [weak self] in self?.merchantMarketingConsentOriginalClient() },
             deregistrationOriginal: { [weak self] in self?.accountDeregistrationOriginalClient() })
+        let effects: any ComplianceRoamEffects = enabled ? ReviewedComplianceRoamEffects(session: self) : DormantComplianceRoamEffects()
         let coordinator = AccountComplianceCoordinator(service: service, auth: authChannelService,
-            effects: DormantComplianceRoamEffects(), current: { [weak self] in self?.complianceSession },
+            effects: effects, current: { [weak self] in self?.complianceSession },
             invalidateSession: { [weak self] captured in
                 guard let self, self.complianceSession == captured else { return }
+                let preservedStep = self.retainedCompliance?.state.step
+                let preservedStatus = self.retainedCompliance?.state.status
                 self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+                if let preservedStep, (preservedStep == .freshLogin || preservedStep == .completed) {
+                    self.retainedCompliance?.restorePostInvalidationConfirmation(step: preservedStep, status: preservedStatus)
+                }
             })
         composition.merchantMarketingConsentSelection.register(coordinator)
         composition.reviewed?.accountDeregistrationOriginalSource?.register(coordinator)
@@ -7082,6 +7123,9 @@ final class AppSession: ObservableObject {
         self.composition = composition
         self.compositionTransport = composition.transport()
         self.injectedRuntimeDependencies = runtimeDependencies
+        self.participantAccessSelector = { [composition] context in
+            composition.profileParticipantAccess(context)
+        }
         let regional=composition.reviewed?.regional
         regionalConfiguration=regional
         let scope=composition.reviewed?.storageScope

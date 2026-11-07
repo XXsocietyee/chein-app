@@ -69,28 +69,46 @@ public struct AssetPointsAndOrderCancellationSnapshot: Equatable, Sendable {
         self.rows = rows
     }
 
-    public static let defaultConservationSnapshot = AssetPointsAndOrderCancellationSnapshot(
-        ownerScope: "member-i04-baseline",
-        authoritativeBalancePoints: 1280,
-        rows: [
-            AssetPointsCancellationRow(
-                id: "ord-cancel-101",
-                orderNumber: "CY202610200101",
-                deductedPoints: 200,
-                refundedPointsFromAuthority: 200,
-                state: .conservedByAuthority,
-                note: "订单取消后经服务端流水回读确认 200 积分原路退回，本地不自造余额"
-            ),
-            AssetPointsCancellationRow(
-                id: "ord-cancel-102",
-                orderNumber: "CY202610200102",
-                deductedPoints: 150,
-                refundedPointsFromAuthority: nil,
-                state: .awaitingServerReadback,
-                note: "取消请求已受理，积分余额与退回明细等待服务端权威回读 (I04)"
-            )
-        ]
+    public static let empty = AssetPointsAndOrderCancellationSnapshot(
+        ownerScope: "unloaded",
+        authoritativeBalancePoints: nil,
+        rows: []
     )
+
+    public init(
+        ownerScope: String,
+        authoritativeBalancePoints: Int?,
+        orders: [ProfileOrder]
+    ) {
+        self.ownerScope = ownerScope
+        self.authoritativeBalancePoints = authoritativeBalancePoints
+        self.rows = orders.compactMap { order in
+            guard let deducted = order.pointUsed, deducted > 0 else { return nil }
+            let refunded = order.pointsReturned
+            let state: AssetPointsCancellationRow.ConservationState
+            let note: String
+            if let refunded {
+                if refunded == deducted {
+                    state = .conservedByAuthority
+                    note = "订单取消后经服务端流水回读确认 \(refunded) 积分原路退回，本地不自造余额"
+                } else {
+                    state = .discrepancyDetected
+                    note = "退回积分与扣减积分不一致，需人工复核"
+                }
+            } else {
+                state = .awaitingServerReadback
+                note = "取消请求已受理，积分余额与退回明细等待服务端权威回读 (I04)"
+            }
+            return AssetPointsCancellationRow(
+                id: "order-\(order.id)",
+                orderNumber: order.registrationNo ?? String(order.id),
+                deductedPoints: deducted,
+                refundedPointsFromAuthority: refunded,
+                state: state,
+                note: note
+            )
+        }
+    }
 
     public var conservedCount: Int {
         rows.filter { $0.state == .conservedByAuthority }.count
@@ -125,7 +143,7 @@ public struct AssetPointsAndOrderCancellationSnapshot: Equatable, Sendable {
 public struct AssetPointsAndOrderCancellationSectionView: View {
     public let snapshot: AssetPointsAndOrderCancellationSnapshot
 
-    public init(snapshot: AssetPointsAndOrderCancellationSnapshot = .defaultConservationSnapshot) {
+    public init(snapshot: AssetPointsAndOrderCancellationSnapshot = .empty) {
         self.snapshot = snapshot
     }
 

@@ -20,6 +20,8 @@ S={
 "authEntry.privacy.consentStatus":("Agreement status on this device","本机同意状态"),
 "authEntry.privacy.consentGranted":("Agreed to the current versions","已同意当前版本"),
 "authEntry.privacy.consentMissing":("Not agreed","尚未同意"),
+"authEntry.privacy.withdrawConsent":("Withdraw agreement on this device","撤回本机隐私与协议同意"),
+"authEntry.privacy.consentWithdrawn":("Agreement on this device has been withdrawn.","已撤回本机隐私与协议同意。"),
 "authEntry.expiry.title":("Session expired","登录已过期"),
 "authEntry.expiry.message":("Your session has expired. Sign in again, or keep browsing as a guest.","登录已过期，请重新进入。你可以重新登录，或先以游客身份继续浏览。"),
 "authEntry.expiry.signIn":("Sign in again","重新登录"),

@@ -16,22 +16,25 @@ import Observation
     let key: Key
     let reader: ProfileFavoritesReader
     let removal: ProfileFavoriteRemovalController?
+    let topicUnlike: TopicUnlikeController?
     let communityGate: (any SquareCommunityFeatureReading)?
 
     init?(accountID: Int, identity: SocialAccountIdentity, viewerRevision: UInt64,
           reader: ProfileFavoritesReader, removal: ProfileFavoriteRemovalController? = nil,
+          topicUnlike: TopicUnlikeController? = nil,
           communityGate: (any SquareCommunityFeatureReading)? = nil) {
         guard accountID > 0, identity.accountID == accountID, reader.isAuthenticated else { return nil }
         key = .init(identity: identity, viewerRevision: viewerRevision,
             dependency: ObjectIdentifier(reader), scope: reader.scope, configured: reader.isConfigured, removal: removal.map(ObjectIdentifier.init),
             gate: communityGate.map { ObjectIdentifier($0) }, gateScope: communityGate?.scope)
-        self.reader = reader; self.removal = removal; self.communityGate = communityGate
+        self.reader = reader; self.removal = removal; self.topicUnlike = topicUnlike; self.communityGate = communityGate
     }
     static func current(_ session: AppSession) -> Self? {
         guard let account = session.account else { return nil }
         return .init(accountID: account.id, identity: session.socialAccountReader.identity,
             viewerRevision: session.contentDetailRevision, reader: session.profileFavoritesReader,
             removal: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope),
+            topicUnlike: session.makeTopicUnlikeController(),
             communityGate: session.squareReader)
     }
 }
@@ -169,7 +172,9 @@ struct ProfileSettingsFavoritesRoute: Identifiable, Hashable {
                     onOpenTopic: { owner.openTopic($0, from: route, current: current()) },
                     onOpenPost: { owner.openPost($0, from: route, current: current()) },
                     favoriteRemoval: route.access.removal,
-                    communityGate: route.access.communityGate).id(route.id)
+                    communityGate: route.access.communityGate)
+                    .environment(\.topicUnlikeController, route.access.topicUnlike)
+                    .id(route.id)
             } else {
                 ContentUnavailableView {
                     Label { Text("settingsNative.favorites.changed", tableName: "ProfileSettingsFavorites") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }

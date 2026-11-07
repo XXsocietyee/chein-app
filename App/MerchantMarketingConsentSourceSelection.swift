@@ -9,17 +9,30 @@ import Foundation
     private var selected: MerchantMarketingConsentRuntimeConfiguration?
     private var usedIssuances: Set<UUID> = []
     private var owners: [WeakOwner] = []
+    private var defaultApprovals: [RuntimeDependencyContext: MerchantMarketingConsentOriginalApproval] = [:]
+    private(set) var wasExplicitlyRevoked = false
     init() {}
     func replace(with configuration: MerchantMarketingConsentRuntimeConfiguration?) throws {
         if let configuration, usedIssuances.contains(configuration.issuanceID) { throw APIError.invalidConfiguration }
         selected = nil
+        wasExplicitlyRevoked = configuration == nil
         retire()
         selected = configuration
         if let configuration { usedIssuances.insert(configuration.issuanceID) }
     }
-    func revoke() { selected = nil; retire() }
+    func revoke() { selected = nil; wasExplicitlyRevoked = true; defaultApprovals.removeAll(); retire() }
     func approval(for context: RuntimeDependencyContext) -> MerchantMarketingConsentOriginalApproval? {
         selected?.approval(for: context)
+    }
+    func defaultApproval(for context: RuntimeDependencyContext) -> MerchantMarketingConsentOriginalApproval? {
+        guard !wasExplicitlyRevoked, context.market == .china, context.session.accountID > 0 else { return nil }
+        if let cached = defaultApprovals[context], cached.matches(context) { return cached }
+        guard let created = try? MerchantMarketingConsentOriginalApproval(
+            baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, allowsAllValidRows: true
+        ) else { return nil }
+        defaultApprovals[context] = created
+        return created
     }
     func register(_ coordinator: AccountComplianceCoordinator) {
         owners.removeAll { $0.coordinator == nil }
@@ -36,6 +49,8 @@ import Foundation
         guard let reviewed, let api = reviewed.regional.apiConfiguration, reviewed.regional.market == context.market,
               api.baseURL.absoluteString.utf8.elementsEqual(context.baseURL.absoluteString.utf8),
               reviewed.storageScope.service.utf8.elementsEqual(context.session.namespace.utf8) else { return nil }
-        return merchantMarketingConsentSelection.approval(for: context)
+        if let explicit = merchantMarketingConsentSelection.approval(for: context) { return explicit }
+        guard reviewed.productionGatesEnabled else { return nil }
+        return merchantMarketingConsentSelection.defaultApproval(for: context)
     }
 }

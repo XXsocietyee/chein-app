@@ -13,6 +13,15 @@ struct ReviewedAppDeployment {
     let nativeChannelAppeals: NativeChannelAppealPolicyStore?
     /// Independent original-request source. Nil never authorizes reads, consent or deletion.
     let accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource?
+    /// Reviewed production gate bundle (account deletion, legal catalog, Apple+SMS sign-in,
+    /// wallet history/overview reads, and orders/addresses/favorites/coupons leases).
+    let productionGatesEnabled: Bool
+    var appleSignInApproved: Bool {
+        productionGatesEnabled && regional.market == .china && regional.canUseDomesticChinaPhone
+    }
+    var legalCatalogApproved: Bool {
+        productionGatesEnabled && regional.market == .china
+    }
     enum ReadGrant: Hashable {
         case homeAndSearch
         case manualMap
@@ -29,7 +38,8 @@ struct ReviewedAppDeployment {
          verifiedCapabilities: Set<RegionalCapability>, bundleIdentifier: String, realm: String,
          reads: Set<ReadGrant> = [], contentDetails: SignedInContentDetailReadApproval? = nil, privateHome: PrivateHomeTransportGrant? = nil,
          nativeChannelAppeals: NativeChannelAppealPolicyStore? = nil,
-         accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource? = nil) throws {
+         accountDeregistrationOriginalSource: AccountDeregistrationOriginalConfigurationSource? = nil,
+         productionGatesEnabled: Bool = false) throws {
         regional = try RegionalConfiguration(market: market, baseURL: baseURL,
             approvedBaseURLs: approvedBaseURLs, verifiedCapabilities: verifiedCapabilities)
         storageScope = try RegionalSessionStorageScope(configuration: regional, bundleIdentifier: bundleIdentifier, realm: realm)
@@ -37,6 +47,7 @@ struct ReviewedAppDeployment {
         self.reads = reads; self.privateHome = privateHome; self.contentDetails = contentDetails
         self.nativeChannelAppeals = nativeChannelAppeals
         self.accountDeregistrationOriginalSource = accountDeregistrationOriginalSource
+        self.productionGatesEnabled = productionGatesEnabled
     }
 }
 
@@ -425,6 +436,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     /// Reporter history and public progress only; no source or issuer is installed.
     let memberReportProgressSelection = MemberReportProgressSourceSelection()
     let usageConsentReadSelection = UsageConsentReadSourceSelection()
+    private let productionGateLeases = ReviewedProductionGateLeases()
     let sessionDependencies: @MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies
     init(deployment: DeploymentState = .unconfigured, storage: AppScopedStorageFactory? = nil,
          makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() },
@@ -443,11 +455,11 @@ extension KeychainTokenStore: AppTokenStorage {}
          makeOwnedTopicCoverTransport: @escaping @MainActor (Int) -> any HTTPTransport = { ResponseLimitedHTTPTransport(enabled: true, maximumResponseBytes: $0) },
          sessionDependencies: (@MainActor (RuntimeDependencyContext) -> NativeRuntimeDependencies)? = nil,
          couponLocks: @escaping @MainActor () -> any CouponManagementLocking = { CouponManagementAppLocks() },
-         couponReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval? = { _ in nil },
-         couponWriteApproval: @escaping @MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval? = { _ in nil },
+         couponReadApproval: (@MainActor (RuntimeDependencyContext) -> CouponManagementReadApproval?)? = nil,
+         couponWriteApproval: (@MainActor (RuntimeDependencyContext) -> CouponManagementWriteApproval?)? = nil,
          templateShelfReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> TemplateShelfReadApproval? = { _ in nil },
          messagingHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MessagingHistoryReadApproval? = { _ in nil },
-         walletHistoryReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval? = { _ in nil },
+         walletHistoryReadApproval: (@MainActor (RuntimeDependencyContext) -> WalletHistoryReadApproval?)? = nil,
          roamSessionFactReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamSessionFactReadAccess? = { _ in nil },
          roamNearbyEventsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyEventsReadAccess? = { _ in nil },
          roamNearbyPlayersReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamNearbyPlayersReadAccess? = { _ in nil },
@@ -456,14 +468,14 @@ extension KeychainTokenStore: AppTokenStorage {}
          roamPassportHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPassportHistoryReadAccess? = { _ in nil },
          roamPassportToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPassportToolsReadAccess? = { _ in nil },
          roamPrivateToolsReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamPrivateToolsAccess? = { _ in nil },
-         profileOwnedCouponReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? = { _ in nil },
+         profileOwnedCouponReadAccess: (@MainActor (RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess?)? = nil,
          roamAlbumMetadataReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamAlbumMetadataReadAccess? = { _ in nil },
          roamTileMemoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> RoamTileMemoryReadAccess? = { _ in nil },
          profilePublicInfoReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfilePublicInfoReadAccess? = { _ in nil },
          profileGuideReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileGuideReadAccess? = { _ in nil },
-         profileFavoritesReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess? = { _ in nil },
-         profileFavoriteTopicReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess? = { _ in nil },
-         profileFavoriteDetailAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? = { _ in nil },
+         profileFavoritesReadAccess: (@MainActor (RuntimeDependencyContext) -> ProfileFavoritesReadAccess?)? = nil,
+         profileFavoriteTopicReadAccess: (@MainActor (RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess?)? = nil,
+         profileFavoriteDetailAccess: (@MainActor (RuntimeDependencyContext) -> ProfileFavoriteDetailAccess?)? = nil,
          profileInviteHistoryReadAccess: @escaping @MainActor (RuntimeDependencyContext) -> ProfileInviteHistoryReadAccess? = { _ in nil },
          profileWeeklyPointsReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ProfileWeeklyPointsReadApproval? = { _ in nil },
          growthNormalReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> GrowthNormalReadApproval? = { _ in nil },
@@ -484,8 +496,15 @@ extension KeychainTokenStore: AppTokenStorage {}
          ownerDraftReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnerDraftReadApproval? = { _ in nil },
          manualMapReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> ManualMapReadApproval? = { _ in nil },
          mapPublicLayerReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> MapPublicLayerReadApproval? = { _ in nil },
-         ownedOrderReadApproval: @escaping @MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval? = { _ in nil }) {
+         ownedOrderReadApproval: (@MainActor (RuntimeDependencyContext) -> OwnedOrderReadApproval?)? = nil) {
         self.deployment = deployment; self.storage = storage ?? .init(); self.makeTransport = makeTransport
+        let gates = self.productionGateLeases
+        let productionGatesEnabled: Bool
+        if case .reviewed(let reviewed) = deployment {
+            productionGatesEnabled = reviewed.productionGatesEnabled
+        } else {
+            productionGatesEnabled = false
+        }
         self.projectStoryAudioUploadApproval = projectStoryAudioUploadApproval; self.makeProjectStoryAudioUploadTransport = makeProjectStoryAudioUploadTransport
         self.projectTopicImageUploadApproval = projectTopicImageUploadApproval; self.makeProjectTopicImageUploadTransport = makeProjectTopicImageUploadTransport
         self.projectStoryImageUploadApproval = projectStoryImageUploadApproval; self.makeProjectStoryImageUploadTransport = makeProjectStoryImageUploadTransport
@@ -494,12 +513,13 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.invoiceLaunchReadApproval = invoiceLaunchReadApproval
         self.clubBadgeManagementApproval = clubBadgeManagementApproval
         self.merchantReviewOriginalReadApproval = merchantReviewOriginalReadApproval
-        self.sessionDependencies = sessionDependencies ?? { _ in .dormant }
+        self.sessionDependencies = sessionDependencies ?? (productionGatesEnabled ? { [gates] in gates.sessionDependencies($0) } : { _ in .dormant })
         self.couponLocks = couponLocks
-        self.couponReadApproval = couponReadApproval; self.couponWriteApproval = couponWriteApproval
+        self.couponReadApproval = couponReadApproval ?? (productionGatesEnabled ? { [gates] in gates.couponRead($0) } : { _ in nil })
+        self.couponWriteApproval = couponWriteApproval ?? (productionGatesEnabled ? { [gates] in gates.couponWrite($0) } : { _ in nil })
         self.templateShelfReadApproval = templateShelfReadApproval
         self.messagingHistoryReadApproval = messagingHistoryReadApproval
-        self.walletHistoryReadApproval = walletHistoryReadApproval
+        self.walletHistoryReadApproval = walletHistoryReadApproval ?? (productionGatesEnabled ? { [gates] in gates.walletHistory($0) } : { _ in nil })
         self.roamSessionFactReadAccess = roamSessionFactReadAccess
         self.roamNearbyEventsReadAccess = roamNearbyEventsReadAccess
         self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
@@ -508,14 +528,14 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
         self.roamPassportToolsReadAccess = roamPassportToolsReadAccess
         self.roamPrivateToolsReadAccess = roamPrivateToolsReadAccess
-        self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess
+        self.profileOwnedCouponReadAccess = profileOwnedCouponReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileOwnedCoupon($0) } : { _ in nil })
         self.roamAlbumMetadataReadAccess = roamAlbumMetadataReadAccess
         self.roamTileMemoryReadAccess = roamTileMemoryReadAccess
         self.profilePublicInfoReadAccess = profilePublicInfoReadAccess
         self.profileGuideReadAccess = profileGuideReadAccess
-        self.profileFavoritesReadAccess = profileFavoritesReadAccess
-        self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess
-        self.profileFavoriteDetailAccess = profileFavoriteDetailAccess
+        self.profileFavoritesReadAccess = profileFavoritesReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavorites($0) } : { _ in nil })
+        self.profileFavoriteTopicReadAccess = profileFavoriteTopicReadAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteTopic($0) } : { _ in nil })
+        self.profileFavoriteDetailAccess = profileFavoriteDetailAccess ?? (productionGatesEnabled ? { [gates] in gates.profileFavoriteDetail($0) } : { _ in nil })
         self.profileInviteHistoryReadAccess = profileInviteHistoryReadAccess
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.growthNormalReadApproval = growthNormalReadApproval
@@ -536,10 +556,29 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.ownerDraftReadApproval = ownerDraftReadApproval
         self.manualMapReadApproval = manualMapReadApproval
         self.mapPublicLayerReadApproval = mapPublicLayerReadApproval
-        self.ownedOrderReadApproval = ownedOrderReadApproval
+        self.ownedOrderReadApproval = ownedOrderReadApproval ?? (productionGatesEnabled ? { [gates] in gates.ownedOrder($0) } : { _ in nil })
+        if productionGatesEnabled {
+            self.profileFavoriteRemovalAccesses = { [gates] context, scope in
+                gates.profileFavoriteRemoval(context, scope: scope)
+            }
+        }
     }
     var reviewed: ReviewedAppDeployment? {
         if case .reviewed(let value) = deployment { return value }; return nil
+    }
+    var isAccountComplianceEnabled: Bool {
+        reviewed?.productionGatesEnabled == true && reviewed?.regional.market == .china
+    }
+    var legalReader: any SettingsLegalReading {
+        SettingsBundledLegalReader(privacyPolicyApproved: reviewed?.legalCatalogApproved == true)
+    }
+    func profileParticipantAccess(_ context: RuntimeDependencyContext) -> ProfileParticipantAccess? {
+        guard reviewed?.productionGatesEnabled == true else { return nil }
+        return productionGateLeases.profileParticipant(context)
+    }
+    func topicUnlikeApproval(_ context: RuntimeDependencyContext) -> TopicUnlikeApproval? {
+        guard reviewed?.productionGatesEnabled == true else { return nil }
+        return productionGateLeases.topicUnlike(context)
     }
     /// A diagnostic only, never an authorization token. The transport repeats its own
     /// exact route, credential and before/after identity checks at dispatch time.
@@ -2430,6 +2469,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
+        let appleAuth = url == api.url(for: .apple)
         let publicHome = PublicMerchantHomeCompositionScope.accepts(request, baseURL: api.baseURL)
         let publicTopicsRoute = ClubPublicTopicsRoute(request: request, baseURL: api.baseURL)
         let publicTopicsContext = ClubPublicTopicsContext(
@@ -2457,6 +2497,9 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard deployment.regional.market == .china,
                   deployment.regional.canUseDomesticChinaPhone,
                   CNAccountSessionService.accepts(request, configuration: api) else { throw APIError.notConfigured }
+        } else if appleAuth {
+            guard deployment.appleSignInApproved,
+                  Self.acceptsAppleLogin(request, configuration: api) else { throw APIError.notConfigured }
         } else if let rewardPledgeOperation {
             guard captured.isSignedInContentViewer, rewardPledgePermit(rewardPledgeOperation) else { throw APIError.notConfigured }
             let permit = rewardPledgePermit
@@ -3303,12 +3346,18 @@ extension KeychainTokenStore: AppTokenStorage {}
                 case .withdraw(let id, let reason): return self.offerWithdrawExecution(context, id, reason)
                 }
             }
+        } else if AccountComplianceCompositionRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
                   captured.isPublicTemplateViewer,
                   reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
         }
-        if !auth && !publicHome, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
+        if !auth && !appleAuth && !publicHome, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
         try Task.checkCancellation()
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
@@ -3508,5 +3557,261 @@ extension CompositionHTTPTransport {
     var isConfigured: Bool { configured() }
     func send(_ request: URLRequest, authorization: ClubWelcomeNoteDispatchAuthorization) async throws -> (Data, Int) {
         try await dispatch(request, authorization)
+    }
+}
+
+extension CompositionHTTPTransport {
+    fileprivate static func acceptsAppleLogin(_ request: URLRequest, configuration: APIConfiguration) -> Bool {
+        guard request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              request.value(forHTTPHeaderField: "Authorization") == nil,
+              let url = request.url, url == configuration.url(for: .apple),
+              url.query == nil, url.fragment == nil else { return false }
+        let prefix = "multipart/form-data; boundary="
+        guard let type = request.value(forHTTPHeaderField: "Content-Type"), type.hasPrefix(prefix),
+              let body = request.httpBody, body.count <= 4096,
+              let text = String(data: body, encoding: .utf8) else { return false }
+        let boundary = String(type.dropFirst(prefix.count))
+        let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"identityToken\"\r\n\r\n"
+        guard let range = text.range(of: marker),
+              let end = text[range.upperBound...].range(of: "\r\n") else { return false }
+        let token = String(text[range.upperBound..<end.lowerBound])
+        guard AuthRequestBuilder.isValidToken(token),
+              let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: ["identityToken": token],
+                  token: nil, boundary: boundary) else { return false }
+        return canonical.httpBody == body
+    }
+}
+
+private enum AccountComplianceCompositionRoute {
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              let url = request.url, url.query == nil, url.fragment == nil else { return false }
+        if url == baseURL.appendingPathComponent("api/user/deregister/status") {
+            return request.httpMethod == "GET" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+        }
+        if url == baseURL.appendingPathComponent("api/user/deregister/precheck")
+            || url == baseURL.appendingPathComponent("api/user/deregister/cancel") {
+            return request.httpMethod == "POST" && request.httpBody == nil && request.value(forHTTPHeaderField: "Content-Type") == nil
+        }
+        if url == baseURL.appendingPathComponent("api/user/deregister/apply") {
+            guard request.httpMethod == "POST",
+                  let type = request.value(forHTTPHeaderField: "Content-Type"),
+                  type.hasPrefix("multipart/form-data; boundary="),
+                  let body = request.httpBody, body.count <= 1024,
+                  let text = String(data: body, encoding: .utf8) else { return false }
+            let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+            var fields: [String: String] = [:]
+            for key in ["smscode", "requestId"] {
+                let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+                guard let range = text.range(of: marker),
+                      let end = text[range.upperBound...].range(of: "\r\n") else { return false }
+                fields[key] = String(text[range.upperBound..<end.lowerBound])
+            }
+            guard let code = fields["smscode"], (try? AuthChannelInput.code(code)) == code,
+                  let requestID = fields["requestId"],
+                  !requestID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, requestID.count <= 64,
+                  let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else { return false }
+            return canonical.httpBody == body
+        }
+        if url == baseURL.appendingPathComponent("api/compliance/consents")
+            || url == baseURL.appendingPathComponent("api/compliance/consents/latest") {
+            guard request.httpMethod == "POST",
+                  request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                  let body = request.httpBody, body.count <= 2048,
+                  let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+                  let docType = object["docType"] as? String, !docType.isEmpty,
+                  let scene = object["scene"] as? String, !scene.isEmpty else { return false }
+            if url == baseURL.appendingPathComponent("api/compliance/consents") {
+                guard let event = object["eventType"] as? String, ["AGREE", "REVOKE"].contains(event),
+                      let requestID = object["requestId"] as? String,
+                      !requestID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, requestID.count <= 64 else { return false }
+            }
+            let canonical = try? JSONSerialization.data(withJSONObject: object, options: .sortedKeys)
+            return canonical == body
+        }
+        return false
+    }
+}
+
+private enum ReviewedProductionFormMutationRoute {
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil, !request.httpShouldHandleCookies,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              let url = request.url, url.query == nil, url.fragment == nil,
+              let type = request.value(forHTTPHeaderField: "Content-Type"),
+              type.hasPrefix("multipart/form-data; boundary="),
+              let body = request.httpBody, body.count <= 1024,
+              let text = String(data: body, encoding: .utf8) else { return false }
+        let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+        let requiredKeys: Set<String>
+        let positiveKey: String
+        let requiredTypeField: String?
+        switch url.absoluteString {
+        case baseURL.appendingPathComponent("api/registration/cancel").absoluteString,
+             baseURL.appendingPathComponent("api/registration/cancel-refund").absoluteString:
+            requiredKeys = ["id"]; positiveKey = "id"; requiredTypeField = nil
+        case baseURL.appendingPathComponent("api/coupon/qr-token").absoluteString,
+             baseURL.appendingPathComponent("api/coupon/status").absoluteString:
+            requiredKeys = ["couponHistoryId"]; positiveKey = "couponHistoryId"; requiredTypeField = nil
+        case baseURL.appendingPathComponent("api/topic/like").absoluteString:
+            requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"
+        default:
+            return false
+        }
+        var fields: [String: String] = [:]
+        for key in requiredKeys {
+            let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"\(key)\"\r\n\r\n"
+            guard let range = text.range(of: marker),
+                  let end = text[range.upperBound...].range(of: "\r\n") else { return false }
+            fields[key] = String(text[range.upperBound..<end.lowerBound])
+        }
+        guard let rawID = fields[positiveKey], let id = Int(rawID), id > 0, String(id) == rawID else { return false }
+        if let requiredTypeField, fields["type"] != requiredTypeField { return false }
+        guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary) else { return false }
+        return canonical.httpBody == body
+    }
+}
+
+@MainActor private final class ReviewedProductionGateLeases {
+    private var walletHistoryByContext: [RuntimeDependencyContext: WalletHistoryReadApproval] = [:]
+    private var ownedOrderByContext: [RuntimeDependencyContext: OwnedOrderReadApproval] = [:]
+    private var profileOwnedCouponByContext: [RuntimeDependencyContext: ProfileOwnedCouponReadAccess] = [:]
+    private var profileFavoritesByContext: [RuntimeDependencyContext: ProfileFavoritesReadAccess] = [:]
+    private var profileFavoriteTopicByContext: [RuntimeDependencyContext: ProfileFavoriteTopicReadAccess] = [:]
+    private var profileFavoriteDetailByContext: [RuntimeDependencyContext: ProfileFavoriteDetailAccess] = [:]
+    private var profileFavoriteRemovalByScope: [String: [ProfileFavoriteRemovalAccess]] = [:]
+    private var profileParticipantByContext: [RuntimeDependencyContext: ProfileParticipantAccess] = [:]
+    private var topicUnlikeByContext: [RuntimeDependencyContext: TopicUnlikeApproval] = [:]
+    private var couponReadByContext: [RuntimeDependencyContext: CouponManagementReadApproval] = [:]
+    private var couponWriteByContext: [RuntimeDependencyContext: CouponManagementWriteApproval] = [:]
+
+    func walletHistory(_ context: RuntimeDependencyContext) -> WalletHistoryReadApproval? {
+        guard context.market == .china else { return nil }
+        if let existing = walletHistoryByContext[context], !existing.isRevoked { return existing }
+        guard let approval = try? WalletHistoryReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        walletHistoryByContext[context] = approval
+        return approval
+    }
+
+    func ownedOrder(_ context: RuntimeDependencyContext) -> OwnedOrderReadApproval? {
+        guard context.market == .china else { return nil }
+        if let existing = ownedOrderByContext[context], !existing.isRevoked { return existing }
+        guard let approval = try? OwnedOrderReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        ownedOrderByContext[context] = approval
+        return approval
+    }
+
+    func profileOwnedCoupon(_ context: RuntimeDependencyContext) -> ProfileOwnedCouponReadAccess? {
+        guard context.market == .china else { return nil }
+        if let existing = profileOwnedCouponByContext[context], !existing.isRevoked { return existing }
+        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: [ProfileOwnedCouponReadRoute.path]),
+              let access = try? ProfileOwnedCouponReadAccess(context: context, approval: endpoints) else { return nil }
+        profileOwnedCouponByContext[context] = access
+        return access
+    }
+
+    func profileFavorites(_ context: RuntimeDependencyContext) -> ProfileFavoritesReadAccess? {
+        guard context.market == .china else { return nil }
+        if let existing = profileFavoritesByContext[context], !existing.isRevoked { return existing }
+        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: ProfileFavoritesReadRoute.paths),
+              let access = try? ProfileFavoritesReadAccess(context: context, approval: endpoints) else { return nil }
+        profileFavoritesByContext[context] = access
+        return access
+    }
+
+    func profileFavoriteTopic(_ context: RuntimeDependencyContext) -> ProfileFavoriteTopicReadAccess? {
+        guard context.market == .china else { return nil }
+        if let existing = profileFavoriteTopicByContext[context], !existing.isRevoked { return existing }
+        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: [ProfileFavoriteTopicReadRoute.path]),
+              let access = try? ProfileFavoriteTopicReadAccess(context: context, approval: endpoints) else { return nil }
+        profileFavoriteTopicByContext[context] = access
+        return access
+    }
+
+    func profileFavoriteDetail(_ context: RuntimeDependencyContext) -> ProfileFavoriteDetailAccess? {
+        guard context.market == .china else { return nil }
+        if let existing = profileFavoriteDetailByContext[context], !existing.isRevoked { return existing }
+        guard let endpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: ProfileFavoriteDetailRoute.paths),
+              let access = try? ProfileFavoriteDetailAccess(context: context, approval: endpoints) else { return nil }
+        profileFavoriteDetailByContext[context] = access
+        return access
+    }
+
+    func profileFavoriteRemoval(_ context: RuntimeDependencyContext, scope: UUID) -> [ProfileFavoriteRemovalAccess] {
+        guard context.market == .china else { return [] }
+        let key = "\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(scope.uuidString)"
+        if let existing = profileFavoriteRemovalByScope[key], existing.allSatisfy({ !$0.isRevoked }) { return existing }
+        let identity = SocialAccountIdentity(accountID: context.session.accountID, epoch: context.session.epoch, role: context.role)
+        guard let endpoint = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: ProfileFavoriteRemovalApproval.paths),
+              let approval = try? ProfileFavoriteRemovalApproval(endpoint: endpoint, identity: identity,
+                  postID: 1, expiresAt: Date().addingTimeInterval(3600), allowsAnyPositivePostID: true),
+              let access = try? ProfileFavoriteRemovalAccess(context: context, collectionScope: scope, approval: approval) else { return [] }
+        profileFavoriteRemovalByScope[key] = [access]
+        return [access]
+    }
+
+    func profileParticipant(_ context: RuntimeDependencyContext) -> ProfileParticipantAccess? {
+        guard context.market == .china else { return nil }
+        if let existing = profileParticipantByContext[context], !existing.isRevoked { return existing }
+        guard let access = try? ProfileParticipantAccess(context: context, permitsWrites: true, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        profileParticipantByContext[context] = access
+        return access
+    }
+
+    func topicUnlike(_ context: RuntimeDependencyContext) -> TopicUnlikeApproval? {
+        guard context.market == .china else { return nil }
+        if let existing = topicUnlikeByContext[context] { return existing }
+        guard let endpoint = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: TopicUnlikeApproval.paths),
+              let approval = try? TopicUnlikeApproval(endpoint: endpoint, accountID: context.session.accountID, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        topicUnlikeByContext[context] = approval
+        return approval
+    }
+
+    func couponRead(_ context: RuntimeDependencyContext) -> CouponManagementReadApproval? {
+        guard context.market == .china, context.role == "merchant" else { return nil }
+        if let existing = couponReadByContext[context], !existing.isRevoked { return existing }
+        guard let approval = try? CouponManagementReadApproval(context: context, merchantID: context.session.accountID, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        couponReadByContext[context] = approval
+        return approval
+    }
+
+    func couponWrite(_ context: RuntimeDependencyContext) -> CouponManagementWriteApproval? {
+        guard context.market == .china, context.role == "merchant" else { return nil }
+        if let existing = couponWriteByContext[context], !existing.isRevoked { return existing }
+        let actions = Set(CouponManagementWriteApproval.Action.allCases)
+        guard let approval = try? CouponManagementWriteApproval(context: context, merchantID: context.session.accountID, actions: actions, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        couponWriteByContext[context] = approval
+        return approval
+    }
+
+    func sessionDependencies(_ context: RuntimeDependencyContext) -> NativeRuntimeDependencies {
+        guard context.market == .china else { return .dormant }
+        let couponPaths: Set<String> = ["api/coupon/qr-token", "api/coupon/status"]
+        let couponEndpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: couponPaths)
+        let couponCodeApproval = couponEndpoints.map {
+            CouponCodeApproval(market: .china, endpoints: $0, imageOrigins: [context.baseURL.absoluteString])
+        }
+        let orderEndpoints = try? OperationEndpointApproval(baseURL: context.baseURL, namespace: context.session.namespace,
+            accountID: context.session.accountID, paths: ["api/registration/info", "api/registration/cancel", "api/registration/cancel-refund"])
+        let orderConfiguration = orderEndpoints.flatMap {
+            try? OrderLifecycleProductionConfiguration(market: .china, endpoints: $0, approvals: [],
+                externalCheckoutApproved: false, devicePaymentApproved: false, allowsReviewedCancellationAndRefund: true)
+        }
+        return NativeRuntimeDependencies(
+            couponCodeApproval: couponCodeApproval,
+            orderLifecycleConfiguration: orderConfiguration
+        )
     }
 }

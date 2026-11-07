@@ -45,6 +45,9 @@ struct UsageConsentGateView: View {
     let market: RegionalMarket?
     let onAgree: () -> Void
     let onDecline: () -> Void
+    var legalReader: any SettingsLegalReading = SettingsBundledLegalReader(
+        privacyPolicyApproved: RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true
+    )
     @State private var checked = false
     @State private var showsCheckRequired = false
     @State private var document: AuthEntryLegalSheet?
@@ -87,7 +90,7 @@ struct UsageConsentGateView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $document) { sheet in
                 NavigationStack {
-                    SettingsLegalDocumentView(type: sheet.type, market: market, reader: SettingsBundledLegalReader())
+                    SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
                         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { document = nil } } }
                 }
             }
@@ -131,9 +134,9 @@ extension View {
 /// Sign-in surfaces require the current agreement first; reopening the gate is always explicit.
 struct UsageConsentSignInRequirement: View {
     let market: RegionalMarket?
+    var policy: UsageConsentPolicy = UsageConsentEnvironment.policy
     @Binding var granted: Bool
     @State private var presented = false
-    private let policy = UsageConsentEnvironment.policy
 
     var body: some View {
         Section {

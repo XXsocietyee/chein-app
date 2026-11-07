@@ -95,7 +95,9 @@ import SwiftUI
                 },rewards:session.nonCashRewardReader,pledge:session.makeRewardPledgeEntry(),onOpenPost:{
                     guard let selected = session.profileFavoritesReader.selectPost($0, renderedScope: session.profileFavoritesReader.scope) else { return }
                     _ = savedPostOwner.open(selected, scope: session.profileFavoritesReader.scope)
-                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader).id(session.accountCollectionReader.scope)
+                }, favoriteRemoval: session.makeProfileFavoriteRemovalController(scope: session.profileFavoritesReader.scope), couponReader: session.profileOwnedCouponReader, favoritesReader: session.profileFavoritesReader, rewardMerchant: session.readOnlyPublicMerchantHomeContext, communityGate: session.squareReader)
+                    .environment(\.topicUnlikeController, session.makeTopicUnlikeController())
+                    .id(session.accountCollectionReader.scope)
                 MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 Section {
                     NavigationLink { SessionMessagingHome(session: session) } label: {

@@ -3,15 +3,28 @@
 import Foundation
 
 public enum SettingsSourceLegalCatalog {
-    public static func document(type: SettingsLegalType, market: RegionalMarket?) -> SettingsLegalAvailability {
+    public static func document(type: SettingsLegalType, market: RegionalMarket?, privacyPolicyApproved: Bool = false) -> SettingsLegalAvailability {
         guard let market else { return .missing(.missingMarket) }
         guard market == .china else { return .missing(.regionalTextNotProvided) }
         switch type {
         case .userAgreement: return .sourceDocument(userAgreement)
         case .cancellationNotice: return .sourceDocument(cancellationNotice)
-        case .privacyPolicy: return .missing(.pendingSourceText)
+        case .privacyPolicy: return privacyPolicyApproved ? .sourceDocument(privacyPolicy) : .missing(.pendingSourceText)
         }
     }
+    public static let privacyPolicy = SettingsLegalDocument(
+        type: .privacyPolicy, title: "用户隐私保护指引", version: "v2.1",
+        effectiveDate: "2026-08-12", intro: "西安吾令文化传媒有限公司（以下简称“我们”）非常重视用户的个人信息与隐私保护。本指引说明你在注册、登录及使用城瘾服务时我们如何收集、使用、存储、共享和保护你的个人信息，以及你如何查阅、管理、撤回授权与申请注销。",
+        sections: [
+            .init(heading: "一、我们收集和使用的个人信息", body: "为向你提供账号注册与登录、主题与活动报名、核销凭证、订单管理及客服支持，我们会在你主动操作或授权后收集必要的手机号、Apple登录标识、昵称、头像、报名参与人联系信息及交易订单记录。"),
+            .init(heading: "二、位置信息与漫游定位", body: "仅在你主动使用城市漫游、附近探索、地点打卡或到点验证功能时，我们才会请求系统定位权限处理你的位置信息。你可以在「设置 - 隐私与定位」中随时撤回漫游位置授权并清除本地漫游缓存，也可以在系统设置中关闭位置权限。"),
+            .init(heading: "三、存储与安全保护", body: "我们在中华人民共和国境内存储依法收集的个人信息，并采用传输加密、访问控制与分权审计等安全措施。除法律法规另有规定外，我们仅在实现服务目的所必需的最短期限内保留你的个人信息。"),
+            .init(heading: "四、信息共享与商家核销", body: "仅在你报名活动、购买商品或到店核销卡券时，我们会向对应主办方或合作商家提供完成履约所必需的订单与核销标识。未经你单独同意，我们不会向第三方共享你的非必要个人信息。"),
+            .init(heading: "五、营销通知与授权撤回", body: "你可以在「设置 - 营销信息授权」中查看已授权商家的应用内或卡券通知状态，并可随时逐项关闭或撤回营销通知授权；你也可以在「隐私保护」页面撤回本机隐私保护指引同意状态。"),
+            .init(heading: "六、账号注销与数据删除", body: "你可以在「设置 - 账号注销」发起注销申请。提交申请并度过七日冷静期后，我们将依法删除或匿名化你的个人信息；法律法规要求留存的交易与安全审计记录将在法定期限届满后删除或匿名化。"),
+            .init(heading: "七、未成年人保护", body: "城瘾不面向未满十八周岁的未成年人提供服务。若我们发现误收集了未成年人个人信息，将依法尽快删除相关数据。"),
+            .init(heading: "八、联系我们", body: "运营主体：西安吾令文化传媒有限公司；注册地址：陕西省西安市高新区锦业路1号绿地领海B座6层604室A043号；客服电话：15229020419。"),
+        ])
     public static let userAgreement = SettingsLegalDocument(
         type: .userAgreement, title: "用户服务协议", version: "v2.2",
         effectiveDate: "2026-08-12", intro: "欢迎使用城瘾。本协议由西安吾令文化传媒有限公司（以下简称“我们”）与城瘾用户共同订立。请在注册、登录或使用服务前仔细阅读并充分理解本协议。",

@@ -401,6 +401,22 @@
         }
       }
     },
+    "authEntry.privacy.consentWithdrawn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Agreement on this device has been withdrawn."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已撤回本机隐私与协议同意。"
+          }
+        }
+      }
+    },
     "authEntry.privacy.guideUnavailable": {
       "localizations": {
         "en": {
@@ -445,6 +461,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "隐私保护"
+          }
+        }
+      }
+    },
+    "authEntry.privacy.withdrawConsent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdraw agreement on this device"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤回本机隐私与协议同意"
           }
         }
       }

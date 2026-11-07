@@ -51,7 +51,7 @@ struct SettingsView: View {
                 MemberScoreAppealSettingsEntry(session: session)
                 SettingsInvoiceEntry(session: session)
                 NPCChatDataReadSettingsEntry(session: session)
-                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator, showsNPCChatDataEntry: false)
+                SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator, legalReader: session.legalReader, showsNPCChatDataEntry: false)
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))

@@ -27,7 +27,7 @@ import FoundationNetworking
     public func matches(_ current: RuntimeDependencyContext, collectionScope: UUID,
                         postID: Int, now: Date = Date()) -> Bool {
         !isRevoked && ContentDraftContextFence.matches(context, current) &&
-        self.collectionScope == collectionScope && approval.postID == postID && now < approval.expiresAt
+        self.collectionScope == collectionScope && (approval.allowsAnyPositivePostID ? postID > 0 : approval.postID == postID) && now < approval.expiresAt
     }
 }
 
