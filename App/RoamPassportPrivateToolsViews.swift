@@ -30,7 +30,7 @@ import SwiftUI
                 .background {
                     if openedLink == nil {
                         RoamHostedAccessibilityAnchor(
-                            id: "roam.goals.open",
+                            identifier: "roam.goals.open",
                             action: { openedLink = OpenedLink(kind: .goals) }
                         )
                     }
@@ -41,7 +41,7 @@ import SwiftUI
                 .background {
                     if openedLink == nil {
                         RoamHostedAccessibilityAnchor(
-                            id: "roam.capsule.open",
+                            identifier: "roam.capsule.open",
                             action: { openedLink = OpenedLink(kind: .capsule) }
                         )
                     }
@@ -224,7 +224,7 @@ struct RoamPrivatePageScope: Hashable {
                 RoamCapsuleContent(tools: tools, isConfigured: tools.isConfigured, allowsWrites: tools.allowsWrites).id(scope)
             } else {
                 List { RoamPrivateIssueView(issue: .notConfigured) }
-                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(id: "roam.private.issue")]) }
+                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(identifier: "roam.private.issue")]) }
                     .accessibilityIdentifier("roam.capsule.screen")
             }
         }.appNavigationTitle("roam.capsule.title")
@@ -345,22 +345,22 @@ struct RoamPrivatePageScope: Hashable {
         var items: [RoamHostedAccessibilityItem] = []
         if page.isPresented {
             if let issue = model.issue {
-                items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.private.issue"))
                 if issue != .outcomeUnknown, issue != .signInRequired, issue != .notConfigured {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.private.retry",
+                            identifier: "roam.private.retry",
                             action: { page.read { await model.load() } }
                         )
                     )
                 }
             }
             if model.pending != nil || model.pendingRequestID != nil {
-                items.append(RoamHostedAccessibilityItem(id: "roam.capsule.pending"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.capsule.pending"))
                 if !model.isBusy {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.capsule.verify",
+                            identifier: "roam.capsule.verify",
                             action: { page.settle(write: false, { await model.verifyPending() }, refresh: { await model.load() }) }
                         )
                     )
@@ -368,7 +368,7 @@ struct RoamPrivatePageScope: Hashable {
                 if model.pending != nil {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.capsule.retryOriginal",
+                            identifier: "roam.capsule.retryOriginal",
                             isEnabled: !model.isBusy && model.canWrite,
                             action: { page.settle(write: true, { await model.retryPending() }, refresh: { await model.load() }) }
                         )
@@ -376,27 +376,27 @@ struct RoamPrivatePageScope: Hashable {
                 }
             }
             if model.opened != nil {
-                items.append(RoamHostedAccessibilityItem(id: "roam.capsule.body"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.capsule.body"))
             }
             if composing {
-                items.append(RoamHostedAccessibilityItem(id: "roam.capsule.text"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.capsule.text"))
             }
             if showsList {
                 if let openItem = model.items.first(where: { $0.state == .open }) {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.capsule.row.open",
+                            identifier: "roam.capsule.row.open",
                             action: { page.read { await model.open(openItem) } }
                         )
                     )
                 }
                 if !model.isBusy && model.items.isEmpty && model.phase == .ready {
-                    items.append(RoamHostedAccessibilityItem(id: "roam.capsule.empty"))
+                    items.append(RoamHostedAccessibilityItem(identifier: "roam.capsule.empty"))
                 }
                 if model.hasMore && !model.isBusy {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.capsule.more",
+                            identifier: "roam.capsule.more",
                             action: { page.read { await model.load(more: true) } }
                         )
                     )
@@ -405,13 +405,13 @@ struct RoamPrivatePageScope: Hashable {
             if page.acceptsInput && !page.settlementInFlight && !model.isBusy && !composing && tools.allowsWrites {
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.capsule.write",
+                        identifier: "roam.capsule.write",
                         action: { startComposing() }
                     )
                 )
             }
         } else if scenePhase == .active && (tools.identity == nil || !tools.isConfigured) {
-            items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.private.issue"))
         }
         return items
     }
@@ -517,7 +517,7 @@ struct RoamPrivatePageScope: Hashable {
                 RoamGoalsContent(tools: tools, isConfigured: tools.isConfigured, allowsWrites: tools.allowsWrites).id(scope)
             } else {
                 List { RoamPrivateIssueView(issue: .notConfigured) }
-                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(id: "roam.private.issue")]) }
+                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(identifier: "roam.private.issue")]) }
                     .accessibilityIdentifier("roam.goals.screen")
             }
         }.appNavigationTitle("roam.goals.title")
@@ -654,37 +654,37 @@ extension RoamGoalState {
         var items: [RoamHostedAccessibilityItem] = []
         if page.isPresented {
             if let issue = model.issue, !(creating && (issue == .invalidDraft || isRejection(issue))) {
-                items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.private.issue"))
                 if issue != .outcomeUnknown, issue != .signInRequired, issue != .notConfigured {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.private.retry",
+                            identifier: "roam.private.retry",
                             action: { page.read { await model.load() } }
                         )
                     )
                 }
             }
             if model.detail != nil {
-                items.append(RoamHostedAccessibilityItem(id: "roam.goals.detail"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.goals.detail"))
             }
             if creating {
-                items.append(RoamHostedAccessibilityItem(id: "roam.goals.metricPicker"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.goals.metricPicker"))
             }
             if let first = model.rows.first {
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.goals.row",
+                        identifier: "roam.goals.row",
                         action: { page.read { await model.open(first.id) } }
                     )
                 )
             }
             if !model.isBusy && model.rows.isEmpty && model.phase == .ready {
-                items.append(RoamHostedAccessibilityItem(id: "roam.goals.empty"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.goals.empty"))
             }
             if model.hasMore && !model.isBusy {
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.goals.more",
+                        identifier: "roam.goals.more",
                         action: { page.read { await model.load(more: true) } }
                     )
                 )
@@ -692,13 +692,13 @@ extension RoamGoalState {
             if page.acceptsInput && !page.settlementInFlight && !model.isBusy && !creating && tools.allowsWrites {
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.goals.new",
+                        identifier: "roam.goals.new",
                         action: { startCreating() }
                     )
                 )
             }
         } else if scenePhase == .active && (tools.identity == nil || !tools.isConfigured) {
-            items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.private.issue"))
         }
         return items
     }

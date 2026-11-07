@@ -31,7 +31,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                         .disabled(!canOpen)
                         .background {
                             RoamHostedAccessibilityAnchor(
-                                id: "roam.serverHistory.open",
+                                identifier: "roam.serverHistory.open",
                                 isEnabled: canOpen,
                                 action: openAction
                             )
@@ -132,7 +132,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                 ZStack {
                     if let first = model.items.first {
                         RoamHostedAccessibilityAnchor(
-                            id: "roam.serverHistory.record",
+                            identifier: "roam.serverHistory.record",
                             action: {
                                 guard model.isVisible, owner == RoamPassportHistoryOwner(reader),
                                       model.items.contains(first), selected == nil else { return }
@@ -141,17 +141,17 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                         )
                     }
                     if model.loaded && model.items.isEmpty {
-                        RoamHostedAccessibilityAnchor(id: "roam.serverHistory.empty")
+                        RoamHostedAccessibilityAnchor(identifier: "roam.serverHistory.empty")
                     }
                     if !model.busy && model.hasMore {
                         RoamHostedAccessibilityAnchor(
-                            id: "roam.serverHistory.more",
+                            identifier: "roam.serverHistory.more",
                             action: { Task { await model.read(more) } }
                         )
                     }
                     if !model.busy {
                         RoamHostedAccessibilityAnchor(
-                            id: "roam.serverHistory.refresh",
+                            identifier: "roam.serverHistory.refresh",
                             action: { Task { await model.read(refresh) } }
                         )
                     }

@@ -30,7 +30,7 @@ import SwiftUI
                                 if scenePhase == .active && model.isCurrent(presentation) { routeDestination(topicID) }
                                 else { unavailable }
                             } label: { Label("roam.tools.anniversary.openRoute", systemImage: "map") }
-                                .background { RoamHostedAccessibilityAnchor(id: "roam.tools.recap.detail.openRoute") }
+                                .background { RoamHostedAccessibilityAnchor(identifier: "roam.tools.recap.detail.openRoute") }
                                 .accessibilityIdentifier("roam.tools.recap.detail.openRoute")
                         }
                     }

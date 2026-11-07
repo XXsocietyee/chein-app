@@ -27,7 +27,7 @@ import UniformTypeIdentifiers
                 RoamExportContent(tools: tools, isConfigured: tools.isConfigured).id(scope)
             } else {
                 List { RoamPrivateIssueView(issue: .notConfigured) }
-                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(id: "roam.private.issue")]) }
+                    .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(identifier: "roam.private.issue")]) }
                     .accessibilityIdentifier("roam.export.screen")
             }
         }.appNavigationTitle("roam.export.title").navigationBarTitleDisplayMode(.inline)
@@ -252,11 +252,11 @@ private struct RoamExportFileSaveLink: View {
         let _ = isConfigured
         var items: [RoamHostedAccessibilityItem] = []
         if let issue = model.issue {
-            items.append(RoamHostedAccessibilityItem(id: "roam.private.issue"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.private.issue"))
             if issue != .outcomeUnknown, issue != .signInRequired, issue != .notConfigured {
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.private.retry",
+                        identifier: "roam.private.retry",
                         action: {
                             if prepared { owner.readNext() }
                             else { owner.prepare(startDate: startDate, endDate: endDate) }
@@ -268,12 +268,12 @@ private struct RoamExportFileSaveLink: View {
         if prepared {
             if owner.active {
                 if model.fileForDelivery(foreground: scenePhase == .active) != nil {
-                    items.append(RoamHostedAccessibilityItem(id: "roam.export.file"))
+                    items.append(RoamHostedAccessibilityItem(identifier: "roam.export.file"))
                 }
                 if model.phase != .reading && model.phase != .complete && !model.isBusy {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.export.readNext",
+                            identifier: "roam.export.readNext",
                             action: { owner.readNext() }
                         )
                     )
@@ -282,7 +282,7 @@ private struct RoamExportFileSaveLink: View {
         } else if owner.active && !model.isBusy && RoamExportContract.isValidRange(start: startDate, end: endDate) {
             items.append(
                 RoamHostedAccessibilityItem(
-                    id: "roam.export.prepare",
+                    identifier: "roam.export.prepare",
                     action: {
                         saveResult = nil
                         owner.prepare(startDate: startDate, endDate: endDate)

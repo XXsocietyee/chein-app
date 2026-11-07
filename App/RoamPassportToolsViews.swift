@@ -40,7 +40,7 @@ import UIKit
                     .background {
                         if openedTool == nil {
                             RoamHostedAccessibilityAnchor(
-                                id: "roam.tools.anniversary.open",
+                                identifier: "roam.tools.anniversary.open",
                                 action: { openedTool = OpenedTool(tool: .anniversary) }
                             )
                         }
@@ -51,7 +51,7 @@ import UIKit
                     .background {
                         if openedTool == nil {
                             RoamHostedAccessibilityAnchor(
-                                id: "roam.tools.recap.open",
+                                identifier: "roam.tools.recap.open",
                                 action: { openedTool = OpenedTool(tool: .recap) }
                             )
                         }
@@ -62,7 +62,7 @@ import UIKit
                     .background {
                         if openedTool == nil {
                             RoamHostedAccessibilityAnchor(
-                                id: "roam.export.open",
+                                identifier: "roam.export.open",
                                 action: { openedTool = OpenedTool(tool: .export) }
                             )
                         }
@@ -299,16 +299,16 @@ struct RoamAnniversaryReadIntent {
         guard navigation.openedPresentation == nil else { return [] }
         var items: [RoamHostedAccessibilityItem] = []
         if (unavailableError ?? state.error) != nil {
-            items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.error"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.anniversary.error"))
         }
         if unavailableError == nil, let item = state.rows.first {
-            items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.row"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.anniversary.row"))
             switch RoamAnniversaryRouteAvailability.resolve(memory: item, hasDestination: routeDestination != nil) {
             case .available(let target):
                 if routeDestination != nil && !state.isLoading {
                     items.append(
                         RoamHostedAccessibilityItem(
-                            id: "roam.tools.anniversary.openRoute",
+                            identifier: "roam.tools.anniversary.openRoute",
                             action: {
                                 guard isVisible, scenePhase == .active, unavailableError == nil else { return }
                                 _ = navigation.open(target, memory: item, currentRows: state.rows, owner: reader?.identity)
@@ -317,16 +317,16 @@ struct RoamAnniversaryReadIntent {
                     )
                 }
             case .invalidTopicID, .noDestination:
-                items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.routeUnavailable"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.anniversary.routeUnavailable"))
             }
         }
         if unavailableError == nil && state.page != nil && !state.isLoading && state.rows.isEmpty && state.error == nil {
-            items.append(RoamHostedAccessibilityItem(id: "roam.tools.anniversary.empty"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.anniversary.empty"))
         }
         if unavailableError == nil, let page = state.page, page.hasMore, !state.isLoading, state.error == nil {
             items.append(
                 RoamHostedAccessibilityItem(
-                    id: "roam.tools.anniversary.more",
+                    identifier: "roam.tools.anniversary.more",
                     action: { enqueue(more) }
                 )
             )
@@ -422,9 +422,9 @@ struct RoamAnniversaryReadIntent {
         .background {
             RoamHostedAccessibilityGroup(
                 items: [
-                    RoamHostedAccessibilityItem(
-                        id: isValid ? "passport.scope.route" : "roam.tools.anniversary.routeUnavailable"
-                    )
+                    isValid
+                        ? RoamHostedAccessibilityItem(identifier: "passport.scope.route")
+                        : RoamHostedAccessibilityItem(identifier: "roam.tools.anniversary.routeUnavailable")
                 ]
             )
         }
@@ -685,15 +685,15 @@ struct RoamAnniversaryReadIntent {
         guard lifetime.canPresent(reader) else { return [] }
         var items: [RoamHostedAccessibilityItem] = []
         if error != nil {
-            items.append(RoamHostedAccessibilityItem(id: "roam.tools.recap.error"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.recap.error"))
         }
         if let page {
             if page.items.isEmpty && !loading && error == nil {
-                items.append(RoamHostedAccessibilityItem(id: "roam.tools.recap.empty"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.recap.empty"))
             } else if let first = page.items.first {
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.tools.recap.row",
+                        identifier: "roam.tools.recap.row",
                         action: {
                             guard lifetime.canPresent(reader), lifetime.ready else { return }
                             _ = model.open(first)
@@ -704,7 +704,7 @@ struct RoamAnniversaryReadIntent {
             if page.hasMore, !loading {
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.tools.recap.more",
+                        identifier: "roam.tools.recap.more",
                         action: { lifetime.run(reader) { await $0.nextPage() } }
                     )
                 )
@@ -712,7 +712,7 @@ struct RoamAnniversaryReadIntent {
         }
         if let presentation = model.presentation, model.isCurrent(presentation),
            presentation.topicID != nil, routeDestination != nil {
-            items.append(RoamHostedAccessibilityItem(id: "roam.tools.recap.detail.openRoute"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.tools.recap.detail.openRoute"))
         }
         return items
     }

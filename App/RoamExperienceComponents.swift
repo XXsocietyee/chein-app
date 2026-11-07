@@ -47,7 +47,7 @@ import UIKit
 }
 
 @MainActor struct RoamHostedAccessibilityItem {
-    let id: String
+    let identifier: String
     var label: String? = nil
     var isEnabled: Bool = true
     var action: (() -> Void)? = nil
@@ -81,7 +81,7 @@ import UIKit
     private let onActivate: (() -> Void)?
 
     init(item: RoamHostedAccessibilityItem) {
-        self.accessibilityIdentifier = item.id
+        self.accessibilityIdentifier = item.identifier
         self.itemLabel = item.label
         self.isEnabled = item.isEnabled
         self.onActivate = item.action
@@ -114,7 +114,7 @@ import UIKit
 }
 
 @MainActor struct RoamHostedAccessibilityAnchor: UIViewRepresentable {
-    let id: String
+    let identifier: String
     var label: String? = nil
     var isEnabled: Bool = true
     var action: (() -> Void)? = nil
@@ -128,7 +128,7 @@ import UIKit
     }
 
     func updateUIView(_ control: RoamHostedAccessibilityControl, context: Context) {
-        control.accessibilityIdentifier = id
+        control.accessibilityIdentifier = identifier
         control.accessibilityLabel = label
         control.isEnabled = isEnabled
         control.onActivate = action
@@ -221,9 +221,9 @@ struct RoamExperienceIssue: View {
     }
     var body: some View {
         let canRetry = retry != nil && error as? APIError != .unauthorized && error as? APIError != .notConfigured
-        var items = [RoamHostedAccessibilityItem(id: "roam.experience.error")]
+        var items = [RoamHostedAccessibilityItem(identifier: "roam.experience.error")]
         if canRetry, let retry {
-            items.append(RoamHostedAccessibilityItem(id: "roam.experience.retry", action: retry))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.experience.retry", action: retry))
         }
         return VStack(alignment: .leading, spacing: 12) {
             Label(key, systemImage: "exclamationmark.circle")

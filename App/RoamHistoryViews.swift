@@ -95,7 +95,7 @@ import SwiftUI
             .modifier(RoamPassportHistoryNavigation(localReader: reader))
             .background {
                 if error == nil, loaded, !records.isEmpty {
-                    RoamHostedAccessibilityAnchor(id: "roam.experience.history.record")
+                    RoamHostedAccessibilityAnchor(identifier: "roam.experience.history.record")
                 }
             }
             .accessibilityIdentifier("roam.experience.history")

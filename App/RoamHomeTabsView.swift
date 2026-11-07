@@ -385,25 +385,25 @@ struct RoamToolUnavailableView: View {
             case .none:
                 break
             case .failure(let error)?:
-                items.append(RoamHostedAccessibilityItem(id: "roam.experience.error"))
+                items.append(RoamHostedAccessibilityItem(identifier: "roam.experience.error"))
                 if error as? APIError != .unauthorized, error as? APIError != .notConfigured {
-                    items.append(RoamHostedAccessibilityItem(id: "roam.experience.retry", action: load))
+                    items.append(RoamHostedAccessibilityItem(identifier: "roam.experience.retry", action: load))
                 }
             case .success(let value)?:
                 items.append(
                     RoamHostedAccessibilityItem(
-                        id: "roam.home.passport.stat.trips",
+                        identifier: "roam.home.passport.stat.trips",
                         label: String(value.summary.trips)
                     )
                 )
             }
         } else {
-            items.append(RoamHostedAccessibilityItem(id: "roam.home.passport.unavailable"))
+            items.append(RoamHostedAccessibilityItem(identifier: "roam.home.passport.unavailable"))
         }
         for tile in RoamPassportHome.Tile.allCases where tileAvailable(tile) {
             items.append(
                 RoamHostedAccessibilityItem(
-                    id: "roam.home.passport.tile.\(tile.rawValue)",
+                    identifier: "roam.home.passport.tile.\(tile.rawValue)",
                     action: { openedTile = OpenedTile(tile: tile) }
                 )
             )
