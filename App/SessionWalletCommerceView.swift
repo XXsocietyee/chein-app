@@ -13,6 +13,7 @@ import SwiftUI
         WalletCommerceHomeView(reader: session.walletHistoryReader, visibility: visibility,
             onCooperationFinance: {},
             invitationHistory: WalletInvitationHistoryAccess(session: session),
+            showsCooperationFinance: false, // no coop-finance grant here: never render a button whose action is a no-op
             organizerFinance: WalletOrganizerFinanceAccess(reader: session.cooperationFlowReader, allowsRead: { false }) {
                 CoopFlowReadView(reader: session.cooperationFlowReader, resource: .finance, title: "coopflow.finance")
             })
