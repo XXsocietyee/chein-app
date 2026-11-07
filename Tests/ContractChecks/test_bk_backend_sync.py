@@ -33,7 +33,7 @@ class BackendSyncSourceTests(unittest.TestCase):
   self.assertIn('case .communityComment, .communityCommentLike, .postAction: return .communityV1', contracts)
   self.assertIn('guard snapshot.post?.generation == requiredGeneration', contracts)
   detail = (ROOT/'App/SquareDetailView.swift').read_text()
-  self.assertRegex(detail, r'social\.editor\.bookmark"\) \{[^\n]*\}\n\s*\.disabled\(post\.generation != \.communityV1\)')
+  self.assertRegex(detail, r'if post\.generation == \.communityV1 \{\n\s*Button \{ editor = \.init\(purpose: \.bookmark[^\n]*\n[^\n]*\n[^\n]*social\.editor\.bookmark')
  def test_legacy_unbookmark_keeps_readback_only_resolution(self):
   value = (ROOT/'Core/ProfileFavoriteRemoval.swift').read_text()
   self.assertIn('"bookmark": "0"', value); self.assertNotIn('"bookmark": "1"', value)

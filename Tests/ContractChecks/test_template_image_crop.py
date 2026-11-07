@@ -48,7 +48,7 @@ class TemplateImageCropContracts(unittest.TestCase):
                      "TemplateAuthoringMedia", "RetainedImageScope", "requestAuthorization", "fileURL", "https://"]:
             self.assertNotIn(text, source)
         for path in (ROOT / "App").glob("*.swift"):
-            if path.name not in APP_FILES + ["TemplateMediaReviewController.swift", "TemplateMediaReviewPanel.swift", "ProjectStoryImageAuthorView.swift"]:
+            if path.name not in APP_FILES + ["TemplateMediaReviewController.swift", "TemplateMediaReviewPanel.swift", "ProjectStoryImageAuthorView.swift", "ProjectNodeImageCrop.swift"]:
                 self.assertNotIn("TemplateImageCrop", path.read_text(), str(path))
         host = self.read("App/TemplateMediaReviewController.swift")
         for forbidden in ["upload(", "TemplateAuthoringAdapter", "URLSession", "ImageUploadJournal", "RetainedUploadedImage"]:

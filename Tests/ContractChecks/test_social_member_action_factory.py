@@ -21,7 +21,8 @@ class SocialMemberActionFactoryContracts(unittest.TestCase):
   self.assertNotIn('OperationEndpointApproval(',owner)
   self.assertNotIn('lazy var socialActionAccess',app)
   self.assertNotIn('lazy var socialActionCoordinator',app)
-  self.assertIn('gate = SessionOperationGate() { didSet { retainedSocialMemberActions?.synchronizeSession()',app)
+  gate_line=[l for l in app.splitlines() if 'gate = SessionOperationGate() { didSet {' in l][0]
+  self.assertIn('retainedSocialMemberActions?.synchronizeSession()',gate_line)
   self.assertIn('guard !committingAuthenticatedSession, let regionalConfiguration',app)
  def test_routes_are_only_source_bound_member_actions(self):
   value=self.read('Core/SocialMemberActionFactory.swift')

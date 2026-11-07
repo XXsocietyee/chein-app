@@ -104,7 +104,9 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                         .accessibilityIdentifier("playerJourney.refreshing")
                 }
                 if visible.isEmpty {
-                    ContentUnavailableView(LocalizedStringKey(filter.emptyTitleKey), systemImage: "ticket")
+                    ContentUnavailableView {
+                        Label(LocalizedStringKey(filter.emptyTitleKey), systemImage: "ticket")
+                    } description: { Text(LocalizedStringKey(filter.emptyDetailKey)) }
                         .accessibilityIdentifier("playerJourney.empty")
                 }
                 ForEach(visible) { row in

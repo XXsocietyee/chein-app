@@ -470,13 +470,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Adjust the composition within the original image shape. Confirming only keeps a local selection; nothing is uploaded."
+            "value": "Drag to frame the image."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在原图比例内调整构图。确认仅保留本地选择，不会上传。"
+            "value": "拖动调整构图。"
           }
         }
       }
@@ -502,13 +502,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Keep crop locally"
+            "value": "Use this crop"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "保留本地裁剪"
+            "value": "使用此裁剪"
           }
         }
       }

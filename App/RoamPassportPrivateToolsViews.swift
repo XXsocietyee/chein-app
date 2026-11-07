@@ -312,7 +312,7 @@ struct RoamPrivatePageScope: Hashable {
                 .disabled(model.isBusy || text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || unlockDate.isEmpty || model.pending != nil || !model.canWrite)
                 .accessibilityIdentifier("roam.capsule.seal")
             Button("roam.capsule.later") { composing = false }.disabled(model.isBusy).accessibilityIdentifier("roam.capsule.later")
-        }
+        } footer: { Text("roam.capsule.photoUnavailable") }
     }
     @ViewBuilder private var list: some View {
         Section {

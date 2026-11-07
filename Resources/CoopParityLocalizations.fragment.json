@@ -2391,7 +2391,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Legacy merchant-node invitations are view-only"
+            "value": "Older merchant-node invitations can only be viewed"
           }
         },
         "zh-Hans": {
@@ -2631,13 +2631,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Invitation incomplete: the inviter, topic or terms are missing, so it cannot be handled yet"
+            "value": "Invitation details are incomplete, so it can't be handled yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "邀请信息不完整：缺少邀请方、主题或合作条款，暂不能处理"
+            "value": "邀请信息不完整，暂不能处理"
           }
         }
       }

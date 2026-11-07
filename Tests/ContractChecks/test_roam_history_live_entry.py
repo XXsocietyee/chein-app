@@ -15,7 +15,7 @@ class RoamHistoryLiveEntryContracts(unittest.TestCase):
         cls.entry = cls.view.split('@MainActor struct RoamHistoryLiveEntry {', 1)[1].split('@MainActor struct RoamHistoryDetailView:', 1)[0]
 
     def test_only_supplied_destination_is_forwarded_and_missing_provider_stays_absent(self):
-        self.assertIn('RoamHistoryView(reader: reader, liveDestination: liveDestination)', self.hub)
+        self.assertIn('RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader,', self.hub)
         self.assertIn('var liveDestination: (() -> AnyView)? = nil', self.history)
         for token in ['RoamLiveSessionController(', 'RoamLiveSessionView(', 'RoamLivePreparationView(', 'makeRoamLiveSessionController']:
             self.assertNotIn(token, self.view)
@@ -38,10 +38,12 @@ class RoamHistoryLiveEntryContracts(unittest.TestCase):
         self.assertIn('liveEntry.activate(reader: reader, hasDestination: liveDestination != nil, presentationID: presentationID)', self.history)
 
     def test_only_successful_same_owner_receipt_admits_empty_entry(self):
-        load = self.history.split('private func load()', 1)[1]
-        self.assertLess(load.index('let snapshot = liveEntry.beginRead(reader: reader)'), load.index('try reader.history()'))
-        self.assertLess(load.index('try reader.history()'), load.index('liveEntry.acceptRead(isEmpty: records.isEmpty'))
-        self.assertNotIn('acceptRead', load.split('catch {', 1)[1])
+        load = self.history.split('private func load()', 1)[1].split('@MainActor struct RoamHistoryListRead', 1)[0]
+        self.assertLess(load.index('let snapshot = liveEntry.beginRead(reader: reader)'), load.index('historyRead.load(reader: reader, expected: snapshot)'))
+        self.assertLess(load.index('guard historyRead.load(reader: reader, expected: snapshot) else { return }'), load.index('liveEntry.acceptRead(isEmpty: records.isEmpty'))
+        listread = self.history.split('@MainActor struct RoamHistoryListRead', 1)[1].split('\n}\n', 1)[0]
+        self.assertLess(listread.index('try reader.history()'), listread.index('didLoad = true'))
+        self.assertNotIn('acceptRead', listread)
         self.assertIn('successfulEmptyRead = isEmpty && owner == snapshot && snapshot == RoamHistoryLiveOwner(reader: reader)', self.entry)
 
     def test_identity_uses_exact_storage_scope_bytes_reader_and_epoch(self):
@@ -76,9 +78,10 @@ class RoamHistoryLiveEntryContracts(unittest.TestCase):
         self.assertEqual(self.history.count('try reader.history()'), 1)
 
     def test_prior_record_detail_navigation_statistics_and_share_remain(self):
-        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts)', 'RoamHistorySummary(records)', 'RoamRouteSketchView(record: record)', 'RoamRecordedStats(record: record)', 'RoamExperienceIssue(error: error, retry: load)']:
+        for token in ['RoamHistoryDetailView(reader: reader, timestamp: record.ts)', 'RoamHistorySummary(records)', 'RoamRouteSketchView(record: record)', 'RoamExperienceIssue(error: error, retry: load)']:
             self.assertIn(token, self.history)
-        self.assertIn('RoamHistoryShareView(record: record)', self.view)
+        self.assertIn('RoamHistoryShareView(record: record, reader: reader)', self.view)
+        self.assertIn('RoamRecordedStats(record: record)', self.view)
 
 
 if __name__ == '__main__':

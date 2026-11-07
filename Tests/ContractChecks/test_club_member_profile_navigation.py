@@ -13,7 +13,7 @@ class ClubMemberProfileNavigationTests(unittest.TestCase):
 
     def test_identity_fences_and_existing_membership_read(self):
         source = (ROOT / "App/ClubMembersView.swift").read_text()
-        for token in ["requiresSignIn: true", "try await reader.clubMembers(id: id)",
+        for token in ["requiresSignIn: true", "try await reader.clubMembers(id: id, isCurrent: {",
                       "target.identity == reader.clubIdentity", "context.reader.identity.accountID == identity.accountID",
                       "context.reader.identity.epoch == identity.epoch", "destination = nil"]:
             self.assertIn(token, source)

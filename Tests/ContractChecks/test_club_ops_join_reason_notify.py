@@ -145,7 +145,8 @@ class ClubOpsJoinNotifyContracts(unittest.TestCase):
         for forbidden in ['perform(', 'coordinator', 'access.read', 'canDispatch', 'requestId']:
             self.assertNotIn(forbidden, self.notify_ui)
         self.assertIn('ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id)', self.audience)
-        self.assertIn('LabeledContent("club.gov.field.totalCount", value: String(count))', self.audience)
+        self.assertIn('if option.enabled, let count = option.count {', self.audience)
+        self.assertIn('ClubOpsJoinNotifyCopy.people(count)', self.audience)
 
     def test_core_cases_are_authored(self):
         for name in ['testRejectSendsReviewReasonOnlyWhenPresent', 'testInvalidOrMisplacedReasonNeverDispatches',

@@ -10,7 +10,7 @@ class RecoveredModuleIntegrationTests(unittest.TestCase):
  def test_production_play_capabilities_remain_empty(self):
   s=self.text('App/AppSession.swift');self.assertIn('runtimeDependencyFactory?.playService()',s);self.assertIn('retainedDependencies = injectedRuntimeDependencies ?? composition.sessionDependencies(context)',s);self.assertIn('enabled: accepted?.play ?? []',self.text('Core/RuntimeDependencyConfiguration.swift'));self.assertNotIn('enabled: [.reads',s)
  def test_production_merchant_factories_have_no_test_executor(self):
-  s=self.text('App/AppSession.swift');self.assertIn('MerchantBusinessService(configuration:configuration,readTransport:transport)',s);self.assertNotIn('testingMutationTransport:',s);self.assertNotIn('execution: .',s)
+  s=self.text('App/AppSession.swift');self.assertIn('MerchantBusinessService(configuration:configuration,readTransport:transport)',s);self.assertNotIn('testingMutationTransport:',s);self.assertNotIn('injectedOfflineHarness',s);self.assertEqual(s.count('execution: .'),s.count('execution: .disabled'))
  def test_private_readers_capture_exact_current_session(self):
   s=self.text('App/AppSession.swift')
   for name in ['MerchantBusiness','MerchantContent','CooperationFlow']:self.assertIn('self.current'+name+'Session == captured',s)
@@ -23,7 +23,7 @@ class RecoveredModuleIntegrationTests(unittest.TestCase):
  def test_supply_terms_are_never_guessed(self):
   s=self.text('App/MerchantCooperationSupplyView.swift');self.assertIn('guard let raw = source.termsMode',s);self.assertIn('TermsMode(rawValue: raw)',s);self.assertIn('supplyTermsUnknown',s);self.assertNotIn('?? .traffic',s)
  def test_supply_perks_require_read_and_session_fence(self):
-  s=self.text('App/MerchantCooperationSupplyView.swift');self.assertIn('reader.read(.templates)',s);self.assertIn('reader.session == captured',s);self.assertIn('source.canEnroll',s);self.assertIn('source.canReconfirmOrPause',s)
+  s=self.text('App/MerchantCooperationSupplyView.swift');self.assertIn('reader.read(.templates, isCurrent:',s);self.assertIn('reader.session == captured',s);self.assertIn('source.canEnroll',s);self.assertIn('source.canReconfirmOrPause',s)
  def test_configured_shards_cover_every_class_once(self):
   spec=importlib.util.spec_from_file_location('shards',ROOT/'tools/run_ui_shard.py');m=importlib.util.module_from_spec(spec);spec.loader.exec_module(m)
   w=m.discover(ROOT/'Tests/AppUITests');groups=m.partition(w,m.DEFAULT_SHARD_COUNT);flat=sum(groups,[]);self.assertEqual(len(flat),len(set(flat)));self.assertEqual(set(flat),set(w))

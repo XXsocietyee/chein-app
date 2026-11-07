@@ -96,7 +96,7 @@ class OwnedCouponLifecycleContracts(unittest.TestCase):
                      'testRetainedCodeDestinationCannotInvokeFactoryAfterOwnerSwitch', 'testNewerKeywordReadSuppressesOld401AndAcceptsOnlyNewRows']:
             self.assertIn('func ' + name + '(', app)
         self.assertEqual(len(re.findall(r'func test\w+\(', core)), 8)
-        self.assertEqual(len(re.findall(r'func test\w+\(', app)), 24)
+        self.assertEqual(len(re.findall(r'func test\w+\(', app)), 31)
 
     def test_code_lifecycle_regressions_and_normal_offline_journey_are_authored(self):
         core = self.read('Tests/CoreTests/CouponCodePermitTests.swift')

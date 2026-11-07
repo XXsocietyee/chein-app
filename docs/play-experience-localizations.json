@@ -1930,5 +1930,21 @@
   "playx.device.lowAccuracy": {
     "en": "Low location accuracy · you can scan the code to complete",
     "zh-Hans": "定位精度不足 · 可扫码完成"
+  },
+  "playx.circle.offerUntitled": {
+    "en": "Shop",
+    "zh-Hans": "商家"
+  },
+  "playx.circle.save": {
+    "en": "Save",
+    "zh-Hans": "保存"
+  },
+  "playx.player.unnamed": {
+    "en": "Player",
+    "zh-Hans": "玩家"
+  },
+  "playx.node.untitled": {
+    "en": "Untitled stop",
+    "zh-Hans": "未命名节点"
   }
 }

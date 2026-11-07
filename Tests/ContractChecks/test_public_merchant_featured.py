@@ -28,7 +28,7 @@ class PublicMerchantFeaturedChecks(unittest.TestCase):
         view = self.source('App/PublicMerchantHomeView.swift')
         for text in ['guard !loading, failure == nil, loadedKey == key, context.reader.isConfigured',
                      'destination.isCurrent()', 'value.publicFeatured(for: target)', 'snapshotID = UUID(); featuredSelection = nil',
-                     '.onChange(of: key) { _, _ in featuredSelection = nil }',
+                     '.onChange(of: key) { _, _ in featuredSelection = nil; ownerSelection = nil; gameFactsSelection = nil }',
                      '.onChange(of: context.featured?.scope)', 'guard canOpen(selection) else { return }']:
             self.assertIn(text, view)
         self.assertLess(view.index('.navigationTitle('), view.index('.navigationDestination(item: $featuredSelection)'))

@@ -13,7 +13,7 @@ class SavedLibrarySourceContracts(unittest.TestCase):
   self.assertIn('if let onSavedDraft {',HOST);self.assertIn('Button(action: { onSavedDraft(saved) }',HOST)
  def test_normal_launch_reuses_full_existing_library_destination(self):
   self.assertEqual(LAUNCH.count('TemplateAuthoringSaveFlow('),1)
-  for name in ['session.templateShelfCoordinator()','SessionOwnedMemberTemplateDetailView','SessionOwnedTemplateConfigurationView','SessionWorkshopCreatorConsentView','session.templateShelfViewIdentity']:
+  for name in ['.templateShelfCoordinator()','SessionOwnedMemberTemplateDetailView','SessionOwnedTemplateConfigurationView','SessionWorkshopCreatorConsentView','.templateShelfViewIdentity']:
    self.assertEqual(LAUNCH.count(name),2)
   self.assertIn('templateAuthor.openMine',LAUNCH);self.assertIn('templateAuthor.openPrefab',LAUNCH)
  def test_no_new_network_storage_write_or_resubmit(self):
@@ -43,7 +43,7 @@ class SavedLibrarySourceContracts(unittest.TestCase):
   self.assertEqual(keys,set(LOC));self.assertEqual(len(LOC),5);self.assertEqual(PANEL.count('tableName: "CreatorSavedResult"'),5)
   self.assertTrue(all(set(v['localizations'])=={'en','zh-Hans'} for v in LOC.values()));self.assertEqual(REG['tableName'],'CreatorSavedResult')
  def test_native_tests_cover_boundaries_without_claiming_execution(self):
-  self.assertEqual(CT.count('func test'),12);self.assertEqual(AT.count('func test'),16)
+  self.assertEqual(CT.count('func test'),12);self.assertEqual(AT.count('func test'),27)
   for x in ['advance(1999)','advance(1)','forceOldTick','testRestoredTerminalJournal','testProjectNodeReturnEligibility','testMissingIDSimulationUnknownAndPublish','testDisappearAndReentry']:self.assertIn(x,AT)
   self.assertIn('NOT_RUN',DOC)
  def test_no_unsupported_publish_receipt_claim(self):

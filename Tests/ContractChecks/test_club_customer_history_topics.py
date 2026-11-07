@@ -17,9 +17,10 @@ class ClubCustomerHistoryTopicContracts(unittest.TestCase):
         self.assertIn('.init(viewerRevision: viewerRevision, destination: topicDestination)', context)
     def test_scoped_read_and_late_response_guards(self):
         view = (ROOT / 'App/ClubGovernanceViews.swift').read_text()
-        for token in ['.task(id: readContext)', '.onChange(of: readContext)', 'context == readContext',
+        for token in ['.task(id: readContext) { await synchronizeReadContext() }', 'context == readContext',
                       'context.accepts(result)', 'snapshotContext == readContext', 'access.identity == expected',
-                      'authorizationGeneration: access.authorizationGeneration', '.onDisappear { generation &+= 1 }']:
+                      'authorizationGeneration: access.authorizationGeneration',
+                      'if operation == .customers {\n                customerKeywordDebounce.cancel()\n                generation &+= 1']:
             self.assertIn(token, view)
         self.assertGreaterEqual(view.count('context == readContext'), 2)
     def test_navigation_rechecks_selection_and_does_not_invent_endpoint(self):

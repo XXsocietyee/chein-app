@@ -66,17 +66,18 @@
       }
     },
     "playerJourney.parity.refreshing": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Updating participation records…"
+            "value": "Updating…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在更新参与记录…"
+            "value": "正在更新…"
           }
         }
       }

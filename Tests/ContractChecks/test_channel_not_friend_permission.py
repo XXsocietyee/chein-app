@@ -169,6 +169,11 @@ class ChannelNotFriendPermissionContracts(unittest.TestCase):
             'ChannelRulesAdmission.swift',
             'ChannelMemberAuthorizationProjection.swift',
             'ChannelRevokeIsolation.swift',
+            # Added later by separate, independently owned work (C08 admission governance, W6 Discord messaging, directory catalog).
+            'ChannelAdmissionGovernanceFactory.swift',
+            'ChannelAdmissionGovernanceClient.swift',
+            'ChannelDirectoryCatalogProducer.swift',
+            'ChannelDiscordMessaging.swift',
         })
         self.assertTrue((ROOT / 'Core' / 'FriendPermissionDistinctFromChannel.swift').is_file())
         self.assertFalse(re.search(r'production.*(password|secret|token)', self.exclusive(), re.I))

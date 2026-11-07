@@ -59,7 +59,8 @@ class MerchantOperationsSourceTests(unittest.TestCase):
         self.assertTrue(fixture.strip().endswith('#endif'))
         self.assertNotIn('URLSession(', fixture)
         self.assertNotIn('HTTPTransport', fixture)
-        self.assertNotIn('https://', fixture)
+        # Synthetic brand-gallery JSON may carry reserved example.invalid URLs as inert data; no other host.
+        self.assertEqual(fixture.count('https://'), fixture.count('https://example.invalid/'))
 
     def test_session_checks_include_epoch_and_prevent_post_access_stale_read(self):
         reader = self.text('Core/MerchantOperationsReading.swift')

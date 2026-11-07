@@ -39,7 +39,11 @@ class ClubOperationsSourceChecks(unittest.TestCase):
         swift = self.text('Core/ClubOperationsContracts.swift')
         for prohibited in ['"memberDiscountPrice":','"member_discount_price":','api/club/dissolve','api/club/become-leader']:
             self.assertNotIn(prohibited,swift)
-        self.assertIn('logo == (original?.club.logo ?? "")',swift)
+        # Media validation moved to the receipt-based ClubProfileMediaFlow; unchanged references still must equal the original.
+        self.assertIn('try validateMedia(original: original)',swift)
+        media = self.text('Core/ClubProfileMediaFlow.swift')
+        self.assertIn('original?.club.logo ?? ""',media)
+        self.assertIn('else if value != old { throw ClubOperationsBlock.mediaUnavailable }',media)
         self.assertIn('if original.club.joinPolicySupported',swift)
     def test_admin_profile_scope_is_explicit_and_owner_changes_invalidate_review(self):
         swift = self.text('Core/ClubOperationsContracts.swift')
@@ -62,7 +66,8 @@ class ClubOperationsSourceChecks(unittest.TestCase):
         ui = self.text('App/ClubOperationsViews.swift')
         review = self.text('App/ClubOperationsReviewView.swift')
         self.assertIn('isOwner: value.profile?.club.isOwner == true', ui)
-        self.assertIn('if !isCreate && isOwner {', ui)
+        self.assertIn('if isCreate { createSections } else { editSections }', ui)
+        self.assertIn('if !isOwner {', ui)
         self.assertIn('case .update(let draft, _): profile(draft, original: review.snapshot.profile)', review)
         self.assertIn('if let original, original.club.isOwner {', review)
     def test_admin_profile_runtime_regressions_remain_authored(self):
@@ -95,7 +100,7 @@ class ClubOperationsSourceChecks(unittest.TestCase):
         ui = ''.join(p.read_text() for p in (ROOT/'App').glob('ClubOperations*.swift'))
         keys = set(re.findall(r'"(club\.ops\.[A-Za-z][A-Za-z0-9.]*)"',ui))
         for key in keys:
-            if key in catalog or key.endswith('.') or any(t in key for t in ['openCreate','openManage','loading','error','setting.','member.','writeCount','fixtureNotice','field.','reviewSheet','confirm','cancelReview']): continue
+            if key in catalog or key.endswith('.') or any(t in key for t in ['openCreate','openManage','loading','error','setting.','member.','writeCount','fixtureNotice','field.','fixture.workspace','reviewSheet','confirm','cancelReview']): continue
             # Localized text and test identifiers are intentionally separate.
             self.assertTrue(key in catalog, key)
     def test_integration_wires_retained_session_and_fixture(self):

@@ -428,8 +428,8 @@
     "zh-Hans": "将已核对的俱乐部更改提交至服务器。"
   },
   "club.ops.leaderRequired.apply": {
-    "en": "Become a club leader first. Once approved you can create and manage clubs.",
-    "zh-Hans": "请先成为俱乐部主理人，申请通过后即可创建与管理俱乐部"
+    "en": "Once you're a host you can create and manage clubs.",
+    "zh-Hans": "申请通过后即可创建与管理俱乐部"
   },
   "club.ops.applyHost": {
     "en": "Go to application",
@@ -470,5 +470,53 @@
   "club.ops.locked.quota %lld": {
     "en": "%lld reserved",
     "zh-Hans": "保留 %lld 个"
+  },
+  "club.ops.basics": {
+    "en": "Basic information",
+    "zh-Hans": "基础信息"
+  },
+  "club.ops.clubLimit.title": {
+    "en": "Club limit reached",
+    "zh-Hans": "已达创建上限"
+  },
+  "club.ops.createdStatus.accountChanged": {
+    "en": "You switched accounts. Reopen to manage this club.",
+    "zh-Hans": "账号已切换，请重新打开后管理俱乐部。"
+  },
+  "club.ops.createdStatus.closed": {
+    "en": "Club creation is closed right now.",
+    "zh-Hans": "暂时无法创建俱乐部。"
+  },
+  "club.ops.createdStatus.ready": {
+    "en": "Club created",
+    "zh-Hans": "俱乐部已创建"
+  },
+  "club.ops.createdStatus.unread": {
+    "en": "Club created, but its details couldn't be loaded yet.",
+    "zh-Hans": "俱乐部已创建，但暂时读不到资料。"
+  },
+  "club.ops.destinationDetail": {
+    "en": "Your club is ready",
+    "zh-Hans": "俱乐部已就绪"
+  },
+  "club.ops.enterDetail": {
+    "en": "Open club",
+    "zh-Hans": "进入俱乐部"
+  },
+  "club.ops.enterManagement": {
+    "en": "Go to club management",
+    "zh-Hans": "进入俱乐部管理"
+  },
+  "club.ops.introduction": {
+    "en": "Introduction",
+    "zh-Hans": "俱乐部介绍"
+  },
+  "club.ops.leaderRequired.title": {
+    "en": "Become a club host first",
+    "zh-Hans": "请先成为俱乐部主理人"
+  },
+  "club.ops.positioning": {
+    "en": "Positioning",
+    "zh-Hans": "定位"
   }
 }

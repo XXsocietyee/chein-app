@@ -894,5 +894,9 @@
   "playkit.type.finishedNotPassed": {
     "en": "This round has ended without passing.",
     "zh-Hans": "本轮已结束，未通过。"
+  },
+  "playkit.submitQuestion": {
+    "en": "Submit this answer?",
+    "zh-Hans": "提交这个答案？"
   }
 }

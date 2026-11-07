@@ -62,7 +62,10 @@ class PublicTemplateCompositionContracts(unittest.TestCase):
                         failure.index('onUnauthorized()'))
         browser = (ROOT / 'App/DiscoveryTemplateBrowserView.swift').read_text()
         self.assertIn('reader.publicTopicTemplateCatalogRequest()', browser)
-        self.assertIn('topics.load(onUnauthorized: request.onUnauthorized, request.read)', browser)
+        self.assertIn('let request = reader.publicTopicTemplateCatalogRequest(), run = UUID()', browser)
+        visit_failure = browser.split('let rows = try await request.read()', 1)[1]
+        self.assertLess(visit_failure.index('guard current() else { return }', visit_failure.index('catch {')),
+                        visit_failure.index('request.onUnauthorized()'))
 
     def test_apple_hosted_boundary_and_race_inventory_is_wired(self):
         tests = (ROOT / 'Tests/AppUnitTests/PublicTemplateCompositionTests.swift').read_text()

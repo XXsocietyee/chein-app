@@ -41,6 +41,33 @@
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
     },
     {
+      "file": "App/ClubChannelMessagingView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Default arguments construct the UserDefaults-backed channel rules-acceptance and blocked-users stores (no own keys)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/ClubOrdinaryAdmissionComposition.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Application Support location for the ordinary club admission pending journal (opaque intent data)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/ClubSafetyComposition.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Namespaced UserDefaults-backed channel rules-acceptance and blocked-users stores for club safety",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/ImageUploadSecureStorage.swift",
       "kinds": [
         "keychain"
@@ -68,6 +95,15 @@
       "deletion": "Cleared by session logout path; device verification NOT_RUN"
     },
     {
+      "file": "App/NativeChannelReportJournalKeys.swift",
+      "kinds": [
+        "keychain"
+      ],
+      "purpose": "Keychain service name for the channel report pending-journal key; injectable so tests never touch a real Keychain",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "App/NativeEnrollmentKeychainStore.swift",
       "kinds": [
         "keychain"
@@ -82,6 +118,15 @@
         "keychain"
       ],
       "purpose": "Walking navigation destination record (questify.walking.destination.v1)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/OfficialOrganizerConsoleView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Official organizer console local UI state via injected UserDefaults",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
@@ -136,6 +181,15 @@
         "keychain"
       ],
       "purpose": "Roam history; device-only protected storage, no tokens",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "App/RoamReceivedStampMetadataView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Device-local list of hidden received-stamp IDs (UserDefaults)",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
@@ -212,11 +266,84 @@
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
     },
     {
+      "file": "Core/ChannelDiscordMessaging.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "UserDefaults-backed channel rules acceptance and blocked-user list, namespaced per account scope",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ChapterReplacementInvitationCoordinator.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Application Support JSON of the pending chapter-replacement invitation intent",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/CityAcquisitionIdentityJournal.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "City acquisition identity pending journal (opaque IDs) in injected UserDefaults",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/CityFairness.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Per-account city fairness query state cached in UserDefaults under the cityFairness.query. prefix",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ClubCommunityPendingJournal.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Club community pending-operation journal in injected key-value storage (UserDefaults)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ClubProfileLocalDraftStore.swift",
+      "kinds": [
+        "keychain",
+        "userDefaults"
+      ],
+      "purpose": "Device-only club profile local draft in the data-protection Keychain; mentions UserDefaults only to exclude it",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ClubWelcomePresentation.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Club welcome presentation flags in injected UserDefaults",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "Core/ContentDraftSystemStorage.swift",
       "kinds": [
         "keychain"
       ],
       "purpose": "Versioned content draft pending journal (questify.content-draft.pending.v1); production adapter only via reviewed composition",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/ExternalGameImport.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Sandboxed Application Support package directory for imported external games",
       "retention": "待隐私评审确定 / pending privacy review",
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
@@ -230,6 +357,15 @@
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
     },
     {
+      "file": "Core/IMVoiceJournal.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Mention only: voice journal uses host-supplied encrypted storage, never UserDefaults",
+      "retention": "n/a (no store)",
+      "deletion": "n/a"
+    },
+    {
       "file": "Core/KeychainAndBiometricSessionSecurityAudit.swift",
       "kinds": [
         "userDefaults"
@@ -237,6 +373,33 @@
       "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
       "retention": "pending privacy review (session or explicit account scope)",
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "Core/MerchantAuthoringJournal.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Merchant authoring pending journal (owner + request ID) in injected UserDefaults",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/MerchantNPCKnowledgeRecoveryMetadata.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Merchant NPC knowledge recovery metadata (owner-scoped IDs) in injected UserDefaults",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
+      "file": "Core/NativeAttributeAuthorRuntimeConfiguration.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Mention only: reviewed deployment input is never read from UserDefaults",
+      "retention": "n/a (no store)",
+      "deletion": "n/a"
     },
     {
       "file": "Core/NearbyTeamCoordinator.swift",
@@ -266,6 +429,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "Core/ParticipantFileJournal.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Application Support file journal for pending participant operations",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
+    },
+    {
       "file": "Core/PrivateHomeContracts.swift",
       "kinds": [
         "userDefaults"
@@ -291,6 +463,15 @@
       "purpose": "Mention only: forbids UserDefaults fallback for editor envelopes",
       "retention": "n/a (no store)",
       "deletion": "n/a"
+    },
+    {
+      "file": "Core/RoamPrivatePendingJournal.swift",
+      "kinds": [
+        "file"
+      ],
+      "purpose": "Device-local Application Support file for the roam private pending journal (hex file names)",
+      "retention": "待隐私评审确定 / pending privacy review",
+      "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
       "file": "Core/RunAuthorityRecovery.swift",

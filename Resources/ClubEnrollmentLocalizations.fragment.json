@@ -512,6 +512,22 @@
           }
         }
       }
+    },
+    "club.enroll.denied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't view this roster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有权限查看报名名册"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

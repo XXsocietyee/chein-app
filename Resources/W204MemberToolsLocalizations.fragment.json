@@ -422,13 +422,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nodes that already reference this play are unaffected and keep their configuration."
+            "value": "Nodes already using this play keep their settings."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已经引用了这个玩法的节点不受影响,继续按原配置跑"
+            "value": "已使用此玩法的节点不受影响，继续按原设置运行。"
           }
         }
       }
