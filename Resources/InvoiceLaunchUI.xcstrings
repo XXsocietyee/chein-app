@@ -752,6 +752,38 @@
           }
         }
       }
+    },
+    "emptyFiltered": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No invoices match this status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前筛选暂无发票申请"
+          }
+        }
+      }
+    },
+    "withdrawn": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application withdrawn"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请已撤回"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
