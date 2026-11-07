@@ -52,7 +52,7 @@ struct TicketWalletTeamContext: Hashable {
                     Button("ticketTeam.open", systemImage: "person.3") {
                         entry.activate(context: context, reader: reader, presentationID: presentation)
                     }.accessibilityIdentifier("ticketTeam.open")
-                    Text("ticketTeam.lookupHint").font(.footnote).foregroundStyle(.secondary)
+                    Text("ticketTeam.lookupHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
             }
         }
@@ -207,7 +207,7 @@ struct TicketWalletTeamContext: Hashable {
                     }
                 }
             }
-            Section { Text("ticketTeam.readOnly").font(.footnote).foregroundStyle(.secondary) }
+            Section { Text("ticketTeam.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .navigationTitle("ticketTeam.title")
         .privacySensitive()
