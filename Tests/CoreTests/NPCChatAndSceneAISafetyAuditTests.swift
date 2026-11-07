@@ -147,4 +147,39 @@ final class NPCChatAndSceneAISafetyAuditTests: XCTestCase {
             [.deletionFenceViolated(reappearedMemoryIDs: ["mem-valid-1"])]
         )
     }
+
+    func testW5NPCLowPolyFigureProjectionChatExportAndAuthoringParity() {
+        let renderer = NPCLowPolyFigureRenderer()
+        XCTAssertEqual(renderer.canonicalBoxFaceCount, 48)
+        let projected = NPCLowPolyFigureRenderer.project(
+            .init(x: 0.5, y: 1.0, z: 0.2),
+            yaw: 0.4,
+            pitch: -0.1
+        )
+        XCTAssertTrue(projected.x.isFinite && projected.y.isFinite && projected.z.isFinite)
+
+        let messages = (1...55).map { idx in
+            NPCChatTranscriptExporter.ExportMessage(
+                id: "m-\(idx)",
+                role: idx.isMultiple(of: 2) ? "npc" : "user",
+                content: "Message \(idx)"
+            )
+        }
+        let preview = NPCChatTranscriptExporter.previewRows(from: messages)
+        XCTAssertEqual(preview.rows.count, 50)
+        XCTAssertEqual(preview.truncatedCount, 5)
+        let formatted = NPCChatTranscriptExporter.formatReadable(
+            npcName: "掌柜阿福",
+            scope: "merchant",
+            messages: messages
+        )
+        XCTAssertTrue(formatted.contains("【掌柜阿福 · 对话记录 (merchant)】"))
+        XCTAssertTrue(formatted.contains("…已省略其余 5 条记录"))
+
+        let authoring = NPCAuthoringFormParityContract()
+        XCTAssertTrue(authoring.isAuthoringAndChatParityCompliant)
+        XCTAssertEqual(NPCAuthoringFormParityContract.pixelAvatarDimension, 32)
+        XCTAssertEqual(NPCAuthoringFormParityContract.maxChatInputCodepoints, 300)
+        XCTAssertEqual(NPCAuthoringFormParityContract.maxTranscriptWindowMessages, 20)
+    }
 }
