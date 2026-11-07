@@ -539,12 +539,14 @@ public enum DiceD20Geometry {
     public static let faces: [DiceD20Face] = {
         let baseFaces = triangles.map { (i, j, k) -> (points: [DiceVec3], normal: DiceVec3, up: DiceVec3) in
             let pts = [rawVertices[i], rawVertices[j], rawVertices[k]]
-            let center = DiceVec3(
+            let centroid = DiceVec3(
                 (pts[0].x + pts[1].x + pts[2].x) / 3.0,
                 (pts[0].y + pts[1].y + pts[2].y) / 3.0,
                 (pts[0].z + pts[1].z + pts[2].z) / 3.0
-            ).normalized
-            let u = DiceVec3(pts[0].x - center.x, pts[0].y - center.y, pts[0].z - center.z).normalized
+            )
+            let center = centroid.normalized
+            // The up vector must lie in the face plane, so measure from the raw (unnormalized) centroid.
+            let u = DiceVec3(pts[0].x - centroid.x, pts[0].y - centroid.y, pts[0].z - centroid.z).normalized
             return (points: pts, normal: center, up: u)
         }
         var values = Array(repeating: 0, count: baseFaces.count)
