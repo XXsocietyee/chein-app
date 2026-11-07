@@ -20,7 +20,7 @@ class ProfileSelfProjectsSourceTests(unittest.TestCase):
  def test_14_unknown_start(self):self.assertIn('guard let start = day(start) else { return nil }',C)
  def test_15_reversed_end(self):self.assertIn('let end = max(day(end) ?? start, start)',C)
  def test_16_source_truncated(self):self.assertIn('sourceTruncated = page.isTruncated',C);self.assertIn('if preview.sourceTruncated',A)
- def test_17_retained_retry(self):self.assertIn('page = next // Authoritative empty',C);self.assertIn('if issue == .login { page = nil }',C);self.assertIn('model.page != nil',A)
+ def test_17_retained_retry(self):self.assertIn('page = next // Authoritative empty',C);self.assertIn('if issue == .login || error as? APIError == .httpStatus(403) { page = nil }',C);self.assertIn('model.page != nil',A)
  def test_18_duplicate_load(self):self.assertIn('guard !isLoading else { return }',C)
  def test_19_generation(self):self.assertIn('generation == run && !Task.isCancelled && reader.isCurrentContext',C)
  def test_20_exact_selection(self):self.assertIn('rows.contains(row)',C);self.assertIn('model.canOpen(project, reader: reader',A)

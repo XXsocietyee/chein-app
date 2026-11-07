@@ -80,7 +80,7 @@ class PlayRouteMapContracts(unittest.TestCase):
         self.assertNotIn('.lineLimit(', self.app)
         self.assertNotIn('.animation(', self.app)
         keys = set(re.findall(r'"(playRoute\.[A-Za-z]+)"', self.app + self.host))
-        keys -= {'playRoute.screen', 'playRoute.selectionUnavailable', 'playRoute.refresh', 'playRoute.toggleMap'}
+        keys -= {'playRoute.screen', 'playRoute.selectionUnavailable', 'playRoute.refresh', 'playRoute.toggleMap', 'playRoute.actionRead'}
         keys |= {'playRoute.state.' + state for state in ['current', 'completed', 'available', 'locked', 'unknown']}
         for key in keys:
             with self.subTest(key=key):

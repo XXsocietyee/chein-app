@@ -49,7 +49,7 @@ class OwnedTemplatePagination(unittest.TestCase):
         self.assertIn('OWNED_SHELF_FIXTURE_REVEAL',text)
         self.assertEqual(text.count('reveal(button, in: app); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertTrue(button.isEnabled); button.tap()'),2)
         self.assertIn('XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")',text)
-        self.assertIn('XCTAssertEqual(status.label, "This change is unresolved. Further shelf changes are locked; refreshing alone cannot confirm an unknown request.")',text)
+        self.assertIn('XCTAssertEqual(status.label, "We couldn’t confirm whether your last change went through. Changes are paused until it’s resolved.")',text)
         self.assertIn('reveal(button, in: app, requiresHittable: false); XCTAssertTrue(button.waitForExistence(timeout: 3)); XCTAssertFalse(button.isEnabled)',text)
         self.assertIn('XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].isEnabled)',text)
 

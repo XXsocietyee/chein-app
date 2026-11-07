@@ -6,7 +6,7 @@ import re
 import sys
 import unittest
 
-ROOT = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 and not sys.argv[1].startswith('-') else Path(__file__).resolve().parents[2]
+ROOT = Path(sys.argv.pop(1)).resolve() if len(sys.argv) > 1 and (Path(sys.argv[1])/'Core').is_dir() else Path(__file__).resolve().parents[2]
 CORE = (ROOT / 'Core/TemplateProfileOverrideConfiguration.swift').read_text()
 APP = (ROOT / 'App/TemplateProfileOverrideEditor.swift').read_text()
 HOST = (ROOT / 'App/TemplateCreatorConfigurationView.swift').read_text()

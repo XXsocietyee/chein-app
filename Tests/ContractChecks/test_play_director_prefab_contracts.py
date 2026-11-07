@@ -16,7 +16,7 @@ class PlayDirectorPrefabSourceChecks(unittest.TestCase):
         self.assertIn('record.story.synced = false',text)
     def test_prefab_arrival_photo_readback_chain_matches_source(self):
         text=self.read('Core/PlayPrefabRuntime.swift')
-        self.assertIn('evidence: .location',text);self.assertIn('evidence: .photo',text)
+        self.assertIn('PlayCompletionEvidence.location(',text);self.assertIn('evidence: .photo',text)
         self.assertIn('first.done == true || document.extras[first.id]?.uploadedImage?.isEmpty == false',text)
         self.assertIn('pendingPhotoNodeID',text);self.assertIn('pendingUploadKey',text)
     def test_prefab_arrival_external_flutter_parity(self):

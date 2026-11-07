@@ -35,7 +35,7 @@ class ProjectSubmissionAcknowledgmentContract(unittest.TestCase):
         for forbidden in ['URLSession','AsyncImage','Task {','releaseId =','OperationEndpointApproval(']:self.assertNotIn(forbidden,v)
     def test_fixture_branch_is_debug_only_and_authored_coverage_kept(self):
         s=self.read('Core/ProjectEditSyntheticFixtures.swift');self.assertTrue(s.startswith('#if DEBUG'))
-        for path,count in [('Tests/CoreTests/ProjectSubmissionAcknowledgmentTests.swift',12),('Tests/AppUnitTests/ProjectSubmissionEvidenceTests.swift',4),('Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift',2)]:
+        for path,count in [('Tests/CoreTests/ProjectSubmissionAcknowledgmentTests.swift',12),('Tests/AppUnitTests/ProjectSubmissionEvidenceTests.swift',9),('Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift',2)]:
             self.assertEqual(self.read(path).count('func test'),count)
         ui=self.read('Tests/AppUITests/ProjectSubmissionAcknowledgmentFlowTests.swift')
         self.assertEqual(ui.count('UNMEASURED complete method estimate: 750 seconds.'),1); self.assertEqual(ui.count('UNMEASURED complete method estimate: 770 seconds.'),1)

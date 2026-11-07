@@ -718,5 +718,15 @@
     "key": "square.xcx.closedDetail",
     "en": "Other city exploration features are still available",
     "zh-Hans": "其他城市探索功能仍可使用"
+  },
+  {
+    "key": "square.edit",
+    "en": "Edit",
+    "zh-Hans": "编辑"
+  },
+  {
+    "key": "square.report",
+    "en": "Report",
+    "zh-Hans": "举报"
   }
 ]

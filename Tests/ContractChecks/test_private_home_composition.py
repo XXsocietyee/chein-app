@@ -14,11 +14,15 @@ class PrivateHomeCompositionContracts(unittest.TestCase):
     def test_private_home_has_exact_method_path_and_owner_grant(self):
         root = self.text('App/AppCompositionRoot.swift')
         for text in ['api.baseURL.appendingPathComponent(PrivateHomeService.path)',
-                     '["GET", "PUT", "DELETE"].contains(request.httpMethod ?? "")',
+                     'PrivateHomeRequestBoundary.accepts(request, baseURL: api.baseURL)',
                      'grant.matches(storageScope: deployment.storageScope, accountID: captured.accountID, role: captured.role)',
                      'let token = captured.token, AuthRequestBuilder.isValidToken(token)',
-                     'url.query == nil', 'url.fragment == nil', 'current() == captured']:
+                     'current() == captured']:
             self.assertIn(text, root)
+        boundary = self.text('Core/PrivateHomeRequestBoundary.swift')
+        for text in ['request.url?.absoluteString.utf8.elementsEqual(baseURL.appendingPathComponent(PrivateHomeService.path).absoluteString.utf8) == true',
+                     'request.httpMethod == "GET"', 'request.httpMethod == "PUT" || request.httpMethod == "DELETE"']:
+            self.assertIn(text, boundary)
         factory = self.text('App/PrivateHomeComposition.swift')
         self.assertNotIn('OperationEndpointApproval(', factory)
         self.assertNotIn('URLSessionTransport', factory)

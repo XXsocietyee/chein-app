@@ -7,7 +7,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 class NonCashRewardSliceChecks(unittest.TestCase):
     def test_normal_account_entry_uses_existing_scope(self):
         source = (ROOT / 'App/AccountCollectionFavoritesView.swift').read_text()
-        self.assertIn('NonCashRewardsView(reader: reader, rewards: rewards).id(reader.scope)', source)
+        self.assertIn('NonCashRewardsView(reader: reader, rewards: rewards, merchantHome: rewardMerchant, pledge: pledge).id(reader.scope)', source)
         self.assertIn('AccountCollectionAccountLinks(', (ROOT / 'App/AccountView.swift').read_text())
     def test_no_live_transport_or_coupon_credential_reuse(self):
         source = (ROOT / 'App/NonCashRewardViews.swift').read_text()
@@ -25,13 +25,13 @@ class NonCashRewardSliceChecks(unittest.TestCase):
         self.assertIn('@State private var presenting = false', detail)
         self.assertIn('.sheet(isPresented: $presenting)', detail)
         self.assertIn('if presentationAllowed', detail)
-        self.assertIn('guard presentationAllowed else { return }', detail)
+        self.assertIn('guard presentationAllowed, merchantNavigation.canOpen else { return }', detail)
         self.assertIn('reader.isAuthenticated, reader.isConfigured, reader.isOfflineExample', detail)
         self.assertIn('reward.canPresent(at: NonCashRewardDemo.now)', detail)
         self.assertIn('model.value(scope: key.scope)', detail)
         for boundary in ['scenePhase', 'reader.scope', 'reader.isAuthenticated', 'reader.isConfigured']:
             self.assertIn('.onChange(of: ' + boundary + ')', detail)
-        self.assertIn('if appearance.end(model: model) { presenting = false }', detail)
+        self.assertIn('if appearance.end(model: model) { presenting = false; merchantNavigation.cancel() }', detail)
         self.assertIn('if viewPresentation === appearance', detail)
         self.assertNotIn('model.endPresentation()', detail)
         self.assertIn('private func scheduleRefresh(presentation: NonCashRewardReadLifetime?) {\n        presenting = false', detail)

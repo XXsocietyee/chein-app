@@ -33,7 +33,7 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn("if registrationEnabled { registrationAction }", source)
         self.assertEqual(source.count('accessibilityIdentifier("activity.openRegistration")'), 1)
         self.assertIn("Button { showsRegistration=true }", source)
-        self.assertIn(".buttonStyle(.borderedProminent)", source)
+        self.assertIn(".buttonStyle(.questifyPrimary)", source)
         self.assertIn(".frame(maxWidth:.infinity,minHeight:44)", source)
         self.assertIn("if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }", source)
         self.assertIn("creationPolicy:session.registrationCreationPolicy(activityID:activity.summary.id)", app("SessionRegistrationSheet.swift"))
@@ -76,7 +76,7 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn('title:"activity.inventoryUnknown",systemImage:"questionmark.circle"', source)
         self.assertIn("ActivityPresentation.nonempty(ticket.description)", source)
         prices = app("ActivityBrowserView.swift")
-        self.assertIn('Text("activity.currencyUnconfirmed")', prices)
+        self.assertIn('appLocalized("activity.currencyUnconfirmed", locale: locale)', prices)
         self.assertIn('Text("activity.priceUnknown")', prices)
         for forbidden in (".currency(", "remainingInventory!", "Timer", "Date()", "rating", "countdown"):
             self.assertNotIn(forbidden, source)

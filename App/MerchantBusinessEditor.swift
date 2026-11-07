@@ -322,6 +322,7 @@ struct MerchantAftercareDecisionChange: Identifiable {
                     Text(LocalizedStringKey(review.mutation.titleKey)).font(.headline)
                     if case .addNote(let customer, _, let correction) = review.mutation, let note = correction {
                         MerchantNoteCorrectionTargetSummary(customer: customer, noteID: note, snapshot: review.baseline)
+                        Text("merchant.noteCorrection.append").font(.footnote).foregroundStyle(.secondary)
                     }
                     if case .json(let fields) = review.request.body {
                         ForEach(fields.keys.sorted().filter { $0 != "id" && !$0.hasSuffix("Id") && !$0.hasSuffix("Ids") && !$0.hasSuffix("ID") }, id: \.self) { key in

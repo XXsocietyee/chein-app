@@ -13,7 +13,7 @@ class ProjectOwnedEditorContracts(unittest.TestCase):
             self.assertIn(token,host)
     def test_rows_capture_original_scope_before_dispatch(self):
         ui=self.read('App/CreatorContentViews.swift')
-        for token in ['let rowScope = key.scope','reader.scope == rowScope','rows.contains(project)','onOpenProject(project, rowScope)']:
+        for token in ['let rowScope = key.scope','reader.scope == rowScope','rows.contains(project)','onOpenProject(project, rowScope, entryScope)']:
             self.assertIn(token,ui)
     def test_factory_uses_no_derived_mode_or_version(self):
         source=self.read('App/AppSession.swift').split('func projectEditor(target:')[1].split('private func projectEditorService')[0]
@@ -66,6 +66,6 @@ class ProjectOwnedEditorContracts(unittest.TestCase):
         strings=json.loads(self.read('Resources/ProjectOwnedContentLocalizations.fragment.json'))['strings']
         self.assertEqual(len(strings),13)
         for entry in strings.values(): self.assertEqual(set(entry['localizations']),{'en','zh-Hans'})
-        for path,count in [('Tests/CoreTests/ProjectEditRemoteTests.swift',11),('Tests/AppUnitTests/ProjectOwnedEditorTests.swift',15),('Tests/AppUITests/ProjectOwnedEditorFlowTests.swift',3),('Tests/AppUITests/ProjectOwnedModeCopyFlowTests.swift',1)]:
+        for path,count in [('Tests/CoreTests/ProjectEditRemoteTests.swift',20),('Tests/AppUnitTests/ProjectOwnedEditorTests.swift',23),('Tests/AppUITests/ProjectOwnedEditorFlowTests.swift',3),('Tests/AppUITests/ProjectOwnedModeCopyFlowTests.swift',1)]:
             self.assertEqual(len(re.findall(r'func test\w+',self.read(path))),count)
 if __name__=='__main__': unittest.main()

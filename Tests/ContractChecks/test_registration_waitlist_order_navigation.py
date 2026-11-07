@@ -33,7 +33,7 @@ class WaitlistOrderNavigationContracts(unittest.TestCase):
         source = (ROOT / 'Tests/CoreTests/RegistrationWaitlistOrderDestinationTests.swift').read_text()
         fixtures = [json.loads(raw) for raw in re.findall(r'Data\(#"(.*?)"#\.utf8\)', source)
                     if 'omsTicketList' in raw]
-        self.assertEqual(len(fixtures), 1, 'Keep the flow activity fixture explicitly inspected')
+        self.assertEqual(len(fixtures), 2, 'Keep the flow activity fixtures explicitly inspected')
         decoder = (ROOT / 'Core/ActivityDetail.swift').read_text()
         self.assertIn('id=try c.decode(Int.self,forKey:.id)', decoder)
         self.assertIn('name=try c.decode(String.self,forKey:.name)', decoder)
@@ -47,3 +47,13 @@ class WaitlistOrderNavigationContracts(unittest.TestCase):
             self.assertIsInstance(ticket['name'], str)
             self.assertTrue(ticket['name'])
             self.assertEqual(ticket['remainingInventory'], 5)
+        # Second fixture: minimal activity whose ticket carries only the required wire fields
+        # (remainingInventory is optional in ActivityDetail's decoder).
+        minimal = fixtures[1]
+        self.assertEqual(minimal['id'], 7)
+        self.assertIsInstance(minimal['name'], str)
+        for ticket in minimal['omsTicketList']:
+            self.assertIs(type(ticket['id']), int)
+            self.assertGreater(ticket['id'], 0)
+            self.assertIsInstance(ticket['name'], str)
+            self.assertTrue(ticket['name'])

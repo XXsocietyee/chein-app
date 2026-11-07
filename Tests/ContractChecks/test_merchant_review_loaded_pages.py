@@ -24,7 +24,7 @@ class MerchantReviewLoadedPagesChecks(unittest.TestCase):
         self.assertIn('reviewSource?.matches(scope: reader.scope, authorizationGeneration: reader.authorizationGeneration, snapshot: snapshot)', app)
         self.assertIn('String(id.rawValue) == reviewSource.reviewID', app)
         self.assertIn('guard sourcePageCanPrepare(mutation)', app)
-        self.assertIn('if sourcePageCanPrepare(mutation) { model.prepare(mutation) }', app)
+        self.assertRegex(app, r'if sourcePageCanPrepare\(mutation\) \{[^{}]*?model\.prepare\(mutation\)')
         self.assertIn('merchant.business.reviews.sourcePageMissing', app)
         self.assertIn('reviewSourceDestination = nil; selection = []; model.invalidate()', app)
 

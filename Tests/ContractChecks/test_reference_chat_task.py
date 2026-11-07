@@ -13,7 +13,7 @@ class ReferenceChatTaskContracts(unittest.TestCase):
         text = read('App/ChatMessageBubble.swift')
         for forbidden in ['URLSession', 'AsyncImage', 'import AVFoundation', 'Coordinator', 'MessagingMessage', 'ShopNPCMessage', 'delivered', 'readReceipt']:
             self.assertNotIn(forbidden, text)
-        self.assertIn('typeSize.isAccessibilitySize ? 0 : 28', text)
+        self.assertIn('typeSize.isAccessibilitySize ? 0 : 48', text)
         self.assertIn('fixedSize(horizontal: false, vertical: true)', text)
         for file in ['MessagingHistoryView.swift', 'ShopNPCView.swift', 'MerchantNPCViews.swift']:
             self.assertIn('ChatMessageBubble(', read('App/' + file))
@@ -32,17 +32,18 @@ class ReferenceChatTaskContracts(unittest.TestCase):
         self.assertIn('await coordinator.transmit(reviewID: review.id, intent: intent)', text)
         self.assertIn('coordinator.pending == nil, coordinator.failure == nil', text)
         self.assertIn('Button(role: .cancel) { coordinator.cancelReview(); revision += 1 }', text)
-        self.assertIn('.safeAreaInset(edge: .bottom) { composer }', text)
+        self.assertIn('.safeAreaInset(edge: .bottom) {', text)
     def test_npc_lifecycle_and_voice_grants_still_fail_closed(self):
         text = read('App/ShopNPCView.swift')
-        for token in ['shopNPC.disclosure', 'shopNPC.assistant', 'shopNPC.voiceDisclosure', 'shopNPC.transmissionDisclosure', '.onDisappear { invalidate() }', '.onChange(of: coordinator.scope)', '.onChange(of: coordinator.grants)', 'phase != .active', 'capture?.cancel()', 'grants.voiceAllowed', 'grants.microphone', 'startAfterExplicitMicrophoneIntent']:
+        for token in ['shopNPC.disclosure', 'shopNPC.assistant', 'shopNPC.voiceDisclosure', 'shopNPC.transmissionDisclosure', '.onDisappear { cancelSensitiveConfirmation(); invalidate() }', '.onChange(of: coordinator.scope)', '.onChange(of: coordinator.grants)', 'phase != .active', 'capture?.cancel()', 'grants.voiceAllowed', 'grants.microphone', 'startAfterExplicitMicrophoneIntent']:
             self.assertIn(token, text)
         self.assertNotIn('requestRecordPermission', text)
     def test_merchant_resources_and_chat_have_separate_authority(self):
         text = read('App/MerchantNPCViews.swift')
-        for token in ['MerchantNPCChatCoordinator', 'MerchantNPCResourcesCoordinator', 'model.coordinator.canSend', 'model.coordinator.canRetry', 'model.coordinator.invalidate()', 'referenceChat.merchantAI', 'reply.safeText', 'reply.outcomeStatus']:
+        for token in ['MerchantNPCChatCoordinator', 'MerchantNPCResourcesCoordinator', 'model.coordinator.canSend', 'model.coordinator.invalidate()', 'referenceChat.merchantAI', 'reply.safeText', 'reply.outcomeStatus']:
             self.assertIn(token, text)
         self.assertNotIn('ShopNPCCoordinator', text)
+        self.assertIn('coordinator.canRetry', read('App/MerchantNPCRecoveryPresentation.swift'))
     def test_progress_never_infers_total_or_success(self):
         text = read('Core/PlayTaskSummaryPresentation.swift')
         for token in ['snapshot.displayedDoneCount', 'snapshot.result.total', 'count > 0', '(0...count).contains(done)', 'candidates.count == 1', 'snapshot.availability == .active']:

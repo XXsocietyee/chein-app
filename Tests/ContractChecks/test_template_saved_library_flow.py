@@ -2,7 +2,7 @@
 """Focused source contracts, not native behavior or compilation."""
 from pathlib import Path
 import json,re,sys,unittest
-R=Path(sys.argv.pop(1)).resolve() if len(sys.argv)>1 and not sys.argv[1].startswith('-') else Path(__file__).resolve().parents[2]
+R=Path(sys.argv.pop(1)).resolve() if len(sys.argv)>1 and (Path(sys.argv[1])/'Core').is_dir() else Path(__file__).resolve().parents[2]
 CORE=(R/'Core/TemplateAuthoringSavedResult.swift').read_text();PANEL=(R/'App/TemplateAuthoringSavedResultPresentation.swift').read_text();FLOW=(R/'App/TemplateAuthoringSaveFlow.swift').read_text();HOST=(R/'App/TemplateAuthoringView.swift').read_text();LAUNCH=(R/'App/TemplateAuthoringLaunchView.swift').read_text();DOC=(R/'docs/template-saved-library-flow.md').read_text();LOC=json.loads((R/'Resources/CreatorSavedResult.xcstrings').read_text())['strings'];REG=json.loads((R/'docs/registration/template-saved-library-flow.json').read_text())
 CT=(R/'Tests/CoreTests/TemplateAuthoringSavedResultTests.swift').read_text();AT=(R/'Tests/AppUnitTests/TemplateAuthoringSavedResultTests.swift').read_text()
 class SavedLibrarySourceContracts(unittest.TestCase):
