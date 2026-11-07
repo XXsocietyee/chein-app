@@ -253,31 +253,27 @@ extension WalletScreen where Value == WithdrawalBalance {
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     Text(LocalizedStringKey(income ? "wallet.income.empty" : "wallet.empty")).accessibilityIdentifier("wallet.ledger.empty")
                 }
-                ForEach(WalletIncomeDay.group(filtered)) { group in
-                    Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
-                        .font(CYTypography.caption.weight(.semibold))
-                        .foregroundStyle(CYColor.textSecondary)
-                        .accessibilityIdentifier("wallet.ledger.dateGroup.\(group.id)")
-                    ForEach(group.rows) { row in
-                        if income {
-                            Button {
-                                incomeDetail = model.pager.incomeDetail(rowID: row.id, reader: reader)
-                            } label: {
-                                HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
-                                    .contentShape(Rectangle()).frame(minHeight: 44)
-                            }
-                                .buttonStyle(.plain)
-                                .accessibilityIdentifier("wallet.income.detail.open.\(row.id)")
-                        } else {
-                            Button {
-                                incomeDetail = model.pager.ledgerTransactionDetail(rowID: row.id, reader: reader)
-                            } label: {
-                                HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
-                                    .contentShape(Rectangle()).frame(minHeight: 44)
-                            }
-                            .buttonStyle(.plain)
-                        }
+                if points {
+                    ForEach(WalletPointsMonthGroup.group(filtered)) { group in
+                        Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
+                            .font(CYTypography.caption.weight(.semibold))
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityAddTraits(.isHeader)
+                            .accessibilityIdentifier("wallet.ledger.monthGroup.\(group.id)")
+                        ForEach(group.rows) { row in ledgerRowButton(row) }
                     }
+                } else {
+                    ForEach(WalletIncomeDay.group(filtered)) { group in
+                        Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
+                            .font(CYTypography.caption.weight(.semibold))
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("wallet.ledger.dateGroup.\(group.id)")
+                        ForEach(group.rows) { row in ledgerRowButton(row) }
+                    }
+                }
+                if points && !filtered.isEmpty && !model.pager.hasMore && !model.pager.isLoading && !model.pager.failed {
+                    Text("wallet.points.endOfList").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("wallet.ledger.endOfList")
                 }
             }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
@@ -329,6 +325,17 @@ extension WalletScreen where Value == WithdrawalBalance {
                 }
             }
     }
+    @ViewBuilder private func ledgerRowButton(_ row: WalletLedgerRow) -> some View {
+        Button {
+            incomeDetail = income ? model.pager.incomeDetail(rowID: row.id, reader: reader)
+                                  : model.pager.ledgerTransactionDetail(rowID: row.id, reader: reader)
+        } label: {
+            HStack { ledgerRow(row); Spacer(); Image(systemName: "chevron.right").foregroundStyle(.secondary).accessibilityHidden(true) }
+                .contentShape(Rectangle()).frame(minHeight: 44)
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(income ? "wallet.income.detail.open.\(row.id)" : "wallet.ledger.detail.open.\(row.id)")
+    }
     /// Mini-program 积分明细 row: reason and time on the left, signed amount on the right.
     private func ledgerRow(_ row: WalletLedgerRow) -> some View {
         let direction = income ? row.incomeDirection : row.assetDirection
@@ -348,6 +355,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                 if income { Text(LocalizedStringKey(row.incomeEventKey)).font(.subheadline).foregroundStyle(.secondary) }
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.caption).foregroundStyle(.secondary) }
                 else if let date = row.createTime { Text(verbatim: date).font(.caption).foregroundStyle(.secondary) }
+                if points, !income, let after = row.afterPoints { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + format.points(after)).font(.caption).foregroundStyle(.secondary) }
             }
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 4) {

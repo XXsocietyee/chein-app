@@ -112,3 +112,53 @@ public struct WalletLedgerDateGroup: Equatable, Identifiable {
         return isEnglish ? "Transactions" : "交易明细"
     }
 }
+
+/// Points-detail month grouping (mini-program `subpackageMember/points-history/rows.js`
+/// `monthKey` / `groupByMonth` / `monthLabel`). Rows keep the server order (id descending);
+/// adjacent rows of the same `createTime` month form one group. A row whose time cannot be
+/// read goes to an "unknown time" group and is never dropped.
+public struct WalletPointsMonthGroup: Equatable, Identifiable {
+    public let id: String
+    /// `YYYY-MM`, or nil for the unknown-time group.
+    public let monthKey: String?
+    public fileprivate(set) var rows: [WalletLedgerRow]
+
+    public init(id: String, monthKey: String?, rows: [WalletLedgerRow]) {
+        self.id = id; self.monthKey = monthKey; self.rows = rows
+    }
+
+    /// `YYYY-MM` from the first seven characters of `createTime`; nil when unreadable.
+    public static func monthKey(_ createTime: String?) -> String? {
+        guard let raw = createTime?.trimmingCharacters(in: .whitespacesAndNewlines), raw.count >= 7 else { return nil }
+        let parts = raw.prefix(7).split(separator: "-", omittingEmptySubsequences: false)
+        guard parts.count == 2, parts[0].count == 4, parts[1].count == 2,
+              parts[0].allSatisfy(\.isASCII), parts[0].allSatisfy(\.isNumber),
+              let month = Int(parts[1]), (1...12).contains(month) else { return nil }
+        return String(raw.prefix(7))
+    }
+
+    public func headerText(isEnglish: Bool) -> String {
+        guard let monthKey, monthKey.count == 7, let month = Int(monthKey.suffix(2)), (1...12).contains(month) else {
+            return isEnglish ? "Unknown time" : "时间未知"
+        }
+        let year = String(monthKey.prefix(4))
+        if isEnglish {
+            let names = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            return names[month - 1] + " " + year
+        }
+        return year + "年" + String(month) + "月"
+    }
+
+    public static func group(_ rows: [WalletLedgerRow]) -> [WalletPointsMonthGroup] {
+        var groups: [WalletPointsMonthGroup] = []
+        for row in rows {
+            let key = monthKey(row.createTime)
+            if let last = groups.last, last.monthKey == key {
+                groups[groups.count - 1].rows.append(row)
+            } else {
+                groups.append(WalletPointsMonthGroup(id: (key ?? "unknown") + "-" + String(groups.count), monthKey: key, rows: [row]))
+            }
+        }
+        return groups
+    }
+}
