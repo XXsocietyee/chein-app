@@ -1,0 +1,122 @@
+{
+  "worker": "w8-play-rpg",
+  "task_id": "task_85bca69cd6a6",
+  "strings": {
+    "playx.d20.title": {
+      "zh-Hans": "D20 命运检定",
+      "en": "D20 Fate Check"
+    },
+    "playx.d20.roll": {
+      "zh-Hans": "投掷 D20",
+      "en": "Roll D20"
+    },
+    "playx.d20.reroll": {
+      "zh-Hans": "消耗冲量重投",
+      "en": "Spend Momentum to Reroll"
+    },
+    "playx.d20.settle": {
+      "zh-Hans": "确认检定结果",
+      "en": "Confirm Check Result"
+    },
+    "playx.d20.nat20": {
+      "zh-Hans": "大成功 (NAT 20)",
+      "en": "Critical Success (NAT 20)"
+    },
+    "playx.d20.nat1": {
+      "zh-Hans": "大失败 (NAT 1)",
+      "en": "Critical Failure (NAT 1)"
+    },
+    "playx.d20.advantage": {
+      "zh-Hans": "优势检定（双骰取高）",
+      "en": "Advantage (2d20 keep highest)"
+    },
+    "playx.d20.disadvantage": {
+      "zh-Hans": "劣势检定（双骰取低）",
+      "en": "Disadvantage (2d20 keep lowest)"
+    },
+    "playx.character.facetsHeading": {
+      "zh-Hans": "侧面",
+      "en": "Facets"
+    },
+    "playx.character.aspectsHeading": {
+      "zh-Hans": "本局特质",
+      "en": "Session Aspects"
+    },
+    "playx.character.momentum": {
+      "zh-Hans": "冲量",
+      "en": "Momentum"
+    },
+    "playx.character.clocks": {
+      "zh-Hans": "局势时钟",
+      "en": "Situation Clocks"
+    },
+    "playx.character.registrationTopic": {
+      "zh-Hans": "报名故事主题",
+      "en": "Registered Story Topic"
+    },
+    "playx.challenge.poi.photo": {
+      "zh-Hans": "拍照打卡挑战",
+      "en": "Photo Check-in Challenge"
+    },
+    "playx.challenge.poi.quiz": {
+      "zh-Hans": "问答解谜挑战",
+      "en": "Quiz Challenge"
+    },
+    "playx.challenge.poi.done": {
+      "zh-Hans": "挑战已完成",
+      "en": "Challenge Completed"
+    },
+    "playx.challenge.poi.alreadyClaimed": {
+      "zh-Hans": "勋章已领取",
+      "en": "Medal Already Claimed"
+    },
+    "playx.story.ruleEditor.title": {
+      "zh-Hans": "故事规则造句器",
+      "en": "Story Rule Sentence Builder"
+    },
+    "playx.story.projectJoin.title": {
+      "zh-Hans": "加入故事企划",
+      "en": "Join Story Project"
+    },
+    "playx.story.clubTopic.title": {
+      "zh-Hans": "俱乐部专题故事",
+      "en": "Club Topic Story"
+    },
+    "playx.externalGame.sectionTitle": {
+      "zh-Hans": "外部小游戏包（沙盒导入）",
+      "en": "External Game Packages (Sandboxed Import)"
+    },
+    "playx.externalGame.importUrl": {
+      "zh-Hans": "URL 导入",
+      "en": "Import from URL"
+    },
+    "playx.externalGame.importQr": {
+      "zh-Hans": "扫码导入",
+      "en": "Import from QR Code"
+    },
+    "playx.externalGame.importFile": {
+      "zh-Hans": "文件导入",
+      "en": "Import from File"
+    },
+    "playx.externalGame.confirmTitle": {
+      "zh-Hans": "确认导入外部游戏包",
+      "en": "Confirm External Game Package Import"
+    },
+    "playx.externalGame.sandboxNotice": {
+      "zh-Hans": "该游戏包将在受限 WKWebView 沙盒中运行，禁止应用内购买与未授权网络请求。",
+      "en": "This game package runs in a restricted WKWebView sandbox with no IAP and no unauthorized network access."
+    },
+    "playx.externalGame.launch": {
+      "zh-Hans": "启动沙盒",
+      "en": "Launch Sandbox"
+    },
+    "playx.externalGame.update": {
+      "zh-Hans": "更新",
+      "en": "Update"
+    },
+    "playx.externalGame.remove": {
+      "zh-Hans": "移除",
+      "en": "Remove"
+    }
+  }
+}

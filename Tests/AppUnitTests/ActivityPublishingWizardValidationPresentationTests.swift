@@ -160,15 +160,16 @@ final class ActivityPublishingWizardValidationPresentationTests: XCTestCase {
 
         var draft = readyDraft()
         // Free tickets pass for merchantHost == true
-        XCTAssertEqual(ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true), .success(()))
+        XCTAssertNoThrow(try ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true).get())
         XCTAssertFalse(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: false))
 
         // Paid ticket fails for merchantHost == true with exact mini-program message
         draft.tickets[0].price = "29.9"
-        XCTAssertEqual(
-            ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true),
-            .failure(.rejected("商家主办活动还没开通收款，票价只能是 0"))
-        )
+        if case .failure(let err) = ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true) {
+            XCTAssertEqual(err, .rejected("商家主办活动还没开通收款，票价只能是 0"))
+        } else {
+            XCTFail("Expected merchant host paid ticket validation failure")
+        }
         // Paid ticket for non-merchant triggers publisher identity verification
         XCTAssertTrue(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: false))
         XCTAssertFalse(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: true))

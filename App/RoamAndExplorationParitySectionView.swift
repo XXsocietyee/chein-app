@@ -62,17 +62,20 @@ public struct RoamAndExplorationParitySnapshot: Equatable, Sendable {
     public let gpsMaxHorizontalAccuracyMeters: Int
     public let personalFogLocalOnly: Bool
     public let unmountedWriteRoutesFailClosed: Bool
+    public let roamTabParity: RoamTabFullFeatureParityDescriptor
 
     public init(
         pillars: [RoamExplorationPillarRow],
         gpsMaxHorizontalAccuracyMeters: Int = 50,
         personalFogLocalOnly: Bool = true,
-        unmountedWriteRoutesFailClosed: Bool = true
+        unmountedWriteRoutesFailClosed: Bool = true,
+        roamTabParity: RoamTabFullFeatureParityDescriptor = RoamTabFullFeatureParityDescriptor()
     ) {
         self.pillars = pillars
         self.gpsMaxHorizontalAccuracyMeters = gpsMaxHorizontalAccuracyMeters
         self.personalFogLocalOnly = personalFogLocalOnly
         self.unmountedWriteRoutesFailClosed = unmountedWriteRoutesFailClosed
+        self.roamTabParity = roamTabParity
     }
 
     public var verifiedCount: Int {
@@ -89,7 +92,8 @@ public struct RoamAndExplorationParitySnapshot: Equatable, Sendable {
             personalFogLocalOnly &&
             unmountedWriteRoutesFailClosed &&
             gpsMaxHorizontalAccuracyMeters > 0 &&
-            gpsMaxHorizontalAccuracyMeters <= 65
+            gpsMaxHorizontalAccuracyMeters <= 65 &&
+            roamTabParity.isFullRoamTabParityReady
     }
 
     public func pillar(id: String) -> RoamExplorationPillarRow? {
@@ -189,6 +193,7 @@ public struct RoamAndExplorationParitySectionView: View {
         VStack(alignment: .leading, spacing: 12) {
             headerRow
             guardrailsBanner
+            roamTabSurfaceSummaryRow
             ForEach(snapshot.pillars) { row in
                 pillarCard(row)
             }
@@ -240,6 +245,21 @@ public struct RoamAndExplorationParitySectionView: View {
         }
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("roamExplorationAudit.guardrails")
+    }
+
+    private var roamTabSurfaceSummaryRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(verbatim: "Roam Tab Surfaces: Map/POI · Nearby (1km, 4 filters) · Official Routes/Session · History/MyTeams (4 buckets) · NodeCode · Stamp (4:5 EXIF-stripped + Album) · Badges (24-dot/3D/40-pile) · Growth")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
+                .accessibilityIdentifier("roamExplorationAudit.roamTabSurfaces")
+            Text(verbatim: snapshot.roamTabParity.enforcesWhenInUseLocationOnly && snapshot.roamTabParity.suspendsLocationOnBackground
+                ? "Location Privacy: When-In-Use Foreground Only · Background Immediately Suspended"
+                : "Location Privacy Warning: Check When-In-Use / Background Suspension Policy")
+                .font(.caption2.weight(.medium))
+                .foregroundStyle(snapshot.roamTabParity.enforcesWhenInUseLocationOnly ? .teal : .red)
+                .accessibilityIdentifier("roamExplorationAudit.locationPrivacy")
+        }
     }
 
     private func pillarCard(_ row: RoamExplorationPillarRow) -> some View {

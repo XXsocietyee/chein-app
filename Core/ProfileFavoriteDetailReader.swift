@@ -14,6 +14,8 @@ import Observation
     private var pendingDetail: (id: UUID, access: UUID, task: Task<SquarePost, Error>)?
     private var latestDetailRead: UUID?
     private var confirmedAccess: UUID?
+    private var confirmedPost: (access: UUID, post: SquarePost)?
+    private var confirmedComments: (access: UUID, items: [SquareComment])?
     private let unavailableScope = UUID()
     /// The original detail view already keys its loaded projection and read task by
     /// this scope. A current access replacement must invalidate both post and comments,
@@ -39,7 +41,19 @@ import Observation
               confirmedAccess == access.revision else { return false }
         return selection.permitsComments(access: access)
     }
-    public func retire() { selection.retire(); pendingDetail?.task.cancel(); pendingDetail = nil; latestDetailRead = nil; confirmedAccess = nil }
+    public var confirmedProjectionAccessibilityLabel: String? {
+        guard confirmsCurrentDetail, let access = activeAccess(),
+              let confirmedPost, confirmedPost.access == access.revision else { return nil }
+        let commentItems = confirmedComments?.access == access.revision ? confirmedComments?.items ?? [] : []
+        let parts = ([confirmedPost.post.contents] + commentItems.map(\.contents))
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        return parts.isEmpty ? nil : parts.joined(separator: "\n")
+    }
+    public func retire() {
+        selection.retire(); pendingDetail?.task.cancel(); pendingDetail = nil; latestDetailRead = nil
+        confirmedAccess = nil; confirmedPost = nil; confirmedComments = nil
+    }
     private func activeAccess() -> ProfileFavoriteDetailAccess? {
         guard selection.isCurrent, let context = current(),
               ContentDraftContextFence.matches(selection.context, context), viewerRevision() == selection.viewerRevision,
@@ -67,7 +81,14 @@ import Observation
         // never expose comments if the selected detail is denied or unavailable.
         if pendingDetail != nil || confirmedAccess != access.revision { _ = try await detail() }
         guard confirmedAccess == access.revision, activeAccess() === access else { throw CancellationError() }
-        return try await read { try await $0.comments(postID: postID, pageNumber: pageNumber, token: $1) }
+        let page = try await read { try await $0.comments(postID: postID, pageNumber: pageNumber, token: $1) }
+        guard confirmedAccess == access.revision, activeAccess() === access else { throw CancellationError() }
+        if pageNumber == 1 || confirmedComments?.access != access.revision {
+            confirmedComments = (access.revision, page.items)
+        } else {
+            confirmedComments = (access.revision, (confirmedComments?.items ?? []) + page.items)
+        }
+        return page
     }
     private func detail() async throws -> SquarePost {
         try Task.checkCancellation()
@@ -79,7 +100,7 @@ import Observation
             // Coalesce only reads made under the same approval. B must not join A's
             // suspended task or wait for an uncooperative retired transport to finish.
             pendingDetail?.task.cancel()
-            confirmedAccess = nil; selection.beginDetailRead()
+            confirmedAccess = nil; confirmedPost = nil; confirmedComments = nil; selection.beginDetailRead()
             let id = UUID()
             latestDetailRead = id
             let task = Task { @MainActor [self] in
@@ -89,6 +110,7 @@ import Observation
                       post.id == selection.route.id, post.generation == selection.route.generation else { throw CancellationError() }
                 selection.confirmDetailRead(access: capturedAccess)
                 confirmedAccess = capturedAccess.revision
+                confirmedPost = (capturedAccess.revision, post)
                 return post
             }
             started = (id, task); pendingDetail = (id, capturedAccess.revision, task)
@@ -103,7 +125,7 @@ import Observation
             // Keep the latest attempt identity after completion as well: a retired A
             // may fail after B completed and cleared pendingDetail. It must not erase B.
             if latestDetailRead == started.id {
-                pendingDetail = nil; confirmedAccess = nil; selection.beginDetailRead()
+                pendingDetail = nil; confirmedAccess = nil; confirmedPost = nil; confirmedComments = nil; selection.beginDetailRead()
             }
             throw error
         }

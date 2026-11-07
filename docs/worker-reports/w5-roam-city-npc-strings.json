@@ -1,0 +1,142 @@
+[
+  {
+    "key": "w5.roam.nearby.title",
+    "zh-Hans": "附近探索 (1km 雷达)",
+    "en": "Nearby Discovery (1km Radar)"
+  },
+  {
+    "key": "w5.roam.nearby.filter.all",
+    "zh-Hans": "全部图层",
+    "en": "All Layers"
+  },
+  {
+    "key": "w5.roam.nearby.filter.team",
+    "zh-Hans": "附近小队",
+    "en": "Nearby Teams"
+  },
+  {
+    "key": "w5.roam.nearby.filter.place",
+    "zh-Hans": "漫游点位",
+    "en": "Roam Places"
+  },
+  {
+    "key": "w5.roam.nearby.filter.shop",
+    "zh-Hans": "合作门店",
+    "en": "Partner Shops"
+  },
+  {
+    "key": "w5.roam.officialRoutes.title",
+    "zh-Hans": "官方精选路线",
+    "en": "Official Featured Routes"
+  },
+  {
+    "key": "w5.roam.session.privacyClipHint",
+    "zh-Hans": "分享轨迹已自动裁剪首尾隐私区域并脱敏精准坐标",
+    "en": "Shared track automatically clips start/end privacy zones and redacts exact coordinates"
+  },
+  {
+    "key": "w5.roam.myTeams.status.lead",
+    "zh-Hans": "我发起的",
+    "en": "Leading"
+  },
+  {
+    "key": "w5.roam.myTeams.status.ok",
+    "zh-Hans": "已成团",
+    "en": "Confirmed"
+  },
+  {
+    "key": "w5.roam.myTeams.status.wait",
+    "zh-Hans": "候补中",
+    "en": "Waitlisted"
+  },
+  {
+    "key": "w5.roam.myTeams.status.bad",
+    "zh-Hans": "已失效",
+    "en": "Expired"
+  },
+  {
+    "key": "w5.roam.citynodeCode.missingQrFallback",
+    "zh-Hans": "凭证二维码暂不可用，请出示核销码口令或刷新重试",
+    "en": "Voucher QR is temporarily unavailable; present the redemption code or refresh to retry"
+  },
+  {
+    "key": "w5.roam.citystamp.step.shoot",
+    "zh-Hans": "1. 拍摄 4:5 邮票画面",
+    "en": "1. Capture 4:5 Stamp Frame"
+  },
+  {
+    "key": "w5.roam.citystamp.step.write",
+    "zh-Hans": "2. 题写寄语 (最多 30 字)",
+    "en": "2. Write Caption (Max 30 Chars)"
+  },
+  {
+    "key": "w5.roam.citystamp.step.exchange",
+    "zh-Hans": "3. 撕票寄出与刮开回信",
+    "en": "3. Tear Perforation & Scratch Reply"
+  },
+  {
+    "key": "w5.roam.stampCamera.exifStrippedNotice",
+    "zh-Hans": "上传前已在本地剥离 EXIF 拍摄参数与精准 GPS 元数据",
+    "en": "EXIF camera parameters and exact GPS metadata are stripped on-device before upload"
+  },
+  {
+    "key": "w5.roam.badgeWall.title",
+    "zh-Hans": "徽章墙与器物卡收集册",
+    "en": "Badge Wall & Object Card Album"
+  },
+  {
+    "key": "w5.roam.growthCenter.title",
+    "zh-Hans": "漫游成长中心",
+    "en": "Roam Growth Center"
+  },
+  {
+    "key": "w5.roam.explorationExport.chunkLimitNotice",
+    "zh-Hans": "单次漫游导出跨度上限为 366 天，按 JSONL 分片流式生成",
+    "en": "Exploration export spans up to 366 days per request and streams in JSONL chunks"
+  },
+  {
+    "key": "w5.city.sim.budgetTitle",
+    "zh-Hans": "同城沙盘行动力与持仓上限",
+    "en": "City Simulation Action Budget & Holding Cap"
+  },
+  {
+    "key": "w5.city.sim.taskAttemptKept",
+    "zh-Hans": "版本冲突已保留本次客观题作答记录，刷新棋盘后可继续提交",
+    "en": "Objective task attempt preserved across version conflict; refresh the board to resume submission"
+  },
+  {
+    "key": "w5.city.sim.fairnessCohort",
+    "zh-Hans": "同城公平性分群评估 (city-fairness-cohort-v1)",
+    "en": "City Fairness Cohort Evaluation (city-fairness-cohort-v1)"
+  },
+  {
+    "key": "w5.city.sim.recoveryIdempotent",
+    "zh-Hans": "离线动作恢复日志已按 requestId 幂等对齐",
+    "en": "Offline action recovery journal reconciled idempotently by requestId"
+  },
+  {
+    "key": "w5.npc.figure.turntableHint",
+    "zh-Hans": "左右拖动旋转 3D 低多边形角色模型",
+    "en": "Drag horizontally to rotate the 3D low-poly NPC figure"
+  },
+  {
+    "key": "w5.npc.chat.exportTitle",
+    "zh-Hans": "导出当前 NPC 对话摘要 (最多预览 50 条)",
+    "en": "Export Current NPC Chat Transcript (Preview up to 50 messages)"
+  },
+  {
+    "key": "w5.npc.authoring.nodeFormTitle",
+    "zh-Hans": "剧情节点 NPC 绑定与立绘配置",
+    "en": "Story Node NPC Binding & Portrait Configuration"
+  },
+  {
+    "key": "w5.npc.authoring.merchantAiTitle",
+    "zh-Hans": "门店 AI 掌柜性格、32x32 像素头像与声纹管理",
+    "en": "Store AI NPC Personality, 32x32 Pixel Avatar & Voice Enrollment"
+  },
+  {
+    "key": "w5.location.whenInUseOnlyPrivacyCopy",
+    "zh-Hans": "仅在前台使用期间请求定位权限 (When In Use) 用于校验漫游点位到达（水平精度 ≤ 50m）；切入后台立即挂起定位与实时读回，绝不请求后台常驻定位。",
+    "en": "Requests When-In-Use location only while active in the foreground to verify POI arrival (horizontal accuracy <= 50m); suspends location and live reads immediately on background transition and never requests Always-On location."
+  }
+]

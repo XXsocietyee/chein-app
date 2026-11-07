@@ -1436,6 +1436,40 @@ public enum ChannelModerationDenialReason: String, Error, Equatable, Sendable {
     case invalidMessageOrReason
 }
 
+/// Represents an active ban record evaluated by club channel moderation (`POST /api/club/governance/unban`).
+public struct ChannelModerationBanRecord: Equatable, Sendable, Identifiable {
+    public let id: Int
+    public let targetMemberID: Int
+    public let nickname: String
+    /// `"CLUB"` or `"PLATFORM"`. Platform bans cannot be lifted by club admins.
+    public let source: String
+    public let status: String
+    public let reasonCode: String
+    public let reasonText: String
+
+    public init(
+        id: Int,
+        targetMemberID: Int,
+        nickname: String,
+        source: String,
+        status: String = "ACTIVE",
+        reasonCode: String,
+        reasonText: String
+    ) {
+        self.id = id
+        self.targetMemberID = targetMemberID
+        self.nickname = nickname
+        self.source = source
+        self.status = status
+        self.reasonCode = reasonCode
+        self.reasonText = reasonText
+    }
+
+    public var platformOnly: Bool {
+        source.uppercased() == "PLATFORM"
+    }
+}
+
 /// Capabilities projected from `ClubGovernancePermissions` or role assignments.
 public struct ChannelModerationCapabilities: Equatable, Sendable {
     public let canManageMembers: Bool
@@ -1621,9 +1655,9 @@ public struct ChannelSafetyModerationPolicy: Equatable, Sendable {
         )
     }
 
-    /// Evaluates whether an admin can lift a ban (`POST /api/club/governance/unban`), enforcing `ClubOpsBanRow.platformOnly`.
+    /// Evaluates whether an admin can lift a ban (`POST /api/club/governance/unban`), enforcing `platformOnly`.
     public func validateUnbanMember(
-        banRow: ClubOpsBanRow,
+        banRow: ChannelModerationBanRecord,
         reason: String
     ) -> Result<ChannelSafetyModerationEndpoint, ChannelModerationDenialReason> {
         guard viewerMemberID > 0 else { return .failure(.unauthenticated) }

@@ -13,6 +13,12 @@ import SwiftUI
                     Text(verbatim: problem.tier)
                     if problem.advantage { Label("journey.advantage", systemImage: "plus.circle") }
                     if problem.disadvantage { Label("journey.disadvantage", systemImage: "minus.circle") }
+                    DiceD20CanvasView(
+                        values: model.receipt?.dice ?? [],
+                        kept: model.receipt?.kept,
+                        rollMode: problem.advantage ? "advantage" : (problem.disadvantage ? "disadvantage" : "normal"),
+                        rolling: model.acting && model.receipt == nil
+                    )
                     modifiers(problem.mods)
                     if let receipt = model.receipt {
                         if let success = receipt.success { Text(success ? "journey.success" : "journey.failure").font(.headline) }

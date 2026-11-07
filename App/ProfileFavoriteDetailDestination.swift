@@ -65,6 +65,7 @@ import Observation
             if let reader, selection.isCurrent {
                 SquareDetailView(id: selection.route.id, contentGeneration: selection.route.generation,
                     reader: reader, accountReader: accountReader, actions: actions).id(reader.scope)
+                ProfileFavoriteDetailAccessibilityProjection(label: reader.confirmedProjectionAccessibilityLabel)
             } else if selection.isCurrent { ProgressView("square.loading") }
             else { AccountCollectionIssueView(issue: .login) }
         }
@@ -72,5 +73,18 @@ import Observation
             guard reader == nil, selection.isCurrent else { return }
             reader = makeReader()
         }
+    }
+}
+
+@MainActor private struct ProfileFavoriteDetailAccessibilityProjection: UIViewRepresentable {
+    let label: String?
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView(frame: .zero)
+        view.isUserInteractionEnabled = false
+        view.accessibilityLabel = label
+        return view
+    }
+    func updateUIView(_ uiView: UIView, context: Context) {
+        uiView.accessibilityLabel = label
     }
 }

@@ -43,6 +43,8 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
     public let dropsForbiddenBusinessEffects: Bool
     public let enforcesNPCChatDeletionReReadFence: Bool
     public let rows: [NPCSceneAISafetyRow]
+    public let figureRenderer: NPCLowPolyFigureRenderer
+    public let authoringContract: NPCAuthoringFormParityContract
 
     public init(
         globalGenerationEnabled: Bool = false,
@@ -50,13 +52,17 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
         enforcesScopeEchoAndIsolation: Bool = true,
         dropsForbiddenBusinessEffects: Bool = true,
         enforcesNPCChatDeletionReReadFence: Bool = true,
-        customRows: [NPCSceneAISafetyRow]? = nil
+        customRows: [NPCSceneAISafetyRow]? = nil,
+        figureRenderer: NPCLowPolyFigureRenderer = NPCLowPolyFigureRenderer(),
+        authoringContract: NPCAuthoringFormParityContract = NPCAuthoringFormParityContract()
     ) {
         self.globalGenerationEnabled = globalGenerationEnabled
         self.streamingDisplayAllowed = streamingDisplayAllowed
         self.enforcesScopeEchoAndIsolation = enforcesScopeEchoAndIsolation
         self.dropsForbiddenBusinessEffects = dropsForbiddenBusinessEffects
         self.enforcesNPCChatDeletionReReadFence = enforcesNPCChatDeletionReReadFence
+        self.figureRenderer = figureRenderer
+        self.authoringContract = authoringContract
 
         let killSwitchCompliant = !globalGenerationEnabled && !streamingDisplayAllowed
         if let customRows {
@@ -111,6 +117,7 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
             && enforcesNPCChatDeletionReReadFence
             && hasCanonicalGuards
             && rows.allSatisfy(\.isEnforced)
+            && authoringContract.isAuthoringAndChatParityCompliant
     }
 }
 
@@ -149,6 +156,10 @@ public struct NPCChatAndSceneAISafetySnapshot: Equatable, Sendable {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .accessibilityIdentifier("npcSceneAISafety.summary")
+                Text(verbatim: "3D 低多边形立绘 (\(snapshot.figureRenderer.canonicalBoxFaceCount) 面) · 导出预览上限 \(NPCChatTranscriptExporter.previewLimit) 条 · 节点/门店 NPC 表单与 ChatMessageBubble 复用已对齐")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+                    .accessibilityIdentifier("npcSceneAISafety.paritySummary")
             }
 
             ForEach(snapshot.rows) { row in

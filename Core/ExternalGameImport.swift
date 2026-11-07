@@ -1,0 +1,871 @@
+import Foundation
+import CryptoKit
+import Observation
+
+// MARK: - DESIGNED: External Game Import, Validation, Sandboxed Storage & Versioned Bridge
+// Note: Searched the mini-program (`chengyinhub-xcx`) first; no external game import mechanism exists there.
+// Per W8 task spec, this module is minimally designed and labeled `DESIGNED` inside the existing Play backpack/game library.
+
+public enum ExternalGamePermission: String, Codable, CaseIterable, Equatable, Sendable {
+    case storage = "storage"
+    case haptics = "haptics"
+    case audio = "audio"
+
+    public var displayName: String {
+        switch self {
+        case .storage: return "本地进度存档（仅限本游戏沙盒）"
+        case .haptics: return "触感反馈（轻触震动）"
+        case .audio: return "背景音效播放"
+        }
+    }
+}
+
+public enum ExternalGameContentRating: String, Codable, CaseIterable, Equatable, Sendable {
+    case fourPlus = "4+"
+    case ninePlus = "9+"
+    case twelvePlus = "12+"
+    case seventeenPlus = "17+"
+}
+
+public enum ExternalGameImportSource: Codable, Equatable, Sendable {
+    case url(URL)
+    case qrCode(String)
+    case file(URL)
+
+    public var sourceKindLabel: String {
+        switch self {
+        case .url: return "链接导入 (URL)"
+        case .qrCode: return "扫码导入 (QR)"
+        case .file: return "文件导入 (Files / 分享)"
+        }
+    }
+
+    public var displayOrigin: String {
+        switch self {
+        case .url(let url): return url.absoluteString
+        case .qrCode(let raw): return raw
+        case .file(let url): return url.lastPathComponent
+        }
+    }
+}
+
+public struct ExternalGameManifest: Codable, Equatable, Sendable {
+    public let id: String
+    public let name: String
+    public let version: String
+    public let entry: String
+    public let permissions: [String]
+    public let contentRating: String
+    public let allowedDomains: [String]
+    public let sha256: String
+    public let signature: String
+    public let author: String?
+    public let summary: String?
+
+    public init(
+        id: String,
+        name: String,
+        version: String,
+        entry: String,
+        permissions: [String] = [],
+        contentRating: String = "4+",
+        allowedDomains: [String] = [],
+        sha256: String,
+        signature: String,
+        author: String? = nil,
+        summary: String? = nil
+    ) {
+        self.id = id
+        self.name = name
+        self.version = version
+        self.entry = entry
+        self.permissions = permissions
+        self.contentRating = contentRating
+        self.allowedDomains = allowedDomains
+        self.sha256 = sha256
+        self.signature = signature
+        self.author = author
+        self.summary = summary
+    }
+}
+
+public struct ExternalGamePackageArchive: Codable, Equatable, Sendable {
+    public let manifest: ExternalGameManifest
+    /// Map of relative file paths inside the package to UTF-8 or Base64 file contents.
+    public let files: [String: Data]
+
+    public init(manifest: ExternalGameManifest, files: [String: Data]) {
+        self.manifest = manifest
+        self.files = files
+    }
+}
+
+public enum ExternalGameValidationError: Error, LocalizedError, Equatable, Sendable {
+    case invalidManifestID(String)
+    case invalidManifestName
+    case invalidManifestVersion(String)
+    case invalidContentRating(String)
+    case pathTraversalDetected(String)
+    case disallowedFileExtension(String)
+    case missingEntryFile(String)
+    case packageOversized(Int, maxAllowed: Int)
+    case fileOversized(String, Int, maxAllowed: Int)
+    case tooManyFiles(Int, maxAllowed: Int)
+    case unsignedManifest
+    case invalidSignature
+    case hashMismatch(expected: String, actual: String)
+    case forbiddenPermission(String)
+    case invalidAllowedDomain(String)
+    case tooManyAllowedDomains(Int)
+    case insecureImportURL(String)
+    case paymentOrIAPDetected(String)
+    case symlinkOrEscapeDetected(String)
+    case malformedArchive
+
+    public var errorDescription: String? {
+        switch self {
+        case .invalidManifestID(let id):
+            return "游戏标识无效（\(id)），须为 3–64 位小写字母、数字、点、下划线或连字符"
+        case .invalidManifestName:
+            return "游戏名称不能为空且不能超过 80 个字符"
+        case .invalidManifestVersion(let ver):
+            return "版本号格式无效（\(ver)），须符合 x.y.z 语义化版本"
+        case .invalidContentRating(let rating):
+            return "内容分级无效（\(rating)），仅支持 4+、9+、12+、17+"
+        case .pathTraversalDetected(let path):
+            return "检测到非法路径或目录穿越：\(path)"
+        case .disallowedFileExtension(let path):
+            return "包含不允许的文件类型：\(path)"
+        case .missingEntryFile(let entry):
+            return "缺少入口文件：\(entry)"
+        case .packageOversized(let size, let maxAllowed):
+            return "游戏包体积超限（\(size) 字节，上限 \(maxAllowed) 字节）"
+        case .fileOversized(let path, let size, let maxAllowed):
+            return "单文件体积超限（\(path)：\(size) 字节，上限 \(maxAllowed) 字节）"
+        case .tooManyFiles(let count, let maxAllowed):
+            return "文件数量超限（\(count) 个，上限 \(maxAllowed) 个）"
+        case .unsignedManifest:
+            return "游戏包缺少数字签名或哈希摘要"
+        case .invalidSignature:
+            return "游戏包数字签名校验未通过"
+        case .hashMismatch:
+            return "游戏包内容哈希（SHA-256）与清单不一致"
+        case .forbiddenPermission(let perm):
+            return "请求了未授权或禁止的权限：\(perm)"
+        case .invalidAllowedDomain(let domain):
+            return "包含不安全或非法的域名白名单：\(domain)"
+        case .tooManyAllowedDomains(let count):
+            return "域名白名单数量超限（\(count) 个，最多 10 个）"
+        case .insecureImportURL(let url):
+            return "仅允许从安全的 HTTPS 地址导入：\(url)"
+        case .paymentOrIAPDetected(let detail):
+            return "外部导入游戏禁止包含支付或内购调用：\(detail)"
+        case .symlinkOrEscapeDetected(let path):
+            return "检测到符号链接或沙盒目录越界：\(path)"
+        case .malformedArchive:
+            return "游戏包格式损坏或无法解析"
+        }
+    }
+}
+
+public enum ExternalGameValidator {
+    public static let maxPackageSizeBytes = 10 * 1024 * 1024 // 10 MiB
+    public static let maxSingleFileSizeBytes = 5 * 1024 * 1024 // 5 MiB
+    public static let maxFileCount = 200
+    public static let maxAllowedDomains = 10
+
+    /// Default verification key used for HMAC-SHA256 manifest signature validation in sandboxed packages.
+    public static let defaultVerificationSecret = "questify.external-game.manifest.signing.v1"
+
+    public static let allowedFileExtensions: Set<String> = [
+        "html", "htm", "css", "js", "mjs", "json",
+        "png", "jpg", "jpeg", "webp", "svg", "gif",
+        "mp3", "wav", "ogg", "woff2", "txt"
+    ]
+
+    public static let forbiddenPermissions: Set<String> = [
+        "payment", "iap", "in-app-purchase", "apple-pay", "wechat-pay", "alipay",
+        "camera", "microphone", "location", "geolocation", "contacts", "photos",
+        "bluetooth", "nfc", "native-bridge", "eval", "filesystem", "notifications"
+    ]
+
+    public static let forbiddenContentTokens: [String] = [
+        "PaymentRequest",
+        "ApplePaySession",
+        "itms-apps://",
+        "weixin://wap/pay",
+        "alipays://",
+        "webkit.messageHandlers.nativePay",
+        "StoreKit",
+    ]
+
+    public static func isSafeRelativePath(_ path: String) -> Bool {
+        guard !path.isEmpty, path.utf8.count <= 240 else { return false }
+        if path.hasPrefix("/") || path.hasPrefix("\\") || path.hasPrefix("~") { return false }
+        if path.contains("\\") || path.contains("\0") || path.contains(":") { return false }
+        if path.contains("//") { return false }
+        let segments = path.split(separator: "/", omittingEmptySubsequences: false).map(String.init)
+        guard !segments.isEmpty else { return false }
+        for seg in segments {
+            if seg.isEmpty || seg == "." || seg == ".." { return false }
+            if seg.hasPrefix(".") { return false }
+            if seg.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) {
+                return false
+            }
+        }
+        return true
+    }
+
+    public static func hasAllowedExtension(_ path: String) -> Bool {
+        let ext = (path as NSString).pathExtension.lowercased()
+        guard !ext.isEmpty else { return false }
+        return allowedFileExtensions.contains(ext)
+    }
+
+    public static func isValidDomain(_ rawDomain: String) -> Bool {
+        let domain = rawDomain.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard !domain.isEmpty, domain.utf8.count <= 253 else { return false }
+        // Reject schemes, ports, paths, wildcards, credentials, and IPv6 literals
+        if domain.contains("://") || domain.contains("/") || domain.contains(":")
+            || domain.contains("*") || domain.contains("@") || domain.contains("?")
+            || domain.contains("#") || domain.contains("[") || domain.contains("]") {
+            return false
+        }
+        // Reject localhost and local domains
+        if domain == "localhost" || domain.hasSuffix(".local") || domain.hasSuffix(".internal") || domain.hasSuffix(".lan") {
+            return false
+        }
+        let labels = domain.split(separator: ".", omittingEmptySubsequences: false).map(String.init)
+        guard labels.count >= 2 else { return false }
+        // Reject IPv4 literals (especially loopback 127.*, private 10.*, 192.168.*, 172.16-31.*, link-local 169.254.*)
+        if labels.allSatisfy({ $0.allSatisfy(\.isNumber) }) {
+            return false
+        }
+        for label in labels {
+            guard !label.isEmpty, label.count <= 63 else { return false }
+            guard !label.hasPrefix("-"), !label.hasSuffix("-") else { return false }
+            guard label.unicodeScalars.allSatisfy({
+                CharacterSet.alphanumerics.contains($0) || $0 == "-"
+            }) else { return false }
+        }
+        guard let tld = labels.last, tld.count >= 2, !tld.allSatisfy(\.isNumber) else { return false }
+        return true
+    }
+
+    public static func validateImportURL(_ url: URL) throws {
+        guard url.scheme?.lowercased() == "https",
+              let host = url.host,
+              isValidDomain(host),
+              url.user == nil,
+              url.password == nil else {
+            throw ExternalGameValidationError.insecureImportURL(url.absoluteString)
+        }
+    }
+
+    public static func computePackageSHA256(_ files: [String: Data]) -> String {
+        var hasher = SHA256()
+        for path in files.keys.sorted() {
+            let data = files[path] ?? Data()
+            hasher.update(data: Data(path.utf8))
+            hasher.update(data: Data([0]))
+            hasher.update(data: Data("\(data.count)".utf8))
+            hasher.update(data: Data([0]))
+            hasher.update(data: data)
+            hasher.update(data: Data([0]))
+        }
+        return hasher.finalize().map { String(format: "%02x", $0) }.joined()
+    }
+
+    public static func canonicalSigningPayload(for manifest: ExternalGameManifest) -> Data {
+        let perms = manifest.permissions.joined(separator: ",")
+        let domains = manifest.allowedDomains.map { $0.lowercased() }.joined(separator: ",")
+        let canonical = [
+            "v1",
+            manifest.id,
+            manifest.name,
+            manifest.version,
+            manifest.entry,
+             perms,
+            manifest.contentRating,
+            domains,
+            manifest.sha256.lowercased(),
+        ].joined(separator: "|")
+        return Data(canonical.utf8)
+    }
+
+    public static func signManifest(_ manifest: ExternalGameManifest, secret: String = defaultVerificationSecret) -> String {
+        let key = SymmetricKey(data: Data(secret.utf8))
+        let mac = HMAC<SHA256>.authenticationCode(for: canonicalSigningPayload(for: manifest), using: key)
+        return mac.map { String(format: "%02x", $0) }.joined()
+    }
+
+    public static func verifySignature(_ manifest: ExternalGameManifest, secret: String = defaultVerificationSecret) -> Bool {
+        let sig = manifest.signature.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard sig.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil else { return false }
+        let expected = signManifest(manifest, secret: secret)
+        return sig.utf8.elementsEqual(expected.utf8)
+    }
+
+    public static func validateArchive(
+        _ archive: ExternalGamePackageArchive,
+        secret: String = defaultVerificationSecret
+    ) throws {
+        let manifest = archive.manifest
+
+        // 1. Validate ID, Name, Version, Content Rating
+        guard manifest.id.range(of: "^[a-z0-9][a-z0-9._-]{2,63}$", options: .regularExpression) != nil else {
+            throw ExternalGameValidationError.invalidManifestID(manifest.id)
+        }
+        let trimmedName = manifest.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty, trimmedName.count <= 80 else {
+            throw ExternalGameValidationError.invalidManifestName
+        }
+        guard manifest.version.range(of: "^\\d+\\.\\d+\\.\\d+$", options: .regularExpression) != nil else {
+            throw ExternalGameValidationError.invalidManifestVersion(manifest.version)
+        }
+        guard ExternalGameContentRating(rawValue: manifest.contentRating) != nil else {
+            throw ExternalGameValidationError.invalidContentRating(manifest.contentRating)
+        }
+
+        // 2. Validate entry path
+        guard isSafeRelativePath(manifest.entry) else {
+            throw ExternalGameValidationError.pathTraversalDetected(manifest.entry)
+        }
+        let entryExt = (manifest.entry as NSString).pathExtension.lowercased()
+        guard entryExt == "html" || entryExt == "htm" else {
+            throw ExternalGameValidationError.disallowedFileExtension(manifest.entry)
+        }
+
+        // 3. Validate permissions (no payment/IAP or elevated native rights)
+        for perm in manifest.permissions {
+            let normalized = perm.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            if forbiddenPermissions.contains(normalized) || ExternalGamePermission(rawValue: normalized) == nil {
+                throw ExternalGameValidationError.forbiddenPermission(perm)
+            }
+        }
+
+        // 4. Validate allowed domains
+        guard manifest.allowedDomains.count <= maxAllowedDomains else {
+            throw ExternalGameValidationError.tooManyAllowedDomains(manifest.allowedDomains.count)
+        }
+        for domain in manifest.allowedDomains {
+            guard isValidDomain(domain) else {
+                throw ExternalGameValidationError.invalidAllowedDomain(domain)
+            }
+        }
+
+        // 5. Validate file count, paths, extensions, sizes, and forbidden payment/IAP calls
+        guard !archive.files.isEmpty, archive.files.count <= maxFileCount else {
+            throw ExternalGameValidationError.tooManyFiles(archive.files.count, maxAllowed: maxFileCount)
+        }
+        var totalBytes = 0
+        for (path, data) in archive.files {
+            guard isSafeRelativePath(path) else {
+                throw ExternalGameValidationError.pathTraversalDetected(path)
+            }
+            guard hasAllowedExtension(path) else {
+                throw ExternalGameValidationError.disallowedFileExtension(path)
+            }
+            guard data.count <= maxSingleFileSizeBytes else {
+                throw ExternalGameValidationError.fileOversized(path, data.count, maxAllowed: maxSingleFileSizeBytes)
+            }
+            totalBytes += data.count
+            guard totalBytes <= maxPackageSizeBytes else {
+                throw ExternalGameValidationError.packageOversized(totalBytes, maxAllowed: maxPackageSizeBytes)
+            }
+
+            let ext = (path as NSString).pathExtension.lowercased()
+            if ["html", "htm", "js", "mjs"].contains(ext),
+               let text = String(data: data, encoding: .utf8) {
+                for token in forbiddenContentTokens where text.contains(token) {
+                    throw ExternalGameValidationError.paymentOrIAPDetected(token)
+                }
+            }
+        }
+
+        guard archive.files[manifest.entry] != nil else {
+            throw ExternalGameValidationError.missingEntryFile(manifest.entry)
+        }
+
+        // 6. Validate SHA-256 hash and cryptographic signature
+        let trimmedHash = manifest.sha256.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        let trimmedSig = manifest.signature.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmedHash.range(of: "^[0-9a-f]{64}$", options: .regularExpression) != nil,
+              !trimmedSig.isEmpty else {
+            throw ExternalGameValidationError.unsignedManifest
+        }
+        let actualHash = computePackageSHA256(archive.files)
+        guard actualHash == trimmedHash else {
+            throw ExternalGameValidationError.hashMismatch(expected: trimmedHash, actual: actualHash)
+        }
+        guard verifySignature(manifest, secret: secret) else {
+            throw ExternalGameValidationError.invalidSignature
+        }
+    }
+}
+
+// MARK: - Sandboxed Navigation Policy, Content-Security-Policy & Versioned JS Bridge
+
+public enum ExternalGameSandboxPolicy {
+    public static let bridgeName = "PlayExternalBridge"
+    public static let supportedBridgeVersion = "1.0"
+
+    /// Builds a strict Content-Security-Policy restricting script execution to `'self'`
+    /// and network connections only to the manifest's validated `allowedDomains`.
+    public static func contentSecurityPolicy(for manifest: ExternalGameManifest) -> String {
+        let httpsDomains = manifest.allowedDomains
+            .filter(ExternalGameValidator.isValidDomain)
+            .map { "https://\($0.lowercased())" }
+            .joined(separator: " ")
+        let connectSrc = httpsDomains.isEmpty ? "'none'" : httpsDomains
+        let imgSrc = httpsDomains.isEmpty ? "'self' data:" : "'self' data: \(httpsDomains)"
+        return [
+            "default-src 'self'",
+            "script-src 'self'",
+            "style-src 'self' 'unsafe-inline'",
+            "img-src \(imgSrc)",
+            "media-src 'self'",
+            "connect-src \(connectSrc)",
+            "frame-src 'none'",
+            "object-src 'none'",
+            "base-uri 'none'",
+            "form-action 'none'",
+        ].joined(separator: "; ")
+    }
+
+    /// Evaluates whether a navigation or resource URL is permitted inside the sandboxed WKWebView.
+    public static func allowsNavigation(
+        to url: URL,
+        packageRoot: URL,
+        manifest: ExternalGameManifest
+    ) -> Bool {
+        guard let scheme = url.scheme?.lowercased() else { return false }
+        // Explicitly block payment, app store, custom deep-link, and inline script schemes
+        let blockedSchemes: Set<String> = [
+            "javascript", "data", "blob", "about", "tel", "mailto", "sms",
+            "itms-apps", "itms-services", "weixin", "alipays", "alipay"
+        ]
+        if blockedSchemes.contains(scheme) { return false }
+
+        if scheme == "file" {
+            let resolvedRoot = packageRoot.resolvingSymlinksInPath().standardizedFileURL.path
+            let resolvedTarget = url.resolvingSymlinksInPath().standardizedFileURL.path
+            let rootPrefix = resolvedRoot.hasSuffix("/") ? resolvedRoot : (resolvedRoot + "/")
+            guard resolvedTarget.hasPrefix(rootPrefix) else { return false }
+            let relative = String(resolvedTarget.dropFirst(rootPrefix.count))
+            return ExternalGameValidator.isSafeRelativePath(relative)
+                && ExternalGameValidator.hasAllowedExtension(relative)
+        }
+
+        if scheme == "https" {
+            guard url.user == nil, url.password == nil, let host = url.host?.lowercased() else {
+                return false
+            }
+            let allowed = Set(manifest.allowedDomains.map { $0.lowercased() })
+            return allowed.contains(host)
+        }
+
+        return false
+    }
+}
+
+public struct ExternalGameBridgeRequest: Codable, Equatable, Sendable {
+    public let apiVersion: String
+    public let action: String
+    public let payload: [String: String]?
+
+    public init(apiVersion: String = "1.0", action: String, payload: [String: String]? = nil) {
+        self.apiVersion = apiVersion
+        self.action = action
+        self.payload = payload
+    }
+}
+
+public struct ExternalGameBridgeResponse: Codable, Equatable, Sendable {
+    public let ok: Bool
+    public let apiVersion: String
+    public let data: [String: String]?
+    public let error: String?
+
+    public init(ok: Bool, apiVersion: String = "1.0", data: [String: String]? = nil, error: String? = nil) {
+        self.ok = ok
+        self.apiVersion = apiVersion
+        self.data = data
+        self.error = error
+    }
+}
+
+public enum ExternalGameBridgeHandler {
+    public static let maxPayloadBytes = 16 * 1024 // 16 KiB
+
+    public static func handle(
+        rawJSON: Data,
+        manifest: ExternalGameManifest,
+        progressStore: inout [String: String]
+    ) -> ExternalGameBridgeResponse {
+        guard rawJSON.count <= maxPayloadBytes,
+              let req = try? JSONDecoder().decode(ExternalGameBridgeRequest.self, from: rawJSON) else {
+            return ExternalGameBridgeResponse(ok: false, error: "INVALID_BRIDGE_MESSAGE")
+        }
+        guard req.apiVersion == ExternalGameSandboxPolicy.supportedBridgeVersion else {
+            return ExternalGameBridgeResponse(ok: false, error: "UNSUPPORTED_API_VERSION")
+        }
+        let granted = Set(manifest.permissions.map { $0.lowercased() })
+
+        switch req.action {
+        case "getMetadata":
+            return ExternalGameBridgeResponse(
+                ok: true,
+                data: [
+                    "id": manifest.id,
+                    "name": manifest.name,
+                    "version": manifest.version,
+                    "contentRating": manifest.contentRating,
+                ]
+            )
+        case "loadProgress":
+            guard granted.contains(ExternalGamePermission.storage.rawValue) else {
+                return ExternalGameBridgeResponse(ok: false, error: "PERMISSION_DENIED_STORAGE")
+            }
+            return ExternalGameBridgeResponse(ok: true, data: progressStore)
+        case "saveProgress":
+            guard granted.contains(ExternalGamePermission.storage.rawValue) else {
+                return ExternalGameBridgeResponse(ok: false, error: "PERMISSION_DENIED_STORAGE")
+            }
+            let incoming = req.payload ?? [:]
+            guard incoming.count <= 32,
+                  incoming.allSatisfy({ $0.key.utf8.count <= 64 && $0.value.utf8.count <= 2048 }) else {
+                return ExternalGameBridgeResponse(ok: false, error: "STORAGE_QUOTA_EXCEEDED")
+            }
+            for (k, v) in incoming {
+                progressStore[k] = v
+            }
+            return ExternalGameBridgeResponse(ok: true, data: ["saved": "true"])
+        case "haptic":
+            guard granted.contains(ExternalGamePermission.haptics.rawValue) else {
+                return ExternalGameBridgeResponse(ok: false, error: "PERMISSION_DENIED_HAPTICS")
+            }
+            return ExternalGameBridgeResponse(ok: true, data: ["triggered": "true"])
+        default:
+            return ExternalGameBridgeResponse(ok: false, error: "ACTION_NOT_ALLOWLISTED")
+        }
+    }
+}
+
+// MARK: - Sandboxed Package Store (List / Install / Update / Remove)
+
+public struct InstalledExternalGame: Codable, Equatable, Identifiable, Sendable {
+    public var id: String { manifest.id }
+    public let manifest: ExternalGameManifest
+    public let source: ExternalGameImportSource
+    public let installedAt: Date
+    public var updatedAt: Date
+    public let totalBytes: Int
+}
+
+public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable {
+    public var id: String { archive.manifest.id + "@" + archive.manifest.version }
+    public let archive: ExternalGamePackageArchive
+    public let source: ExternalGameImportSource
+    public let isUpdate: Bool
+    public let previousVersion: String?
+    public let totalBytes: Int
+
+    public var sha256Fingerprint: String {
+        String(archive.manifest.sha256.prefix(16))
+    }
+
+    public var permissionsList: [ExternalGamePermission] {
+        archive.manifest.permissions.compactMap { ExternalGamePermission(rawValue: $0.lowercased()) }
+    }
+}
+
+@available(macOS 14.0, *)
+@MainActor @Observable public final class ExternalGameStore {
+    public let rootDirectory: URL
+    public let verificationSecret: String
+    public private(set) var installedGames: [InstalledExternalGame] = []
+    public var pendingConfirmation: ExternalGamePendingConfirmation?
+    public var activeLaunchingGame: InstalledExternalGame?
+    public private(set) var lastError: String = ""
+
+    private var progressByGameID: [String: [String: String]] = [:]
+
+    public init(
+        rootDirectory: URL? = nil,
+        verificationSecret: String = ExternalGameValidator.defaultVerificationSecret
+    ) {
+        if let rootDirectory {
+            self.rootDirectory = rootDirectory
+        } else {
+            let base = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+                ?? URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            self.rootDirectory = base.appendingPathComponent("ExternalGames-v1", isDirectory: true)
+        }
+        self.verificationSecret = verificationSecret
+        loadRegistryFromDisk()
+    }
+
+    public func packageDirectory(for gameID: String) -> URL {
+        rootDirectory
+            .appendingPathComponent("packages", isDirectory: true)
+            .appendingPathComponent(gameID, isDirectory: true)
+    }
+
+    public func entryFileURL(for game: InstalledExternalGame) -> URL? {
+        let pkgRoot = packageDirectory(for: game.manifest.id)
+        let target = pkgRoot.appendingPathComponent(game.manifest.entry, isDirectory: false)
+        guard ExternalGameSandboxPolicy.allowsNavigation(to: target, packageRoot: pkgRoot, manifest: game.manifest) else {
+            return nil
+        }
+        return target
+    }
+
+    /// Validates an imported archive from URL, QR code, or local file and prepares a permission + source confirmation sheet.
+    @discardableResult
+    public func prepareImport(
+        archive: ExternalGamePackageArchive,
+        source: ExternalGameImportSource
+    ) throws -> ExternalGamePendingConfirmation {
+        lastError = ""
+        switch source {
+        case .url(let url):
+            try ExternalGameValidator.validateImportURL(url)
+        case .qrCode(let raw):
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let url = URL(string: trimmed) else {
+                throw ExternalGameValidationError.insecureImportURL(raw)
+            }
+            try ExternalGameValidator.validateImportURL(url)
+        case .file:
+            break
+        }
+
+        try ExternalGameValidator.validateArchive(archive, secret: verificationSecret)
+        let totalBytes = archive.files.values.reduce(0) { $0 + $1.count }
+        let existing = installedGames.first(where: { $0.manifest.id == archive.manifest.id })
+        let confirmation = ExternalGamePendingConfirmation(
+            archive: archive,
+            source: source,
+            isUpdate: existing != nil,
+            previousVersion: existing?.manifest.version,
+            totalBytes: totalBytes
+        )
+        pendingConfirmation = confirmation
+        return confirmation
+    }
+
+    /// Parses and validates a JSON-encoded `ExternalGamePackageArchive` data blob.
+    @discardableResult
+    public func prepareImport(
+        archiveData: Data,
+        source: ExternalGameImportSource
+    ) throws -> ExternalGamePendingConfirmation {
+        guard archiveData.count <= ExternalGameValidator.maxPackageSizeBytes + 65_536,
+              let archive = try? JSONDecoder().decode(ExternalGamePackageArchive.self, from: archiveData) else {
+            lastError = ExternalGameValidationError.malformedArchive.localizedDescription
+            throw ExternalGameValidationError.malformedArchive
+        }
+        return try prepareImport(archive: archive, source: source)
+    }
+
+    public func cancelPendingImport() {
+        pendingConfirmation = nil
+    }
+
+    /// Commits the user-confirmed game package to the app sandbox.
+    @discardableResult
+    public func confirmInstall() throws -> InstalledExternalGame {
+        guard let confirmation = pendingConfirmation else {
+            throw ExternalGameValidationError.malformedArchive
+        }
+        try ExternalGameValidator.validateArchive(confirmation.archive, secret: verificationSecret)
+
+        let manifest = confirmation.archive.manifest
+        let pkgDir = packageDirectory(for: manifest.id)
+        let fm = FileManager.default
+
+        if fm.fileExists(atPath: pkgDir.path) {
+            try fm.removeItem(at: pkgDir)
+        }
+        try fm.createDirectory(at: pkgDir, withIntermediateDirectories: true)
+
+        let resolvedPkgRoot = pkgDir.resolvingSymlinksInPath().standardizedFileURL.path
+        let rootPrefix = resolvedPkgRoot.hasSuffix("/") ? resolvedPkgRoot : (resolvedPkgRoot + "/")
+
+        for (relPath, content) in confirmation.archive.files {
+            guard ExternalGameValidator.isSafeRelativePath(relPath) else {
+                throw ExternalGameValidationError.pathTraversalDetected(relPath)
+            }
+            let fileURL = pkgDir.appendingPathComponent(relPath, isDirectory: false)
+            let parentDir = fileURL.deletingLastPathComponent()
+            try fm.createDirectory(at: parentDir, withIntermediateDirectories: true)
+            let resolvedParent = parentDir.resolvingSymlinksInPath().standardizedFileURL.path
+            guard resolvedParent == resolvedPkgRoot || resolvedParent.hasPrefix(rootPrefix) else {
+                throw ExternalGameValidationError.symlinkOrEscapeDetected(relPath)
+            }
+            var dataToWrite = content
+            // Inject CSP meta tag into HTML entry file if not already present
+            if relPath == manifest.entry,
+               let html = String(data: content, encoding: .utf8),
+               !html.contains("http-equiv=\"Content-Security-Policy\"") {
+                let csp = ExternalGameSandboxPolicy.contentSecurityPolicy(for: manifest)
+                let meta = "<meta http-equiv=\"Content-Security-Policy\" content=\"\(csp)\">"
+                let injected = meta + "\n" + html
+                dataToWrite = Data(injected.utf8)
+            }
+            try dataToWrite.write(to: fileURL, options: [.atomic])
+        }
+
+        let now = Date()
+        let installed: InstalledExternalGame
+        if let idx = installedGames.firstIndex(where: { $0.manifest.id == manifest.id }) {
+            let prev = installedGames[idx]
+            installed = InstalledExternalGame(
+                manifest: manifest,
+                source: confirmation.source,
+                installedAt: prev.installedAt,
+                updatedAt: now,
+                totalBytes: confirmation.totalBytes
+            )
+            installedGames[idx] = installed
+        } else {
+            installed = InstalledExternalGame(
+                manifest: manifest,
+                source: confirmation.source,
+                installedAt: now,
+                updatedAt: now,
+                totalBytes: confirmation.totalBytes
+            )
+            installedGames.append(installed)
+        }
+
+        pendingConfirmation = nil
+        saveRegistryToDisk()
+        return installed
+    }
+
+    public func remove(id: String) throws {
+        let pkgDir = packageDirectory(for: id)
+        if FileManager.default.fileExists(atPath: pkgDir.path) {
+            try FileManager.default.removeItem(at: pkgDir)
+        }
+        installedGames.removeAll { $0.manifest.id == id }
+        progressByGameID.removeValue(forKey: id)
+        if activeLaunchingGame?.manifest.id == id {
+            activeLaunchingGame = nil
+        }
+        saveRegistryToDisk()
+    }
+
+    public func handleBridgeMessage(_ rawJSON: Data, for gameID: String) -> ExternalGameBridgeResponse {
+        guard let game = installedGames.first(where: { $0.manifest.id == gameID }) else {
+            return ExternalGameBridgeResponse(ok: false, error: "GAME_NOT_INSTALLED")
+        }
+        var progress = progressByGameID[gameID] ?? [:]
+        let response = ExternalGameBridgeHandler.handle(rawJSON: rawJSON, manifest: game.manifest, progressStore: &progress)
+        progressByGameID[gameID] = progress
+        saveProgressToDisk(for: gameID, progress: progress)
+        return response
+    }
+
+    public func progress(for gameID: String) -> [String: String] {
+        progressByGameID[gameID] ?? [:]
+    }
+
+    /// Creates a signed sample external mini-game archive for local testing or demo import inside the backpack.
+    public static func makeSampleSignedArchive(
+        id: String = "rpg.campfire.riddle",
+        name: String = "篝火谜题小游戏",
+        version: String = "1.0.0",
+        entry: String = "index.html",
+        permissions: [String] = ["storage", "haptics"],
+        contentRating: String = "4+",
+        allowedDomains: [String] = ["assets.example.com"],
+        secret: String = ExternalGameValidator.defaultVerificationSecret
+    ) -> ExternalGamePackageArchive {
+        let html = """
+        <!doctype html>
+        <html lang="zh-CN">
+        <head><meta charset="utf-8"><title>\(name)</title></head>
+        <body>
+          <h1>\(name)</h1>
+          <p>版本 \(version) · 沙盒运行中</p>
+        </body>
+        </html>
+        """
+        let files: [String: Data] = [entry: Data(html.utf8)]
+        let sha256 = ExternalGameValidator.computePackageSHA256(files)
+        let unsigned = ExternalGameManifest(
+            id: id,
+            name: name,
+            version: version,
+            entry: entry,
+            permissions: permissions,
+            contentRating: contentRating,
+            allowedDomains: allowedDomains,
+            sha256: sha256,
+            signature: "",
+            author: "Questify Workshop",
+            summary: "在背包沙盒内运行的轻量解谜互动"
+        )
+        let sig = ExternalGameValidator.signManifest(unsigned, secret: secret)
+        let signed = ExternalGameManifest(
+            id: id,
+            name: name,
+            version: version,
+            entry: entry,
+            permissions: permissions,
+            contentRating: contentRating,
+            allowedDomains: allowedDomains,
+            sha256: sha256,
+            signature: sig,
+            author: "Questify Workshop",
+            summary: "在背包沙盒内运行的轻量解谜互动"
+        )
+        return ExternalGamePackageArchive(manifest: signed, files: files)
+    }
+
+    // MARK: - Persistence Helpers
+
+    private var registryFileURL: URL {
+        rootDirectory.appendingPathComponent("registry.json", isDirectory: false)
+    }
+
+    private func progressFileURL(for gameID: String) -> URL {
+        rootDirectory
+            .appendingPathComponent("progress", isDirectory: true)
+            .appendingPathComponent("\(gameID).json", isDirectory: false)
+    }
+
+    private func loadRegistryFromDisk() {
+        guard let data = try? Data(contentsOf: registryFileURL),
+              let decoded = try? JSONDecoder().decode([InstalledExternalGame].self, from: data) else {
+            return
+        }
+        installedGames = decoded
+        for game in decoded {
+            let pURL = progressFileURL(for: game.manifest.id)
+            if let pData = try? Data(contentsOf: pURL),
+               let pMap = try? JSONDecoder().decode([String: String].self, from: pData) {
+                progressByGameID[game.manifest.id] = pMap
+            }
+        }
+    }
+
+    private func saveRegistryToDisk() {
+        let fm = FileManager.default
+        try? fm.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(installedGames) {
+            try? data.write(to: registryFileURL, options: [.atomic])
+        }
+    }
+
+    private func saveProgressToDisk(for gameID: String, progress: [String: String]) {
+        let url = progressFileURL(for: gameID)
+        try? FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(progress) {
+            try? data.write(to: url, options: [.atomic])
+        }
+    }
+}
