@@ -251,10 +251,24 @@ import FoundationNetworking
         try journal.resolve(scope:session.journalScope,operation:intent.operation)
         guard try journal.pending(scope:session.journalScope,operation:intent.operation)==nil else{throw ComplianceFailure.unresolved}
     }
+    @discardableResult
     public func setMarketing(_ row:ComplianceMarketingConsent,channel:ComplianceMarketingChannel,optedIn:Bool,requestID:String,
                              session:ComplianceSession,whileCurrent:()->Bool = {true})async throws->ComplianceMarketingSnapshot {
         try check(session);guard whileCurrent(),row.valid else{throw ComplianceFailure.invalidInput}
         guard !busy else{throw ComplianceFailure.busy}
+        // Pre-original exact merchant write: only without an original client, only for the authoritative
+        // merchant, journaled before send, and closed only by an exact owner/channel/value readback.
+        if marketingOriginal() == nil, authoritativeMerchantID() != nil {
+            let operation = "marketing|\(row.id)|\(channel.rawValue)"
+            let req = try request("/api/merchant/crm/marketing-consents", body: ["merchantRowId": row.merchantRowId, "merchantOwnerMemberId": row.merchantOwnerMemberId, "channel": channel.rawValue, "optedIn": optedIn, "requestId": requestID], session: session)
+            try start(operation, requestID: requestID, session: session); defer { busy = false }
+            _ = try await write(req, operation: operation, session: session)
+            let rows = try decode(await read("/api/merchant/crm/marketing-consents", method: "GET", session: session), as: [ComplianceMarketingConsent].self)
+            guard rows.allSatisfy(\.valid) else { throw ComplianceFailure.malformed }
+            guard rows.contains(where: { $0.id == row.id && $0.merchantOwnerMemberId == session.accountID && $0.value(channel) == optedIn }) else { throw ComplianceFailure.readbackMismatch }
+            try journal.resolve(scope: session.journalScope, operation: operation)
+            return .init(rows: rows, unresolvedOperations: try pendingMarketingOperations(session: session), reconciledCurrentState: true)
+        }
         let client=try marketingClient(session);guard journal.isDurable,client.canWrite(row,channel,optedIn) else{throw ComplianceFailure.unavailable}
         let operation=row.operation(channel);guard try journal.pending(scope:session.journalScope,operation:operation)==nil else{throw ComplianceFailure.unresolved}
         let intent=CompliancePendingOperation(scope:session.journalScope,operation:operation,requestID:requestID,epoch:session.epoch,marketingOptedIn:optedIn,marketingRealm:client.context.baseURL.absoluteString)
@@ -287,7 +301,9 @@ import FoundationNetworking
     }
     public func status(session: ComplianceSession) async throws -> ComplianceDeregistration {
         if let client = deregistrationOriginal() { return try await client.status(session: session) }
-        return try decode(await read("/api/user/deregister/status", method: "GET", session: session), as: ComplianceDeregistration.self)
+        var decoded = try decode(await read("/api/user/deregister/status", method: "GET", session: session), as: ComplianceDeregistration.self)
+        if authoritativeMerchantID() != nil, decoded.status == "WAITING", !(decoded.executeAfter ?? "").isEmpty { decoded.legacyPendingOverride = true }
+        return decoded
     }
     /// Exact GET only, including after cold launch/new authentication. UNKNOWN never becomes a resend.
     public func recoverOriginalApplication(session: ComplianceSession, whileCurrent: () -> Bool = { true }) async throws -> AccountDeregistrationOriginalReceipt? {
@@ -359,7 +375,8 @@ import FoundationNetworking
         guard legalApproved(.cancellation, session) else { throw ComplianceFailure.unavailable }
         let request = try request("/api/user/deregister/apply", form: ["smscode": AuthChannelInput.code(smscode), "requestId": requestID], session: session)
         try start("deregister", requestID: requestID, session: session); defer { busy = false }
-        let result = try decode(await write(request, operation: "deregister", session: session), as: ComplianceDeregistration.self)
+        var result = try decode(await write(request, operation: "deregister", session: session), as: ComplianceDeregistration.self)
+        if authoritativeMerchantID() != nil, result.status == "WAITING", !(result.executeAfter ?? "").isEmpty { result.legacyPendingOverride = true }
         // Accepted applications retain the original epoch until fresh authentication and status read.
         if result.blocked { try journal.resolve(scope: session.journalScope, operation: "deregister") }
         return result
@@ -384,12 +401,15 @@ import FoundationNetworking
         let data = try await writeDeregistrationCancel(request, operation: "deregisterCancel", session: session, whileCurrent: whileCurrent, expectedIntent: cancellation)
         try check(session)
         guard whileCurrent() else { throw ComplianceFailure.staleSession }
+        // Without the original deregistration client the legacy endpoint reports "no application" (NORMAL)
+        // after a cancel; the original client path still requires the backend's CANCELLED.
+        let isLegacyDeregister = deregistrationOriginal() == nil && authoritativeMerchantID() != nil
         let result = try decode(data, as: ComplianceDeregistration.self)
-        guard result.cancellationConfirmed else { throw ComplianceFailure.readbackMismatch }
+        guard result.cancellationConfirmed || (isLegacyDeregister && result.status == "NORMAL") else { throw ComplianceFailure.readbackMismatch }
         let confirmed = try await status(session: session)
         try check(session)
         guard whileCurrent() else { throw ComplianceFailure.staleSession }
-        guard confirmed.cancellationConfirmed else { throw ComplianceFailure.readbackMismatch }
+        guard confirmed.cancellationConfirmed || (isLegacyDeregister && confirmed.status == "NORMAL") else { throw ComplianceFailure.readbackMismatch }
         try resolveCancellation(cancellation, application: pending, session: session)
         return confirmed
     }

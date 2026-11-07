@@ -73,3 +73,55 @@ Baseline = e3ba3c1b run of the same classes (`/private/tmp/gm-testc-base-classes
 - OwnMedia{Audio,Model}PreviewHostTests password gate: OWNER decision; not changed.
 - Hangs: `ClubPostDiscussionReadTests` `waitForRequests` is now bounded (3 s); superseded page-2/3 assertions moved to the f9ca1f42 full-list contract (page 1, body `{"postId":91}`, fixture host no longer `.invalid` so the legacy-paging switch is not used). The same unbounded helper in 4 CoreTests files is bounded (5 s). Result: ClubPostDiscussionReadTests 10 tests, 0 failures (`/private/tmp/gm-testc-club3.log`, TEST_EXIT=0).
 - Core: `AccountComplianceTests` 13 tests, 0 failures (`/private/tmp/gm-testc-core-acct.log`). Full Core run not repeated; run3 crashed with `Index out of range`, run2 had 122 failing tests (keychain `storage`/`locked`, staleSession ...) - NOT triaged.
+
+## Core package (swift test) - GM-TEST-C round 3
+
+Complete run (no crash): `Executed 15004 tests, with 176 failures (44 unexpected)` (`/private/tmp/gm-testc-core-full5.log`). The earlier `Index out of range` crash came from `ClubCommunityOriginalRequestKeyTests` and `AccountComplianceTests` indexing `requests[0]` after an upstream failure, and from the dropLast(2) multipart bug; it no longer occurs.
+Baseline e3ba3c1b (same classes, `/private/tmp/gm-testc-core-basecls.log`): 461 tests, 193 failures (61 unexpected), 107 failing tests. Now 90 failing tests, 0 failing tests that pass at baseline.
+
+Fixed this round: AccountCompliance*/AccountDeregistration*/I00 (see account-compliance-reconcile.md), multipart `dropLast(2)` bug, `MerchantOfferWithdrawalUnifiedStore` symlink-ancestor rejection of `/var` (17 tests).
+
+| class | failing tests | baseline fail? | verdict |
+|---|---|---|---|
+| NativeHomeReturnNativeTests | 11 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| PlayKitReviewTests | 10 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| CityNodeRedemptionTests | 5 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| CityOrderedMapRecoveryTests | 5 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| NativeBlacklistTransportTests | 5 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| CityCurrentSnapshotPresentationTests | 3 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| CityCurrentSnapshotReadingTests | 3 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| CityOrderedMapPresentationTests | 3 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MerchantStoreIndustrySelectionTests | 3 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| NativeFriendTransportTests | 3 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| PlayCompareReviewTests | 3 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ClubActionServiceTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ClubApplicationRequiredMessageTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ClubCommunityPendingJournalTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ClubCommunityReadRuntimeTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MerchantStoreIndustryServiceTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| NativeChannelMessageOriginalWriterJournalTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| PrivateHomeRecoveryFenceTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ProfileGuideReadRouteTests | 2 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ChapterInlinePendingSelectionTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ClubActionCoordinatorTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ClubActionSessionTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ClubCommunityTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| InvoiceLaunchCoordinatorTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MerchantNPCTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MerchantOfferWithdrawalUnifiedStoreTests | 1 | yes | ENV: historical-root fixture under /var symlink path (journal deliberately refuses symlink traversal) |
+| MerchantOperationsContractTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MerchantOperationsServiceTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MerchantPersonalIncomeEligibilityTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MerchantStoreIndustryContractTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| MessagingVisibilityTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| NativeHomeReturnSelectionRecoveryFenceTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| NearbyMapDiscoveryProjectionTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| NicknameC6ReadTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ParticipantCoordinatorSnapshotLifetimeTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| ParticipantCoordinatorTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| PlayReadLifetimeTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| RoamPassportToolsTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+| SquareReportTests | 1 | yes | REAL contract drift between test and code (not triaged to a fix); not caused by this wave |
+
+`ProfileFavoriteDetailTests.testRealAuthorAndCommentAuthorChildNavigationReturnsToSameDetailReader` (AppUnit): fails at `XCTAssertGreaterThan(probe.rootAppearances,0)`; its sibling classes ProfileFavoriteTopicReadTests/ProfileSettingsFavoritesTests fail identically at baseline, so this is the iOS 27 simulator hosting/appearance environment, not a ProfileFavorites regression. Not fixed.
+`RuntimeSessionRoleConsistencyTests.testMissingExplicitRole...` contradicts `I00SessionAdmissionBaselineTests`: OWNER decision (see reconcile doc row 7).
