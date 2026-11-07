@@ -113,8 +113,7 @@ class WorkshopPaidInstalledTextContracts(unittest.TestCase):
         for entry in value['strings'].values():
             self.assertEqual(set(entry['localizations']), {'zh-Hans','en'})
         text = value['strings']['workshopPaidInstalledText.materializationRequired']['localizations']['en']['stringUnit']['value']
-        self.assertIn('Save and publish are unavailable', text)
-        self.assertIn('not a professional template ID', text)
+        self.assertIn("can't be used in a project or published from here yet", text)
 
 if __name__ == '__main__':
     unittest.main()

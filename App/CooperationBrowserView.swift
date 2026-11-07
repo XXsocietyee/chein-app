@@ -84,6 +84,8 @@ import SwiftUI
                     }
                 }.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")
                     .fixedSize(horizontal: false, vertical: true)
+                Text("cooperation.topicFilter.loadedOnly").font(.footnote).foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 if selected != nil {
                     Button("cooperation.topicFilter.clear") {
                         guard ObjectIdentifier(reader) == owner, reader.scope == scope else { return }

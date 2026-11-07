@@ -15,9 +15,16 @@ class W207PricingApplyParity(unittest.TestCase):
         for exact in ['accessibilityIdentifier("publisher.subtype")', 'accessibilityIdentifier("publisher.preview")',
                       'accessibilityIdentifier("publisher.finalPrice")', 'accessibilityIdentifier("publisher.reviewPrice")',
                       'accessibilityIdentifier("publisher.confirmPrice")', 'coordinator.confirm(review, consequentialApproval: true)',
-                      'TopicPricingXcx.sliderMax(floor: preview.minimum, reference: preview.reference)', '"确认终价并提交开售审核"',
-                      'preview.canConfirm == false', '"合作链接已失效"', '"开售即冻结"']:
+                      'TopicPricingXcx.sliderMax(floor: preview.minimum, reference: preview.reference)', '"publisherPricing.confirmFinalPriceAndSubmitFor"',
+                      'preview.canConfirm == false', '"publisherPricing.thisPartnerLinkIsNoLonger"', '"publisherPricing.theLineupFreezesWhenSalesOpen"']:
             self.assertIn(exact, view)
+        # Copy moved from inline Chinese literals to catalog keys; the catalog must still carry the exact wording.
+        import json
+        catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
+        zh = lambda key: catalog[key]['localizations']['zh-Hans']['stringUnit']['value']
+        self.assertEqual(zh('publisherPricing.confirmFinalPriceAndSubmitFor'), '确认终价并提交开售审核')
+        self.assertEqual(zh('publisherPricing.thisPartnerLinkIsNoLonger'), '合作链接已失效')
+        self.assertIn('开售后阵容冻结', zh('publisherPricing.theLineupFreezesWhenSalesOpen'))
         self.assertIn('"api/topic/pricing/preview"', read('Core/PublisherLifecycleHTTP.swift'))
         self.assertIn('public func partnerName(type: String, id: Int) async throws -> String', read('Core/PublisherLifecycleHTTP.swift'))
         self.assertIn('try? await client.partnerName(type: row.type, id: row.partnerID), generation == stamp', view)
