@@ -16,7 +16,15 @@
      - `subpackageP3/pages/badge-3d/index` -> `DESIGNED` (static native preview replacing WeChat `xr-frame`).
      - All other 41 `partial` W7 rows -> `exists` (bringing W7 to 50 `exists`, 1 `DESIGNED`, and 3 `merged-into:*` out of 54 total W7 rows).
 5. **Regression & Password-Gate Test Status**:
-   - `ProfileFavoriteDetailRevisionPresentationRegressionTests` (3 tests): Fixed via `ProfileFavoriteDetailAccessibilityHost` UIView accessibility projection in `App/ProfileFavoriteDetailDestination.swift` + `Core/ProfileFavoriteDetailReader.swift`.
+   - `ProfileFavoriteDetailRevisionPresentationRegressionTests` (3 tests): Passed (`Executed 3 tests, with 0 failures (0 unexpected) in 1.465 (1.466) seconds`).
+   - `CommerceAndWalletSafetySectionViewTests` (3 tests), `WalletCivilDateLocalizationTests` (7 tests), `WalletEarningsOverviewTests` (6 tests), `WalletNumberLocalizationTests` (13 tests): Passed (`Executed 32 tests, with 0 failures (0 unexpected) in 1.605 (1.623) seconds`, `** TEST SUCCEEDED **`).
    - Untouched `OwnMedia` password-gate tests (left untouched per instructions; awaiting owner decision on whether synthetic test helpers should migrate from disabled `s.login(username:password:)` to `loginWithPhone` / `resetForFailedLoginGate()`):
      - `Tests/AppUnitTests/OwnMediaAudioPreviewHostTests.swift:139` (`testOriginalLoginGateTransitionStopsOldAudioEvenWhenLoginFails`)
      - `Tests/AppUnitTests/OwnMediaModelPreviewHostTests.swift:163` (`testOriginalLoginGateTransitionStopsOldModelEvenWhenLoginFails`)
+
+## 2. Quality Gate Results
+
+- **Xcode Build**: `** BUILD SUCCEEDED **` (`BUILD_EXIT=0`, `/private/tmp/build-p4-me-wallet-1794050350.log`)
+- **Scaffold & Bilingual Check**: `/Users/fanning/.local/bin/python3.12 tools/check_scaffold.py` -> exit code `0` (`PASS structural checks: 4108 Swift source files, 13462 bilingual keys, references, scheme, read-only expected project equivalence`)
+- **Targeted Test Execution**: `** TEST SUCCEEDED **` (`TEST_EXIT=0`, `Executed 32 tests, with 0 failures (0 unexpected) in 1.605 (1.623) seconds` across `ProfileFavoriteDetailRevisionPresentationRegressionTests` [3/3], `CommerceAndWalletSafetySectionViewTests` [3/3], `WalletCivilDateLocalizationTests` [7/7], `WalletEarningsOverviewTests` [6/6], and `WalletNumberLocalizationTests` [13/13])
+
