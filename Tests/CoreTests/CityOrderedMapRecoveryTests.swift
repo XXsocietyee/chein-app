@@ -16,7 +16,7 @@ import FoundationNetworking
         }
     }
     func fixture() -> [String: Any] {
-        let bounds: [String: Any] = ["south": 30, "west": 120, "north": 30.1, "east": 120.1]
+        let bounds: [String: Any] = ["south": 30, "west": 120, "north": NSDecimalNumber(string: "30.1"), "east": NSDecimalNumber(string: "120.1")]
         return ["code": 200, "candidate": true, "data": [
             "contract": "CITY_CURRENT_SNAPSHOT_V1", "scope": "CITY", "mode": "CURRENT_SNAPSHOT", "deltaStatus": "DELTAS_UNAVAILABLE", "deltaReason": "AUTHORIZATION_LIFETIME_UNAVAILABLE",
             "board": ["gameId": "game-1", "boardId": "board-1", "regionId": "region-1", "seasonId": "season-1", "rulesReleaseId": "rules-1", "rulesHash": String(repeating: "a", count: 64), "lifecycle": "FROZEN", "title": "Frozen board", "revision": 2],
@@ -26,7 +26,7 @@ import FoundationNetworking
             "validUntilMillis": 1_700_000_010_000 as Int64, "grantsNavigation": false, "grantsAction": false]]
     }
     func point(_ id: String = "point-1") -> [String: Any] {
-        ["pointId": id, "title": "Public point", "latitude": 30.05, "longitude": 120.05, "domain": "POI", "datum": "WGS84",
+        ["pointId": id, "title": "Public point", "latitude": NSDecimalNumber(string: "30.05"), "longitude": NSDecimalNumber(string: "120.05"), "domain": "POI", "datum": "WGS84",
          "collectedAt": "2023-01-01T00:00:00Z", "coordinateAssurance": "PLATFORM_REVIEWED_METADATA", "availability": "AVAILABLE",
          "merchantVersion": 0, "platformVersion": 0, "mine": false, "ownership": "UNOWNED", "grantsNavigation": false, "grantsAction": false]
     }
@@ -93,7 +93,9 @@ import FoundationNetworking
         let raw = try reply().0
         let initialObject = try XCTUnwrap(JSONSerialization.jsonObject(with: raw) as? [String: Any])
         var initial = try XCTUnwrap(initialObject["data"] as? [String: Any])
-        let first = try JSONDecoder().decode(CityOrderedMapReply.self, from: JSONSerialization.data(withJSONObject: initial))
+        // Decode the exact original bytes: re-serializing parsed Doubles would turn 30.1 into 30.100000000000001.
+        struct Envelope: Decodable { let data: CityOrderedMapReply }
+        let first = try JSONDecoder().decode(Envelope.self, from: raw).data
         var state = try CityOrderedMapState(first, query: selection.scope.query)
         var replacement = point(); replacement["availability"] = "PAUSED"; replacement["merchantVersion"] = 1
         let event: [String: Any] = ["eventId": String(repeating: "b", count: 64), "aggregate": "point-1", "component": "MERCHANT",

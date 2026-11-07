@@ -22,12 +22,20 @@ public enum ProfileNicknameRules {
         }
         return String(scalars[start..<end])
     }
+    private static func isAllowed(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.properties.generalCategory {
+        case .uppercaseLetter, .lowercaseLetter, .titlecaseLetter, .modifierLetter, .otherLetter,
+             .decimalNumber, .letterNumber, .otherNumber: return true
+        default: return "_#-.· ".unicodeScalars.contains(scalar)
+        }
+    }
     public static func issue(_ raw: String) -> String? {
         let value = normalize(raw)
         guard !value.isEmpty else { return "nickname.read.invalid.empty" }
         guard value.unicodeScalars.count >= 2 else { return "nickname.read.invalid.short" }
         guard value.unicodeScalars.count <= 24 else { return "nickname.read.invalid.long" }
-        guard value.range(of: "\\A[\\p{L}\\p{N}_#\\-.· ]+\\z", options: .regularExpression) != nil else { return "nickname.read.invalid.characters" }
+        // Per-scalar on purpose: the regex engine may match by grapheme cluster, letting a combining mark (e + U+0301) pass as a letter.
+        guard value.unicodeScalars.allSatisfy(Self.isAllowed) else { return "nickname.read.invalid.characters" }
         return nil
     }
 }

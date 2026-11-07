@@ -31,7 +31,7 @@ final class ClubApplicationRequiredMessageTests: XCTestCase {
     }
     func testMissingApplicationStopsAtOriginalServiceBeforeHTTP() async throws {
         let t = ApplicationRequiredHTTP()
-        let api = try ClubActionService(configuration:.init(baseURL:URL(string:"https://required.invalid")!),transport:t)
+        let api = try ClubActionService(configuration:.init(baseURL:URL(string:"https://required.test")!),transport:t)
         for message in ["", " \n\t"] {
             do { _ = try await api.perform(.apply,clubID:10,token:"synthetic-token",joinMessage:message); XCTFail() }
             catch { XCTAssertEqual(error as? ClubActionWriteError,.notSent(.invalidRequest)) }
@@ -40,7 +40,7 @@ final class ClubApplicationRequiredMessageTests: XCTestCase {
     }
     func testValidReviewedApplicationUsesUnchangedOriginalWriterBody() async throws {
         let t = ApplicationRequiredHTTP()
-        let api = try ClubActionService(configuration:.init(baseURL:URL(string:"https://required.invalid")!),transport:t)
+        let api = try ClubActionService(configuration:.init(baseURL:URL(string:"https://required.test")!),transport:t)
         let message = "  I would like to join  "
         let receipt = try await api.perform(.apply,clubID:10,token:"synthetic-token",joinMessage:message)
         XCTAssertEqual(receipt.state,"PENDING"); XCTAssertEqual(t.requests.count,1)

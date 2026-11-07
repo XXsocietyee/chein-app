@@ -92,7 +92,7 @@ private func makeCompareState(version: Int) throws -> PlayAdvancedState {
     }
     private func owner(_ epoch: UInt64 = 1) throws -> PlayExperienceSession { try .init(accountID: 1, epoch: epoch, namespace: "synthetic", token: "synthetic-token") }
     private func model(_ transport: CompareTestTransport, owner: @escaping () -> PlayExperienceSession?) throws -> PlayAdvancedCoordinator {
-        .init(activityID: 41, topicID: 71, nodeID: 701, service: .init(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport, enabled: [.reads, .advanced]), currentSession: owner)
+        .init(activityID: 41, topicID: 71, nodeID: 701, service: .init(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport, enabled: [.reads, .advanced]), recovery: PlayMemoryAdvancedRecovery(), currentSession: owner)
     }
     func testReviewCapturesReadableQuestionAndRejectsFreshVersion() async throws {
         let owner = try owner(); var version = 1
