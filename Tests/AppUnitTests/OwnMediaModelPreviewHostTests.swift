@@ -210,6 +210,29 @@ private enum ModelPreviewSynthetic {
         let model = f.model(s); model.appear(foreground: true); await model.open()?.value; if let id = model.presentation { model.rotate(id, operation: model.controlRevision) }
         try await Task.sleep(nanoseconds: 600_000_000); XCTAssertTrue(grant.revoked); XCTAssertFalse(other.revoked); XCTAssertNil(model.presentation)
         XCTAssertGreaterThan(f.devices.first?.stops ?? 0, 0); XCTAssertEqual(f.vault.token, "synthetic-model-preview")
+        XCTAssertFalse(model.available); XCTAssertEqual(model.phase, .idle)
+        XCTAssertNil(model.open()); XCTAssertEqual(s.account?.id, 7)
+    }
+    func testDisplayWindowExpiryKeepsCurrentPresentationAndRequiresExplicitRetry() async throws {
+        let f = try host(), s = await f.boot(); try f.listGrant(s); let grant = try f.grant(s)
+        let model = f.model(s); model.appear(foreground: true); await model.open()?.value
+        XCTAssertEqual(model.phase, .ready)
+        let id = try XCTUnwrap(model.presentation), oldRun = model.controlRevision
+        let device = try XCTUnwrap(f.devices.first)
+        // Exercise the original Core 300-second display cap without changing its clock or lease.
+        try await ContinuousClock().sleep(for: .seconds(301))
+        XCTAssertTrue(model.available); XCTAssertFalse(grant.revoked)
+        XCTAssertEqual(model.presentation, id); XCTAssertEqual(model.phase, .expired)
+        XCTAssertNil(model.device); XCTAssertGreaterThan(device.stops, 0)
+        XCTAssertEqual(f.metadata.requests.count, 1); XCTAssertEqual(f.devices.count, 1)
+        model.rotate(id, operation: oldRun); XCTAssertEqual(device.rotations, 0)
+        XCTAssertNil(model.retry(id, operation: oldRun))
+        let retry = model.retry(id, operation: model.controlRevision)
+        XCTAssertNotNil(retry); await retry?.value
+        XCTAssertEqual(model.presentation, id); XCTAssertEqual(model.phase, .ready)
+        XCTAssertEqual(f.metadata.requests.count, 2); XCTAssertEqual(f.devices.count, 2)
+        XCTAssertEqual(f.vault.token, "synthetic-model-preview"); XCTAssertEqual(s.account?.id, 7)
+        model.disappear()
     }
     func testMetadataDenialDoesNotRevokeListOrAccount() async throws {
         let f = try host(), s = await f.boot(); try f.listGrant(s); let grant = try f.grant(s); f.metadata.status = 403

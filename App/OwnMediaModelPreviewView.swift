@@ -133,7 +133,11 @@ import Observation
         guard presentation == id, operation == run else { return }; clearWork(); phase = .failed
     }
     private func expire(_ id: UUID, _ run: UUID) {
-        guard presentation == id, operation == run else { return }; clearWork(); phase = .expired
+        guard presentation == id, operation == run else { return }
+        let isAvailable = available
+        guard presentation == id, operation == run else { return }
+        if !isAvailable { close(id); return }
+        clearWork(); phase = .expired
     }
     func rotate(_ id: UUID, operation run: UUID) {
         guard renderingIsCurrent(id, run), phase == .ready, let device else { return }
