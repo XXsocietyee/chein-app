@@ -5,6 +5,7 @@ import QuestifyCore
 
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIView: View {
+    @Environment(\.locale) private var locale
     @Bindable var coordinator: ChallengePOICoordinator
     let onRefresh: () async -> Void
     let onSubmit: () async -> Void
@@ -13,7 +14,7 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: 14) {
             switch coordinator.state {
             case .loading:
-                ProgressView(String(localized: "playx.poi.loading", defaultValue: "正在加载地标挑战…"))
+                ProgressView(String(localized: LocalizedStringResource("playx.poi.loading", defaultValue: "正在加载地标挑战…", locale: locale)))
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
 
@@ -21,7 +22,7 @@ import QuestifyCore
                 ContentUnavailableView {
                     Label(coordinator.errorMessage.isEmpty ? "加载挑战失败" : coordinator.errorMessage, systemImage: "exclamationmark.triangle")
                 } actions: {
-                    Button(String(localized: "playx.poi.retry", defaultValue: "重试")) {
+                    Button(String(localized: LocalizedStringResource("playx.poi.retry", defaultValue: "重试", locale: locale))) {
                         Task { await onRefresh() }
                     }
                 }
@@ -38,14 +39,14 @@ import QuestifyCore
 
                     if coordinator.state == .photo || node.photoRequired {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(String(localized: "playx.poi.photoStep", defaultValue: "第一步：现场拍照打卡"))
+                            Text(String(localized: LocalizedStringResource("playx.poi.photoStep", defaultValue: "第一步：现场拍照打卡", locale: locale)))
                                 .font(.subheadline.weight(.semibold))
                             TextField(
-                                String(localized: "playx.poi.photoUrlPlaceholder", defaultValue: "已上传现场照片地址"),
+                                String(localized: LocalizedStringResource("playx.poi.photoUrlPlaceholder", defaultValue: "已上传现场照片地址", locale: locale)),
                                 text: $coordinator.uploadedPhotoUrl
                             )
                             .textFieldStyle(.roundedBorder)
-                            Button(String(localized: "playx.poi.confirmPhoto", defaultValue: "确认现场照片")) {
+                            Button(String(localized: LocalizedStringResource("playx.poi.confirmPhoto", defaultValue: "确认现场照片", locale: locale))) {
                                 coordinator.confirmPhotoUploaded(coordinator.uploadedPhotoUrl)
                             }
                             .buttonStyle(.bordered)
@@ -59,14 +60,14 @@ import QuestifyCore
                     }
 
                     HStack(spacing: 10) {
-                        Button(String(localized: "playx.poi.submit", defaultValue: "提交挑战")) {
+                        Button(String(localized: LocalizedStringResource("playx.poi.submit", defaultValue: "提交挑战", locale: locale))) {
                             Task { await onSubmit() }
                         }
                         .buttonStyle(.borderedProminent)
                         .disabled(coordinator.submitting || coordinator.unknownSubmission)
 
                         if coordinator.unknownSubmission {
-                            Button(String(localized: "playx.poi.verifyReceipt", defaultValue: "刷新确认状态")) {
+                            Button(String(localized: LocalizedStringResource("playx.poi.verifyReceipt", defaultValue: "刷新确认状态", locale: locale))) {
                                 Task { await onRefresh() }
                             }
                             .buttonStyle(.bordered)
@@ -78,8 +79,8 @@ import QuestifyCore
                 VStack(alignment: .leading, spacing: 10) {
                     Label(
                         coordinator.alreadyClaimed
-                            ? String(localized: "playx.poi.alreadyDone", defaultValue: "已完成该地标挑战")
-                            : String(localized: "playx.poi.completed", defaultValue: "挑战通关！"),
+                            ? String(localized: LocalizedStringResource("playx.poi.alreadyDone", defaultValue: "已完成该地标挑战", locale: locale))
+                            : String(localized: LocalizedStringResource("playx.poi.completed", defaultValue: "挑战通关！", locale: locale)),
                         systemImage: "medal.fill"
                     )
                     .font(.headline)
@@ -152,7 +153,7 @@ import QuestifyCore
                     .buttonStyle(.plain)
                 }
             } else if !node.question.isEmpty {
-                TextField(String(localized: "playx.poi.answerPlaceholder", defaultValue: "输入你的答案"), text: $coordinator.textAnswer)
+                TextField(String(localized: LocalizedStringResource("playx.poi.answerPlaceholder", defaultValue: "输入你的答案", locale: locale)), text: $coordinator.textAnswer)
                     .textFieldStyle(.roundedBorder)
             }
         }

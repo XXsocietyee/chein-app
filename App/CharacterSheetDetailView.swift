@@ -4,6 +4,7 @@ import QuestifyCore
 /// Rich character sheet and RPG status detail view (ported from `subpackageMember/character/index.wxml`).
 @available(macOS 14.0, *)
 @MainActor struct CharacterSheetDetailView: View {
+    @Environment(\.locale) private var locale
     let card: CharacterCard
     var rpgSheet: CharacterRpgSheet? = nil
     var definitionSource: String? = nil
@@ -75,10 +76,10 @@ import QuestifyCore
             }
 
             if let rpg = rpgSheet {
-                Section(String(localized: "characterCard.rpgStatus", defaultValue: "本局状态")) {
+                Section(String(localized: LocalizedStringResource("characterCard.rpgStatus", defaultValue: "本局状态", locale: locale))) {
                     if let momentum = rpg.momentum {
                         VStack(alignment: .leading, spacing: 4) {
-                            LabeledContent(String(localized: "characterCard.momentum", defaultValue: "势头"), value: "\(momentum.value)/\(momentum.max)")
+                            LabeledContent(String(localized: LocalizedStringResource("characterCard.momentum", defaultValue: "势头", locale: locale)), value: "\(momentum.value)/\(momentum.max)")
                             ProgressView(value: Double(momentum.percent), total: 100)
                                 .tint(.orange)
                         }

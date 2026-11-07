@@ -39,7 +39,7 @@ import UIKit
     private var titleKey: String { kind == .caseImage ? "profile.case.images" : "profile.contactQR.title" }
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(LocalizedStringKey(kind == .caseImage ? "profile.currentMedia.savedWork" : "profile.currentMedia.savedQR"), tableName: "ProfileCurrentMediaUI")
+            (kind == .caseImage ? Text("profile.currentMedia.savedWork", tableName: "ProfileCurrentMediaUI") : Text("profile.currentMedia.savedQR", tableName: "ProfileCurrentMediaUI"))
                 .font(.subheadline.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
             if let context {
                 ScrollView(.horizontal) {
