@@ -9,11 +9,11 @@ class ProfileLocalCoverSourceChecks(unittest.TestCase):
  def test_account_and_self_public_entries_exist(self):
   account=read('App/AccountView.swift');public=read('App/SocialPublicProfileView.swift')
   self.assertIn('ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)',account)
-  self.assertIn('localCoverOwner: localCoverOwner)',account)
+  self.assertIn('localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })',account)
   self.assertIn('if localCoverOwner?.accountID == memberID',public)
   self.assertIn('ProfileLocalCoverSection(owner: localCoverOwner, reader: reader, isCurrent: isCurrent)',public)
  def test_seventh_live_posts_entry_is_preserved(self):
-  self.assertIn('ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent)',read('App/SocialPublicProfileView.swift'))
+  self.assertIn('ProfileAuthorPostsSection(memberID: memberID, accountReader: reader, squareReader: squareReader, actions: actions, isCurrent: isCurrent, retainedModel: authorPosts, onOpenPost: openAuthorPost)'.replace('squareReader: squareReader, actions','squareReader: squareReader,\n                            actions'),read('App/SocialPublicProfileView.swift'))
  def test_default_public_profile_does_not_receive_local_owner(self):
   self.assertIn('var localCoverOwner: ProfileLocalCoverOwner? = nil',read('App/SocialPublicProfileView.swift'))
  def test_owner_requires_account_and_bound_namespace(self):
@@ -80,8 +80,8 @@ class ProfileLocalCoverSourceChecks(unittest.TestCase):
   self.assertIn('guard isPresented, controller.canEdit, let crop, crop.id == id else { return }',self.view)
   self.assertIn('MerchantImageCropRenderer.render(crop.source, rect: rect)',self.view)
  def test_background_close_and_disappear_retire(self):
-  self.assertIn('.onChange(of: scenePhase) { _, value in if value != .active { model.close() } }',self.view)
-  self.assertIn('.onDisappear { model.retire() }',self.view)
+  self.assertIn('.onChange(of: scenePhase) { _, value in\n#if DEBUG\n                model.diagnosticEvent?("section.scenePhase.\\(String(describing: value))")\n#endif\n                if value != .active { model.close() }\n            }',self.view)
+  self.assertIn('.onDisappear {\n#if DEBUG\n                model.diagnosticEvent?("section.owner.disappear.before-retire")\n#endif\n                model.retire()',self.view)
   self.assertIn('func retire() { close(); controller.retire() }',self.view)
  def test_ui_states_device_only_and_uses_local_pixels(self):
   self.assertGreaterEqual(self.view.count('profile.localCover.deviceOnly'),2)
@@ -100,7 +100,7 @@ class ProfileLocalCoverSourceChecks(unittest.TestCase):
   self.assertIn('ProfileLocalCoverSyntheticImage.make()',f);self.assertNotIn('.pick()',f)
  def test_native_tests_cover_full_local_flow(self):
   c=read('Tests/CoreTests/ProfileLocalCoverTests.swift');a=read('Tests/AppUnitTests/ProfileLocalCoverAppTests.swift');u=read('Tests/AppUITests/ProfileLocalCoverFlowTests.swift')
-  self.assertEqual(c.count('func test'),18);self.assertEqual(a.count('func test'),9);self.assertEqual(u.count('func test'),5)
+  self.assertEqual(c.count('func test'),18);self.assertEqual(a.count('func test'),14);self.assertEqual(u.count('func test'),6)
   for v in ['ReadbackFailure','CancelPreview','AccountAndDeployment','RevisionABA','ConcurrentCoverChange','MislabeledFileOwner']:self.assertIn(v,c)
   self.assertNotIn('"profile.localCover.choose"',u)
 if __name__=='__main__':unittest.main()

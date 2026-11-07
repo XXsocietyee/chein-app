@@ -91,12 +91,13 @@ class ProjectChapterRemovalContracts(unittest.TestCase):
                           '@discardableResult public func saveLocal(', 'public func canReplaceExistingStoryDraft(',
                           'public func prepare(', 'public func confirm(']:
             body = core.split(signature)[1].split('\n    }', 1)[0]
-            self.assertIn('guard !hasUnconfirmedChapterRemoval, !isBusy, !isLocked', body)
+            # Later read-only/scope guards may precede the pinned freeze; they only make the entry point stricter.
+            self.assertRegex(body, r'guard (?:!isReadOnly, )?(?:value\.baseline\.scope\.allowsEditing, )?!hasUnconfirmedChapterRemoval, !isBusy, !isLocked')
         self.assertIn('unconfirmedChapterRemovalDrafts.contains(.init(ownerKey: session.ownerKey, bucket: identity.bucket))', core)
         self.assertIn('unconfirmedChapterRemovalDrafts.insert(.init(ownerKey: value.session.ownerKey, bucket: value.identity.bucket))', core)
         self.assertNotIn('unconfirmedChapterRemovalDrafts.remove', core)
         model = self.read('App/ProjectEditView.swift')
-        self.assertIn('var canEdit: Bool { ownsVisit && !coordinator.hasUnconfirmedChapterRemoval', model)
+        self.assertIn('var canEdit: Bool { ownsVisit && !coordinator.isReadOnly && !coordinator.hasUnconfirmedChapterRemoval', model)
         self.assertIn('func saveLocal() { guard canSaveLocal else { return }', model)
         self.assertIn('guard isCurrentStarterLease(lease)', model)
 

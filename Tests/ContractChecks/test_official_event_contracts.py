@@ -44,7 +44,7 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertNotIn('if !privateList {', browser)
         self.assertIn('private var query: OfficialEventBrowseQuery { .sourceList(bucket: bucket, keyword: keyword) }', browser)
         self.assertIn('let visible = query.visible(rows)', browser)
-        self.assertIn('Text(LocalizedStringKey(query.emptyTitleKey))', browser)
+        self.assertIn('Label(LocalizedStringKey(query.emptyTitleKey), systemImage: "sparkles")', browser)
         self.assertIn('Text(LocalizedStringKey(query.emptyDetailKey))', browser)
         model = read("Core/OfficialEventContracts.swift")
         self.assertIn('.init(bucket: bucket, keyword: bucket.isSearchable ? keyword : "")', model)
@@ -83,7 +83,7 @@ class OfficialSourceChecks(unittest.TestCase):
         # Active keys live in the app catalog; the historical module snapshot is
         # still checked byte-for-value below for every pre-existing entry.
         catalog = json.loads(read("Resources/Localizable.xcstrings"))["strings"]
-        ignored = {"official.issue", "official.browser", "official.filter", "official.event.", "official.detail.content", "official.participationState", "official.mission.", "official.invite.", "official.inbox.content", "official.broadcast.", "official.published.content", "official.stats.content", "official.fixture.guest", "official.fixture.account", "official.bucket."}
+        ignored = {"official.issue", "official.browser", "official.filter", "official.event.", "official.detail.content", "official.participationState", "official.mission.", "official.invite.", "official.inbox.content", "official.broadcast.", "official.published.content", "official.stats.content", "official.fixture.guest", "official.fixture.account", "official.bucket.", "official.organizer.content", "official.organizer.denied", "official.organizer.error", "official.organizer.loading", "official.organizer.formError", "official.organizer.recovery", "official.organizer.result", "official.organizer.header", "official.organizer.resume.reason", "official.detail.cta.roam"}
         literals = set()
         for directory in ["App", "Core"]:
             for path in (ROOT / directory).glob("Official*.swift"):
@@ -117,7 +117,7 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertIn('officialEventService=OfficialEventService(configuration:configuration,transport:transport)', session[start:end])
         self.assertIn('officialEventService=nil', session[end:])
         self.assertIn('self.currentOfficialContext == captured', session)
-        self.assertIn('OfficialReadContext(guestEpoch:gate.currentStamp)', session)
+        self.assertIn('OfficialReadContext(guestEpoch:gate.currentStamp,viewerRevision:compositionViewerRevision,', session)
         self.assertIn('private let accountSessionService: CNAccountSessionService?', session)
         self.assertIn('growthCenterService=GrowthCenterService', session)
     def test_integrated_entry_scope_fixture_and_catalog(self):

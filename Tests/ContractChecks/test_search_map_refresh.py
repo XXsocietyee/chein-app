@@ -47,7 +47,7 @@ class SearchMapRefreshContractTests(unittest.TestCase):
         self.assertIn('readOwner.deactivate(); refresh.cancelPending(); pagination.cancelPending()', self.view)
         self.assertIn('public mutating func invalidate() { self = SearchMapRefresh() }', self.state)
         self.assertIn('if pending?.ticket == ticket { pending = nil }', self.state)
-        start = self.view.split('private func startLoad()', 1)[1].split('private func startRefresh()', 1)[0]
+        start = self.view.split('private func startLoad(', 1)[1].split('private func startRefresh()', 1)[0]
         self.assertIn('reader.selectManualArea(area)', start)
         self.assertIn('invalidate()', start)
 

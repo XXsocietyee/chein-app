@@ -23,6 +23,8 @@ import UIKit
                         if let image = UIImage(data: review.selection.jpeg) {
                             Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel("image.retained.preview")
                         }
+                        Text(verbatim: review.scope.realm)
+                        Text("image.retained.byteCount \(review.selection.jpeg.count)").font(.caption)
                         Button("image.retained.confirmUpload") { Task { await batch.confirmUpload(review) } }
                             .disabled(!batch.current || batch.selecting)
                             .accessibilityIdentifier("image.galleryBatch.confirmUpload")

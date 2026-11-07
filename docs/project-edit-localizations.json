@@ -676,7 +676,7 @@
     "zh-Hans": "在本编辑器中，此票种有效期使用主题日期。关闭后可单独修改票种日期。"
   },
   "projectEdit.syncThemeDatesLegacy": {
-    "en": "An unrecognized saved sync setting is preserved. Date sync cannot be changed.",
-    "zh-Hans": "已保留无法识别的旧版同步设置，暂不能修改日期同步。"
+    "en": "This saved date setting can't be changed here. It's kept as is.",
+    "zh-Hans": "此已保存的日期设置无法在此修改，将原样保留。"
   }
 }

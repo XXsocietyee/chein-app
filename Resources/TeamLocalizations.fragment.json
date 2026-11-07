@@ -959,13 +959,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Copying only places the existing code on this device’s clipboard. It does not send an invitation or create a link."
+            "value": "Copy the code and send it to your teammates"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "复制仅将现有邀请码放入本机剪贴板，不会发送邀请或创建链接。"
+            "value": "复制邀请码后发给队友"
           }
         }
       }

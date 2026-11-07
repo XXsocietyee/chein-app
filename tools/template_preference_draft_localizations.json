@@ -1,15 +1,15 @@
 {
   "templateAuthor.localConfigurationOnly": {
-    "en": "This completion method can be edited and saved only on this device. Remote draft and publishing are unavailable.",
-    "zh-Hans": "此完成方式仅支持本机编辑与保存，不能提交远端草稿或发布。"
+    "en": "This completion method can be saved on this device but can't be published yet.",
+    "zh-Hans": "此完成方式可保存到本机，暂不能发布。"
   },
   "templateAuthor.method.6": {
-    "en": "Preference questionnaire (local)",
-    "zh-Hans": "偏好题组（本地）"
+    "en": "Preference questionnaire",
+    "zh-Hans": "偏好题组"
   },
   "templateAuthor.method.7": {
-    "en": "Sensor challenge (local)",
-    "zh-Hans": "传感器挑战（本地）"
+    "en": "Sensor challenge",
+    "zh-Hans": "传感器挑战"
   },
   "templateAuthor.preference.instructions": {
     "en": "Edit the questionnaire JSON: steps, options and scores, dimensions, tiebreaks, results and tags. You manage the keys; nothing is reordered automatically. Text with errors can still be saved on this device.",

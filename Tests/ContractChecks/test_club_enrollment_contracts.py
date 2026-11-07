@@ -102,7 +102,7 @@ class ClubEnrollmentContractChecks(unittest.TestCase):
     def test_incomplete_background_return_retains_exact_pending_ticket(self):
         ui = self.text('App/ClubEnrollmentView.swift')
         core = self.text('Core/ClubEnrollmentReader.swift')
-        for part in ['navigation.pauseReturnRead(); reader.suspend()', 'func pauseReturnRead() { returnRead = nil }', 'returnRead == ticket, attachment == ticket.attachment, pendingReturn == ticket.request', 'await navigation.refreshReturn(using: reader', 'reader.completedRefreshRevision > completed', 'if navigation.hasPendingReturn { await readReturnedRoster() }']:
+        for part in ['.onDisappear { reader.suspend() }', '.onDisappear { navigation.hide(); navigation.pauseReturnRead() }', 'func pauseReturnRead() { returnRead = nil }', 'returnRead == ticket, attachment == ticket.attachment, pendingReturn == ticket.request', 'await navigation.refreshReturn(using: reader', 'reader.completedRefreshRevision > completed', 'if navigation.hasPendingReturn { await readReturnedRoster() }']:
             self.assertIn(part, ui)
         self.assertIn('guard current(expected, revision), detailFailures.isEmpty else { return }', core)
         self.assertIn('completedRefreshRevision &+= 1', core)

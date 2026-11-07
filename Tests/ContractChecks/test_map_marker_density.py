@@ -16,7 +16,7 @@ class MapMarkerDensityContracts(unittest.TestCase):
         for value in ['let supplied = currentPins', 'expandedSnapshot == snapshot', 'counts[$0.id]?.count == 1', '$0.x.isFinite && $0.y.isFinite']:
             self.assertIn(value, self.ui + self.core)
         host = (ROOT/'App/SearchMapExplorerView.swift').read_text()
-        self.assertIn('.id(MapPresentationIdentity(area: area, scope: reader.scope))', host)
+        self.assertIn('.id(MapPresentationIdentity(area: mapCameraIdentityArea ?? area, scope: reader.scope))', host)
         self.assertIn('gate.accepts(', host)
     def test_cluster_never_selects_arbitrary_business_member(self):
         singleton = self.ui.split('if group.members.count == 1 {', 1)[1].split('else { expand(group) }', 1)[0]

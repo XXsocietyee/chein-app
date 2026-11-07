@@ -29,7 +29,10 @@ class ClubManagementReturnStateChecks(unittest.TestCase):
         self.assertIn('status', detail)
         self.assertIn('access.identity == identity', detail)
         self.assertIn('await refresh()', detail)
-        self.assertIn('.onDisappear { leaveScreen() }', detail)
+        # The root list leaves the screen when it disappears with no pushed detail; the detail itself hides/retires its review.
+        self.assertIn('.onDisappear { if selection == nil { leaveScreen() } }', source)
+        self.assertIn('reviewOwner.hide(presentedAttachment)', detail)
+        self.assertIn('leaveScreen()', detail)
         refresh = source.split('@MainActor private func refresh()')[1].split('@MainActor private func prepare(')[0]
         self.assertIn('access.snapshot(clubID: clubID)', refresh)
         self.assertNotIn('.perform(', refresh)
@@ -61,7 +64,7 @@ class ClubManagementReturnStateChecks(unittest.TestCase):
 
     def test_reentry_does_not_erase_acknowledged_readback_failure(self):
         source = (ROOT / 'App/ClubManagementView.swift').read_text()
-        self.assertIn('screenIdentity != identity || screenRevision != viewerRevision || snapshot == nil && state == .idle', source)
+        self.assertIn('guard screenContext != readContext || snapshot == nil && state == .idle else { return }', source)
         self.assertIn('club.management.readbackUnavailable', source)
 
     def test_authored_runtime_cases_cover_server_outcomes(self):

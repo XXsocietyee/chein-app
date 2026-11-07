@@ -2225,54 +2225,6 @@
         }
       }
     },
-    "merchantGameNode.scan.cameraUnavailable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Camera scanning is not available here. Paste the code content instead."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "此处暂不支持相机扫码，请粘贴提交码内容。"
-          }
-        }
-      }
-    },
-    "merchantGameNode.scan.placeholder": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Paste the scanned submission code"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "粘贴扫码得到的提交码内容"
-          }
-        }
-      }
-    },
-    "merchantGameNode.scan.use": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Use this code"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "使用此提交码"
-          }
-        }
-      }
-    },
     "merchantGameNode.status.ACCEPTED": {
       "localizations": {
         "en": {

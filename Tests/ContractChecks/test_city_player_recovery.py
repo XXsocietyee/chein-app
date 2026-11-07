@@ -33,7 +33,7 @@ class CityPlayerRecoveryContracts(unittest.TestCase):
                        'guard visible, scenePhase == .active, !Task.isCancelled',
                        '.onAppear { visible = true; readRequest = UUID() }',
                        '.onChange(of: scenePhase)', 'selection = nil; reader.cancel(); readRequest = UUID()',
-                       '.onDisappear { visible = false; selection = nil; reader.cancel() }',
+                       '.onDisappear { visible = false; rulesSheet?.flow.cancel(); selection = nil; reader.cancel() }',
                        '.disabled(reader.state == .loading || !visible || scenePhase != .active)']:
             self.assertIn(marker, self.view)
         self.assertNotIn('Task { await reader.load() }', self.view)

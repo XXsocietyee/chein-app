@@ -80,7 +80,7 @@ class SquarePostLocalMediaAppSourceTests(unittest.TestCase):
         for value in ['loadTask?.cancel()', 'selection?.clear()', 'image = nil', 'previewRequest = nil',
                       'selection?.invalidate()', 'pickerRequest = nil', 'previewIsCurrent(request)']:
             self.assertIn(value, s)
-        for value in ['.onDisappear { localMedia.invalidate() }', '.onChange(of: scenePhase)',
+        for value in ['.onDisappear { localMedia.invalidate(); coordinator.clearRevisions() }', '.onChange(of: scenePhase)',
                       '.onChange(of: draft.workflowID)', '.onChange(of: coordinator.session)',
                       'if status == "squareWorkspace.sessionChanged"', 'scope.draftID == draft.workflowID',
                       'scope.lane == lane', 'try coordinator.refreshLocal(); return true']:

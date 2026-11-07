@@ -106,7 +106,7 @@ class MerchantOperatorRosterContracts(unittest.TestCase):
 
     def test_behavioral_negatives_are_authored_separately(self):
         source = self.read('Tests/CoreTests/MerchantOperatorRosterTests.swift')
-        self.assertEqual(len(re.findall(r'    func test\w+\(', source)), 12)
+        self.assertEqual(len(re.findall(r'    func test\w+\(', source)), 15)
         for name in ['testProjectionKeepsOriginalRecordsVersionsAndOrderWithinEachGroup',
                      'testMatchingNumericIDsRemainSeparateMemberAndInvitationIdentities',
                      'testServerStatusIsNotInferredFromOldOrFutureExpiryDates',

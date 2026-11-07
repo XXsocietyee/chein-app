@@ -62,7 +62,8 @@ class MerchantCityQuotaContracts(unittest.TestCase):
         fragment = json.loads(self.read('Resources/MerchantCityQuotaLocalizations.fragment.json'))
         catalog = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         self.assertEqual(len(fragment), 5)
-        self.assertTrue(set(fragment).isdisjoint(catalog))
+        # The additive fragment has since been merged: every key must now live in the catalog with the identical entry.
+        for key, entry in fragment.items(): self.assertEqual(catalog.get(key), entry, key)
         for entry in fragment.values():
             for language in ['en', 'zh-Hans']:
                 self.assertTrue(entry['localizations'][language]['stringUnit']['value'].strip())

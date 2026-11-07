@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Choose one of your personal gameplay drafts and review it before saving it at this exact story position on this device. Up to 1,000 drafts can be listed. This local story feature cannot currently be submitted or published; it does not change the remote template."
+          "value": "Choose one of your play drafts to insert at this point in the story."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "选择本人的玩法草稿，预览后保存到当前故事位置和本机草稿，最多读取1,000条。此故事功能目前只能本地创作，暂不可提交或发布，不会修改远端玩法。"
+          "value": "选择你的一份玩法草稿，插入到故事此处。"
         }
       }
     }
@@ -68,13 +68,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Review local insertion"
+          "value": "Check before inserting"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "预览本机插入内容"
+          "value": "插入前确认"
         }
       }
     }
@@ -116,13 +116,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Insert here and save locally"
+          "value": "Insert here"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "插入此处并保存本机"
+          "value": "插入此处"
         }
       }
     }
@@ -244,13 +244,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Local saving could not be confirmed. Your current story is unchanged. You can retry saving this reviewed insertion."
+          "value": "Couldn't save. Your story is unchanged; try again."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "无法确认本机保存，当前故事未改变。可重试保存此次已预览的插入内容。"
+          "value": "未能保存，故事未改变，请重试。"
         }
       }
     }

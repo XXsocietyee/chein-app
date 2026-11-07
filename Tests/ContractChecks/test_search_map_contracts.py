@@ -16,7 +16,7 @@ class SearchMapSourceChecks(unittest.TestCase):
     def test_configuration_and_captured_auth_scope(self):
         session=self.text('App/AppSession.swift')
         self.assertIn('if let scope, let regional, let configuration=regional.apiConfiguration',session)
-        self.assertIn('searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil',session)
+        self.assertIn('searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap, .publicMapLayers]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil',session)
         self.assertIn('self.currentSearchMapContext == captured',session)
         self.assertIn('storageScope.service + ".search."',session)
     def test_typed_destinations_do_not_open_internal_merchant_console(self):
@@ -76,8 +76,8 @@ class SearchMapSourceChecks(unittest.TestCase):
         self.assertIn('pendingGlobalSearches.remove(at: index).continuation.resume(throwing: CancellationError())',fixture)
         catalog=json.loads(self.text('Resources/Localizable.xcstrings'))['strings']
         text=catalog['searchMap.clientFilters']['localizations']['en']['stringUnit']['value']
-        self.assertIn('Date and price filters apply locally to loaded topics and activities.',text)
-        self.assertIn('Missing dates or prices stay visible.',text)
+        self.assertIn('Date and price filters apply to topics and activities already loaded.',text)
+        self.assertIn('Results without a date or price still appear.',text)
     def test_catalog_matches_fragment_and_has_no_language_based_region(self):
         entries=json.loads(self.text('docs/search-map-localizations.json'));catalog=json.loads(self.text('Resources/Localizable.xcstrings'))['strings']
         for key, values in entries.items():

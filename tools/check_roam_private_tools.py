@@ -73,17 +73,19 @@ check('Production composition supplies no approval',
 check('Private content is never persisted by Core',
       not any(x in src for src in private_sources for x in ['UserDefaults', 'Keychain', 'FileManager', 'write(to:', 'AppStorage']))
 check('Views persist nothing except the temporary share copy',
-      not any(x in v for v in [views, export_view] for x in ['AppStorage', 'UserDefaults']) and '.write(to:' not in views and export_view.count('.write(to:') == 1
-      and 'removeTemporaryFile()' in export_view and '[.atomic, .completeFileProtection]' in export_view)
-check('Share and save stay in the dedicated export file', 'ShareLink(' not in views and export_view.count('ShareLink(') == 1 and '.fileExporter(' in export_view)
+      not any(x in v for v in [views, export_view] for x in ['AppStorage', 'UserDefaults']) and '.write(to:' not in views and export_view.count('.write(to:') == 2
+      and export_view.count('[.atomic, .completeFileProtection]') == 2 and 'rememberTemporary(' in export_view)
+check('Share and save stay in the dedicated export file', 'ShareLink(' not in views and 'UIActivityViewController(' not in views
+      and export_view.count('UIActivityViewController(') == 1 and '.fileExporter(' in export_view)
 check('Capsule bodies only survive for OPEN capsules', 'body: open ? raw.body : nil, photoURL: open ?' in core)
 check('Capsule list strips content even in the fixture', 'var out = row; out["body"] = nil; out["photoUrl"] = nil; return out' in fixture)
 check('Create dispatches only from the confirmation dialog',
       views.count('model.confirmCreate()') == 2 and views.count('.confirmationDialog(') == 4
-      and 'Button("roam.capsule.seal") { model.prepareCreate(' in views and 'Button("roam.goals.create") { model.prepareCreate(' in views)
+      and 'Button("roam.capsule.seal") { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCreate(' in views
+      and 'Button("roam.goals.create") { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCreate(' in views)
 check('Destructive writes are confirmed first',
-      'Button("roam.capsule.delete", role: .destructive) { Task { await model.confirmDelete() } }' in views
-      and 'Button("roam.goals.cancelGoal", role: .destructive) { Task { await model.confirmCancel() } }' in views)
+      'Button("roam.capsule.delete", role: .destructive) { page.settle(write: true, { await model.confirmDelete() }' in views
+      and 'Button("roam.goals.cancelGoal", role: .destructive) { page.settle(write: true, { await model.confirmCancel() }' in views)
 check('Reviewed draft becomes pending before dispatch',
       'tools.pendingCapsule = review; self.review = nil' in coordinators and 'tools.pendingGoal = review; self.review = nil' in coordinators)
 check('Retry resends the pending draft, never a new one',
@@ -91,7 +93,7 @@ check('Retry resends the pending draft, never a new one',
 check('Only a refusal of a never-uncertain attempt releases the pending slot',
       coordinators.count('case .rejected where !uncertain.contains(draft.requestID), .writesDisabled, .invalidDraft:') == 2)
 check('Export file only after the final chunk and never for zero rows',
-      'guard live(), phase == .complete, let file, file.rows > 0, !file.isExpired(now: tools.now) else { return nil }' in coordinators)
+      'guard presentationActive, live(), tools.isConfigured, phase == .complete, let file, file.rows > 0, let deliveryLease else { return nil }' in coordinators)
 check('Source change discards every part', 'parts = []; file = nil; checkpoint = nil; sourceChanged = true; phase = .choosing' in coordinators)
 check('Chunk rows must strictly descend', 'if let last, RoamExportContract.compare(record.recordID, last) >= 0 { throw APIError.malformedResponse }' in export)
 check('Goal projection pins the counting contract',

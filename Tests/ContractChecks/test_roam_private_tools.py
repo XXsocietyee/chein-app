@@ -53,7 +53,7 @@ class RoamPrivateToolsContracts(unittest.TestCase):
 
     def test_create_cannot_dispatch_from_the_form_button(self):
         self.check_mutant('App/RoamPassportPrivateToolsViews.swift',
-                          'Button("roam.capsule.seal") { model.prepareCreate(body: text, unlockDate: unlockDate) }',
+                          'Button("roam.capsule.seal") { guard page.acceptsInput, !page.settlementInFlight else { return }; model.prepareCreate(body: text, unlockDate: unlockDate) }',
                           'Button("roam.capsule.seal") { Task { _ = await model.confirmCreate() } }',
                           'Create dispatches only from the confirmation dialog')
 
@@ -63,7 +63,7 @@ class RoamPrivateToolsContracts(unittest.TestCase):
 
     def test_partial_export_is_never_shareable(self):
         self.check_mutant('Core/RoamPassportPrivateCoordinators.swift',
-                          'guard live(), phase == .complete, let file, file.rows > 0, !file.isExpired(now: tools.now) else { return nil }',
+                          'guard presentationActive, live(), tools.isConfigured, phase == .complete, let file, file.rows > 0, let deliveryLease else { return nil }',
                           'guard let file else { return nil }',
                           'Export file only after the final chunk and never for zero rows')
 

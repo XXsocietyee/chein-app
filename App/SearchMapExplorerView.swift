@@ -419,6 +419,9 @@ import SwiftUI
     @ViewBuilder private var refreshControls: some View {
         if refresh.isLoading {
             ProgressView("mapRefresh.loading").accessibilityIdentifier("mapRefresh.loading")
+            Text("mapRefresh.previousWhileLoading")
+                .font(.footnote).fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("mapRefresh.previousWhileLoading")
         } else {
             Button { startRefresh() } label: {
                 Text(LocalizedStringKey(refresh.hasRetainedResults ? "mapRefresh.retry" : "mapRefresh.refresh"))

@@ -39,13 +39,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "当前草稿不展示主推内容。"
+          "value": "暂无主推"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This draft has no featured content."
+          "value": "No featured item"
         }
       }
     }

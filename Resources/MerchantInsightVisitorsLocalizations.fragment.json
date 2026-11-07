@@ -39,13 +39,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "最近到店摘要暂未取回。"
+          "value": "最近到店玩家暂未取回"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The recent visitor summary is unavailable."
+          "value": "Recent visitors couldn't be loaded"
         }
       }
     }
@@ -56,13 +56,13 @@
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "本次没有返回最近到店记录。"
+          "value": "最近还没有玩家到店"
         }
       },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "No recent visits were returned in this response."
+          "value": "No recent visitors yet"
         }
       }
     }

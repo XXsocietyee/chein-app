@@ -413,7 +413,7 @@ struct RegistrationSheetView: View {
                             .accessibilityIdentifier("registration.waitlist.cancel")
                     }
                 }
-            } header: { Text("registration.waitlist.title") }
+            } header: { Text("registration.waitlist.title") } footer: { Text("registration.waitlist.noAutoPayment") }
         }
     }
     private var quoteSection: some View {

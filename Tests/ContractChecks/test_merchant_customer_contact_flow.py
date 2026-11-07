@@ -27,7 +27,7 @@ class ContactFlowContracts(unittest.TestCase):
  def test_no_sensitive_phone_render_or_storage(self):
   self.assertNotIn('contact.phone',self.flow);self.assertNotIn('UserDefaults',self.flow+self.reader);self.assertNotIn('phone:',self.selection)
  def test_device_grant_required(self):self.assertIn('reader.permitsDevice(.contact(selection.customerID, selection.purpose)',self.flow)
- def test_existing_one_shot_consumption(self):self.assertIn('await coordinator.consumeContact(using: delivery)',self.flow)
+ def test_existing_one_shot_consumption(self):self.assertIn('try await coordinator.consumeContact(using: stage)',self.flow)
  def test_background_and_close_retire(self):self.assertIn('phase != .active { flow.invalidate() }',self.flow);self.assertIn('lease.active = false; coordinator.invalidate()',self.flow)
- def test_real_host_registration(self):self.assertIn('MerchantCustomerContactEntry(owner: model, record: row)',self.host);self.assertIn('.merchantCustomerContactFactory',(R/'App/QuestifyApp.swift').read_text())
+ def test_real_host_registration(self):self.assertIn('MerchantCustomerContactEntry(owner: model, record: row, flow: $customerContactFlow)',self.host);self.assertIn('.merchantCustomerContactFactory',(R/'App/QuestifyApp.swift').read_text())
 if __name__=='__main__':unittest.main()

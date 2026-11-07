@@ -71,6 +71,9 @@ struct TemplateAuthoringSavedResultPreferenceKey: PreferenceKey {
             Text("templateSavedResult.title", tableName: "CreatorSavedResult").font(.title2.bold())
             Text(verbatim: result.title).font(.headline)
             Text("templateSavedResult.detail", tableName: "CreatorSavedResult").multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            LabeledContent { Text(verbatim: String(result.memberTemplateID.rawValue)) } label: {
+                Text("templateSavedResult.identity", tableName: "CreatorSavedResult")
+            }
             Text("templateSavedResult.destination", tableName: "CreatorSavedResult").font(.footnote).foregroundStyle(.secondary)
             Button(action: close) { Text("templateSavedResult.openLibrary", tableName: "CreatorSavedResult").frame(maxWidth: .infinity) }
                 .buttonStyle(.questifyPrimary).accessibilityIdentifier("templateSavedResult.openLibrary")

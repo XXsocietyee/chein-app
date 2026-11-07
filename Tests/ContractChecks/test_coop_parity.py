@@ -20,7 +20,7 @@ class CoopParityTests(unittest.TestCase):
             self.assertNotRegex(source, r'api/', name)
             self.assertNotRegex(source, r'\.perform\(|URLSession|HTTPTransport|requestPayment', name)
         self.assertIn('reader.read(.finance)', self.text('App/CoopFinanceProfitView.swift'))
-        self.assertIn('reader.read(source == .finance ? .finance : .myBusiness)', self.text('App/CoopSettlementDetailView.swift'))
+        self.assertIn('reader.read(source == .finance ? .finance : .myBusiness, isCurrent:', self.text('App/CoopSettlementDetailView.swift'))
 
     def test_withdrawal_stays_offline_support_without_literal_contact(self):
         for name in PAGES:
@@ -29,7 +29,9 @@ class CoopParityTests(unittest.TestCase):
             self.assertNotIn('TextField', source, name)
         self.assertIn('WithdrawalSupportContactView()', self.text('App/CoopWithdrawShellViews.swift'))
         actions = self.text('App/CooperationInviteActionSections.swift')
-        self.assertIn('Button("cooperation.detail.deposit.pay") {}.disabled(true)', actions)
+        # No payment path exists: the owed deposit is informational text, never an enabled (or any) pay button.
+        self.assertIn('Text("cooperation.detail.deposit.owedFooter").foregroundStyle(.secondary)', actions)
+        self.assertNotIn('Button("cooperation.detail.deposit.pay")', actions)
         self.assertNotIn('CoopFlowSessionReader', actions)
         official = self.text('App/CoopListParitySections.swift')
         self.assertIn('CoopFlowRequestPreview(operation: .handle(inviteID: row.id, action: .accept, reason: ""))', official)

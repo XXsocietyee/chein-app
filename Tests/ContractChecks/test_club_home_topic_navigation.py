@@ -19,7 +19,7 @@ class ClubHomeTopicNavigationChecks(unittest.TestCase):
         s=self.read('PlatformConsumerSessionOwner.swift')
         self.assertIn('if session.account == nil',s)
         self.assertIn('TopicIssueView(issue: .unauthorized)',s)
-        self.assertIn('reader: session.topicReader',s)
+        self.assertIn('reader: topicReaderOverride ?? session.topicReader',s)
         self.assertIn('.id(session.contentDetailRevision)',s)
     def test_fixture_is_offline_and_scope_reset_survives(self):
         s=self.read('ClubFixtureSupport.swift')

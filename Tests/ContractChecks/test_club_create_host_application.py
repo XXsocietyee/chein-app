@@ -14,8 +14,8 @@ class ClubCreateHostApplicationContracts(unittest.TestCase):
         view = read('App/ClubOperationsViews.swift')
         self.assertIn('if value.accountRole != "club", let hostApplication {', view)
         self.assertIn('ClubCreateHostApplicationLink(identity: identity, governance: hostApplication)', view)
-        # Without a governance host the honest unavailable copy remains.
-        self.assertIn('Text(value.accountRole != "club" ? "club.ops.leaderRequired" : "club.ops.clubLimit")', view)
+        # The no-permission state keeps distinct leader-required / club-limit copy (mini-program club/create states).
+        self.assertIn('Text(value.accountRole != "club" ? "club.ops.leaderRequired.apply" : "club.ops.clubLimit")', view)
         link = read('App/ClubCreateHostApplicationLink.swift')
         self.assertIn('ClubGovernanceReadView(operation: .hostStatus, scope: .init()', link)
         self.assertNotIn('send(', link)

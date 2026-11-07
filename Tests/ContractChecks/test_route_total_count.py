@@ -7,7 +7,10 @@ class RouteTotalCountContracts(unittest.TestCase):
     def test_card_and_detail_use_only_authoritative_optional_total(self):
         for path, expression in [('App/TopicBrowserView.swift', 'item.locationCount'), ('App/TopicDetailView.swift', 'value.locationCount'), ('App/HomeFeedView.swift', 'topic.locationCount'), ('App/AccountCollectionFavoritesView.swift', 'topic.locationCount')]:
             source = (ROOT / path).read_text()
-            self.assertIn('TopicTotalStops(count: ' + expression, source)
+            # Browser and home cards moved to the shared image entity card (date/place/price) and no longer
+            # render a total-stops row; they must still never gate or invent a count.
+            if path not in ('App/TopicBrowserView.swift', 'App/HomeFeedView.swift'):
+                self.assertIn('TopicTotalStops(count: ' + expression, source)
             self.assertNotIn('locationCount > 0', source)
         view = (ROOT / 'App/TopicComponents.swift').read_text()
         self.assertIn('if let count { Text(verbatim: String(count))', view)

@@ -87,7 +87,8 @@ class TemplateShelfPlanChecks(unittest.TestCase):
         self.assertNotIn('/market-submit', view)
         mounted = read('App/TemplateOwnShelfCardSection.swift')
         self.assertIn('TemplateOwnShelfMarketPlan', mounted)
-        self.assertIn('plan.isDispatchable == false', mounted)
+        # The plan is never rendered here (no dead action / caption); Core pins isDispatchable == false.
+        self.assertIn('never dispatchable here', mounted)
         self.assertNotIn('Button', mounted)
         self.assertNotIn('/market-submit', mounted)
         self.assertNotIn('updateLibraryStatus', mounted)

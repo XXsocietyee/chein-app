@@ -50,11 +50,16 @@ class PrivateHomeSourceTests(unittest.TestCase):
         self.assertIn('guard stored == mutation', value)
     def test_storage_awaits_are_refenced_before_dispatch_or_state(self):
         value = self.text('Core/PrivateHomeCoordinator.swift')
-        for operation in ['let stored = try await journal.read(); try stored?.validate()', 'try await journal.save(review)', 'try await journal.clear(matching: mutation)']:
+        # commandIsCurrent(ticket) is the same ticket/gate guard plus a cancellation check; the journal clear now sits
+        # in clearOriginal and its only caller re-fences immediately after the await.
+        fences = ('guard ticket == generation, gate() else { return }', 'guard commandIsCurrent(ticket) else { return }')
+        for operation in ['let stored = try await journal.read(); try stored?.validate()', 'try await journal.save(review)', 'try await clearOriginal(mutation, journal: journal, ticket: ticket)']:
             tails = value.split(operation)[1:]
             self.assertTrue(tails)
             for tail in tails:
-                self.assertTrue(tail.lstrip().startswith('guard ticket == generation, gate() else { return }'))
+                self.assertTrue(tail.lstrip().startswith(fences))
+        self.assertIn('guard ticket == generation, gate() else { return false }', value)
+        self.assertIn('try await journal.clear(matching: mutation)', value)
     def test_every_dispatch_rechecks_exact_durable_pending_and_keeps_unknown_on_failure(self):
         value = self.text('Core/PrivateHomeCoordinator.swift').split('private func dispatchPending() async {', 1)[1]
         read = value.index('let stored = try await journal.read(); try stored?.validate()')

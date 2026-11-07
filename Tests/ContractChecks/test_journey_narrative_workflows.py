@@ -51,7 +51,7 @@ class JourneyNarrativeNativeContracts(unittest.TestCase):
         self.assertIn('Picker("club.gov.filter", selection: $topicCustomerFilter)', code)
         self.assertIn('if operation == .topicCustomers { options = topicCustomerFilter.options }', code)
         self.assertIn('fields: ["soldCount", "pendingCount", "verifiedCount"]', code)
-        self.assertIn('.onChange(of: filter)', code)
+        self.assertIn('.onChange(of: topicCustomerFilter) { _, _ in Task { await load() } }', code)
         contracts = (ROOT/'Core/ClubGovernanceContracts.swift').read_text()
         self.assertIn('case all = "", pending, contacted, verified', contracts)
 

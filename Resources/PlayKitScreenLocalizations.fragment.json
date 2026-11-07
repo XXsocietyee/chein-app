@@ -3809,6 +3809,23 @@
           }
         }
       }
+    },
+    "playkit.submitQuestion": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit this answer?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提交这个答案？"
+          }
+        }
+      }
     }
   }
 }

@@ -1617,54 +1617,6 @@
         }
       }
     },
-    "storeCharacter.voice.play": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play recording"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "试听录音"
-          }
-        }
-      }
-    },
-    "storeCharacter.voice.playOriginal": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Play original recording"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "试听原录音"
-          }
-        }
-      }
-    },
-    "storeCharacter.voice.playbackUnavailable": {
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Playback isn't available right now."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "试听暂不可用。"
-          }
-        }
-      }
-    },
     "storeCharacter.voice.progress": {
       "localizations": {
         "en": {

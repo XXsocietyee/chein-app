@@ -26,6 +26,7 @@ class NodeDurationSourceTests(unittest.TestCase):
         self.assertIn('guard (0...maximumMinutes).contains(minutes)',self.core)
     def test_ordinary_node_entry_only(self):
         self.assertIn('''if allowsGameplayRemoval ?? (chapterOverride == nil && starterLease == nil) {
+                ProjectNodePlacePickerEntry(model: model, chapterID: chapterID, nodeID: nodeID)
                 ProjectNodeDurationField''',self.form)
         self.assertEqual(self.form.count('ProjectNodeDurationField('),1)
     def test_current_owner_aba_incarnation_and_controller_fences(self):
