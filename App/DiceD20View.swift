@@ -8,22 +8,38 @@ import QuestifyCore
 @available(macOS 14.0, *)
 @MainActor struct DiceD20CanvasView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let values: [Int]
     let kept: Int?
     let rollMode: String // "normal" | "advantage" | "disadvantage"
     let rolling: Bool
+    /// When set (and Reduce Motion is off) the die tumbles while `rolling` and eases onto the rolled face afterwards.
+    /// Left nil, the canvas draws one still frame, exactly as before.
+    var animationStart: Date? = nil
 
     var body: some View {
         let count = (rollMode == "normal") ? 1 : 2
-        let state = makeRendererState(count: count)
-        Canvas { context, size in
-            for item in state.lastRenderItems {
-                drawDie(context: context, size: size, item: item)
+        Group {
+            if let start = animationStart, !reduceMotion {
+                TimelineView(.animation(minimumInterval: 1.0 / 30.0, paused: !rolling && Date().timeIntervalSince(start) > 2.2)) { timeline in
+                    canvas(count: count, elapsedMs: max(0, timeline.date.timeIntervalSince(start) * 1000.0))
+                }
+            } else {
+                canvas(count: count, elapsedMs: nil)
             }
         }
         .frame(height: 150)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
+    }
+
+    private func canvas(count: Int, elapsedMs: Double?) -> some View {
+        let state = makeRendererState(count: count, elapsedMs: elapsedMs)
+        return Canvas { context, size in
+            for item in state.lastRenderItems {
+                drawDie(context: context, size: size, item: item)
+            }
+        }
     }
 
     private var accessibilitySummary: String {
@@ -34,15 +50,20 @@ import QuestifyCore
         return String(localized: LocalizedStringResource("playx.dice.a11y.idle", defaultValue: "D20 ready to roll", locale: locale))
     }
 
-    private func makeRendererState(count: Int) -> DiceD20RendererState {
+    private func makeRendererState(count: Int, elapsedMs: Double?) -> DiceD20RendererState {
         let renderer = DiceD20RendererState(width: 280, height: 150, count: count)
         if rolling {
-            renderer.roll(reducedMotion: false, nowMs: 250)
-            renderer.step(nowMs: 500)
+            renderer.roll(reducedMotion: false, nowMs: 0)
+            renderer.step(nowMs: elapsedMs ?? 250)
         } else if !values.isEmpty, let kept {
             let safeValues = values.map { max(1, min(20, $0)) }
             let safeKept = max(1, min(20, kept))
-            _ = try? renderer.settle(values: safeValues, kept: safeKept, immediate: true)
+            if let elapsedMs {
+                _ = try? renderer.settle(values: safeValues, kept: safeKept, immediate: false, nowMs: 0)
+                renderer.step(nowMs: elapsedMs)
+            } else {
+                _ = try? renderer.settle(values: safeValues, kept: safeKept, immediate: true)
+            }
         }
         return renderer
     }
@@ -109,49 +130,54 @@ import QuestifyCore
         let natTag = DiceJourneyCheckRules.natTag(receipt)
         let margin = DiceJourneyCheckRules.marginText(receipt)
         let pct = DiceJourneyCheckRules.trackPct(receipt.kept)
+        let isCrit = receipt.nat == "CRIT"
 
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(spacing: CYSpacing.sm) {
                 if !natTag.isEmpty {
                     Text(natTag)
-                        .font(.caption.weight(.bold))
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(receipt.nat == "CRIT" ? Color.yellow.opacity(0.25) : Color.red.opacity(0.2), in: Capsule())
+                        .font(CYTypography.caption)
+                        .foregroundStyle(isCrit ? CYColor.warningText : CYColor.dangerText)
+                        .padding(.horizontal, CYSpacing.sm)
+                        .padding(.vertical, CYSpacing.xs)
+                        .background(isCrit ? CYColor.warningSoft : CYColor.dangerSoft, in: Capsule())
                 }
                 if !margin.isEmpty {
                     Text(margin)
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(receipt.success == true ? .green : .secondary)
+                        .font(CYTypography.label)
+                        .foregroundStyle(receipt.success == true ? CYColor.successText : CYColor.textSecondary)
                 }
                 Spacer()
                 if let dc = receipt.dc, !receipt.detailsHidden {
                     Text("DC \(dc)")
-                        .font(.caption.monospacedDigit())
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.numericBody)
+                        .foregroundStyle(CYColor.textTertiary)
                 }
             }
 
             if !receipt.detailsHidden, receipt.kept != nil {
                 ProgressView(value: pct, total: 100)
-                    .tint(receipt.nat == "CRIT" ? .yellow : (receipt.success == true ? .green : .orange))
+                    .tint(isCrit ? CYColor.warningText : (receipt.success == true ? CYColor.successText : CYColor.accentWarm))
+                    .accessibilityHidden(true)
             }
 
             if !receipt.breakdownRows.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     ForEach(Array(receipt.breakdownRows.enumerated()), id: \.offset) { _, row in
                         HStack {
                             Text(row.label)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textTertiary)
                             Spacer()
                             Text(row.value)
-                                .font(.caption.monospacedDigit().weight(.medium))
+                                .font(CYTypography.numericBody)
+                                .foregroundStyle(CYColor.textPrimary)
                         }
+                        .accessibilityElement(children: .combine)
                     }
                 }
-                .padding(8)
-                .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                .padding(CYSpacing.sm)
+                .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
             }
         }
     }
