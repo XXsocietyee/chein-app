@@ -4,6 +4,7 @@ import SwiftUI
 /// Reopening / foreground reads current authority and the original receipt, never auto-submits.
 @MainActor struct NativeClubNotificationDefaultView: View {
     @Environment(\.scenePhase) private var phase
+    @Environment(\.locale) private var locale
     let makeFlow: () -> NativeChannelNotificationCoordinator?
     let sourceCurrent: () -> Bool
     @State private var model: NativeChannelNotificationCoordinator?
@@ -17,50 +18,53 @@ import SwiftUI
         let level: NativeChannelNotificationLevel
     }
     @Environment(\.themeDomain) private var domain
+    private func copy(_ zh: String, _ en: String) -> String { locale.pick(zh, en) }
     var body: some View {
         Form {
             if sourceCurrent(), let model, model.isCurrent {
                 if let row = model.clubDefault {
-                    Section("俱乐部共同默认，不是我的个人设置") {
-                        Text(row.level == .all ? "当前：所有消息" : "当前：仅提及我")
-                        Text(row.configured ? "原政策版本 \(row.version)" : "尚未设置，使用正式默认：仅提及我")
-                        Picker("共同默认", selection: $selection) {
-                            Text("所有消息").tag(NativeChannelNotificationLevel.all)
-                            Text("仅提及我").tag(NativeChannelNotificationLevel.mentions)
+                    Section(copy("俱乐部共同默认，不是我的个人设置", "Club shared default, not your personal setting")) {
+                        Text(row.level == .all ? copy("当前：所有消息", "Current: All messages") : copy("当前：仅提及我", "Current: Only @mentions"))
+                        Text(row.configured ? copy("原政策版本 \(row.version)", "Policy version \(row.version)") : copy("尚未设置，使用正式默认：仅提及我", "Not configured; using default: Only @mentions"))
+                        Picker(copy("共同默认", "Shared default"), selection: $selection) {
+                            Text(copy("所有消息", "All messages")).tag(NativeChannelNotificationLevel.all)
+                            Text(copy("仅提及我", "Only @mentions")).tag(NativeChannelNotificationLevel.mentions)
                         }.disabled(!model.canSaveClubDefault)
-                        Button("核对并保存") {
+                        Button(copy("核对并保存", "Review and save")) {
                             review = Review(club: row.clubID, version: row.version, level: selection)
                         }.disabled(!model.canSaveClubDefault)
-                        Text("只在成员自己的频道、分类和俱乐部偏好继承时使用；不会取消任何人的静音、免打扰或系统权限。")
+                        Text(copy("只在成员自己的频道、分类和俱乐部偏好继承时使用；不会取消任何人的静音、免打扰或系统权限。", "Used only when a member inherits channel, category, and club preferences; never overrides personal mutes, DND, or system permissions."))
                             .font(Theme.Font.label)
                     }
                 }
-                Section("原请求与当前状态") {
-                    if model.isBusy { ProgressView("正在读取原服务") }
+                Section(copy("原请求与当前状态", "Original request & current status")) {
+                    if model.isBusy { ProgressView(copy("正在读取原服务", "Reading service state")) }
                     if let request = model.pendingRequestID {
-                        Text("原请求：" + request).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
-                        Text("结果未确定时只回读原请求，不重发，也不会另建请求覆盖它。")
+                        Text(copy("原请求：", "Original request: ") + request).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
+                        Text(copy("结果未确定时只回读原请求，不重发，也不会另建请求覆盖它。", "While the outcome is pending, only the original request is read back; it is not resent or overwritten."))
                     }
                     if let rejected = model.sharedDefaultRejection {
-                        Text(rejected == "CLUB_DEFAULT_VERSION_EXHAUSTED" ? "原请求未写入：政策版本已不可递增。" : "原请求已明确拒绝；不会自动重试。请核对最新政策后重新确认。")
+                        Text(rejected == "CLUB_DEFAULT_VERSION_EXHAUSTED"
+                            ? copy("原请求未写入：政策版本已不可递增。", "Original request not applied: policy version cannot be incremented.")
+                            : copy("原请求已明确拒绝；不会自动重试。请核对最新政策后重新确认。", "Original request was rejected and will not auto-retry. Please review the latest policy and confirm again."))
                     }
                     Text(status(model.state)).fixedSize(horizontal: false, vertical: true)
-                    Button(model.pendingRequestID == nil ? "重新读取当前政策" : "回读原请求") {
+                    Button(model.pendingRequestID == nil ? copy("重新读取当前政策", "Reload current policy") : copy("回读原请求", "Read back original request")) {
                         review = nil
                         Task { await model.refresh() }
                     }.disabled(model.isBusy || (model.pendingRequestID != nil && !model.canCheckReceipt))
                 }
             } else if attempted {
-                ContentUnavailableView("共同默认当前不可用", systemImage: "bell.slash",
-                    description: Text("需要原俱乐部管理权限及独立通知操作授权；本页不会授予权限。"))
-            } else { ProgressView("正在读取原权限") }
+                ContentUnavailableView(copy("共同默认当前不可用", "Shared default unavailable"), systemImage: "bell.slash",
+                    description: Text(copy("需要原俱乐部管理权限及独立通知操作授权；本页不会授予权限。", "Requires club management permission and notification operation grant; this page does not grant permissions.")))
+            } else { ProgressView(copy("正在读取原权限", "Reading permissions")) }
         }
         .font(Theme.Font.body)
         .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page", in: domain) != nil ? .hidden : .automatic)
         .background {
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
         }
-        .navigationTitle("俱乐部共同通知默认").privacySensitive()
+        .navigationTitle(copy("俱乐部共同通知默认", "Club Shared Notification Default")).privacySensitive()
         .task { await reopen() }
         .onChange(of: phase) { _, value in
             if value == .active { Task { await reopen() } } else { clear() }
@@ -72,16 +76,16 @@ import SwiftUI
         .onDisappear { clear() }
         .sheet(item: $review) { item in
             VStack(spacing: 18) {
-                Text("修改所有继承此政策的俱乐部频道默认通知").font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
-                Text(item.level == .all ? "所有消息" : "仅提及我")
-                Text("基于原版本 \(item.version)，不修改成员自己的偏好。")
-                Button("确认保存共同默认") {
+                Text(copy("修改所有继承此政策的俱乐部频道默认通知", "Update default notifications for all club channels inheriting this policy")).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                Text(item.level == .all ? copy("所有消息", "All messages") : copy("仅提及我", "Only @mentions"))
+                Text(copy("基于原版本 \(item.version)，不修改成员自己的偏好。", "Based on version \(item.version); does not modify members' personal preferences."))
+                Button(copy("确认保存共同默认", "Confirm saving shared default")) {
                     guard sourceCurrent(), let model, model.canSaveClubDefault,
                           model.clubDefault?.clubID == item.club, model.clubDefault?.version == item.version else { review = nil; return }
                     review = nil
                     Task { await model.saveClubDefault(level: item.level, expectedVersion: item.version) }
                 }
-                Button("取消", role: .cancel) { review = nil }
+                Button(copy("取消", "Cancel"), role: .cancel) { review = nil }
             }.padding().privacySensitive()
         }
     }
@@ -96,13 +100,13 @@ import SwiftUI
     }
     private func status(_ state: NativeChannelNotificationState) -> String {
         switch state {
-        case .applied: return "原请求已写入；展示来自重新读取的当前政策。"
-        case .appliedRedacted: return "原请求已完成，当前已无权读取结果内容。"
-        case .pending, .outcomeUnknown: return "原请求结果待核对，未认定成功或失败。"
-        case .persistenceFailed: return "原请求存储不可确认；已停止提交。"
-        case .accessClosed: return "原权限已关闭，当前政策已清除。"
-        case .refreshFailed, .failed: return "当前状态读取未完成，不使用旧政策代替。"
-        default: return "仅使用当前原服务及原请求回执。"
+        case .applied: return copy("原请求已写入；展示来自重新读取的当前政策。", "Original request applied; displaying the freshly reloaded policy.")
+        case .appliedRedacted: return copy("原请求已完成，当前已无权读取结果内容。", "Original request completed; you no longer have permission to read the result.")
+        case .pending, .outcomeUnknown: return copy("原请求结果待核对，未认定成功或失败。", "Original request outcome pending verification; neither confirmed nor failed.")
+        case .persistenceFailed: return copy("原请求存储不可确认；已停止提交。", "Original request persistence could not be verified; submission stopped.")
+        case .accessClosed: return copy("原权限已关闭，当前政策已清除。", "Permission closed; current policy cleared.")
+        case .refreshFailed, .failed: return copy("当前状态读取未完成，不使用旧政策代替。", "Current status read incomplete; stale policy is not shown.")
+        default: return copy("仅使用当前原服务及原请求回执。", "Uses only the live service and original request receipt.")
         }
     }
 }

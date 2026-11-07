@@ -29,6 +29,8 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     public let joinPolicySupported: Bool
     /// Nil is unknown/absent, not pending. Unknown numeric states are retained.
     public let myJoinStatus: Int?
+    /// Optional rejection reason returned when `myJoinStatus == 2` (`pages/club/detail/index.wxml`).
+    public let myJoinReviewReason: String?
     public let welcomeNote: String?
     public let memberPostAllowed: Bool?
     public let prioritySignupEnabled: Bool?
@@ -41,7 +43,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     enum CodingKeys: String, CodingKey {
         case id, name, logo, cover, description, clubTypes, clubType, address, city, style
         case leaderName, keywords, activityPrefs, memberCount, isJoined, isOwner, viewerIsAdmin
-        case level, joinPolicy, joinPolicySupported, myJoinStatus, viewerIdentityUnavailable
+        case level, joinPolicy, joinPolicySupported, myJoinStatus, myJoinReviewReason, viewerIdentityUnavailable
         case welcomeNote, memberPostAllowed, prioritySignupEnabled
     }
     public init(from decoder: Decoder) throws {
@@ -75,6 +77,9 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         joinPolicy = explicitJoinPolicy == 1 ? 1 : 0
         joinPolicySupported = try c.decodeIfPresent(Bool.self, forKey: .joinPolicySupported) ?? false
         myJoinStatus = try c.decodeIfPresent(Int.self, forKey: .myJoinStatus)
+        let rawReviewReason = try c.decodeIfPresent(String.self, forKey: .myJoinReviewReason)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        myJoinReviewReason = (rawReviewReason?.isEmpty == false) ? rawReviewReason : nil
         welcomeNote = try c.decodeIfPresent(String.self, forKey: .welcomeNote)
         func setting(_ key: CodingKeys) throws -> Bool? {
             guard let value = try c.decodeIfPresent(Int.self, forKey: key), [0, 1].contains(value) else { return nil }

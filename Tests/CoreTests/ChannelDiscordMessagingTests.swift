@@ -572,7 +572,23 @@ final class ChannelDiscordMessagingTests: XCTestCase {
         XCTAssertEqual(ChannelMemberRoleTier.owner.sectionTitle(locale: en), "Owner")
         XCTAssertEqual(ChannelMemberRoleTier.owner.sectionTitle(locale: zh), ChannelMemberRoleTier.owner.sectionTitle)
         XCTAssertEqual(filter.evaluate(message: hidden.wireMessage).displayText, "x")
-        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today("08:30"), locale: en), "Today 08:30")
-        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today("08:30")), "今天 08:30")
+        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30"), locale: en), "Today 08:30")
+        XCTAssertEqual(ChannelMessageBurstGrouper.formatDivider(.today(clock: "08:30")), "今天 08:30")
+    }
+
+    func testClubRecordDecodesMyJoinReviewReasonAndTrimsBlank() throws {
+        let rejectedJSON = Data("""
+        {"id": 42, "name": "夜行探索社", "myJoinStatus": 2, "myJoinReviewReason": "  请补充真实常住城市与探险经历  "}
+        """.utf8)
+        let rejected = try JSONDecoder().decode(ClubRecord.self, from: rejectedJSON)
+        XCTAssertEqual(rejected.myJoinStatus, 2)
+        XCTAssertEqual(rejected.myJoinReviewReason, "请补充真实常住城市与探险经历")
+
+        let blankJSON = Data("""
+        {"id": 43, "name": "夜行探索社", "myJoinStatus": 2, "myJoinReviewReason": "   "}
+        """.utf8)
+        let blank = try JSONDecoder().decode(ClubRecord.self, from: blankJSON)
+        XCTAssertEqual(blank.myJoinStatus, 2)
+        XCTAssertNil(blank.myJoinReviewReason)
     }
 }

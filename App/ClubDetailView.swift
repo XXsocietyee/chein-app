@@ -65,7 +65,15 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
                         else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
                         else if club.joinPending { Label("club.membership.pending", systemImage: "clock") }
-                        else if club.myJoinStatus == 2 { Label("club.membership.rejected", systemImage: "xmark.circle") }
+                        else if club.myJoinStatus == 2 {
+                            Label("club.membership.rejected", systemImage: "xmark.circle")
+                            if let reason = club.myJoinReviewReason {
+                                Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.dangerText)
+                                    .accessibilityIdentifier("club.membership.rejectedReason")
+                            }
+                        }
                         if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
                     }
                 }
@@ -81,6 +89,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     Section {
                         NavigationLink { SessionClubChatView(clubID: id, session: session) } label: { Label("club.chat.title", systemImage: "person.3") }
                             .accessibilityIdentifier("club.chat.entry")
+                        NavigationLink {
+                            ClubChannelMessagingHostView(club: club, reader: reader, manageGrant: manageGrant, onSignIn: onSignIn)
+                        } label: {
+                            Label(locale.pick("俱乐部频道", "Club Channels"), systemImage: "number.square")
+                        }
+                        .accessibilityIdentifier("club.channels.discordEntry")
                         NativeChannelManagementClubEntry(club: club, session: session)
                     }
                 }
