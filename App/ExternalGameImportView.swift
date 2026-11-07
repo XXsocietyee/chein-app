@@ -9,6 +9,7 @@ import WebKit
 
 @available(macOS 14.0, *)
 @MainActor struct ExternalGameLibrarySection: View {
+    @Environment(\.locale) private var locale
     @Bindable var store: ExternalGameStore
     @State private var showingImportSheet = false
     @State private var showingFileImporter = false
@@ -18,7 +19,7 @@ import WebKit
         VStack(alignment: .leading, spacing: 10) {
             HStack {
                 Label(
-                    String(localized: "playx.externalGame.sectionTitle", defaultValue: "扩展小游戏库（沙盒）"),
+                    String(localized: LocalizedStringResource("playx.externalGame.sectionTitle", defaultValue: "扩展小游戏库（沙盒）", locale: locale)),
                     systemImage: "puzzlepiece.extension"
                 )
                 .font(.subheadline.weight(.semibold))
@@ -27,15 +28,15 @@ import WebKit
                     Button {
                         showingImportSheet = true
                     } label: {
-                        Label(String(localized: "playx.externalGame.importUrlOrQr", defaultValue: "链接 / 扫码导入"), systemImage: "qrcode.viewfinder")
+                        Label(String(localized: LocalizedStringResource("playx.externalGame.importUrlOrQr", defaultValue: "链接 / 扫码导入", locale: locale)), systemImage: "qrcode.viewfinder")
                     }
                     Button {
                         showingFileImporter = true
                     } label: {
-                        Label(String(localized: "playx.externalGame.importFile", defaultValue: "从文件导入 (.json)"), systemImage: "folder")
+                        Label(String(localized: LocalizedStringResource("playx.externalGame.importFile", defaultValue: "从文件导入 (.json)", locale: locale)), systemImage: "folder")
                     }
                 } label: {
-                    Label(String(localized: "playx.externalGame.importAction", defaultValue: "导入游戏"), systemImage: "square.and.arrow.down")
+                    Label(String(localized: LocalizedStringResource("playx.externalGame.importAction", defaultValue: "导入游戏", locale: locale)), systemImage: "square.and.arrow.down")
                         .font(.caption.weight(.semibold))
                 }
                 .buttonStyle(.bordered)
@@ -49,7 +50,7 @@ import WebKit
             }
 
             if store.installedGames.isEmpty {
-                Text(String(localized: "playx.externalGame.emptyHint", defaultValue: "支持通过 HTTPS 链接、二维码或文件导入带签名清单的 HTML5 互动包，仅在受限沙盒中运行。"))
+                Text(String(localized: LocalizedStringResource("playx.externalGame.emptyHint", defaultValue: "支持通过 HTTPS 链接、二维码或文件导入带签名清单的 HTML5 互动包，仅在受限沙盒中运行。", locale: locale)))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             } else {
@@ -74,7 +75,7 @@ import WebKit
                                     .foregroundStyle(.secondary)
                             }
                             Spacer()
-                            Button(String(localized: "playx.externalGame.launch", defaultValue: "运行")) {
+                            Button(String(localized: LocalizedStringResource("playx.externalGame.launch", defaultValue: "运行", locale: locale))) {
                                 store.activeLaunchingGame = game
                             }
                             .buttonStyle(.borderedProminent)
@@ -87,7 +88,7 @@ import WebKit
                             }
                             .buttonStyle(.bordered)
                             .controlSize(.small)
-                            .accessibilityLabel(String(localized: "playx.externalGame.remove", defaultValue: "移除游戏"))
+                            .accessibilityLabel(String(localized: LocalizedStringResource("playx.externalGame.remove", defaultValue: "移除游戏", locale: locale)))
                         }
                     }
                     .padding(10)
@@ -143,6 +144,7 @@ import WebKit
 
 @available(macOS 14.0, *)
 @MainActor private struct ExternalGameImportInputSheet: View {
+    @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     let store: ExternalGameStore
     let onError: (String) -> Void
@@ -154,19 +156,19 @@ import WebKit
     var body: some View {
         NavigationStack {
             Form {
-                Picker(String(localized: "playx.externalGame.importMethod", defaultValue: "导入方式"), selection: $mode) {
-                    Text(String(localized: "playx.externalGame.byUrl", defaultValue: "HTTPS 链接")).tag("url")
-                    Text(String(localized: "playx.externalGame.byQr", defaultValue: "二维码内容")).tag("qr")
+                Picker(String(localized: LocalizedStringResource("playx.externalGame.importMethod", defaultValue: "导入方式", locale: locale)), selection: $mode) {
+                    Text(String(localized: LocalizedStringResource("playx.externalGame.byUrl", defaultValue: "HTTPS 链接", locale: locale))).tag("url")
+                    Text(String(localized: LocalizedStringResource("playx.externalGame.byQr", defaultValue: "二维码内容", locale: locale))).tag("qr")
                 }
                 .pickerStyle(.segmented)
 
                 if mode == "url" {
-                    Section(String(localized: "playx.externalGame.urlSection", defaultValue: "游戏包 HTTPS 地址")) {
+                    Section(String(localized: LocalizedStringResource("playx.externalGame.urlSection", defaultValue: "游戏包 HTTPS 地址", locale: locale))) {
                         TextField("https://example.com/game.json", text: $urlInput)
                             .autocorrectionDisabled()
                     }
                 } else {
-                    Section(String(localized: "playx.externalGame.qrSection", defaultValue: "扫码识别出的安全链接")) {
+                    Section(String(localized: LocalizedStringResource("playx.externalGame.qrSection", defaultValue: "扫码识别出的安全链接", locale: locale))) {
                         TextField("https://example.com/game.json", text: $qrInput)
                             .autocorrectionDisabled()
                     }
@@ -181,15 +183,15 @@ import WebKit
                 }
 
                 Section {
-                    Button(String(localized: "playx.externalGame.verifyManifest", defaultValue: "校验签名清单并预览权限")) {
+                    Button(String(localized: LocalizedStringResource("playx.externalGame.verifyManifest", defaultValue: "校验签名清单并预览权限", locale: locale))) {
                         verifyAndStage()
                     }
                 }
             }
-            .navigationTitle(String(localized: "playx.externalGame.importTitle", defaultValue: "导入外部游戏"))
+            .navigationTitle(String(localized: LocalizedStringResource("playx.externalGame.importTitle", defaultValue: "导入外部游戏", locale: locale)))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "common.cancel", defaultValue: "取消")) { dismiss() }
+                    Button(String(localized: LocalizedStringResource("common.cancel", defaultValue: "取消", locale: locale))) { dismiss() }
                 }
             }
         }
@@ -217,6 +219,7 @@ import WebKit
 
 @available(macOS 14.0, *)
 @MainActor struct ExternalGamePermissionConfirmationSheet: View {
+    @Environment(\.locale) private var locale
     let confirmation: ExternalGamePendingConfirmation
     let onConfirm: () -> Void
     let onCancel: () -> Void
@@ -224,24 +227,24 @@ import WebKit
     var body: some View {
         NavigationStack {
             List {
-                Section(String(localized: "playx.externalGame.confirmPackage", defaultValue: "游戏包来源与签名核验")) {
-                    LabeledContent(String(localized: "playx.externalGame.name", defaultValue: "名称"), value: confirmation.archive.manifest.name)
+                Section(String(localized: LocalizedStringResource("playx.externalGame.confirmPackage", defaultValue: "游戏包来源与签名核验", locale: locale))) {
+                    LabeledContent(String(localized: LocalizedStringResource("playx.externalGame.name", defaultValue: "名称", locale: locale)), value: confirmation.archive.manifest.name)
                     LabeledContent("ID", value: confirmation.archive.manifest.id)
-                    LabeledContent(String(localized: "playx.externalGame.version", defaultValue: "版本")) {
+                    LabeledContent(String(localized: LocalizedStringResource("playx.externalGame.version", defaultValue: "版本", locale: locale))) {
                         if confirmation.isUpdate, let prev = confirmation.previousVersion {
                             Text("\(prev) → \(confirmation.archive.manifest.version)")
                         } else {
                             Text(confirmation.archive.manifest.version)
                         }
                     }
-                    LabeledContent(String(localized: "playx.externalGame.rating", defaultValue: "内容分级"), value: confirmation.archive.manifest.contentRating)
-                    LabeledContent(String(localized: "playx.externalGame.source", defaultValue: "导入来源"), value: confirmation.source.displayOrigin)
+                    LabeledContent(String(localized: LocalizedStringResource("playx.externalGame.rating", defaultValue: "内容分级", locale: locale)), value: confirmation.archive.manifest.contentRating)
+                    LabeledContent(String(localized: LocalizedStringResource("playx.externalGame.source", defaultValue: "导入来源", locale: locale)), value: confirmation.source.displayOrigin)
                     LabeledContent("SHA-256", value: confirmation.sha256Fingerprint + "…")
                 }
 
-                Section(String(localized: "playx.externalGame.permissionsSection", defaultValue: "申请的沙盒权限")) {
+                Section(String(localized: LocalizedStringResource("playx.externalGame.permissionsSection", defaultValue: "申请的沙盒权限", locale: locale))) {
                     if confirmation.permissionsList.isEmpty {
-                        Text(String(localized: "playx.externalGame.noPermissions", defaultValue: "无额外权限（纯离线静态互动）"))
+                        Text(String(localized: LocalizedStringResource("playx.externalGame.noPermissions", defaultValue: "无额外权限（纯离线静态互动）", locale: locale)))
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(confirmation.permissionsList, id: \.rawValue) { perm in
@@ -250,9 +253,9 @@ import WebKit
                     }
                 }
 
-                Section(String(localized: "playx.externalGame.domainsSection", defaultValue: "允许访问的 HTTPS 域名白名单")) {
+                Section(String(localized: LocalizedStringResource("playx.externalGame.domainsSection", defaultValue: "允许访问的 HTTPS 域名白名单", locale: locale))) {
                     if confirmation.archive.manifest.allowedDomains.isEmpty {
-                        Text(String(localized: "playx.externalGame.noExternalNetwork", defaultValue: "完全离线（禁止任何外部网络请求）"))
+                        Text(String(localized: LocalizedStringResource("playx.externalGame.noExternalNetwork", defaultValue: "完全离线（禁止任何外部网络请求）", locale: locale)))
                             .foregroundStyle(.secondary)
                     } else {
                         ForEach(confirmation.archive.manifest.allowedDomains, id: \.self) { domain in
@@ -262,22 +265,22 @@ import WebKit
                 }
 
                 Section {
-                    Text(String(localized: "playx.externalGame.securityNotice", defaultValue: "安全承诺：该内容仅在隔离的 WKWebView 沙盒内运行，不共享登录凭据，禁止任何应用内购买或外部支付，且仅开放受版本控制的只读/存档桥接接口。"))
+                    Text(String(localized: LocalizedStringResource("playx.externalGame.securityNotice", defaultValue: "安全承诺：该内容仅在隔离的 WKWebView 沙盒内运行，不共享登录凭据，禁止任何应用内购买或外部支付，且仅开放受版本控制的只读/存档桥接接口。", locale: locale)))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
             }
             .navigationTitle(confirmation.isUpdate
-                ? String(localized: "playx.externalGame.confirmUpdateTitle", defaultValue: "确认更新外部游戏")
-                : String(localized: "playx.externalGame.confirmInstallTitle", defaultValue: "确认导入外部游戏"))
+                ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdateTitle", defaultValue: "确认更新外部游戏", locale: locale))
+                : String(localized: LocalizedStringResource("playx.externalGame.confirmInstallTitle", defaultValue: "确认导入外部游戏", locale: locale)))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "common.cancel", defaultValue: "取消"), action: onCancel)
+                    Button(String(localized: LocalizedStringResource("common.cancel", defaultValue: "取消", locale: locale)), action: onCancel)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(confirmation.isUpdate
-                        ? String(localized: "playx.externalGame.confirmUpdate", defaultValue: "确认更新")
-                        : String(localized: "playx.externalGame.confirmInstall", defaultValue: "确认安装"),
+                        ? String(localized: LocalizedStringResource("playx.externalGame.confirmUpdate", defaultValue: "确认更新", locale: locale))
+                        : String(localized: LocalizedStringResource("playx.externalGame.confirmInstall", defaultValue: "确认安装", locale: locale)),
                         action: onConfirm)
                 }
             }
@@ -287,6 +290,7 @@ import WebKit
 
 @available(macOS 14.0, *)
 @MainActor private struct ExternalGameRunnerSheet: View {
+    @Environment(\.locale) private var locale
     let store: ExternalGameStore
     let game: InstalledExternalGame
 
@@ -317,13 +321,13 @@ import WebKit
                     )
                 } else {
                     ContentUnavailableView(
-                        String(localized: "playx.externalGame.entryBlocked", defaultValue: "入口文件未通过沙盒校验"),
+                        String(localized: LocalizedStringResource("playx.externalGame.entryBlocked", defaultValue: "入口文件未通过沙盒校验", locale: locale)),
                         systemImage: "exclamationmark.shield"
                     )
                 }
                 #else
                 ContentUnavailableView(
-                    String(localized: "playx.externalGame.webKitUnavailable", defaultValue: "当前环境不支持 WebKit 沙盒视图"),
+                    String(localized: LocalizedStringResource("playx.externalGame.webKitUnavailable", defaultValue: "当前环境不支持 WebKit 沙盒视图", locale: locale)),
                     systemImage: "safari"
                 )
                 #endif
@@ -331,7 +335,7 @@ import WebKit
             .navigationTitle(game.manifest.name)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button(String(localized: "common.close", defaultValue: "关闭")) {
+                    Button(String(localized: LocalizedStringResource("common.close", defaultValue: "关闭", locale: locale))) {
                         store.activeLaunchingGame = nil
                     }
                 }

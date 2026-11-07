@@ -30,7 +30,7 @@ import QuestifyCore
         // Conditions Section
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(String(localized: "storyRule.conditionsTitle", defaultValue: "触发条件"))
+                Text("storyRule.conditionsTitle")
                     .font(.subheadline.weight(.semibold))
                 Spacer()
                 if model.showTopSeg {
@@ -54,7 +54,7 @@ import QuestifyCore
                 Button {
                     model.openAdd(target: "conditions")
                 } label: {
-                    Label(String(localized: "storyRule.addCondition", defaultValue: "添加条件"), systemImage: "plus.circle")
+                    Label("storyRule.addCondition", systemImage: "plus.circle")
                         .font(.caption.weight(.semibold))
                 }
                 .buttonStyle(.bordered)
@@ -66,7 +66,7 @@ import QuestifyCore
         // Effects Section
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(String(localized: "storyRule.effectsTitle", defaultValue: "产生效果"))
+                Text("storyRule.effectsTitle")
                     .font(.subheadline.weight(.semibold))
                 Spacer()
                 if model.effectRows.count > 1 && !model.readOnly {
@@ -86,7 +86,7 @@ import QuestifyCore
                 Button {
                     model.openAdd(target: "effects")
                 } label: {
-                    Label(String(localized: "storyRule.addEffect", defaultValue: "添加效果"), systemImage: "plus.circle")
+                    Label("storyRule.addEffect", systemImage: "plus.circle")
                         .font(.caption.weight(.semibold))
                 }
                 .buttonStyle(.bordered)
