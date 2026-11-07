@@ -30,7 +30,7 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
 
     private func makePostJSON(id: Int, clubID: Int = 3) -> String {
         """
-        {"id":\(id),"clubId":\(clubID),"memberId":7,"nickname":"User\(id)","content":"Post \(id)","version":1,"likeCount":2,"commentCount":1,"liked":true}
+        {"id":\(id),"clubId":\(clubID),"isPinned":0,"memberId":7,"nickname":"User\(id)","content":"Post \(id)","version":1,"likeCount":2,"commentCount":1,"liked":true}
         """
     }
 
@@ -282,7 +282,7 @@ final class ClubCommunityReadRuntimeTests: XCTestCase {
             } ?? [:]
             switch url.path {
             case "/api/club/post/list":
-                let row = #"{"id":101,"clubId":3,"memberId":7,"nickname":"Ada","content":"Post v\#(listVersion)","version":\#(listVersion),"likeCount":2,"commentCount":2,"liked":false}"#
+                let row = #"{"id":101,"clubId":3,"isPinned":0,"memberId":7,"nickname":"Ada","content":"Post v\#(listVersion)","version":\#(listVersion),"likeCount":2,"commentCount":2,"liked":false}"#
                 return (Data(#"{"code":200,"data":{"rows":[\#(row)],"total":1,"clubCount":1}}"#.utf8), 200)
             case "/api/club/post/comment/list":
                 let page = body["pageNum"] as? Int ?? 1

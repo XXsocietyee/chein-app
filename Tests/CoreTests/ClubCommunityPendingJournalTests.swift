@@ -134,7 +134,7 @@ final class ClubCommunityPendingJournalTests: XCTestCase {
 
         // Reading post list does NOT clear or disambiguate the lock:
         transport.failWithTimeout = false
-        transport.body = Data(#"{"code":200,"data":{"rows":[{"id":20,"clubId":10,"authorMemberId":5,"content":"\#(secretBody)","version":3}]}}"#.utf8)
+        transport.body = Data(#"{"code":200,"data":{"rows":[{"id":20,"clubId":10,"isPinned":0,"authorMemberId":5,"content":"\#(secretBody)","version":3}]}}"#.utf8)
         _ = try await service.read(.posts(clubID: 10, page: 1), session: sessionEpoch2, check: {})
         XCTAssertEqual(transport.requests.count, 2)
 

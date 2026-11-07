@@ -53,7 +53,7 @@ final class ClubCommunityTests: XCTestCase {
     }
     func testReadRowsAndScope() async throws {
         let transport = CommunityFakeTransport()
-        transport.body = Data(#"{"code":200,"data":{"rows":[{"id":20,"clubId":10,"content":"visible","images":"a;b"}]}}"#.utf8)
+        transport.body = Data(#"{"code":200,"data":{"rows":[{"id":20,"clubId":10,"isPinned":0,"content":"visible","images":"a;b"}]}}"#.utf8)
         let service = ClubCommunityService(baseURL: URL(string: "https://fixture.invalid")!, transport: transport)
         let guest = try ClubCommunitySession(identity: .init(accountID: nil, epoch: 0), token: nil)
         let result = try await service.read(.posts(clubID: 10, page: 1), session: guest, check: {})

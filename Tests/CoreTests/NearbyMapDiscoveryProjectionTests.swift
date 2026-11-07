@@ -30,7 +30,7 @@ final class NearbyMapDiscoveryProjectionTests: XCTestCase {
         XCTAssertEqual(fields, ["lat": "1.25", "lng": "2.5", "radius": "1000"])
     }
     func testMalformedOptionalDisplayFieldsDoNotInventCategoriesOrArtwork() throws {
-        for fields in ["", #", "tags":null,"coverImg":null"#, #", "tags":7,"coverImg":true"#, #", "tags":"null","coverImg":"null"#, #", "tags":"  ","coverImg":"  \n ""#] {
+        for fields in ["", #", "tags":null,"coverImg":null"#, #", "tags":7,"coverImg":true"#, #", "tags":"null","coverImg":"null""#, #", "tags":"  ","coverImg":"  \n ""#] {
             let row = try JSONDecoder().decode(RoamPlace.self, from: Data("{\"id\":7,\"type\":1\(fields)}".utf8))
             XCTAssertTrue(row.tags.isEmpty); XCTAssertNil(row.coverImage)
             XCTAssertEqual(row.id, 7); XCTAssertTrue(row.isSupported)
