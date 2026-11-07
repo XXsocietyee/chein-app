@@ -8,7 +8,7 @@ import FoundationNetworking
 /// AUTHORED, NOT_RUN. Synthetic .invalid transport records only; never uses URLSession.
 @MainActor final class NativeBlacklistTransportTests: XCTestCase {
     private func context(account: Int = 2, epoch: UInt64 = 1) throws -> RuntimeDependencyContext {
-        .init(market: .china, baseURL: URL(string: "https://blacklist.invalid/")!, role: "player",
+        .init(market: .china, baseURL: URL(string: "https://blacklist.test/")!, role: "player",
               session: try .init(accountID: account, epoch: epoch, namespace: "blacklist-test", token: "synthetic-token", role: "player"))
     }
     private func approval(_ c: RuntimeDependencyContext, write: Bool = true, settle: Bool = true) throws -> NativeBlacklistApproval {
@@ -34,13 +34,13 @@ import FoundationNetworking
     func testExactOwnerReadFieldsRejectSmuggledOwnerRepeatedQueryAndMethod() throws {
         let c = try context(), a = try approval(c), id = UUID().uuidString.lowercased()
         var r = try request(c); r.httpMethod = "GET"; r.httpBody = nil; r.setValue(nil, forHTTPHeaderField: "X-Audit-Log-Reason")
-        r.url = URL(string: "https://blacklist.invalid/api/native/blacklist/list?cursor=0")
+        r.url = URL(string: "https://blacklist.test/api/native/blacklist/list?cursor=0")
         XCTAssertTrue(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
         for query in ["cursor=0&owner=8", "cursor=0&cursor=3", "cursor=-1", ""] {
-            r.url = URL(string: "https://blacklist.invalid/api/native/blacklist/list?" + query)
+            r.url = URL(string: "https://blacklist.test/api/native/blacklist/list?" + query)
             XCTAssertFalse(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
         }
-        r.url = URL(string: "https://blacklist.invalid/api/native/blacklist/receipt?peer_id=9&expected_block_id=30&request_id=\(id)")
+        r.url = URL(string: "https://blacklist.test/api/native/blacklist/receipt?peer_id=9&expected_block_id=30&request_id=\(id)")
         XCTAssertTrue(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a)); r.httpMethod = "POST"
         XCTAssertFalse(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
     }
@@ -58,7 +58,7 @@ import FoundationNetworking
     }
     func testOriginAccountCookieProxyExpiryAndAuditReasonClosed() throws {
         let c = try context(), a = try approval(c), good = try request(c)
-        for url in ["https://other.invalid/api/native/blacklist/unblock", "https://u:p@blacklist.invalid/api/native/blacklist/unblock", "https://blacklist.invalid/api/native/blacklist/unblock?q=1", "https://blacklist.invalid/api/native/blacklist/unblock#f"] {
+        for url in ["https://other.invalid/api/native/blacklist/unblock", "https://u:p@blacklist.test/api/native/blacklist/unblock", "https://blacklist.test/api/native/blacklist/unblock?q=1", "https://blacklist.test/api/native/blacklist/unblock#f"] {
             var r = good; r.url = URL(string: url); XCTAssertFalse(NativeBlacklistTransportPolicy.accepts(r, context: c, approval: a))
         }
         for header in ["Cookie", "Proxy-Authorization", "X-Audit-Log-Reason"] {

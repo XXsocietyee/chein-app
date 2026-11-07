@@ -389,7 +389,7 @@ import FoundationNetworking
     }
     private func session(_ epoch: UInt64 = 1) throws -> PlayExperienceSession { try .init(accountID:1,epoch:epoch,namespace:"synthetic",token:"synthetic-token") }
     private func coordinator(_ transport: any HTTPTransport, current: @escaping () -> PlayExperienceSession?) throws -> PlayAdvancedCoordinator {
-        .init(activityID:41,topicID:71,nodeID:701,service:.init(configuration:try APIConfiguration(baseURL:URL(string:"https://example.com")!),transport:transport,enabled:[.reads,.advanced]),currentSession:current)
+        .init(activityID:41,topicID:71,nodeID:701,service:.init(configuration:try APIConfiguration(baseURL:URL(string:"https://example.com")!),transport:transport,enabled:[.reads,.advanced]),recovery:PlayMemoryAdvancedRecovery(),currentSession:current)
     }
     private func estimate(submitted: Bool = false, maximum: Double = 10) -> PlayWireValue {
         .object(["min": .number(0), "max": .number(maximum), "submitted": .bool(submitted)])

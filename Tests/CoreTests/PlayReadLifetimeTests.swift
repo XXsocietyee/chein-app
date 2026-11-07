@@ -191,7 +191,7 @@ import FoundationNetworking
             return (PlayExperienceSyntheticFixtures.envelope(PlayExperienceSyntheticFixtures.advanced), 200)
         }
         let advanced = PlayAdvancedCoordinator(activityID: 41, topicID: 71, nodeID: 701,
-            service: try service(wire, lifetime: lifetime), currentSession: { owner })
+            service: try service(wire, lifetime: lifetime), recovery: PlayMemoryAdvancedRecovery(), currentSession: { owner })
         await advanced.start()
         XCTAssertEqual(wire.count, 1); XCTAssertNil(advanced.pending); XCTAssertNil(advanced.state)
         XCTAssertTrue(advanced.startOutcomeUnknown); XCTAssertTrue(advanced.blocksReadRebinding)

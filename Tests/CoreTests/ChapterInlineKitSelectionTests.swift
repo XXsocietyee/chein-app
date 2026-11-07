@@ -164,7 +164,7 @@ final class ChapterInlineKitSelectionTests: XCTestCase {
             return (try JSONEncoder().encode(PlayWireValue.object(["code": .int(200), "data": value])), 200)
         }
         let model = PlayAdvancedCoordinator(activityID: 41, topicID: 71, nodeID: 701,
-            service: .init(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport, enabled: [.reads, .advanced]), currentSession: { session })
+            service: .init(configuration: try APIConfiguration(baseURL: URL(string: "https://example.com")!), transport: transport, enabled: [.reads, .advanced]), recovery: PlayMemoryAdvancedRecovery(), currentSession: { session })
         await model.start()
         var selection = ChapterInlineKitSelection()
         selection.reconcile(try XCTUnwrap(model.state), preservingDraft: false)
