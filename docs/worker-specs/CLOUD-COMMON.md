@@ -1,0 +1,11 @@
+# Cloud worker common rules (read fully before starting)
+- Repos: chengyin-app (this iOS app, SwiftUI) and chengyin (WeChat mini-program reference, folder chengyinhub-xcx, branch integration/20261106/backend-latest; READ-ONLY). The default branch of chengyin-app is Flutter and WRONG: always start from wip/rc2-merged.
+- Push ONLY your own cloud/<name> branch. Never main, integration/*, wip/*, other cloud/*.
+- You cannot compile Swift on Linux: read every type/API definition before using it, balance braces, guard `import QuestifyCore` with `#if canImport(QuestifyCore)`, no default args on @MainActor initializers. New Swift files only in App/*.swift, App/Theme, App/DesignSystem or Core/*.swift. Do not edit project.pbxproj or run xcodebuild.
+- Before EVERY commit run `python3 tools/check_scaffold.py` (Python >= 3.11); it must exit 0.
+- DO NOT EDIT (owned by G1): App/AppSession.swift, App/AppCompositionRoot.swift, App/RegionalLaunchConfiguration.swift, Core/AccountComplianceService.swift, Core/AuthChannelCoordinator.swift. Need wiring? create a small new App/*.swift factory and LIST the exact one-line hooks in your report.
+- Never delete, skip or loosen a test or CI check. Add tests for logic. No secrets or production hosts in code.
+- Writes only through injected Core service contracts; show success only after the service returns success. Mark a docs/parity/page-map.csv row `exists` only if a unit test exercises its main action; otherwise keep `partial` with an honest one-line note. Keep CSV rows at exactly six columns.
+- Every visible string English AND Simplified Chinese only (no zh-Hant): catalog key with en+zh-Hans or the existing copy("中文","English") helper.
+- UI: Apple-native SwiftUI, reuse App/DesignSystem (CYColor, CYTypography, CYSpacing, CYCard, CYSectionHeader, CYEmptyStateView, CYErrorStateView); NavigationStack, sheet detents, Dynamic Type, dark mode, 44pt targets, accessibility labels, loading/empty/error-with-retry, previews with fixtures. No WeChat capsule layout.
+- Commit small, push often. FINAL REPORT (English): commit SHAs, what changed, rows/tests changed, needed composition hooks, check_scaffold exit status as observed, and an explicit statement that nothing was compiled. Never claim a build/test result you did not observe.
