@@ -183,10 +183,20 @@ public struct AccountMarketingReadIntent {
             else if error as? ComplianceFailure == .unresolved || error as? ComplianceFailure == .readbackMismatch { state.error = "compliance.unknown" }
             else { state.error = "compliance.failed" }
         }
+        if deregistration && (state.step == .freshLogin || state.step == .completed) && !state.busy {
+            return
+        }
         if deregistration, generation == stamp, current() != session { invalidate(); return }
         guard current() == session, generation == stamp else { return }
         guard !deregistration || service.deregistrationOriginalRevision == issuance else { invalidate(); return }
         state.busy = false; changed()
+    }
+    public func restorePostInvalidationConfirmation(step: ComplianceStep, status: ComplianceDeregistration?) {
+        guard step == .freshLogin || step == .completed else { return }
+        state.step = step
+        state.status = status
+        state.busy = false
+        changed()
     }
     private func runMarketing(_ action: (ComplianceSession, UInt64) async throws -> Void) async {
         guard !Task.isCancelled, !state.busy, let session = current(), session.valid else { return }
@@ -259,7 +269,11 @@ public struct AccountMarketingReadIntent {
             guard self.state.localCancellationConsent.allowsNewConsent else { throw ComplianceFailure.unresolved }
             let result = try await self.service.precheck(session: session); try self.deregistrationFence(session, stamp, issuance: issuance)
             self.state.status = result
-            guard let impact = result.impact, impact.valid(for: session.accountID), impact.confirmable else { self.state.step = .blocked; return }
+            if let impact = result.impact {
+                guard impact.valid(for: session.accountID), impact.confirmable else { self.state.step = .blocked; return }
+            } else if issuance != nil {
+                self.state.step = .blocked; return
+            }
             guard result.eligible else { self.state.step = result.blocked ? .blocked : .unknown; return }
             // No consent is recorded when this device cannot complete the server's verification method.
             guard result.verificationAvailableOnThisDevice else { self.state.step = .verificationUnavailable; return }
@@ -298,7 +312,9 @@ public struct AccountMarketingReadIntent {
     }
     public func backToVerification() { guard !state.busy else { return }; reviewCode = nil; state.step = .verify; changed() }
     public func apply(explicitlyConfirmed: Bool, intent: AccountDeregistrationIntent? = nil) async {
-        guard acceptsDeregistrationIntent(intent), explicitlyConfirmed, noticeAccepted, state.localCancellationConsent.allowsNewConsent, state.smsSent, state.step == .review, let code = reviewCode, reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision else { return }
+        guard explicitlyConfirmed, noticeAccepted, state.smsSent, state.step == .review, let code = reviewCode else { return }
+        guard acceptsDeregistrationIntent(intent), state.localCancellationConsent.allowsNewConsent,
+              reviewSession == current(), reviewIssuance == service.deregistrationOriginalRevision else { return }
         reviewCode = nil
         let issuance = service.deregistrationOriginalRevision
         await run(deregistration: true) { session, stamp in
@@ -310,6 +326,9 @@ public struct AccountMarketingReadIntent {
                 else if result.pending {
                     self.state.step = .freshLogin; self.state.busy = false; self.state.smsSent = false; self.noticeAccepted = false; self.changed()
                     // Host callback MUST compare this session before touching the existing auth controller.
+                    await self.invalidateSession(session)
+                } else if result.completed {
+                    self.state.step = .completed; self.state.busy = false; self.state.smsSent = false; self.noticeAccepted = false; self.changed()
                     await self.invalidateSession(session)
                 } else { self.state.step = .unknown }
             } catch {

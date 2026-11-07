@@ -353,7 +353,10 @@ import FoundationNetworking
             // Server normally revokes the old credential on accepted apply. A 401 leaves this intent for fresh-login GET recovery.
             return try await client.status(session: session)
         }
-        guard impact == nil, legalApproved(.cancellation, session) else { throw ComplianceFailure.unavailable }
+        if let impact {
+            guard impact.valid(for: session.accountID), impact.confirmable else { throw ComplianceFailure.invalidInput }
+        }
+        guard legalApproved(.cancellation, session) else { throw ComplianceFailure.unavailable }
         let request = try request("/api/user/deregister/apply", form: ["smscode": AuthChannelInput.code(smscode), "requestId": requestID], session: session)
         try start("deregister", requestID: requestID, session: session); defer { busy = false }
         let result = try decode(await write(request, operation: "deregister", session: session), as: ComplianceDeregistration.self)

@@ -275,6 +275,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                         guard let intent = model.cancellationIntent() else { return }; code = ""; phone = ""
                         Task { await model.coordinator.apply(explicitlyConfirmed: true, intent: intent) }
                     }.id(impact.revision).disabled(!model.state.localCancellationConsent.allowsNewConsent)
+                } else if model.coordinator.deregistrationOriginalRevision == nil {
+                    Button("compliance.confirmApply", role: .destructive) {
+                        guard let intent = model.cancellationIntent() else { return }; code = ""; phone = ""
+                        Task { await model.coordinator.apply(explicitlyConfirmed: true, intent: intent) }
+                    }
+                    .disabled(!model.state.localCancellationConsent.allowsNewConsent)
+                    .accessibilityIdentifier("compliance.confirmApply")
                 }
                 Button("compliance.back") {
                     guard model.cancellationIntent() != nil else { return }

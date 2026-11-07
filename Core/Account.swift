@@ -22,6 +22,14 @@ public struct Account: Decodable, Equatable {
         xp = try c.decodeIfPresent(Int.self, forKey: .point) ?? c.decodeIfPresent(Int.self, forKey: .xp) ?? 0
         level = try c.decodeIfPresent(Int.self, forKey: .levelId) ?? c.decodeIfPresent(Int.self, forKey: .level) ?? 1
     }
+    public init(id: Int, nickname: String, avatar: String, role: String, userType: Int?, xp: Int, level: Int) {
+        self.id = id; self.nickname = nickname; self.avatar = avatar
+        self.role = role; self.userType = userType; self.xp = xp; self.level = level
+    }
+    public func withFallbackRole(_ fallbackRole: String) -> Account {
+        guard role.isEmpty else { return self }
+        return Account(id: id, nickname: nickname, avatar: avatar, role: fallbackRole, userType: userType, xp: xp, level: level)
+    }
     /// Presentation only. API endpoints must still enforce server authorization.
     public var effectiveRole: String { !role.isEmpty ? role : (userType == 2 ? "merchant" : "player") }
 }

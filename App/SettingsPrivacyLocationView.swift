@@ -10,7 +10,7 @@ import SwiftUI
             Section {
                 NavigationLink {
                     SettingsPrivacyLocationView(mediaReader: session.ownMediaReader,
-                        compliance: session.accountComplianceCoordinator, market: session.operationalMarket, imagePreview: session.ownMediaImagePreviewAccess, approvedLink: session.ownMediaApprovedLinkAccess, audioPreview: session.ownMediaAudioPreviewAccess, modelPreview: session.ownMediaModelPreviewAccess)
+                        compliance: session.accountComplianceCoordinator, market: session.operationalMarket, imagePreview: session.ownMediaImagePreviewAccess, approvedLink: session.ownMediaApprovedLinkAccess, audioPreview: session.ownMediaAudioPreviewAccess, modelPreview: session.ownMediaModelPreviewAccess, legalReader: session.legalReader)
                 } label: {
                     Label { Text("member.privacy.title", tableName: "MemberProfile") } icon: { Image(systemName: "hand.raised") }
                 }.accessibilityIdentifier("settings.privacyLocation")

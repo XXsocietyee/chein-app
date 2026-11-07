@@ -10,6 +10,51 @@ enum RegionalLaunchConfiguration {
         makeComposition(reviewed: nil, build: .current)
     }
 
+    static func reviewedDeployment(
+        build: BuildMetadata = .current,
+        reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        allowLoginRoleFallbackOnRolelessUserInfo: Bool = true
+    ) throws -> ReviewedAppDeployment {
+        guard let market = try? RegionalConfiguration.market(buildValue: build.market) else {
+            throw ValidationIssue.marketMissingOrUnsupported
+        }
+        guard let rawBase = build.baseURL?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBase.isEmpty else {
+            throw ValidationIssue.endpointMismatch
+        }
+        guard let rawBundle = build.bundleIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines), !rawBundle.isEmpty,
+              let rawRealm = build.realm?.trimmingCharacters(in: .whitespacesAndNewlines), !rawRealm.isEmpty else {
+            throw ValidationIssue.storageScopeMismatch
+        }
+        return try ReviewedAppDeployment(
+            market: market,
+            baseURL: rawBase,
+            approvedBaseURLs: [market: [rawBase]],
+            verifiedCapabilities: market == .china ? [.domesticChinaPhone] : [],
+            bundleIdentifier: rawBundle,
+            realm: rawRealm,
+            reads: reads,
+            productionGatesEnabled: true,
+            allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
+        )
+    }
+
+    @MainActor static func reviewedComposition(
+        build: BuildMetadata = .current,
+        reads: Set<ReviewedAppDeployment.ReadGrant> = [.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail],
+        allowLoginRoleFallbackOnRolelessUserInfo: Bool = true,
+        storage: AppScopedStorageFactory? = nil,
+        makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() }
+    ) -> AppCompositionRoot {
+        guard let deployment = try? reviewedDeployment(
+            build: build,
+            reads: reads,
+            allowLoginRoleFallbackOnRolelessUserInfo: allowLoginRoleFallbackOnRolelessUserInfo
+        ) else {
+            return .init(deployment: .incompatibleBuild, storage: storage, makeTransport: makeTransport)
+        }
+        return makeComposition(reviewed: deployment, build: build, storage: storage, makeTransport: makeTransport)
+    }
+
     struct BuildMetadata {
         let market: String?
         let baseURL: String?

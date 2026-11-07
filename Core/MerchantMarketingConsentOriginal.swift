@@ -11,14 +11,15 @@ public struct MerchantMarketingConsentOriginalGrant:Equatable,Hashable {
 }
 /// Independent exact endpoint scope, default nil at host. Never enables campaign dispatch or generic compliance writes.
 public struct MerchantMarketingConsentOriginalApproval:Equatable {
- public let revision:UUID,baseURL:URL,namespace:String,accountID:Int,grants:Set<MerchantMarketingConsentOriginalGrant>
- public init(baseURL:URL,namespace:String,accountID:Int,grants:Set<MerchantMarketingConsentOriginalGrant> = [],revision:UUID=UUID())throws{
+ public let revision:UUID,baseURL:URL,namespace:String,accountID:Int,grants:Set<MerchantMarketingConsentOriginalGrant>,allowsAllValidRows:Bool
+ public init(baseURL:URL,namespace:String,accountID:Int,grants:Set<MerchantMarketingConsentOriginalGrant> = [],revision:UUID=UUID(),allowsAllValidRows:Bool=false)throws{
   _ = try OperationEndpointApproval(baseURL:baseURL,namespace:namespace,accountID:accountID,paths:[MerchantMarketingConsentOriginalClient.path,MerchantMarketingConsentOriginalClient.resultPath])
-  self.baseURL=baseURL;self.namespace=namespace;self.accountID=accountID;self.grants=grants;self.revision=revision
+  self.baseURL=baseURL;self.namespace=namespace;self.accountID=accountID;self.grants=grants;self.revision=revision;self.allowsAllValidRows=allowsAllValidRows
  }
  public func matches(_ c:RuntimeDependencyContext)->Bool{c.market == .china && c.baseURL.absoluteString.utf8.elementsEqual(baseURL.absoluteString.utf8) && c.session.namespace.utf8.elementsEqual(namespace.utf8) && c.session.accountID==accountID}
  public func permits(_ row:ComplianceMarketingConsent,_ channel:ComplianceMarketingChannel,_ optedIn:Bool)->Bool{
-  grants.contains{ $0.merchantID==row.merchantRowId && $0.ownerID==row.merchantOwnerMemberId && $0.channel==channel.rawValue && $0.optedIn==optedIn }
+  if allowsAllValidRows && row.valid { return true }
+  return grants.contains{ $0.merchantID==row.merchantRowId && $0.ownerID==row.merchantOwnerMemberId && $0.channel==channel.rawValue && $0.optedIn==optedIn }
  }
 }
 public struct MerchantMarketingConsentOriginalTarget:Equatable {
@@ -99,7 +100,7 @@ public struct MerchantMarketingConsentOriginalReceipt:Decodable,Equatable,Identi
   guard request.httpMethod=="POST",url==context.baseURL.appendingPathComponent(path),let data=request.httpBody,let raw=String(data:data,encoding:.utf8),(try? ContentDraftJSON.parse(raw)) != nil,
    let o=try? JSONDecoder().decode(MerchantBusinessValue.self,from:data).object,Set(o.keys)==Set(["merchantRowId","merchantOwnerMemberId","channel","optedIn","requestId"]),
    let merchant=try? o.mbInt("merchantRowId",minimum:1),let owner=try? o.mbInt("merchantOwnerMemberId",minimum:1),let channel=o.mbText("channel"),let c=ComplianceMarketingChannel(rawValue:channel),let choice=o["optedIn"]?.bool,let uuid=o.mbText("requestId"),MerchantMarketingConsentOriginalClient.validRequestID(uuid),
-   let grant=try? MerchantMarketingConsentOriginalGrant(merchantID:merchant,ownerID:owner,channel:c,optedIn:choice),approval.grants.contains(grant),let expected=try? JSONSerialization.data(withJSONObject:["merchantRowId":merchant,"merchantOwnerMemberId":owner,"channel":channel,"optedIn":choice,"requestId":uuid],options:.sortedKeys) else{return false}
+   let grant=try? MerchantMarketingConsentOriginalGrant(merchantID:merchant,ownerID:owner,channel:c,optedIn:choice),(approval.allowsAllValidRows || approval.grants.contains(grant)),let expected=try? JSONSerialization.data(withJSONObject:["merchantRowId":merchant,"merchantOwnerMemberId":owner,"channel":channel,"optedIn":choice,"requestId":uuid],options:.sortedKeys) else{return false}
   return data==expected && request.value(forHTTPHeaderField:"Content-Type")=="application/json"
  }
 }

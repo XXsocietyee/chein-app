@@ -5,8 +5,33 @@ import SwiftUI
 /// stay in Settings › Privacy and location, which already hosts them.
 struct PrivacyProtectionView: View {
     let market: RegionalMarket?
-    @State private var granted = UsageConsentEnvironment.policy.granted
+    var policy: UsageConsentPolicy = UsageConsentEnvironment.policy
+    var legalReader: any SettingsLegalReading = SettingsBundledLegalReader(
+        privacyPolicyApproved: RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true
+    )
+    @State private var granted: Bool
     @State private var document: AuthEntryLegalSheet?
+
+    init(market: RegionalMarket?, policy: UsageConsentPolicy = UsageConsentEnvironment.policy,
+         legalReader: (any SettingsLegalReading)? = nil) {
+        self.market = market
+        self.policy = policy
+        let resolvedReader = legalReader ?? SettingsBundledLegalReader(
+            privacyPolicyApproved: RegionalLaunchConfiguration.composition.reviewed?.legalCatalogApproved == true
+        )
+        self.legalReader = resolvedReader
+        _granted = State(initialValue: policy.granted)
+    }
+
+    private var isPrivacyPolicyBundled: Bool {
+        (legalReader as? SettingsBundledLegalReader)?.privacyPolicyApproved == true
+    }
+
+    @discardableResult
+    mutating func withdrawConsent() -> Bool {
+        policy.decline()
+        return policy.granted
+    }
 
     var body: some View {
         Form {
@@ -23,8 +48,9 @@ struct PrivacyProtectionView: View {
             Section {
                 Button { document = AuthEntryLegalSheet(type: .privacyPolicy) } label: { Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.guide")
-                // The guide text itself is not bundled yet (SettingsSourceLegalCatalog: pendingSourceText).
-                Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
+                if !isPrivacyPolicyBundled {
+                    Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
+                }
                 Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.agreement")
             }
@@ -35,13 +61,22 @@ struct PrivacyProtectionView: View {
                 } label: { Text("authEntry.privacy.consentStatus", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.consentStatus")
                 Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
+                if granted {
+                    Button(role: .destructive) {
+                        policy.decline()
+                        granted = policy.granted
+                    } label: {
+                        Text("compliance.revoke")
+                    }
+                    .accessibilityIdentifier("authEntry.privacy.withdrawConsent")
+                }
             }
-            if !granted { UsageConsentSignInRequirement(market: market, granted: $granted) }
+            if !granted { UsageConsentSignInRequirement(market: market, policy: policy, granted: $granted) }
         }
         .navigationTitle(Text("authEntry.privacy.title", tableName: "AuthEntry"))
         .sheet(item: $document) { sheet in
             NavigationStack {
-                SettingsLegalDocumentView(type: sheet.type, market: market, reader: SettingsBundledLegalReader())
+                SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { document = nil } } }
             }
         }
