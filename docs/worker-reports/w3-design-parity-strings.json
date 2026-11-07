@@ -1,0 +1,42 @@
+{
+  "worker": "W3",
+  "task_id": "task_41b45f38636d",
+  "files_added": [
+    "App/DesignSystem/CYDesignTokens.swift",
+    "App/DesignSystem/CYDesignComponents.swift",
+    "docs/parity/page-map.csv",
+    "docs/parity/capsule-removal.md",
+    "docs/parity/design-system.md"
+  ],
+  "pbxproj_note": "Add *ROOT.glob('App/DesignSystem/*.swift') to tools/generate_project.py line 9 when regenerating Questify.xcodeproj/project.pbxproj so check_scaffold.py and xcodebuild include App/DesignSystem/*.swift.",
+  "strings": {
+    "暂时无法加载内容": {
+      "zh-Hans": "暂时无法加载内容",
+      "en": "Unable to load content right now"
+    },
+    "请检查网络连接后重试": {
+      "zh-Hans": "请检查网络连接后重试",
+      "en": "Please check your network connection and try again"
+    },
+    "重试": {
+      "zh-Hans": "重试",
+      "en": "Retry"
+    },
+    "有未读消息": {
+      "zh-Hans": "有未读消息",
+      "en": "Unread messages"
+    },
+    "%@ 条未读消息": {
+      "zh-Hans": "%@ 条未读消息",
+      "en": "%@ unread messages"
+    },
+    "用户头像": {
+      "zh-Hans": "用户头像",
+      "en": "User avatar"
+    },
+    "%@的头像": {
+      "zh-Hans": "%@的头像",
+      "en": "%@'s avatar"
+    }
+  }
+}
