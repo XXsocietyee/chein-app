@@ -151015,13 +151015,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Walking times are estimates"
+            "value" : "Estimates use the straight-line distance between adjacent stops at 80 m/min. Actual walking routes and times may differ."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "步行时间为估算"
+            "value" : "按相邻站点的直线距离、每分钟 80 米估算。实际步行路线和用时可能不同。"
           }
         }
       }

@@ -22,7 +22,7 @@ class ActivityReviewChecks(unittest.TestCase):
         self.assertIn('loading=true;failed=false;access=nil', view)
         self.assertIn('if generation == operation, profileIdentity == peopleProfile?.reader.identity', view)
         self.assertIn('ContextualReviewComposer(target: .activity(id)', view)
-        self.assertIn('Button("context.review.title") { showsReview = true }', view)
+        self.assertIn('Button("context.review.title", systemImage: "square.and.pencil") { showsReview = true }', view)
 
     def test_bounded_preview_is_not_count_average_or_authority(self):
         model = self.read('Core/ActivityReviews.swift')
@@ -45,8 +45,10 @@ class ActivityReviewChecks(unittest.TestCase):
                       'ForEach(Array(reviews.preview.enumerated()), id: \\.offset)',
                       '.textSelection(.enabled)', '.fixedSize(horizontal: false, vertical: true)']:
             self.assertIn(token, view)
-        for token in ['Button', 'NavigationLink', 'URLSession', '.task(', '@State', '.lineLimit(', 'Image(', 'AsyncImage', 'https://']:
+        for token in ['Button', 'NavigationLink', 'URLSession', '.task(', '@State', '.lineLimit(', 'AsyncImage', 'https://']:
             self.assertNotIn(token, view)
+        # Only static SF Symbol glyphs (the star rating) are allowed; no loaded images.
+        self.assertEqual(view.count('Image('), view.count('Image(systemName:'))
         catalog = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         for suffix in ['title', 'average', 'total', 'rating', 'ratingUnknown', 'countUnknown',
                        'empty', 'previewUnavailable', 'previewHint', 'authorUnknown', 'textUnavailable']:
