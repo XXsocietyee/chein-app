@@ -42,6 +42,8 @@ public struct ExplorationPrivateToolAuditEntry: Sendable, Equatable, Identifiabl
 /// owner-only private visibility, and `RoamPrivateTools.xcstrings` bilingual key discipline).
 public struct ExplorationPrivateToolsAndCapsuleAudit: Sendable, Equatable {
     public static let canonicalStringsTable = "RoamPrivateTools"
+    public static let exportMaxSpanDays: Int = 366
+    public static let monthlyRecapWeekBucketCount: Int = 5
 
     public static let canonicalEntries: [ExplorationPrivateToolAuditEntry] = [
         ExplorationPrivateToolAuditEntry(
@@ -82,6 +84,11 @@ public struct ExplorationPrivateToolsAndCapsuleAudit: Sendable, Equatable {
     ]
 
     public init() {}
+
+    /// Evaluates whether an exploration export request span (in days) and format satisfy `subpackageTools/exploration-export/index.js`.
+    public static func isExportRangeValid(spanDays: Int, format: String = "JSONL") -> Bool {
+        spanDays > 0 && spanDays <= exportMaxSpanDays && format.uppercased() == "JSONL"
+    }
 
     public static func evaluate(
         entries: [ExplorationPrivateToolAuditEntry] = canonicalEntries

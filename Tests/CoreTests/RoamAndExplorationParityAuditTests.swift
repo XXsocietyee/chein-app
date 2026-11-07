@@ -80,4 +80,38 @@ final class RoamAndExplorationParityAuditTests: XCTestCase {
         XCTAssertTrue(report.violations.contains(.arrivalAutoCompletesInsteadOfVerification))
         XCTAssertTrue(report.violations.contains(.revealSyncUnexpectedlyEnabled))
     }
+
+    func testW5RoamTabFullFeatureParityAndCityStampExchangeRules() {
+        let descriptor = RoamTabFullFeatureParityDescriptor()
+        XCTAssertTrue(descriptor.isFullRoamTabParityReady)
+        XCTAssertEqual(RoamTabFullFeatureParityDescriptor.nearbyDefaultRadiusMeters, 1_000)
+        XCTAssertEqual(RoamTabFullFeatureParityDescriptor.stampCaptionMaxCharacters, 30)
+        XCTAssertEqual(RoamTabFullFeatureParityDescriptor.stampTearThresholdPx, 80)
+        XCTAssertEqual(RoamTabFullFeatureParityDescriptor.stampScratchCompleteRatio, 0.6, accuracy: 0.001)
+        XCTAssertEqual(RoamTabFullFeatureParityDescriptor.badgeRingDotCount, 24)
+        XCTAssertEqual(RoamTabFullFeatureParityDescriptor.objectCardsMaxPileCount, 40)
+
+        let bars = RoamTabFullFeatureParityDescriptor.stampBarcodeHeights(forSerial: "CY20261107")
+        XCTAssertEqual(bars.count, 28)
+        XCTAssertTrue(bars.allSatisfy { (12...25).contains($0) })
+        XCTAssertEqual(bars, RoamTabFullFeatureParityDescriptor.stampBarcodeHeights(forSerial: "CY20261107"))
+
+        let progress = RoamTabFullFeatureParityDescriptor.evaluateStampExchangeProgress(
+            caption: "外滩漫游打卡邮票",
+            tearPixels: 85,
+            scratchRatio: 0.65
+        )
+        XCTAssertTrue(progress.isCaptionValid)
+        XCTAssertTrue(progress.isTorn)
+        XCTAssertTrue(progress.isScratchRevealed)
+
+        let overlong = RoamTabFullFeatureParityDescriptor.evaluateStampExchangeProgress(
+            caption: String(repeating: "漫", count: 31),
+            tearPixels: 79,
+            scratchRatio: 0.59
+        )
+        XCTAssertFalse(overlong.isCaptionValid)
+        XCTAssertFalse(overlong.isTorn)
+        XCTAssertFalse(overlong.isScratchRevealed)
+    }
 }
