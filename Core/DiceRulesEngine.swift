@@ -182,44 +182,44 @@ public enum DiceThemeD20Rules {
     public static let clockSegments = [4, 6, 8]
 
     public static let presets: [DiceD20Preset] = [
-        DiceD20Preset(key: "easy", label: "轻松", sub: "多数人能过，重在体验故事", dcs: [8, 11, 14], seg: 8),
-        DiceD20Preset(key: "std", label: "标准", sub: "有来有回，点数与运气都算数", dcs: [10, 13, 16], seg: 6),
-        DiceD20Preset(key: "hard", label: "硬核", sub: "得靠道具、线索和队友配合", dcs: [12, 15, 18], seg: 4),
+        DiceD20Preset(key: "easy", label: W8Text.t("轻松", "Easy"), sub: W8Text.t("多数人能过，重在体验故事", "Most people pass; focus on the story"), dcs: [8, 11, 14], seg: 8),
+        DiceD20Preset(key: "std", label: W8Text.t("标准", "Standard"), sub: W8Text.t("有来有回，点数与运气都算数", "Back and forth; both rolls and luck count"), dcs: [10, 13, 16], seg: 6),
+        DiceD20Preset(key: "hard", label: W8Text.t("硬核", "Hardcore"), sub: W8Text.t("得靠道具、线索和队友配合", "Needs items, clues and teammates"), dcs: [12, 15, 18], seg: 4),
     ]
 
     public static let attrPresets: [DiceAttrPreset] = [
-        DiceAttrPreset(key: "counter.observe", name: "观察", initial: 2, min: 0, max: 5),
-        DiceAttrPreset(key: "counter.nerve", name: "胆量", initial: 2, min: 0, max: 5),
-        DiceAttrPreset(key: "counter.physique", name: "体魄", initial: 2, min: 0, max: 5),
-        DiceAttrPreset(key: "counter.wit", name: "灵感", initial: 2, min: 0, max: 5),
-        DiceAttrPreset(key: "counter.agility", name: "敏捷", initial: 2, min: 0, max: 5),
-        DiceAttrPreset(key: "counter.charm", name: "魅力", initial: 2, min: 0, max: 5),
-        DiceAttrPreset(key: "counter.luck", name: "运气", initial: 2, min: 0, max: 5),
+        DiceAttrPreset(key: "counter.observe", name: W8Text.t("观察", "Observation"), initial: 2, min: 0, max: 5),
+        DiceAttrPreset(key: "counter.nerve", name: W8Text.t("胆量", "Nerve"), initial: 2, min: 0, max: 5),
+        DiceAttrPreset(key: "counter.physique", name: W8Text.t("体魄", "Physique"), initial: 2, min: 0, max: 5),
+        DiceAttrPreset(key: "counter.wit", name: W8Text.t("灵感", "Insight"), initial: 2, min: 0, max: 5),
+        DiceAttrPreset(key: "counter.agility", name: W8Text.t("敏捷", "Agility"), initial: 2, min: 0, max: 5),
+        DiceAttrPreset(key: "counter.charm", name: W8Text.t("魅力", "Charm"), initial: 2, min: 0, max: 5),
+        DiceAttrPreset(key: "counter.luck", name: W8Text.t("运气", "Luck"), initial: 2, min: 0, max: 5),
     ]
 
     public static let clockKinds: [DiceClockKind] = [
-        DiceClockKind(key: "danger", label: "危险钟", sub: "走满会触发坏事，比如巡夜人警觉"),
-        DiceClockKind(key: "progress", label: "进度钟", sub: "走满会解开一件事，比如破译旧海图"),
+        DiceClockKind(key: "danger", label: W8Text.t("危险钟", "Danger clock"), sub: W8Text.t("走满会触发坏事，比如巡夜人警觉", "When full, something bad happens, e.g. the night watch is alerted")),
+        DiceClockKind(key: "progress", label: W8Text.t("进度钟", "Progress clock"), sub: W8Text.t("走满会解开一件事，比如破译旧海图", "When full, something unlocks, e.g. an old sea chart is deciphered")),
     ]
 
     public static let aspectPresets: [DiceAspectPreset] = [
-        DiceAspectPreset(key: "hurt", label: "受了伤", desc: "体魄或敏捷检定更吃力"),
-        DiceAspectPreset(key: "soaked", label: "淋湿了", desc: "需要生火或找地方休整"),
-        DiceAspectPreset(key: "alerted", label: "被人盯上", desc: "潜行与打听会更难"),
-        DiceAspectPreset(key: "inspired", label: "灵光一闪", desc: "下一次推理检定更有把握"),
-        DiceAspectPreset(key: " disguised", label: "乔装打扮", desc: "混进特定场所更顺利"),
-        DiceAspectPreset(key: "exhausted", label: "精疲力竭", desc: "先去歇脚点恢复"),
+        DiceAspectPreset(key: "hurt", label: W8Text.t("受了伤", "Injured"), desc: W8Text.t("体魄或敏捷检定更吃力", "Physique or Agility checks are harder")),
+        DiceAspectPreset(key: "soaked", label: W8Text.t("淋湿了", "Soaked"), desc: W8Text.t("需要生火或找地方休整", "Need a fire or a place to rest")),
+        DiceAspectPreset(key: "alerted", label: W8Text.t("被人盯上", "Being watched"), desc: W8Text.t("潜行与打听会更难", "Sneaking and asking around get harder")),
+        DiceAspectPreset(key: "inspired", label: W8Text.t("灵光一闪", "Flash of insight"), desc: W8Text.t("下一次推理检定更有把握", "The next reasoning check is easier")),
+        DiceAspectPreset(key: " disguised", label: W8Text.t("乔装打扮", "Disguised"), desc: W8Text.t("混进特定场所更顺利", "Blending into places is easier")),
+        DiceAspectPreset(key: "exhausted", label: W8Text.t("精疲力竭", "Exhausted"), desc: W8Text.t("先去歇脚点恢复", "Rest at a stop first")),
     ]
 
     public static let windows: [DicePlayWindow] = [
-        DicePlayWindow(key: "all", label: "全天可玩", sub: "不限时段"),
-        DicePlayWindow(key: "day", label: "白天场", sub: "适合日间散步与门店营业时段"),
-        DicePlayWindow(key: "dusk", label: "傍晚场", sub: "日落前后气氛最佳"),
-        DicePlayWindow(key: "night", label: "夜行场", sub: "入夜后体验最佳"),
+        DicePlayWindow(key: "all", label: W8Text.t("全天可玩", "Playable all day"), sub: W8Text.t("不限时段", "Any time")),
+        DicePlayWindow(key: "day", label: W8Text.t("白天场", "Daytime"), sub: W8Text.t("适合日间散步与门店营业时段", "Fits daytime walks and shop opening hours")),
+        DicePlayWindow(key: "dusk", label: W8Text.t("傍晚场", "Dusk"), sub: W8Text.t("日落前后气氛最佳", "Best around sunset")),
+        DicePlayWindow(key: "night", label: W8Text.t("夜行场", "Night"), sub: W8Text.t("入夜后体验最佳", "Best after dark")),
     ]
 
     public static let prepSuggestions: [String] = [
-        "穿好走的鞋", "带耳机", "手机充好电", "建议结伴", "带把伞", "夜里注意保暖"
+        W8Text.t("穿好走的鞋", "Wear comfortable shoes"), W8Text.t("带耳机", "Bring headphones"), W8Text.t("手机充好电", "Charge your phone"), W8Text.t("建议结伴", "Going with friends is recommended"), W8Text.t("带把伞", "Bring an umbrella"), W8Text.t("夜里注意保暖", "Dress warmly at night")
     ]
 
     public static func presetOf(_ dcs: [Int]?) -> String {
@@ -279,7 +279,7 @@ public enum DiceThemeD20Rules {
         let trimmed = presetOrName.trimmingCharacters(in: .whitespacesAndNewlines)
         return DiceThemeAttribute(
             key: "counter.attr_\(index)",
-            name: trimmed.isEmpty ? "属性\(index)" : trimmed,
+            name: trimmed.isEmpty ? W8Text.t("属性\(index)", "Attribute \(index)") : trimmed,
             initial: 2,
             min: 0,
             max: 5
@@ -293,7 +293,7 @@ public enum DiceThemeD20Rules {
         let resolvedKind = kind == "progress" ? "progress" : "danger"
         return DiceThemeClock(
             variable: "counter.clock_\(index)",
-            label: resolvedKind == "progress" ? "调查进展" : "巡夜人警觉",
+            label: resolvedKind == "progress" ? W8Text.t("调查进展", "Investigation progress") : W8Text.t("巡夜人警觉", "Night watch alert"),
             kind: resolvedKind,
             segments: 6
         )
@@ -308,7 +308,7 @@ public enum DiceThemeD20Rules {
         }
         var index = existing.count + 1
         while used.contains("aspect_\(index)") { index += 1 }
-        return DiceThemeAspect(key: "aspect_\(index)", label: "新特质", desc: "")
+        return DiceThemeAspect(key: "aspect_\(index)", label: W8Text.t("新特质", "New trait"), desc: "")
     }
 
     public static func move<T>(_ list: [T], index: Int, delta: Int) -> [T] {
@@ -355,7 +355,7 @@ public enum DiceThemeD20Rules {
         }
         let nextAttrs = rawAttrs.map(clampAttr).filter { !$0.name.isEmpty }
         let rawClocks = clocks ?? (!cur.clocks.isEmpty ? cur.clocks : [
-            DiceThemeClock(variable: "counter.alarm", label: "巡夜人警觉", kind: "danger", segments: p.seg)
+            DiceThemeClock(variable: "counter.alarm", label: W8Text.t("巡夜人警觉", "Night watch alert"), kind: "danger", segments: p.seg)
         ])
         let nextClocks = rawClocks
             .map { c in
@@ -405,12 +405,12 @@ public enum DiceThemeD20Rules {
 
     public static func summary(_ journey: DiceThemeJourneyConfig?) -> String {
         let s = read(journey)
-        guard s.enabled else { return "未开启" }
+        guard s.enabled else { return W8Text.t("未开启", "Off") }
         let p = presets.first(where: { $0.key == s.preset }) ?? presets[1]
-        var parts = [p.label, "\(s.attrs.count) 项属性"]
-        if !s.clocks.isEmpty { parts.append("\(s.clocks.count) 个进度钟") }
-        if !s.aspects.isEmpty { parts.append("\(s.aspects.count) 项特质") }
-        if !s.checkEnabled { parts.append("仅记录数值") }
+        var parts = [p.label, W8Text.t("\(s.attrs.count) 项属性", "\(s.attrs.count) attributes")]
+        if !s.clocks.isEmpty { parts.append(W8Text.t("\(s.clocks.count) 个进度钟", "\(s.clocks.count) clocks")) }
+        if !s.aspects.isEmpty { parts.append(W8Text.t("\(s.aspects.count) 项特质", "\(s.aspects.count) traits")) }
+        if !s.checkEnabled { parts.append(W8Text.t("仅记录数值", "Record values only")) }
         return parts.joined(separator: " · ")
     }
 
@@ -421,7 +421,7 @@ public enum DiceThemeD20Rules {
 
     public static func playWindowLabel(_ journey: DiceThemeJourneyConfig?) -> String {
         let key = playWindowOf(journey)
-        return windows.first(where: { $0.key == key })?.label ?? "全天可玩"
+        return windows.first(where: { $0.key == key })?.label ?? W8Text.t("全天可玩", "Playable all day")
     }
 
     public static func setPlayWindow(_ journey: DiceThemeJourneyConfig?, key: String) -> DiceThemeJourneyConfig {
@@ -539,12 +539,14 @@ public enum DiceD20Geometry {
     public static let faces: [DiceD20Face] = {
         let baseFaces = triangles.map { (i, j, k) -> (points: [DiceVec3], normal: DiceVec3, up: DiceVec3) in
             let pts = [rawVertices[i], rawVertices[j], rawVertices[k]]
-            let center = DiceVec3(
+            let centroid = DiceVec3(
                 (pts[0].x + pts[1].x + pts[2].x) / 3.0,
                 (pts[0].y + pts[1].y + pts[2].y) / 3.0,
                 (pts[0].z + pts[1].z + pts[2].z) / 3.0
-            ).normalized
-            let u = DiceVec3(pts[0].x - center.x, pts[0].y - center.y, pts[0].z - center.z).normalized
+            )
+            let center = centroid.normalized
+            // The up vector must lie in the face plane, so measure from the raw (unnormalized) centroid.
+            let u = DiceVec3(pts[0].x - centroid.x, pts[0].y - centroid.y, pts[0].z - centroid.z).normalized
             return (points: pts, normal: center, up: u)
         }
         var values = Array(repeating: 0, count: baseFaces.count)
@@ -631,7 +633,7 @@ public enum DiceD20Error: Error, LocalizedError, Equatable {
     public var errorDescription: String? {
         switch self {
         case .invalidFaceValue(let v):
-            return "D20 点数必须在 1–20 之间（收到 \(v)）"
+            return W8Text.t("D20 点数必须在 1–20 之间（收到 \(v)）", "D20 result must be between 1 and 20 (got \(v))")
         case .canvasUnavailable(let msg):
             return msg
         }
@@ -881,12 +883,12 @@ public enum DicePlaykitRules {
 
     public static func subtitleForSettledD6(values: [Int], faces: [String]) -> String {
         let valid = values.filter { (1...6).contains($0) }
-        guard !valid.isEmpty else { return "摇一摇，把骰子扔出去" }
+        guard !valid.isEmpty else { return W8Text.t("摇一摇，把骰子扔出去", "Shake and throw the dice") }
         if valid.count == 1 {
             let task = taskFor(values: valid, faces: faces)
-            return task.isEmpty ? "摇到 \(valid[0])" : task
+            return task.isEmpty ? W8Text.t("摇到 \(valid[0])", "Rolled \(valid[0])") : task
         }
-        return valid.map(String.init).joined(separator: " + ") + "，两颗只比大小"
+        return valid.map(String.init).joined(separator: " + ") + W8Text.t("，两颗只比大小", ", two dice compare only")
     }
 }
 
@@ -907,7 +909,7 @@ public struct DiceD20TemplateConfig: Codable, Equatable, Sendable {
     public init(
         enabled: Bool = true,
         mode: String = "d20",
-        kicker: String = "D20 检定",
+        kicker: String = W8Text.t("D20 检定", "D20 check"),
         dc: Int? = 12,
         modifier: Int? = 0,
         rollMode: String = "normal",
@@ -946,27 +948,27 @@ public enum DiceD20TemplateValidator {
         guard config.enabled else { return "" }
         if config.mode == "d20" {
             guard let dc = config.dc, (1...40).contains(dc) else {
-                return "D20 难度值（DC）须为 1–40 的整数"
+                return W8Text.t("D20 难度值（DC）须为 1–40 的整数", "D20 difficulty (DC) must be an integer from 1 to 40")
             }
             guard let modifier = config.modifier, (-20...20).contains(modifier) else {
-                return "D20 调整值须为 -20 到 20 的整数"
+                return W8Text.t("D20 调整值须为 -20 到 20 的整数", "D20 modifier must be an integer from -20 to 20")
             }
             guard validRollModes.contains(config.rollMode) else {
-                return "D20 检定方式无效"
+                return W8Text.t("D20 检定方式无效", "Invalid D20 check mode")
             }
             let successTrimmed = config.successText.trimmingCharacters(in: .whitespacesAndNewlines)
             let failTrimmed = config.failText.trimmingCharacters(in: .whitespacesAndNewlines)
             if !adoptedFromLibrary && (successTrimmed.isEmpty || failTrimmed.isEmpty) {
-                return "请填写成功与失败结果文案"
+                return W8Text.t("请填写成功与失败结果文案", "Enter both success and failure result text")
             }
             if successTrimmed.count > 200 || failTrimmed.count > 200 {
-                return "D20 结果文案不能超过 200 字"
+                return W8Text.t("D20 结果文案不能超过 200 字", "D20 result text must not exceed 200 characters")
             }
             return ""
         } else {
             let cleanFaces = config.faces.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
             if cleanFaces.count < 6 || cleanFaces.prefix(6).contains(where: \.isEmpty) {
-                return "六面骰每一面不能为空"
+                return W8Text.t("六面骰每一面不能为空", "Every face of the six-sided die needs text")
             }
             return ""
         }
@@ -1093,10 +1095,10 @@ public enum DiceJourneyCheckRules {
 
     public static func tierLabel(_ tier: String) -> String {
         switch tier {
-        case "easy": return "轻巧（DC 10）"
-        case "medium": return "吃劲（DC 13）"
-        case "hard": return "棘手（DC 16）"
-        default: return "检定"
+        case "easy": return W8Text.t("轻巧（DC 10）", "Light (DC 10)")
+        case "medium": return W8Text.t("吃劲（DC 13）", "Demanding (DC 13)")
+        case "hard": return W8Text.t("棘手（DC 16）", "Tricky (DC 16)")
+        default: return W8Text.t("检定", "Check")
         }
     }
 
@@ -1129,14 +1131,14 @@ public enum DiceJourneyCheckRules {
             return ""
         }
         let diff = total - dc
-        return diff >= 0 ? "过线 \(diff) 点" : "差 \(-diff) 点"
+        return diff >= 0 ? W8Text.t("过线 \(diff) 点", "Passed by \(diff)") : W8Text.t("差 \(-diff) 点", "Missed by \(-diff)")
     }
 
     /// Ported from `natTag(receipt)` in `pages/play/components/playkit-journey-check/index.js`.
     public static func natTag(_ receipt: DiceJourneyCheckReceiptView?) -> String {
         guard let receipt, !receipt.detailsHidden else { return "" }
-        if receipt.nat == "CRIT" { return "天然 20" }
-        if receipt.nat == "FUMBLE" { return "天然 1 · 手滑了" }
+        if receipt.nat == "CRIT" { return W8Text.t("天然 20", "Natural 20") }
+        if receipt.nat == "FUMBLE" { return W8Text.t("天然 1 · 手滑了", "Natural 1 · fumbled") }
         return ""
     }
 
@@ -1191,14 +1193,14 @@ public enum DiceJourneyCheckRules {
         var breakdownRows: [DiceJourneyBreakdownRow] = []
         if b.object != nil && b["hidden"].bool != true && b["redacted"].bool != true {
             if let die = b["die"].tolerantInteger {
-                breakdownRows.append(DiceJourneyBreakdownRow(label: "骰子", value: "\(die)"))
+                breakdownRows.append(DiceJourneyBreakdownRow(label: W8Text.t("骰子", "Dice"), value: "\(die)"))
             }
             let skill = b["skill"]
             if skill.object != nil {
                 if skill["hidden"].bool == true || skill["redacted"].bool == true {
-                    breakdownRows.append(DiceJourneyBreakdownRow(label: "一项隐藏的加成", value: "已计入"))
+                    breakdownRows.append(DiceJourneyBreakdownRow(label: W8Text.t("一项隐藏的加成", "A hidden bonus"), value: W8Text.t("已计入", "Included")))
                 } else if let val = skill["value"].tolerantInteger {
-                    let lbl = (skill["label"].text?.isEmpty == false) ? skill["label"].text! : "属性"
+                    let lbl = (skill["label"].text?.isEmpty == false) ? skill["label"].text! : W8Text.t("属性", "Attribute")
                     breakdownRows.append(DiceJourneyBreakdownRow(label: lbl, value: signed(val)))
                 }
             }
@@ -1212,14 +1214,14 @@ public enum DiceJourneyCheckRules {
                         breakdownRows.append(DiceJourneyBreakdownRow(label: mod.label, value: signed(mod.value)))
                     }
                 } else {
-                    breakdownRows.append(DiceJourneyBreakdownRow(label: "条件修正", value: signed(applied)))
+                    breakdownRows.append(DiceJourneyBreakdownRow(label: W8Text.t("条件修正", "Condition modifier"), value: signed(applied)))
                 }
             }
             if let bargain = b["bargain"].tolerantInteger, bargain != 0 {
-                breakdownRows.append(DiceJourneyBreakdownRow(label: "魔鬼交易", value: signed(bargain)))
+                breakdownRows.append(DiceJourneyBreakdownRow(label: W8Text.t("魔鬼交易", "Devil’s bargain"), value: signed(bargain)))
             }
             if let momentum = b["momentum"].tolerantInteger, momentum != 0 {
-                breakdownRows.append(DiceJourneyBreakdownRow(label: "动量", value: signed(momentum)))
+                breakdownRows.append(DiceJourneyBreakdownRow(label: W8Text.t("动量", "Momentum"), value: signed(momentum)))
             }
         }
 
@@ -1308,7 +1310,7 @@ public enum DiceCheckEngine {
             tier: String = "medium",
             dc: Int? = nil,
             rollMode: RollMode = .normal,
-            skillLabel: String = "观察",
+            skillLabel: String = W8Text.t("观察", "Observation"),
             skillValue: Int = 0,
             mods: [DiceJourneyCheckMod] = [],
             situationalCap: Int = 4,
@@ -1316,8 +1318,8 @@ public enum DiceCheckEngine {
             momentum: Int = 0,
             luck: Int = 1,
             hp: Int = 5,
-            successText: String = "检定通过",
-            failText: String = "检定未通过",
+            successText: String = W8Text.t("检定通过", "Check passed"),
+            failText: String = W8Text.t("检定未通过", "Check failed"),
             failCostLabel: String = ""
         ) {
             self.tier = tier

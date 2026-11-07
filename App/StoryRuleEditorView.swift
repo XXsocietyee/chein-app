@@ -40,8 +40,8 @@ import QuestifyCore
                         get: { model.topSegValue },
                         set: { model.onTopMode($0) }
                     )) {
-                        Text("全部满足").tag("AND")
-                        Text("任一满足").tag("OR")
+                        Text("storyRule.matchAll").tag("AND")
+                        Text("storyRule.matchAny").tag("OR")
                     }
                     .pickerStyle(.segmented)
                     .frame(maxWidth: 180)
@@ -72,7 +72,7 @@ import QuestifyCore
                     .font(.subheadline.weight(.semibold))
                 Spacer()
                 if model.effectRows.count > 1 && !model.readOnly {
-                    Button(model.sorting ? "完成排序" : "调整顺序") {
+                    Button(LocalizedStringKey(model.sorting ? "storyRule.sortDone" : "storyRule.sortStart")) {
                         model.toggleSort()
                     }
                     .font(.caption)
@@ -105,8 +105,8 @@ import QuestifyCore
                     get: { row.mode ?? "AND" },
                     set: { model.onGroupMode(path: row.path, mode: $0) }
                 )) {
-                    Text("全部满足").tag("AND")
-                    Text("任一满足").tag("OR")
+                    Text("storyRule.matchAll").tag("AND")
+                    Text("storyRule.matchAny").tag("OR")
                 }
                 .pickerStyle(.segmented)
                 .padding(.leading, 16)
@@ -222,9 +222,9 @@ import QuestifyCore
                     model.openRename(path: path)
                 } label: {
                     HStack {
-                        Text("目标：\(renameLabel)")
+                        Text("storyRule.renameTarget \(renameLabel)")
                         Spacer()
-                        Text("换一个名字")
+                        Text("storyRule.renameAction")
                             .font(.caption)
                     }
                 }
@@ -282,7 +282,7 @@ import QuestifyCore
             Button(role: .destructive) {
                 model.onRemove(path: path)
             } label: {
-                Label("删除这一句", systemImage: "trash")
+                Label("storyRule.removeSentence", systemImage: "trash")
                     .font(.caption)
             }
             .buttonStyle(.borderless)
@@ -298,13 +298,13 @@ import QuestifyCore
                 Text(layer.title)
                     .font(.headline)
                 Spacer()
-                Button("返回") {
+                Button("storyRule.back") {
                     model.closeLayer()
                 }
                 .font(.caption)
             }
 
-            TextField("搜索或输入新名称", text: Binding(
+            TextField("storyRule.layerSearch", text: Binding(
                 get: { model.query },
                 set: { model.onLayerQuery($0) }
             ))
@@ -366,7 +366,7 @@ import QuestifyCore
             // Project Join & Station Switcher Card
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
-                    Text(coordinator.joinState.isMerchant ? "共创站点入驻" : "故事角色与站点参与")
+                    Text(LocalizedStringKey(coordinator.joinState.isMerchant ? "storyRule.joinMerchant" : "storyRule.joinPlayer"))
                         .font(.headline)
                     Spacer()
                     Button(coordinator.joinState.joinActionTitle, action: onJoinTap)
@@ -425,7 +425,7 @@ import QuestifyCore
                             Text(chapter.title)
                                 .font(.headline)
                             Spacer()
-                            Text("\(chapter.nodes.count) 站")
+                            Text("storyRule.stationCount \(chapter.nodes.count)")
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -440,7 +440,7 @@ import QuestifyCore
                                         .font(.subheadline.weight(.semibold))
                                     Spacer()
                                     if node.answered {
-                                        Text("已作答")
+                                        Text("storyRule.answered")
                                             .font(.caption2.weight(.semibold))
                                             .foregroundStyle(.green)
                                     }
@@ -475,14 +475,14 @@ import QuestifyCore
                                             .buttonStyle(.plain)
                                         }
                                     } else {
-                                        TextField("输入你的回答", text: Binding(
+                                        TextField("storyRule.answerPlaceholder", text: Binding(
                                             get: { coordinator.draftAnswers[node.nodeId] ?? "" },
                                             set: { coordinator.selectAnswer(nodeId: node.nodeId, value: $0) }
                                         ))
                                         .textFieldStyle(.roundedBorder)
                                         .font(.caption)
                                     }
-                                    Button("提交章节回答") {
+                                    Button("storyRule.submitAnswer") {
                                         onSubmitNodeAnswer(node.nodeId)
                                     }
                                     .font(.caption.weight(.semibold))

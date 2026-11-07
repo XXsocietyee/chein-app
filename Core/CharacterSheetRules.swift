@@ -56,14 +56,14 @@ extension CharacterCardAttribute {
 
     public var scopeText: String {
         switch persistScope {
-        case "topic": return "同主题跨局保留"
-        case "run": return "每局重置"
-        default: return "保留范围未记录"
+        case "topic": return W8Text.t("同主题跨局保留", "Kept across runs of this theme")
+        case "run": return W8Text.t("每局重置", "Reset every run")
+        default: return W8Text.t("保留范围未记录", "Retention not recorded")
         }
     }
 
     public var rangeText: String {
-        "范围 \(min)–\(max)"
+        W8Text.t("范围 \(min)–\(max)", "Range \(min)–\(max)")
     }
 
     public var percent: Int {
@@ -167,14 +167,14 @@ public struct CharacterRpgSheet: Equatable, Sendable {
                   let label = f["label"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !label.isEmpty else { return nil }
             let key = f["key"].text ?? "facet-\(idx)"
             let desc = f["desc"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            return CharacterRpgTrait(key: key, label: label, desc: desc, tag: "侧面")
+            return CharacterRpgTrait(key: key, label: label, desc: desc, tag: W8Text.t("侧面", "Aspect"))
         }
         let aspects: [CharacterRpgTrait] = (raw["aspects"].array ?? []).enumerated().compactMap { idx, a in
             guard a.object != nil,
                   let label = a["label"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !label.isEmpty else { return nil }
             let key = a["key"].text ?? "aspect-\(idx)"
             let desc = a["desc"].text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-            return CharacterRpgTrait(key: key, label: label, desc: desc, tag: "本局特质")
+            return CharacterRpgTrait(key: key, label: label, desc: desc, tag: W8Text.t("本局特质", "Run trait"))
         }
         if momentum == nil && clocks.isEmpty && facets.isEmpty && aspects.isEmpty {
             return nil
@@ -185,28 +185,28 @@ public struct CharacterRpgSheet: Equatable, Sendable {
 
 extension CharacterCard {
     public var heading: String {
-        created ? "本人角色卡" : "角色模板"
+        created ? W8Text.t("本人角色卡", "My character card") : W8Text.t("角色模板", "Character template")
     }
 
     public var statusText: String {
         if created {
-            return running ? "本局进行中" : "已建立"
+            return running ? W8Text.t("本局进行中", "Run in progress") : W8Text.t("已建立", "Created")
         }
-        return "尚未建卡"
+        return W8Text.t("尚未建卡", "Card not created yet")
     }
 
     public func definitionNote(for definitionSource: String? = nil) -> String {
         switch definitionSource {
         case "SESSION_SNAPSHOT_PARTIAL":
-            return "部分跨局属性展示当前主题定义，不代表建卡时原始区间。"
+            return W8Text.t("部分跨局属性展示当前主题定义，不代表建卡时原始区间。", "Some cross-run attributes show the current theme definition, not the original range at card creation.")
         case "SESSION_SNAPSHOT_V1":
-            return "展示本局开始时的角色属性定义。"
+            return W8Text.t("展示本局开始时的角色属性定义。", "Shows the character attribute definitions from the start of this run.")
         case "LEGACY_LIVE":
-            return "历史角色未保存建卡快照，当前按主题最新规则展示。"
+            return W8Text.t("历史角色未保存建卡快照，当前按主题最新规则展示。", "This older character has no creation snapshot; shown with the theme’s latest rules.")
         default:
             return created
-                ? "仅展示服务端已记录的本人角色数值。"
-                : "当前尚未建立本人角色，以下为主题属性模板与初始值。"
+                ? W8Text.t("仅展示服务端已记录的本人角色数值。", "Showing only your character values recorded on the server.")
+                : W8Text.t("当前尚未建立本人角色，以下为主题属性模板与初始值。", "You have no character yet; below are the theme’s attribute template and starting values.")
         }
     }
 }
@@ -250,12 +250,12 @@ public enum CharacterSheetPresenter {
 
     public static func failure(code: Int?, message: String?) -> FailureView {
         if code == 401 {
-            return FailureView(state: "unauthorized", error: "请先登录后查看角色卡", canRetry: false)
+            return FailureView(state: "unauthorized", error: W8Text.t("请先登录后查看角色卡", "Sign in to view the character card"), canRetry: false)
         }
         let msg = (message ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if code == 403 || msg.contains("无权") {
-            return FailureView(state: "forbidden", error: msg.isEmpty ? "无权查看该角色卡" : msg, canRetry: false)
+            return FailureView(state: "forbidden", error: msg.isEmpty ? W8Text.t("无权查看该角色卡", "You do not have access to this character card") : msg, canRetry: false)
         }
-        return FailureView(state: "error", error: msg.isEmpty ? "角色卡加载失败，请稍后重试" : msg, canRetry: true)
+        return FailureView(state: "error", error: msg.isEmpty ? W8Text.t("角色卡加载失败，请稍后重试", "Could not load the character card. Try again later.") : msg, canRetry: true)
     }
 }

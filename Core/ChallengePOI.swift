@@ -71,7 +71,7 @@ public struct ChallengePOINode: Codable, Equatable, Sendable {
         guard raw.object != nil else { throw PlayExperienceError.malformed }
         let id = raw["id"].tolerantInteger ?? raw["nodeId"].tolerantInteger ?? fallbackNodeId
         guard id > 0 else { throw PlayExperienceError.malformed }
-        let name = raw["name"].text ?? raw["title"].text ?? "地标 \(id)"
+        let name = raw["name"].text ?? raw["title"].text ?? W8Text.t("地标 \(id)", "Landmark \(id)")
         let title = raw["title"].text ?? name
         let desc = raw["description"].text ?? raw["desc"].text ?? ""
         let lat = raw["latitude"].double ?? raw["lat"].double
@@ -195,13 +195,13 @@ public enum ChallengePOIRules {
 
     public func applyLoadError(_ message: String) {
         self.state = .error
-        self.errorMessage = message.isEmpty ? "加载挑战失败，请重试" : message
+        self.errorMessage = message.isEmpty ? W8Text.t("加载挑战失败，请重试", "Could not load the challenge. Please retry.") : message
     }
 
     public func confirmPhotoUploaded(_ url: String) {
         let trimmed = url.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else {
-            errorMessage = "请先上传现场照片"
+            errorMessage = W8Text.t("请先上传现场照片", "Upload an on-site photo first")
             return
         }
         uploadedPhotoUrl = trimmed
@@ -216,28 +216,28 @@ public enum ChallengePOIRules {
             throw PlayExperienceError.invalidAction
         }
         guard !unknownSubmission else {
-            throw NSError(domain: "ChallengePOI", code: 10, userInfo: [NSLocalizedDescriptionKey: "上次提交结果待核对，请先刷新节点状态"])
+            throw NSError(domain: "ChallengePOI", code: 10, userInfo: [NSLocalizedDescriptionKey: W8Text.t("上次提交结果待核对，请先刷新节点状态", "The last submission is awaiting confirmation. Refresh the station status first.")])
         }
         if node.latitude != nil && node.longitude != nil {
             let arrival = ChallengePOIRules.checkArrival(node: node, userLatitude: userLat, userLongitude: userLon)
             withinRange = arrival.withinRange
             distanceMeters = arrival.distanceMeters
             guard arrival.withinRange else {
-                let distStr = arrival.distanceMeters.map { "（当前距离约 \($0)m）" } ?? ""
-                throw NSError(domain: "ChallengePOI", code: 1, userInfo: [NSLocalizedDescriptionKey: "距离地标过远，请走近后再试\(distStr)"])
+                let distStr = arrival.distanceMeters.map { W8Text.t("（当前距离约 \($0)m）", " (currently about \($0)m away)") } ?? ""
+                throw NSError(domain: "ChallengePOI", code: 1, userInfo: [NSLocalizedDescriptionKey: W8Text.t("距离地标过远，请走近后再试\(distStr)", "You are too far from the landmark. Move closer and try again\(distStr)")])
             }
         }
         if node.photoRequired && uploadedPhotoUrl.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            throw NSError(domain: "ChallengePOI", code: 2, userInfo: [NSLocalizedDescriptionKey: "请先完成拍照打卡"])
+            throw NSError(domain: "ChallengePOI", code: 2, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请先完成拍照打卡", "Complete the photo check-in first")])
         }
         var answer = textAnswer.trimmingCharacters(in: .whitespacesAndNewlines)
         if !node.options.isEmpty {
             guard let idx = selectedOptionIndex, node.options.indices.contains(idx) else {
-                throw NSError(domain: "ChallengePOI", code: 3, userInfo: [NSLocalizedDescriptionKey: "请选择一个答案"])
+                throw NSError(domain: "ChallengePOI", code: 3, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请选择一个答案", "Choose an answer")])
             }
             answer = node.options[idx]
         } else if !node.question.isEmpty && answer.isEmpty {
-            throw NSError(domain: "ChallengePOI", code: 4, userInfo: [NSLocalizedDescriptionKey: "请填写答案"])
+            throw NSError(domain: "ChallengePOI", code: 4, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请填写答案", "Enter an answer")])
         }
 
         var payload: [String: PlayWireValue] = [
@@ -278,11 +278,11 @@ public enum ChallengePOIRules {
         }
         if ChallengePOIRules.isPrewriteRejection(code) {
             unknownSubmission = false
-            errorMessage = message ?? "未通过挑战，请核对后重试"
+            errorMessage = message ?? W8Text.t("未通过挑战，请核对后重试", "Challenge not passed. Check and try again.")
             return
         }
         // Ambiguous or network error: lock against blind duplicate submission until node state is refreshed
         unknownSubmission = true
-        errorMessage = message ?? "提交结果未确认，请刷新查看是否已完成"
+        errorMessage = message ?? W8Text.t("提交结果未确认，请刷新查看是否已完成", "Submission not confirmed. Refresh to see whether it completed.")
     }
 }

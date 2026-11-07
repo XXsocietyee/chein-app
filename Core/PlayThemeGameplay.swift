@@ -8,7 +8,7 @@ public struct PlayThemeStatLabels: Equatable, Sendable {
     public let luck: String
     public let action: String
 
-    public init(hp: String = "生命值", luck: String = "幸运值", action: String = "行动次数") {
+    public init(hp: String = W8Text.t("生命值", "Health"), luck: String = W8Text.t("幸运值", "Luck"), action: String = W8Text.t("行动次数", "Actions")) {
         self.hp = hp
         self.luck = luck
         self.action = action
@@ -84,9 +84,9 @@ public struct PlayThemeRouteNodeRef: Equatable, Sendable {
 
 public enum PlayThemeGameplayRules {
     public static func labels(_ view: PlayWireValue) -> PlayThemeStatLabels {
-        let hp = (view["hpName"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "生命值"
-        let luck = (view["luckName"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "幸运值"
-        let action = (view["actionName"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "行动次数"
+        let hp = (view["hpName"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? W8Text.t("生命值", "Health")
+        let luck = (view["luckName"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? W8Text.t("幸运值", "Luck")
+        let action = (view["actionName"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? W8Text.t("行动次数", "Actions")
         return PlayThemeStatLabels(hp: hp, luck: luck, action: action)
     }
 
@@ -106,7 +106,7 @@ public enum PlayThemeGameplayRules {
            let itemName = item["name"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !itemName.isEmpty {
             return itemName
         }
-        return key.hasPrefix("counter.") ? "数值" : "物资"
+        return key.hasPrefix("counter.") ? W8Text.t("数值", "Value") : W8Text.t("物资", "Supplies")
     }
 
     public static func amounts(_ source: PlayWireValue, view: PlayWireValue) -> [String] {
@@ -149,26 +149,26 @@ public enum PlayThemeGameplayRules {
 
     public static func shortfallText(_ option: PlayWireValue, view: PlayWireValue) -> String {
         if option["affordable"].bool == true { return "" }
-        guard let shortfall = option["shortfall"].array else { return "费用不足" }
+        guard let shortfall = option["shortfall"].array else { return W8Text.t("费用不足", "Insufficient cost") }
         let items = shortfall.compactMap { row -> String? in
             guard let missing = row["missing"].tolerantInteger, missing > 0 else { return nil }
             let k = row["key"].text
-            let label = (row["type"].text == "ITEM" && k == nil) ? "物资" : (valueName(k, view: view).isEmpty ? "数值" : valueName(k, view: view))
-            return "缺少\(label) \(missing)"
+            let label = (row["type"].text == "ITEM" && k == nil) ? W8Text.t("物资", "Supplies") : (valueName(k, view: view).isEmpty ? W8Text.t("数值", "Value") : valueName(k, view: view))
+            return W8Text.t("缺少\(label) \(missing)", "Missing \(label) \(missing)")
         }
-        return items.isEmpty ? "费用不足" : items.joined(separator: " · ")
+        return items.isEmpty ? W8Text.t("费用不足", "Insufficient cost") : items.joined(separator: " · ")
     }
 
     public static func options(_ raw: PlayWireValue, view: PlayWireValue) -> [PlayThemeCostOptionRow] {
         guard let list = raw.array else { return [] }
         return list.enumerated().map { index, row in
             let affordable = row["affordable"].bool == true
-            let lbl = (row["label"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? "方案 \(index + 1)"
+            let lbl = (row["label"].text?.trimmingCharacters(in: .whitespacesAndNewlines)).flatMap { $0.isEmpty ? nil : $0 } ?? W8Text.t("方案 \(index + 1)", "Option \(index + 1)")
             let amt = amounts(row, view: view).joined(separator: " · ")
             return PlayThemeCostOptionRow(
                 index: index,
                 label: lbl,
-                amountText: amt.isEmpty ? "免费" : amt,
+                amountText: amt.isEmpty ? W8Text.t("免费", "Free") : amt,
                 affordable: affordable,
                 shortfallText: shortfallText(row, view: view)
             )
@@ -177,20 +177,20 @@ public enum PlayThemeGameplayRules {
 
     public static func toolStatus(_ row: PlayWireValue, view: PlayWireValue, activeOp: Bool = false) -> String {
         var parts: [String] = []
-        if activeOp { parts.append("操作题进行中") }
+        if activeOp { parts.append(W8Text.t("操作题进行中", "Operation in progress")) }
         let payer = row["payerPolicy"].text
-        if payer == "FIRST_TEAM_ONCE" { parts.append("仅首队支付一次") }
-        else if payer == "FIRST_PLAYER_ONCE" { parts.append("仅首人支付一次") }
-        if row["paidByOwnerId"] != .null || row["paidByTeamId"] != .null { parts.append("已由先行者支付") }
-        if let rem = row["remaining"].tolerantInteger, rem >= 0 { parts.append("剩余 \(rem) 次") }
-        else if let rem = row["remainingUses"].tolerantInteger, rem >= 0 { parts.append("剩余 \(rem) 次") }
+        if payer == "FIRST_TEAM_ONCE" { parts.append(W8Text.t("仅首队支付一次", "Paid once by the first team")) }
+        else if payer == "FIRST_PLAYER_ONCE" { parts.append(W8Text.t("仅首人支付一次", "Paid once by the first player")) }
+        if row["paidByOwnerId"] != .null || row["paidByTeamId"] != .null { parts.append(W8Text.t("已由先行者支付", "Already paid by an earlier player")) }
+        if let rem = row["remaining"].tolerantInteger, rem >= 0 { parts.append(W8Text.t("剩余 \(rem) 次", "\(rem) left")) }
+        else if let rem = row["remainingUses"].tolerantInteger, rem >= 0 { parts.append(W8Text.t("剩余 \(rem) 次", "\(rem) left")) }
         if let reason = row["disabledReason"].text, !reason.isEmpty {
             let reasonMap: [String: String] = [
-                "COOLDOWN": "冷却中",
-                "LIMIT_REACHED": "次数已用尽",
-                "PREREQ": "前置条件未满足",
-                "COST": "费用不足",
-                "FULL_HP": "\(labels(view).hp)已满",
+                "COOLDOWN": W8Text.t("冷却中", "Cooling down"),
+                "LIMIT_REACHED": W8Text.t("次数已用尽", "No uses left"),
+                "PREREQ": W8Text.t("前置条件未满足", "Prerequisites not met"),
+                "COST": W8Text.t("费用不足", "Insufficient cost"),
+                "FULL_HP": W8Text.t("\(labels(view).hp)已满", "\(labels(view).hp) is full"),
             ]
             parts.append(reasonMap[reason] ?? reason)
         }
@@ -237,7 +237,7 @@ public enum PlayThemeGameplayRules {
             }
             let costText: String
             if frozenIdx >= 0 {
-                costText = "已选 \(opts[frozenIdx].label)：\(opts[frozenIdx].amountText)"
+                costText = W8Text.t("已选 \(opts[frozenIdx].label)：\(opts[frozenIdx].amountText)", "Chosen \(opts[frozenIdx].label): \(opts[frozenIdx].amountText)")
             } else if !opts.isEmpty {
                 costText = [fixed, opts.map { "\($0.label)：\($0.amountText)" }.joined(separator: " / ")]
                     .filter { !$0.isEmpty }
@@ -262,10 +262,10 @@ public enum PlayThemeGameplayRules {
             let canOpen = active && resolve == nil && (!team || !availableActions.contains("QUEST_RESOLVE") || q["verified"].bool == false)
                 && (nodeId != nil || cancel != nil || availableActions.contains("QUEST_CANCEL"))
             let op = active ? (canOpen ? "OPEN_QUEST" : "QUEST_RESOLVE") : "QUEST_START"
-            let nodeName = nodes.first(where: { $0.nodeId == nodeId })?.name ?? q["title"].text ?? q["name"].text ?? "支线 \(id)"
+            let nodeName = nodes.first(where: { $0.nodeId == nodeId })?.name ?? q["title"].text ?? q["name"].text ?? W8Text.t("支线 \(id)", "Side quest \(id)")
             let choices: [PlayThemeQuestChoiceItem] = (q["choices"].array ?? []).map { choice in
                 let cKey = choice["choiceKey"].text ?? choice["id"].text ?? ""
-                let cLabel = choice["label"].text ?? choice["title"].text ?? (cKey.isEmpty ? "选项" : cKey)
+                let cLabel = choice["label"].text ?? choice["title"].text ?? (cKey.isEmpty ? W8Text.t("选项", "Option") : cKey)
                 let cDesc = choice["description"].text ?? ""
                 let cCost = amounts(choice["costs"].object != nil ? choice["costs"] : choice, view: view).joined(separator: " · ")
                 return PlayThemeQuestChoiceItem(
@@ -284,14 +284,14 @@ public enum PlayThemeGameplayRules {
                 operationKind: nil,
                 operationKey: nil,
                 title: nodeName,
-                statusText: done ? "已完成" : (active ? "进行中" : (q["disabledReason"].text ?? "可接取")),
+                statusText: done ? W8Text.t("已完成", "Completed") : (active ? W8Text.t("进行中", "In progress") : (q["disabledReason"].text ?? W8Text.t("可接取", "Available"))),
                 costText: cost.costText,
                 costOptions: cost.costOptions,
                 frozenIndex: cost.frozenIndex,
                 nodeId: nodeId,
                 choices: choices,
                 operation: op,
-                actionLabel: done ? "已完成" : (canOpen ? "去完成" : (active ? "结算" : "开始")),
+                actionLabel: done ? W8Text.t("已完成", "Completed") : (canOpen ? W8Text.t("去完成", "Go complete") : (active ? W8Text.t("结算", "Settle") : W8Text.t("开始", "Start"))),
                 enabled: enabled,
                 cancelable: active && (cancel != nil || (team && availableActions.contains("QUEST_CANCEL"))),
                 minParticipants: q["minParticipants"].tolerantInteger ?? 0,
@@ -321,7 +321,7 @@ public enum PlayThemeGameplayRules {
                 contentId: id,
                 operationKind: opKind,
                 operationKey: id,
-                title: t["title"].text ?? t["name"].text ?? "工具 \(id)",
+                title: t["title"].text ?? t["name"].text ?? W8Text.t("工具 \(id)", "Tool \(id)"),
                 statusText: toolStatus(t, view: view, activeOp: activeOp),
                 costText: cost.costText,
                 costOptions: cost.costOptions,
@@ -329,7 +329,7 @@ public enum PlayThemeGameplayRules {
                 nodeId: resolvedNodeId,
                 choices: [],
                 operation: op,
-                actionLabel: activeOp ? "去核验" : (opNodeId != nil ? "开启操作" : "使用"),
+                actionLabel: activeOp ? W8Text.t("去核验", "Go verify") : (opNodeId != nil ? W8Text.t("开启操作", "Start operation") : W8Text.t("使用", "Use")),
                 enabled: enabled,
                 cancelable: activeOp && (allowed("OPERATION_CANCEL", id) != nil || (team && availableActions.contains("OPERATION_CANCEL"))),
                 minParticipants: t["minParticipants"].tolerantInteger ?? 0,
@@ -350,7 +350,7 @@ public enum PlayThemeGameplayRules {
                 contentId: id,
                 operationKind: nil,
                 operationKey: nil,
-                title: r["title"].text ?? r["name"].text ?? "恢复 \(id)",
+                title: r["title"].text ?? r["name"].text ?? W8Text.t("恢复 \(id)", "Restore \(id)"),
                 statusText: toolStatus(r, view: view),
                 costText: cost.costText,
                 costOptions: cost.costOptions,
@@ -358,7 +358,7 @@ public enum PlayThemeGameplayRules {
                 nodeId: nil,
                 choices: [],
                 operation: "RECOVER",
-                actionLabel: "恢复",
+                actionLabel: W8Text.t("恢复", "Restore"),
                 enabled: enabled,
                 cancelable: false,
                 minParticipants: 0,
@@ -376,8 +376,8 @@ public enum PlayThemeGameplayRules {
         guard q.object != nil else { return "" }
         let hasField = ["questKey", "choiceKey", "completed", "statDeltas", "grantedItems", "rewards", "noEffect"].contains { q[$0] != .null }
         guard hasField else { return "" }
-        if q["noEffect"].bool == true { return "支线未产生额外变化" }
-        var parts = [q["completed"].bool == false ? "支线已记录" : "支线已结算"]
+        if q["noEffect"].bool == true { return W8Text.t("支线未产生额外变化", "Side quest made no extra changes") }
+        var parts = [q["completed"].bool == false ? W8Text.t("支线已记录", "Side quest recorded") : W8Text.t("支线已结算", "Side quest settled")]
         for (key, val) in (q["statDeltas"].object ?? [:]).sorted(by: { $0.key < $1.key }) {
             if let num = val.tolerantInteger, num != 0 {
                 parts.append("\(valueName(key, view: view)) \(num > 0 ? "+" : "")\(num)")
@@ -401,7 +401,7 @@ public enum PlayThemeGameplayRules {
         guard !roster.isEmpty else { return nil }
         let rows: [PlayThemeParticipantRow] = roster.enumerated().map { idx, member in
             let id = member["memberId"].tolerantInteger ?? member["userId"].tolerantInteger ?? member["id"].tolerantInteger ?? (idx + 1)
-            let name = member["nickname"].text ?? member["name"].text ?? "队员 \(id)"
+            let name = member["nickname"].text ?? member["name"].text ?? W8Text.t("队员 \(id)", "Member \(id)")
             let roleName = member["roleName"].text ?? member["roleKey"].text ?? ""
             return PlayThemeParticipantRow(
                 memberId: id,
@@ -412,10 +412,10 @@ public enum PlayThemeGameplayRules {
         }
         let selectedIds = rows.filter(\.checked).map(\.memberId)
         let countText: String
-        if minP > 0 && maxP > 0 { countText = "需 \(minP)–\(maxP) 人" }
-        else if minP > 0 { countText = "至少 \(minP) 人" }
-        else if maxP > 0 { countText = "最多 \(maxP) 人" }
-        else { countText = "选择参与队员" }
+        if minP > 0 && maxP > 0 { countText = W8Text.t("需 \(minP)–\(maxP) 人", "Needs \(minP)–\(maxP) players") }
+        else if minP > 0 { countText = W8Text.t("至少 \(minP) 人", "At least \(minP) players") }
+        else if maxP > 0 { countText = W8Text.t("最多 \(maxP) 人", "At most \(maxP) players") }
+        else { countText = W8Text.t("选择参与队员", "Choose participants") }
         return PlayThemeParticipantChoice(
             actionRow: actionRow,
             minCount: minP,
@@ -493,14 +493,14 @@ public enum PlayThemeRewardsRules {
     public static func sourceName(_ source: String?) -> String {
         let parts = (source ?? "").split(separator: ":", omittingEmptySubsequences: false).map(String.init)
         if parts.first == "chapter", parts.count >= 2, let ch = Int(parts[1]) {
-            let suffix = (parts.count >= 3 && parts[2] == "END") ? "完成奖励" : "开启奖励"
-            return "第\(ch + 1)章\(suffix)"
+            let suffix = (parts.count >= 3 && parts[2] == "END") ? W8Text.t("完成奖励", "Completion reward") : W8Text.t("开启奖励", "Start reward")
+            return W8Text.t("第\(ch + 1)章\(suffix)", "Chapter \(ch + 1)\(suffix)")
         }
         switch parts.first {
-        case "quest": return "任务奖励"
-        case "event": return "事件奖励"
-        case "facility": return "工具奖励"
-        default: return "动作奖励"
+        case "quest": return W8Text.t("任务奖励", "Task reward")
+        case "event": return W8Text.t("事件奖励", "Event reward")
+        case "facility": return W8Text.t("工具奖励", "Tool reward")
+        default: return W8Text.t("动作奖励", "Action reward")
         }
     }
 
@@ -548,7 +548,7 @@ public enum PlayThemeRewardsRules {
             return PlayThemeRewardOwnerPreview(
                 ownerId: ownerId,
                 own: own,
-                label: own ? (view["scope"].text == "TEAM" ? "本队" : "本人") : "队伍 \(ownerId ?? 0)",
+                label: own ? (view["scope"].text == "TEAM" ? W8Text.t("本队", "Your team") : W8Text.t("本人", "You")) : W8Text.t("队伍 \(ownerId ?? 0)", "Team \(ownerId ?? 0)"),
                 finalUsed: owner["finalUsed"].tolerantInteger ?? 0,
                 capacity: owner["capacity"].tolerantInteger ?? 6,
                 overflow: owner["overflow"].bool == true,
@@ -643,10 +643,10 @@ public enum PlayThemeTradeRules {
         let texts: [String] = rows.compactMap { row in
             guard let itemId = row["itemId"].text else { return nil }
             let qty = row["quantity"].tolerantInteger ?? 0
-            let name = cat.first(where: { $0["id"].text == itemId })?["name"].text ?? "物资 \(itemId)"
+            let name = cat.first(where: { $0["id"].text == itemId })?["name"].text ?? W8Text.t("物资 \(itemId)", "Supply \(itemId)")
             return "\(name) ×\(qty)"
         }
-        return texts.isEmpty ? "无" : texts.joined(separator: "、")
+        return texts.isEmpty ? W8Text.t("无", "None") : texts.joined(separator: "、")
     }
 
     public static func present(_ view: PlayWireValue, nodes: [PlayThemeRouteNodeRef] = []) -> (
@@ -658,7 +658,7 @@ public enum PlayThemeTradeRules {
         let available = Set((view["availableActions"].array ?? []).compactMap(\.text))
         func station(_ row: PlayWireValue) -> String {
             guard let nId = row["nodeId"].tolerantInteger else { return "" }
-            return nodes.first(where: { $0.nodeId == nId })?.name ?? "节点资料尚未加载"
+            return nodes.first(where: { $0.nodeId == nId })?.name ?? W8Text.t("节点资料尚未加载", "Station data not loaded yet")
         }
 
         let targets: [PlayThemeTradeTargetRow] = (world["tradeTargets"].array ?? []).compactMap { row in
@@ -668,15 +668,15 @@ public enum PlayThemeTradeRules {
             let enabled = !disabled && canOpen
             let reason: String
             if disabled {
-                reason = row["disabledReason"].text ?? "交易暂不可用"
+                reason = row["disabledReason"].text ?? W8Text.t("交易暂不可用", "Trading unavailable")
             } else if !canOpen {
-                reason = "仅当前队长可操作"
+                reason = W8Text.t("仅当前队长可操作", "Only the current captain can do this")
             } else {
                 reason = ""
             }
             return PlayThemeTradeTargetRow(
                 teamId: tId,
-                name: row["name"].text ?? "队伍 \(tId)",
+                name: row["name"].text ?? W8Text.t("队伍 \(tId)", "Team \(tId)"),
                 nodeId: row["nodeId"].tolerantInteger,
                 stationName: station(row),
                 completed: row["completed"].bool == true,
@@ -692,9 +692,9 @@ public enum PlayThemeTradeRules {
             let status = row["status"].text ?? ""
             let statusText: String
             switch status {
-            case "OPEN": statusText = "等待双方队长确认"
-            case "COMPLETED": statusText = "已交换"
-            case "CANCELLED": statusText = "已取消"
+            case "OPEN": statusText = W8Text.t("等待双方队长确认", "Waiting for both captains")
+            case "COMPLETED": statusText = W8Text.t("已交换", "Exchanged")
+            case "CANCELLED": statusText = W8Text.t("已取消", "Cancelled")
             default: statusText = status
             }
             let confirmedTeams = (row["confirmedTeams"].array ?? []).map { $0.tolerantInteger.map(String.init) ?? $0.text ?? "" }
@@ -732,7 +732,7 @@ public enum PlayThemeTradeRules {
                 let trimmed = rawVal.trimmingCharacters(in: .whitespacesAndNewlines)
                 guard trimmed.range(of: "^\\d+$", options: .regularExpression) != nil,
                       let n = Int(trimmed), (0...999).contains(n) else {
-                    throw NSError(domain: "PlayThemeTrade", code: 1, userInfo: [NSLocalizedDescriptionKey: "\(row.name)的数量须为 0–999 的整数"])
+                    throw NSError(domain: "PlayThemeTrade", code: 1, userInfo: [NSLocalizedDescriptionKey: W8Text.t("\(row.name)的数量须为 0–999 的整数", "Quantity of \(row.name) must be an integer from 0 to 999")])
                 }
                 if n > 0 {
                     let item = PlayThemeTradePayloadItem(itemId: row.id, quantity: n)
@@ -741,19 +741,19 @@ public enum PlayThemeTradeRules {
             }
         }
         guard !give.isEmpty || !take.isEmpty else {
-            throw NSError(domain: "PlayThemeTrade", code: 2, userInfo: [NSLocalizedDescriptionKey: "请填写至少一项交换物资"])
+            throw NSError(domain: "PlayThemeTrade", code: 2, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请填写至少一项交换物资", "Enter at least one item to exchange")])
         }
         return PlayThemeTradePayload(tradeKey: form.tradeKey, toTeamId: form.toTeamId, give: give, take: take)
     }
 
-    public static func recoveryText(_ raw: PlayWireValue, hpName: String = "生命值") -> String {
+    public static func recoveryText(_ raw: PlayWireValue, hpName: String = W8Text.t("生命值", "Health")) -> String {
         let result = raw["facilityResult"].object != nil ? raw["facilityResult"] : raw
         if let recKey = result["recoveryKey"].text, !recKey.isEmpty, let hpDelta = result["hpDelta"].tolerantInteger {
-            let effect = hpDelta > 0 ? "恢复\(hpName) \(hpDelta)" : "\(hpName)已满，未产生效果"
-            let consumedPart = result["consumed"].bool == true ? "已消耗一次" : "未消耗"
+            let effect = hpDelta > 0 ? W8Text.t("恢复\(hpName) \(hpDelta)", "Restore \(hpName) \(hpDelta)") : W8Text.t("\(hpName)已满，未产生效果", "\(hpName) is full; no effect")
+            let consumedPart = result["consumed"].bool == true ? W8Text.t("已消耗一次", "One use consumed") : W8Text.t("未消耗", "Not consumed")
             let remPart: String
             if let rem = result["remaining"].tolerantInteger, rem >= 0 {
-                remPart = "，剩余 \(rem) 次"
+                remPart = W8Text.t("，剩余 \(rem) 次", ", \(rem) left")
             } else {
                 remPart = ""
             }
@@ -761,20 +761,20 @@ public enum PlayThemeTradeRules {
         }
         let payer: String
         if result["paidByOwnerId"] != .null {
-            payer = "本人"
+            payer = W8Text.t("本人", "You")
         } else if let teamId = result["paidByTeamId"].tolerantInteger {
-            payer = "队伍 \(teamId) "
+            payer = W8Text.t("队伍 \(teamId) ", "Team \(teamId) ")
         } else if let teamText = result["paidByTeamId"].text, !teamText.isEmpty {
-            payer = "队伍 \(teamText) "
+            payer = W8Text.t("队伍 \(teamText) ", "Team \(teamText) ")
         } else {
             payer = ""
         }
         if result["noEffect"].bool == true && (result["consumed"].bool == false || (payer.isEmpty && result["consumed"].bool != true)) {
-            return "已满，未消耗"
+            return W8Text.t("已满，未消耗", "Full; not consumed")
         }
         if !payer.isEmpty || result["consumed"].bool == true {
-            let prefix = result["noEffect"].bool == true ? "未产生效果" : "工具已生效"
-            let suffix = !payer.isEmpty ? "仅\(payer)支付一次" : "已消耗一次"
+            let prefix = result["noEffect"].bool == true ? W8Text.t("未产生效果", "No effect") : W8Text.t("工具已生效", "Tool applied")
+            let suffix = !payer.isEmpty ? W8Text.t("仅\(payer)支付一次", "Paid once by \(payer)") : W8Text.t("已消耗一次", "One use consumed")
             return "\(prefix)，\(suffix)"
         }
         return ""
@@ -826,28 +826,28 @@ public struct PlayThemeArrivalProof: Equatable, Sendable {
 
 public enum PlayThemePlayerOpsRules {
     private static let entries: [PlayThemePlayerOperationEntry] = [
-        PlayThemePlayerOperationEntry(action: "ARRIVAL_ISSUE", title: "到点凭证", caption: "向当前站点出示一次有效口令，待核验后才记为通过", actionLabel: "生成凭证"),
-        PlayThemePlayerOperationEntry(action: "MANUAL_SIGN", title: "人工现场记录", caption: "现场切换人工授权时，按服务端连续序号登记本人请求", actionLabel: "登记记录"),
-        PlayThemePlayerOperationEntry(action: "TEAM_EXIT", title: "退出本局", caption: "由当前队长提交离场原因并释放本队锁定资源", actionLabel: "申请退出"),
+        PlayThemePlayerOperationEntry(action: "ARRIVAL_ISSUE", title: W8Text.t("到点凭证", "Arrival voucher"), caption: W8Text.t("向当前站点出示一次有效口令，待核验后才记为通过", "Show a valid code at the station; it counts only after verification"), actionLabel: W8Text.t("生成凭证", "Generate voucher")),
+        PlayThemePlayerOperationEntry(action: "MANUAL_SIGN", title: W8Text.t("人工现场记录", "Manual on-site record"), caption: W8Text.t("现场切换人工授权时，按服务端连续序号登记本人请求", "When switched to manual authorization on site, your request is logged by server sequence number"), actionLabel: W8Text.t("登记记录", "Log record")),
+        PlayThemePlayerOperationEntry(action: "TEAM_EXIT", title: W8Text.t("退出本局", "Leave run"), caption: W8Text.t("由当前队长提交离场原因并释放本队锁定资源", "The captain submits a reason and releases the team’s locked resources"), actionLabel: W8Text.t("申请退出", "Request exit")),
     ]
 
     private static let manualActionLabels: [String: String] = [
-        "QUEST_START": "开始任务",
-        "QUEST_RESOLVE": "完成任务",
-        "QUEST_CANCEL": "取消任务",
-        "FACILITY_USE": "使用工具",
-        "OPERATION_START": "开始操作",
-        "OPERATION_CANCEL": "取消操作",
-        "RECOVER": "生命恢复",
-        "ITEM_USE": "使用物品",
-        "ITEM_DISCARD": "丢弃物品",
-        "ITEM_RECEIVE": "领取奖励",
-        "PLAN_JOIN": "加入计划",
-        "PLAN_FUND": "投入计划",
-        "PLAN_WITHDRAW": "撤回投入",
-        "PLAN_CONFIRM": "确认计划",
-        "PLAN_LOCK": "锁定计划",
-        "PLAN_RESOLVE": "执行计划",
+        "QUEST_START": W8Text.t("开始任务", "Start task"),
+        "QUEST_RESOLVE": W8Text.t("完成任务", "Complete task"),
+        "QUEST_CANCEL": W8Text.t("取消任务", "Cancel task"),
+        "FACILITY_USE": W8Text.t("使用工具", "Use tool"),
+        "OPERATION_START": W8Text.t("开始操作", "Start operation"),
+        "OPERATION_CANCEL": W8Text.t("取消操作", "Cancel operation"),
+        "RECOVER": W8Text.t("生命恢复", "Health restore"),
+        "ITEM_USE": W8Text.t("使用物品", "Use item"),
+        "ITEM_DISCARD": W8Text.t("丢弃物品", "Discard item"),
+        "ITEM_RECEIVE": W8Text.t("领取奖励", "Claim reward"),
+        "PLAN_JOIN": W8Text.t("加入计划", "Join plan"),
+        "PLAN_FUND": W8Text.t("投入计划", "Contribute to plan"),
+        "PLAN_WITHDRAW": W8Text.t("撤回投入", "Withdraw contribution"),
+        "PLAN_CONFIRM": W8Text.t("确认计划", "Confirm plan"),
+        "PLAN_LOCK": W8Text.t("锁定计划", "Lock plan"),
+        "PLAN_RESOLVE": W8Text.t("执行计划", "Execute plan"),
     ]
 
     public static func rows(_ view: PlayWireValue) -> [PlayThemePlayerOperationEntry] {
@@ -860,7 +860,7 @@ public enum PlayThemePlayerOpsRules {
         guard view["scope"].text == "TEAM" else { return "" }
         let teamId = view["teamId"].tolerantInteger.map(String.init) ?? view["teamId"].text ?? ""
         guard !teamId.isEmpty, let exited = view["run"]["exitedTeams"].object else { return "" }
-        return exited[teamId] != nil ? "本队已退出本局" : ""
+        return exited[teamId] != nil ? W8Text.t("本队已退出本局", "Your team has left this run") : ""
     }
 
     public static func runText(_ view: PlayWireValue) -> String {
@@ -869,26 +869,26 @@ public enum PlayThemePlayerOpsRules {
         let mode = view["run"]["authorityMode"].text ?? ""
         let statusText: String
         switch status {
-        case "PAUSED": statusText = "主持人已暂停本局：暂停期间只能查看，不能提交操作"
-        case "INTERRUPTED": statusText = "主持人已中断本局：只能查看，进行中的任务已结束"
-        case "CANCELLED": statusText = "主持人已取消本局：只能查看，进行中的任务已结束"
+        case "PAUSED": statusText = W8Text.t("主持人已暂停本局：暂停期间只能查看，不能提交操作", "The host paused this run: view only, no actions while paused")
+        case "INTERRUPTED": statusText = W8Text.t("主持人已中断本局：只能查看，进行中的任务已结束", "The host interrupted this run: view only; active tasks ended")
+        case "CANCELLED": statusText = W8Text.t("主持人已取消本局：只能查看，进行中的任务已结束", "The host cancelled this run: view only; active tasks ended")
         default: statusText = ""
         }
         let modeText: String
         switch mode {
-        case "HYBRID": modeText = "当前为混合授权"
-        case "MANUAL": modeText = "当前为现场人工授权"
+        case "HYBRID": modeText = W8Text.t("当前为混合授权", "Mixed authorization")
+        case "MANUAL": modeText = W8Text.t("当前为现场人工授权", "On-site manual authorization")
         default: modeText = ""
         }
         return [statusText, modeText].filter { !$0.isEmpty }.joined(separator: " · ")
     }
 
     public static func stationName(nodeId: Int?, nodes: [PlayThemeRouteNodeRef]) -> String {
-        guard let nodeId else { return "当前站点" }
+        guard let nodeId else { return W8Text.t("当前站点", "Current station") }
         if let found = nodes.first(where: { $0.nodeId == nodeId }), !found.name.isEmpty {
             return found.name
         }
-        return "节点资料尚未加载"
+        return W8Text.t("节点资料尚未加载", "Station data not loaded yet")
     }
 
     public static func manualRows(_ manual: PlayWireValue) -> [PlayThemeManualRecordRow] {
@@ -899,15 +899,15 @@ public enum PlayThemePlayerOpsRules {
             let status = row["status"].text ?? ""
             let statusText: String
             switch status {
-            case "PENDING": statusText = "待核验"
-            case "VERIFIED": statusText = "已核验"
-            case "REJECTED": statusText = "未通过"
-            default: statusText = "状态未确认"
+            case "PENDING": statusText = W8Text.t("待核验", "Pending verification")
+            case "VERIFIED": statusText = W8Text.t("已核验", "Verified")
+            case "REJECTED": statusText = W8Text.t("未通过", "Failed")
+            default: statusText = W8Text.t("状态未确认", "Status unconfirmed")
             }
             let occurredAtText = formatTime(row["occurredAt"].tolerantInteger)
             return PlayThemeManualRecordRow(
                 sequence: seq,
-                actionText: manualActionLabels[action] ?? "现场登记",
+                actionText: manualActionLabels[action] ?? W8Text.t("现场登记", "On-site log"),
                 status: status,
                 statusText: statusText,
                 occurredAtText: occurredAtText
@@ -974,47 +974,47 @@ public enum PlayThemePlayerOpsRules {
             let costOpts = q["costOptions"].array ?? []
             if !costOpts.isEmpty {
                 for (idx, opt) in costOpts.enumerated() {
-                    let optLabel = opt["label"].text ?? "费用方案 \(idx + 1)"
-                    push("开始任务 · \(name) · \(optLabel)", "QUEST_START", ["questKey": .string(id), "costOption": .int(idx)])
+                    let optLabel = opt["label"].text ?? W8Text.t("费用方案 \(idx + 1)", "Cost option \(idx + 1)")
+                    push(W8Text.t("开始任务 · \(name) · \(optLabel)", "Start task · \(name) · \(optLabel)"), "QUEST_START", ["questKey": .string(id), "costOption": .int(idx)])
                 }
             } else {
-                push("开始任务 · \(name)", "QUEST_START", ["questKey": .string(id)])
+                push(W8Text.t("开始任务 · \(name)", "Start task · \(name)"), "QUEST_START", ["questKey": .string(id)])
             }
             let choices = q["choices"].array ?? []
             if !choices.isEmpty {
                 for choice in choices {
                     guard let cKey = choice["choiceKey"].text ?? choice["id"].text, !cKey.isEmpty else { continue }
-                    let cLabel = choice["label"].text ?? choice["title"].text ?? "所选方案"
-                    push("完成任务 · \(name) · \(cLabel)", "QUEST_RESOLVE", ["questKey": .string(id), "choiceKey": .string(cKey)])
+                    let cLabel = choice["label"].text ?? choice["title"].text ?? W8Text.t("所选方案", "Selected option")
+                    push(W8Text.t("完成任务 · \(name) · \(cLabel)", "Complete task · \(name) · \(cLabel)"), "QUEST_RESOLVE", ["questKey": .string(id), "choiceKey": .string(cKey)])
                 }
             } else {
-                push("完成任务 · \(name)", "QUEST_RESOLVE", ["questKey": .string(id)])
+                push(W8Text.t("完成任务 · \(name)", "Complete task · \(name)"), "QUEST_RESOLVE", ["questKey": .string(id)])
             }
-            push("取消任务 · \(name)", "QUEST_CANCEL", ["questKey": .string(id)])
+            push(W8Text.t("取消任务 · \(name)", "Cancel task · \(name)"), "QUEST_CANCEL", ["questKey": .string(id)])
         }
         for t in (view["interactionTools"].array ?? view["facilities"].array ?? []) {
             guard let id = t["operationKey"].text ?? t["facilityKey"].text ?? t["id"].text, !id.isEmpty else { continue }
             let kind = t["operationKind"].text ?? t["kind"].text ?? "FACILITY"
             let name = t["title"].text ?? t["name"].text ?? stationName(nodeId: t["nodeId"].tolerantInteger, nodes: nodes)
             if t["operationNodeId"].tolerantInteger != nil {
-                push("开始操作 · \(name)", "OPERATION_START", ["operationKind": .string(kind), "operationKey": .string(id)])
-                push("取消操作 · \(name)", "OPERATION_CANCEL", ["operationKind": .string(kind), "operationKey": .string(id)])
+                push(W8Text.t("开始操作 · \(name)", "Start operation · \(name)"), "OPERATION_START", ["operationKind": .string(kind), "operationKey": .string(id)])
+                push(W8Text.t("取消操作 · \(name)", "Cancel operation · \(name)"), "OPERATION_CANCEL", ["operationKind": .string(kind), "operationKey": .string(id)])
             } else {
                 let costOpts = t["costOptions"].array ?? []
                 if !costOpts.isEmpty {
                     for (idx, opt) in costOpts.enumerated() {
-                        let optLabel = opt["label"].text ?? "费用方案 \(idx + 1)"
-                        push("使用工具 · \(name) · \(optLabel)", "FACILITY_USE", ["facilityKey": .string(id), "costOption": .int(idx)])
+                        let optLabel = opt["label"].text ?? W8Text.t("费用方案 \(idx + 1)", "Cost option \(idx + 1)")
+                        push(W8Text.t("使用工具 · \(name) · \(optLabel)", "Use tool · \(name) · \(optLabel)"), "FACILITY_USE", ["facilityKey": .string(id), "costOption": .int(idx)])
                     }
                 } else {
-                    push("使用工具 · \(name)", "FACILITY_USE", ["facilityKey": .string(id)])
+                    push(W8Text.t("使用工具 · \(name)", "Use tool · \(name)"), "FACILITY_USE", ["facilityKey": .string(id)])
                 }
             }
         }
         for r in (view["recoveries"].array ?? view["recoveryOptions"].array ?? []) {
             guard let id = r["recoveryKey"].text ?? r["id"].text, !id.isEmpty else { continue }
-            let name = r["title"].text ?? r["name"].text ?? "恢复项目"
-            push("生命恢复 · \(name)", "RECOVER", ["recoveryKey": .string(id)])
+            let name = r["title"].text ?? r["name"].text ?? W8Text.t("恢复项目", "Restore item")
+            push(W8Text.t("生命恢复 · \(name)", "Health restore · \(name)"), "RECOVER", ["recoveryKey": .string(id)])
         }
         return list
     }
@@ -1125,7 +1125,7 @@ public enum PlayThemeChallengeRules {
             if let found = nodes.first(where: { $0.nodeId == id }) {
                 return found
             }
-            return PlayThemeRouteNodeRef(nodeId: id, name: "挑战节点 \(id)")
+            return PlayThemeRouteNodeRef(nodeId: id, name: W8Text.t("挑战节点 \(id)", "Challenge station \(id)"))
         }
         let progressText: String
         if let p = ch["progress"].tolerantInteger, let g = ch["goal"].tolerantInteger, g > 0 {
@@ -1135,24 +1135,24 @@ public enum PlayThemeChallengeRules {
         }
         let restoreText: String
         if let r = ch["restoreTo"].tolerantInteger {
-            restoreText = "恢复到 \(r)"
+            restoreText = W8Text.t("恢复到 \(r)", "Restore to \(r)")
         } else {
-            restoreText = "恢复"
+            restoreText = W8Text.t("恢复", "Restore")
         }
         let used = ch["used"].tolerantInteger ?? 0
         let limit = ch["limit"].tolerantInteger ?? 0
         let retryText: String
         if ch["disabledReason"].text == "CHALLENGE_LIMIT" || (limit > 0 && used >= limit) {
-            retryText = "挑战次数已达上限（\(used)/\(limit)）"
+            retryText = W8Text.t("挑战次数已达上限（\(used)/\(limit)）", "Challenge limit reached (\(used)/\(limit))")
         } else if limit > 0 {
-            retryText = "失败后可免费重试（已用 \(used)/\(limit)）"
+            retryText = W8Text.t("失败后可免费重试（已用 \(used)/\(limit)）", "Free retry after failure (used \(used)/\(limit))")
         } else {
-            retryText = "失败后可免费重试"
+            retryText = W8Text.t("失败后可免费重试", "Free retry after failure")
         }
         return PlayThemeChallengePresentation(
             awaitingChallenge: awaiting,
             challengeNodes: challengeNodes,
-            challengeProgressLabel: view["scope"].text == "TEAM" ? "全队进度" : "挑战进度",
+            challengeProgressLabel: view["scope"].text == "TEAM" ? W8Text.t("全队进度", "Team progress") : W8Text.t("挑战进度", "Challenge progress"),
             challengeProgressText: progressText,
             challengeRestoreText: restoreText,
             challengeRetryText: retryText
@@ -1261,34 +1261,34 @@ public struct PlayThemePlanEndingBanner: Equatable, Sendable {
 
 public enum PlayThemePlansRules {
     private static let phaseLabels: [String: String] = [
-        "OPEN": "募集中",
-        "FUNDED": "已凑齐",
-        "LOCKED": "已锁定",
-        "RESOLVED": "已执行",
-        "CANCELLED": "已取消",
-        "EXPIRED": "已过期",
+        "OPEN": W8Text.t("募集中", "Collecting"),
+        "FUNDED": W8Text.t("已凑齐", "Fully funded"),
+        "LOCKED": W8Text.t("已锁定", "Locked"),
+        "RESOLVED": W8Text.t("已执行", "Executed"),
+        "CANCELLED": W8Text.t("已取消", "Cancelled"),
+        "EXPIRED": W8Text.t("已过期", "Expired"),
     ]
 
     private static let policyLabels: [String: String] = [
-        "RETURN_IF_NOT_LOCKED": "锁定前可撤回",
-        "LOCK_ON_FUND": "投入即锁定",
-        "CONSUME_ON_RESOLVE": "执行后消耗",
+        "RETURN_IF_NOT_LOCKED": W8Text.t("锁定前可撤回", "Withdrawable until locked"),
+        "LOCK_ON_FUND": W8Text.t("投入即锁定", "Locked once contributed"),
+        "CONSUME_ON_RESOLVE": W8Text.t("执行后消耗", "Consumed on execution"),
     ]
 
     private static let reasonLabels: [String: String] = [
-        "NOT_CAPTAIN": "仅当前队长可操作",
-        "NOT_at_NODE": "需到达计划所在站点",
-        "NOT_AT_NODE": "需到达计划所在站点",
-        "TEAM_LIMIT": "参与队伍数已满",
-        "MIN_TEAMS_NOT_MET": "参与队伍数不足",
-        "FUNDING_INCOMPLETE": "计划投入尚未凑齐",
-        "UNCONFIRMED_TEAMS": "仍有参与队伍未确认",
-        "ALREADY_LOCKED": "计划已锁定，不可更改",
-        "INSUFFICIENT_RESOURCES": "队伍物资或数值不足",
+        "NOT_CAPTAIN": W8Text.t("仅当前队长可操作", "Only the current captain can do this"),
+        "NOT_at_NODE": W8Text.t("需到达计划所在站点", "Must be at the plan’s station"),
+        "NOT_AT_NODE": W8Text.t("需到达计划所在站点", "Must be at the plan’s station"),
+        "TEAM_LIMIT": W8Text.t("参与队伍数已满", "Team limit reached"),
+        "MIN_TEAMS_NOT_MET": W8Text.t("参与队伍数不足", "Not enough teams"),
+        "FUNDING_INCOMPLETE": W8Text.t("计划投入尚未凑齐", "Plan contributions incomplete"),
+        "UNCONFIRMED_TEAMS": W8Text.t("仍有参与队伍未确认", "Some teams have not confirmed"),
+        "ALREADY_LOCKED": W8Text.t("计划已锁定，不可更改", "Plan is locked and cannot change"),
+        "INSUFFICIENT_RESOURCES": W8Text.t("队伍物资或数值不足", "Team supplies or values insufficient"),
     ]
 
     public static func phaseText(_ phase: String?) -> String {
-        guard let phase, !phase.isEmpty else { return "未知状态" }
+        guard let phase, !phase.isEmpty else { return W8Text.t("未知状态", "Unknown status") }
         return phaseLabels[phase] ?? phase
     }
 
@@ -1311,7 +1311,7 @@ public enum PlayThemePlansRules {
         let badges = (ending["badges"].array ?? []).compactMap { $0["name"].text ?? $0["label"].text ?? $0.text }
         return PlayThemePlanEndingBanner(
             key: key,
-            title: title.isEmpty ? "终局结算" : title,
+            title: title.isEmpty ? W8Text.t("终局结算", "Final settlement") : title,
             summary: ending["summary"].text ?? ending["description"].text ?? "",
             tone: ending["tone"].text ?? "NEUTRAL",
             badges: badges
@@ -1328,7 +1328,7 @@ public enum PlayThemePlansRules {
             let phase = row["phase"].text ?? row["status"].text ?? "OPEN"
             let nodeId = row["nodeId"].tolerantInteger
             let stationName = nodeId.map { id in
-                nodes.first(where: { $0.nodeId == id })?.name ?? "节点资料尚未加载"
+                nodes.first(where: { $0.nodeId == id })?.name ?? W8Text.t("节点资料尚未加载", "Station data not loaded yet")
             } ?? ""
             let participants = (row["participantTeams"].array ?? []).compactMap(\.tolerantInteger)
             let confirmedTeams = (row["confirmedTeams"].array ?? []).compactMap(\.tolerantInteger)
@@ -1336,7 +1336,7 @@ public enum PlayThemePlansRules {
             let confirmed = myTeamId > 0 && confirmedTeams.contains(myTeamId)
             let minTeams = row["minTeams"].tolerantInteger ?? 1
             let maxTeams = row["maxTeams"].tolerantInteger ?? 0
-            let teamCountText = maxTeams > 0 ? "\(participants.count)/\(maxTeams) 队（至少 \(minTeams) 队）" : "\(participants.count) 队（至少 \(minTeams) 队）"
+            let teamCountText = maxTeams > 0 ? W8Text.t("\(participants.count)/\(maxTeams) 队（至少 \(minTeams) 队）", "\(participants.count)/\(maxTeams) teams (min \(minTeams))") : W8Text.t("\(participants.count) 队（至少 \(minTeams) 队）", "\(participants.count) teams (min \(minTeams))")
 
             let itemReqs: [PlayThemePlanItemRequirement] = (row["itemRequirements"].array ?? []).compactMap { req in
                 guard let itemId = req["itemId"].text else { return nil }
@@ -1368,17 +1368,17 @@ public enum PlayThemePlansRules {
                 return PlayThemePlanContributionRow(
                     teamId: tId,
                     confirmed: conf,
-                    statusText: conf ? "已确认" : "待确认",
+                    statusText: conf ? W8Text.t("已确认", "Confirmed") : W8Text.t("待确认", "Awaiting confirmation"),
                     itemsText: itemsText,
                     statText: statParts.joined(separator: " · ")
                 )
             }
-            let myFunded = contributions.contains { $0.teamId == myTeamId && ($0.itemsText != "无" || !$0.statText.isEmpty) }
+            let myFunded = contributions.contains { $0.teamId == myTeamId && ($0.itemsText != W8Text.t("无", "None") || !$0.statText.isEmpty) }
             let activePhase = phase == "OPEN" || phase == "FUNDED"
             let disabled = row["disabled"].bool == true
             return PlayThemePlanRow(
                 planKey: planKey,
-                title: row["title"].text ?? row["name"].text ?? "共同计划 \(planKey)",
+                title: row["title"].text ?? row["name"].text ?? W8Text.t("共同计划 \(planKey)", "Shared plan \(planKey)"),
                 phase: phase,
                 phaseText: phaseText(phase),
                 policyText: policyText(row["policy"].text),
@@ -1411,7 +1411,7 @@ public enum PlayThemePlansRules {
             let trimmed = item.quantity.trimmingCharacters(in: .whitespacesAndNewlines)
             guard trimmed.range(of: "^\\d+$", options: .regularExpression) != nil,
                   let qty = Int(trimmed), (0...999).contains(qty) else {
-                throw NSError(domain: "PlayThemePlans", code: 1, userInfo: [NSLocalizedDescriptionKey: "\(item.name)的数量须为 0–999 的整数"])
+                throw NSError(domain: "PlayThemePlans", code: 1, userInfo: [NSLocalizedDescriptionKey: W8Text.t("\(item.name)的数量须为 0–999 的整数", "Quantity of \(item.name) must be an integer from 0 to 999")])
             }
             if qty > 0 {
                 items.append(.object(["itemId": .string(item.id), "quantity": .int(qty)]))
@@ -1421,14 +1421,14 @@ public enum PlayThemePlansRules {
             let trimmed = stat.amount.trimmingCharacters(in: .whitespacesAndNewlines)
             guard trimmed.range(of: "^\\d+$", options: .regularExpression) != nil,
                   let amt = Int(trimmed), (0...999).contains(amt) else {
-                throw NSError(domain: "PlayThemePlans", code: 2, userInfo: [NSLocalizedDescriptionKey: "\(stat.name)的投入值须为 0–999 的整数"])
+                throw NSError(domain: "PlayThemePlans", code: 2, userInfo: [NSLocalizedDescriptionKey: W8Text.t("\(stat.name)的投入值须为 0–999 的整数", "Contribution to \(stat.name) must be an integer from 0 to 999")])
             }
             if amt > 0 {
                 stats.append(.object(["statKey": .string(stat.id), "amount": .int(amt)]))
             }
         }
         guard !items.isEmpty || !stats.isEmpty else {
-            throw NSError(domain: "PlayThemePlans", code: 3, userInfo: [NSLocalizedDescriptionKey: "请至少填写一项投入物资或数值"])
+            throw NSError(domain: "PlayThemePlans", code: 3, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请至少填写一项投入物资或数值", "Enter at least one supply or value to contribute")])
         }
         return [
             "planKey": .string(form.planKey),
@@ -1481,7 +1481,7 @@ public enum PlayThemePlansRules {
     public private(set) var endingBanner: PlayThemePlanEndingBanner?
     public private(set) var tradeTargets: [PlayThemeTradeTargetRow] = []
     public private(set) var tradeRows: [PlayThemeTradeRow] = []
-    public private(set) var tradeLockedText: String = "无"
+    public private(set) var tradeLockedText: String = W8Text.t("无", "None")
     public private(set) var playerOperationRows: [PlayThemePlayerOperationEntry] = []
     public private(set) var playerManualRows: [PlayThemeManualRecordRow] = []
     public private(set) var playerRunText: String = ""
@@ -1561,7 +1561,7 @@ public enum PlayThemePlansRules {
         guard let sheet = costChoice,
               sheet.row.costOptions.indices.contains(sheet.selected),
               sheet.row.costOptions[sheet.selected].affordable else {
-            errorMessage = "请选择可负担的费用方案"
+            errorMessage = W8Text.t("请选择可负担的费用方案", "Choose an affordable cost option")
             return nil
         }
         costChoice = nil
@@ -1578,7 +1578,7 @@ public enum PlayThemePlansRules {
 
     public func confirmQuestChoice() -> (operation: String, contentId: String, choiceKey: String)? {
         guard let sheet = questChoice, !sheet.selected.isEmpty else {
-            errorMessage = "请选择结算方案"
+            errorMessage = W8Text.t("请选择结算方案", "Choose a settlement option")
             return nil
         }
         questChoice = nil
@@ -1636,7 +1636,7 @@ public enum PlayThemePlansRules {
               let form = playerOperationForm,
               rawView["scope"].text == "TEAM",
               playerOperationRows.contains(where: { $0.action == form.action }) else {
-            errorMessage = "当前不可执行该操作"
+            errorMessage = W8Text.t("当前不可执行该操作", "This action is unavailable right now")
             return nil
         }
         let activityId = rawView["activityId"].tolerantInteger ?? 0
@@ -1644,7 +1644,7 @@ public enum PlayThemePlansRules {
         let currentEpoch = rawView["authorityEpoch"].tolerantInteger ?? 0
         guard currentEpoch == form.authorityEpoch else {
             playerExitConfirm = false
-            errorMessage = "执行权已变化，请重新确认"
+            errorMessage = W8Text.t("执行权已变化，请重新确认", "Authority changed. Please confirm again.")
             return nil
         }
 
@@ -1652,7 +1652,7 @@ public enum PlayThemePlansRules {
         case "ARRIVAL_ISSUE":
             let targets = PlayThemePlayerOpsRules.arrivalTargets(rawView, nodes: nodes)
             guard targets.indices.contains(form.targetIndex) else {
-                errorMessage = "当前没有可生成凭证的站点"
+                errorMessage = W8Text.t("当前没有可生成凭证的站点", "No station is available for a voucher")
                 return nil
             }
             let target = targets[form.targetIndex]
@@ -1662,7 +1662,7 @@ public enum PlayThemePlansRules {
             } else if let opKind = target.operationKind, let opKey = target.operationKey {
                 payload = ["operationKind": .string(opKind), "operationKey": .string(opKey)]
             } else {
-                errorMessage = "目标参数无效"
+                errorMessage = W8Text.t("目标参数无效", "Invalid target")
                 return nil
             }
             let cmd = PendingTeamCommand(
@@ -1680,16 +1680,16 @@ public enum PlayThemePlansRules {
             guard let nextSeq = rawView["run"]["manual"]["nextSequence"].tolerantInteger,
                   nextSeq > 0,
                   nextSeq == form.sequence else {
-                errorMessage = "现场记录序号已变化，请刷新"
+                errorMessage = W8Text.t("现场记录序号已变化，请刷新", "On-site record sequence changed. Refresh.")
                 return nil
             }
             guard let occurredAt = PlayThemePlayerOpsRules.occurredAt(form.occurredAtText) else {
-                errorMessage = "请按 YYYY-MM-DD HH:mm:ss 填写实际发生时间"
+                errorMessage = W8Text.t("请按 YYYY-MM-DD HH:mm:ss 填写实际发生时间", "Enter the actual time as YYYY-MM-DD HH:mm:ss")
                 return nil
             }
             let commands = PlayThemePlayerOpsRules.manualCommands(rawView, nodes: nodes)
             guard commands.indices.contains(form.commandIndex) else {
-                errorMessage = "请选择登记内容"
+                errorMessage = W8Text.t("请选择登记内容", "Choose what to log")
                 return nil
             }
             let chosen = commands[form.commandIndex]
@@ -1715,7 +1715,7 @@ public enum PlayThemePlansRules {
         case "TEAM_EXIT":
             let trimmedReason = form.reason.trimmingCharacters(in: .whitespacesAndNewlines)
             guard !trimmedReason.isEmpty, trimmedReason.count <= 200 else {
-                errorMessage = "请填写 200 字以内的离场原因"
+                errorMessage = W8Text.t("请填写 200 字以内的离场原因", "Enter an exit reason within 200 characters")
                 return nil
             }
             if !playerExitConfirm {
@@ -1723,7 +1723,7 @@ public enum PlayThemePlansRules {
                 return nil
             }
             guard let teamId = rawView["teamId"].tolerantInteger else {
-                errorMessage = "未找到当前队伍"
+                errorMessage = W8Text.t("未找到当前队伍", "Current team not found")
                 return nil
             }
             let cmd = PendingTeamCommand(
@@ -1752,12 +1752,12 @@ public enum PlayThemePlansRules {
         let action = receipt["action"].text ?? ""
         if outcome == "PENDING" || reqId.isEmpty {
             unknownReceiptPending = true
-            errorMessage = "操作结果待确认，请先核对原请求回执"
+            errorMessage = W8Text.t("操作结果待确认，请先核对原请求回执", "Result pending. Check the original request receipt first.")
             return false
         }
         guard reqId == pending.requestId, action == pending.action else {
             unknownReceiptPending = true
-            errorMessage = "回执身份异常，未确认结果"
+            errorMessage = W8Text.t("回执身份异常，未确认结果", "Receipt identity mismatch; result unconfirmed")
             return false
         }
         if outcome == "APPLIED" {
@@ -1766,17 +1766,17 @@ public enum PlayThemePlansRules {
                 if let nonce = res["nonce"].text, nonce.count >= 16 {
                     let targets = PlayThemePlayerOpsRules.arrivalTargets(rawView, nodes: nodes)
                     let idx = playerOperationForm?.targetIndex ?? 0
-                    let stName = targets.indices.contains(idx) ? targets[idx].label : "当前站点"
+                    let stName = targets.indices.contains(idx) ? targets[idx].label : W8Text.t("当前站点", "Current station")
                     let exp = PlayThemePlayerOpsRules.formatTime(res["expiresAt"].tolerantInteger)
                     playerArrivalProof = PlayThemeArrivalProof(
                         nonce: nonce,
                         stationName: stName,
                         expiresAtText: exp,
-                        copyText: "\(stName) 到点凭证：\(nonce)"
+                        copyText: W8Text.t("\(stName) 到点凭证：\(nonce)", "\(stName) arrival voucher: \(nonce)")
                     )
                 } else {
                     unknownReceiptPending = true
-                    errorMessage = "凭证回执异常，请稍后核对"
+                    errorMessage = W8Text.t("凭证回执异常，请稍后核对", "Voucher receipt error. Check again later.")
                     return false
                 }
             }
@@ -1792,7 +1792,7 @@ public enum PlayThemePlansRules {
         pendingTeamCommand = nil
         unknownReceiptPending = false
         playerExitConfirm = false
-        errorMessage = receipt["message"].text ?? receipt["msg"].text ?? "操作未通过"
+        errorMessage = receipt["message"].text ?? receipt["msg"].text ?? W8Text.t("操作未通过", "Action not passed")
         return false
     }
 }

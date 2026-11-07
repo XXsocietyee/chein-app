@@ -153,50 +153,50 @@ public struct StoryRuleRegistryEntry: Equatable, Sendable {
 
 public enum StoryRuleSentenceEngine {
     public static let conditionKinds: [StoryRuleKindDef] = [
-        StoryRuleKindDef(kind: "clue", label: "已获得线索", names: "clue"),
-        StoryRuleKindDef(kind: "equip", label: "装备着物品", names: "item"),
-        StoryRuleKindDef(kind: "tag", label: "有标签", names: "tag"),
-        StoryRuleKindDef(kind: "trait", label: "有特质", names: "trait"),
-        StoryRuleKindDef(kind: "attr", label: "属性达到…", names: "attr"),
-        StoryRuleKindDef(kind: "clock", label: "进度钟达到…", names: "clock"),
-        StoryRuleKindDef(kind: "value", label: "数值达到…", names: "value"),
-        StoryRuleKindDef(kind: "visit", label: "到过节点…", names: "node"),
-        StoryRuleKindDef(kind: "done", label: "已完成节点", names: "node"),
-        StoryRuleKindDef(kind: "check", label: "检定结果…", names: "node"),
-        StoryRuleKindDef(kind: "group", label: "一组条件（全部 / 任一）", names: nil),
+        StoryRuleKindDef(kind: "clue", label: W8Text.t("已获得线索", "Clue obtained"), names: "clue"),
+        StoryRuleKindDef(kind: "equip", label: W8Text.t("装备着物品", "Item equipped"), names: "item"),
+        StoryRuleKindDef(kind: "tag", label: W8Text.t("有标签", "Has tag"), names: "tag"),
+        StoryRuleKindDef(kind: "trait", label: W8Text.t("有特质", "Has trait"), names: "trait"),
+        StoryRuleKindDef(kind: "attr", label: W8Text.t("属性达到…", "Attribute reaches…"), names: "attr"),
+        StoryRuleKindDef(kind: "clock", label: W8Text.t("进度钟达到…", "Clock reaches…"), names: "clock"),
+        StoryRuleKindDef(kind: "value", label: W8Text.t("数值达到…", "Value reaches…"), names: "value"),
+        StoryRuleKindDef(kind: "visit", label: W8Text.t("到过节点…", "Visited station…"), names: "node"),
+        StoryRuleKindDef(kind: "done", label: W8Text.t("已完成节点", "Completed station"), names: "node"),
+        StoryRuleKindDef(kind: "check", label: W8Text.t("检定结果…", "Check result…"), names: "node"),
+        StoryRuleKindDef(kind: "group", label: W8Text.t("一组条件（全部 / 任一）", "Condition group (all / any)"), names: nil),
     ]
 
     public static let effectKinds: [StoryRuleKindDef] = [
-        StoryRuleKindDef(kind: "clue", label: "给线索", names: "clue"),
-        StoryRuleKindDef(kind: "item", label: "给物品", names: "item"),
-        StoryRuleKindDef(kind: "equip", label: "穿戴物品", names: "item"),
-        StoryRuleKindDef(kind: "unequip", label: "卸下物品", names: "item"),
-        StoryRuleKindDef(kind: "tag", label: "记上标签", names: "tag"),
-        StoryRuleKindDef(kind: "trait", label: "加上特质", names: "trait"),
-        StoryRuleKindDef(kind: "untrait", label: "移除特质", names: "trait"),
-        StoryRuleKindDef(kind: "clock", label: "推进进度钟", names: "clock"),
-        StoryRuleKindDef(kind: "attr", label: "属性变化", names: "attr"),
-        StoryRuleKindDef(kind: "value", label: "数值变化", names: "value"),
-        StoryRuleKindDef(kind: "xp", label: "给探索值", names: nil),
-        StoryRuleKindDef(kind: "badge", label: "授予徽章", names: "trait"),
+        StoryRuleKindDef(kind: "clue", label: W8Text.t("给线索", "Give clue"), names: "clue"),
+        StoryRuleKindDef(kind: "item", label: W8Text.t("给物品", "Give item"), names: "item"),
+        StoryRuleKindDef(kind: "equip", label: W8Text.t("穿戴物品", "Equip item"), names: "item"),
+        StoryRuleKindDef(kind: "unequip", label: W8Text.t("卸下物品", "Unequip item"), names: "item"),
+        StoryRuleKindDef(kind: "tag", label: W8Text.t("记上标签", "Add tag"), names: "tag"),
+        StoryRuleKindDef(kind: "trait", label: W8Text.t("加上特质", "Add trait"), names: "trait"),
+        StoryRuleKindDef(kind: "untrait", label: W8Text.t("移除特质", "Remove trait"), names: "trait"),
+        StoryRuleKindDef(kind: "clock", label: W8Text.t("推进进度钟", "Advance clock"), names: "clock"),
+        StoryRuleKindDef(kind: "attr", label: W8Text.t("属性变化", "Change attribute"), names: "attr"),
+        StoryRuleKindDef(kind: "value", label: W8Text.t("数值变化", "Change value"), names: "value"),
+        StoryRuleKindDef(kind: "xp", label: W8Text.t("给探索值", "Give XP"), names: nil),
+        StoryRuleKindDef(kind: "badge", label: W8Text.t("授予徽章", "Award badge"), names: "trait"),
     ]
 
     public static let cmpOps = ["GTE", "LTE", "EQ"]
-    public static let cmpLabels = ["至少", "至多", "正好"]
+    public static let cmpLabels = [W8Text.t("至少", "at least"), W8Text.t("至多", "at most"), W8Text.t("正好", "exactly")]
     private static let cmpWord: [String: String] = [
-        "GTE": "至少", "LTE": "至多", "EQ": "正好", "NE": "不是", "GT": "超过", "LT": "少于"
+        "GTE": W8Text.t("至少", "at least"), "LTE": W8Text.t("至多", "at most"), "EQ": W8Text.t("正好", "exactly"), "NE": W8Text.t("不是", "not"), "GT": W8Text.t("超过", "more than"), "LT": W8Text.t("少于", "less than")
     ]
     private static let negPair: [String: (String, String)] = [
-        "clue": ("已获得", "未获得"),
-        "equip": ("装备着", "未装备"),
-        "tag": ("有", "没有"),
-        "trait": ("有", "没有"),
-        "done": ("已完成", "未完成"),
+        "clue": (W8Text.t("已获得", "Obtained"), W8Text.t("未获得", "Not obtained")),
+        "equip": (W8Text.t("装备着", "Equipped"), W8Text.t("未装备", "Not equipped")),
+        "tag": (W8Text.t("有", "Has"), W8Text.t("没有", "Does not have")),
+        "trait": (W8Text.t("有", "Has"), W8Text.t("没有", "Does not have")),
+        "done": (W8Text.t("已完成", "Completed"), W8Text.t("未完成", "Not completed")),
     ]
     private static let sysNames: [String: String] = [
-        "sys.hp": "生命值",
-        "sys.luck": "幸运值",
-        "sys.actions": "行动次数",
+        "sys.hp": W8Text.t("生命值", "Health"),
+        "sys.luck": W8Text.t("幸运值", "Luck"),
+        "sys.actions": W8Text.t("行动次数", "Actions"),
     ]
 
     public static func buildNames(
@@ -251,7 +251,7 @@ public enum StoryRuleSentenceEngine {
             let id = n["id"].text ?? n["id"].tolerantInteger.map(String.init) ?? ""
             guard !id.isEmpty else { return nil }
             let lbl = (n["label"].text ?? n["name"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
-            return StoryRuleNameItem(key: id, label: lbl.isEmpty ? "未命名站点" : lbl)
+            return StoryRuleNameItem(key: id, label: lbl.isEmpty ? W8Text.t("未命名站点", "Unnamed station") : lbl)
         }
         return StoryRuleNames(clue: clue, tag: tag, item: item, trait: trait, attr: attr, clock: clock, value: value, node: nodeItems)
     }
@@ -298,8 +298,8 @@ public enum StoryRuleSentenceEngine {
     }
 
     public static func nameOf(_ list: [StoryRuleNameItem], key: String?) -> String {
-        guard let key, !key.isEmpty else { return "未命名" }
-        return list.first(where: { $0.key == key })?.label ?? "未命名"
+        guard let key, !key.isEmpty else { return W8Text.t("未命名", "Unnamed") }
+        return list.first(where: { $0.key == key })?.label ?? W8Text.t("未命名", "Unnamed")
     }
 
     public static func varList(_ varKey: String?, names: StoryRuleNames) -> String {
@@ -358,54 +358,54 @@ public enum StoryRuleSentenceEngine {
         let (neg, leaf) = unwrap(row)
         let kind = leafKind(row, names: names)
         let w = neg ? (negPair[kind]?.1 ?? "") : (negPair[kind]?.0 ?? "")
-        let cmp = cmpWord[leaf["cmp"].text ?? leaf["op"].text ?? "GTE"] ?? "至少"
+        let cmp = cmpWord[leaf["cmp"].text ?? leaf["op"].text ?? "GTE"] ?? W8Text.t("至少", "at least")
         let nodeId = leaf["nodeId"].text ?? leaf["nodeKey"].text ?? leaf["nodeId"].tolerantInteger.map(String.init)
         let num = leaf["value"].tolerantInteger ?? 0
         switch kind {
-        case "clue": return "\(w)线索 · \(nameOf(names.clue, key: leaf["value"].text))"
-        case "tag": return "\(w)标签 · \(nameOf(names.tag, key: leaf["value"].text))"
+        case "clue": return W8Text.t("\(w)线索 · \(nameOf(names.clue, key: leaf["value"].text))", "\(w) clue · \(nameOf(names.clue, key: leaf["value"].text))")
+        case "tag": return W8Text.t("\(w)标签 · \(nameOf(names.tag, key: leaf["value"].text))", "\(w) tag · \(nameOf(names.tag, key: leaf["value"].text))")
         case "equip": return "\(w) · \(nameOf(names.item, key: leaf["itemId"].text))"
-        case "trait": return "\(w)特质 · \(nameOf(names.trait, key: leaf["value"].text))"
-        case "done": return "\(w)节点 · \(nameOf(names.node, key: nodeId))"
+        case "trait": return W8Text.t("\(w)特质 · \(nameOf(names.trait, key: leaf["value"].text))", "\(w) trait · \(nameOf(names.trait, key: leaf["value"].text))")
+        case "done": return W8Text.t("\(w)节点 · \(nameOf(names.node, key: nodeId))", "\(w) station · \(nameOf(names.node, key: nodeId))")
         case "visit":
-            return (neg ? "未到过节点 · " : "到过节点 · ") + nameOf(names.node, key: nodeId) + " \(cmp) \(num) 次"
+            return (neg ? W8Text.t("未到过节点 · ", "Not visited · ") : W8Text.t("到过节点 · ", "Visited · ")) + nameOf(names.node, key: nodeId) + W8Text.t(" \(cmp) \(num) 次", " \(cmp) \(num) times")
         case "check":
-            return "检定结果 · \(nameOf(names.node, key: nodeId)) " + (leaf["result"].text == "FAIL" ? "未通过" : "通过")
+            return W8Text.t("检定结果 · \(nameOf(names.node, key: nodeId)) ", "Check result · \(nameOf(names.node, key: nodeId)) ") + (leaf["result"].text == "FAIL" ? W8Text.t("未通过", "Failed") : W8Text.t("通过", "Passed"))
         case "attr":
-            return (neg ? "不满足：属性 · " : "属性 · ") + nameOf(names.attr, key: leaf["var"].text) + " \(cmp) \(num)"
+            return (neg ? W8Text.t("不满足：属性 · ", "Not met: attribute · ") : W8Text.t("属性 · ", "Attribute · ")) + nameOf(names.attr, key: leaf["var"].text) + " \(cmp) \(num)"
         case "clock":
-            return (neg ? "不满足：进度钟 · " : "进度钟 · ") + nameOf(names.clock, key: leaf["var"].text) + " \(cmp) \(num) 格"
+            return (neg ? W8Text.t("不满足：进度钟 · ", "Not met: clock · ") : W8Text.t("进度钟 · ", "Clock · ")) + nameOf(names.clock, key: leaf["var"].text) + W8Text.t(" \(cmp) \(num) 格", " \(cmp) \(num) segments")
         case "value":
-            return (neg ? "不满足：数值 · " : "数值 · ") + nameOf(names.value + names.attr, key: leaf["var"].text) + " \(cmp) \(num)"
+            return (neg ? W8Text.t("不满足：数值 · ", "Not met: value · ") : W8Text.t("数值 · ", "Value · ")) + nameOf(names.value + names.attr, key: leaf["var"].text) + " \(cmp) \(num)"
         default:
-            return "不再支持的条件"
+            return W8Text.t("不再支持的条件", "Unsupported condition")
         }
     }
 
     public static func effectSentence(_ row: PlayWireValue, names: StoryRuleNames) -> String {
         let kind = effectKind(row, names: names)
         let v = row["value"].tolerantInteger ?? 0
-        let sign = row["op"].text == "SET" ? "设为 \(v)" : (v < 0 ? "−\(-v)" : "+\(v)")
+        let sign = row["op"].text == "SET" ? W8Text.t("设为 \(v)", "set to \(v)") : (v < 0 ? "−\(-v)" : "+\(v)")
         switch kind {
-        case "clue": return "获得线索 · \(nameOf(names.clue, key: row["value"].text))"
-        case "tag": return "记上标签 · \(nameOf(names.tag, key: row["value"].text))"
-        case "item": return "给物品 · \(nameOf(names.item, key: row["itemId"].text)) ×\(row["quantity"].tolerantInteger ?? 1)"
-        case "equip": return "穿戴 · \(nameOf(names.item, key: row["itemId"].text))"
-        case "unequip": return "卸下 · \(nameOf(names.item, key: row["itemId"].text))"
-        case "trait": return "加上特质 · \(nameOf(names.trait, key: row["value"].text))"
-        case "untrait": return "移除特质 · \(nameOf(names.trait, key: row["value"].text))"
+        case "clue": return W8Text.t("获得线索 · \(nameOf(names.clue, key: row["value"].text))", "Got clue · \(nameOf(names.clue, key: row["value"].text))")
+        case "tag": return W8Text.t("记上标签 · \(nameOf(names.tag, key: row["value"].text))", "Add tag · \(nameOf(names.tag, key: row["value"].text))")
+        case "item": return W8Text.t("给物品 · \(nameOf(names.item, key: row["itemId"].text)) ×\(row["quantity"].tolerantInteger ?? 1)", "Give item · \(nameOf(names.item, key: row["itemId"].text)) ×\(row["quantity"].tolerantInteger ?? 1)")
+        case "equip": return W8Text.t("穿戴 · \(nameOf(names.item, key: row["itemId"].text))", "Equip · \(nameOf(names.item, key: row["itemId"].text))")
+        case "unequip": return W8Text.t("卸下 · \(nameOf(names.item, key: row["itemId"].text))", "Unequip · \(nameOf(names.item, key: row["itemId"].text))")
+        case "trait": return W8Text.t("加上特质 · \(nameOf(names.trait, key: row["value"].text))", "Add trait · \(nameOf(names.trait, key: row["value"].text))")
+        case "untrait": return W8Text.t("移除特质 · \(nameOf(names.trait, key: row["value"].text))", "Remove trait · \(nameOf(names.trait, key: row["value"].text))")
         case "clock":
-            return "进度钟 · \(nameOf(names.clock, key: row["var"].text)) \(v < 0 ? "−\(-v)" : "+\(v)")"
+            return W8Text.t("进度钟 · \(nameOf(names.clock, key: row["var"].text)) \(v < 0 ? "−\(-v)" : "+\(v)")", "Clock · \(nameOf(names.clock, key: row["var"].text)) \(v < 0 ? "−\(-v)" : "+\(v)")")
         case "attr":
-            return "属性 · \(nameOf(names.attr, key: row["var"].text)) \(sign)"
+            return W8Text.t("属性 · \(nameOf(names.attr, key: row["var"].text)) \(sign)", "Attribute · \(nameOf(names.attr, key: row["var"].text)) \(sign)")
         case "value":
-            return "数值 · \(nameOf(names.value + names.attr, key: row["var"].text)) \(sign)"
+            return W8Text.t("数值 · \(nameOf(names.value + names.attr, key: row["var"].text)) \(sign)", "Value · \(nameOf(names.value + names.attr, key: row["var"].text)) \(sign)")
         case "xp":
-            return "给探索值 +\(row["value"].tolerantInteger ?? 1)"
+            return W8Text.t("给探索值 +\(row["value"].tolerantInteger ?? 1)", "Give XP +\(row["value"].tolerantInteger ?? 1)")
         case "badge":
-            return "授予徽章 · \(nameOf(names.trait, key: row["value"].text))"
+            return W8Text.t("授予徽章 · \(nameOf(names.trait, key: row["value"].text))", "Award badge · \(nameOf(names.trait, key: row["value"].text))")
         default:
-            return "不再支持的效果"
+            return W8Text.t("不再支持的效果", "Unsupported effect")
         }
     }
 
@@ -458,13 +458,13 @@ public enum StoryRuleSentenceEngine {
             : nil
         let resCtrl: StoryRuleSegmentedControl? = kind == "check"
             ? StoryRuleSegmentedControl(
-                options: [StoryRuleSegmentOption(label: "通过", value: "0"), StoryRuleSegmentOption(label: "未通过", value: "1")],
+                options: [StoryRuleSegmentOption(label: W8Text.t("通过", "Passed"), value: "0"), StoryRuleSegmentOption(label: W8Text.t("未通过", "Failed"), value: "1")],
                 value: leaf["result"].text == "FAIL" ? "1" : "0"
             )
             : nil
         let amtCtrl: StoryRuleAmountControl? = ["visit", "attr", "clock", "value"].contains(kind)
             ? StoryRuleAmountControl(
-                label: kind == "visit" ? "次数" : (kind == "clock" ? "格数" : "数值"),
+                label: kind == "visit" ? W8Text.t("次数", "Times") : (kind == "clock" ? W8Text.t("格数", "Segments") : W8Text.t("数值", "Value")),
                 value: leaf["value"].tolerantInteger ?? 1,
                 min: 0,
                 max: kind == "clock" ? 12 : 99
@@ -497,16 +497,16 @@ public enum StoryRuleSentenceEngine {
         let varOpCtrl: StoryRuleSegmentedControl? = ["attr", "value"].contains(kind)
             ? StoryRuleSegmentedControl(
                 options: [
-                    StoryRuleSegmentOption(label: "增加", value: "0"),
-                    StoryRuleSegmentOption(label: "减少", value: "1"),
-                    StoryRuleSegmentOption(label: "设为", value: "2"),
+                    StoryRuleSegmentOption(label: W8Text.t("增加", "Increase"), value: "0"),
+                    StoryRuleSegmentOption(label: W8Text.t("减少", "Decrease"), value: "1"),
+                    StoryRuleSegmentOption(label: W8Text.t("设为", "Set to"), value: "2"),
                 ],
                 value: varOpVal
             )
             : nil
         let amtCtrl: StoryRuleAmountControl? = ["item", "clock", "attr", "value", "xp"].contains(kind)
             ? StoryRuleAmountControl(
-                label: kind == "item" ? "数量" : (kind == "clock" ? "推进格数" : "数值"),
+                label: kind == "item" ? W8Text.t("数量", "Quantity") : (kind == "clock" ? W8Text.t("推进格数", "Segments to advance") : W8Text.t("数值", "Value")),
                 value: kind == "item" ? (row["quantity"].tolerantInteger ?? 1) : (row["op"].text == "SET" ? v : max(1, abs(v))),
                 min: row["op"].text == "SET" ? 0 : 1,
                 max: kind == "clock" ? 12 : 99
@@ -572,7 +572,7 @@ public enum StoryRuleSentenceEngine {
                     path: path,
                     type: "group",
                     depth: 0,
-                    text: "一组条件 · \(op == "OR" ? "任一满足" : "全部满足") \(kids.count) 条",
+                    text: W8Text.t("一组条件 · \(op == "OR" ? "任一满足" : "全部满足") \(kids.count) 条", "Condition group · \(op == "OR" ? "match any" : "match all") · \(kids.count)"),
                     open: open,
                     unsupported: false,
                     canUp: false,
@@ -585,9 +585,9 @@ public enum StoryRuleSentenceEngine {
                         pushLeaf(c, path: "\(path).conditions.\(j)", depth: 1)
                     }
                     if kids.count < 10 {
-                        out.append(StoryRuleRow(path: path, type: "groupAdd", depth: 1, text: "在这组里加一条", open: false, unsupported: false, canUp: false, mode: nil, editor: nil))
+                        out.append(StoryRuleRow(path: path, type: "groupAdd", depth: 1, text: W8Text.t("在这组里加一条", "Add one to this group"), open: false, unsupported: false, canUp: false, mode: nil, editor: nil))
                     }
-                    out.append(StoryRuleRow(path: path, type: "groupDel", depth: 1, text: "删除这一组", open: false, unsupported: false, canUp: false, mode: nil, editor: nil))
+                    out.append(StoryRuleRow(path: path, type: "groupDel", depth: 1, text: W8Text.t("删除这一组", "Delete this group"), open: false, unsupported: false, canUp: false, mode: nil, editor: nil))
                 }
             } else {
                 pushLeaf(row, path: path, depth: 0)
@@ -906,38 +906,38 @@ public enum StoryRuleSentenceEngine {
         var issues: [String] = []
         func checkCondition(_ row: PlayWireValue, depth: Int) {
             if depth > 3 {
-                issues.append("条件组合最多嵌套3层")
+                issues.append(W8Text.t("条件组合最多嵌套3层", "Condition groups can nest at most 3 levels"))
                 return
             }
             let op = row["op"].text ?? ""
             switch op {
             case "AND", "OR":
                 let kids = row["conditions"].array ?? []
-                if kids.isEmpty { issues.append("条件组不能为空") }
+                if kids.isEmpty { issues.append(W8Text.t("条件组不能为空", "A condition group cannot be empty")) }
                 for k in kids { checkCondition(k, depth: depth + 1) }
             case "NOT":
-                if row["condition"].object == nil { issues.append("否定条件缺少子条件") }
+                if row["condition"].object == nil { issues.append(W8Text.t("否定条件缺少子条件", "A negated condition needs a sub-condition")) }
                 else { checkCondition(row["condition"], depth: depth + 1) }
             case "HAS_TAG", "HAS_CONDITION":
                 if (row["value"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    issues.append("条件缺少名称")
+                    issues.append(W8Text.t("条件缺少名称", "Condition is missing a name"))
                 }
             case "ITEM_EQUIPPED":
                 if (row["itemId"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    issues.append("装备条件缺少物品")
+                    issues.append(W8Text.t("装备条件缺少物品", "Equip condition is missing an item"))
                 }
             case "VISIT_COUNT", "NODE_COMPLETED", "CHECK_RESULT":
                 let nId = row["nodeId"].text ?? row["nodeKey"].text ?? row["nodeId"].tolerantInteger.map(String.init) ?? ""
                 if nId.isEmpty || (!nodeIds.isEmpty && !nodeIds.contains(nId)) {
-                    issues.append("节点条件未选择有效站点")
+                    issues.append(W8Text.t("节点条件未选择有效站点", "Station condition has no valid station"))
                 }
             case "GTE", "LTE", "EQ", "NE", "GT", "LT":
                 let v = row["var"].text ?? ""
                 if v.isEmpty || (!variables.isEmpty && variables[v] == nil) {
-                    issues.append("数值条件未选择有效变量")
+                    issues.append(W8Text.t("数值条件未选择有效变量", "Value condition has no valid variable"))
                 }
             default:
-                issues.append("不支持的条件：\(op)")
+                issues.append(W8Text.t("不支持的条件：\(op)", "Unsupported condition: \(op)"))
             }
         }
         for c in value["conditions"].array ?? [] { checkCondition(c, depth: 0) }
@@ -946,23 +946,23 @@ public enum StoryRuleSentenceEngine {
             switch op {
             case "ADD_TAG", "ADD_CONDITION", "REMOVE_CONDITION", "GRANT_BADGE":
                 if (e["value"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    issues.append("效果缺少目标名称")
+                    issues.append(W8Text.t("效果缺少目标名称", "Effect is missing a target name"))
                 }
             case "ADD_ITEM", "EQUIP", "UNEQUIP":
                 if (e["itemId"].text ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    issues.append("物品效果缺少物品代码")
+                    issues.append(W8Text.t("物品效果缺少物品代码", "Item effect is missing an item code"))
                 }
             case "TICK_CLOCK", "INC", "SET":
                 let v = e["var"].text ?? ""
                 if v.isEmpty || (!variables.isEmpty && variables[v] == nil) {
-                    issues.append("数值效果未选择有效变量")
+                    issues.append(W8Text.t("数值效果未选择有效变量", "Value effect has no valid variable"))
                 }
             case "GRANT_XP":
                 if (e["value"].tolerantInteger ?? 0) <= 0 {
-                    issues.append("探索值必须大于 0")
+                    issues.append(W8Text.t("探索值必须大于 0", "XP must be greater than 0"))
                 }
             default:
-                issues.append("不支持的效果：\(op)")
+                issues.append(W8Text.t("不支持的效果：\(op)", "Unsupported effect: \(op)"))
             }
         }
         return issues
@@ -1068,7 +1068,7 @@ public struct StoryRuleCreateRequest: Equatable, Sendable {
         effectRows = StoryRuleSentenceEngine.effectRows(draft, names: names, openPath: openPath)
         showTopSeg = topCount > 1 || mode == "OR"
         topSegValue = mode
-        error = issues.isEmpty ? "" : "有一句还没选完，请补全或删除"
+        error = issues.isEmpty ? "" : W8Text.t("有一句还没选完，请补全或删除", "One sentence is incomplete. Complete or delete it.")
     }
 
     private func edit(_ transform: (PlayWireValue) -> PlayWireValue) {
@@ -1150,7 +1150,7 @@ public struct StoryRuleCreateRequest: Equatable, Sendable {
             path: "",
             list: "",
             kind: "",
-            title: target == "effects" ? "添加效果" : "添加条件"
+            title: target == "effects" ? W8Text.t("添加效果", "Add effect") : W8Text.t("添加条件", "Add condition")
         ))
     }
 
@@ -1162,7 +1162,7 @@ public struct StoryRuleCreateRequest: Equatable, Sendable {
             path: path,
             list: list,
             kind: "",
-            title: "换一个名字"
+            title: W8Text.t("换一个名字", "Rename")
         ))
     }
 
@@ -1274,7 +1274,7 @@ public struct StoryRuleCreateRequest: Equatable, Sendable {
                    Self.creatableLists.contains(listName),
                    !q.isEmpty,
                    !names[listName].contains(where: { $0.label == q }) {
-                    rows.insert(StoryRuleNameItem(key: Self.newKey, label: "新建「\(q)」"), at: 0)
+                    rows.insert(StoryRuleNameItem(key: Self.newKey, label: W8Text.t("新建「\(q)」", "Create “\(q)”")), at: 0)
                 }
                 return StoryRuleLayerRow(
                     kind: k.kind,

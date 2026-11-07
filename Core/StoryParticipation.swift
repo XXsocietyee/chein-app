@@ -72,13 +72,13 @@ public struct StoryProjectJoinState: Equatable, Sendable {
     public var joinActionTitle: String {
         if isMerchant {
             switch myApplyState {
-            case 1: return "入驻审核中"
-            case 2: return "已入驻站点"
-            case 3: return "重新申请入驻"
-            default: return "商家申请入驻"
+            case 1: return W8Text.t("入驻审核中", "Onboarding under review")
+            case 2: return W8Text.t("已入驻站点", "Station onboarded")
+            case 3: return W8Text.t("重新申请入驻", "Reapply to onboard")
+            default: return W8Text.t("商家申请入驻", "Apply as merchant")
             }
         }
-        return myJoined ? "已加入故事" : "立即参与故事"
+        return myJoined ? W8Text.t("已加入故事", "Joined story") : W8Text.t("立即参与故事", "Join the story")
     }
 
     public var canSubmitJoin: Bool {
@@ -144,18 +144,18 @@ public enum StoryClubTopicRules {
     public static func chapterTitle(chapterNo: Int, rawTitle: String?) -> String {
         let trimmed = (rawTitle ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         if !trimmed.isEmpty { return trimmed }
-        return "第 \(max(1, chapterNo)) 章"
+        return W8Text.t("第 \(max(1, chapterNo)) 章", "Chapter \(max(1, chapterNo))")
     }
 
     /// Ported from `durationText(minutes)` in `pages/club/topic-story/index.js`.
     public static func durationText(minutes: Int?) -> String {
         guard let minutes, minutes > 0 else { return "" }
         if minutes < 60 {
-            return "约 \(minutes) 分钟"
+            return W8Text.t("约 \(minutes) 分钟", "About \(minutes) min")
         }
         let hours = minutes / 60
         let rem = minutes % 60
-        return rem > 0 ? "约 \(hours) 小时 \(rem) 分钟" : "约 \(hours) 小时"
+        return rem > 0 ? W8Text.t("约 \(hours) 小时 \(rem) 分钟", "About \(hours) h \(rem) min") : W8Text.t("约 \(hours) 小时", "About \(hours) h")
     }
 
     /// Ported from `walkText(meters)` in `pages/club/topic-story/index.js` (80m/min walking speed).
@@ -164,9 +164,9 @@ public enum StoryClubTopicRules {
         let walkMins = max(1, Int(ceil(Double(meters) / 80.0)))
         if meters >= 1000 {
             let km = String(format: "%.1f", Double(meters) / 1000.0)
-            return "\(km) km · 步行约 \(walkMins) 分钟"
+            return W8Text.t("\(km) km · 步行约 \(walkMins) 分钟", "\(km) km · about \(walkMins) min walk")
         }
-        return "\(meters) m · 步行约 \(walkMins) 分钟"
+        return W8Text.t("\(meters) m · 步行约 \(walkMins) 分钟", "\(meters) m · about \(walkMins) min walk")
     }
 
     /// Ported from `parseOptions(raw)` in `pages/club/topic-story/index.js`.
@@ -213,7 +213,7 @@ public enum StoryClubTopicRules {
                 nodeId: nodeId,
                 chapterNo: chapterNo,
                 chapterTitle: chTitle,
-                name: raw["name"].text ?? raw["nodeName"].text ?? "站点 \(index + 1)",
+                name: raw["name"].text ?? raw["nodeName"].text ?? W8Text.t("站点 \(index + 1)", "Station \(index + 1)"),
                 storyContent: raw["storyContent"].text ?? raw["content"].text ?? raw["description"].text ?? "",
                 questionType: qType,
                 questionTitle: raw["questionTitle"].text ?? raw["question"].text ?? "",
@@ -293,15 +293,15 @@ public enum StoryClubTopicRules {
             throw PlayExperienceError.invalidAction
         }
         guard node.isAnswerable else {
-            throw NSError(domain: "StoryParticipation", code: 1, userInfo: [NSLocalizedDescriptionKey: "该章节节点无需作答"])
+            throw NSError(domain: "StoryParticipation", code: 1, userInfo: [NSLocalizedDescriptionKey: W8Text.t("该章节节点无需作答", "This station needs no answer")])
         }
         let ans = (draftAnswers[nodeId] ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         guard !ans.isEmpty else {
-            throw NSError(domain: "StoryParticipation", code: 2, userInfo: [NSLocalizedDescriptionKey: "请先选择或填写答案"])
+            throw NSError(domain: "StoryParticipation", code: 2, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请先选择或填写答案", "Choose or enter an answer first")])
         }
         if node.questionType == 1 && !node.options.isEmpty {
             guard node.options.contains(where: { $0.key == ans || $0.label == ans }) else {
-                throw NSError(domain: "StoryParticipation", code: 3, userInfo: [NSLocalizedDescriptionKey: "请选择有效选项"])
+                throw NSError(domain: "StoryParticipation", code: 3, userInfo: [NSLocalizedDescriptionKey: W8Text.t("请选择有效选项", "Choose a valid option")])
             }
         }
         var payload: [String: PlayWireValue] = [

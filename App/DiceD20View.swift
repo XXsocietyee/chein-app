@@ -7,6 +7,7 @@ import QuestifyCore
 
 @available(macOS 14.0, *)
 @MainActor struct DiceD20CanvasView: View {
+    @Environment(\.locale) private var locale
     let values: [Int]
     let kept: Int?
     let rollMode: String // "normal" | "advantage" | "disadvantage"
@@ -26,11 +27,11 @@ import QuestifyCore
     }
 
     private var accessibilitySummary: String {
-        if rolling { return "D20 正在掷骰" }
+        if rolling { return String(localized: LocalizedStringResource("playx.dice.a11y.rolling", defaultValue: "D20 is rolling", locale: locale)) }
         if let kept {
-            return "D20 骰面点数 \(kept)"
+            return String(format: String(localized: LocalizedStringResource("playx.dice.a11y.result", defaultValue: "D20 shows %lld", locale: locale)), kept)
         }
-        return "D20 待掷骰"
+        return String(localized: LocalizedStringResource("playx.dice.a11y.idle", defaultValue: "D20 ready to roll", locale: locale))
     }
 
     private func makeRendererState(count: Int) -> DiceD20RendererState {

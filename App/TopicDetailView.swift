@@ -163,6 +163,7 @@ struct TopicDetailView: View {
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
             }.id(TopicXcxTab.nodes.anchor)
+            TopicStoryParticipationLink(topicID: id, chapters: value.chapters)
             TopicXcxRouteSection(topic: value).id(TopicXcxTab.route.anchor)
             Section("topic.source.sessions") {
                 if value.tickets.isEmpty { Text("topic.noTickets") }

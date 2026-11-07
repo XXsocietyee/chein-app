@@ -20,15 +20,8 @@ import SwiftUI
                 if card.attributes.isEmpty {
                     ContentUnavailableView("characterCard.empty", systemImage: "person.text.rectangle")
                 } else {
-                    List {
-                        Section("characterCard.traits") {
-                            ForEach(card.attributes) { attribute in
-                                LabeledContent(attribute.label, value: String(attribute.value))
-                            }
-                        }
-                    }
-                    .listStyle(.insetGrouped)
-                    .refreshable { await model.load() }
+                    CharacterSheetDetailView(card: card)
+                        .refreshable { await model.load() }
                 }
             } else {
                 ProgressView("characterCard.loading")

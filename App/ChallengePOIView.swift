@@ -22,7 +22,7 @@ import QuestifyCore
 
             case .error:
                 ContentUnavailableView {
-                    Label(coordinator.errorMessage.isEmpty ? "加载挑战失败" : coordinator.errorMessage, systemImage: "exclamationmark.triangle")
+                    Label(coordinator.errorMessage.isEmpty ? String(localized: LocalizedStringResource("playx.poi.loadFailed", defaultValue: "Could not load the challenge", locale: locale)) : coordinator.errorMessage, systemImage: "exclamationmark.triangle")
                 } actions: {
                     Button(String(localized: LocalizedStringResource("playx.poi.retry", defaultValue: "重试", locale: locale))) {
                         Task { await onRefresh() }
@@ -116,7 +116,7 @@ import QuestifyCore
                     .font(.headline)
                 Spacer()
                 if let dist = coordinator.distanceMeters {
-                    Text(coordinator.withinRange ? "已进入打卡范围 (\(dist)m)" : "距离 \(dist)m")
+                    (coordinator.withinRange ? Text("playx.poi.inRange \(dist)") : Text("playx.poi.distance \(dist)"))
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(coordinator.withinRange ? .green : .orange)
                 }
@@ -159,5 +159,52 @@ import QuestifyCore
                     .textFieldStyle(.roundedBorder)
             }
         }
+    }
+}
+
+/// Mini-program `subpackageRoam/nearby` opens `pages/play/poi-challenge` from a nearby place.
+/// DESIGNED host: built from the already-read roam node; the challenge write has no approved path in this build,
+/// so a validated submission explains that instead of posting (and never marks the attempt as sent).
+@available(macOS 14.0, *)
+@MainActor struct ChallengePOIHostView: View {
+    let node: RoamNodeDetail
+    @State private var coordinator: ChallengePOICoordinator?
+    @State private var notice: String?
+
+    var body: some View {
+        ScrollView {
+            if let coordinator {
+                ChallengePOIView(
+                    coordinator: coordinator,
+                    onRefresh: { load(coordinator) },
+                    onSubmit: {
+                        do { _ = try coordinator.buildCompletionPayload(userLat: nil, userLon: nil) }
+                        catch { notice = error.localizedDescription; return }
+                        notice = W8Text.t("挑战结果暂时无法在此提交。", "Challenge results can't be submitted from here yet.")
+                    }
+                )
+                .padding()
+            } else {
+                ProgressView().frame(maxWidth: .infinity, minHeight: 120)
+            }
+        }
+        .navigationTitle(W8Text.t("地标挑战", "Landmark challenge"))
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            guard coordinator == nil else { return }
+            let model = ChallengePOICoordinator(nodeId: node.poiId)
+            load(model)
+            coordinator = model
+        }
+        .alert(notice ?? "", isPresented: Binding(get: { notice != nil }, set: { if !$0 { notice = nil } })) {
+            Button(W8Text.t("好", "OK"), role: .cancel) {}
+        }
+    }
+
+    private func load(_ model: ChallengePOICoordinator) {
+        model.applyLoadedNode(ChallengePOINode(
+            id: node.poiId, name: node.name, title: node.name, description: node.description ?? "",
+            latitude: node.coordinate?.latitude, longitude: node.coordinate?.longitude,
+            radiusM: Double(node.radiusM ?? 100), photoRequired: true, completed: node.completed))
     }
 }
