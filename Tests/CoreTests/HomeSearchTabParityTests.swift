@@ -432,8 +432,8 @@ final class HomeSearchTabParityTests: XCTestCase {
 
         var filteredQuery = homeSearch.query
         filteredQuery.categoryID = 3
-        filteredQuery.minPrice = Decimal(20)
-        filteredQuery.maxPrice = Decimal(120)
+        filteredQuery.minimumPrice = 20
+        filteredQuery.maximumPrice = 120
         homeSearch.applyFilter(filteredQuery, sortType: 2, tag: "沉浸", cityRole: "主办")
 
         // Switching to Map mode keeps the exact query, filters, sortType, and history intact on the same screen

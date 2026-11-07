@@ -233,6 +233,11 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
 
     // MARK: W4 Core Loop Business Rules (Four-Shop Policy, Limits, Quotas, Funds, Ownership, 24h Non-Refundable, Ticket & Refund)
 
+    private func ruleFailure(_ result: Result<Void, RegistrationCoreLoopRuleFailure>) -> RegistrationCoreLoopRuleFailure? {
+        if case .failure(let error) = result { return error }
+        return nil
+    }
+
     func testFourShopFixedCompensationStopsNewSalesWhileSoldContractsContinueFulfillment() {
         XCTAssertTrue(FourShopCompensationPolicy.requiresFourStoreContract(productType: 2, evidenceRule: "FOUR_STORE_REDEEM"))
         XCTAssertTrue(FourShopCompensationPolicy.requiresFourStoreContract(productType: 2, evidenceRule: " four_store_redeem "))
@@ -242,14 +247,14 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
 
         let finalization = FourShopCompensationPolicy.evaluateNewSaleFinalization(productType: 2, evidenceRule: "FOUR_STORE_REDEEM")
         XCTAssertEqual(
-            finalization,
-            .failure(.fourShopFixedCompensationStoppedNewSale(message: "四店固定补偿产品已停止新开售，已售合同继续履行"))
+            ruleFailure(finalization),
+            .fourShopFixedCompensationStoppedNewSale(message: "四店固定补偿产品已停止新开售，已售合同继续履行")
         )
 
         let ticketSale = FourShopCompensationPolicy.evaluateNewTicketSale(productType: 2, evidenceRule: "FOUR_STORE_REDEEM")
         XCTAssertEqual(
-            ticketSale,
-            .failure(.fourShopFixedCompensationStoppedNewTicketSale(message: "四店固定补偿产品已停止新售票，已售合同继续履行"))
+            ruleFailure(ticketSale),
+            .fourShopFixedCompensationStoppedNewTicketSale(message: "四店固定补偿产品已停止新售票，已售合同继续履行")
         )
 
         let soldContract = FourShopCompensationPolicy.evaluateSoldContractFulfillment(
@@ -285,8 +290,8 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             evidenceRule: "FOUR_STORE_REDEEM"
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(fourShopCtx),
-            .failure(.fourShopFixedCompensationStoppedNewTicketSale(message: "四店固定补偿产品已停止新售票，已售合同继续履行"))
+            ruleFailure(RegistrationCoreLoopRules.validate(fourShopCtx)),
+            .fourShopFixedCompensationStoppedNewTicketSale(message: "四店固定补偿产品已停止新售票，已售合同继续履行")
         )
 
         // 2. Explore Pass per-order limit = 1
@@ -296,8 +301,8 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             quantity: 2
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(overOrderLimit),
-            .failure(.explorePassOrderLimitExceeded(message: "探索票每单限购 1 张"))
+            ruleFailure(RegistrationCoreLoopRules.validate(overOrderLimit)),
+            .explorePassOrderLimitExceeded(message: "探索票每单限购 1 张")
         )
 
         // 3. Explore Pass points forbidden
@@ -308,8 +313,8 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             usePoints: true
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(pointsOnExplore),
-            .failure(.explorePassPointsForbidden(message: "探店日不支持积分抵扣，请关闭积分后按全价购买"))
+            ruleFailure(RegistrationCoreLoopRules.validate(pointsOnExplore)),
+            .explorePassPointsForbidden(message: "探店日不支持积分抵扣，请关闭积分后按全价购买")
         )
 
         // 4. Explore Pass per-account live ticket limit = 1
@@ -320,11 +325,11 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             existingLiveExploreTicketsForTopic: 1
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(accountLimitReached),
-            .failure(.explorePassAccountLimitReached(
+            ruleFailure(RegistrationCoreLoopRules.validate(accountLimitReached)),
+            .explorePassAccountLimitReached(
                 code: "SHOP_DAY_ACCOUNT_TICKET_LIMIT_REACHED",
                 message: "当前账号已持有该主题的有效探索票，不能重复购买"
-            ))
+            )
         )
 
         // 5. Explore Pass cross-club session forbidden
@@ -335,8 +340,8 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             sessionClubID: 20
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(crossClub),
-            .failure(.explorePassCrossClubForbidden(message: "自由探索只开放内容所属俱乐部的场次，不能跨俱乐部售票"))
+            ruleFailure(RegistrationCoreLoopRules.validate(crossClub)),
+            .explorePassCrossClubForbidden(message: "自由探索只开放内容所属俱乐部的场次，不能跨俱乐部售票")
         )
 
         // 6. Collectible / Second-clearing ownership gate (#22 二清闸)
@@ -346,10 +351,10 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             payableAmount: Decimal(38)
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(nonPlatformPaid),
-            .failure(.nonPlatformPaidProductBlocked(
+            ruleFailure(RegistrationCoreLoopRules.validate(nonPlatformPaid)),
+            .nonPlatformPaidProductBlocked(
                 message: "该产品暂不支持在线支付(平台正在办理支付资质,预计 2 个月内开放);如需报名请联系主办方"
-            ))
+            )
         )
 
         // Free non-platform activity is allowed
@@ -358,7 +363,7 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             isPlatformOwned: false,
             payableAmount: .zero
         )
-        XCTAssertEqual(RegistrationCoreLoopRules.validate(nonPlatformFree), .success(()))
+        XCTAssertNoThrow(try RegistrationCoreLoopRules.validate(nonPlatformFree).get())
 
         // 7. Club membership & reserved quota gate
         let clubRequired = RegistrationCoreLoopRules.RegistrationRuleContext(
@@ -368,8 +373,8 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             viewerIsClubMember: false
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(clubRequired),
-            .failure(.clubMembershipRequired(message: "请先加入俱乐部再报名"))
+            ruleFailure(RegistrationCoreLoopRules.validate(clubRequired)),
+            .clubMembershipRequired(message: "请先加入俱乐部再报名")
         )
 
         let reservedProtected = RegistrationCoreLoopRules.RegistrationRuleContext(
@@ -381,8 +386,8 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             memberReservedQuota: 3
         )
         XCTAssertEqual(
-            RegistrationCoreLoopRules.validate(reservedProtected),
-            .failure(.memberReservedQuotaProtected(message: "剩余名额已为俱乐部会员保留"))
+            ruleFailure(RegistrationCoreLoopRules.validate(reservedProtected)),
+            .memberReservedQuotaProtected(message: "剩余名额已为俱乐部会员保留")
         )
     }
 
@@ -396,7 +401,7 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
             usePoints: true,
             pointsUsableForProduct: true,
             userAvailablePoints: 10_000,
-            pointDeductRate: Decimal(string: "0.01"),
+            pointDeductRate: Decimal(string: "0.01")!,
             maxPointsDeductPerOrderYuan: 50
         )
         XCTAssertEqual(computed.orderTotalYuan, Decimal(200))
@@ -490,6 +495,49 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
                 refundable: true
             )
         )
+    }
+
+    func testActivityPublishingWizardHeadingsMerchantTicketRuleAndReviewSummary() {
+        XCTAssertEqual(ActivityPublishingWizard.heading(for: 0), "这场活动叫什么、在哪儿办？")
+        XCTAssertEqual(ActivityPublishingWizard.heading(for: 1), "这场活动玩什么？")
+        XCTAssertEqual(ActivityPublishingWizard.heading(for: 2), "这场活动怎么卖票？")
+
+        var draft = ActivityPublishDraft()
+        draft.name = "外滩夜游"
+        draft.addressName = "外滩源"
+        draft.start = "2026-11-10 18:00"
+        draft.end = "2026-11-10 21:00"
+        var ticket = ActivityPublishTicket()
+        ticket.name = "体验票"
+        ticket.price = "0"
+        ticket.stock = "20"
+        ticket.start = draft.start
+        ticket.end = draft.end
+        draft.tickets = [ticket]
+
+        XCTAssertNoThrow(try ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true).get())
+        XCTAssertFalse(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: false))
+
+        draft.tickets[0].price = "39"
+        if case .failure(let err) = ActivityPublishingWizard.validateMerchantHostTickets(draft, merchantHost: true) {
+            XCTAssertEqual(err, .rejected("商家主办活动还没开通收款，票价只能是 0"))
+        } else {
+            XCTFail("Expected merchant host paid ticket validation failure")
+        }
+        XCTAssertTrue(ActivityPublishingWizard.requiresPublisherIdentityVerification(draft, merchantHost: false))
+
+        let merged = ActivityPublishingWizard.mergeCollaboratorsWithOwner(
+            ownerMemberID: 10,
+            collaboratorMemberIDs: [20, 10, 30, 20]
+        )
+        XCTAssertEqual(merged.map(\.memberID), [10, 20, 30])
+        XCTAssertEqual(merged.map(\.isOwner), [true, false, false])
+
+        let summary = ActivityPublishingWizard.reviewSummary(draft: draft, templateTitle: "外滩剧本", isEditMode: false)
+        XCTAssertEqual(summary.heading, "发布前摘要")
+        XCTAssertEqual(summary.templateText, "外滩剧本")
+        XCTAssertEqual(summary.ticketSummaryText, "1 个票种")
+        XCTAssertEqual(summary.visibilityNotice, "默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。")
     }
 }
 #endif

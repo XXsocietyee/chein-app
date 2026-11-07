@@ -43,4 +43,35 @@
 ### Priority 4 & 5 — Resilience, Dynamic Type XL, Dark Mode & Tests
 - Preserved and extended loading / empty / error-with-retry states, Dynamic Type XL adaptive layouts (`@Environment(\.dynamicTypeSize)`), and dark-mode semantic styling across modified views.
 - Added bilingual string definitions in `docs/worker-reports/w4-core-loop-strings.json`.
-- Extended `Tests/CoreTests/ActivityRegistrationParityW206Tests.swift`, `Tests/CoreTests/HomeSearchTabParityTests.swift`, and `Tests/AppUnitTests/ActivityPublishingWizardValidationPresentationTests.swift` with fixture-backed unit tests covering all ported business rules.
+- Extended `Tests/CoreTests/ActivityRegistrationParityW206Tests.swift`, `Tests/CoreTests/HomeSearchTabParityTests.swift`, `Tests/AppUnitTests/ActivityPublishingWizardValidationPresentationTests.swift`, and `Tests/AppUITests/OrderLifecycleUITests.swift` with fixture-backed unit and UI tests covering all ported business rules.
+
+## 2. Verification Commands & Real Results
+
+```sh
+swift test --filter "ActivityRegistrationParityW206Tests|HomeSearchTabParityTests"
+# Result:
+# Test Suite 'ActivityRegistrationParityW206Tests' passed. Executed 17 tests, with 0 failures (0 unexpected) in 0.111 seconds
+# Test Suite 'HomeSearchTabParityTests' passed. Executed 9 tests, with 0 failures (0 unexpected) in 0.007 seconds
+# Executed 26 tests, with 0 failures (0 unexpected) in 0.119 (0.156) seconds
+
+swift test --skip-build --filter "ActivityRegistrationParityW206Tests|HomeSearchTabParityTests|ActivityContractTests|ActivityServiceTests|RegistrationContractTests|RegistrationCheckoutCoordinatorTests|OrderLifecycleTests|TicketWalletTests|HomeFeedTests|SearchMapServiceTests|PublishModesServiceTests"
+# Result:
+# Test Suite 'QuestifyCoreTests.xctest' passed.
+# Executed 129 tests, with 0 failures (0 unexpected) in 0.311 (0.331) seconds
+```
+
+## 3. Modified & Added Files
+- `Core/RegistrationContracts.swift`
+- `Core/RegistrationCheckoutPresentation.swift`
+- `Core/HomeSearchTabParity.swift`
+- `Core/ActivityPublishingWizard.swift`
+- `App/RegistrationSheetView.swift`
+- `App/HomeFeedView.swift`
+- `App/HomeSearchTabParityViews.swift`
+- `App/ActivityPublishingWizardView.swift`
+- `Tests/CoreTests/ActivityRegistrationParityW206Tests.swift`
+- `Tests/CoreTests/HomeSearchTabParityTests.swift`
+- `Tests/AppUnitTests/ActivityPublishingWizardValidationPresentationTests.swift`
+- `Tests/AppUITests/OrderLifecycleUITests.swift`
+- `docs/worker-reports/w4-core-loop-strings.json`
+- `docs/worker-reports/W4-core-loop.md`
