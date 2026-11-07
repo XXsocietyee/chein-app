@@ -234,8 +234,15 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                 }
             } else { receivedStampText("changed") }
         }
-        .navigationDestination(item: $selectedStamp) { stamp in
-            RoamReceivedStampMetadataDetail(stamp: stamp, scope: scope, isCurrent: { scope.isCurrent && pager.stamps.contains(stamp) })
+        .navigationDestination(
+            isPresented: Binding(
+                get: { selectedStamp != nil },
+                set: { if !$0 { selectedStamp = nil } }
+            )
+        ) {
+            if let stamp = selectedStamp {
+                RoamReceivedStampMetadataDetail(stamp: stamp, scope: scope, isCurrent: { scope.isCurrent && pager.stamps.contains(stamp) })
+            }
         }
         .onAppear { presentation.appear(foreground: scenePhase == .active) }
         .onDisappear { presentation.disappear() }
