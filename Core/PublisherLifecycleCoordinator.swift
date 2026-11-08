@@ -84,7 +84,7 @@ import Foundation
         case .cancel(let resource, let reason, let scope):
             var fields: [String: ProjectEditJSON] = ["id": .string(String(resource.value)), "reason": .string(reason)]
             if resource.kind == .topic, let scope, !scope.isEmpty { fields["scope"] = .string(scope) }
-            return ("api/\(resource.kind.rawValue)/cancel", fields, false, client.grants.cancellationRefunds)
+            return ((try? PublisherCancelRoute(resource.kind))?.cancelPath ?? "" /* template: never granted */, fields, false, client.grants.cancellationRefunds)
         case .transfer(let topicID, let clubID): return ("api/topic/transfer-to-club", ["topicId": .string(String(topicID)), "clubId": .string(String(clubID))], false, client.grants.ownership)
         case .graduate(let topicID): return ("api/topic/beta/graduate", ["topicId": .string(String(topicID))], false, client.grants.graduation)
         }

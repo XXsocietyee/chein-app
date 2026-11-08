@@ -74,10 +74,10 @@ public struct PublisherLifecycleGrants {
         try PublisherPricingPreview(await read("api/topic/pricing/preview", fields: input.fields, json: true))
     }
     public func paidPlayers(_ resource: PublishedResource, scope: String? = nil) async throws -> Int {
-        guard resource.kind == .topic || resource.kind == .activity else { throw PublisherLifecycleError.forbidden }
+        let route = try PublisherCancelRoute(resource.kind)
         var fields: [String: ProjectEditJSON] = ["id": .string(String(resource.value))]
         if let scope, !scope.isEmpty { fields["scope"] = .string(scope) }
-        let data = try await read("api/\(resource.kind.rawValue)/cancel_preview", fields: fields)
+        let data = try await read(route.previewPath, fields: fields)
         guard let number = PublisherValue.integer(data.object?["paidPlayers"]), number >= 0 else { throw PublisherLifecycleError.incomplete }
         return number
     }
