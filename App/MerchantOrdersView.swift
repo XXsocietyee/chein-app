@@ -136,7 +136,7 @@ private struct MerchantOrderRow: View {
             }
             .font(.subheadline).foregroundStyle(.secondary)
             if let raw = order.aftersaleStatus, raw >= 2 {
-                MerchantAftersaleLabel(value: raw).font(.subheadline).foregroundStyle(.orange)
+                MerchantAftersaleLabel(value: raw).font(.subheadline).foregroundStyle(CYColor.warningText)
             }
         }
         .padding(.vertical, Theme.Space.s1)

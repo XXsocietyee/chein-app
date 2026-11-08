@@ -337,8 +337,8 @@ extension MerchantPredictionReading {
         Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.round %@", round.playDay)).font(.subheadline)
         Group {
             switch facts.deadline {
-            case .daysLeft(let days): Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.daysLeft %lld", days)).foregroundStyle(.orange)
-            case .lastDay: Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.lastDay")).foregroundStyle(.red)
+            case .daysLeft(let days): Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.daysLeft %lld", days)).foregroundStyle(CYColor.warningText)
+            case .lastDay: Text(verbatim: MerchantOpsCopy.text("merchantOps.predict.lastDay")).foregroundStyle(CYColor.dangerText)
             }
         }.font(.footnote.bold()).accessibilityIdentifier("merchantOps.predict.deadline.\(round.id)")
         switch facts.bets {
