@@ -167,11 +167,11 @@ struct ActivityDetailView: View {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
         }
         .sheet(isPresented:$showsRegistration) {
-            if let access,case .allowed(let detail)=access {
-                SessionRegistrationSheet(activity:detail)
-                    .presentationDetents([.large])
-                    .presentationDragIndicator(.visible)
+            Group {
+            if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
             }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented:$showsTicketWallet) {
             // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
