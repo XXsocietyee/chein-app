@@ -4,12 +4,16 @@ import SwiftUI
 /// does not construct a service, issue a grant, or inherit cooperation write access.
 @MainActor struct ProfileComplaintPreparationLink: View {
     @ObservedObject var session: AppSession
+    /// Host hook (composition root, once the complaint report route is approved): return a submitter
+    /// built from the gated `CoopFlowCoordinator`. nil (the default) keeps the honest "not available yet" state.
+    @MainActor static var submitterFactory: (@MainActor (AppSession) -> (any ProfileComplaintSubmitting)?)?
     var body: some View {
         let revision = session.sessionRevision
         let owner = session.cooperationFlowReader.session
         NavigationLink {
             ProfileComplaintPreparationView(reader: session.cooperationFlowReader,
-                isCurrent: { session.sessionRevision == revision && session.cooperationFlowReader.session == owner })
+                isCurrent: { session.sessionRevision == revision && session.cooperationFlowReader.session == owner },
+                submitter: Self.submitterFactory?(session))
                 .id(revision)
         } label: { Label("profile.complaint.title", systemImage: "text.bubble") }
             .accessibilityIdentifier("profile.complaint.open")
@@ -27,8 +31,16 @@ private struct ProfileComplaintPresentationKey: Hashable {
 @MainActor struct ProfileComplaintPreparationView: View {
     let reader: any CoopFlowReading
     let isCurrent: @MainActor () -> Bool
+    /// nil = the report route is not approved in this build; the review screen then says so honestly.
+    let submitter: (any ProfileComplaintSubmitting)?
+    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool) {
+        self.reader = reader; self.isCurrent = isCurrent; submitter = nil
+    }
+    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool, submitter: (any ProfileComplaintSubmitting)?) {
+        self.reader = reader; self.isCurrent = isCurrent; self.submitter = submitter
+    }
     var body: some View {
-        ProfileComplaintPreparationScreen(reader: reader, isCurrent: isCurrent)
+        ProfileComplaintPreparationScreen(reader: reader, isCurrent: isCurrent, submitter: submitter)
             .id(ProfileComplaintPresentationKey(reader))
     }
 }
@@ -36,13 +48,16 @@ private struct ProfileComplaintPresentationKey: Hashable {
     let reader: any CoopFlowReading
     @State private var model: ProfileComplaintPreparationController
     @State private var progress: ProfileComplaintProgressController
+    @State private var confirmingSend = false
+    @State private var sending: ProfileComplaintSubmissionController
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @FocusState private var focused: Field?
     private enum Field: Hashable { case reason, contact }
-    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool) {
+    init(reader: any CoopFlowReading, isCurrent: @escaping @MainActor () -> Bool, submitter: (any ProfileComplaintSubmitting)?) {
         self.reader = reader
         _model = State(initialValue: .init(reader: reader, isCurrent: isCurrent))
+        _sending = State(initialValue: .init(submitter: submitter))
         _progress = State(initialValue: .init(reader: reader, isCurrent: isCurrent))
     }
     var body: some View {
@@ -106,7 +121,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
         }
         .task { await model.load() }
         .task { await progress.load() }
-        .onChange(of: reader.session) { _, _ in model.retire() }
+        .onChange(of: reader.session) { _, _ in model.retire(); sending.reset() }
         .onChange(of: reader.session) { _, _ in progress.retire() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .background { focused = nil; model.retire() }
@@ -115,6 +130,12 @@ private struct ProfileComplaintPresentationKey: Hashable {
         .onDisappear { progress.retire() }
         .onChange(of: scenePhase) { _, phase in if phase == .background { progress.retire() } }
         .privacySensitive()
+        .alert("profile.complaint.submit.confirmTitle", isPresented: $confirmingSend) {
+            Button("profile.complaint.submit.action") {
+                if let review = model.review { Task { await sending.send(review: review, isCurrent: { model.contextMatches }) } }
+            }
+            Button("action.cancel", role: .cancel) {}
+        } message: { Text("profile.complaint.submit.confirmBody") }
     }
     private func editor(_ topics: [ProfileComplaintTopic]) -> some View {
         Group {
@@ -170,12 +191,40 @@ private struct ProfileComplaintPresentationKey: Hashable {
             Section("profile.complaint.reviewTitle") {
                 topicLabel(review.topic).font(.headline)
                 Text(verbatim: review.reason).accessibilityIdentifier("profile.complaint.reviewText")
-                Text("profile.complaint.notSubmitted").font(.footnote)
-                    .accessibilityIdentifier("profile.complaint.notSubmitted")
+                if sending.state == .succeeded {
+                    Label("profile.complaint.submit.done", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                        .accessibilityIdentifier("profile.complaint.submit.done")
+                } else if !sending.isConfigured {
+                    Text("profile.complaint.notSubmitted").font(.footnote)
+                        .accessibilityIdentifier("profile.complaint.notSubmitted")
+                }
+            }
+            if case .failed(let failure) = sending.state {
+                Section {
+                    Text(LocalizedStringKey(failure.titleKey)).font(.footnote).foregroundStyle(.red)
+                        .accessibilityIdentifier("profile.complaint.submit.failure")
+                    if case .rejected(let message?) = failure {
+                        Text(verbatim: message).font(.footnote).accessibilityIdentifier("profile.complaint.submit.serverMessage")
+                    }
+                }
             }
             Section {
-                Button("profile.complaint.continueEditing") { model.continueEditing() }
-                    .accessibilityIdentifier("profile.complaint.continueEditing")
+                if sending.state == .succeeded {
+                    Button("action.close") { model.retire(); sending.reset(); dismiss() }
+                        .accessibilityIdentifier("profile.complaint.submit.close")
+                } else {
+                    if sending.isConfigured {
+                        Button { confirmingSend = true } label: {
+                            Text(LocalizedStringKey(sending.state == .sending ? "profile.complaint.submit.sending" : "profile.complaint.submit.action"))
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                        }
+                        .disabled(!sending.canSend(review: model.review))
+                        .accessibilityIdentifier("profile.complaint.submit.action")
+                    }
+                    Button("profile.complaint.continueEditing") { model.continueEditing() }
+                        .disabled(sending.state == .sending)
+                        .accessibilityIdentifier("profile.complaint.continueEditing")
+                }
             }
         }
     }
