@@ -12,10 +12,11 @@ import SwiftUI
     var body: some View {
         if home.isAllZero {
             Section {
-                Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.empty.title")).font(.headline)
+                Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.empty.title")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("merchantOps.marketing.empty")
                 if access.canManageProjects {
                     Button(MerchantOpsCopy.text("merchantOps.marketing.empty.cta")) { onRoute(.content) }
+                        .buttonStyle(.cyPrimary)
                         .accessibilityIdentifier("merchantOps.marketing.firstContent")
                 }
             }
@@ -39,27 +40,36 @@ import SwiftUI
             }
             .padding(.vertical, Theme.Space.s1)
         }
+        // Source `.mine`: three number tiles, the number is the graphic, label underneath.
         Section(MerchantOpsCopy.text("merchantOps.marketing.myContent")) {
-            LabeledContent("merchantMarketing.topics", value: String(home.content.topicCount))
-            LabeledContent("merchantMarketing.exploration", value: String(home.content.freeExploreCount))
-            LabeledContent("merchantMarketing.activities", value: String(home.content.activityCount))
+            HStack(alignment: .top, spacing: CYSpacing.sm) {
+                mineTile("merchantMarketing.topics", home.content.topicCount)
+                mineTile("merchantMarketing.exploration", home.content.freeExploreCount)
+                mineTile("merchantMarketing.activities", home.content.activityCount)
+            }
+            .listRowInsets(EdgeInsets())
+            .listRowBackground(Color.clear)
         }
         Section("merchantMarketing.coupons") {
             if home.hasCouponDeck {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.live %lld", home.coupons.couponCount)).font(.headline)
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.counts %lld %lld", home.coupons.received, home.coupons.verified)).font(.footnote)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.live %lld", home.coupons.couponCount)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.counts %lld %lld", home.coupons.received, home.coupons.verified)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     if let rate = home.verifiedAfterReceivePercent {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.rate %lld", rate)).font(.footnote).foregroundStyle(.secondary)
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.rate %lld", rate)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("merchantOps.marketing.coupon.rate")
                     }
-                }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.couponDeck")
+                }
+                .cyCardSurface(variant: .accentTint, radius: CYRadius.lg, padding: CYSpacing.lg)
+                .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
+                .listRowBackground(Color.clear)
+                .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.couponDeck")
                 LabeledContent("merchantMarketing.claimed", value: String(home.coupons.received))
                 LabeledContent("merchantMarketing.redeemed", value: String(home.coupons.verified))
             } else {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.title")).font(.headline)
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.body")).font(.footnote).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.title")).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coupon.empty.body")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.coupon.empty")
             }
         }
@@ -67,26 +77,44 @@ import SwiftUI
             Button { onRoute(.topicCooperation) } label: {
                 LabeledContent {
                     if home.recruiting.count > 0 {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count))
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.coop.count %lld", home.recruiting.count)).font(CYTypography.numericBody).foregroundStyle(CYColor.accentText)
                     }
                 } label: {
-                    Text("merchant.marketing.enterCoop").foregroundStyle(.primary)
+                    Text("merchant.marketing.enterCoop").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 }
             }.accessibilityIdentifier("merchantOps.marketing.coop")
         }
     }
     /// MerchantOps copy is already resolved for the current language; wrap it for QuestifyRoundAction.
     private func tool(_ key: String) -> LocalizedStringKey { LocalizedStringKey(MerchantOpsCopy.text(key)) }
+    private func mineTile(_ key: String, _ count: Int) -> some View {
+        VStack(spacing: CYSpacing.xs) {
+            Text(verbatim: String(count)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                .minimumScaleFactor(0.6).lineLimit(1)
+            Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                .multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+        .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md)
+        .accessibilityElement(children: .combine)
+    }
+    /// Hero number: when the analytics block (or its SIGNUP stage) is missing the value is UNKNOWN, shown as an em dash, never 0.
+    private var heroDisplay: String {
+        home.analytics?.stage("SIGNUP") == nil ? "\u{2014}" : home.heroValue
+    }
+    /// Source `.hero`: left-aligned label, one large tabular number, quiet sub line.
     @ViewBuilder private var hero: some View {
         Section {
-            VStack(spacing: Theme.Space.s1) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.label %lld", MerchantMarketingHome.windowDays))
-                    .font(.subheadline).foregroundStyle(.secondary)
-                QuestifyHeroValue(value: Text(verbatim: home.heroValue))
+                    .font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: heroDisplay)
+                    .font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
+                    .minimumScaleFactor(0.6).lineLimit(1)
                     .accessibilityIdentifier("merchantOps.marketing.hero.value")
                 Group {
                     if home.analytics == nil {
-                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.analytics.unavailable")).foregroundStyle(.secondary)
+                        Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.analytics.unavailable")).foregroundStyle(CYColor.warningText)
                     } else {
                         switch home.heroSubtitle {
                         case .noSignup: Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.hero.noSignup"))
@@ -95,13 +123,15 @@ import SwiftUI
                         }
                     }
                 }
-                .font(.footnote).multilineTextAlignment(.center)
+                .font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.top, Theme.Space.s4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, CYSpacing.sm)
             .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.hero")
             if home.analytics == nil {
-                Button(MerchantOpsCopy.text("merchantOps.marketing.analytics.retry"), action: onRetry).accessibilityIdentifier("merchantOps.marketing.analytics.retry")
+                Button(MerchantOpsCopy.text("merchantOps.marketing.analytics.retry"), action: onRetry)
+                    .buttonStyle(.cySecondary)
+                    .accessibilityIdentifier("merchantOps.marketing.analytics.retry")
             }
         }
     }
@@ -115,10 +145,10 @@ struct MerchantInsightParityRows: View {
     var body: some View {
         if let delta = MerchantInsightParity.visitorDelta(facts) {
             Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.delta %@", (delta > 0 ? "+" : "") + String(delta)))
-                .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.insight.delta")
+                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchantOps.insight.delta")
         }
         if isEmpty {
-            Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.empty.body")).font(.footnote).foregroundStyle(.secondary)
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.insight.empty.body")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 .accessibilityIdentifier("merchantOps.insight.empty")
             if let onCoopCenter,
                let cta = MerchantInsightParity.emptyCTATitle(isEmpty: isEmpty, canOpenCoopCenter: true) {

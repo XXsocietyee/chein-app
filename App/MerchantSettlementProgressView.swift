@@ -58,12 +58,12 @@ import UIKit
     var body: some View {
         let displayedIntent = copyModel.intentID
         VStack(alignment: .leading, spacing: 12) {
-            Text(LocalizedStringKey(progress.paymentKey)).font(.headline)
+            Text(LocalizedStringKey(progress.paymentKey)).font(CYTypography.cardTitle)
                 .accessibilityIdentifier("merchant.settlementProgress.status")
             Text(LocalizedStringKey(progress.invoiceKey)).font(.subheadline)
-            if progress.amount.raw == nil { Text("merchant.settlementProgress.amountUnknown").foregroundStyle(.secondary) }
+            if progress.amount.raw == nil { Text("merchant.settlementProgress.amountUnknown").foregroundStyle(CYColor.textTertiary) }
             if !progress.steps.isEmpty {
-                Text("merchant.settlementProgress.title").font(.headline)
+                Text("merchant.settlementProgress.title").font(CYTypography.cardTitle)
                 ForEach(progress.steps) { step in
                     HStack(alignment: .top, spacing: 10) {
                         Image(systemName: symbol(step.state))
@@ -71,8 +71,8 @@ import UIKit
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 4) {
                             Text(LocalizedStringKey("merchant.settlementProgress.step." + step.id))
-                            Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue)).font(.caption).foregroundStyle(.secondary)
-                            if let time = step.timestamp { MerchantSettlementTimestampText(raw: time).font(.caption).foregroundStyle(.secondary) }
+                            Text(LocalizedStringKey("merchant.settlementProgress.stepState." + step.state.rawValue)).font(.caption).foregroundStyle(CYColor.textTertiary)
+                            if let time = step.timestamp { MerchantSettlementTimestampText(raw: time).font(.caption).foregroundStyle(CYColor.textTertiary) }
                         }
                     }.fixedSize(horizontal: false, vertical: true)
                         .accessibilityElement(children: .combine)
@@ -88,7 +88,7 @@ import UIKit
                 if copyModel.busy { ProgressView("merchant.settlementProgress.checking") }
             }
             if let key = copyModel.messageKey {
-                Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(.secondary)
+                Text(LocalizedStringKey(key)).font(.footnote).foregroundStyle(CYColor.textTertiary)
                     .accessibilityIdentifier("merchant.settlementProgress.copyStatus")
             }
         }
@@ -117,7 +117,7 @@ struct MerchantSettlementTimestampText: View {
             if let date = MerchantSettlementProgress.paymentTimestamp(raw) {
                 Text(verbatim: MerchantAftercareTime.event(date, phoneTimeZone: phoneTimeZone))
             } else {
-                Text("merchant.settlementProgress.timeUnknown").foregroundStyle(.secondary)
+                Text("merchant.settlementProgress.timeUnknown").foregroundStyle(CYColor.textTertiary)
             }
         }
         .onAppear { phoneTimeZone = .current }

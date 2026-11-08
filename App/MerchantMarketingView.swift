@@ -103,7 +103,7 @@ import SwiftUI
                 // Source marketing/index.wxml denied inline error; the owner always has marketing read.
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.title"))
-                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.body")).font(.footnote).foregroundStyle(.secondary)
+                    Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.body")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.denied")
                 Button(MerchantOpsCopy.text("merchantOps.marketing.denied.retry")) { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }
                     .accessibilityIdentifier("merchantOps.marketing.denied.retry")
@@ -268,7 +268,7 @@ import SwiftUI
                 Text(round.nodeName ?? appLocalized("merchantMarketing.unnamed", locale: locale)).font(.headline)
                 Text(round.playDay); if let question = round.question { Text(question) }
                 if let days = round.daysLeft {
-                    if days <= 0 { Label("merchantMarketing.today", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
+                    if days <= 0 { Label("merchantMarketing.today", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
                     else { LabeledContent("merchantMarketing.daysLeft", value: String(days)) }
                 }
                 if let count = round.betCount, count > 0 { LabeledContent("merchantMarketing.bets", value: String(count)) }

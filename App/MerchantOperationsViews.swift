@@ -53,7 +53,7 @@ struct MerchantOperationsHomeView: View {
                         }
                     }
                 }
-                if !access.identity.active { Text("merchant.access.inactive").foregroundStyle(.secondary) }
+                if !access.identity.active { Text("merchant.access.inactive").foregroundStyle(CYColor.textTertiary) }
             } else if let issue, loadedScope == reader.scope {
                 ContentUnavailableView {
                     Label { MerchantOperationsIssueView(issue: issue) } icon: { Image(systemName: "exclamationmark.triangle") }
@@ -312,7 +312,7 @@ struct MerchantOperationsBoundary: View {
     var body: some View {
         if isExample {
             Label("merchant.operations.exampleBoundary", systemImage: "info.circle")
-                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                .font(.footnote).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("merchant.operations.boundary")
         }
     }
@@ -321,8 +321,8 @@ struct MerchantOperationsIssueView: View {
     let issue: MerchantOperationsIssue
     var body: some View {
         switch issue {
-        case .key(let key): Text(LocalizedStringKey(key)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.issue")
-        case .server(let text): Text(verbatim: text).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.issue")
+        case .key(let key): Text(LocalizedStringKey(key)).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchant.operations.issue")
+        case .server(let text): Text(verbatim: text).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchant.operations.issue")
         }
     }
 }
@@ -336,7 +336,7 @@ private struct MerchantOperationsCityView: View {
                 if let cityNodeHub { NavigationLink { cityNodeHub() } label: { Text("merchantCityNode.title", tableName: "MerchantCityNode") }.accessibilityIdentifier("merchant.operations.cityNodeHub") }
                 if let used = catalog.used, let max = catalog.max, used >= 0, max > 0 {
                     LabeledContent("merchant.operations.quota", value: "\(used) / \(max)")
-                    if catalog.quotaExhausted { Text("merchant.operations.quotaExhausted").foregroundStyle(.secondary) }
+                    if catalog.quotaExhausted { Text("merchant.operations.quotaExhausted").foregroundStyle(CYColor.textTertiary) }
                 }
             }
             Section("merchant.operations.nodes") {
@@ -359,10 +359,10 @@ private struct MerchantOperationsCityView: View {
                 if catalog.applications.isEmpty { Text("merchant.operations.empty") }
                 ForEach(catalog.applications) { application in
                     VStack(alignment: .leading, spacing: 8) {
-                        if let name = application.name { Text(verbatim: name).font(.headline) }
+                        if let name = application.name { Text(verbatim: name).font(CYTypography.cardTitle) }
                         Text(LocalizedStringKey(application.applicationType == 2 ? "merchant.operations.claim" : application.applicationType == 1 ? "merchant.operations.placement" : "merchant.operations.review.unknown"))
                         Text(LocalizedStringKey(application.reviewKey))
-                        if application.status == 2, let reason = application.reason { Text(verbatim: reason).foregroundStyle(.secondary) }
+                        if application.status == 2, let reason = application.reason { Text(verbatim: reason).foregroundStyle(CYColor.textTertiary) }
                     }.accessibilityIdentifier("merchant.operations.application." + String(application.id))
                 }
             }
@@ -382,7 +382,7 @@ private struct MerchantOperationsAssetsView: View {
                 if let job = resources.avatar.job {
                     Text(LocalizedStringKey(job.statusKey)).accessibilityIdentifier("merchant.operations.avatarStatus")
                     if let style = job.style { LabeledContent("merchant.operations.style", value: style) }
-                    if job.status == "FAILED", let reason = job.failReason { Text(verbatim: reason).foregroundStyle(.secondary) }
+                    if job.status == "FAILED", let reason = job.failReason { Text(verbatim: reason).foregroundStyle(CYColor.textTertiary) }
                 } else { Text("merchant.operations.noAvatarJob") }
             }
         }
