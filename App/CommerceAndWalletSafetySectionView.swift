@@ -150,18 +150,18 @@ public struct CommerceAndWalletSafetySectionView: View {
                 Spacer()
                 Text(verbatim: overallGateBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllCompliant ? Color.green : Color.red)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("commerceWalletSafety.overallBadge")
             }
 
             Text(verbatim: refundLockBannerText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.unknownRefundLockedCount > 0 ? Color.orange : Color.secondary)
+                .foregroundStyle(snapshot.unknownRefundLockedCount > 0 ? CYColor.warningText : CYColor.textSecondary)
                 .accessibilityIdentifier("commerceWalletSafety.refundLockBanner")
 
             Text(verbatim: nonCashPolicyBannerText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.pointsWithdrawableAllowed ? Color.red : Color.secondary)
+                .foregroundStyle(snapshot.pointsWithdrawableAllowed ? CYColor.dangerText : CYColor.textSecondary)
                 .accessibilityIdentifier("commerceWalletSafety.nonCashPolicyBanner")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -175,8 +175,8 @@ public struct CommerceAndWalletSafetySectionView: View {
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(
                                     (pillar.isFailClosedCompliant && !pillar.liveCashMutationEnabled)
-                                        ? Color.green
-                                        : Color.red
+                                        ? CYColor.successText
+                                        : CYColor.dangerText
                                 )
                         }
                         Text(verbatim: pillar.policySummary)
@@ -184,7 +184,7 @@ public struct CommerceAndWalletSafetySectionView: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
@@ -204,7 +204,7 @@ public struct CommerceAndWalletSafetySectionView: View {
             .accessibilityIdentifier("commerceWalletSafety.w7Surfaces")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("commerceWalletSafety.section")

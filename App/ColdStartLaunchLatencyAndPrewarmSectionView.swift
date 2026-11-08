@@ -174,7 +174,7 @@ public struct ColdStartLaunchLatencyAndPrewarmSectionView: View {
                 Spacer()
                 Text(verbatim: snapshot.overallStatusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllCompliant ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("coldStartLatency.statusBadge")
             }
 
@@ -186,7 +186,7 @@ public struct ColdStartLaunchLatencyAndPrewarmSectionView: View {
             if !snapshot.isAllCompliant {
                 Text(verbatim: "Warning: Cold-start latency exceeds <= 400ms budget or performs synchronous @MainActor disk/network I/O.")
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("coldStartLatency.warningBanner")
             }
 
@@ -198,7 +198,7 @@ public struct ColdStartLaunchLatencyAndPrewarmSectionView: View {
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(row.isCompliant ? Color.green : Color.orange)
+                            .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.detailSummaryText)
                         .font(.caption2)

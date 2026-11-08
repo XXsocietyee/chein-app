@@ -155,7 +155,7 @@ public struct InAppCustomerSupportAndFeedbackSectionView: View {
                 Spacer()
                 Text(verbatim: snapshot.overallStatusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllCompliant ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("customerSupportFeedback.statusBadge")
             }
 
@@ -167,7 +167,7 @@ public struct InAppCustomerSupportAndFeedbackSectionView: View {
             if !snapshot.isAllCompliant {
                 Text(verbatim: "Warning: One or more support channels lack redacted diagnostic context, offline draft preservation, or ticket readback.")
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(Color.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("customerSupportFeedback.warningBanner")
             }
 
@@ -179,7 +179,7 @@ public struct InAppCustomerSupportAndFeedbackSectionView: View {
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
                             .font(.caption2.weight(.semibold))
-                            .foregroundStyle(row.isCompliant ? Color.green : Color.orange)
+                            .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.detailSummaryText)
                         .font(.caption2)

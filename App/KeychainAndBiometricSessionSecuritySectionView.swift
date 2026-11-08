@@ -142,28 +142,28 @@ public struct KeychainAndBiometricSessionSecuritySectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllSecure ? Color.green : Color.red)
+                    .foregroundStyle(snapshot.isAllSecure ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("keychainSessionSecurity.statusBadge")
             }
 
             Text(verbatim: thisDeviceOnlySummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.keychainUsesThisDeviceOnly ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.keychainUsesThisDeviceOnly ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("keychainSessionSecurity.thisDeviceOnlySummary")
 
             Text(verbatim: userDefaultsLeakSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.userDefaultsTokenLeakCount == 0 ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.userDefaultsTokenLeakCount == 0 ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("keychainSessionSecurity.userDefaultsLeakSummary")
 
             Text(verbatim: wipeAndTombstoneSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.logoutWipeAndTombstoneActive ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.logoutWipeAndTombstoneActive ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("keychainSessionSecurity.wipeAndTombstoneSummary")
 
             Text(verbatim: singleFlight401SummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.singleFlight401GuardActive ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.singleFlight401GuardActive ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("keychainSessionSecurity.singleFlight401Summary")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -175,21 +175,21 @@ public struct KeychainAndBiometricSessionSecuritySectionView: View {
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle(row.isEnforced ? Color.green : Color.red)
+                                .foregroundStyle(row.isEnforced ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.enforcementDetail)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("keychainSessionSecurity.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("keychainSessionSecurity.section")

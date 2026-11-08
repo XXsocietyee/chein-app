@@ -137,7 +137,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("ultimateExecutiveSummary.root")
@@ -168,8 +168,8 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
                     .background(
                         Capsule().fill(
                             snapshot.isAllExecutiveMetricsReady
-                                ? Color.green.opacity(0.2)
-                                : Color.orange.opacity(0.22)
+                                ? CYColor.successText.opacity(0.2)
+                                : CYColor.warningText.opacity(0.22)
                         )
                     )
                     .accessibilityIdentifier("ultimateExecutiveSummary.bannerState")

@@ -253,7 +253,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
-                            Capsule().fill(snapshot.isZeroGapCertified ? Color.green.opacity(0.18) : Color.red.opacity(0.18))
+                            Capsule().fill(snapshot.isZeroGapCertified ? CYColor.successText.opacity(0.18) : CYColor.dangerText.opacity(0.18))
                         )
                         .accessibilityIdentifier("finalReleaseCertificate.badge")
                 }
@@ -268,14 +268,14 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: row.isCertified ? "checkmark.seal.fill" : "xmark.octagon.fill")
-                                .foregroundStyle(row.isCertified ? Color.green : Color.red)
+                                .foregroundStyle(row.isCertified ? CYColor.successText : CYColor.dangerText)
                                 .accessibilityHidden(true)
                             Text(verbatim: row.pillarTitle)
                                 .font(.subheadline.weight(.medium))
                             Spacer()
                             Text(verbatim: row.isCertified ? row.statusText : "BLOCKED (\(row.statusText))")
                                 .font(.caption2.monospaced().weight(.semibold))
-                                .foregroundStyle(row.isCertified ? Color.green : Color.red)
+                                .foregroundStyle(row.isCertified ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.scopeSummary)
                             .font(.caption)
@@ -288,7 +288,7 @@ public struct FinalReleaseSignoffAndZeroGapCertificateView: View {
                         if let blocker = row.blockerNote, !blocker.isEmpty {
                             Text(verbatim: "未签收原因: \(blocker)")
                                 .font(.caption)
-                                .foregroundStyle(Color.red)
+                                .foregroundStyle(CYColor.dangerText)
                         }
                     }
                     .accessibilityIdentifier("finalReleaseCertificate.pillar.\(row.id)")

@@ -150,7 +150,7 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("completeWaveShowcase.root")
@@ -164,7 +164,7 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
                 Spacer()
                 Text(verbatim: headerBadgeText)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.isShowcaseComplete ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isShowcaseComplete ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("completeWaveShowcase.statusBadge")
             }
 
@@ -190,7 +190,7 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
                         Spacer()
                         Text(verbatim: item.statusBadgeText)
                             .font(.caption2.monospaced())
-                            .foregroundStyle(item.isCompleted ? Color.green : Color.orange)
+                            .foregroundStyle(item.isCompleted ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("completeWaveShowcase.batchStatus.\(item.id)")
                     }
 

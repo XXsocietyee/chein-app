@@ -60,7 +60,7 @@ public struct StoryWalkingAndFogSectionView: View {
                     .font(.caption2.weight(.semibold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(Color.secondary.opacity(0.15), in: Capsule())
+                    .background(CYColor.textSecondary.opacity(0.15), in: Capsule())
                     .accessibilityIdentifier("story.fog.syncBadge")
             }
 

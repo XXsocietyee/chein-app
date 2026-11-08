@@ -133,7 +133,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
-                            Capsule().fill(snapshot.isAllGoalsCompleted ? Color.green.opacity(0.18) : Color.orange.opacity(0.18))
+                            Capsule().fill(snapshot.isAllGoalsCompleted ? CYColor.successText.opacity(0.18) : CYColor.warningText.opacity(0.18))
                         )
                         .accessibilityIdentifier("finalGoalCompletionGate.statusBadge")
                 }
@@ -144,7 +144,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                     Spacer()
                     Text(verbatim: snapshot.sevenDayGoalAchieved ? "已全部达成" : "进行中")
                         .font(.caption)
-                        .foregroundStyle(snapshot.sevenDayGoalAchieved ? Color.secondary : Color.orange)
+                        .foregroundStyle(snapshot.sevenDayGoalAchieved ? CYColor.textSecondary : CYColor.warningText)
                 }
                 .accessibilityIdentifier("finalGoalCompletionGate.sevenDayStatus")
 
@@ -153,7 +153,7 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                     Spacer()
                     Text(verbatim: snapshot.nativeSupersetPolicyEnforced ? "严格执行 (零降级)" : "未核验")
                         .font(.caption)
-                        .foregroundStyle(snapshot.nativeSupersetPolicyEnforced ? Color.secondary : Color.orange)
+                        .foregroundStyle(snapshot.nativeSupersetPolicyEnforced ? CYColor.textSecondary : CYColor.warningText)
                 }
                 .accessibilityIdentifier("finalGoalCompletionGate.supersetPolicy")
             } header: {
@@ -166,14 +166,14 @@ public struct FinalThreeDocumentAndSevenDayGoalCompletionView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         HStack {
                             Image(systemName: row.isFullyVerified ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                                .foregroundStyle(row.isFullyVerified ? Color.green : Color.orange)
+                                .foregroundStyle(row.isFullyVerified ? CYColor.successText : CYColor.warningText)
                                 .accessibilityHidden(true)
                             Text(verbatim: row.documentOrPlanTitle)
                                 .font(.subheadline.weight(.medium))
                             Spacer()
                             Text(verbatim: "\(row.completionPercentage)%")
                                 .font(.caption2.monospaced().weight(.semibold))
-                                .foregroundStyle(row.isFullyVerified ? Color.green : Color.orange)
+                                .foregroundStyle(row.isFullyVerified ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.verificationSummary)
                             .font(.caption)

@@ -134,7 +134,7 @@ public struct EndToEndReleaseCandidateGateSectionView: View {
                 Spacer()
                 Text(verbatim: summaryBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllGatesGreen ? Color.green : Color.red)
+                    .foregroundStyle(snapshot.isAllGatesGreen ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("releaseCandidateGate.summaryBadge")
             }
 
@@ -145,7 +145,7 @@ public struct EndToEndReleaseCandidateGateSectionView: View {
 
             Text(verbatim: failClosedBannerText)
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(snapshot.isAllGatesGreen ? Color.green : Color.red)
+                .foregroundStyle(snapshot.isAllGatesGreen ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("releaseCandidateGate.failClosedBanner")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -157,21 +157,21 @@ public struct EndToEndReleaseCandidateGateSectionView: View {
                             Spacer()
                             Text(verbatim: gate.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle((gate.isPassed && gate.isFailClosed) ? Color.green : Color.red)
+                                .foregroundStyle((gate.isPassed && gate.isFailClosed) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: gate.requirementSummary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("releaseCandidateGate.gateList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("releaseCandidateGate.section")
