@@ -41,5 +41,28 @@ class FPA2HomeSearchAndPublish(unittest.TestCase):
         self.assertIn('.accessibilityAddTraits(.isSearchField)', entry)
 
 
+class FPA3ClubChannelMessaging(unittest.TestCase):
+    def test_reduce_motion_gates_animations(self):
+        s = src('App/ClubChannelMessagingView.swift')
+        self.assertIn('@Environment(\\.accessibilityReduceMotion) private var reduceMotion', s)
+        self.assertNotIn('withAnimation(.easeInOut', s)
+        self.assertNotIn('withAnimation(.easeOut', s)
+        self.assertEqual(s.count('withAnimation(reduceMotion ? nil :'), 2)
+
+    def test_jump_pill_uses_tokens(self):
+        s = src('App/ClubChannelMessagingView.swift')
+        pill = s[s.index('showNewMessageJumpBanner {'):s.index('channelComposerBar: some View')]
+        self.assertIn('CYColor.accent', pill)
+        self.assertIn('CYColor.textOnAccent', pill)
+        self.assertNotIn('Color.accentColor', pill)
+        self.assertNotIn('.foregroundStyle(.white)', pill)
+
+    def test_channel_names_not_cut_to_one_line(self):
+        s = src('App/ClubChannelMessagingView.swift')
+        top = s[s.index('private var channelTopBar'):s.index('Image(systemName: "bell.slash.fill")')]
+        self.assertNotIn('.lineLimit(1)', top)
+        self.assertIn('.fixedSize(horizontal: false, vertical: true)', top)
+
+
 if __name__ == '__main__':
     unittest.main()
