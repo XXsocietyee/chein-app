@@ -8,6 +8,30 @@ public enum NativeEntryIntent: Equatable {
     case door(DoorIntent)
     case merchantInvitation(MerchantOperatorInviteRoute)
     case publicMerchant(PublicMerchantHomeTarget)
+    /// FP-C3. A parsed destination only; no origin is enabled by it and presentation stays the host's choice.
+    case content(NativeContentTarget)
+}
+/// Positive server ids for public content destinations. Parsing grants no access: the destination screen
+/// still reads through its own approved, authenticated source.
+public struct NativeContentTarget: Equatable {
+    public enum Kind: String, CaseIterable, Equatable {
+        case activity, club, topic, template, post, poi, roamSession
+        /// Mini-program source paths (docs/parity/page-map.csv). The id travels in the single `id` query item.
+        public var sourcePath: String {
+            switch self {
+            case .activity: return "/pages/activity/detail/index"
+            case .club: return "/pages/club/detail/index"
+            case .topic: return "/pages/topic/index/index"
+            case .template: return "/pages/templatedetail/templatedetail"
+            case .post: return "/pages/square/detail/index"
+            case .poi: return "/subpackageRoam/poi-detail/index"
+            case .roamSession: return "/subpackageRoam/session/index"
+            }
+        }
+    }
+    public let kind: Kind
+    public let id: Int
+    public init?(kind: Kind, id: Int) { guard id > 0 else { return nil }; self.kind = kind; self.id = id }
 }
 public struct NativeEntryPresentation: Identifiable {
     public let id = UUID()

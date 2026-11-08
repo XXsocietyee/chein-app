@@ -45,6 +45,9 @@ import SwiftUI
                     }
                 case .publicMerchant(let target):
                     PublicMerchantHomeView(target: target, context: session.publicMerchantHomeContext).id(session.sessionRevision)
+                case .content:
+                    // Parsed but not presented yet: no origin is enabled, so this is reachable only from in-app routing.
+                    NativeRouteErrorView(failure: .unsupported, goHome: { session.dismissNativeEntry(); goHome() })
                 case .merchantInvitation(let route):
                     MerchantOperatorInvitationLandingView(invitation: route.invitation,
                         reader: session.merchantEngagementReader, journal: session.merchantBusinessJournal,

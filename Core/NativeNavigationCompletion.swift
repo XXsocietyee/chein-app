@@ -41,6 +41,12 @@ public enum NativeNavigationContract {
             guard query.keys.sorted() == ["teamId"], let raw = query["teamId"], let id = Int(raw), id > 0, String(id) == raw else { return nil }
             return .routeError(.legacyTeamLink)
         }
+        if let kind = NativeContentTarget.Kind.allCases.first(where: { $0.sourcePath == path }) {
+            // Exactly one canonical positive `id`; extra keys, signs, padding or leading zeros are not a route.
+            guard query.keys.sorted() == ["id"], let raw = query["id"], let id = Int(raw), String(id) == raw,
+                  let target = NativeContentTarget(kind: kind, id: id) else { return nil }
+            return .content(target)
+        }
         if path == "/badge" {
             guard Set(query.keys).isSubset(of: ["name", "sub", "img", "style", "rarity"]),
                   query.values.allSatisfy({ $0.utf8.count <= 2048 && $0.rangeOfCharacter(from: .controlCharacters) == nil }) else { return nil }
