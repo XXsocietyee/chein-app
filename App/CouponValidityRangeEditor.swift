@@ -90,6 +90,9 @@ struct CouponValidityRangeContext: Equatable {
                         .accessibilityIdentifier("couponManagement.range.end")
                 }
             }.disabled(!model.active)
+            if let span = CouponValiditySpan.make(start: model.selection.startTime, end: model.selection.endTime) {
+                Section { CouponValiditySpanBadge(span: span) }
+            }
             if let issue = model.issue ?? model.selection.blocker {
                 MerchantM02Notice(message: Text(LocalizedStringKey(issue)), symbol: "exclamationmark.circle", isError: true)
                     .accessibilityIdentifier("couponManagement.range.issue")
