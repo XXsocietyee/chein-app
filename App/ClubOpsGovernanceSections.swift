@@ -285,6 +285,14 @@ struct ClubOpsGovernanceFormNotes: View {
             ClubOpsGovernanceCopy.text("clubOpsGov.transfer.hint")
             ClubOpsGovernanceCopy.text("clubOpsGov.transfer.reasonHint").font(.footnote).foregroundStyle(.secondary)
         case .report:
+            // Mini 举报目标 card: type plus the optional entry-supplied name, never an internal id.
+            LabeledContent {
+                if let name = ClubGovernanceReportPort.quotedName(seed["targetName"]?.string) {
+                    Text(verbatim: name)
+                }
+            } label: {
+                ClubOpsGovernanceCopy.text("clubOpsGov.report.targetType." + ClubGovernanceReportPort.typeKey(seed["targetType"]?.string))
+            }.accessibilityIdentifier("clubOpsGov.report.target")
             ClubOpsGovernanceCopy.text("clubOpsGov.report.note")
         case .appeal:
             ClubOpsGovernanceCopy.text("clubOpsGov.appeal.note")

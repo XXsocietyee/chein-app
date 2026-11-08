@@ -18,3 +18,9 @@
 | `club.topic.primary.preparing` | Localizable | `Start session` | `开始活动` |
 | `club.topic.primary.running` / `.selfrun` | Localizable | `End session` | `结束活动` |
 | `club.topic.primary.ended` | Localizable | `View settlement report` | `查看结算报告` |
+| `clubOpsGov.report.targetType.CLUB` | ClubOpsGovernance | `Club` | `俱乐部` |
+| `clubOpsGov.report.targetType.ACTIVITY` | ClubOpsGovernance | `Activity` | `活动` |
+| `clubOpsGov.report.targetType.MEMBER` | ClubOpsGovernance | `Member` | `成员` |
+| `clubOpsGov.reasonRequired.ban/.transfer/.report/.appeal` (declared in Core only, not rendered yet) | ClubOpsGovernance | `Enter a ban reason.` / `Enter a handover reason.` / `Describe the facts.` / `Describe the facts.` | `请填写封禁原因` / `请填写交接原因` / `请填写事实说明` / `请填写事实说明` |
+
+Note: the report target card reads the optional seed key `targetName`; no current entry supplies it, so only the type shows until a host passes the display name (the seed is display-only and is not part of the command anchors).
