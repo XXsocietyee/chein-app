@@ -1218,6 +1218,21 @@ final class ChannelSafetyFailClosedTests: XCTestCase {
         )
     }
 
+    /// FP-H2: the local block store is only a cache. Without a server-capable service nothing is cached and
+    /// no success banner is shown; a server-confirmed block routes through `api/im/block` first.
+    func testBlockWithoutServiceNeverCachesLocallyOrReportsSuccess() async {
+        let store = InMemoryChannelBlockedUsersStore()
+        let coordinator = ClubChannelModerationCoordinator(clubID: 77, viewerMemberID: 501, viewerRoleTier: .member,
+                                                           blockedUsersStore: store, service: nil)
+        let ok = await coordinator.blockUser(targetMemberID: 602, nickname: "x", shouldBlock: true, activeChannelID: 3001, locale: Locale(identifier: "en"))
+        XCTAssertFalse(ok)
+        XCTAssertFalse(coordinator.blockedSenderIDs.contains(602))
+        XCTAssertTrue(store.blockedUserIDs(clubID: 77, viewerMemberID: 501).isEmpty)
+        XCTAssertEqual(coordinator.feedbackBanner?.isError, true)
+        XCTAssertEqual(coordinator.feedbackBanner?.canRetry, true)
+        XCTAssertEqual(ChannelSafetyModerationEndpoint.blockUser(targetMemberID: 602).apiPath, "api/im/block")
+    }
+
     func testSingleMessageDeleteWithoutPerMessageRouteFailsClosedAndNeverHidesChannel() async {
         let spy = IMSafetyWriterSpy()
         let core = service(imSafety: spy)
