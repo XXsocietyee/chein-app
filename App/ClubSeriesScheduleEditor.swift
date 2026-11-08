@@ -32,6 +32,8 @@ import SwiftUI
     @Environment(\.dismiss) private var dismiss
     @State private var schedule: ClubSeriesScheduleDraft
     @State private var stale = false
+    @State private var pendingRemoval: ClubSeriesScheduleDraft.CustomDate?
+    @Environment(\.locale) private var locale
     init(session: ClubSeriesScheduleSession, canApply: @escaping () -> Bool, apply: @escaping (ClubSeriesScheduleDraft) -> Bool) {
         self.session = session; self.canApply = canApply; self.apply = apply
         _schedule = State(initialValue: session.initial)
@@ -64,14 +66,15 @@ import SwiftUI
                         }.accessibilityIdentifier("club.schedule.count")
                     }
                     if schedule.recurrence == ClubSeriesScheduleDraft.Recurrence.custom.rawValue {
-                        ForEach(schedule.customDates) { item in
+                        ForEach(Array(schedule.customDates.enumerated()), id: \.element.id) { index, item in
                             HStack {
                                 DatePicker(selection: customBinding(item.id, now: clock.date), in: minimumDay(clock.date)..., displayedComponents: .date) {
                                     Text("clubOpsEvent.field.date", tableName: "ClubOpsEvent")
                                 }
                                     .accessibilityIdentifier("club.schedule.customDate." + item.id.uuidString)
-                                Button(role: .destructive) { schedule.removeDate(id: item.id) } label: { Image(systemName: "minus.circle"); Text("club.schedule.remove") }
+                                Button(role: .destructive) { pendingRemoval = item } label: { Image(systemName: "minus.circle"); Text("club.schedule.remove") }
                                     .disabled(schedule.customDates.count <= 1).buttonStyle(.borderless)
+                                    .accessibilityLabel(ClubSeriesScheduleRemovalCopy.rowLabel(position: index + 1, day: item.day, locale: locale))
                             }
                         }
                         Button("club.schedule.add") { schedule.addDate(now: clock.date) }
@@ -113,6 +116,15 @@ import SwiftUI
                     Button("club.schedule.reset") { schedule = session.initial; stale = false }
                         .accessibilityIdentifier("club.schedule.reset")
                 }
+            }
+            .confirmationDialog(ClubSeriesScheduleRemovalCopy.confirmTitle(day: pendingRemoval?.day ?? "", locale: locale),
+                                isPresented: Binding(get: { pendingRemoval != nil }, set: { if !$0 { pendingRemoval = nil } }),
+                                titleVisibility: .visible) {
+                Button("club.schedule.remove", role: .destructive) {
+                    if let item = pendingRemoval { schedule.removeDate(id: item.id) }
+                    pendingRemoval = nil
+                }.accessibilityIdentifier("club.schedule.removeConfirm")
+                Button("action.cancel", role: .cancel) { pendingRemoval = nil }
             }
             .environment(\.calendar, ClubSeriesScheduleDraft.calendar)
             .environment(\.timeZone, ClubSeriesScheduleDraft.timeZone)
@@ -713,5 +725,15 @@ struct ClubSeriesOfferWindowField: View {
                     .accessibilityIdentifier("club.schedule.offer.invalid")
             }
         }
+    }
+}
+
+/// Per-row VoiceOver label and confirmation title for removing one custom series date.
+enum ClubSeriesScheduleRemovalCopy {
+    static func rowLabel(position: Int, day: String, locale: Locale) -> String {
+        ChannelCopy.text("移除第 \(position) 个日期 \(day)", "Remove date \(position), \(day)", locale: locale)
+    }
+    static func confirmTitle(day: String, locale: Locale) -> String {
+        ChannelCopy.text("移除日期 \(day)？", "Remove \(day)?", locale: locale)
     }
 }

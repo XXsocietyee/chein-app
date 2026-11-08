@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 @MainActor public enum NearbyTeamSyntheticFixtures {
     public static let session = NearbyTeamSession(accountID: 7001, epoch: 1, region: "US", namespace: "nearby.synthetic", role: "player")
     public static let context = NearbyQueryContext(latitude: 37.78, longitude: -122.42)
@@ -33,3 +34,4 @@ import Foundation
         return .init(service: .init(fake: fake), session: session, locks: .init())
     }
 }
+#endif

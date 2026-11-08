@@ -14,7 +14,7 @@ import UIKit
     init(market: RegionalMarket?, complianceCoordinator: AccountComplianceCoordinator? = nil, soundStore: (any SettingsSoundStoring)? = nil,
          legalReader: (any SettingsLegalReading)? = nil,
          appInformation: SettingsAppInformation = .current(),
-         copyText: @escaping (String) throws -> Void = { UIPasteboard.general.string = $0 },
+         copyText: @escaping (String) throws -> Void = { LocalPasteboard.copy($0) },
          showsNPCChatDataEntry: Bool = true) {
         self.showsNPCChatDataEntry = showsNPCChatDataEntry
         self.complianceCoordinator = complianceCoordinator

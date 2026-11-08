@@ -119,9 +119,9 @@ import Combine
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if journey.problem {
-                    Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center)
+                    Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(CYColor.dangerText).multilineTextAlignment(.center)
                     ForEach(Array(QuickPublishValidation.issues(draft.wrappedValue).enumerated()), id: \.offset) { _, issue in
-                        Text(verbatim: issue.message).font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center)
+                        Text(verbatim: issue.message).font(.footnote).foregroundStyle(CYColor.dangerText).multilineTextAlignment(.center)
                     }
                 }
                 Button(action: journey.handoffAction(openProfessional)) { Text("publishModes.continueEditor").frame(maxWidth: .infinity) }
@@ -378,7 +378,7 @@ import Combine
             VStack(spacing: 8) {
                 if !message.isEmpty {
                     Text(LocalizedStringKey(message)).font(.footnote)
-                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? Color.red : Color.secondary)
+                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? CYColor.dangerText : Color.secondary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishModes.message")
                 }
@@ -424,7 +424,7 @@ import Combine
     @ViewBuilder private func fieldError(_ field: String) -> some View {
         if wizardBlock == field {
             Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: field))
-                .font(.footnote).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                .font(.footnote).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.validation")
         }
     }
@@ -862,7 +862,7 @@ struct ActivityPublishingTimeRangeDraft {
                         .environment(\.timeZone, TimeZone(identifier: original.timeZoneID) ?? .gmt)
                         .accessibilityIdentifier("publishModes.activity.timeRange.date")
                     if failure || (editingEnd && draft.end <= draft.start) {
-                        Text("publishModes.timeRange.invalid").font(.footnote).foregroundStyle(.red)
+                        Text("publishModes.timeRange.invalid").font(.footnote).foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("publishModes.activity.timeRange.invalid")
                     }
                 } header: { Text(LocalizedStringKey(editingEnd ? "publishModes.end" : "publishModes.start")) }
@@ -961,7 +961,7 @@ struct ActivityPublishingTimeRangeDraft {
         NavigationStack {
             List {
                 if busy { ProgressView().frame(maxWidth: .infinity) }
-                if failed || provider == nil { Text("publishModes.mapUnavailable").foregroundStyle(.red) }
+                if failed || provider == nil { Text("publishModes.mapUnavailable").foregroundStyle(CYColor.dangerText) }
                 if let selected {
                     Map(initialPosition: .region(.init(center: .init(latitude: selected.latitude, longitude: selected.longitude), span: .init(latitudeDelta: 0.01, longitudeDelta: 0.01)))) {
                         Marker(selected.name, coordinate: .init(latitude: selected.latitude, longitude: selected.longitude))

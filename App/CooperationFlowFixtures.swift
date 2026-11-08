@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 /// Synthetic only: never falls back to a live transport, location provider or payment SDK.
 @MainActor final class CoopFlowFixtureReader: ObservableObject, CoopFlowReading {
     @Published var session: CoopFlowSession? = try? CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic-cooperation-only")
@@ -58,3 +59,4 @@ import SwiftUI
         }
     }
 }
+#endif

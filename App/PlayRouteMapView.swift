@@ -386,9 +386,9 @@ struct RouteActionPageReadRequest {
                             VStack(spacing: 3) {
                                 Image(systemName: stop.state.symbol).font(.title2)
                                 Text(verbatim: String(stop.order)).font(.caption.bold())
-                            }.foregroundStyle(stop.state == .current ? Color.white : Color.primary)
+                            }.foregroundStyle(stop.state == .current ? CYColor.textOnAccent : Color.primary)
                                 .frame(minWidth: 44, minHeight: 44)
-                                .padding(4).background(stop.state == .current ? Color.accentColor : Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 12))
+                                .padding(4).background(stop.state == .current ? CYColor.accent : Color(uiColor: .systemBackground), in: RoundedRectangle(cornerRadius: 12))
                                 .overlay(RoundedRectangle(cornerRadius: 12).stroke(inspecting ? Color.primary : Color.clear, lineWidth: 2))
                         }.buttonStyle(.plain).disabled(request == nil)
                             .accessibilityLabel(stopName(stop) + Text(verbatim: ", ") + Text(LocalizedStringKey(stop.state.labelKey)))

@@ -167,7 +167,11 @@ struct ActivityDetailView: View {
             NavigationStack { ContextualReviewComposer(target: .activity(id), owner: (reader as? AppSession)?.contextualReviews?.coordinator(.activity(id))) { loads.start { await load() } } }
         }
         .sheet(isPresented:$showsRegistration) {
+            Group {
             if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }
+            }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible)
         }
         .sheet(isPresented:$showsTicketWallet) {
             // Source: a registered viewer's CTA opens the ticket wallet (subpackageMember/signup).
@@ -175,6 +179,8 @@ struct ActivityDetailView: View {
                 TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTicketWallet=false },
                                  orderLifecycleCoordinator:session.orderLifecycleCoordinator)
                     .id(session.ticketWalletReader.scope)
+                    .presentationDetents([.large])
+                    .presentationDragIndicator(.visible)
             }
         }
     }
@@ -249,11 +255,15 @@ struct ActivityDetailView: View {
                let latitude=detail.summary.latitude, let longitude=detail.summary.longitude {
                 Section("activity.location") {
                     let coordinate=CLLocationCoordinate2D(latitude:latitude,longitude:longitude)
-                    Map(initialPosition:.region(MKCoordinateRegion(center:coordinate,span:MKCoordinateSpan(latitudeDelta:0.01,longitudeDelta:0.01)))) {
+                    // Static map: an interactive map inside a List traps VoiceOver focus.
+                    Map(initialPosition:.region(MKCoordinateRegion(center:coordinate,span:MKCoordinateSpan(latitudeDelta:0.01,longitudeDelta:0.01))),interactionModes:[]) {
                         Marker(detail.summary.name,coordinate:coordinate)
                     }.frame(height:220)
                         .clipShape(RoundedRectangle(cornerRadius:14,style:.continuous))
+                        .accessibilityElement(children:.ignore)
                         .accessibilityLabel(Text("activity.location"))
+                        .accessibilityValue(Text(verbatim:ActivityLocationAccessibility.value(name:detail.summary.name,addressName:detail.summary.addressName,address:detail.summary.address)))
+                        .accessibilityAddTraits(.isImage)
                         .questifyCardSurface()
                         .questifyCardListRow()
                 }
@@ -417,5 +427,17 @@ struct ActivityDetailView: View {
             }
             .accessibilityIdentifier("activity.detail.registeredCount")
         }
+    }
+}
+
+/// VoiceOver value for the embedded location map: venue name plus the address lines that add information.
+enum ActivityLocationAccessibility {
+    static func value(name: String, addressName: String?, address: String?) -> String {
+        var parts: [String] = []
+        for raw in [name, addressName, address] {
+            let text = (raw ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !text.isEmpty, !parts.contains(text) { parts.append(text) }
+        }
+        return parts.joined(separator: ", ")
     }
 }

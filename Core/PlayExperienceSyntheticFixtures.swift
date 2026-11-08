@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Entirely synthetic content and identifiers, never a real account or route.
 public enum PlayExperienceSyntheticFixtures {
     public static let classic = #"{"topicId":71,"topicName":"Synthetic journey","mode":1,"registered":true,"playable":true,"total":1,"doneCount":0,"nodes":[{"nodeId":701,"name":"Synthetic courtyard","done":false,"arrived":true,"validationMethod":1,"question":"Enter your own synthetic answer","hintLocked":true,"hintCost":2,"puzzleHintLevel":0,"puzzleScoreCap":100}]}"#
@@ -14,3 +15,4 @@ public enum PlayExperienceSyntheticFixtures {
     public static func wire(_ json: String) throws -> PlayWireValue { try JSONDecoder().decode(PlayWireValue.self, from: Data(json.utf8)) }
     public static func envelope(_ raw: String) -> Data { Data(("{\"code\":200,\"data\":" + raw + "}").utf8) }
 }
+#endif

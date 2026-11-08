@@ -33,7 +33,7 @@ struct MerchantAftercareProgressView: View {
             }.accessibilityIdentifier("merchant.aftercareProgress.funds")
             // Source: tapping the refund number copies it (copyRefundNo).
             Button {
-                UIPasteboard.general.string = progress.refundNumber ?? "#\(progress.refundID)"
+                LocalPasteboard.copy(progress.refundNumber ?? "#\(progress.refundID)")
             } label: {
                 LabeledContent("merchant.aftercareProgress.refundNumber") {
                     Label {

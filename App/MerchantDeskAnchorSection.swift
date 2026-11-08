@@ -28,6 +28,7 @@ struct MerchantDeskAnchorAcceptance:Equatable {
     @ObservedObject var flow:MerchantDeskAnchorFlow
     @State private var position:MapCameraPosition = .automatic
     @State private var picked:CLLocationCoordinate2D?
+    @State private var renderedCenter:CLLocationCoordinate2D?
     @State private var radius=30
     @State private var acknowledged=false
     @State private var confirm=false
@@ -66,10 +67,16 @@ struct MerchantDeskAnchorAcceptance:Equatable {
                             if let lat=flow.latitude,let lng=flow.longitude{Marker(coordinate:.init(latitude:lat,longitude:lng)){Text("merchant.desk.anchor.saved",tableName:"MerchantDeskSkuSupply")}}
                             if let picked{Marker(coordinate:picked){Text("merchant.desk.anchor.selected",tableName:"MerchantDeskSkuSupply")}}
                         }.frame(height:240)
+                        .onMapCameraChange(frequency:.onEnd){context in renderedCenter=context.region.center}
+                        .accessibilityAddTraits(.allowsDirectInteraction)
                         .onTapGesture { point in
                             guard !flow.busy,let coordinate=proxy.convert(point,from:.local),CLLocationCoordinate2DIsValid(coordinate) else{return}
                             picked=coordinate;acknowledged=false;frozen=nil;confirm=false
                         }
+                    }
+                    if let renderedCenter,CLLocationCoordinate2DIsValid(renderedCenter){
+                        Button{guard !flow.busy else{return};picked=renderedCenter;acknowledged=false;frozen=nil;confirm=false}label:{Label("d7.imMap.useCenter",systemImage:"scope")}
+                            .disabled(flow.busy).frame(minHeight:CYSpacing.minTouchTarget).accessibilityIdentifier("merchant.desk.anchor.useCenter")
                     }
                     Stepper(value:$radius,in:30...500,step:10){Text("merchant.desk.anchor.radius \(radius)",tableName:"MerchantDeskSkuSupply")}.disabled(flow.busy)
                     Toggle(isOn:$acknowledged){Text("merchant.desk.anchor.attest",tableName:"MerchantDeskSkuSupply")}.disabled(flow.busy)

@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 public enum MerchantEngagementSyntheticFixtures {
     public static let access = ##"{"active":true,"merchant":{"id":710,"name":"Synthetic outreach workshop"},"roleCode":"MERCHANT_OWNER","canManageOperators":true,"permissions":["merchant:crm:read","merchant:crm:segment","merchant:crm:export","merchant:crm:sensitive:read","merchant:marketing:write","merchant:coupon:manage","merchant:operator:manage","merchant:aftercare:read","merchant:aftercare:evidence"]}"##
     public static let segments = ##"[{"id":71001,"name":"Example return visitors","filter":{"segment":"repeat","tagId":null,"sourceType":1,"sourceStart":"2026-09-01","sourceEnd":"2026-10-01"}}]"##
@@ -25,3 +26,4 @@ public enum MerchantEngagementSyntheticFixtures {
         return try .init(query: query, value: value)
     }
 }
+#endif

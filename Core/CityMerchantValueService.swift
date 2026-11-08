@@ -94,7 +94,7 @@ public enum CityMerchantValueRoute: Equatable {
             else if Set(fields.keys) == ["regionId", "rulesReleaseId"], fields["regionId"] == scope.regionId, fields["rulesReleaseId"] == scope.rulesReleaseId,
                     let id = Int64(url.lastPathComponent), id > 0, exact("api/merchant/city-value/result/\(id)") { candidate = .result(scope, id) }
         }
-        guard let candidate, candidate.matches(scope), let canonical = try? candidate.request(baseURL: baseURL, token: "synthetic-route-validation"),
+        guard let candidate, candidate.matches(scope), let canonical = try? candidate.request(baseURL: baseURL, token: "route-validation-placeholder"),
               canonical.url?.absoluteString == url.absoluteString, canonical.httpBody == request.httpBody else { return nil }
         self = candidate
     }

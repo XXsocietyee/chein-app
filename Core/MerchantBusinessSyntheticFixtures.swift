@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Synthetic IDs and text only. Never source from account/customer data for these fixtures.
 public enum MerchantBusinessSyntheticFixtures {
     public static let access = ##"{"active":true,"merchant":{"id":610,"name":"Synthetic workshop"},"roleCode":"MERCHANT_OWNER","canManageOperators":true,"permissions":["merchant:basic:read","merchant:crm:read","merchant:crm:sensitive:read","merchant:crm:segment","merchant:aftercare:read","merchant:aftercare:respond","merchant:aftercare:decide","merchant:aftercare:evidence","merchant:finance:read","merchant:verify:record:read","merchant:verify","merchant:operator:manage"]}"##
@@ -77,3 +78,4 @@ public enum MerchantBusinessSyntheticFixtures {
     }
 
 }
+#endif

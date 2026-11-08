@@ -158,6 +158,11 @@ extension WalletScreen where Value == WithdrawalBalance {
                 else if isVisible { Task { await loadEarnings(); await loadFunds() } }
             }
             .refreshable { await loadEarnings(); await loadFunds() }
+            .onChange(of: earnings.loading) { _, isLoading in
+                if WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: isLoading, hasValue: earnings.value != nil) {
+                    AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
+                }
+            }
     }
     private func loadEarnings() async {
         guard visibility.income, isVisible, scenePhase == .active else { return }
@@ -213,6 +218,11 @@ extension WalletScreen where Value == WithdrawalBalance {
                     .accessibilityIdentifier("wallet.assets.pointsLedger")
             }
         }.appNavigationTitle("wallet.assets").task(id: reader.scope) { funds.clear(); await load() }
+            .onChange(of: funds.loading) { _, isLoading in
+                if WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: isLoading, hasValue: funds.value != nil) {
+                    AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
+                }
+            }
             .onDisappear { funds.cancel() }.refreshable { await load() }
     }
     private func load() async { await funds.load(reader) { try await $0.stages(token: $1) } }
@@ -694,4 +704,14 @@ extension WalletScreen where Value == WithdrawalBalance {
         }.appNavigationTitle("wallet.tasks").task(id: reader.scope) { model.clear(); await load() }.onDisappear { model.cancel() }
     }
     private func load() async { await model.load(reader) { try await $0.pointsTasks(token: $1) } }
+}
+
+/// Wallet figures appear after a spinner; VoiceOver users get one generic announcement (never the amount, which is privacy sensitive).
+enum WalletLoadAnnouncement {
+    static func shouldAnnounce(wasLoading: Bool, isLoading: Bool, hasValue: Bool) -> Bool {
+        wasLoading && !isLoading && hasValue
+    }
+    static func text(locale: Locale) -> String {
+        ChannelCopy.text("钱包数据已更新", "Wallet figures updated", locale: locale)
+    }
 }

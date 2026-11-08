@@ -40,8 +40,12 @@ struct H5PlatformShellView: View {
     var body: some View {
         VStack(spacing: 0) {
             HStack {
-                Button(action: onClose) { Image(systemName: "xmark") }
-                    .accessibilityIdentifier("h5.close")
+                Button(action: onClose) {
+                    Label("action.close", systemImage: "xmark").labelStyle(.iconOnly)
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
+                .accessibilityIdentifier("h5.close")
                 Spacer()
             }.padding()
             if let shellURL, let request {

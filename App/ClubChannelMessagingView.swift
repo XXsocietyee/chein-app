@@ -29,6 +29,7 @@ public struct ClubChannelMessagingView: View {
     @State private var unreadByChannelID: [Int64: Int] = [:]
     @State private var mentionByChannelID: [Int64: Int] = [:]
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
 
@@ -303,7 +304,7 @@ public struct ClubChannelMessagingView: View {
     private var channelTopBar: some View {
         HStack(spacing: CYSpacing.sm) {
             Button {
-                withAnimation(.easeInOut(duration: 0.2)) {
+                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
                     showChannelSidebar.toggle()
                 }
             } label: {
@@ -333,7 +334,8 @@ public struct ClubChannelMessagingView: View {
                     Text(channel.name)
                         .font(CYTypography.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                     if channel.isReadOnlyAnnouncement {
                         Text(copy("公告只读", "Announcement · Read only"))
                             .font(CYTypography.micro)
@@ -454,7 +456,8 @@ public struct ClubChannelMessagingView: View {
                 Text(channel.name)
                     .font((channel.unreadCount ?? 0) > 0 && !channel.isMuted ? CYTypography.label : CYTypography.bodyCompact)
                     .foregroundStyle(isSelected ? CYColor.textPrimary : CYColor.textSecondary)
-                    .lineLimit(1)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
                 Spacer()
                 if let mentionBadge = channel.mentionBadgeText {
                     Text(mentionBadge)
@@ -585,7 +588,7 @@ public struct ClubChannelMessagingView: View {
                     }
                     .onChange(of: viewportState.pendingNewMessageCount) { _ in
                         if viewportState.isNearBottom, let lastID = burstGroups.last?.items.last?.id {
-                            withAnimation(.easeOut(duration: 0.2)) {
+                            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
                                 proxy.scrollTo(lastID, anchor: .bottom)
                             }
                         }
@@ -603,8 +606,8 @@ public struct ClubChannelMessagingView: View {
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 8)
-                        .background(Color.accentColor, in: Capsule())
-                        .foregroundStyle(.white)
+                        .background(CYColor.accent, in: Capsule())
+                        .foregroundStyle(CYColor.textOnAccent)
                         .shadow(radius: 4)
                     }
                     .frame(minHeight: 44)
@@ -627,7 +630,8 @@ public struct ClubChannelMessagingView: View {
                     Text(copy("回复 \(replyTarget.senderName ?? "成员 #\(replyTarget.senderID ?? 0)")：\(replyTarget.content ?? "")", "Replying to \(replyTarget.senderName ?? "Member #\(replyTarget.senderID ?? 0)"): \(replyTarget.content ?? "")"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(1)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                     Spacer()
                     Button {
                         activeReplyTarget = nil
@@ -879,7 +883,8 @@ private struct ChannelBurstGroupCard: View {
                                     Text("\(reply.replyAuthorName): \(reply.replyPreviewText)")
                                         .font(.caption)
                                         .foregroundStyle(.secondary)
-                                        .lineLimit(1)
+                                        .lineLimit(2)
+                                        .fixedSize(horizontal: false, vertical: true)
                                     if reply.threadReplyCount > 1 {
                                         Text(copy("\(reply.threadReplyCount) 条串内回复", "\(reply.threadReplyCount) thread replies"))
                                             .font(.caption2.weight(.medium))
@@ -905,7 +910,8 @@ private struct ChannelBurstGroupCard: View {
                                         Text(sub)
                                             .font(.caption2)
                                             .foregroundStyle(.secondary)
-                                            .lineLimit(1)
+                                            .lineLimit(2)
+                                            .fixedSize(horizontal: false, vertical: true)
                                     }
                                 }
                                 .padding(6)

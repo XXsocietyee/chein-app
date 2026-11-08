@@ -218,7 +218,7 @@ public struct CityFairnessRoute: Equatable {
         if url.path == report { kind = .report; self.scope = scope }
         else if url.path == outing { kind = .outing; self.scope = scope }
         else { return nil }
-        guard let canonical = try? self.request(baseURL: baseURL, token: "synthetic-token"),
+        guard let canonical = try? self.request(baseURL: baseURL, token: "route-validation-placeholder"),
               canonical.url?.absoluteString.utf8.elementsEqual(url.absoluteString.utf8) == true else { return nil }
     }
     static func validID(_ value: String) -> Bool { value.range(of: "\\A[A-Za-z0-9][A-Za-z0-9_-]{0,95}\\z", options: .regularExpression) != nil }

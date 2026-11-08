@@ -102,7 +102,7 @@ public struct CityReadRoute: Equatable {
             guard ["boardId", "seasonId", "rulesReleaseId"].allSatisfy({ Self.validID(values[$0] ?? "") }), let raw = values["revision"], let revision = Int64(raw), String(revision) == raw, (0...9_007_199_254_740_991).contains(revision) else { return nil }
         }
         self.view = view; regionID = region; fields = values
-        guard let canonical = try? self.request(baseURL: baseURL, token: "synthetic-token"), canonical.url?.absoluteString.utf8.elementsEqual(url.absoluteString.utf8) == true else { return nil }
+        guard let canonical = try? self.request(baseURL: baseURL, token: "route-validation-placeholder"), canonical.url?.absoluteString.utf8.elementsEqual(url.absoluteString.utf8) == true else { return nil }
     }
     static func validID(_ value: String) -> Bool { value.range(of: "\\A[A-Za-z0-9][A-Za-z0-9_-]{0,95}\\z", options: .regularExpression) != nil }
     static func validLabel(_ value: String) -> Bool { !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && value.utf16.count <= 160 && !value.unicodeScalars.contains(where: { CharacterSet.controlCharacters.contains($0) }) }

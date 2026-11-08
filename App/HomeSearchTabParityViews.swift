@@ -83,7 +83,8 @@ struct HomeHeroHeaderSectionView: View {
                                 Text(verbatim: CoreLoopCopy(locale: locale).tr(GlobalSearchParityPresentation.placeholderCopy))
                                     .font(CYTypography.bodyCompact)
                                     .foregroundStyle(CYColor.textSecondary)
-                                    .lineLimit(1)
+                                    .lineLimit(2)
+                                    .minimumScaleFactor(0.85)
                                 Spacer(minLength: 0)
                             }
                             .padding(.horizontal, CYSpacing.md)
@@ -92,6 +93,7 @@ struct HomeHeroHeaderSectionView: View {
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .accessibilityAddTraits(.isSearchField)
                         .accessibilityIdentifier("homeIndex.hero.searchEntry")
 
                         Button {
@@ -1255,10 +1257,11 @@ struct PublishTabFloatingButton: View {
                     .font(.title3)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .frame(minHeight: CYSpacing.minTouchTarget)
             .background(QuestifyPalette.accent, in: Capsule())
-            .foregroundStyle(.white)
+            .foregroundStyle(CYColor.textOnAccent)
             .shadow(radius: 4, y: 2)
+            .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityIdentifier("publishTab.floatingButton")

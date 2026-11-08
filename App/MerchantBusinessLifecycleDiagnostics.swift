@@ -13,6 +13,8 @@ import SwiftUI
                        pending: Bool = false, confirmation: Bool = false, sameIdentity: Bool = false) {
         guard enabled else { return }
         let phase = scene == .active ? "active" : scene == .background ? "background" : "inactive"
+        #if DEBUG
         print("MERCHANT_BUSINESS_LIFECYCLE \(event):scene=\(phase);editor=\(editor);pending=\(pending);confirmation=\(confirmation);sameIdentity=\(sameIdentity)")
+        #endif
     }
 }

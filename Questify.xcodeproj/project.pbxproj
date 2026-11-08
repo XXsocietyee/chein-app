@@ -3565,6 +3565,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "CEF16CC361D5BAF87F30303B";
 		};
+		"83D7F179E7A407CE4DCFE80F" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/LocalPasteboard.swift";
+			"sourceTree" = "<group>";
+		};
+		"72AF2D33E5CC608B1BD89B7B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "83D7F179E7A407CE4DCFE80F";
+		};
 		"D9A0A6C827F7EF500254F788" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -33864,6 +33874,7 @@
 				"490C9C54035456EAE4C8AA3C",
 				"AF4B4FC85316D97E8209752C",
 				"CEF16CC361D5BAF87F30303B",
+				"83D7F179E7A407CE4DCFE80F",
 				"D9A0A6C827F7EF500254F788",
 				"A151306A2B5ED1830A825358",
 				"73011ECBC9F51251821F3C35",
@@ -37141,6 +37152,7 @@
 				"71A7505267803344467EE759",
 				"6AAF4C68E4CB945E5E18944C",
 				"4A57125287F6AEF51C738309",
+				"E149C5C245838045CAF18ACC",
 				"C070A0ED515FB3D7A2902777",
 				"DAC3ECB9D90077F51E6AEA05",
 				"7CFC35FF488BECAF86B42DCB",
@@ -38261,6 +38273,7 @@
 				"ECDA26536837E6D6B882ED12",
 				"7AFB684A4F884D77049D0F25",
 				"095F561874D14317AF28B305",
+				"72AF2D33E5CC608B1BD89B7B",
 				"B0327538D3BD4EA0F62F7414",
 				"96EFAC9F1D4E223A639F9E84",
 				"56B3B22B449E17030548A6D4",
@@ -44567,6 +44580,16 @@
 			"lastKnownFileType" = "text.xcconfig";
 			"path" = "Config/AppUnitTests.xcconfig";
 			"sourceTree" = "<group>";
+		};
+		"E149C5C245838045CAF18ACC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/AccessibilityHardeningWaveTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"D7F0C1D69C27E2C906D8F0A5" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "E149C5C245838045CAF18ACC";
 		};
 		"C070A0ED515FB3D7A2902777" = {
 			"isa" = "PBXFileReference";
@@ -52177,6 +52200,7 @@
 			"buildActionMask" = 2147483647;
 			"files" = (
 				"7DD201DAA2B545219D0B6A55",
+				"D7F0C1D69C27E2C906D8F0A5",
 				"808B67AA0882734238B8C3FF",
 				"132C01228004E35C8E011D08",
 				"EEF7C5310442B571B117BC7B",

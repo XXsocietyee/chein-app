@@ -89,7 +89,7 @@ extension EnvironmentValues {
             if let board = overview.rank.value {
                 // Mini-program score card: the points are the one number that matters.
                 LabeledContent("growth.currentPoints") {
-                    GrowthCenterInteger(value: board.me.score).font(.system(size: 40, weight: .heavy, design: .rounded))
+                    GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
                         .lineLimit(1).minimumScaleFactor(0.5)
                 }
                     .accessibilityElement(children: .ignore)

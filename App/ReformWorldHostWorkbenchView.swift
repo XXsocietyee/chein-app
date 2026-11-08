@@ -37,12 +37,7 @@ public struct ReformWorldHostWorkbenchView: View {
             stateVersion: 1,
             status: .active,
             nodes: ["node-entry": .available, "node-stage-2": .locked]
-        )) ?? (try! RunAuthorityProjection(
-            runId: "run-01",
-            stateVersion: 0,
-            status: .created,
-            nodes: [:]
-        ))
+        )) ?? RunAuthorityProjection.placeholder
         let coordinator = RunAuthorityHostCoordinator(
             projection: fallbackProjection,
             capabilities: .disabled

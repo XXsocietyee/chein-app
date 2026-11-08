@@ -136,7 +136,7 @@ enum MerchantGameNodeCopy {
     // MARK: States
     private var unknownBanner: some View {
         VStack(alignment: .leading, spacing: 8) {
-            MerchantGameNodeCopy.text("merchantGameNode.unknown.title").font(.subheadline.weight(.semibold)).foregroundStyle(.orange)
+            MerchantGameNodeCopy.text("merchantGameNode.unknown.title").font(.subheadline.weight(.semibold)).foregroundStyle(CYColor.warningText)
             if let message = c.writeMessage { MerchantGameNodeCopy.text(message).font(.footnote) }
             HStack {
                 Button { Task { await c.confirmUnknownWrite() } } label: { MerchantGameNodeCopy.text("merchantGameNode.unknown.confirm") }
@@ -148,7 +148,7 @@ enum MerchantGameNodeCopy {
             }
         }
         .padding().frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.orange.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
+        .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: 14))
         .accessibilityElement(children: .contain).accessibilityIdentifier("gameNode.unknown")
     }
     private func stateView(icon: String, title: String, message: MerchantGameNodeMessage, retry: Bool) -> some View {
@@ -183,7 +183,7 @@ enum MerchantGameNodeCopy {
         }
         hero(station)
         if c.writeState != .unknown, let message = c.writeMessage {
-            MerchantGameNodeCopy.text(message).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("gameNode.inlineError")
+            MerchantGameNodeCopy.text(message).font(.footnote).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("gameNode.inlineError")
         }
         if !c.permitsWrites {
             MerchantGameNodeCopy.text("merchantGameNode.writesDisabledNotice").font(.footnote).foregroundStyle(.secondary)
@@ -212,7 +212,7 @@ enum MerchantGameNodeCopy {
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
     private func toneColor(_ tone: MerchantGameNodeSummary.Tone) -> Color {
-        switch tone { case .ready: return .green; case .paused: return .orange; case .pending: return .blue; case .muted: return .secondary; case .error: return .red }
+        switch tone { case .ready: return CYColor.successText; case .paused: return CYColor.warningText; case .pending: return .blue; case .muted: return .secondary; case .error: return CYColor.dangerText }
     }
     private var summaryText: String {
         let key = c.summary.textKey
@@ -319,7 +319,7 @@ enum MerchantGameNodeCopy {
     }
     private func labeled<Content: View>(_ key: String, required: Bool, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 2) { MerchantGameNodeCopy.text(key).font(.subheadline); if required { Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true) } }
+            HStack(spacing: 2) { MerchantGameNodeCopy.text(key).font(.subheadline); if required { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) } }
             content()
         }
     }
@@ -489,7 +489,7 @@ struct MerchantGameNodeCivilDateField: View {
         MerchantGameNodeSheetFrame(title: "merchantGameNode.pause.title", model: model) {
             MerchantGameNodeCopy.text("merchantGameNode.pause.tip").font(.footnote).foregroundStyle(.secondary)
             MerchantGameNodeChoices(reasons: MerchantGameNodeReason.pause, selected: c.pauseDraft.reason?.code) { c.pauseDraft.reason = $0 }
-            HStack(spacing: 2) { MerchantGameNodeCopy.text("merchantGameNode.pause.eta").font(.subheadline); Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true) }
+            HStack(spacing: 2) { MerchantGameNodeCopy.text("merchantGameNode.pause.eta").font(.subheadline); Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
             HStack {
                 MerchantGameNodeCivilDateField(value: Binding(get: { c.pauseDraft.resumeDate }, set: { c.pauseDraft.resumeDate = $0 }),
                                                placeholder: "merchantGameNode.pause.date", mode: .date).accessibilityIdentifier("gameNode.pause.date")
@@ -522,7 +522,7 @@ struct MerchantGameNodeCivilDateField: View {
     var body: some View {
         let c = model.coordinator
         MerchantGameNodeSheetFrame(title: "merchantGameNode.verify.title", model: model) {
-            HStack(spacing: 2) { MerchantGameNodeCopy.text("merchantGameNode.verify.id").font(.subheadline); Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true) }
+            HStack(spacing: 2) { MerchantGameNodeCopy.text("merchantGameNode.verify.id").font(.subheadline); Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
             TextField(MerchantGameNodeCopy.string("merchantGameNode.verify.idPlaceholder"), text: Binding(
                 get: { c.verifyDraft.submissionID },
                 set: { c.verifyDraft.submissionID = String($0.trimmingCharacters(in: .whitespacesAndNewlines).prefix(19)) }))
@@ -594,7 +594,7 @@ struct MerchantGameNodeCivilDateField: View {
                     .accessibilityIdentifier("gameNode.time.start")
                 Picker(selection: $end) { ForEach(choices, id: \.self) { Text(verbatim: $0).tag($0) } } label: { MerchantGameNodeCopy.text("merchantGameNode.time.end") }
                     .accessibilityIdentifier("gameNode.time.end")
-                if !valid { MerchantGameNodeCopy.text("merchantGameNode.time.invalid").font(.footnote).foregroundStyle(.red) }
+                if !valid { MerchantGameNodeCopy.text("merchantGameNode.time.invalid").font(.footnote).foregroundStyle(CYColor.dangerText) }
             }
             .navigationTitle(MerchantGameNodeCopy.string("merchantGameNode.ready.window")).navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -631,7 +631,7 @@ struct MerchantGameNodeCivilDateField: View {
                 Text(verbatim: MerchantGameNodeCopy.format("merchantGameNode.checkin.countdown", Int64(c.checkinCountdown)))
                     .font(.footnote.monospacedDigit()).accessibilityIdentifier("gameNode.checkin.countdown")
             case .error:
-                MerchantGameNodeCopy.text(c.checkinError ?? .key("merchantGameNode.checkin.error")).foregroundStyle(.red)
+                MerchantGameNodeCopy.text(c.checkinError ?? .key("merchantGameNode.checkin.error")).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("gameNode.checkin.error")
                 Button { Task { await c.issueCheckin() } } label: { MerchantGameNodeCopy.text("merchantGameNode.retry") }
                     .buttonStyle(.bordered).accessibilityIdentifier("gameNode.checkin.retry")

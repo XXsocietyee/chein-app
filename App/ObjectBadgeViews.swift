@@ -227,6 +227,12 @@ struct ObjectBadgeWallBadgeLabel: View {
                         next.tap()
                         withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.8)) { turntable = next }
                     }
+                    .accessibilityAddTraits(.isButton)
+                    .accessibilityAction {
+                        var next = turntable ?? table
+                        next.tap()
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.8)) { turntable = next }
+                    }
                     .accessibilityIdentifier("objects.badge.turntable")
                 if let hint = table.hintKey {
                     Text(LocalizedStringKey(hint)).font(.footnote).foregroundStyle(.secondary)

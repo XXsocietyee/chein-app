@@ -21,6 +21,7 @@ import Combine
     @StateObject private var model: RoamLiveViewModel
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var purposeAccepted = false
     @State private var presenceAccepted = false
     @State private var confirmFinish = false
@@ -206,7 +207,7 @@ import Combine
                     .accessibilityHidden(true)
             }
             HStack(alignment: .top, spacing: 8) {
-                TimelineView(.animation(minimumInterval: 1, paused: owner.phase != .active || !owner.foreground)) { _ in
+                TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in
                     RoamLiveElapsedRow(seconds: owner.record == nil ? nil : owner.localForegroundElapsedSeconds)
                 }
                 RoamLiveCoverageRow(presentation: .init(controller: owner))
@@ -232,26 +233,26 @@ import Combine
             HStack(spacing: 12) {
                 if owner.phase == .active {
                     Button { owner.pause() } label: {
-                        Label("roam.live.pause", systemImage: "pause.fill").frame(maxWidth: .infinity, minHeight: 30)
+                        Label("roam.live.pause", systemImage: "pause.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.borderedProminent).controlSize(.large)
                     .accessibilityIdentifier("roam.live.pause")
                 } else if canStart, owner.record == nil {
                     Button { Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
-                        Label("roam.live.start", systemImage: "figure.walk").frame(maxWidth: .infinity, minHeight: 30)
+                        Label("roam.live.start", systemImage: "figure.walk").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.start")
                 } else if canStart, owner.record?.finishRequested == false {
                     Button { Task { await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
-                        Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: 30)
+                        Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.borderedProminent).controlSize(.large)
                     .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.resume")
                 }
                 if canFinish {
                     Button(role: .destructive) { confirmFinish = true } label: {
-                        Label("roam.live.finish", systemImage: "flag.checkered").frame(minHeight: 30)
+                        Label("roam.live.finish", systemImage: "flag.checkered").frame(minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.bordered).controlSize(.large)
                     .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
@@ -935,4 +936,9 @@ struct RoamPausedBrowseCopy {
             departing: departing || source.contains { $0.isMovingFromParent || $0.isBeingDismissed },
             coveredByPresentation: source.contains { $0.presentedViewController != nil })
     }
+}
+
+/// The live HUD clock ticks every second; with Reduce Motion on it refreshes less often.
+enum RoamLiveTick {
+    static func interval(reduceMotion: Bool) -> TimeInterval { reduceMotion ? 5 : 1 }
 }

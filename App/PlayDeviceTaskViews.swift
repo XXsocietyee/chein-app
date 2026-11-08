@@ -65,14 +65,16 @@ import SwiftUI
     @State private var machine = PlayStopwatchMachine()
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var body: some View {
         List {
             Section("playx.stopwatch") {
                 LabeledContent("playx.stopwatch.target") { Text(verbatim: PlayTimedDisplayLocalization.seconds(machine.target, locale: locale)) }
-                TimelineView(.periodic(from: .now, by: 0.05)) { _ in
+                TimelineView(.periodic(from: .now, by: PlayStopwatchTick.interval(reduceMotion: reduceMotion))) { _ in
                     Text(verbatim: machine.visibleElapsed(now: ProcessInfo.processInfo.systemUptime).map { PlayTimedDisplayLocalization.number($0, locale: locale) } ?? "—.—")
                         .font(.system(.largeTitle, design: .rounded).monospacedDigit())
                         .accessibilityLabel(Text("playx.stopwatch.clock"))
+                        .accessibilityAddTraits(.updatesFrequently)
                         .accessibilityValue(Text(LocalizedStringKey(machine.phase == .running ? "playx.stopwatch.running" : "playx.stopwatch.ready")))
                 }
                 Button(LocalizedStringKey(machine.phase == .running ? "playx.stopwatch.stop" : "playx.stopwatch.start")) {
@@ -121,4 +123,9 @@ import SwiftUI
             .onChange(of: scenePhase) { _, phase in if phase != .active { model.pause() } }
             .onDisappear { model.pause() }
     }
+}
+
+/// The stopwatch face redraws often; Reduce Motion lowers the redraw rate. The elapsed value itself still comes from the machine.
+enum PlayStopwatchTick {
+    static func interval(reduceMotion: Bool) -> TimeInterval { reduceMotion ? 0.25 : 0.05 }
 }
