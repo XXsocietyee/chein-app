@@ -92,7 +92,7 @@ struct CYDomainTabBarStyle: ViewModifier {
             // components/tabBar/index.wxss `.tabbar.merchant .list`: 0 -> .96 white vertical gradient, no blur,
             // no top border, no shadow.
             content
-                .tint(palette.tabSelectedTint)
+                .tint(QuestifyPalette.accent)
                 .toolbarBackground(
                     LinearGradient(
                         colors: [Color.white.opacity(0), Color.white.opacity(0.96)],
@@ -106,7 +106,7 @@ struct CYDomainTabBarStyle: ViewModifier {
         } else {
             // `.tabbar.dark .list`: rgba(28,28,30,.55) glass + blur(40rpx) + 0.5pt subtle top border.
             content
-                .tint(palette.tabSelectedTint)
+                .tint(QuestifyPalette.accent)
                 .toolbarBackground(.ultraThinMaterial, for: .tabBar)
                 .toolbarBackground(.visible, for: .tabBar)
                 .toolbarColorScheme(.dark, for: .tabBar)
@@ -143,6 +143,10 @@ enum CYTabBarAppearance {
         for layout in layouts {
             layout.normal.iconColor = unselected
             layout.normal.titleTextAttributes = [.foregroundColor: unselected]
+            // Violet appears only on the selected tab; everything else inherits the neutral tint.
+            let selectedViolet = UIColor(red: 122.0/255, green: 92.0/255, blue: 255.0/255, alpha: 1)
+            layout.selected.iconColor = selectedViolet
+            layout.selected.titleTextAttributes = [.foregroundColor: selectedViolet]
         }
 
         UITabBar.appearance().standardAppearance = appearance
