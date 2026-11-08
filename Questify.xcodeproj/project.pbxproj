@@ -2945,6 +2945,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "D65BB0D0B0C6ED10042C7AF8";
 		};
+		"CD7AEA418FB522FA3F0C8475" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYBalanceHero.swift";
+			"sourceTree" = "<group>";
+		};
+		"7E2AE4533B66B175E2C81F7D" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "CD7AEA418FB522FA3F0C8475";
+		};
+		"5297BD1904B8C3275CF1C7A0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYConfirmSheet.swift";
+			"sourceTree" = "<group>";
+		};
+		"418630EAA32AE3C803F8299B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "5297BD1904B8C3275CF1C7A0";
+		};
 		"1F9F31C354D82CBDE16666DB" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -2984,6 +3004,26 @@
 		"2211F6D19FA1ADE62EE2DBC9" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "AFA05AFECAFB914FD41C259B";
+		};
+		"0C7A21CDFDB47DFB38356F1B" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYMoneyRow.swift";
+			"sourceTree" = "<group>";
+		};
+		"CE8D92859607AC757A716A6C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "0C7A21CDFDB47DFB38356F1B";
+		};
+		"D09DAACE1FC32ED328497F96" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYSkeleton.swift";
+			"sourceTree" = "<group>";
+		};
+		"F606E4A2B0D8DFB7A662C48F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "D09DAACE1FC32ED328497F96";
 		};
 		"6D30BC01F5A5E489AB6ACBF0" = {
 			"isa" = "PBXFileReference";
@@ -34752,10 +34792,14 @@
 				"A104E87922501BC418E11B04",
 				"5832FA07D56AAB7260C9691F",
 				"D65BB0D0B0C6ED10042C7AF8",
+				"CD7AEA418FB522FA3F0C8475",
+				"5297BD1904B8C3275CF1C7A0",
 				"1F9F31C354D82CBDE16666DB",
 				"1786A32ED568AB757F9569BF",
 				"BC769790930EB7CE4786AEC0",
 				"AFA05AFECAFB914FD41C259B",
+				"0C7A21CDFDB47DFB38356F1B",
+				"D09DAACE1FC32ED328497F96",
 				"6D30BC01F5A5E489AB6ACBF0",
 				"BC3EF634F214F6A2D220551D",
 				"3FFA3958EDD157C5A3D94CAA",
@@ -39265,10 +39309,14 @@
 				"17190BF26FE1D38576F16CFF",
 				"5A179EC23C564EACF80004AC",
 				"87D6719C75E6D3D131FE72CF",
+				"7E2AE4533B66B175E2C81F7D",
+				"418630EAA32AE3C803F8299B",
 				"6A9224C98EA785A6714F504A",
 				"7A91C0FBCEBFB2304E218626",
 				"6DC750ECDE4DF106C7459E65",
 				"2211F6D19FA1ADE62EE2DBC9",
+				"CE8D92859607AC757A716A6C",
+				"F606E4A2B0D8DFB7A662C48F",
 				"B6613DF03F3A98A45BE6D658",
 				"985B2C5C5D720EF6D1FBFE71",
 				"69AB87740CE786288AB31FBB",

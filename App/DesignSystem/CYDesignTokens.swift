@@ -9,7 +9,7 @@ import UIKit
 ///
 /// Mirrors `城瘾小程序_设计系统权威基准_20260801.md` and `chengyinhub-xcx/style/tokens.wxss`
 /// while adapting to iOS 17+ Human Interface Guidelines:
-/// - Semantic dynamic colours (accent `#7A5CFF` family, dark base `#0A0A0B` family, light-mode counterparts)
+/// - Semantic colours from `CYDomainPalette.resolving(_:)` (player dark / merchant light). Violet is the selected tab icon only.
 /// - Verified WCAG 2.1 AA contrast ratios (>= 4.5:1 normal text, >= 3.0:1 large text & UI controls)
 /// - Dynamic Type scale with `@ScaledMetric` support
 /// - 4pt spacing grid (`pageX = 16pt`)
@@ -87,41 +87,51 @@ public enum CYColor {
         #endif
     }
 
-    // MARK: 1. Brand Accent Family (#7A5CFF Violet Family)
+    /// Every role colour below is read from this palette. Dark is player; light is merchant.
+    private static func resolved(_ component: @escaping (CYDomainPalette) -> Color) -> Color {
+        #if canImport(UIKit)
+        Color(UIColor { traits in
+            let scheme: ColorScheme = traits.userInterfaceStyle == .dark ? .dark : .light
+            return UIColor(component(CYDomainPalette.resolving(scheme)))
+        })
+        #else
+        component(CYDomainPalette.resolving(.dark))
+        #endif
+    }
 
-    /// Primary brand violet `#7A5CFF` (`--cy-violet-500` / `--cy-brand`, 4.38:1 vs `#FFFFFF`, 4.79:1 vs `#0A0A0B`).
+    // MARK: 1. Brand, selection, and actions (neutral; violet is not a brand colour)
+
+    /// Retained RGB constant. Painted brand, selection, and CTA colours use `CYDomainPalette.resolving(_:)`, not this value.
     public static let accentRGB = CYRGB(hex: 0x7A5CFF)
-    /// Pressed / high-contrast solid & light-mode text violet `#6A4AF0` (`--cy-violet-700`, 5.49:1 vs `#FFFFFF`).
+    /// Retained RGB constant. Painted `accentStrong` reads `brandStrong` from the domain palette.
     public static let accentStrongLightRGB = CYRGB(hex: 0x6A4AF0)
-    /// High-contrast dark-mode text violet `#C4B5FD` (`--cy-violet-300`, 10.6:1 on `#0A0A0B`).
+    /// Retained RGB constant. Painted `accentText` reads `brand` from the domain palette.
     public static let accentTextDarkRGB = CYRGB(hex: 0xC4B5FD)
-    /// Soft violet tint `#EDE9FE` (light) / `rgba(122,92,255,0.18)` (dark).
+    /// Retained RGB constants. Painted `accentSoft` reads `brandSoft` from the domain palette.
     public static let accentSoftLightRGB = CYRGB(hex: 0xEDE9FE)
     public static let accentSoftDarkRGB = CYRGB(hex: 0x7A5CFF, alpha: 0.18)
 
-    /// Primary interactive accent fill (`#7A5CFF` brand family; use `accentStrong` when >= 4.5:1 normal-text contrast on white text is required).
-    public static let accent = dynamic(light: accentRGB, dark: accentRGB)
+    /// Brand, selection, and primary CTA fill. Player near-white `#F8F8F8`; merchant grey `#33363C`.
+    public static let brand = resolved { $0.brand }
+    /// Selection fill. Same pair as `brand` (`--cy-color-selection`).
+    public static let selection = resolved { $0.selection }
+    /// Primary interactive fill. Calls `CYDomainPalette.resolving(_:)` then `brand`.
+    public static let accent = brand
 
-    /// High-contrast solid violet fill (`#6A4AF0`, 5.49:1 contrast with white text for small/dense labels).
-    public static let accentStrong = dynamic(light: accentStrongLightRGB, dark: accentStrongLightRGB)
+    /// Pressed brand fill (`--cy-color-brand-strong`).
+    public static let accentStrong = resolved { $0.brandStrong }
 
-    /// Pressed / emphasized accent (`#6A4AF0` light, `#8B70FF` dark).
-    public static let accentPressed = dynamic(
-        light: accentStrongLightRGB,
-        dark: CYRGB(hex: 0x8B70FF)
-    )
+    /// Pressed primary CTA. Same palette value as `accentStrong`.
+    public static let accentPressed = accentStrong
 
-    /// Foreground accent text guaranteed to pass WCAG AA (>= 4.5:1) against page/card surfaces.
-    public static let accentText = dynamic(
-        light: accentStrongLightRGB,
-        dark: accentTextDarkRGB
-    )
+    /// Accent text on a page surface: near-white on player, `#33363C` on merchant.
+    public static let accentText = brand
 
-    /// Soft accent badge / chip surface tint.
-    public static let accentSoft = dynamic(
-        light: accentSoftLightRGB,
-        dark: accentSoftDarkRGB
-    )
+    /// Soft brand tint (`--cy-color-brand-soft`).
+    public static let accentSoft = resolved { $0.brandSoft }
+
+    /// Secondary action fill (`--cy-color-action-secondary-bg`).
+    public static let actionSecondary = resolved { $0.actionSecondaryBg }
 
     /// Secondary warm coral accent for play/badge highlights (`#FF6B4A` light, `#FF8266` dark).
     public static let accentWarm = dynamic(
@@ -164,17 +174,11 @@ public enum CYColor {
     /// Pressed or emphasized neutral surface (`#E4E4E4` light / `#3B3B3D` dark).
     public static let bgSurfaceStrong = dynamic(light: lightStrongRGB, dark: darkStrongRGB)
 
-    /// Translucent glass bar background (`rgba(255,255,255,0.86)` light / `rgba(10,10,11,0.84)` dark).
-    public static let bgGlass = dynamic(
-        light: CYRGB(hex: 0xFFFFFF, alpha: 0.86),
-        dark: CYRGB(hex: 0x0A0A0B, alpha: 0.84)
-    )
+    /// Translucent glass (`--cy-color-bg-glass`).
+    public static let bgGlass = resolved { $0.bgGlass }
 
-    /// Modal backdrop scrim (`rgba(15,23,42,0.48)` light / `rgba(0,0,0,0.65)` dark).
-    public static let bgOverlay = dynamic(
-        light: CYRGB(hex: 0x0F172A, alpha: 0.48),
-        dark: CYRGB(hex: 0x000000, alpha: 0.65)
-    )
+    /// Modal backdrop scrim (`--cy-color-overlay`).
+    public static let bgOverlay = resolved { $0.overlay }
 
     // MARK: 3. Text Hierarchy (WCAG AA Verified)
 
@@ -193,11 +197,11 @@ public enum CYColor {
     /// Primary body & headline text (`#18181B` light / `#F5F5F7` dark).
     public static let textPrimary = dynamic(light: textPrimaryLightRGB, dark: textPrimaryDarkRGB)
 
-    /// Secondary descriptive text (`#3F3F46` light / `#D4D4D8` dark).
-    public static let textSecondary = dynamic(light: textSecondaryLightRGB, dark: textSecondaryDarkRGB)
+    /// Secondary descriptive text from the domain palette.
+    public static let textSecondary = resolved { $0.textSecondary }
 
-    /// Tertiary metadata, timestamps, captions (`#52525B` light / `#A1A1AA` dark).
-    public static let textTertiary = dynamic(light: textTertiaryLightRGB, dark: textTertiaryDarkRGB)
+    /// Tertiary metadata from the domain palette.
+    public static let textTertiary = resolved { $0.textTertiary }
 
     /// Input placeholder & muted hint text (`#71717A` light / `#8E8E98` dark, >= 4.5:1 AA).
     public static let textPlaceholder = dynamic(light: textPlaceholderLightRGB, dark: textPlaceholderDarkRGB)
@@ -208,53 +212,27 @@ public enum CYColor {
         dark: CYRGB(hex: 0x6E6E77)
     )
 
-    /// Text on solid brand accent `#7A5CFF` or dark hero banners (`#FFFFFF`, 4.74:1 on `#7A5CFF`).
-    public static let textOnAccent = Color.white
+    /// Label on the primary CTA: `#0A0A0A` on the player near-white fill, white on merchant `#33363C`.
+    public static let textOnAccent = resolved { $0.actionPrimaryFg }
 
     /// Inverse text (`#FFFFFF` light / `#0A0A0B` dark).
     public static let textInverse = dynamic(light: CYRGB(hex: 0xFFFFFF), dark: darkBaseRGB)
 
     // MARK: 4. Semantic Status Colours (WCAG AA Foreground + Soft Surface)
 
-    public static let successText = dynamic(
-        light: CYRGB(hex: 0x047857), // 5.5:1 on white
-        dark: CYRGB(hex: 0x34D399)   // 10.4:1 on #0A0A0B
-    )
-    public static let successSoft = dynamic(
-        light: CYRGB(hex: 0xD1FAE5),
-        dark: CYRGB(hex: 0x10B981, alpha: 0.18)
-    )
+    public static let successText = resolved { $0.success }
+    public static let successSoft = resolved { $0.successSoft }
 
-    public static let warningText = dynamic(
-        light: CYRGB(hex: 0xB45309), // 5.0:1 on white
-        dark: CYRGB(hex: 0xFBBF24)   // 11.8:1 on #0A0A0B
-    )
-    public static let warningSoft = dynamic(
-        light: CYRGB(hex: 0xFEF3C7),
-        dark: CYRGB(hex: 0xF59E0B, alpha: 0.18)
-    )
+    public static let warningText = resolved { $0.warning }
+    public static let warningSoft = resolved { $0.warningSoft }
 
-    public static let dangerText = dynamic(
-        light: CYRGB(hex: 0xB91C1C), // 6.4:1 on white
-        dark: CYRGB(hex: 0xF87171)   // 7.5:1 on #0A0A0B
-    )
-    public static let dangerSolid = dynamic(
-        light: CYRGB(hex: 0xDC2626),
-        dark: CYRGB(hex: 0xEF4444)
-    )
-    public static let dangerSoft = dynamic(
-        light: CYRGB(hex: 0xFEE2E2),
-        dark: CYRGB(hex: 0xEF4444, alpha: 0.18)
-    )
+    public static let dangerText = resolved { $0.danger }
+    /// Solid danger action fill (`--cy-color-action-danger-bg`, `#D0323B` in both roles).
+    public static let dangerSolid = resolved { $0.actionDangerBg }
+    public static let dangerSoft = resolved { $0.dangerSoft }
 
-    public static let infoText = dynamic(
-        light: CYRGB(hex: 0x1D4ED8), // 6.7:1 on white
-        dark: CYRGB(hex: 0x60A5FA)   // 7.9:1 on #0A0A0B
-    )
-    public static let infoSoft = dynamic(
-        light: CYRGB(hex: 0xDBEAFE),
-        dark: CYRGB(hex: 0x3B82F6, alpha: 0.18)
-    )
+    public static let infoText = resolved { $0.info }
+    public static let infoSoft = resolved { $0.infoSoft }
 
     // MARK: 5. Borders & Dividers
 
