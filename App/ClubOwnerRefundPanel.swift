@@ -20,8 +20,12 @@ extension EnvironmentValues {
     @State private var failure: ClubOwnerRefundFailure?
     @State private var ownerID = UUID()
     private var status: ClubOwnerRefundStatus { coordinator?.state(target) ?? .init() }
+    private var model: ClubOwnerRefundPanelModel {
+        ClubOwnerRefundPanelModel(status: status, sourceCanRefund: sourceCanRefund, coordinatorAvailable: coordinator != nil,
+            identityMatches: coordinator != nil && coordinator?.identity == identity, canDispatch: coordinator?.canDispatch == true)
+    }
     var body: some View {
-        if sourceCanRefund || status.phase != .idle {
+        if model.isVisible {
             VStack(alignment: .leading, spacing: 12) {
                 Text("club.refund.title").font(.headline).accessibilityIdentifier("club.refund.panel")
                 if let coordinator, coordinator.identity == identity {
@@ -29,7 +33,7 @@ extension EnvironmentValues {
                         .accessibilityIdentifier("club.refund.phase")
                     if status.inFlight { ProgressView("club.refund.working") }
                     if let receipt = status.receipt { receiptRows(receipt) }
-                    if status.phase == .outcomeUnknown || status.phase == .refundRecorded {
+                    if model.showsNoReplayNote {
                         Text("club.refund.noReplay").font(.footnote)
                     }
                     if status.readbackUnavailable { Text("club.refund.readbackUnavailable").accessibilityIdentifier("club.refund.readbackUnavailable") }
@@ -37,11 +41,11 @@ extension EnvironmentValues {
                         Text(LocalizedStringKey(failure.localizationKey)).foregroundStyle(.secondary)
                         if let message = failure.message { fact("club.refund.serverMessage", message) }
                     }
-                    if sourceCanRefund, [.idle, .notSent].contains(status.phase) {
+                    if model.showsReviewButton {
                         Button("club.refund.review") { Task { await prepare(coordinator) } }
-                            .disabled(status.inFlight).accessibilityIdentifier("club.refund.review")
+                            .disabled(!model.reviewEnabled).accessibilityIdentifier("club.refund.review")
                     }
-                    if [.acknowledged, .manualReview, .outcomeUnknown, .refundRecorded].contains(status.phase) {
+                    if model.showsReadbackButton {
                         Button("club.refund.readback") {
                             Task { await coordinator.reconcile(target); if coordinator.identity == identity { onReadback() } }
                         }.disabled(status.inFlight).accessibilityIdentifier("club.refund.readback")
@@ -72,7 +76,7 @@ extension EnvironmentValues {
                                     if coordinator.identity == identity { onReadback() }
                                 }
                             } label: { Text("club.refund.confirm") }
-                            .disabled(coordinator?.canDispatch != true || status.inFlight)
+                            .disabled(!model.confirmEnabled)
                             .accessibilityIdentifier("club.refund.confirm")
                             if status.inFlight { ProgressView("club.refund.working") }
                         }
