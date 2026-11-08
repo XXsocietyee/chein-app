@@ -1368,7 +1368,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
             }
             if let merchant = model.merchantResult {
                 Text(merchant.fields["redemption"] ?? merchant.message).accessibilityIdentifier("rewards.pledge.merchantResult")
-                Text(merchant.fields["stock.available"] ?? merchant.fields["available"] ?? "").accessibilityIdentifier("rewards.pledge.merchantStock")
+                Text(verbatim: merchant.fields["stock.available"] ?? merchant.fields["available"] ?? "").accessibilityIdentifier("rewards.pledge.merchantStock")
             }
             if let player = model.playerResult {
                 Text(player.fields["state"] ?? "").accessibilityIdentifier("rewards.pledge.playerResult")

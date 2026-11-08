@@ -52,16 +52,15 @@ public enum ClubOpsEventClock {
     public static func occurrenceText(_ value: ClubGovernanceValue, locale: Locale) -> String? {
         guard let date = ClubOccurrenceClock.instant(value) else { return nil }
         guard isChinese(locale) else { return localized(date, template: "MMMdEEEHHmm", locale: locale) }
-        let p = parts(date), week = ["日", "一", "二", "三", "四", "五", "六"]
-        let weekday = week[max(0, min(6, (p.weekday ?? 1) - 1))]
-        return "\(p.month ?? 0)月\(p.day ?? 0)日 周\(weekday) \(pad(p.hour)):\(pad(p.minute))"
+        let p = parts(date)
+        return "\(localized(date, template: "MMMd", locale: locale)) \(localized(date, template: "EEE", locale: locale)) \(pad(p.hour)):\(pad(p.minute))"
     }
     /// "M月d日 HH:mm" (zh) or the locale's month/day/24h time.
     public static func momentText(_ raw: String?, locale: Locale) -> String? {
         guard let raw, let date = ClubOccurrenceClock.instant(.string(raw)) else { return nil }
         guard isChinese(locale) else { return localized(date, template: "MMMdHHmm", locale: locale) }
         let p = parts(date)
-        return "\(p.month ?? 0)月\(p.day ?? 0)日 \(pad(p.hour)):\(pad(p.minute))"
+        return "\(localized(date, template: "MMMd", locale: locale)) \(pad(p.hour)):\(pad(p.minute))"
     }
     /// Mini correctionWindowText range; nil when neither bound parses.
     public static func correctionRange(start: String?, end: String?, locale: Locale) -> String? {

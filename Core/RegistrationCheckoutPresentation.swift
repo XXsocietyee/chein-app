@@ -68,8 +68,8 @@ public enum FourShopCompensationPolicy: Equatable {
     public static let freeExploreProductType = 2
     public static let fourStoreRedeemEvidenceRule = "FOUR_STORE_REDEEM"
     public static let stopNewSaleFinalizationMessage = "四店固定补偿产品已停止新开售，已售合同继续履行"
-    public static let stopNewTicketSaleMessage = "四店固定补偿产品已停止新售票，已售合同继续履行"
-    public static let soldContractFulfillmentNotice = "已售合同继续履行"
+    public static var stopNewTicketSaleMessage: String { W8Text.t("四店固定补偿产品已停止新售票，已售合同继续履行", "The four-store fixed-compensation product has stopped new ticket sales; sold contracts will still be fulfilled") }
+    public static var soldContractFulfillmentNotice: String { W8Text.t("已售合同继续履行", "Sold contracts will still be fulfilled") }
 
     public struct SoldContractFulfillment: Equatable {
         public let isSoldContract: Bool
@@ -215,14 +215,14 @@ public enum RegistrationCoreLoopRules {
     public static let explorePassOrderLimitMessage = "探索票每单限购 1 张"
     public static let explorePassAccountLimitCode = "SHOP_DAY_ACCOUNT_TICKET_LIMIT_REACHED"
     public static let explorePassAccountLimitMessage = "当前账号已持有该主题的有效探索票，不能重复购买"
-    public static let explorePassPointsForbiddenMessage = "探店日不支持积分抵扣，请关闭积分后按全价购买"
-    public static let explorePassCrossClubMessage = "自由探索只开放内容所属俱乐部的场次，不能跨俱乐部售票"
-    public static let exploreTopicNotSellingMessage = "该主题尚未完成招商与锁价,暂未开售"
-    public static let exploreSnapshotMissingMessage = "该主题尚未生成销售快照，无法售票"
-    public static let nonPlatformPaidProductBlockedMessage = "该产品暂不支持在线支付(平台正在办理支付资质,预计 2 个月内开放);如需报名请联系主办方"
-    public static let clubMembershipRequiredMessage = "请先加入俱乐部再报名"
-    public static let memberReservedQuotaMessage = "剩余名额已为俱乐部会员保留"
-    public static let soldOutMessage = "名额已满"
+    public static var explorePassPointsForbiddenMessage: String { W8Text.t("探店日不支持积分抵扣，请关闭积分后按全价购买", "Points can’t be used on store-visit days. Turn off points and buy at full price") }
+    public static var explorePassCrossClubMessage: String { W8Text.t("自由探索只开放内容所属俱乐部的场次，不能跨俱乐部售票", "Free Explore only offers sessions of the club that owns the content; tickets can’t be sold across clubs") }
+    public static var exploreTopicNotSellingMessage: String { W8Text.t("该主题尚未完成招商与锁价,暂未开售", "This topic hasn’t finished merchant onboarding and price locking, so it isn’t on sale yet") }
+    public static var exploreSnapshotMissingMessage: String { W8Text.t("该主题尚未生成销售快照，无法售票", "This topic has no sales snapshot yet, so tickets can’t be sold") }
+    public static var nonPlatformPaidProductBlockedMessage: String { W8Text.t("该产品暂不支持在线支付(平台正在办理支付资质,预计 2 个月内开放);如需报名请联系主办方", "This product doesn’t support online payment yet (the platform is obtaining payment qualifications, expected within 2 months). Contact the organizer to sign up") }
+    public static var clubMembershipRequiredMessage: String { W8Text.t("请先加入俱乐部再报名", "Join the club before signing up") }
+    public static var memberReservedQuotaMessage: String { W8Text.t("剩余名额已为俱乐部会员保留", "The remaining spots are reserved for club members") }
+    public static var soldOutMessage: String { W8Text.t("名额已满", "Sold out") }
 
     public struct RegistrationRuleContext: Equatable {
         public let productType: Int
@@ -441,7 +441,7 @@ public enum RegistrationCoreLoopRules {
         guard usePoints else { return (false, nil) }
         let deduct = quote.pointsDeductYuan ?? .zero
         if !quote.pointsUsable || deduct <= .zero {
-            let notice = (userAvailablePoints ?? 1) <= 0 ? "暂无可用积分" : "该票不支持积分抵扣"
+            let notice = (userAvailablePoints ?? 1) <= 0 ? W8Text.t("暂无可用积分", "No points available") : W8Text.t("该票不支持积分抵扣", "This ticket doesn’t support points")
             return (true, notice)
         }
         return (false, nil)
@@ -467,9 +467,9 @@ public enum TicketWindowRule {
         public var label: String {
             switch self {
             case .available: return ""
-            case .started: return "场次已开始"
-            case .ended: return "场次已结束"
-            case .closed: return "报名已截止"
+            case .started: return W8Text.t("场次已开始", "Session has started")
+            case .ended: return W8Text.t("场次已结束", "Session has ended")
+            case .closed: return W8Text.t("报名已截止", "Sign-up has closed")
             }
         }
     }
@@ -539,8 +539,8 @@ public enum TicketWindowRule {
 
     /// Formats option label as `"{name} · {MM-DD HH:mm} · ¥{price}"` matching `baoming.js:1168`.
     public static func sessionOptionLabel(for ticket: ActivityTicket) -> String {
-        let name = ticket.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "标准票" : ticket.name
-        let timePart = formatSessionMinute(ticket.startTime) ?? "待定时间"
+        let name = ticket.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? W8Text.t("标准票", "Standard ticket") : ticket.name
+        let timePart = formatSessionMinute(ticket.startTime) ?? W8Text.t("待定时间", "Time TBD")
         let pricePart: String = {
             guard let price = ticket.price else { return "¥—" }
             return "¥\(NSDecimalNumber(decimal: price).stringValue)"
@@ -581,8 +581,8 @@ public enum TicketWindowRule {
 /// Ported from `chengyinhub-xcx/utils/checkout/checkout-workflow.js`:
 /// classifies `/api/registration/create` and `/api/registration/pay` errors for idempotent order rebuild vs quote refresh.
 public enum CheckoutOrderRebuildRule: Equatable {
-    public static let orderExpiredUserMessage = "订单已过期,请重新报名"
-    public static let quoteUpdatedUserMessage = "价格已更新，请重新确认"
+    public static var orderExpiredUserMessage: String { W8Text.t("订单已过期,请重新报名", "The order has expired. Please sign up again") }
+    public static var quoteUpdatedUserMessage: String { W8Text.t("价格已更新，请重新确认", "The price was updated. Please confirm again") }
     public static let terminalIdempotencyPrefix = "该幂等键对应的报名已"
 
     public enum Action: Equatable {
@@ -630,21 +630,21 @@ public enum CheckoutOrderRebuildRule: Equatable {
 /// Ported from `pages/activity/baoming/baoming.js` & `baoming.wxml`:
 /// 24-hour pre-gathering refund deadline notice and mandatory confirmation modal when `payAmount > 0 && refundableNow == false`.
 public enum NonRefundable24hNotice: Equatable {
-    public static let badgeTitle = "本单不可退"
-    public static let modalTitle = "本单不可退"
-    public static let modalContent = "该场次已过「集合前 24 小时」退款截止时间，支付后不可退款。确认继续下单？"
-    public static let confirmButtonTitle = "继续下单"
-    public static let cancelButtonTitle = "再想想"
+    public static var badgeTitle: String { W8Text.t("本单不可退", "Non-refundable") }
+    public static var modalTitle: String { W8Text.t("本单不可退", "Non-refundable") }
+    public static var modalContent: String { W8Text.t("该场次已过「集合前 24 小时」退款截止时间，支付后不可退款。确认继续下单？", "This session is past the refund deadline (24 hours before meeting), so payment can’t be refunded. Continue with the order?") }
+    public static var confirmButtonTitle: String { W8Text.t("继续下单", "Continue") }
+    public static var cancelButtonTitle: String { W8Text.t("再想想", "Not now") }
 
     public static func feeRowNotice(for quote: RegistrationQuote) -> String? {
         if quote.refundableNow == false {
             if let payAmount = quote.payAmount, payAmount <= .zero {
                 return nil
             }
-            return "该场次已过集合前 24 小时退款截止时间，本单不可退"
+            return W8Text.t("该场次已过集合前 24 小时退款截止时间，本单不可退", "This session is past the refund deadline (24 hours before meeting), so this order is non-refundable")
         }
         if quote.refundableNow == true, let deadline = TicketWindowRule.formatSessionMinute(quote.refundDeadline) {
-            return "集合前 24 小时可退（截止 \(deadline)）"
+            return W8Text.t("集合前 24 小时可退（截止 \(deadline)）", "Refundable until 24 hours before meeting (deadline \(deadline))")
         }
         return nil
     }
@@ -679,28 +679,28 @@ public enum TicketExpiryAndOrderStatusRules {
         let present = applicationPresent ?? (status != nil || payoutStatus != nil || refundAmount != nil)
         guard present else { return nil }
         if payoutStatus == 1 || payoutStatus == 4 {
-            return PayoutSummary(label: "已退款", hint: "退款已原路退回", canCancelRefundApplication: false)
+            return PayoutSummary(label: W8Text.t("已退款", "Refunded"), hint: W8Text.t("退款已原路退回", "The refund was returned to the original payment method"), canCancelRefundApplication: false)
         }
         if payoutStatus == 2 {
-            return PayoutSummary(label: "退款处理中", hint: "原路退款异常，平台正在人工处理", canCancelRefundApplication: false)
+            return PayoutSummary(label: W8Text.t("退款处理中", "Refund processing"), hint: W8Text.t("原路退款异常，平台正在人工处理", "The refund to the original payment method failed. The platform is handling it manually"), canCancelRefundApplication: false)
         }
         if payoutStatus == 3 {
-            return PayoutSummary(label: "退款处理中", hint: "人工退款已处理，等待复核确认", canCancelRefundApplication: false)
+            return PayoutSummary(label: W8Text.t("退款处理中", "Refund processing"), hint: W8Text.t("人工退款已处理，等待复核确认", "The manual refund was processed and is awaiting review"), canCancelRefundApplication: false)
         }
         // Source: a zero-yuan order has no money to refund, so no in-flight promise.
         if let refundAmount, !(refundAmount > 0) { return nil }
         // Source: a rejected application (status 2) is not a refund in flight.
         if status == 2 { return nil }
         if status == 0 {
-            return PayoutSummary(label: "退款审核中", hint: "退款申请已提交，等待平台审核", canCancelRefundApplication: true)
+            return PayoutSummary(label: W8Text.t("退款审核中", "Refund under review"), hint: W8Text.t("退款申请已提交，等待平台审核", "The refund request was submitted and is awaiting platform review"), canCancelRefundApplication: true)
         }
         if payoutStatus == 0 {
-            return PayoutSummary(label: "退款处理中", hint: "微信已受理原路退款，到账以微信退款通知为准", canCancelRefundApplication: false)
+            return PayoutSummary(label: W8Text.t("退款处理中", "Refund processing"), hint: W8Text.t("微信已受理原路退款，到账以微信退款通知为准", "WeChat accepted the refund to the original payment method. Rely on the WeChat refund notice for the arrival time"), canCancelRefundApplication: false)
         }
         if status == 1 {
-            return PayoutSummary(label: "退款处理中", hint: "退款已批准，正在提交原路退款", canCancelRefundApplication: false)
+            return PayoutSummary(label: W8Text.t("退款处理中", "Refund processing"), hint: W8Text.t("退款已批准，正在提交原路退款", "The refund was approved and is being submitted to the original payment method"), canCancelRefundApplication: false)
         }
-        return PayoutSummary(label: "退款处理中", hint: "退款进度更新中，请以微信退款通知为准", canCancelRefundApplication: false)
+        return PayoutSummary(label: W8Text.t("退款处理中", "Refund processing"), hint: W8Text.t("退款进度更新中，请以微信退款通知为准", "The refund progress is updating. Rely on the WeChat refund notice"), canCancelRefundApplication: false)
     }
 
     /// Matches `canRequestOrderRefund` in `chengyinhub-xcx/utils/order-status.js`.

@@ -57,7 +57,7 @@ import SwiftUI
             }
             .disabled(sending)
             if sending { ProgressView("admission.sending") }
-            if !message.isEmpty { Text(verbatim: message).font(.footnote) }
+            if !message.isEmpty { Text(LocalizedStringKey(message)).font(.footnote) }
             ForEach([submitID, cancelID, approveID, rejectID, leaveID, lastPauseID, revokeID].compactMap { $0 }, id: \.self) { id in
                 Text(verbatim: id).font(.footnote)
             }

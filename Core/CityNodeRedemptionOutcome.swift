@@ -65,9 +65,15 @@ public struct CityNodeRedemptionResult: Equatable {
     public let unverifiedServerMessage: String?
     public var redeemed: Bool { if case .redeemed = outcome { return true }; return false }
     public var isUnknown: Bool { outcome == .unknown }
-    public static let unknownMessage = "核销结果待确认，请勿重复核销"
-    public static let unknownGuidance = "核销可能已经完成。请让玩家在「我的券」自行核对是否到账，不要重复扫码；无法确认时请联系平台处理。当前券或核销记录不能证明本次请求的结果，本机不会据此解锁或重新提交。"
-    public static let legacyGuidance = "本账号存在无法确认具体目标的未决核销记录。为避免重复核销，本机不会继续提交，也不会把旧记录迁移或清除。请联系平台处理。"
+    public static var unknownMessage: String { W8Text.t("核销结果待确认，请勿重复核销", "Redemption result is unconfirmed. Do not redeem again.") }
+    public static var unknownGuidance: String {
+        W8Text.t("核销可能已经完成。请让玩家在「我的券」自行核对是否到账，不要重复扫码；无法确认时请联系平台处理。当前券或核销记录不能证明本次请求的结果，本机不会据此解锁或重新提交。",
+                 "The redemption may already be complete. Ask the player to check My Coupons for the result and do not scan again; contact the platform if it cannot be confirmed. Current coupons or redemption records cannot prove the result of this request, so this device will not unlock or resubmit because of them.")
+    }
+    public static var legacyGuidance: String {
+        W8Text.t("本账号存在无法确认具体目标的未决核销记录。为避免重复核销，本机不会继续提交，也不会把旧记录迁移或清除。请联系平台处理。",
+                 "This account has a pending redemption record whose exact target cannot be confirmed. To avoid redeeming twice, this device will not submit again and will not migrate or clear the old record. Contact the platform.")
+    }
 
     public init(body: MerchantBusinessObject, target: CityNodeRedemptionTarget? = nil) throws {
         let message = body["msg"]?.string
@@ -116,6 +122,6 @@ public struct CityNodeRedemptionResult: Equatable {
         else if case .httpStatus(let value)? = error as? APIError { status = value }
         else { return nil }
         guard [400, 401, 403, 404, 405, 413, 415, 426, 429].contains(status) else { return nil }
-        return .init(outcome: .failed, message: "请求被拒绝，未执行核销", unverifiedServerMessage: nil)
+        return .init(outcome: .failed, message: W8Text.t("请求被拒绝，未执行核销", "The request was refused. No redemption was made."), unverifiedServerMessage: nil)
     }
 }

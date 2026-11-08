@@ -32,7 +32,7 @@ import SwiftUI
                 Button("h5.open") { message = page.openShell(launch: launch).capabilityText }.buttonStyle(.questifyPrimary).controlSize(.large)
                     .disabled(page.session.gate.phase != .admitted && page.session.gate.phase != .waitingSource)
             }
-            if !message.isEmpty { Text(verbatim: message).font(.footnote) }
+            if !message.isEmpty { Text(LocalizedStringKey(message)).font(.footnote) }
         }
         .navigationTitle(Text("h5.title")).navigationBarTitleDisplayMode(.inline).formStyle(.grouped)
     }

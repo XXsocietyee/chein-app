@@ -7,26 +7,31 @@ struct CoreLoopCopy {
     var isChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     func t(_ zh: String, _ en: String) -> String { isChinese ? zh : en }
 
+    /// English noun phrase with exact singular grammar: only a count of exactly 1 is singular.
+    static func count(_ digits: Substring, _ one: String, _ other: String) -> String {
+        "\(digits) \(Int(digits) == 1 ? one : other)"
+    }
+
     /// English for Core's fixed Chinese strings (Core keeps the mini-program copy; tests pin it).
     /// Unknown text, and any text in a Chinese locale, passes through unchanged.
     func tr(_ zh: String) -> String {
         guard !isChinese else { return zh }
         if let hit = Self.table[zh] { return hit }
         if zh.hasPrefix("剩余可发布 "), zh.hasSuffix(" 个主题") {
-            return "\(zh.dropFirst("剩余可发布 ".count).dropLast(" 个主题".count)) topic publish(es) left"
+            return "\(Self.count(zh.dropFirst("剩余可发布 ".count).dropLast(" 个主题".count), "topic publish", "topic publishes")) left"
         }
         if zh.hasPrefix("集合前 24 小时可退（截止 "), zh.hasSuffix("）") {
             return "Refundable until 24 hours before meeting (deadline \(zh.dropFirst("集合前 24 小时可退（截止 ".count).dropLast()))"
         }
         if zh.hasSuffix(" 天内过期") {
-            return "Expires in \(zh.dropLast(" 天内过期".count)) day(s)"
+            return "Expires in \(Self.count(zh.dropLast(" 天内过期".count), "day", "days"))"
         }
         if zh.hasPrefix("将给 "), zh.hasSuffix(" 位已付款玩家全额退款,不可撤销。活动同时下架。") {
             let count = zh.dropFirst("将给 ".count).dropLast(" 位已付款玩家全额退款,不可撤销。活动同时下架。".count)
-            return "\(count) paid attendee(s) will receive a full refund. This cannot be undone and the event will be unlisted."
+            return "\(Self.count(count, "paid attendee", "paid attendees")) will receive a full refund. This cannot be undone and the event will be unlisted."
         }
         if zh.hasPrefix("全队已完成 "), zh.hasSuffix(" 个节点") {
-            return "Team completed \(zh.dropFirst("全队已完成 ".count).dropLast(" 个节点".count)) nodes"
+            return "Team completed \(Self.count(zh.dropFirst("全队已完成 ".count).dropLast(" 个节点".count), "node", "nodes"))"
         }
         return zh
     }
@@ -131,7 +136,7 @@ struct CoreLoopCopy {
         }
         var tickets: String?
         if let raw = s.ticketSummaryText {
-            tickets = raw.hasSuffix(" 个票种") ? "\(raw.dropLast(" 个票种".count)) ticket type(s)" : raw
+            tickets = raw.hasSuffix(" 个票种") ? Self.count(raw.dropLast(" 个票种".count), "ticket type", "ticket types") : raw
         }
         return ActivityPublishingWizard.ReviewSummary(
             isEditMode: s.isEditMode,

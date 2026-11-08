@@ -152,6 +152,8 @@ struct QuestifyApp: App {
                 #endif
             }
             .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
+            // Core copy (W8Text) follows the in-app language, not only the system language.
+            .onChange(of: storedLanguage, initial: true) { _, new in W8Text.languageOverride = RegionalLaunchConfiguration.language(new).w8Override }
             .tint(QuestifyPalette.accent)
             #if DEBUG
             .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))

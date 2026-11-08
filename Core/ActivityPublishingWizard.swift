@@ -96,14 +96,14 @@ public enum ActivityPublishingWizard {
 
     // MARK: - Mini-Program `pages/publish/activity` Parity Rules
 
-    public static let timeLocationLockedNotice = "已售出，时间和地点不可改"
-    public static let collaboratorSettlementNotice = "合作者可编辑内容，不参与结算"
-    public static let merchantFreeTicketOnlyNotice = "商家活动暂时只支持免费票"
-    public static let merchantPaidTicketBlockedMessage = "商家主办活动还没开通收款，票价只能是 0"
-    public static let createReviewHeading = "发布前摘要"
-    public static let editReviewHeading = "修改摘要"
-    public static let createVisibilityNotice = "默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。"
-    public static let editVisibilityNotice = "本次保存只更新上面这些内容，不会改变活动的公开范围。"
+    public static var timeLocationLockedNotice: String { W8Text.t("已售出，时间和地点不可改", "Tickets have been sold, so the time and place can’t be changed") }
+    public static var collaboratorSettlementNotice: String { W8Text.t("合作者可编辑内容，不参与结算", "Collaborators can edit content but don’t take part in settlement") }
+    public static var merchantFreeTicketOnlyNotice: String { W8Text.t("商家活动暂时只支持免费票", "Merchant activities only support free tickets for now") }
+    public static var merchantPaidTicketBlockedMessage: String { W8Text.t("商家主办活动还没开通收款，票价只能是 0", "Payments aren’t enabled for merchant-hosted activities yet, so the ticket price must be 0") }
+    public static var createReviewHeading: String { W8Text.t("发布前摘要", "Summary before publishing") }
+    public static var editReviewHeading: String { W8Text.t("修改摘要", "Summary of changes") }
+    public static var createVisibilityNotice: String { W8Text.t("默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。", "Public by default: once published it appears in the activity list, and continuing publishes it with the current visibility.") }
+    public static var editVisibilityNotice: String { W8Text.t("本次保存只更新上面这些内容，不会改变活动的公开范围。", "This save only updates the items above and doesn’t change who can see the activity.") }
 
     /// Returns the conversational step heading from `pages/publish/activity/index.js` STEPS.
     public static func heading(for step: Int) -> String {
@@ -199,19 +199,19 @@ public enum ActivityPublishingWizard {
         } else if let templateID = draft.playTemplateID {
             resolvedTemplate = "#\(templateID.rawValue)"
         } else if isEditMode {
-            resolvedTemplate = "保持当前关联模板不变"
+            resolvedTemplate = W8Text.t("保持当前关联模板不变", "Keep the linked template unchanged")
         } else {
-            resolvedTemplate = "未选择"
+            resolvedTemplate = W8Text.t("未选择", "Not selected")
         }
 
         return ReviewSummary(
             isEditMode: isEditMode,
             heading: isEditMode ? editReviewHeading : createReviewHeading,
-            nameText: trimmedName.isEmpty ? "未填写名称" : trimmedName,
+            nameText: trimmedName.isEmpty ? W8Text.t("未填写名称", "No name entered") : trimmedName,
             timeText: "\(trimmedStart) ~ \(trimmedEnd)",
-            addressText: trimmedAddress.isEmpty ? "未选择地点" : trimmedAddress,
+            addressText: trimmedAddress.isEmpty ? W8Text.t("未选择地点", "No place selected") : trimmedAddress,
             templateText: resolvedTemplate,
-            ticketSummaryText: isEditMode ? nil : "\(draft.tickets.count) 个票种",
+            ticketSummaryText: isEditMode ? nil : (W8Text.isChinese ? "\(draft.tickets.count) 个票种" : "\(draft.tickets.count) ticket type" + (draft.tickets.count == 1 ? "" : "s")),
             visibilityNotice: isEditMode ? editVisibilityNotice : createVisibilityNotice
         )
     }
