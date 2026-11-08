@@ -118,7 +118,12 @@ import Combine
         }.disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
         .questifyBottomAction {
             VStack(spacing: 8) {
-                if journey.problem { Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center) }
+                if journey.problem {
+                    Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center)
+                    ForEach(Array(QuickPublishValidation.issues(draft.wrappedValue).enumerated()), id: \.offset) { _, issue in
+                        Text(verbatim: issue.message).font(.footnote).foregroundStyle(.red).multilineTextAlignment(.center)
+                    }
+                }
                 Button(action: journey.handoffAction(openProfessional)) { Text("publishModes.continueEditor").frame(maxWidth: .infinity) }
                     .disabled(!journey.canEdit)
                     .accessibilityIdentifier("publishModes.quick.continue")
