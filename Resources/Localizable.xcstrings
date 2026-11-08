@@ -223838,6 +223838,40 @@
         }
       }
     },
+    "wallet.points.empty.expense": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points used yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有使用积分的记录"
+          }
+        }
+      }
+    },
+    "wallet.points.empty.income": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No points earned yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有获得积分的记录"
+          }
+        }
+      }
+    },
     "wallet.points.endOfList": {
       "extractionState": "manual",
       "localizations": {

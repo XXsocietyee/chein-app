@@ -1280,6 +1280,70 @@
           }
         }
       }
+    },
+    "member.favorites.recommendNote.entry": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About recommendations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐说明"
+          }
+        }
+      }
+    },
+    "member.favorites.recommendNote.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Favorites and recommendations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "收藏与推荐"
+          }
+        }
+      }
+    },
+    "member.favorites.recommendNote.body": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recommendations take your browsing, likes and similar activity into account. Removing a favorite only takes it off this list; it does not undo interest already recorded. You can't set recommendation preferences or exclude an item from recommendations yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "推荐会参考你的浏览、点赞等行为。取消收藏只会把内容从这里移除，不会撤回已经记录的推荐兴趣。目前还不能设置推荐偏好，也不能把某个内容排除出推荐。"
+          }
+        }
+      }
+    },
+    "member.favorites.recommendNote.dismiss": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Got it"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "知道了"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
