@@ -26,17 +26,17 @@ public enum OrientSessionOperation: Codable, Equatable {
         switch self { case .sync, .appeal, .dispute: return true; default: return false }
     }
     func validate() throws {
-        guard sessionID == nil || sessionID! > 0 else { throw APIError.invalidRequest }
+        guard sessionID.map({ $0 > 0 }) ?? true else { throw APIError.invalidRequest }
         switch self {
         case .start(_, let version): guard version >= 0 else { throw APIError.invalidRequest }
         case .task(_, let task, _): guard task > 0 else { throw APIError.invalidRequest }
         case .appeal(_, let entry, let node, let reason):
-            guard entry != nil || node != nil, entry == nil || entry! > 0, node == nil || node! > 0,
+            guard entry != nil || node != nil, entry.map({ $0 > 0 }) ?? true, node.map({ $0 > 0 }) ?? true,
                   try OrientSessionScoreReason.normalized(reason) == reason else { throw APIError.invalidRequest }
         case .dispute(_, let reason):
             guard try OrientSessionScoreReason.normalized(reason) == reason else { throw APIError.invalidRequest }
         case .alternative(_, let task, let instance, let evidence):
-            guard task > 0, instance == nil || (!instance!.isEmpty && instance!.utf8.count <= 128) else { throw APIError.invalidRequest }
+            guard task > 0, instance.map({ !$0.isEmpty && $0.utf8.count <= 128 }) ?? true else { throw APIError.invalidRequest }
             try evidence.validate()
         default: break
         }

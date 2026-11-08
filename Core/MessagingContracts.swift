@@ -144,6 +144,12 @@ public struct MessagingMessage: Decodable, Equatable, Identifiable {
     private enum CodingKeys: String, CodingKey {
         case id, conversationId, senderId, msgType, content, extraJson, createTime, senderName, senderAvatar, status
     }
+    /// A withheld placeholder (payload discarded, as for an unknown server status). Total: it cannot fail.
+    init(withheldID id: Int, conversationID: Int) {
+        self.id = max(1, id); self.conversationID = max(1, conversationID)
+        status = .unknown; createdAt = nil
+        senderID = nil; type = nil; content = nil; extraJSON = nil; senderName = nil; senderAvatar = nil
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         id = try c.decode(Int.self, forKey: .id)

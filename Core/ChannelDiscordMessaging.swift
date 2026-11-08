@@ -473,8 +473,10 @@ public struct ChannelTranscriptMessage: Equatable, Identifiable {
         if let extraJSON { payload["extraJson"] = extraJSON }
         if let createdAt { payload["createTime"] = createdAt }
 
+        // Malformed input (for example a negative sender id) degrades to a withheld placeholder, never a crash.
         let data = (try? JSONSerialization.data(withJSONObject: payload)) ?? Data()
-        let decoded = try! JSONDecoder().decode(MessagingMessage.self, from: data)
+        let decoded = (try? JSONDecoder().decode(MessagingMessage.self, from: data))
+            ?? MessagingMessage(withheldID: safeID, conversationID: safeConversationID)
         return ChannelTranscriptMessage(
             wireMessage: decoded,
             clientMessageID: clientMessageID,

@@ -113,10 +113,14 @@ public struct SearchRoutePreview: Equatable {
         self.steps = isStraightLine ? [] : steps; self.isStraightLine = isStraightLine
         self.datum = datum; self.provider = isStraightLine ? nil : provider
     }
+    /// Non-throwing: a straight line carries no ETA, steps or provider, so the checked initializer's rules reduce to a finite distance.
+    private init(straightLineFrom origin: RoamCoordinate, to destination: RoamCoordinate, datum: WalkingCoordinateDatum) {
+        let meters = Self.distance(origin, destination)
+        coordinates = [origin, destination]; distanceMeters = meters.isFinite && meters >= 0 ? meters : 0
+        etaSeconds = nil; steps = []; isStraightLine = true; self.datum = datum; provider = nil
+    }
     public static func straightLine(_ request: SearchRouteRequest) -> SearchRoutePreview {
-        // Failable coordinate construction upstream guarantees finite bounded inputs.
-        try! SearchRoutePreview(coordinates: [request.origin, request.destination],
-            distanceMeters: distance(request.origin, request.destination), etaSeconds: nil, steps: [], isStraightLine: true, datum: request.datum)
+        SearchRoutePreview(straightLineFrom: request.origin, to: request.destination, datum: request.datum)
     }
     public static func distance(_ a: RoamCoordinate, _ b: RoamCoordinate) -> Double {
         let lat1 = a.latitude * .pi / 180, lat2 = b.latitude * .pi / 180

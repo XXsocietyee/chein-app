@@ -117,5 +117,16 @@ class FPM5Pasteboard(unittest.TestCase):
             self.assertIn('LocalPasteboard.copy(', src(path), path)
 
 
+class FPM6NoForcedOperations(unittest.TestCase):
+    def test_listed_production_sites_have_no_force_try_or_cast(self):
+        for path in ('Core/ChannelDiscordMessaging.swift', 'Core/SearchRoutePreview.swift', 'Core/InvoiceLaunchService.swift',
+                     'App/ReformWorldHostWorkbenchView.swift', 'Core/OrientSessionRecovery.swift'):
+            s = src(path)
+            self.assertNotIn('try!', s, path)
+            self.assertNotIn(' as! ', s, path)
+        self.assertNotIn('sessionID!', src('Core/OrientSessionRecovery.swift'))
+        self.assertNotIn('instance!', src('Core/OrientSessionRecovery.swift'))
+
+
 if __name__ == '__main__':
     unittest.main()

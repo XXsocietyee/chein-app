@@ -69,7 +69,7 @@ import FoundationNetworking
     func saveTitleWithRequest(_ draft: InvoiceLaunchTitleDraft, requestId: String) async throws -> InvoiceLaunchTitleReceipt {
         guard InvoiceLaunchWire.requestID(requestId) else { throw InvoiceLaunchIssue.invalid }
         // Flatten the original draft, matching the controller; never persist this PII payload.
-        var body = try JSONSerialization.jsonObject(with: InvoiceLaunchWire.encode(draft)) as! [String: Any]
+        guard var body = try JSONSerialization.jsonObject(with: InvoiceLaunchWire.encode(draft)) as? [String: Any] else { throw InvoiceLaunchIssue.invalid }
         body["requestId"] = requestId
         do {
             let result: InvoiceLaunchTitleReceipt = try await mutation(.saveTitleRequest, body: JSONSerialization.data(withJSONObject: body, options: [.sortedKeys]))

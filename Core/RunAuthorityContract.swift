@@ -128,6 +128,12 @@ public struct RunAuthorityProjection: Equatable, Sendable {
         self.runId = runId; self.stateVersion = stateVersion; self.status = status; self.nodes = nodes
     }
 
+    /// Total fallback for hosts that need a projection without a throwing call: a created run with no nodes.
+    public static let placeholder = RunAuthorityProjection(unchecked: "run-01")
+    private init(unchecked runId: String) {
+        self.runId = runId; stateVersion = 0; status = .created; nodes = [:]
+    }
+
     public mutating func begin(_ intent: RunActionIntent) throws {
         guard intent.runId == runId else { throw RunAuthorityIssue.invalid }
         guard !status.isTerminal, status != .paused else { throw RunAuthorityIssue.terminal }
