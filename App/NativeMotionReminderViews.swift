@@ -32,7 +32,7 @@ import SwiftUI
             Text(LocalizedStringKey("nativePlatform.steps.phase." + stage.phase)).accessibilityIdentifier("nativePlatform.steps.phase")
             if let issue = stage.issue { Text(LocalizedStringKey("nativePlatform.issue." + issue.rawValue)).accessibilityIdentifier("nativePlatform.steps.issue") }
             if stage.phase == "review", let sample = stage.reading, let challenge = stage.challenge {
-                Text(verbatim: String(sample.steps)).font(.system(.largeTitle, design: .rounded).bold()).monospacedDigit().accessibilityIdentifier("nativePlatform.steps.count")
+                Text(verbatim: String(sample.steps)).font(CYTypography.data2XL).accessibilityIdentifier("nativePlatform.steps.count")
                 LabeledContent("nativePlatform.steps.day") { Text(verbatim: challenge.dayKey) }
                 Text("nativePlatform.steps.sharePurpose").font(.footnote)
                 Button("nativePlatform.steps.send") { Task { await stage.submitReviewed(); await refresh() } }

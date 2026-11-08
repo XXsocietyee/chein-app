@@ -91,7 +91,7 @@ import UIKit
                         }
                     }.padding().font(.body)
                 }
-            }.background(Color(uiColor: .systemBackground))
+            }.background(CYColor.bgPage)
                 .appNavigationTitle(key: titleKey).navigationBarTitleDisplayMode(.inline)
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() }.accessibilityIdentifier("media.gallery.close") } }
         }
