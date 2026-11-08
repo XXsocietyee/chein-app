@@ -125,3 +125,88 @@ public extension ProfileComplaintReadIssue {
         }
     }
 }
+
+// MARK: - Complaint report write (appended; kept out of the read-only preparation file)
+
+/// The write behind a reviewed complaint. Injected by the host; nil means the route is not approved.
+@MainActor public protocol ProfileComplaintSubmitting: AnyObject {
+    func submit(topicID: Int, reason: String) async throws
+}
+/// Prepare-then-confirm through the existing cooperation coordinator (`api/coop/complaint/report`,
+/// body `topicId` + `reason`, as in subpackageMember/complaint/index.js). The coordinator stays
+/// closed unless the host enables the route.
+@MainActor public final class ProfileComplaintCoordinatorSubmitter: ProfileComplaintSubmitting {
+    private let coordinator: CoopFlowCoordinator
+    public init(coordinator: CoopFlowCoordinator) { self.coordinator = coordinator }
+    public func submit(topicID: Int, reason: String) async throws {
+        let review = try await coordinator.prepare(.complaint(topicID: topicID, reason: reason))
+        _ = try await coordinator.confirm(review)
+    }
+}
+public enum ProfileComplaintSubmitFailure: Equatable {
+    /// No writer injected, or the route/grant is closed: nothing was sent.
+    case notAvailable
+    case signIn
+    /// The server refused it (message is the server's, if any). Nothing was recorded.
+    case rejected(String?)
+    /// Transport failure before a response: the request may or may not have arrived. No automatic resend.
+    case network
+    /// A previous attempt left a durable lock; it is never resent automatically.
+    case ambiguous
+    public var titleKey: String {
+        switch self {
+        case .notAvailable: return "profile.complaint.submit.notAvailable"
+        case .signIn: return "profile.complaint.submit.signIn"
+        case .rejected: return "profile.complaint.submit.rejected"
+        case .network: return "profile.complaint.submit.network"
+        case .ambiguous: return "profile.complaint.submit.ambiguous"
+        }
+    }
+    static func map(_ error: Error) -> ProfileComplaintSubmitFailure {
+        if error as? APIError == .unauthorized { return .signIn }
+        if let flow = error as? CoopFlowFailure {
+            switch flow {
+            case .disabled, .unavailable: return .notAvailable
+            case .ambiguous: return .ambiguous
+            case .server(_, let message): return .rejected(message)
+            case .inactiveMerchant(_, let message): return .rejected(message)
+            default: return .rejected(nil)
+            }
+        }
+        return .network
+    }
+}
+public enum ProfileComplaintSubmitState: Equatable {
+    case idle, sending, succeeded
+    case failed(ProfileComplaintSubmitFailure)
+}
+
+/// Sends an already reviewed complaint after the user's explicit confirmation. Success is reported
+/// only after the writer returns; a completed complaint is never sent twice.
+@MainActor @Observable public final class ProfileComplaintSubmissionController {
+    public private(set) var state: ProfileComplaintSubmitState = .idle
+    @ObservationIgnored private let submitter: (any ProfileComplaintSubmitting)?
+    private var generation: UInt64 = 0
+    public init(submitter: (any ProfileComplaintSubmitting)?) { self.submitter = submitter }
+    /// True only when a writer was injected; the view shows "not available yet" otherwise.
+    public var isConfigured: Bool { submitter != nil }
+    public func canSend(review: ProfileComplaintReview?) -> Bool {
+        review != nil && submitter != nil && state != .sending && state != .succeeded
+    }
+    public func reset() { generation &+= 1; state = .idle }
+    public func send(review: ProfileComplaintReview, isCurrent: @MainActor () -> Bool) async {
+        guard isCurrent() else { reset(); return }
+        guard state != .sending, state != .succeeded else { return }
+        guard let submitter else { state = .failed(.notAvailable); return }
+        generation &+= 1; let stamp = generation
+        state = .sending
+        do {
+            try await submitter.submit(topicID: review.topic.id, reason: review.reason)
+            guard generation == stamp else { return }
+            state = .succeeded
+        } catch {
+            guard generation == stamp else { return }
+            state = .failed(ProfileComplaintSubmitFailure.map(error))
+        }
+    }
+}

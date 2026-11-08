@@ -77,6 +77,15 @@ import Foundation
         flow.finish(id: 51, success: true); XCTAssertEqual(flow.succeeded, 51)
         flow.ask(52); XCTAssertNil(flow.succeeded)
     }
+    func testProcessingStatesGroupUnderProcessingFilterAndOnlySubmittedCanBeWithdrawn() throws {
+        let rows = [try application(id: 1, status: "SUBMITTED"), try application(id: 2, status: "PROCESSING"),
+                    try application(id: 3, status: "PAUSED"), try application(id: 4, status: "ISSUED")]
+        XCTAssertEqual(InvoiceLaunchHistoryRules.rows(rows, filter: "SUBMITTED").map(\.id), [1, 2, 3])
+        XCTAssertEqual(InvoiceLaunchHistoryRules.rows(rows, filter: "all").map(\.id), [1, 2, 3, 4])
+        for status in [InvoiceLaunchStatus.claimed, .processing, .issueUnknown, .paused] {
+            XCTAssertFalse(InvoiceLaunchHistoryRules.canWithdraw(status))
+        }
+    }
     func testConfirmIsSingleUse() {
         var flow = InvoiceLaunchWithdrawFlow()
         flow.ask(7)

@@ -70,7 +70,9 @@ import SwiftUI
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         let source = try String(contentsOf: root.appendingPathComponent("App/ProfileParticipantsView.swift"), encoding: .utf8)
-        XCTAssertEqual(source.components(separatedBy: #"Text("participant.form.purpose")"#).count - 1, 3)
+        // integration/20261106/backend-latest (commit 8173a5c66 "删去多余说明") removed the purpose subtitle from
+        // pages/address and pages/addressinfo (addressinfo.wxml now `subtitle=""`), so native must not show it.
+        XCTAssertEqual(source.components(separatedBy: #"Text("participant.form.purpose")"#).count - 1, 0)
         XCTAssertFalse(source.contains(#"Text("profile.participants.hint")"#))
 
         let localizationsData = try Data(contentsOf: root.appendingPathComponent("docs/participant-localizations.json"))
@@ -379,11 +381,13 @@ private actor ContinuationCiphertexts: ContentDraftCiphertextStore {
         _ = try mutation.fields(); writes += 1
         if loseResponse { throw ParticipantWriteError.outcomeUnknown(.transport) }
     }
-    /// The backend answers a create with the saved row, which the coordinator requires as proof.
+    /// A create ACK without the authoritative row is intentionally outcome-unknown in Core.
     func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
         try await perform(mutation, expectedIdentity: expectedIdentity)
-        if case .save(let draft) = mutation, draft.id == nil { return try await profileParticipant(id: 911) }
-        return nil
+        guard case .save(let draft) = mutation, draft.id == nil else { return nil }
+        let fields = try draft.fields()
+        let object: [String: Any] = ["id": 912, "fullName": fields["fullName"] ?? "", "mobilePhone": fields["mobilePhone"] ?? ""]
+        return try JSONDecoder().decode(ProfileParticipant.self, from: try JSONSerialization.data(withJSONObject: object))
     }
     func profileOrders() async throws -> [ProfileOrder] { [] }
     func profileOrder(id: Int) async throws -> ProfileOrder { throw APIError.invalidRequest }

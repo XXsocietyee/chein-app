@@ -99,3 +99,27 @@ public enum MerchantCustomerListParity {
         return ParticipationRow(title: title, dateText: dateText, paidAmountText: paid)
     }
 }
+
+/// Source pages/merchant/customer/index.js `submitBatchTag`: at most 100 selected customers, a trimmed
+/// 1...16 character tag name, the fixed mini-program tag colour. Presentation and validation only; the write
+/// is `MerchantBusinessMutation.batchTag` through the injected, still-gated business service.
+public enum MerchantCustomerBatchTag {
+    public static let maxSelection = 100
+    public static let defaultColor = "#2E6D5A"
+    public enum Issue: String, Equatable {
+        case noSelection, invalidName
+        /// MerchantOps string-table key.
+        public var messageKey: String { "merchantOps.customer.batchTag.issue." + rawValue }
+    }
+    public static func issue(selected: Int, name: String) -> Issue? {
+        if selected <= 0 { return .noSelection }
+        let count = name.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count
+        return (1...16).contains(count) ? nil : .invalidName
+    }
+    public static func canSelectMore(currentCount: Int) -> Bool { currentCount < maxSelection }
+    /// nil while the draft is invalid, so nothing can be prepared or sent.
+    public static func mutation(ids: [MerchantCustomerID], name: String) -> MerchantBusinessMutation? {
+        guard issue(selected: ids.count, name: name) == nil, ids.count <= maxSelection, Set(ids).count == ids.count else { return nil }
+        return .batchTag(customers: ids, name: name, color: defaultColor)
+    }
+}

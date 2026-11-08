@@ -208,7 +208,7 @@ enum InvoiceLaunchHistoryRules {
 
     static func rows(_ applications: [InvoiceLaunchApplication], filter: String) -> [InvoiceLaunchApplication] {
         guard filter != "all" else { return applications }
-        return applications.filter { $0.status.rawValue == filter }
+        return applications.filter { $0.status.filterKey == filter }
     }
 
     /// Source shows 撤回申请 on SUBMITTED rows only; the service still authorizes the request.

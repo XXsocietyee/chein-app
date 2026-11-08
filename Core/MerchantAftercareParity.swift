@@ -180,3 +180,67 @@ public enum MerchantAftercareParity {
         }
     }
 }
+
+// MARK: - Aftercare response draft (appended: new Core files need a regenerated project, which this worker may not edit)
+
+/// Source pages/merchant/aftercare/detail/view-model.js `buildResponseDraft` and `RESPONSE_FLOW`.
+/// Pure validation and copy keys: it sends nothing. The write itself stays behind
+/// `MerchantBusinessMutation.aftercare` and the injected `MerchantBusinessService` transport.
+public enum MerchantAftercareResponseIssue: String, Equatable {
+    case decisionRequired, contentTooLong, reasonRequired, evidenceInvalid, evidenceRequired
+    /// Key in the MerchantOps string table (English + Simplified Chinese).
+    public var messageKey: String { "merchantOps.aftercare.respond.issue." + rawValue }
+}
+
+public struct MerchantAftercareResponseDraft: Equatable {
+    public var decision: MerchantAftercareDecision?
+    public var content: String
+    /// One evidence object key at most, exactly like the source (a single upload per response).
+    public var evidenceKey: String?
+
+    public init(decision: MerchantAftercareDecision?, content: String = "", evidenceKey: String? = nil) {
+        self.decision = decision; self.content = content; self.evidenceKey = evidenceKey
+    }
+
+    static func isEvidenceObjectKey(_ value: String) -> Bool {
+        value.range(of: #"^upload/merchant-aftercare-evidence/[0-9a-f]{32}\.(?:jpe?g|png|gif)$"#, options: .regularExpression) != nil
+    }
+
+    /// First blocking issue, in the same order as the source. nil means the draft may be reviewed.
+    public var issue: MerchantAftercareResponseIssue? {
+        guard let decision else { return .decisionRequired }
+        let trimmed = content.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.utf16.count > 500 { return .contentTooLong }
+        if decision == .reject && trimmed.isEmpty { return .reasonRequired }
+        let evidence = evidenceKey?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let evidence, !evidence.isEmpty, !Self.isEvidenceObjectKey(evidence) { return .evidenceInvalid }
+        if decision == .evidence && (evidence ?? "").isEmpty { return .evidenceRequired }
+        return nil
+    }
+    public var isValid: Bool { issue == nil }
+
+    /// The mutation to hand to the confirm-then-act coordinator; nil while the draft is invalid.
+    public func mutation(refund: MerchantRefundID) -> MerchantBusinessMutation? {
+        guard issue == nil, let decision else { return nil }
+        let evidence = evidenceKey?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return .aftercare(refund: refund, decision: decision, content: content,
+                          evidenceKey: (evidence ?? "").isEmpty ? nil : evidence)
+    }
+}
+
+public enum MerchantAftercareResponseGuide {
+    /// Decisions the server allowed, in the source pill order (agree, reject, evidence). Unknown
+    /// raw values are dropped, never guessed.
+    public static func visibleDecisions(allowed: [String], canRespond: Bool) -> [MerchantAftercareDecision] {
+        guard canRespond else { return [] }
+        return MerchantAftercareDecision.allCases.filter { allowed.contains($0.rawValue) }
+    }
+    /// Source RESPONSE_FLOW.consequence: a merchant opinion is not a refund.
+    public static func consequenceKey(_ decision: MerchantAftercareDecision) -> String {
+        "merchantOps.aftercare.respond.consequence." + decision.rawValue
+    }
+    /// Source: REJECT is the only decision that asks for a second, explicit confirmation.
+    public static func requiresDangerConfirmation(_ decision: MerchantAftercareDecision) -> Bool {
+        decision == .reject
+    }
+}

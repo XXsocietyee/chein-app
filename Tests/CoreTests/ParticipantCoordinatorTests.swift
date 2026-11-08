@@ -47,7 +47,6 @@ final class ParticipantCoordinatorTests: XCTestCase {
     }
     func testOnlyFrozenConfirmedValuesAreSubmittedAndCompletedIntentCannotReplay() async throws {
         let (coordinator, writer, _) = fixture()
-        writer.createdRow = try participantFixture()
         var draft = participantDraftFixture()
         let confirmation = try coordinator.prepare(.save(draft), expectedIdentity: writer.identity!)
         draft.fullName = "Changed after confirmation"
@@ -255,18 +254,19 @@ final class ParticipantFakeWriter: ParticipantWriting {
     var identity: ProfileReadIdentity? = .init(accountID: 1, epoch: 1)
     var mutations: [ParticipantMutation] = []
     var operation: (ParticipantMutation) async throws -> Void = { _ in }
-    /// Backend /api/user/address/action returns the created row (insertOwnedAddressIdempotent ->
-    /// success(saved)); set this to emulate it. Default nil keeps older perform-only specimens unchanged.
-    var createdRow: ProfileParticipant?
     func perform(_ mutation: ParticipantMutation, expectedIdentity: ProfileReadIdentity) async throws {
         guard expectedIdentity == identity else { throw ParticipantWriteError.notSent(.unauthorized) }
         mutations.append(mutation)
         try await operation(mutation)
     }
+    /// The current create ACK carries the authoritative row (Core/ParticipantService.swift);
+    /// a nil row on create is intentionally outcome-unknown (ParticipantDurableUnknownTests).
     func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
         try await perform(mutation, expectedIdentity: expectedIdentity)
-        if case .save(let draft) = mutation, draft.id == nil { return createdRow }
-        return nil
+        guard case .save(let draft) = mutation, draft.id == nil, let fields = try? draft.fields() else { return nil }
+        let object: [String: Any] = ["id": 99, "fullName": fields["fullName"] ?? "", "mobilePhone": fields["mobilePhone"] ?? ""]
+        let data = try JSONSerialization.data(withJSONObject: object)
+        return try JSONDecoder().decode(ProfileParticipant.self, from: data)
     }
 }
 

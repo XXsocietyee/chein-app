@@ -202,16 +202,41 @@ struct ObjectBadgeWallBadgeLabel: View {
     let expectedScope: UUID
     let currentScope: () -> UUID
     var media: (any ObjectCardImageLoading)? = nil
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var turntable: ObjectBadgeTurntable?
     var body: some View {
+        let table = turntable ?? ObjectBadgeTurntable(style: parameters.style, reducedMotion: reduceMotion)
         VStack(spacing: 16) {
             if currentScope() == expectedScope {
+                // Native turntable: drag to rotate, tap to spin a pin badge; static under Reduce Motion.
                 ObjectCardArtwork(url: parameters.image, label: parameters.name, media: media,
                     expectedScope: expectedScope, currentScope: currentScope).frame(height: 200)
+                    .rotation3DEffect(.degrees(table.angle), axis: (x: 0, y: 1, z: 0))
+                    .contentShape(Rectangle())
+                    .gesture(DragGesture(minimumDistance: 4)
+                        .onChanged { value in
+                            var next = turntable ?? table
+                            next.drag(translationWidth: Double(value.translation.width)); turntable = next
+                        }
+                        .onEnded { _ in
+                            var next = turntable ?? table
+                            next.endDrag(); turntable = next
+                        })
+                    .onTapGesture {
+                        var next = turntable ?? table
+                        next.tap()
+                        withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.8)) { turntable = next }
+                    }
+                    .accessibilityIdentifier("objects.badge.turntable")
+                if let hint = table.hintKey {
+                    Text(LocalizedStringKey(hint)).font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("objects.badge.turntableHint")
+                }
                 if parameters.name.isEmpty { Text("profile.badges.detail").font(.headline) }
                 else { Text(verbatim: parameters.name).font(.headline) }
                 if !parameters.subtitle.isEmpty { Text(verbatim: parameters.subtitle).font(.caption) }
                 Text(LocalizedStringKey("objects.rarity." + String(parameters.rarity)))
-                Text(parameters.style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote).foregroundStyle(.secondary)
+                Text(LocalizedStringKey(parameters.style == "glow" ? "objects.glow" : (parameters.style == "pin" ? "objects.pin" : "objects.enamel"))).font(.footnote).foregroundStyle(.secondary)
             } else { Text("objects.sessionChanged") }
         }.padding().appNavigationTitle("profile.badges.detail").privacySensitive()
     }

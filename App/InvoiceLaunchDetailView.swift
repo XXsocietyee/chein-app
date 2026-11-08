@@ -10,8 +10,16 @@ import SwiftUI
             InvoiceLaunchStateSection(model: model, retry: { await model.loadDetail(applicationID) })
             if let row = model.detail, row.id == applicationID {
                 Section {
-                    invoiceText(row.status.rawValue).font(.title2).bold()
-                    if let reason = row.rejectReason, !reason.isEmpty { Text(verbatim: reason) }
+                    HStack(alignment: .firstTextBaseline) {
+                        invoiceText(row.status.noticeKey).font(.title2).bold()
+                        Spacer()
+                        invoiceText(row.status.labelKey).font(.footnote).foregroundStyle(.secondary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("invoice.detail.notice")
+                    if row.status == .rejected, let reason = row.rejectReason, !reason.isEmpty {
+                        LabeledContent { Text(verbatim: reason) } label: { invoiceText("rejectReason") }
+                    }
                 }
                 Section {
                     LabeledContent { Text(verbatim: row.titleName) } label: { invoiceText("titleName") }
