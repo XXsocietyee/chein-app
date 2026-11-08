@@ -136,7 +136,7 @@ struct DiscoveryTemplateBrowserView: View {
                     .accessibilityIdentifier("discovery.topicNameSearch.submit")
             }
             if appliedTopicSearch.isActive {
-                Text(verbatim: appliedTopicSearch.keyword)
+                Text("discovery.searchingFor \(appliedTopicSearch.keyword)")
                     .accessibilityIdentifier("discovery.topicNameSearch.applied")
                 Button("discovery.clearTopicNameSearch") {
                     topicKeyword = ""; appliedTopicSearch = DiscoveryTopicTemplateNameSearch("")
@@ -157,10 +157,11 @@ struct DiscoveryTemplateBrowserView: View {
         if let error = topics.error {
             DiscoveryErrorView(error: error) { Task { await loadTopics() } }
         }
-        if topics.isLoading { ProgressView("discovery.loading") }
+        if topics.isLoading { DiscoveryTemplateSyncingRow(hasLoadedRows: topics.value != nil) }
         if let rows = topics.value {
             if rows.isEmpty {
                 ContentUnavailableView("discovery.emptyTopics", systemImage: "map", description: Text("discovery.emptyTopicsHint"))
+                DiscoveryTemplateEmptyRefresh { Task { await loadTopics() } }
             } else {
                 let filtered = appliedTopicSearch.filter(rows)
                 if filtered.isEmpty {
@@ -171,7 +172,7 @@ struct DiscoveryTemplateBrowserView: View {
                     let matching = filtered.filter { $0.matchesCategory(categoryID) }
                     let other = filtered.filter { !$0.matchesCategory(categoryID) }
                     topicSection(categoryID == nil ? "discovery.recommended" : "discovery.categoryMatches", rows: matching)
-                    topicSection("discovery.otherTemplates", rows: other)
+                    topicSection("discovery.otherTemplates", rows: other, hint: "discovery.otherTemplatesHint")
                 }
             }
         }
@@ -229,9 +230,9 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
     }
-    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate]) -> some View {
+    @ViewBuilder private func topicSection(_ title: LocalizedStringKey, rows: [DiscoveryTopicTemplate], hint: LocalizedStringKey? = nil) -> some View {
         if !rows.isEmpty {
-            Section(title) {
+            Section {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     Button {
                         guard topicSelection == nil, topics.canOpen(reader: reader),
@@ -240,15 +241,23 @@ struct DiscoveryTemplateBrowserView: View {
                             coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
                         topics.cover()
                     } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.headline)
-                            if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                Text(item.subtitle).font(.subheadline)
+                        HStack(alignment: .top, spacing: 12) {
+                            DiscoveryTopicCoverThumb(urlString: item.imgUrl)
+                            VStack(alignment: .leading, spacing: 6) {
+                                DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.headline)
+                                if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    Text(item.subtitle).font(.subheadline)
+                                }
+                                DiscoveryTopicMetadata(item: item)
                             }
-                            DiscoveryTopicMetadata(item: item)
                         }.padding(.vertical, 6)
                     }.disabled(!topics.canOpen(reader: reader))
                         .accessibilityIdentifier("discovery.topic.\(item.id)")
+                }
+            } header: {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(title)
+                    if let hint { Text(hint).font(.caption).textCase(nil) }
                 }
             }
         }

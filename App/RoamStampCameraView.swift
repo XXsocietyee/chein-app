@@ -12,6 +12,7 @@ import UIKit
     var exchange: (@MainActor (Int) async throws -> RoamStampExchangeReceipt)? = nil
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
+    @Environment(\.dismiss) private var dismiss
     @State private var cameraDenied = false
     private enum ExchangePhase: Equatable { case idle, working, failed, done(RoamStampExchangeReceipt) }
     @State private var exchangePhase: ExchangePhase = .idle
@@ -39,7 +40,12 @@ import UIKit
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }.frame(minHeight: 44).accessibilityIdentifier("media.stamp.openSettings")
                     }.accessibilityIdentifier("media.stamp.cameraDenied")
-                } else if cameraIssue { Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(.orange) }
+                } else if cameraIssue {
+                    Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                    // Mini-program sc-err: a camera error that cannot open Settings offers 返回上一页.
+                    Button("action.back") { dismiss() }.frame(minHeight: 44)
+                        .accessibilityIdentifier("media.stamp.cameraIssue.back")
+                }
                 Toggle("media.stamp.consent", isOn: $purposeAccepted).disabled(isBusy || showingCamera)
             } footer: { Text("media.stamp.purpose") }
             captionSection

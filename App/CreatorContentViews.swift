@@ -3,12 +3,16 @@ import SwiftUI
 @MainActor private final class CreatorContentScreenModel<Value>: ObservableObject {
     @Published private var revision: UInt64 = 0
     let state = CreatorContentReadModel<Value>()
+    /// PORT-6: rows of the previous successful load, kept visible (read-only) while the same list reloads.
+    @Published private(set) var stale: (value: Value, query: CreatorContentQuery, scope: UUID)?
     func cancel() { state.cancelPending(); revision &+= 1 }
     func clear() { state.invalidate(); revision &+= 1 }
-    func load(reader: any CreatorContentReading, operation: () async throws -> Value) async {
+    func load(reader: any CreatorContentReading, query: CreatorContentQuery? = nil, operation: () async throws -> Value) async {
         let scope = reader.scope
+        if let query, let previous = state.visibleValue(scope: scope) { stale = (previous, query, scope) }
         revision &+= 1
         await state.load(scope: scope, currentScope: { reader.scope }, operation: operation)
+        stale = nil
         revision &+= 1
     }
 }
@@ -74,6 +78,15 @@ private struct CreatorContentIssueView: View {
                 }
                 // Mini myproject template tab reads the separate api/template/my-list own-shelf, never project/my rows.
                 if query.type == "template" { MyProjectTemplateTabSection(shelf: templateShelf) }
+                else if model.state.isLoading, let kept = model.stale,
+                        MyProjectSyncPort.keepsStaleRows(isLoading: true, previousQuery: kept.query, currentQuery: query,
+                                                        previousScope: kept.scope, currentScope: key.scope) {
+                    Text("myProject.syncing").font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityAddTraits(.updatesFrequently).accessibilityIdentifier("myProject.syncing")
+                    ForEach(MyProjectListPresentation.sorted(kept.value.rows)) { project in
+                        card(project).questifyCardListRow().allowsHitTesting(false)
+                    }
+                }
                 else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
                 else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                 else if let page = model.state.visibleValue(scope: key.scope) {
@@ -134,7 +147,7 @@ private struct CreatorContentIssueView: View {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }
         let captured = query
         guard captured.type != "template" else { model.clear(); return }
-        await model.load(reader: reader) {
+        await model.load(reader: reader, query: captured) {
             if let live = reader as? CreatorContentSessionReader {
                 return try await live.projects(query: captured, operationScope: entryScope)
             }
