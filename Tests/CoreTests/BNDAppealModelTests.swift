@@ -37,7 +37,7 @@ import Foundation
         return try JSONDecoder().decode(BundleAppeal.self, from: Data(json.utf8))
     }
     private func receipt(_ kind: String, _ appeal: BundleAppeal?) throws -> BundleAppealReceipt {
-        let body = appeal == nil ? "null" : #"{"id":77,"registrationId":9001,"unitId":21,"holderMemberId":5,"reasonCode":"OTHER","status":"OPEN","idempotencyKey":"\#(key)"}"#
+        let body = appeal == nil ? "null" : #"{"id":77,"registrationId":9001,"unitId":21,"holderMemberId":5,"reasonCode":"MERCHANT_FORGOT_SCAN","status":"OPEN","idempotencyKey":"\#(key)","version":0}"#
         return try JSONDecoder().decode(BundleAppealReceipt.self, from: Data(#"{"idempotencyKey":"\#(key)","receipt":"\#(kind)","appeal":\#(body)}"#.utf8))
     }
     private func make(_ service: FakeAppealService, _ storage: AppealMemoryStorage) throws -> (BundleAppealModel, BundleAppealPendingStore) {
