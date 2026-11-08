@@ -2,7 +2,7 @@
 
 NOT COMPILED. No Swift files added: no chunk route has a production equivalent that carries the receipt/ledger/governance semantics the iOS call site requires.
 
-**Evidence base:** commit `014fc0d8` (now present locally). Production IM controllers there: `ApiImController` (/api/im/{conversations,messages,send,read,delete,mute,unread-total,start,block,unblock,report}, all POST form) and `ApiImPollController` (/api/im/poll/{create,vote,close,result}). Line numbers cited were read at master `5e23cd52`; the only diff in ApiImController between the two is 4+/31- lines (send overload), routes unchanged. No `cloud/be-gNN` branch exists on origin, so no closest-undeployed route is named.
+**Evidence base:** commit `014fc0d8` (now present locally). Production IM controllers there: `ApiImController` (/api/im/{conversations,messages,send,send-receipt,read,delete,mute,unread-total,start,block,unblock,report}, all POST form) and `ApiImPollController` (/api/im/poll/{create,vote,close,result}). Line numbers cited were read at master `5e23cd52`; the only diff in ApiImController between the two is 4+/31- lines (send overload), the diff adds no route in this chunk (014fc0d8 itself has `/send-receipt`, outside chunk 05). No `cloud/be-gNN` branch exists on origin, so no closest-undeployed route is named.
 
 | iOS route | production equivalent | evidence | status | new files |
 |---|---|---|---|---|
