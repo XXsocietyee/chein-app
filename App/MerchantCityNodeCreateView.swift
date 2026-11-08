@@ -130,7 +130,7 @@ import SwiftUI
         if !MerchantCityNodeWriteGate.saveAvailable(permitsWrites: service.permitsWrites, isOfflineExample: isOfflineFixture) {
             MerchantCityNodeCopy.text("merchantCityNode.write.disabled").font(.footnote).foregroundStyle(.secondary)
                 .padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12))
                 .accessibilityIdentifier("cityNodeCreate.writeUnavailable")
         }
         timeline
@@ -147,7 +147,7 @@ import SwiftUI
                 Button { Task { await readUncertain() } } label: { MerchantCityNodeCopy.text("merchantCityNode.write.readback") }
                     .font(.footnote.weight(.semibold)).disabled(c.busy).accessibilityIdentifier("cityNodeCreate.unknown.readback")
             }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeCreate.locked")
+                .background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeCreate.locked")
         } else if submitAttempted, submittedID == nil, c.issue != nil, c.review == nil, c.receipt == nil, !submitting {
             MerchantCityNodeInlineError(titleKey: "merchantCityNode.create.submitFailed",
                 message: MerchantCityNodeCopy.failure(c, fallback: MerchantCityNodeCopy.string("merchantCityNode.create.submitFallback")),
@@ -186,7 +186,7 @@ import SwiftUI
                 Spacer()
                 if templateID > 0 {
                     Label { MerchantCityNodeCopy.text("merchantCityNode.create.configured") } icon: { Image(systemName: "checkmark") }
-                        .font(.caption.weight(.semibold)).foregroundStyle(.green).accessibilityIdentifier("cityNodeCreate.template.configured")
+                        .font(.caption.weight(.semibold)).foregroundStyle(CYColor.successText).accessibilityIdentifier("cityNodeCreate.template.configured")
                 }
             }
             if templateID > 0 {
@@ -221,7 +221,7 @@ import SwiftUI
                     HStack(spacing: 4) {
                         if confirmed { Image(systemName: "checkmark") }
                         MerchantCityNodeCopy.text(confirmed ? "merchantCityNode.create.addressConfirmed" : "merchantCityNode.create.addressPending")
-                    }.font(.caption.weight(.semibold)).foregroundStyle(confirmed ? Color.green : Color.orange).accessibilityIdentifier("cityNodeCreate.address.state")
+                    }.font(.caption.weight(.semibold)).foregroundStyle(confirmed ? CYColor.successText : CYColor.warningText).accessibilityIdentifier("cityNodeCreate.address.state")
                 }
             }
             let choose: () -> Void = addressSource.map { addressChoice.openAction($0, provider: placeSearch, current: { addressSource }) } ?? {}
