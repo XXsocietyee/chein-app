@@ -92,7 +92,7 @@ import SwiftUI
                         if model.pageFailed { retry("homeFeed.loadError", id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
                         if model.loadingPage { ProgressView("homeFeed.loading") }
                         else if !model.pageFailed && model.pagination.items.isEmpty {
-                            ContentUnavailableView("homeFeed.empty", systemImage: "magnifyingglass", description: Text("homeFeed.emptyHint"))
+                            CYEmptyStateView(systemImage: "magnifyingglass", title: "homeFeed.empty", description: "homeFeed.emptyHint")
                                 .accessibilityIdentifier("homeFeed.empty")
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
@@ -109,7 +109,7 @@ import SwiftUI
                     } header: { Text("homeFeed.explore") }
                 }
                 .listStyle(.insetGrouped)
-                .listSectionSpacing(20)
+                .listSectionSpacing(CYSpacing.xxl)
                 .searchable(text: $keyword, prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
@@ -155,8 +155,8 @@ import SwiftUI
                 QuestifyCardArtwork(url: url, height: 196)
             } else {
                 // A clean placeholder with no text when the banner has no usable cover.
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(uiColor: .tertiarySystemFill))
+                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                    .fill(CYColor.bgRaised)
                     .frame(height: 196)
                     .accessibilityHidden(true)
             }
@@ -183,7 +183,7 @@ import SwiftUI
                         ForEach(items) { item in row(item, section: section.rawValue) }
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 12) {
+                            LazyHStack(spacing: CYSpacing.md) {
                                 ForEach(items) { item in
                                     row(item, section: section.rawValue).frame(width: 280)
                                 }
@@ -194,7 +194,7 @@ import SwiftUI
                         .questifyCardListRow()
                     }
                 } else if model.loading {
-                    ProgressView().frame(maxWidth: .infinity, minHeight: 88)
+                    CYSkeleton().padding(.vertical, CYSpacing.md).frame(maxWidth: .infinity, minHeight: 88)
                 }
             } header: {
                 switch section {
@@ -217,7 +217,7 @@ import SwiftUI
                 .font(CYTypography.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
-                .buttonStyle(.bordered).controlSize(.large)
+                .buttonStyle(.cySecondary)
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }

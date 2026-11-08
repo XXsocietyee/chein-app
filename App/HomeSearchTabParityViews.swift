@@ -23,7 +23,7 @@ struct HomeHeroHeaderSectionView: View {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
-                            .font(.title2.weight(.bold))
+                            .font(CYTypography.sectionTitle)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         HStack(spacing: 6) {
@@ -62,7 +62,7 @@ struct HomeHeroHeaderSectionView: View {
                                     } icon: {
                                         Image(systemName: "location.fill")
                                     }
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityIdentifier("homeIndex.hero.city")
                                 }
                             }
@@ -181,11 +181,11 @@ struct PlayContinuationBannerView: View {
             if let messageKey = readAvailability.messageKey, readAvailability != .unauthenticated {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Image(systemName: readAvailability == .failed ? "exclamationmark.triangle" : "info.circle")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary)
                     Text(LocalizedStringKey(messageKey))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("homeIndex.continuation.availability.\(readAvailability.rawValue)")
                     Spacer()
                     if readAvailability == .failed, let onRetry {
@@ -211,12 +211,12 @@ struct PlayContinuationBannerView: View {
                                 .font(.caption.weight(.semibold))
                                 .foregroundStyle(QuestifyPalette.accent)
                             Text(verbatim: card.localizedTitle(locale: locale))
-                                .font(.headline)
-                                .foregroundStyle(.primary)
+                                .font(CYTypography.cardTitle)
+                                .foregroundStyle(CYColor.textPrimary)
                             if let subtitle = card.localizedSubtitle(locale: locale) {
                                 Text(verbatim: subtitle)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
+                                    .font(CYTypography.caption)
+                                    .foregroundStyle(CYColor.textSecondary)
                             }
                         }
                         Spacer()
@@ -246,7 +246,7 @@ struct HomeIndexShelfHeaderView: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline) {
             Text(verbatim: shelf.title(locale: locale))
-                .font(.headline)
+                .font(CYTypography.cardTitle)
                 .accessibilityIdentifier("homeIndex.shelfHeader.\(shelf.rawValue)")
             Spacer()
             if let onAction {
@@ -255,8 +255,8 @@ struct HomeIndexShelfHeaderView: View {
                         Text(verbatim: shelf.actionHint(locale: locale))
                         Image(systemName: "chevron.right")
                     }
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
                 }
                 .buttonStyle(.plain)
                 .accessibilityIdentifier("homeIndex.shelfAction.\(shelf.rawValue)")
@@ -319,26 +319,26 @@ struct HomeIndexEmptyStateView: View {
             case .loading:
                 ProgressView()
                 Text(verbatim: HomeIndexParityPresentation.loadingCopy(locale: locale))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
                     .accessibilityIdentifier("homeIndex.state.loading")
             case .empty:
                 Image(systemName: "tray")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: HomeIndexParityPresentation.emptyStateTitle(locale: locale))
-                    .font(.headline)
+                    .font(CYTypography.cardTitle)
                 Text(verbatim: HomeIndexParityPresentation.emptyStateHint(locale: locale))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("homeIndex.state.empty")
             case .error:
                 Image(systemName: "exclamationmark.triangle")
                     .font(.title2)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: HomeIndexParityPresentation.errorCopy(locale: locale))
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("homeIndex.state.error")
                 if let onRetry {
                     Button(action: onRetry) {

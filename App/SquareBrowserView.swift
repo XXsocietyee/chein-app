@@ -49,7 +49,7 @@ import SwiftUI
                         .accessibilityIdentifier("squareReport.progress.entry")
                 }
                 Section {
-                    if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
+                    if reader.isOfflineExample { Text("square.offlineExample").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
                     Picker("square.feed", selection: $query.mode) {
                         ForEach(SquareFeedMode.visible, id: \.self) { mode in Text(mode.labelKey).tag(mode) }
                     }.accessibilityIdentifier("square.feed")
@@ -60,8 +60,8 @@ import SwiftUI
                 else if gatePending { ProgressView("square.loading") }
                 else if communityClosed {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("square.xcx.closedTitle").font(.headline).accessibilityIdentifier("square.communityClosed")
-                        Text("square.xcx.closedDetail").font(.footnote).foregroundStyle(.secondary)
+                        Text("square.xcx.closedTitle").font(CYTypography.cardTitle).accessibilityIdentifier("square.communityClosed")
+                        Text("square.xcx.closedDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         Button("square.retry") { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
                     }
                 }
@@ -74,8 +74,8 @@ import SwiftUI
                         else {
                             // Source empty feed: 广场还很安静 / 成为第一个发布创意路线的人吧.
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("square.xcx.emptyTitle").font(.headline).accessibilityIdentifier("square.empty")
-                                Text("square.xcx.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                                Text("square.xcx.emptyTitle").font(CYTypography.cardTitle).accessibilityIdentifier("square.empty")
+                                Text("square.xcx.emptyDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             }
                         }
                     }

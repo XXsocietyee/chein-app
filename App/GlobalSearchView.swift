@@ -45,7 +45,7 @@ import SwiftUI
         List {
             Section {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                    Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                     TextField("searchMap.placeholder", text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
@@ -53,8 +53,8 @@ import SwiftUI
                         .labelStyle(.iconOnly).buttonStyle(.borderless)
                         .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
                 }
-                if historyFailure { Text("searchMap.historyUnavailable").font(.footnote).foregroundStyle(.secondary) }
-                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
+                if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             }
             Section {
                 Button("searchMap.search") { Task { await search() } }
@@ -138,23 +138,23 @@ import SwiftUI
             Section {
                 ForEach(history, id: \.self) { keyword in
                     Button { setKeyword(keyword); Task { await search() } } label: {
-                        Label(keyword, systemImage: "clock.arrow.circlepath").foregroundStyle(.primary)
+                        Label(keyword, systemImage: "clock.arrow.circlepath").foregroundStyle(CYColor.textPrimary)
                     }
-                    .frame(minHeight: 44)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                 }
             } header: {
                 HStack {
                     Text("searchMap.history")
                     Spacer()
                     Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
-                        .font(.footnote).textCase(nil).buttonStyle(.borderless)
+                        .font(CYTypography.meta).textCase(nil).buttonStyle(.borderless)
                         .frame(minHeight: 44).accessibilityIdentifier("searchMap.clearHistory")
                 }
             }
         }
         if !recommendedKeywords.isEmpty {
             Section("searchMap.recommended") {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: 8) {
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: CYSpacing.sm) {
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).frame(maxWidth: .infinity, minHeight: 44)
@@ -169,7 +169,7 @@ import SwiftUI
         if categoryLoading || categoryFailed || !categories.isEmpty {
             Section("searchMap.categories") {
                 if categoryLoading {
-                    ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("globalSearch.category.loading")
+                    CYSkeleton().padding(.vertical, CYSpacing.sm).accessibilityIdentifier("globalSearch.category.loading")
                 } else if categoryFailed {
                     SearchMapIssue(key: "searchMap.categoryFailed") {
                         guard !showsFilters, let context else { return }
@@ -178,7 +178,7 @@ import SwiftUI
                     .questifyCardListRow()
                 }
                 if !categories.isEmpty {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: 12) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: CYSpacing.md) {
                         ForEach(categories) { category in
                             Button {
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
@@ -223,17 +223,17 @@ import SwiftUI
         if (loading && !value.rows.isEmpty) || !retainedKinds.isEmpty || !value.gatedKinds.isEmpty || !value.failedKinds.isEmpty {
             Section {
                 if loading && !value.rows.isEmpty {
-                    Text("globalSearchRetention.refreshing").font(.footnote).foregroundStyle(.secondary)
+                    Text("globalSearchRetention.refreshing").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("globalSearchRetention.refreshing")
                 }
                 if !retainedKinds.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("globalSearchRetention.stale")
                         ForEach(retainedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "clock.arrow.circlepath") }
-                    }.font(.footnote).accessibilityIdentifier("globalSearchRetention.stale")
+                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("globalSearchRetention.stale")
                 }
                 if !value.gatedKinds.isEmpty {
-                    Label("searchMap.partialSignIn", systemImage: "lock").font(.footnote)
+                    Label("searchMap.partialSignIn", systemImage: "lock").font(CYTypography.meta)
                         .accessibilityIdentifier("searchMap.guestGate")
                     if let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
                 }
@@ -242,14 +242,14 @@ import SwiftUI
                         Text(LocalizedStringKey(value.allFailed ? "searchMap.allFailed" : "searchMap.partialFailure"))
                         ForEach(value.failedKinds, id: \.self) { kind in Label(kind.titleKey, systemImage: "exclamationmark.circle") }
                         Button("searchMap.retry") { Task { await search() } }.buttonStyle(.borderless).frame(minHeight: 44)
-                    }.font(.footnote).accessibilityIdentifier("searchMap.partialFailure")
+                    }.font(CYTypography.meta).accessibilityIdentifier("searchMap.partialFailure")
                 }
             }
         }
         let visible = value.rows.filter { selectedKind == nil || $0.kind == selectedKind }
         Section {
             if value.showsEmptyState(for: selectedKind, isLoading: loading) {
-                ContentUnavailableView("searchMap.empty", systemImage: "magnifyingglass")
+                CYEmptyStateView(systemImage: "magnifyingglass", title: "searchMap.empty")
             }
             ForEach(visible) { row in
                 NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }

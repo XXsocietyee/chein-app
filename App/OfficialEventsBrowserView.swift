@@ -81,7 +81,7 @@ import SwiftUI
                         case .mine: Text("official.summary.mine \(visible.count)")
                         }
                     }
-                }.font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("officialList.summary")
+                }.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
                 if visible.isEmpty {
                     ContentUnavailableView {
                         Label(LocalizedStringKey(query.emptyTitleKey), systemImage: "sparkles")
