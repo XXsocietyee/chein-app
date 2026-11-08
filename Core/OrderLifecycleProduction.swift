@@ -272,10 +272,7 @@ public enum OrderLifecycleProductionResult {
         try check(review, visible: visible)
         guard review.action == .payment, let expected = approval(review)?.signupDocument, let document else { throw OrderLifecycleFailure.notDispatched }
         guard try await document.currentDocument(context: captured) == expected else { throw OrderLifecycleFailure.stale }
-        var fields = try ComplianceSubject.signup.fields()
-        fields["eventType"] = "AGREE"; fields["requestId"] = UUID().uuidString
-        let request = try OperationAdapterHTTP.json(configuration: api, path: "api/compliance/consents",
-            body: JSONSerialization.data(withJSONObject: fields, options: .sortedKeys), token: captured.session.token)
+        let request = try OrderLifecycleRequestContract.signupConsent(requestID: UUID(), baseURL: api.baseURL, token: captured.session.token)
         _ = try await send(request, review: review, visible: visible)
         try await checkLegal(review, visible: visible)
     }
@@ -290,16 +287,9 @@ public enum OrderLifecycleProductionResult {
                       let data = request.httpBody,
                       let fields = try JSONSerialization.jsonObject(with: data) as? [String: String],
                       fields == ["docType": ComplianceSubject.signup.docType, "scene": ComplianceSubject.signup.scene] else { throw APIError.invalidRequest }
-            } else if request.url == self.api.baseURL.appendingPathComponent("api/compliance/consents") {
-                // Explicit re-consent only: exact signup subject, AGREE, UUID request id, payment review.
-                guard review.action == .payment, request.httpMethod == "POST",
-                      request.value(forHTTPHeaderField: "Content-Type") == "application/json",
-                      request.value(forHTTPHeaderField: "Authorization") == self.captured.session.token,
-                      let data = request.httpBody,
-                      let fields = try JSONSerialization.jsonObject(with: data) as? [String: String],
-                      Set(fields.keys) == ["docType", "scene", "eventType", "requestId"],
-                      fields["docType"] == ComplianceSubject.signup.docType, fields["scene"] == ComplianceSubject.signup.scene,
-                      fields["eventType"] == "AGREE", fields["requestId"].flatMap({ UUID(uuidString: $0) }) != nil else { throw APIError.invalidRequest }
+            } else if OrderLifecycleRequestContract.isSignupConsent(request, baseURL: self.api.baseURL, token: self.captured.session.token) {
+                // Explicit re-consent only, and only for a payment review.
+                guard review.action == .payment else { throw APIError.invalidRequest }
             } else {
                 try self.validateForm(request, path: review.action.sourcePath, id: review.detail.id)
                 guard let lock = try self.pending(orderID: review.detail.id), lock.attemptID == review.localAttemptID,

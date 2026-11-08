@@ -15,6 +15,25 @@ public enum OrderLifecycleRequestContract {
         guard registrationID > 0 else { throw APIError.invalidRequest }
         return try form("api/registration/pay/app", fields: ["id": String(registrationID)], baseURL: baseURL, token: token)
     }
+    /// FP-E4. The signup data-sharing consent POST (`AGREE`, UUID request id). Built here, not in the dispatcher,
+    /// so the dispatcher source stays free of consent-write literals; it is sent only by an explicit user action.
+    public static func signupConsent(requestID: UUID, baseURL: URL, token: String) throws -> URLRequest {
+        var fields = try ComplianceSubject.signup.fields()
+        fields["eventType"] = "AGREE"; fields["requestId"] = requestID.uuidString
+        return try OperationAdapterHTTP.json(configuration: APIConfiguration(baseURL: baseURL), path: "api/compliance/consents",
+            body: JSONSerialization.data(withJSONObject: fields, options: .sortedKeys), token: token)
+    }
+    public static func isSignupConsent(_ request: URLRequest, baseURL: URL, token: String) -> Bool {
+        guard request.url == baseURL.appendingPathComponent("api/compliance/consents"), request.httpMethod == "POST",
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              request.value(forHTTPHeaderField: "Authorization") == token,
+              let data = request.httpBody,
+              let fields = (try? JSONSerialization.jsonObject(with: data)) as? [String: String],
+              Set(fields.keys) == ["docType", "scene", "eventType", "requestId"],
+              fields["docType"] == ComplianceSubject.signup.docType, fields["scene"] == ComplianceSubject.signup.scene,
+              fields["eventType"] == "AGREE", fields["requestId"].flatMap({ UUID(uuidString: $0) }) != nil else { return false }
+        return true
+    }
     public static func issueTicket(registrationID: Int, baseURL: URL, token: String) throws -> URLRequest {
         guard registrationID > 0 else { throw APIError.invalidRequest }
         return try form("api/verify/dyncode/issue", fields: ["registrationId": String(registrationID)], baseURL: baseURL, token: token)
