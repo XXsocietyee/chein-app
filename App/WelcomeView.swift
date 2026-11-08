@@ -17,10 +17,11 @@ struct WelcomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
+                VStack(alignment: .leading, spacing: 20) {
                     Image(systemName: "map")
-                        .font(.largeTitle)
-                        .foregroundStyle(.tint)
+                        .font(.title2.weight(.semibold))
+                        .frame(width: 56, height: 56)
+                        .background(Color(uiColor: .secondarySystemFill), in: Circle())
                         .accessibilityHidden(true)
                     Text("welcome.title")
                         .font(.largeTitle.bold())
@@ -29,18 +30,34 @@ struct WelcomeView: View {
                         Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
                             .accessibilityIdentifier("welcome.upgradeRequired")
                     }
-                    roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk", primary: true)
-                    roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
-                    NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
-                        .accessibilityIdentifier("ownerDraft.guestEntry")
-                    if let onBrowse {
-                        Button("welcome.browse", action:onBrowse)
-                            .accessibilityIdentifier("welcome.browse")
-                    }
                 }
-                .padding(24)
+                .padding(.horizontal, 24)
+                .padding(.top, 32)
                 .frame(maxWidth: 620, alignment: .leading)
                 .frame(maxWidth: .infinity)
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: 12) {
+                    roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk", primary: true)
+                    roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
+                    HStack(spacing: 24) {
+                        NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
+                            .accessibilityIdentifier("ownerDraft.guestEntry")
+                        if let onBrowse {
+                            Button("welcome.browse", action: onBrowse)
+                                .accessibilityIdentifier("welcome.browse")
+                        }
+                    }
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.top, 4)
+                }
+                .padding(.horizontal, 24)
+                .padding(.bottom, 16)
+                .padding(.top, 12)
+                .frame(maxWidth: 620)
+                .frame(maxWidth: .infinity)
+                .background(.bar)
             }
             .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)

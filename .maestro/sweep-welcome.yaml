@@ -1,0 +1,9 @@
+appId: invalid.example.questify.ios
+---
+- launchApp:
+    clearState: false
+- takeScreenshot: /private/tmp/uishots/01-launch
+- tapOn:
+    id: "welcome.player"
+    optional: true
+- takeScreenshot: /private/tmp/uishots/02-after-player
