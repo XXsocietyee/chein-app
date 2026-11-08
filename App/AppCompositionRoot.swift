@@ -612,6 +612,12 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
         return .init(reads: true, insight: true, settlement: false)
     }
+    /// Team apply/withdraw/handle write lease; nil unless the reviewed deployment enables production gates. It grants endpoints only:
+    /// the caller must still supply a fresh-evidence loader and the adapter re-validates every review against it.
+    func nearbyTeamWriteApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard reviewed?.productionGatesEnabled == true else { return nil }
+        return productionGateLeases.nearbyTeamWrite(context)
+    }
     /// City-node voucher issue grant (`api/verify/citynode/issue`, kind `.cityVoucher` only); nil unless the reviewed deployment enables production gates.
     func verificationCodeApproval(_ context: RuntimeDependencyContext) -> VerificationCodeApproval? {
         guard reviewed?.productionGatesEnabled == true else { return nil }
@@ -3478,6 +3484,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if ReviewedNearbyTeamWriteRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else if ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
@@ -3986,6 +3995,41 @@ enum ReviewedNearbyTeamReadRoute {
     }
 }
 
+/// Exact requests emitted by `NearbyTeamHTTPWriteAdapter` for apply, withdraw and handle (`NearbyTeamRequest.action`:
+/// sorted-key JSON, `teamId` / `memberId` positive, `approved` a JSON boolean). `kick`, `quit`, `disband` and the
+/// other team mutations are not matched.
+enum ReviewedNearbyTeamWriteRoute {
+    static let approvalPaths: Set<String> = ["api/team/apply", "api/team/withdraw", "api/team/handle"]
+
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, url.fragment == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil, parts.query == nil,
+              let body = request.httpBody, body.count <= 96,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              let teamID = object["teamId"] as? Int, teamID > 0 else { return false }
+        func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
+        func canonical(_ value: [String: Any]) -> Bool {
+            (try? JSONSerialization.data(withJSONObject: value, options: .sortedKeys)) == body
+        }
+        if exactPath("api/team/apply") || exactPath("api/team/withdraw") {
+            return object.count == 1 && canonical(["teamId": teamID])
+        }
+        guard exactPath("api/team/handle"), object.count == 3,
+              let memberID = object["memberId"] as? Int, memberID > 0,
+              let approved = object["approved"] as? Bool else { return false }
+        return canonical(["teamId": teamID, "memberId": memberID, "approved": approved])
+    }
+}
+
 /// Anonymous receiver-side read of a shared footprint: exactly `RoamShareToken.request` (GET, one lowercase-hex `token`
 /// query item, no Authorization, cookie or body).
 enum ReviewedRoamShareSnapshotReadRoute {
@@ -4106,6 +4150,7 @@ private enum ReviewedProductionFormMutationRoute {
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
+    private var nearbyTeamWriteByContext: [String: OperationEndpointApproval] = [:]
     private var cityVoucherIssueByContext: [String: VerificationCodeApproval] = [:]
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {
@@ -4176,6 +4221,15 @@ private enum ReviewedProductionFormMutationRoute {
         teamReadByContext[key]?.revoke()
         guard let approval = try? TeamReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         teamReadByContext[key] = approval
+        return approval
+    }
+
+    func nearbyTeamWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = nearbyTeamWriteByContext[key] { return existing }
+        guard let approval = makeEndpoint(context, paths: ReviewedNearbyTeamWriteRoute.approvalPaths) else { return nil }
+        nearbyTeamWriteByContext[key] = approval
         return approval
     }
 

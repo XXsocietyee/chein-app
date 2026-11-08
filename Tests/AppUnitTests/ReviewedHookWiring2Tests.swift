@@ -384,3 +384,89 @@ final class ReviewedCityVoucherIssueWiringTests: ReviewedHookWiring2Base {
         XCTAssertFalse(off.enabled)
     }
 }
+
+/// Item 5: team apply / withdraw / handle writes. Evidence contract (AppSession): the review's team, applicant and
+/// application are re-read through the reviewed nearby read routes and must equal what was reviewed.
+@MainActor
+final class ReviewedNearbyTeamWriteWiringTests: ReviewedHookWiring2Base {
+    private func built(_ action: NearbyTeamAction, token: String = ReviewedHookWiring2Base.token) throws -> URLRequest {
+        let descriptor = try NearbyTeamRequest.action(action)
+        return try OperationAdapterHTTP.json(configuration: try APIConfiguration(baseURL: try XCTUnwrap(URL(string: Self.base))),
+            path: String(descriptor.path.dropFirst()), body: try XCTUnwrap(descriptor.body), token: token)
+    }
+    private func exactRequests() throws -> [(String, URLRequest)] {
+        [("apply", try built(.apply(NearbyTeamID(5)))), ("withdraw", try built(.withdraw(NearbyTeamID(5)))),
+         ("handle-approve", try built(.handle(team: NearbyTeamID(5), applicant: NearbyApplicantID(2), approved: true))),
+         ("handle-reject", try built(.handle(team: NearbyTeamID(5), applicant: NearbyApplicantID(2), approved: false)))]
+    }
+    private func neighbours() throws -> [(String, URLRequest)] {
+        let b = Self.base
+        let evil = "https://evil.example.org"
+        return [
+            ("kick", request("POST", b + "/api/team/kick", body: #"{"teamId":5}"#)),
+            ("quit", request("POST", b + "/api/team/quit", body: #"{"teamId":5}"#)),
+            ("disband", request("POST", b + "/api/team/disband", body: #"{"teamId":5}"#)),
+            ("join", request("POST", b + "/api/team/join", body: #"{"teamId":5}"#)),
+            ("apply-extra-key", request("POST", b + "/api/team/apply", body: #"{"memberId":1,"teamId":5}"#)),
+            ("apply-zero", request("POST", b + "/api/team/apply", body: #"{"teamId":0}"#)),
+            ("apply-string-id", request("POST", b + "/api/team/apply", body: #"{"teamId":"5"}"#)),
+            ("apply-query", request("POST", b + "/api/team/apply?x=1", body: #"{"teamId":5}"#)),
+            ("apply-unsorted", request("POST", b + "/api/team/apply", body: #"{ "teamId": 5 }"#)),
+            ("apply-get", request("GET", b + "/api/team/apply")),
+            ("apply-form", request("POST", b + "/api/team/apply", body: "teamId=5", contentType: "application/x-www-form-urlencoded")),
+            ("handle-missing-approved", request("POST", b + "/api/team/handle", body: #"{"memberId":2,"teamId":5}"#)),
+            ("handle-int-approved", request("POST", b + "/api/team/handle", body: #"{"approved":1,"memberId":2,"teamId":5}"#)),
+            ("handle-zero-member", request("POST", b + "/api/team/handle", body: #"{"approved":true,"memberId":0,"teamId":5}"#)),
+            ("handle-extra-key", request("POST", b + "/api/team/handle", body: #"{"approved":true,"memberId":2,"note":"x","teamId":5}"#)),
+            ("withdraw-member", request("POST", b + "/api/team/withdraw", body: #"{"memberId":2,"teamId":5}"#)),
+            ("foreign-apply", request("POST", evil + "/api/team/apply", body: #"{"teamId":5}"#)),
+            ("foreign-handle", request("POST", evil + "/api/team/handle", body: #"{"approved":true,"memberId":2,"teamId":5}"#))
+        ]
+    }
+
+    func testUnconfiguredCompositionIssuesNoLeaseAndRefusesEveryRoute() async throws {
+        let wire = Wire()
+        let root = try unconfigured(wire: wire)
+        XCTAssertNil(root.nearbyTeamWriteApproval(try context(root)))
+        let transport = root.transport()
+        transport.current = { self.viewer() }
+        let sent = await sentPaths(transport, try exactRequests() + neighbours(), wire: wire)
+        XCTAssertFalse(sent.values.contains(true), "\(sent)")
+    }
+
+    func testReviewedWithoutProductionGatesIssuesNoLeaseAndRefusesTheWrites() async throws {
+        let wire = Wire()
+        let root = try composition(gates: false, wire: wire)
+        XCTAssertNil(root.nearbyTeamWriteApproval(try context(root)))
+        let transport = root.transport()
+        transport.current = { self.viewer() }
+        let sent = await sentPaths(transport, try exactRequests(), wire: wire)
+        XCTAssertFalse(sent.values.contains(true), "\(sent)")
+    }
+
+    func testLeaseCoversExactlyThreePathsForPlayerClubMerchantInChina() throws {
+        let root = try composition(gates: true, wire: Wire())
+        for role in ["player", "club", "merchant"] {
+            let lease = try XCTUnwrap(root.nearbyTeamWriteApproval(try context(root, role: role)), role)
+            XCTAssertEqual(lease.paths, ["api/team/apply", "api/team/withdraw", "api/team/handle"])
+        }
+        XCTAssertNil(root.nearbyTeamWriteApproval(try context(root, role: "guest")))
+        XCTAssertNil(root.nearbyTeamWriteApproval(try context(root, market: .unitedStates)))
+    }
+
+    func testReviewedChinaCompositionAllowsExactlyTheWritesAndRefusesNeighbours() async throws {
+        let wire = Wire()
+        let transport = try composition(gates: true, wire: wire).transport()
+        transport.current = { self.viewer() }
+        let allowed = await sentPaths(transport, try exactRequests(), wire: wire)
+        for (name, sent) in allowed { XCTAssertTrue(sent, "must admit \(name)") }
+        let refused = await sentPaths(transport, try neighbours(), wire: wire)
+        for (name, sent) in refused { XCTAssertFalse(sent, "must refuse \(name)") }
+        XCTAssertEqual(wire.requests.count, allowed.count)
+        let out = Wire()
+        let outTransport = try composition(gates: true, wire: out).transport()
+        outTransport.current = { CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil, viewerRevision: 1) }
+        let outSent = await sentPaths(outTransport, try exactRequests(), wire: out)
+        XCTAssertFalse(outSent.values.contains(true), "\(outSent)")
+    }
+}
