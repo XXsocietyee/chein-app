@@ -86,6 +86,7 @@ import SwiftUI
             } else if let issue, !loading { failure(issue) }
             else { ProgressView("cooperation.loading").accessibilityIdentifier("cooperation.settlement.loading") }
         }
+        .cyMiniListScreen()
         .appNavigationTitle("cooperation.settlement.title")
         .task(id: ReadTask(reader: ObjectIdentifier(reader), account: reader.session?.accountID, epoch: reader.session?.epoch, source: source.rawValue, recordID: id, refresh: refresh)) { await load() }
         .refreshable { await load() }
@@ -100,30 +101,35 @@ import SwiftUI
 
     @ViewBuilder private func content(_ detail: CoopSettlementDetailModel) -> some View {
         Section {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).font(.subheadline).foregroundStyle(.secondary)
-                    Spacer()
+            // Mini `.sd__hero`: perspective + title with the status badge on the right, then label + big tabular amount.
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                HStack(alignment: .top) {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(LocalizedStringKey("cooperation.settlement.perspective." + detail.perspective.rawValue)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: title(detail)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    }
+                    Spacer(minLength: CYSpacing.sm)
                     CoopSettlementToneBadge(status: detail.status, tone: detail.tone)
                 }
-                Text(verbatim: title(detail)).font(.title3.bold())
-                Text("cooperation.settlement.line.income").font(.footnote).foregroundStyle(.secondary)
-                Text(verbatim: detail.amount.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—").font(.largeTitle.bold()).monospacedDigit()
+                Text("cooperation.settlement.line.income").font(CYTypography.label).foregroundStyle(CYColor.textSecondary).padding(.top, CYSpacing.md)
+                Text(verbatim: detail.amount.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—").font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    .minimumScaleFactor(0.6).lineLimit(1)
                     .accessibilityLabel(detail.amount.map { Text(verbatim: "¥" + CoopFinanceProfit.plainText($0)) } ?? Text("coopflow.amount.unknown"))
                     .accessibilityIdentifier("cooperation.settlement.amount")
-            }.padding(.vertical, 4)
+            }.padding(.vertical, CYSpacing.xs)
         }
         Section("cooperation.settlement.breakdown") {
             ForEach(Array(detail.lines.enumerated()), id: \.offset) { _, line in
-                LabeledContent { Text(verbatim: valueText(line.value)).monospacedDigit().fontWeight(line.strong ? .bold : .regular) } label: {
-                    Text(LocalizedStringKey("cooperation.settlement.line." + line.key)).fontWeight(line.strong ? .bold : .regular)
+                LabeledContent { Text(verbatim: valueText(line.value)).monospacedDigit().font(line.strong ? CYTypography.bodyMedium : CYTypography.label).foregroundStyle(CYColor.textPrimary) } label: {
+                    Text(LocalizedStringKey("cooperation.settlement.line." + line.key)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityIdentifier("cooperation.settlement.line.\(line.key)")
             }
         }
         Section("cooperation.settlement.progress") {
             ForEach(Array(detail.timeline.enumerated()), id: \.offset) { _, step in
-                LabeledContent { Text(verbatim: valueText(step.value)) } label: {
-                    Label { Text(LocalizedStringKey("cooperation.settlement.step." + step.key)) } icon: { Image(systemName: "circle.fill").font(.system(size: 7)) }
+                LabeledContent { Text(verbatim: valueText(step.value)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) } label: {
+                    // Mini `.sd__timeline`: dot + label (600) with the time beneath on the trailing side.
+                    Label { Text(LocalizedStringKey("cooperation.settlement.step." + step.key)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.textPrimary) } icon: { Image(systemName: "circle.fill").font(.system(size: 7)).foregroundStyle(CYColor.textPrimary) }
                 }.accessibilityIdentifier("cooperation.settlement.step.\(step.key)")
             }
         }
@@ -152,9 +158,9 @@ import SwiftUI
     }
     private func notice(_ title: String, _ detail: String?, verbatim: String? = nil, id: String) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey(title)).font(.headline)
-            if let verbatim { Text(verbatim: verbatim).font(.footnote).foregroundStyle(.secondary) }
-            else if let detail { Text(LocalizedStringKey(detail)).font(.footnote).foregroundStyle(.secondary) }
+            Text(LocalizedStringKey(title)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            if let verbatim { Text(verbatim: verbatim).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            else if let detail { Text(LocalizedStringKey(detail)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.settlement.state.\(id)")
     }
     private func title(_ detail: CoopSettlementDetailModel) -> String {
@@ -183,10 +189,8 @@ struct CoopSettlementToneBadge: View {
     let status: CoopSettlementDetailModel.Status
     let tone: CoopSettlementDetailModel.Tone
     var body: some View {
-        let color: Color = tone == .success ? .green : tone == .warning ? .orange : tone == .danger ? .red : .secondary
-        Text(LocalizedStringKey("cooperation.settlement.status." + status.rawValue))
-            .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 3)
-            .foregroundStyle(color).background(Capsule().fill(color.opacity(0.14)))
+        let mapped: CYMiniBadgeTone = tone == .success ? .accepted : tone == .warning ? .pending : tone == .danger ? .rejected : .muted
+        CYMiniBadge(Text(LocalizedStringKey("cooperation.settlement.status." + status.rawValue)), tone: mapped)
             .accessibilityIdentifier("cooperation.settlement.status")
     }
 }
