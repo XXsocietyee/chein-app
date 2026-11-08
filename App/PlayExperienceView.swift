@@ -121,6 +121,7 @@ import SwiftUI
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
                 if model.phase == .loading { ProgressView("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                PlayResyncAction(model: model)
                 if model.snapshot != nil { runControls }
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }

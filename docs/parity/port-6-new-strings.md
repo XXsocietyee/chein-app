@@ -10,3 +10,4 @@
 | myProject.syncing | Syncing the latest projects… | 正在同步最新项目… | subpackageA/pages/myproject |
 | stampAlbum.loadingNext | Loading the next page… | 正在读取下一页 | subpackageP3/pages/stamp-album |
 (stamp-camera "返回上一页" reuses existing key `action.back`; verify its copy reads "Back"/"返回". roam history card aria-label reuses existing keys.)
+| playx.resync | Resync run state | 重新同步本局状态 | pages/play |
