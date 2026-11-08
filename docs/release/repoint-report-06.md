@@ -27,4 +27,4 @@ CC = `ApiClubController.java`. Evidence column lists controller / mini-program l
 
 No `cloud/be-gNN` branch was checked for these (not deployed anyway). iOS one-line switches to existing Core files: none.
 
-Counts: REPOINTED 3, NEEDS-OWNER 6, TRUE-GAP 28 (37 routes; video 6 + voice 5 + webhook 2 counted individually).
+Counts (34 routes in chunk-06.tsv): REPOINTED 3, NEEDS-OWNER 6, TRUE-GAP 25.
