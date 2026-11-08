@@ -33,7 +33,7 @@ import SwiftUI
                     LabeledContent("merchant.operatorRoster.loadedMembers", value: String(roster.activeMembers.count))
                         .accessibilityIdentifier("merchant.operatorRoster.memberCount")
                     if roster.activeMembers.isEmpty {
-                        Text("merchant.operatorRoster.membersEmpty").foregroundStyle(.secondary)
+                        Text("merchant.operatorRoster.membersEmpty").foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("merchant.operatorRoster.membersEmpty")
                     }
                     ForEach(roster.activeMembers) { row in rowContent(row) }
@@ -42,7 +42,7 @@ import SwiftUI
                     LabeledContent("merchant.operatorRoster.loadedInvites", value: String(roster.pendingInvites.count))
                         .accessibilityIdentifier("merchant.operatorRoster.inviteCount")
                     if roster.pendingInvites.isEmpty {
-                        Text("merchant.operatorRoster.invitesEmpty").foregroundStyle(.secondary)
+                        Text("merchant.operatorRoster.invitesEmpty").foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("merchant.operatorRoster.invitesEmpty")
                     }
                     ForEach(roster.pendingInvites) { row in rowContent(row) }

@@ -6,7 +6,7 @@ struct MerchantAftercareRowLabel: View {
     let row: MerchantAftercareParity.ListRow
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var toneColor: Color {
-        switch row.tone { case .warning: return .orange; case .success: return .green; case .danger: return .red; case .neutral: return .secondary }
+        switch row.tone { case .warning: return CYColor.warningText; case .success: return CYColor.successText; case .danger: return CYColor.dangerText; case .neutral: return CYColor.textTertiary }
     }
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
@@ -16,18 +16,18 @@ struct MerchantAftercareRowLabel: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s1))
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: Theme.Space.s1))
         layout {
-            VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: row.title).font(.headline)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: row.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 metadataLayout {
-                    if let time = row.timeText { Text(verbatim: time + " ·").foregroundStyle(.secondary) }
+                    if let time = row.timeText { Text(verbatim: time + " ·").foregroundStyle(CYColor.textTertiary) }
                     Text(verbatim: MerchantOpsCopy.text(row.statusKey)).foregroundStyle(toneColor)
-                    if row.isTakenOver { Text(verbatim: "· " + MerchantOpsCopy.text("merchantOps.aftercare.takenOver")).foregroundStyle(.secondary) }
-                }.font(.subheadline)
-                if let activity = row.activityTitle { Text(verbatim: activity).font(.footnote).foregroundStyle(.secondary) }
+                    if row.isTakenOver { Text(verbatim: "· " + MerchantOpsCopy.text("merchantOps.aftercare.takenOver")).foregroundStyle(CYColor.textTertiary) }
+                }.font(CYTypography.meta)
+                if let activity = row.activityTitle { Text(verbatim: activity).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
             }
             if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 8) }
-            if let amount = row.amountDisplay { Text(verbatim: amount).font(Theme.Font.cardTitle).monospacedDigit() }
-            else { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.amountPending")).font(.footnote).foregroundStyle(.secondary) }
+            if let amount = row.amountDisplay { Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
+            else { Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.amountPending")).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
         }
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
@@ -44,10 +44,10 @@ struct MerchantAftercareDayHeader: View {
             ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s1))
             : AnyLayout(HStackLayout(alignment: .firstTextBaseline))
         layout {
-            Text(verbatim: Self.label(group.label)).font(.footnote.bold())
+            Text(verbatim: Self.label(group.label)).font(CYTypography.label)
             if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: Theme.Space.s2) }
-            if let total = group.total { Text(verbatim: total).font(.footnote).monospacedDigit() }
-        }.foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.aftercare.day.\(group.id)")
+            if let total = group.total { Text(verbatim: total).font(CYTypography.numericBody).monospacedDigit() }
+        }.foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchantOps.aftercare.day.\(group.id)")
     }
     static func label(_ label: MerchantAftercareParity.DayLabel) -> String {
         switch label {
@@ -65,6 +65,6 @@ struct MerchantAftercareReadOnlyNote: View {
     let reason: MerchantAftercareParity.ReadOnlyReason
     var body: some View {
         Text(verbatim: MerchantOpsCopy.text(reason == .roleViewOnly ? "merchantOps.aftercare.readOnly.role" : "merchantOps.aftercare.readOnly.closed"))
-            .font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("merchantOps.aftercare.readOnly")
+            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("merchantOps.aftercare.readOnly")
     }
 }
