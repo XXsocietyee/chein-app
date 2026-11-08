@@ -40,4 +40,4 @@ None (`docs/release/ui-strings-ui-f10.json` not needed). Tab titles reuse existi
 
 ## Files touched
 
-4 added, 0 modified: the 3 Swift files and the 2 docs above (token diff, this report) -> 5 files added in total (3 Swift + 2 docs).
+5 files added, 0 modified (3 Swift + 2 docs). 3 new component/theme files, 0 new string keys.
