@@ -1,0 +1,22 @@
+[
+  {
+    "key": "topicXcx.section.intro",
+    "en": "Introduction",
+    "zh-Hans": "主题介绍"
+  },
+  {
+    "key": "officialInbox.hero.eyebrow",
+    "en": "Official events · Responsibilities",
+    "zh-Hans": "官方活动 · 承接关系"
+  },
+  {
+    "key": "officialInbox.hero.title",
+    "en": "Only the duties that are yours for this event",
+    "zh-Hans": "只处理属于你的本场职责"
+  },
+  {
+    "key": "officialInbox.hero.sub",
+    "en": "Events where the platform has invited you to deliver appear here — this is the only entry point for taking part in an official event. Accepting, declining and leaving are all audited; being shown on an event does not mean you have accepted it.",
+    "zh-Hans": "平台点名邀请你履约的活动都在这里，这是官方活动唯一的承接入口。接受、拒绝和退出都会保留审计；被活动展示不等于已经承接。"
+  }
+]

@@ -103,6 +103,8 @@ struct RegistrationSheetView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .scrollContentBackground(.hidden)
+            .background(CYColor.bgPage)
             .appNavigationTitle("registration.form.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -253,9 +255,9 @@ struct RegistrationSheetView: View {
         let checkout = RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket)
         return Section("registrationParity.section.activity") {
             if flow.activity.summary.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text("registrationParity.activityNamePending").font(.headline)
+                Text("registrationParity.activityNamePending").font(CYTypography.cardTitle)
             } else {
-                Text(verbatim: flow.activity.summary.name).font(.headline)
+                Text(verbatim: flow.activity.summary.name).font(CYTypography.cardTitle)
             }
             if let date = flow.activity.summary.startDate, !date.isEmpty {
                 LabeledContent("registration.form.startDate", value: date)
@@ -317,7 +319,7 @@ struct RegistrationSheetView: View {
                 .focused($focusedField, equals: .phone)
                 .accessibilityIdentifier("registration.form.phone")
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
-                Text("registration.form.phoneHint").font(.caption).foregroundStyle(.red)
+                Text("registration.form.phoneHint").font(.caption).foregroundStyle(CYColor.dangerText)
             }
         } header: { Text("registrationParity.section.participants") }
         .disabled(!flow.canEdit)
@@ -438,7 +440,7 @@ struct RegistrationSheetView: View {
                     RegistrationAmountRow(key: "registration.form.couponDiscount", amount: quote.couponDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     RegistrationAmountRow(key: "registration.form.pointsDiscount", amount: quote.pointsDeductYuan, deduction: true, currencyCode: RegistrationUIMoney.yuanCurrencyCode)
                     LabeledContent("registration.form.pointsUsed") {
-                        Text(verbatim: String(quote.pointsUsed)).foregroundStyle(Color.primary)
+                        Text(verbatim: String(quote.pointsUsed)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     }
                     if quote.pointsUsable {
                         Toggle("registration.form.usePoints", isOn: Binding(
@@ -450,11 +452,11 @@ struct RegistrationSheetView: View {
                         }
                     } else { Text("registration.form.pointsUnavailable").foregroundStyle(.secondary) }
                     RegistrationAmountRow(key: "registration.form.total", amount: quote.payAmount)
-                        .font(.headline).accessibilityIdentifier("registration.form.total")
+                        .font(CYTypography.cardTitle).monospacedDigit().accessibilityIdentifier("registration.form.total")
                     if let refundNotice = NonRefundable24hNotice.feeRowNotice(for: quote) {
                         Text(verbatim: CoreLoopCopy(locale: locale).tr(refundNotice))
                             .font(.caption)
-                            .foregroundStyle(quote.requiresNonRefundableConfirmation ? .orange : .secondary)
+                            .foregroundStyle(quote.requiresNonRefundableConfirmation ? CYColor.warningText : CYColor.textTertiary)
                             .accessibilityIdentifier("registration.fees.refundPolicy")
                     }
                     if !quote.isUsableForCreate { Text("registration.form.incompleteQuote").foregroundStyle(.secondary) }
@@ -503,7 +505,7 @@ struct RegistrationSheetView: View {
                     focusedField = nil
                     if flow.prepareConfirmation() { showingConfirmation = true }
                 } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.questifyPrimary).disabled(flow.confirmationBlock != nil)
+                .buttonStyle(.cyPrimary).disabled(flow.confirmationBlock != nil)
                 .accessibilityIdentifier("registration.form.review")
             }
         } footer: { Text("registration.form.sharingPurpose") }
@@ -521,7 +523,7 @@ private struct RegistrationAmountRow: View {
             if let text = RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode) {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: deduction && amount != .zero ? "−\(text)" : text)
-                        .foregroundStyle(Color.primary).accessibilityIdentifier(key + ".amount")
+                        .monospacedDigit().foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")
                     if currencyCode == nil { Text("registration.form.currencyUnknown").font(.caption).foregroundStyle(.primary) }
                 }
             } else { Text("registration.form.unknownAmount").foregroundStyle(Color.primary) }

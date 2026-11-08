@@ -163,8 +163,8 @@ struct OfficialEventCard: View {
         QuestifyImageEntityCard(imageSource: event.coverImage, title: event.title, subtitle: event.subtitle,
                                 fallbackTitle: "official.untitled", fallbackSymbol: "sparkles") {
             Label(LocalizedStringKey(event.statusKey), systemImage: "calendar")
-                .font(.subheadline.weight(.semibold))
-            if event.paused { Label("official.status.paused", systemImage: "pause.circle") }
+                .font(CYTypography.label).foregroundStyle(CYColor.accentText)
+            if event.paused { Label("official.status.paused", systemImage: "pause.circle").foregroundStyle(CYColor.warningText) }
             if event.recruitmentBlocked == true {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("official.informationIncomplete", systemImage: "exclamationmark.triangle")
@@ -182,7 +182,7 @@ struct OfficialEventCard: View {
             if let participants = event.participants { Text("official.card.participants \(participants)") }
             if event.collectivePercentShown {
                 if let percent = event.collective?.percent {
-                    ProgressView(value: Double(min(100, max(0, percent))), total: 100).accessibilityHidden(true)
+                    ProgressView(value: Double(min(100, max(0, percent))), total: 100).tint(CYColor.accent).accessibilityHidden(true)
                     Text("official.card.collective \(min(100, max(0, percent)))")
                 }
                 else { Text("official.card.collectiveUnknown") }
