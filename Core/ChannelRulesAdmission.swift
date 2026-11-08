@@ -25,6 +25,17 @@ public struct ChannelRulesAdmission: Equatable, Sendable {
         return cas.publishedVersion
     }
 
+    /// DEC-02: agreeing to the published rules is the single gate before the first post. A later rules
+    /// upgrade (a new published version) is a separate re-consent and never rides on the earlier agreement.
+    /// Rules versions here are integers. The onboarding `configuration_hash` is a 64-hex string for a
+    /// different object and must never be compared with or substituted for a rules version.
+    public static func firstPostGate(consentedVersion: Int?, catalog: ChannelCatalogEntry) throws {
+        guard catalog.rules.isCurrent else { throw ChannelAuthorizationError.rulesCASConflict }
+        guard let consentedVersion, consentedVersion == catalog.rules.publishedVersion else {
+            throw ChannelAuthorizationError.rulesConsentRequired
+        }
+    }
+
     /// Original `ChannelAdmissionService.submit`. Rules are checked before the port is called.
     /// Nil keeps the application closed. One call, no local receipt store.
     public typealias OriginalAdmissionSubmit = (
