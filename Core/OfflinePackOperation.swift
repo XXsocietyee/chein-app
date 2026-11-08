@@ -99,7 +99,8 @@ public struct OfflinePackOperation: Equatable {
     /// Reject answers / hidden coordinates before any bytes are retained.
     public static func inspect(_ object: [String: String]) throws -> Void {
         let forbidden = ["answer", "answers", "hiddenCoordinate", "hiddenCoordinates",
-                         "hiddenLat", "hiddenLng", "hiddenLatitude", "hiddenLongitude", "spoilerAnswer"]
+                         "hiddenLat", "hiddenLng", "hiddenLatitude", "hiddenLongitude", "spoilerAnswer",
+                         "codeHash", "code_hash"]
         for key in object.keys where forbidden.contains(key) {
             throw OfflinePackFailure.answersOrHiddenCoordinatesForbidden
         }
