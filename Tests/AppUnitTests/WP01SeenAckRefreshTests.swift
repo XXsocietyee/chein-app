@@ -1,6 +1,8 @@
 import XCTest
 @testable import Questify
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 @MainActor final class WP01SeenAckRefreshTests: XCTestCase {
     private func receipt(_ readTo: Int) throws -> NativeChannelReadReceipt {
