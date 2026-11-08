@@ -181,8 +181,8 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
                     .background(
                         Capsule().fill(
                             snapshot.isAllHealthy
-                                ? Color.green.opacity(0.15)
-                                : Color.orange.opacity(0.15)
+                                ? CYColor.successText.opacity(0.15)
+                                : CYColor.warningText.opacity(0.15)
                         )
                     )
                     .accessibilityIdentifier("journalCorruptionRecovery.header.badge")
@@ -193,7 +193,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: 12).fill(CYColor.textSecondary.opacity(0.08)))
         .accessibilityIdentifier("journalCorruptionRecovery.section")
     }
 
@@ -229,7 +229,7 @@ public struct SQLiteAndJSONJournalCorruptionRecoverySectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(CYColor.textSecondary.opacity(0.06)))
         .accessibilityIdentifier("journalCorruptionRecovery.row.\(row.id)")
     }
 }

@@ -77,11 +77,11 @@ struct AuthChannelView: View {
                 if let issue = model.state.issue {
                     Section {
                         Text(LocalizedStringKey(issue.localizationKey))
-                            .foregroundStyle(issue == .appleIncomplete ? Color.secondary : Color.red)
+                            .foregroundStyle(issue == .appleIncomplete ? CYColor.textSecondary : CYColor.dangerText)
                             .accessibilityIdentifier("auth.channels.error")
                         if model.state.requiresAppUpdate && issue != .upgradeRequired {
                             Text("auth.channels.upgradeRequired")
-                                .foregroundStyle(Color.red)
+                                .foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("auth.channels.upgradeRequired")
                         }
                     }

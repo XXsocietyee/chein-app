@@ -215,7 +215,7 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("sevenDayLaunchPlan.root")
@@ -245,8 +245,8 @@ public struct SevenDayLaunchCriticalPathSectionView: View {
                 .background(
                     Capsule().fill(
                         snapshot.hasBlockedMilestone
-                            ? Color.red.opacity(0.22)
-                            : (snapshot.isLaunchPathReady ? Color.green.opacity(0.2) : Color.orange.opacity(0.22))
+                            ? CYColor.dangerText.opacity(0.22)
+                            : (snapshot.isLaunchPathReady ? CYColor.successText.opacity(0.2) : CYColor.warningText.opacity(0.22))
                     )
                 )
                 .accessibilityIdentifier("sevenDayLaunchPlan.bannerState")

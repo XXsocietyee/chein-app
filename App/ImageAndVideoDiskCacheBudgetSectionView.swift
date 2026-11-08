@@ -141,7 +141,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
-                            Capsule().fill(snapshot.isWithinBudget ? Color.green.opacity(0.18) : Color.red.opacity(0.18))
+                            Capsule().fill(snapshot.isWithinBudget ? CYColor.successText.opacity(0.18) : CYColor.dangerText.opacity(0.18))
                         )
                         .accessibilityIdentifier("mediaCacheBudget.statusBadge")
                 }
@@ -152,7 +152,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                     Spacer()
                     Text(verbatim: "\(snapshot.totalMemoryUsedMB)MB / \(MediaCacheBudgetSnapshot.maxTotalMemoryMB)MB")
                         .font(.caption.monospaced())
-                        .foregroundStyle(snapshot.totalMemoryUsedMB <= MediaCacheBudgetSnapshot.maxTotalMemoryMB ? Color.secondary : Color.red)
+                        .foregroundStyle(snapshot.totalMemoryUsedMB <= MediaCacheBudgetSnapshot.maxTotalMemoryMB ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mediaCacheBudget.memorySummary")
 
@@ -161,7 +161,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                     Spacer()
                     Text(verbatim: "\(snapshot.totalDiskUsedMB)MB / \(MediaCacheBudgetSnapshot.maxTotalDiskMB)MB")
                         .font(.caption.monospaced())
-                        .foregroundStyle(snapshot.totalDiskUsedMB <= MediaCacheBudgetSnapshot.maxTotalDiskMB ? Color.secondary : Color.red)
+                        .foregroundStyle(snapshot.totalDiskUsedMB <= MediaCacheBudgetSnapshot.maxTotalDiskMB ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mediaCacheBudget.diskSummary")
 
@@ -170,7 +170,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                     Spacer()
                     Text(verbatim: snapshot.purgesMemoryOnWarning ? "已开启" : "未开启")
                         .font(.caption)
-                        .foregroundStyle(snapshot.purgesMemoryOnWarning ? Color.secondary : Color.red)
+                        .foregroundStyle(snapshot.purgesMemoryOnWarning ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mediaCacheBudget.memoryWarningPurge")
 
@@ -179,7 +179,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                     Spacer()
                     Text(verbatim: snapshot.evictsDeletedOr404Immediately ? "已启用" : "未启用")
                         .font(.caption)
-                        .foregroundStyle(snapshot.evictsDeletedOr404Immediately ? Color.secondary : Color.red)
+                        .foregroundStyle(snapshot.evictsDeletedOr404Immediately ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mediaCacheBudget.evictionPolicy")
             } header: {
@@ -196,7 +196,7 @@ public struct ImageAndVideoDiskCacheBudgetSectionView: View {
                             Spacer()
                             Text(verbatim: pool.isWithinBudget ? "正常" : "超限")
                                 .font(.caption2.weight(.semibold))
-                                .foregroundStyle(pool.isWithinBudget ? Color.green : Color.red)
+                                .foregroundStyle(pool.isWithinBudget ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(
                             verbatim: "内存 \(pool.memoryUsedMB)/\(pool.memoryLimitMB)MB · 磁盘 \(pool.diskUsedMB)/\(pool.diskLimitMB)MB · 404/DELETED 即时淘汰: \(pool.evictsImmediatelyOn404OrDeleted ? "是" : "否")"

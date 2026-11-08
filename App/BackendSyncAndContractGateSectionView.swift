@@ -141,7 +141,7 @@ public struct BackendSyncAndContractGateSectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("backendContractGate.root")
@@ -155,7 +155,7 @@ public struct BackendSyncAndContractGateSectionView: View {
                 Spacer()
                 Text(verbatim: headerBadgeText)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.allGatesPassing ? Color.green : Color.red)
+                    .foregroundStyle(snapshot.allGatesPassing ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("backendContractGate.statusBadge")
             }
 
@@ -176,7 +176,7 @@ public struct BackendSyncAndContractGateSectionView: View {
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
                             .font(.caption2.monospaced())
-                            .foregroundStyle(pillar.isPassing ? Color.green : Color.red)
+                            .foregroundStyle(pillar.isPassing ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("backendContractGate.pillarStatus.\(pillar.id)")
                     }
 

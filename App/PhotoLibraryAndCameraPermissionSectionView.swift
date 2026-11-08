@@ -142,8 +142,8 @@ public struct PhotoLibraryAndCameraPermissionSectionView: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isFullyReady ? Color.green : Color.orange).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isFullyReady ? Color.green : Color.orange)
+                    .background((snapshot.isFullyReady ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
+                    .foregroundStyle(snapshot.isFullyReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("photoCameraPermission.overallBadge")
             }
 

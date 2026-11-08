@@ -142,7 +142,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("scheduleLeadPollingAudit.root")
@@ -156,7 +156,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
                 Spacer()
                 Text(verbatim: headerBadgeText)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.isAuditReady ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAuditReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("scheduleLeadPollingAudit.statusBadge")
             }
 
@@ -177,7 +177,7 @@ public struct ScheduleAndLeadProgressPollingSectionView: View {
                         Spacer()
                         Text(verbatim: row.statusBadgeText)
                             .font(.caption2.monospaced())
-                            .foregroundStyle(row.isVerified ? Color.green : Color.red)
+                            .foregroundStyle(row.isVerified ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("scheduleLeadPollingAudit.rowStatus.\(row.id)")
                     }
 

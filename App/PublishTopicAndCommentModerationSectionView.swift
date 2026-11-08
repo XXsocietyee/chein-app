@@ -147,7 +147,7 @@ public struct PublishTopicAndCommentModerationSectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("publishTopicModeration.root")
@@ -218,8 +218,8 @@ public struct PublishTopicAndCommentModerationSectionView: View {
                 .background(
                     Capsule().fill(
                         snapshot.hasActiveUgcViolationBanner
-                            ? Color.red.opacity(0.22)
-                            : Color.green.opacity(0.2)
+                            ? CYColor.dangerText.opacity(0.22)
+                            : CYColor.successText.opacity(0.2)
                     )
                 )
                 .accessibilityIdentifier("publishTopicModeration.ugcBannerState")

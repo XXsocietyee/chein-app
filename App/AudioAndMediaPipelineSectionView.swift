@@ -146,7 +146,7 @@ public struct AudioAndMediaPipelineSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllHealthyAndFailClosed ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllHealthyAndFailClosed ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("audioMediaPipeline.statusBadge")
             }
 
@@ -162,7 +162,7 @@ public struct AudioAndMediaPipelineSectionView: View {
 
             Text(verbatim: publishStagesSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.liveMediaUploadEnabled ? Color.red : Color.secondary)
+                .foregroundStyle(snapshot.liveMediaUploadEnabled ? CYColor.dangerText : CYColor.textSecondary)
                 .accessibilityIdentifier("audioMediaPipeline.publishStagesSummary")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -176,8 +176,8 @@ public struct AudioAndMediaPipelineSectionView: View {
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(
                                     (row.isGenerationFenced && !row.liveUploadOrVoiceCloneEnabled)
-                                        ? Color.green
-                                        : Color.orange
+                                        ? CYColor.successText
+                                        : CYColor.warningText
                                 )
                         }
                         Text(verbatim: row.detail)
@@ -185,14 +185,14 @@ public struct AudioAndMediaPipelineSectionView: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("audioMediaPipeline.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("audioMediaPipeline.section")

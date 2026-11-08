@@ -125,23 +125,23 @@ public struct DeviceOrientationAndSplitViewAdaptationSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllAdapted ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllAdapted ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("deviceLayoutAdaptation.statusBadge")
             }
 
             Text(verbatim: safeAreaSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.safeAreaInsetsPreserved ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.safeAreaInsetsPreserved ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("deviceLayoutAdaptation.safeAreaSummary")
 
             Text(verbatim: keyboardAvoidanceSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.keyboardAvoidanceVerified ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.keyboardAvoidanceVerified ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("deviceLayoutAdaptation.keyboardAvoidanceSummary")
 
             Text(verbatim: sizeClassSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.compactAndRegularAdapted ? Color.secondary : Color.orange)
+                .foregroundStyle(snapshot.compactAndRegularAdapted ? CYColor.textSecondary : CYColor.warningText)
                 .accessibilityIdentifier("deviceLayoutAdaptation.sizeClassSummary")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -153,21 +153,21 @@ public struct DeviceOrientationAndSplitViewAdaptationSectionView: View {
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle(row.isCompliant ? Color.green : Color.orange)
+                                .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.adaptationSummary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("deviceLayoutAdaptation.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("deviceLayoutAdaptation.section")

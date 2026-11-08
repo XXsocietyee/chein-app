@@ -186,7 +186,7 @@ public struct PushNotificationAndLiveActivitySectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("pushNotificationParity.section")
@@ -244,9 +244,9 @@ public struct PushNotificationAndLiveActivitySectionView: View {
                     .padding(.vertical, 2)
                     .background(
                         Capsule(style: .continuous)
-                            .fill((row.isCompliant ? Color.green : Color.red).opacity(0.16))
+                            .fill((row.isCompliant ? CYColor.successText : CYColor.dangerText).opacity(0.16))
                     )
-                    .foregroundStyle(row.isCompliant ? Color.green : Color.red)
+                    .foregroundStyle(row.isCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier(row.statusAccessibilityIdentifier)
             }
 
