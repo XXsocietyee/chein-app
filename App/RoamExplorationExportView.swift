@@ -381,7 +381,7 @@ private struct RoamExportFileSaveLink: View {
     private var readTask: Task<Void, Never>?
     init(tools: any RoamPrivateToolsServing) {
         self.tools = tools; identity = tools.identity; scope = .init(tools)
-        model = RoamExportCoordinator(tools: tools, pageSize: tools.isOfflineExample ? RoamPrivateToolsFixture.fixturePageSize : RoamExportContract.defaultPageSize)
+        model = RoamExportCoordinator(tools: tools, pageSize: tools.isOfflineExample ? RoamPrivateToolsOfflineExample.pageSize : RoamExportContract.defaultPageSize)
         model.suspend()
     }
     func appear(foreground: Bool) { mounted = true; resume(foreground: foreground) }

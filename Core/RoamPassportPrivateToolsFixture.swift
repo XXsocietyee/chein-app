@@ -1,5 +1,10 @@
 import Foundation
 
+/// Export page size used while a reader reports `isOfflineExample` (kept outside the DEBUG-only fixture so release code can reference it).
+public enum RoamPrivateToolsOfflineExample {
+    public static let pageSize = 2
+}
+
 #if DEBUG
 /// Synthetic offline server for previews, DEBUG UI tests and Core tests. Never a real account's records.
 /// Every response is serialized to JSON and decoded by the same strict projections as live responses.
@@ -163,7 +168,7 @@ import Foundation
          "endDateExclusive": snapshot.endDateExclusive, "asOfMs": snapshot.asOfMs, "expiresAtMs": snapshot.expiresAtMs,
          "upperRecordId": snapshot.upperRecordID, "expectedRows": snapshot.expectedRows, "pageSize": snapshot.pageSize]
     }
-    public static let fixturePageSize = 2
+    public static let fixturePageSize = RoamPrivateToolsOfflineExample.pageSize
     public func prepareExport(_ request: RoamExportRequest) async throws -> RoamExportCheckpoint {
         try check(); try request.validate()
         // The fixture echoes the requested page size; the view requests two rows so chunking stays visible.

@@ -158,6 +158,9 @@ class FPM7FixturesAreDebugOnly(unittest.TestCase):
         offenders = []
         for folder in ('App', 'Core'):
             for path in sorted((ROOT / folder).glob('*Fixture*.swift')):
+                # RoamPassportPrivateToolsFixture keeps one tiny release-visible enum; checked by its own test below.
+                if path.name == 'RoamPassportPrivateToolsFixture.swift':
+                    continue
                 if path.name.endswith('FixtureView.swift') or 'Audit' in path.name or 'SectionView' in path.name:
                     continue
                 if not _is_debug_wrapped(path.read_text()):
@@ -255,6 +258,12 @@ class FPM12TapTargetsTokensTraits(unittest.TestCase):
         # Contrast-verified literals pinned by test_map_visual_foundation.py; FP-M12 intentionally leaves them.
         self.assertIn('red:109.0/255,green:40.0/255,blue:217.0/255', src('App/QuestifyPalette.swift'))
         self.assertIn('red: 0.0, green: 0.28, blue: 0.65', src('App/SearchMapCanvas.swift'))
+
+
+    def test_private_tools_page_size_lives_outside_debug_block(self):
+        s = src('Core/RoamPassportPrivateToolsFixture.swift')
+        self.assertLess(s.index('enum RoamPrivateToolsOfflineExample'), s.index('#if DEBUG'))
+        self.assertNotIn('RoamPrivateToolsFixture', src('App/RoamExplorationExportView.swift'))
 
 
 if __name__ == '__main__':
