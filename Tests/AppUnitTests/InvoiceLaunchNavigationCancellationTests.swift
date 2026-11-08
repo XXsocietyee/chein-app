@@ -97,3 +97,109 @@ import Foundation
         }
     }
 }
+
+/// Drives the invoice presentation's main actions (apply / withdraw) through a fake transport.
+/// Mutations succeed only when the host grant (`mutationsEnabled`) is on, and the presentation
+/// reports success only after the coordinator's read-back, never from the write response alone.
+@MainActor final class InvoiceLaunchPresentationActionTests: XCTestCase {
+    func testWithdrawSendsOneCancelThenReportsSuccessAfterReadback() async throws {
+        let h = try Harness(mutations: true)
+        await h.model.refresh()
+        XCTAssertNotNil(h.model.overview)
+        let ok = await h.model.cancel(51)
+        XCTAssertTrue(ok)
+        XCTAssertEqual(h.wire.paths.filter { $0 == "cancel" }.count, 1)
+        let body = try XCTUnwrap(h.wire.body(for: "cancel"))
+        XCTAssertEqual((body["id"] as? NSNumber)?.int64Value, 51)
+        XCTAssertEqual(h.wire.authorization(for: "cancel"), "synthetic-token")
+        XCTAssertTrue(h.memory.values.isEmpty)
+        XCTAssertFalse(h.model.unresolved)
+        XCTAssertNil(h.model.issue)
+    }
+    func testWithdrawNotConfirmedByReadbackStaysUnresolvedAndReportsFailure() async throws {
+        let h = try Harness(mutations: true)
+        h.wire.cancelStatus = "SUBMITTED"
+        await h.model.refresh()
+        let ok = await h.model.cancel(51)
+        XCTAssertFalse(ok)
+        XCTAssertEqual(h.wire.paths.filter { $0 == "cancel" }.count, 1)
+        XCTAssertTrue(h.model.unresolved)
+        XCTAssertEqual(h.model.issue, "unknown")
+        XCTAssertFalse(h.memory.values.isEmpty)
+    }
+    func testApplySendsExactBodyAndSucceedsOnlyAfterReadback() async throws {
+        let h = try Harness(mutations: true)
+        await h.model.refresh()
+        let ok = await h.model.apply(titleID: 11, orderIDs: [21])
+        XCTAssertTrue(ok)
+        XCTAssertEqual(h.wire.paths.filter { $0 == "apply" }.count, 1)
+        let body = try XCTUnwrap(h.wire.body(for: "apply"))
+        XCTAssertEqual(Set(body.keys), ["requestId", "titleId", "orderIds"])
+        XCTAssertEqual((body["titleId"] as? NSNumber)?.int64Value, 11)
+        XCTAssertEqual((body["orderIds"] as? [NSNumber])?.map(\.int64Value), [21])
+        XCTAssertTrue(h.memory.values.isEmpty)
+    }
+    func testMutationsStayGatedWhenHostGrantIsOff() async throws {
+        let h = try Harness(mutations: false)
+        await h.model.refresh()
+        let applied = await h.model.apply(titleID: 11, orderIDs: [21])
+        let cancelled = await h.model.cancel(51)
+        XCTAssertFalse(applied); XCTAssertFalse(cancelled)
+        XCTAssertFalse(h.wire.paths.contains("apply")); XCTAssertFalse(h.wire.paths.contains("cancel"))
+        XCTAssertTrue(h.memory.values.isEmpty)
+    }
+
+    @MainActor private final class Memory: InvoiceLaunchStorage {
+        var values: [String: Data] = [:]
+        func read(_ key: String) throws -> Data? { values[key] }
+        func write(_ data: Data, key: String) throws { values[key] = data }
+        func remove(_ key: String) throws { values.removeValue(forKey: key) }
+    }
+    @MainActor private final class Harness {
+        let captured: InvoiceLaunchSession
+        let wire = Wire(), memory = Memory()
+        let mutations: Bool
+        lazy var service = InvoiceLaunchService(session: captured, transport: wire,
+            enabled: { true }, mutationsEnabled: { [unowned self] in self.mutations },
+            current: { [unowned self] in self.captured })
+        lazy var store = InvoiceLaunchPendingStore(session: captured, storage: memory)
+        lazy var model = InvoiceLaunchPresentation(coordinator: try! InvoiceLaunchCoordinator(service: service, store: store),
+            isCurrent: { true }, permits: { _ in true })
+        init(mutations: Bool) throws {
+            self.mutations = mutations
+            captured = try InvoiceLaunchSession(baseURL: URL(string: "https://example.test/native")!,
+                namespace: "synthetic-actions", accountID: 7, role: "player", epoch: 1, token: "synthetic-token")
+        }
+    }
+    @MainActor private final class Wire: HTTPTransport {
+        var requests: [URLRequest] = []
+        var cancelStatus = "CANCELLED"
+        var paths: [String] { requests.map { $0.url!.lastPathComponent } }
+        func body(for path: String) -> [String: Any]? {
+            guard let data = requests.first(where: { $0.url?.lastPathComponent == path })?.httpBody else { return nil }
+            return try? JSONSerialization.jsonObject(with: data) as? [String: Any]
+        }
+        func authorization(for path: String) -> String? {
+            requests.first(where: { $0.url?.lastPathComponent == path })?.value(forHTTPHeaderField: "Authorization")
+        }
+        private func application(status: String, summary: Bool) -> [String: Any] {
+            ["id": "51", "applicationNo": "SYNTHETIC-51", "status": status, "titleType": "PERSONAL",
+             "titleName": "Synthetic title", "totalAmount": 1, "orderCount": 1,
+             "orders": summary ? [] as [Any] : [["orderId": "21", "amount": 1]] as [Any]]
+        }
+        func send(_ request: URLRequest) async throws -> (Data, Int) {
+            requests.append(request)
+            let data: Any
+            switch request.url?.lastPathComponent {
+            case "cancel": data = application(status: cancelStatus, summary: false)
+            case "apply": data = application(status: "SUBMITTED", summary: false)
+            case "detail":
+                let isCancelFlow = requests.contains { $0.url?.lastPathComponent == "cancel" }
+                data = application(status: isCancelFlow ? cancelStatus : "SUBMITTED", summary: false)
+            case "list": data = [application(status: "SUBMITTED", summary: true)] as [Any]
+            default: data = [] as [Any]
+            }
+            return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200)
+        }
+    }
+}

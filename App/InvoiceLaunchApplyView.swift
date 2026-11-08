@@ -32,6 +32,11 @@ struct InvoiceLaunchApplyIntent {
     var body: some View {
         List {
             InvoiceLaunchStateSection(model: model)
+            if model.overview != nil, !model.allows(.apply), model.issue == nil, !model.busy, !model.unresolved {
+                // Honest gated state: the host has not granted invoice writes, so say so instead of a dead form.
+                Section { invoiceText("applyUnavailable").foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("invoice.applyUnavailable")
+            }
             if let overview = model.overview {
                 Section {
                     Button { choosingTitle = true } label: {
