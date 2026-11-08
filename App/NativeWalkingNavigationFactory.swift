@@ -31,10 +31,13 @@ import CryptoKit
         let owner = dependencies.owner
         let planner = dependencies.makePlanner?(dependencies.verifiedMapKitWGS84Regions)
             ?? MapKitWalkingRoutePlanner(verifiedRegions: dependencies.verifiedMapKitWGS84Regions)
-        return WalkingNavigationCoordinator(reference: reference, ownerNamespace: namespace(owner),
+        let model = WalkingNavigationCoordinator(reference: reference, ownerNamespace: namespace(owner),
             authorizer: RegionBoundWalkingTargets(base: dependencies.targets, regions: dependencies.verifiedMapKitWGS84Regions),
             location: dependencies.makeLocation(), planner: planner,
             current: { [weak self] in self?.available == true && self?.context() == owner })
+        // Fresh and restored coordinators both start from the device's current low-power state.
+        model.setPowerCondition(lowPower: ProcessInfo.processInfo.isLowPowerModeEnabled, offline: false)
+        return model
     }
     /// Story stops are navigable only while the bridge holds an authority-allowed stop AND a reviewed
     /// entrance. A missing entrance yields nil (explicit missing state); the pin is never a door.

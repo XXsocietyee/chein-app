@@ -25,6 +25,14 @@ public struct WalkingTargetReference: Codable, Hashable {
     public var isValid: Bool { id > 0 && (kind == .storyNode ? (missionID ?? 0) > 0 : missionID == nil) }
 }
 
+/// Monotonic uptime in seconds, immune to user changes of the wall clock. Injected so tests never
+/// touch the real clock.
+public protocol WalkingMonotonicClock: AnyObject { var uptime: TimeInterval { get } }
+public final class SystemWalkingMonotonicClock: WalkingMonotonicClock {
+    public init() {}
+    public var uptime: TimeInterval { ProcessInfo.processInfo.systemUptime }
+}
+
 /// Supplied only by the current backend-authoritative target reader. The route provider may
 /// calculate a physical path to this target, but cannot choose, sort or unlock story nodes.
 public struct AuthorizedWalkingTarget: Equatable {
@@ -34,17 +42,20 @@ public struct AuthorizedWalkingTarget: Equatable {
     public let authorityRevision: String
     public let releaseID: String?
     public let expiresAt: Date
+    /// Monotonic uptime at which the lease ends, set by the reader at receipt. When present it
+    /// alone decides expiry; `expiresAt` (wall clock) is then display/identity data only.
+    public let monotonicDeadline: TimeInterval?
     public let address: String?
     public let businessTime: String?
     public init(reference: WalkingTargetReference, title: String, coordinate: WalkingCoordinate,
                 authorityRevision: String, releaseID: String? = nil, expiresAt: Date,
-                address: String? = nil, businessTime: String? = nil) throws {
+                address: String? = nil, businessTime: String? = nil, monotonicDeadline: TimeInterval? = nil) throws {
         guard reference.isValid, !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               title.count <= 300, !authorityRevision.isEmpty, authorityRevision.count <= 200,
               reference.kind != .storyNode || !(releaseID ?? "").isEmpty,
-              expiresAt.timeIntervalSince1970.isFinite else { throw WalkingNavigationFailure.targetUnavailable }
+              expiresAt.timeIntervalSince1970.isFinite, monotonicDeadline?.isFinite ?? true else { throw WalkingNavigationFailure.targetUnavailable }
         self.reference = reference; self.title = title; self.coordinate = coordinate
-        self.authorityRevision = authorityRevision; self.releaseID = releaseID; self.expiresAt = expiresAt
+        self.authorityRevision = authorityRevision; self.releaseID = releaseID; self.expiresAt = expiresAt; self.monotonicDeadline = monotonicDeadline
         self.address = address; self.businessTime = businessTime
     }
 }

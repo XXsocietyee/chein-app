@@ -28,6 +28,10 @@ public struct StoryWalkingNavigationHostBridge: Equatable {
     public private(set) var activeWalkingStop: WalkingTargetReference?
     public private(set) var activeEntrance: PlaceNavigationEntrance?
     public private(set) var stopTransitionCount: Int = 0
+    /// Opaque local evidence ids (never content) for stops awaiting verification. A rejected
+    /// submit (409) keeps them; only a newer authority readback moving past the stop releases them.
+    public private(set) var evidenceByStop: [WalkingTargetReference: String] = [:]
+    public private(set) var conflictedStops: Set<WalkingTargetReference> = []
 
     public init(missionID: Int, scope: StoryNavigationRunScope? = nil) throws {
         self.sequence = try StoryNavigationSequence(missionID: missionID, scope: scope)
@@ -64,6 +68,7 @@ public struct StoryWalkingNavigationHostBridge: Equatable {
     ) throws -> StoryNavigationTransition {
         let previousStop = activeWalkingStop ?? pendingVerificationStop
         try sequence.apply(readback)
+        defer { retainEvidenceForVerificationStopsOnly() }
 
         switch sequence.phase {
         case .finished:
@@ -117,6 +122,29 @@ public struct StoryWalkingNavigationHostBridge: Equatable {
             return true
         }
         return false
+    }
+
+    @discardableResult
+    public mutating func storeEvidence(_ id: String, for reference: WalkingTargetReference) -> Bool {
+        guard !id.isEmpty, id.count <= 200, pendingVerificationStop == reference else { return false }
+        evidenceByStop[reference] = id; return true
+    }
+    public func storedEvidence(for reference: WalkingTargetReference) -> String? { evidenceByStop[reference] }
+    public func hasSubmitConflict(for reference: WalkingTargetReference) -> Bool { conflictedStops.contains(reference) }
+
+    /// A 409 on task submit means the server state moved. Evidence stays stored, the phase stays
+    /// `verificationSubmitted` (no local advance or completion), no route or destination is made.
+    @discardableResult
+    public mutating func recordSubmitConflict(for reference: WalkingTargetReference, status: Int) -> Bool {
+        guard status == 409, case .verificationSubmitted(let current) = sequence.phase, current == reference,
+              evidenceByStop[reference] != nil else { return false }
+        conflictedStops.insert(reference); return true
+    }
+
+    private mutating func retainEvidenceForVerificationStopsOnly() {
+        let keep = pendingVerificationStop
+        evidenceByStop = evidenceByStop.filter { $0.key == keep }
+        conflictedStops = conflictedStops.filter { $0 == keep }
     }
 
     public func canOpenVerification(for reference: WalkingTargetReference) -> Bool {
