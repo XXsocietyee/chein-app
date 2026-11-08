@@ -129,7 +129,7 @@ import Combine
             }
             if let error = owner.error {
                 Section {
-                    Label { Text(errorText(error)) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(.orange) }
+                    Label { Text(errorText(error)) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
                         .accessibilityIdentifier("roam.live.error")
                 }
             }
@@ -200,10 +200,10 @@ import Combine
         return VStack(alignment: .leading, spacing: 14) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(active ? "roam.live.goal" : phaseText)
-                    .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    .font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 0)
-                Circle().fill(active ? Color.green : Color.secondary).frame(width: 10, height: 10)
+                Circle().fill(active ? CYColor.successText : CYColor.textTertiary).frame(width: 10, height: 10)
                     .accessibilityHidden(true)
             }
             HStack(alignment: .top, spacing: 8) {
@@ -215,10 +215,10 @@ import Combine
                     .accessibilityIdentifier("roam.live.distance")
             }
         }
-        .padding(16)
-        .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous)
-            .strokeBorder(Color.accentColor.opacity(active ? 0.6 : 0.2), lineWidth: 1.5))
+        .padding(CYSpacing.lg)
+        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
+            .strokeBorder(active ? CYColor.borderStrong : CYColor.borderSubtle, lineWidth: 1))
         .padding(.horizontal)
     }
     private var hudDistance: String {
@@ -235,31 +235,31 @@ import Combine
                     Button { owner.pause() } label: {
                         Label("roam.live.pause", systemImage: "pause.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .buttonStyle(.cyPrimary)
                     .accessibilityIdentifier("roam.live.pause")
                 } else if canStart, owner.record == nil {
                     Button { Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
                         Label("roam.live.start", systemImage: "figure.walk").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .buttonStyle(.cyPrimary)
                     .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.start")
                 } else if canStart, owner.record?.finishRequested == false {
                     Button { Task { await owner.resume(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
                         Label("roam.live.resume", systemImage: "play.fill").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.borderedProminent).controlSize(.large)
+                    .buttonStyle(.cyPrimary)
                     .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.resume")
                 }
                 if canFinish {
                     Button(role: .destructive) { confirmFinish = true } label: {
                         Label("roam.live.finish", systemImage: "flag.checkered").frame(minHeight: CYSpacing.minTouchTarget)
                     }
-                    .buttonStyle(.bordered).controlSize(.large)
+                    .buttonStyle(.cyDestructive)
                     .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
                 }
             }
-            .padding(.horizontal).padding(.vertical, 10)
-            .background(.bar)
+            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+            .background(.ultraThinMaterial)
         }
     }
     @ViewBuilder private var pauseAndBrowse: some View {
@@ -285,7 +285,7 @@ import Combine
         let settled = owner.settlement.map { $0.hasCompleteSettlement } ?? false
         if owner.busy || owner.record != nil || settled {
             Section {
-                if owner.busy { ProgressView("roam.loading") }
+                if owner.busy { CYSkeleton() }
                 if let record = owner.record {
                     LabeledContent("roam.live.tiles", value: String(record.allTiles.count - record.pendingTiles.count))
                     if !record.pendingTiles.isEmpty { LabeledContent("roam.live.pendingTiles", value: String(record.pendingTiles.count)) }

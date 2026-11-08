@@ -21,7 +21,7 @@ struct PlaySessionView: View {
             } else if reader.identity == nil {
                 PlayIssueView(issue: .init(APIError.unauthorized))
             } else if model.isLoading {
-                ProgressView("play.loading").frame(maxWidth: .infinity, maxHeight: .infinity).accessibilityIdentifier("play.loading")
+                CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).accessibilityIdentifier("play.loading")
             } else if let issue = model.visibleIssue {
                 PlayIssueView(issue: issue) { Task { await model.load(keepingReceipt: true) } }
             } else if let snapshot = model.visibleSnapshot {
@@ -32,8 +32,8 @@ struct PlaySessionView: View {
                                 guard model.visibleSnapshot == snapshot, model.visibleSnapshot?.result.mode == 2 else { return }
                                 selectedNodeID = id
                             }
-                        }.padding()
-                    }.accessibilityIdentifier("playFree.read.overview")
+                        }.padding(CYSpacing.lg)
+                    }.background(CYColor.bgPage).accessibilityIdentifier("playFree.read.overview")
                 } else if snapshot.result.mode == 1 { overview(snapshot) }
                 else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
             } else {
@@ -67,14 +67,14 @@ struct PlaySessionView: View {
             Section {
                 VStack(alignment: .leading, spacing: 12) {
                     if let name = snapshot.result.topicName, !name.isEmpty {
-                        Text(verbatim: name).font(.title2.bold()).accessibilityIdentifier("play.topicName")
+                        Text(verbatim: name).font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.topicName")
                     }
                     Label(LocalizedStringKey(snapshot.availability.titleKey), systemImage: statusSymbol(snapshot.availability))
-                        .font(.headline).accessibilityIdentifier("play.status")
+                        .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("play.status")
                     if let total = snapshot.result.total, let done = snapshot.displayedDoneCount, total > 0 {
                         ProgressView(value: Double(min(done, total)), total: Double(total))
-                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)") }
-                    } else { Text("play.progress.unknown").font(.subheadline).foregroundStyle(.secondary) }
+                        LabeledContent("play.progress") { Text(verbatim: "\(done) / \(total)").font(CYTypography.numericBody).monospacedDigit() }
+                    } else { Text("play.progress.unknown").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                     if let description = snapshot.result.topicDescription, !description.isEmpty { Text(verbatim: description) }
                     if let note = snapshot.result.timeNote, !note.isEmpty { Text(verbatim: note).foregroundStyle(.secondary) }
                     if let expires = snapshot.result.expiresAt, !expires.isEmpty {
@@ -98,10 +98,10 @@ struct PlaySessionView: View {
                         Button { selectedNodeID = node.id } label: {
                             HStack(alignment: .top, spacing: 12) {
                                 Image(systemName: snapshot.isDone(node) ? "checkmark.circle.fill" : snapshot.isLocked(node) ? "lock.circle" : "circle")
-                                    .font(.title3).foregroundStyle(snapshot.isDone(node) ? Color.green : Color.secondary)
+                                    .font(.title3).foregroundStyle(snapshot.isDone(node) ? CYColor.successText : CYColor.textTertiary)
                                 VStack(alignment: .leading, spacing: 5) {
-                                    if let name = node.name, !name.isEmpty { Text(verbatim: name).font(.headline) }
-                                    else { Text("play.node.untitled").font(.headline) }
+                                    if let name = node.name, !name.isEmpty { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
+                                    else { Text("play.node.untitled").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) }
                                     if let chapterID = node.chapterID, let chapter = snapshot.result.chapters.first(where: { $0.id == chapterID }),
                                        let name = chapter.name, !name.isEmpty {
                                         Text(verbatim: name).font(.caption).foregroundStyle(.secondary)
@@ -119,6 +119,8 @@ struct PlaySessionView: View {
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .refreshable { await model.load(keepingReceipt: true) }
         .accessibilityIdentifier("play.overview")
     }
@@ -134,7 +136,7 @@ struct PlayReceiptView: View {
     let receipt: PlayAnswerReceipt
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("play.answer.accepted", systemImage: "checkmark.circle").font(.headline)
+            Label("play.answer.accepted", systemImage: "checkmark.circle").font(CYTypography.bodyMedium).foregroundStyle(CYColor.successText)
             if let xp = receipt.xp { LabeledContent("play.xp") { Text(verbatim: String(xp)) } }
             if let score = receipt.puzzleScore { LabeledContent("play.puzzleScore") { Text(verbatim: String(score)) } }
             if receipt.completed == true { Text("play.answer.routeCompleted") }

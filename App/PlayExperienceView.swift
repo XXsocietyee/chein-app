@@ -48,7 +48,8 @@ import SwiftUI
                 orientationContent
             } else if model.snapshot == nil {
                 if model.phase == .loading {
-                    ProgressView("playx.loading").accessibilityIdentifier("playMode.loading")
+                    CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                        .accessibilityIdentifier("playMode.loading")
                 } else {
                     ContentUnavailableView {
                         Label(model.available ? "playx.error.title" : "playx.disabled.title", systemImage: model.available ? "exclamationmark.triangle" : "gamecontroller")
@@ -119,7 +120,7 @@ import SwiftUI
                     if let note = snapshot.result.timeNote { Text(verbatim: note).foregroundStyle(.secondary) }
                 }
                 if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
-                if model.phase == .loading { ProgressView("playx.loading") }
+                if model.phase == .loading { CYSkeleton().accessibilityIdentifier("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 PlayResyncAction(model: model)
                 if model.snapshot != nil { runControls }
@@ -263,10 +264,10 @@ import SwiftUI
         let seconds = model.clock.elapsedSeconds
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
-                Text("playx.run.elapsed").font(.subheadline).foregroundStyle(.secondary)
+                Text("playx.run.elapsed").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 Spacer(minLength: 8)
                 Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
-                    .font(.system(.title, design: .rounded).weight(.bold)).monospacedDigit()
+                    .font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     .accessibilityIdentifier("playx.run.clock")
             }
             HStack(spacing: 10) {
@@ -274,29 +275,29 @@ import SwiftUI
                     Button { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } } label: {
                         Label("playx.run.pause", systemImage: "pause.fill").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent).disabled(!model.canManageRun)
+                    .buttonStyle(.cyPrimary).disabled(!model.canManageRun)
                     .accessibilityIdentifier("playx.run.pause")
                 } else if model.clock.phase != .ended {
                     Button { model.startRun(now: ProcessInfo.processInfo.systemUptime) } label: {
                         Label(seconds == 0 ? "playx.run.start" : "playx.run.resume", systemImage: "play.fill").frame(maxWidth: .infinity)
                     }
-                    .buttonStyle(.borderedProminent).disabled(!model.canManageRun)
+                    .buttonStyle(.cyPrimary).disabled(!model.canManageRun)
                     .accessibilityIdentifier("playx.run.resume")
                 }
                 if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,
                    PlayRouteMapPresentation(snapshot: snapshot) != nil {
                     Button { showRouteMap = true } label: { Label("playRoute.open", systemImage: "map") }
-                        .buttonStyle(.bordered)
+                        .buttonStyle(.cySecondary(fullWidth: false))
                         .accessibilityIdentifier("playRoute.open")
                 }
                 if model.clock.phase != .ended {
                     Button(role: .destructive) { confirmEnd = true } label: { Label("playx.run.end", systemImage: "flag.checkered") }
-                        .buttonStyle(.bordered).disabled(!model.canManageRun)
+                        .buttonStyle(.cyDestructive).disabled(!model.canManageRun)
                         .accessibilityIdentifier("playx.run.end")
                 }
             }
             .controlSize(.large)
-            if model.remoteRunSaveFailed { Text("playx.run.saveFailed").font(.footnote).foregroundStyle(.orange) }
+            if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(CYColor.warningText) }
         }
         .padding(.vertical, 4)
     }
@@ -530,7 +531,7 @@ struct PlayExperienceIssueView: View {
                 if let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)") } }
                 ForEach(lead.members) { member in
                     Label { if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") } }
-                        icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? Color.green : Color.secondary) }
+                        icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? CYColor.successText : CYColor.textTertiary) }
                 }
                 if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
