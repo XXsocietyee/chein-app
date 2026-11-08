@@ -5874,12 +5874,21 @@ final class AppSession: ObservableObject {
         guard let account, let token else { return nil }
         return try? MerchantOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "", viewerRevision: compositionViewerRevision)
     }
-    lazy var merchantOperationsReader = MerchantOperationsSessionReader(service: merchantOperationsService, currentSession: { [weak self] in
-        self?.currentMerchantOperationsSession
-    }, onUnauthorized: { [weak self] captured in
-        guard let self, self.currentMerchantOperationsSession == captured else { return }
-        self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
-    })
+    private var merchantOperationsReaderCache: (approval: OperationEndpointApproval?, reader: MerchantOperationsSessionReader)?
+    /// Rebuilt only when the reviewed merchant-operations save lease appears, changes owner or disappears. Without production
+    /// gates the lease is always nil, no journal is attached and the first reader is kept, exactly as before.
+    var merchantOperationsReader: MerchantOperationsSessionReader {
+        let approval = currentRuntimeDependencyContext.flatMap { composition.merchantOperationsWriteApproval($0) }
+        if let cached = merchantOperationsReaderCache, cached.approval == approval { return cached.reader }
+        let reader = MerchantOperationsSessionReader(service: merchantOperationsService, currentSession: { [weak self] in
+            self?.currentMerchantOperationsSession
+        }, approval: approval, journal: approval == nil ? nil : composition.storage.operationJournal(), onUnauthorized: { [weak self] captured in
+            guard let self, self.currentMerchantOperationsSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
+        merchantOperationsReaderCache = (approval, reader)
+        return reader
+    }
     private let merchantOnboardingService: MerchantOnboardingService?
     private var currentMerchantOnboardingSession: MerchantOnboardingSession? {
         guard let account, let token else { return nil }

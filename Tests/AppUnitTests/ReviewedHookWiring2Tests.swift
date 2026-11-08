@@ -470,3 +470,114 @@ final class ReviewedNearbyTeamWriteWiringTests: ReviewedHookWiring2Base {
         XCTAssertFalse(outSent.values.contains(true), "\(outSent)")
     }
 }
+
+/// Item 3: merchant decor / cooperation / NPC / perk-template saves plus the four baseline reads a save needs.
+/// Profile, business-status and the second (profile) leg of a story save are not leased.
+@MainActor
+final class ReviewedMerchantOperationsWiringTests: ReviewedHookWiring2Base {
+    private var configuration: APIConfiguration { get throws { try APIConfiguration(baseURL: try XCTUnwrap(URL(string: Self.base))) } }
+    private func json(_ path: String, _ body: String) throws -> URLRequest {
+        try OperationAdapterHTTP.json(configuration: try configuration, path: path, body: Data(body.utf8), token: Self.token)
+    }
+    private func jsonRead(_ path: String) throws -> URLRequest {
+        var r = try AuthRequestBuilder.makeFormRequest(url: try XCTUnwrap(URL(string: Self.base)).appendingPathComponent(path), fields: [:], token: Self.token, includesBody: false)
+        r.httpBody = Data("{}".utf8); r.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        return r
+    }
+    private func form(_ path: String, _ fields: [String: String]) throws -> URLRequest {
+        try AuthRequestBuilder.makeFormRequest(url: try XCTUnwrap(URL(string: Self.base)).appendingPathComponent(path), fields: fields, token: Self.token)
+    }
+    private func previews() throws -> [(String, URLRequest)] {
+        let all: [MerchantOperationsRequestPreview] = [
+            try .init(path: "api/merchant/decor/save", fields: ["slogan": "hi", "cityRole": "x", "storyTitle": "t", "gallery": "a,b", "tags": "", "coverImage": NSNull(), "featuredType": NSNull(), "featuredId": NSNull(), "serviceTag": NSNull(), "serviceText": NSNull(), "locationLat": NSNull(), "locationLng": NSNull(), "locationVerified": NSNull(), "categoryIds": "1,2"]),
+            try .init(path: "api/merchant/decor/save", fields: ["locationLat": 31.2, "locationLng": 121.4, "address": "x"]),
+            try .init(path: "api/merchant/coop-profile/save", fields: ["availableTime": "a", "demand": "d", "capacity": 3, "chargeType": 1, "suitActivityTypes": "1,2", "coopOpen": true]),
+            try .init(path: "api/merchant/coop-profile/save", fields: ["availableTime": "a", "demand": "d", "capacity": NSNull(), "params": ["clearCapacity": true]]),
+            try .init(path: "api/merchant/npc/save", fields: ["name": "n", "avatar": "", "greeting": "g", "persona": "", "knowledge": ""]),
+            try .init(path: "api/merchant/city-node/template/submit", fields: ["id": 4, "title": "t", "validationMethod": 1, "duration": 30, "hint1": "h", "storyJson": "[]", "categoryId": 2, "activityCategoryids": "2", "questionA": "a"])
+        ]
+        return try all.enumerated().map { ("save-\($0.offset)-" + $0.element.path, try json($0.element.path, String(data: $0.element.json, encoding: .utf8)!)) }
+    }
+    private func exactRequests() throws -> [(String, URLRequest)] {
+        try previews() + [
+            ("coop-read", try jsonRead("api/merchant/coop-profile")), ("npc-read", try jsonRead("api/merchant/npc/profile")),
+            ("info-read", try form("api/merchant/info", [:])), ("myinfo-read", try form("api/template/myinfo", ["id": "9"]))
+        ]
+    }
+    private func neighbours() throws -> [(String, URLRequest)] {
+        let evil = try XCTUnwrap(URL(string: "https://evil.example.org"))
+        return [
+            ("profile-save", try json("api/merchant/update", #"{"name":"n"}"#)),
+            ("business-status", try json("api/merchant/business-status/update", #"{"business_status":"1"}"#)),
+            ("decor-extra-key", try json("api/merchant/decor/save", #"{"slogan":"x","role":"admin"}"#)),
+            ("decor-empty", try json("api/merchant/decor/save", "{}")),
+            ("decor-array", try json("api/merchant/decor/save", #"{"gallery":["a"]}"#)),
+            ("coop-missing-required", try json("api/merchant/coop-profile/save", #"{"availableTime":"a"}"#)),
+            ("coop-bad-params", try json("api/merchant/coop-profile/save", #"{"availableTime":"a","demand":"d","params":{"x":1}}"#)),
+            ("npc-partial", try json("api/merchant/npc/save", #"{"name":"n"}"#)),
+            ("npc-number", try json("api/merchant/npc/save", #"{"name":"n","avatar":1,"greeting":"g","persona":"","knowledge":""}"#)),
+            ("template-no-title", try json("api/merchant/city-node/template/submit", #"{"id":4}"#)),
+            ("template-extra", try json("api/merchant/city-node/template/submit", #"{"title":"t","merchantId":1}"#)),
+            ("template-delete", try json("api/merchant/city-node/template/delete", #"{"id":4}"#)),
+            ("form-body-save", try form("api/merchant/decor/save", ["slogan": "x"])),
+            ("coop-read-no-body", try AuthRequestBuilder.makeFormRequest(url: try XCTUnwrap(URL(string: Self.base)).appendingPathComponent("api/merchant/coop-profile"), fields: [:], token: Self.token, includesBody: false)),
+            ("info-with-field", try form("api/merchant/info", ["id": "1"])),
+            ("myinfo-no-id", try form("api/template/myinfo", [:])),
+            ("myinfo-zero", try form("api/template/myinfo", ["id": "0"])),
+            ("get-read", request("GET", Self.base + "/api/merchant/npc/profile", contentType: nil)),
+            ("foreign-save", try OperationAdapterHTTP.json(configuration: try APIConfiguration(baseURL: evil), path: "api/merchant/npc/save", body: Data(#"{"name":"n","avatar":"","greeting":"g","persona":"","knowledge":""}"#.utf8), token: Self.token)),
+            ("foreign-read", try AuthRequestBuilder.makeFormRequest(url: evil.appendingPathComponent("api/merchant/info"), fields: [:], token: Self.token))
+        ]
+    }
+
+    func testUnconfiguredCompositionIssuesNoLeaseAndRefusesEveryRoute() async throws {
+        let wire = Wire()
+        let root = try unconfigured(wire: wire)
+        XCTAssertNil(root.merchantOperationsWriteApproval(try context(root, role: "merchant")))
+        let transport = root.transport()
+        transport.current = { self.viewer(role: "merchant") }
+        let sent = await sentPaths(transport, try exactRequests() + neighbours(), wire: wire)
+        XCTAssertFalse(sent.values.contains(true), "\(sent)")
+    }
+
+    func testReviewedWithoutProductionGatesIssuesNoLeaseAndRefusesEveryRoute() async throws {
+        let wire = Wire()
+        let root = try composition(gates: false, wire: wire)
+        XCTAssertNil(root.merchantOperationsWriteApproval(try context(root, role: "merchant")))
+        let transport = root.transport()
+        transport.current = { self.viewer(role: "merchant") }
+        let sent = await sentPaths(transport, try exactRequests(), wire: wire)
+        XCTAssertFalse(sent.values.contains(true), "\(sent)")
+    }
+
+    func testLeaseCoversExactlyTheFourSavesForMerchantsInChina() throws {
+        let root = try composition(gates: true, wire: Wire())
+        let lease = try XCTUnwrap(root.merchantOperationsWriteApproval(try context(root, role: "merchant")))
+        XCTAssertEqual(lease.paths, ["api/merchant/decor/save", "api/merchant/coop-profile/save", "api/merchant/npc/save", "api/merchant/city-node/template/submit"])
+        for role in ["player", "club", "guest"] { XCTAssertNil(root.merchantOperationsWriteApproval(try context(root, role: role)), role) }
+        XCTAssertNil(root.merchantOperationsWriteApproval(try context(root, role: "merchant", market: .unitedStates)))
+    }
+
+    func testReviewedChinaCompositionAllowsExactlyTheReadsAndSavesForMerchantsOnly() async throws {
+        let wire = Wire()
+        let transport = try composition(gates: true, wire: wire).transport()
+        transport.current = { self.viewer(role: "merchant") }
+        let allowed = await sentPaths(transport, try exactRequests(), wire: wire)
+        for (name, sent) in allowed { XCTAssertTrue(sent, "must admit \(name)") }
+        let refused = await sentPaths(transport, try neighbours(), wire: wire)
+        for (name, sent) in refused { XCTAssertFalse(sent, "must refuse \(name)") }
+        XCTAssertEqual(wire.requests.count, allowed.count)
+        for role in ["player", "club"] {
+            let w = Wire()
+            let t = try composition(gates: true, wire: w).transport()
+            t.current = { self.viewer(role: role) }
+            let sent = await sentPaths(t, try exactRequests(), wire: w)
+            XCTAssertFalse(sent.values.contains(true), "\(role): \(sent)")
+        }
+        let out = Wire()
+        let outTransport = try composition(gates: true, wire: out).transport()
+        outTransport.current = { CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil, viewerRevision: 1) }
+        let outSent = await sentPaths(outTransport, try exactRequests(), wire: out)
+        XCTAssertFalse(outSent.values.contains(true), "\(outSent)")
+    }
+}

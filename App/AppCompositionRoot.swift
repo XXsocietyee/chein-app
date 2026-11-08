@@ -612,6 +612,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
         return .init(reads: true, insight: true, settlement: false)
     }
+    /// Merchant decor / cooperation / NPC / perk-template save lease; nil unless the reviewed deployment enables production gates (merchant role only).
+    func merchantOperationsWriteApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard reviewed?.productionGatesEnabled == true else { return nil }
+        return productionGateLeases.merchantOperationsWrite(context)
+    }
     /// Team apply/withdraw/handle write lease; nil unless the reviewed deployment enables production gates. It grants endpoints only:
     /// the caller must still supply a fresh-evidence loader and the adapter re-validates every review against it.
     func nearbyTeamWriteApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
@@ -2591,7 +2596,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -2789,6 +2794,16 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if url == api.baseURL.appendingPathComponent("api/common/dict") {
             guard deployment.reads.contains(.homeAndSearch), captured.isPublicTemplateViewer,
                   TemplateMetadataReadRoute(request: request, baseURL: api.baseURL) != nil else { throw APIError.notConfigured }
+        } else if let merchantOperations = ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
+            if case .write(let path) = merchantOperations {
+                guard let account = captured.accountID, let token = captured.token,
+                      let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
+                        namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: "merchant", session: session)
+                guard merchantOperationsWriteApproval(context)?.paths.contains(path) == true else { throw APIError.notConfigured }
+            }
         } else if url == api.baseURL.appendingPathComponent("api/merchant/coop-profile") || url == api.baseURL.appendingPathComponent("api/coupon/command-receipt") {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
@@ -3995,6 +4010,73 @@ enum ReviewedNearbyTeamReadRoute {
     }
 }
 
+/// Merchant operations (`MerchantOperationsService`): the four baseline reads a save needs and the four reviewed saves
+/// (decor, cooperation, NPC character, perk template). Bodies are checked against per-path key allowlists with scalar values
+/// only (`params` may carry `{"clearCapacity":true}`). Profile, business-status and story saves are not matched.
+enum ReviewedMerchantOperationsRoute {
+    enum Kind: Equatable { case read, write(path: String) }
+    static let writePaths: Set<String> = ["api/merchant/decor/save", "api/merchant/coop-profile/save", "api/merchant/npc/save", "api/merchant/city-node/template/submit"]
+    private static let decor: Set<String> = ["coverImage", "slogan", "cityRole", "storyTitle", "gallery", "tags", "featuredType", "featuredId", "serviceTag",
+        "serviceText", "locationLat", "locationLng", "locationVerified", "categoryIds", "address"]
+    private static let coop: Set<String> = ["availableTime", "demand", "capacity", "params", "chargeType", "suitActivityTypes", "coopOpen"]
+    private static let npc: Set<String> = ["name", "avatar", "greeting", "persona", "knowledge"]
+    private static let template: Set<String> = ["id", "title", "validationMethod", "duration", "usageLocation", "ruleInstructions", "hint1", "hint2",
+        "answerReveal", "storyText", "storyJson", "activityCategoryids", "categoryId", "imgUrl", "couponId", "description", "players", "requiredMaterials",
+        "questionAnswer", "questionName", "questionA", "questionB", "questionC", "questionD", "correctAnswer", "feedbackText"]
+
+    static func kind(_ request: URLRequest, baseURL: URL, token: String?) -> Kind? {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, url.fragment == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil, parts.query == nil else { return nil }
+        let type = request.value(forHTTPHeaderField: "Content-Type")
+        func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
+        // Reads sent as `{}` JSON.
+        if exactPath("api/merchant/coop-profile") || exactPath("api/merchant/npc/profile") {
+            return type == "application/json" && request.httpBody == Data("{}".utf8) ? .read : nil
+        }
+        // Reads sent as canonical multipart: empty (`merchant/info`) or a single positive `id` (`template/myinfo`).
+        if exactPath("api/merchant/info") || exactPath("api/template/myinfo") {
+            guard let type, type.hasPrefix("multipart/form-data; boundary="), let body = request.httpBody, body.count <= 512,
+                  let text = String(data: body, encoding: .utf8) else { return nil }
+            let boundary = String(type.dropFirst("multipart/form-data; boundary=".count))
+            var fields: [String: String] = [:]
+            if exactPath("api/template/myinfo") {
+                let marker = "--\(boundary)\r\nContent-Disposition: form-data; name=\"id\"\r\n\r\n"
+                guard let range = text.range(of: marker), let end = text[range.upperBound...].range(of: "\r\n"),
+                      let id = Int(text[range.upperBound..<end.lowerBound]), id > 0 else { return nil }
+                fields["id"] = String(id)
+            }
+            guard let canonical = try? AuthRequestBuilder.makeFormRequest(url: url, fields: fields, token: token, boundary: boundary),
+                  canonical.httpBody == body else { return nil }
+            return .read
+        }
+        guard type == "application/json", let body = request.httpBody, !body.isEmpty, body.count <= 16_384,
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any], !object.isEmpty else { return nil }
+        let allowed: Set<String>, required: Set<String>, path: String
+        if exactPath("api/merchant/decor/save") { allowed = decor; required = []; path = "api/merchant/decor/save" }
+        else if exactPath("api/merchant/coop-profile/save") { allowed = coop; required = ["availableTime", "demand"]; path = "api/merchant/coop-profile/save" }
+        else if exactPath("api/merchant/npc/save") { allowed = npc; required = npc; path = "api/merchant/npc/save" }
+        else if exactPath("api/merchant/city-node/template/submit") { allowed = template; required = ["title"]; path = "api/merchant/city-node/template/submit" }
+        else { return nil }
+        let keys = Set(object.keys)
+        guard keys.isSubset(of: allowed), required.isSubset(of: keys) else { return nil }
+        for (key, value) in object {
+            if key == "params" {
+                guard let params = value as? [String: Any], params.count == 1, params["clearCapacity"] as? Bool == true else { return nil }
+            } else if !(value is String || value is NSNumber || value is NSNull) { return nil }
+            if path == "api/merchant/npc/save", !(value is String) { return nil }
+        }
+        return .write(path: path)
+    }
+}
+
 /// Exact requests emitted by `NearbyTeamHTTPWriteAdapter` for apply, withdraw and handle (`NearbyTeamRequest.action`:
 /// sorted-key JSON, `teamId` / `memberId` positive, `approved` a JSON boolean). `kick`, `quit`, `disband` and the
 /// other team mutations are not matched.
@@ -4150,6 +4232,7 @@ private enum ReviewedProductionFormMutationRoute {
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
+    private var merchantOperationsWriteByContext: [String: OperationEndpointApproval] = [:]
     private var nearbyTeamWriteByContext: [String: OperationEndpointApproval] = [:]
     private var cityVoucherIssueByContext: [String: VerificationCodeApproval] = [:]
 
@@ -4221,6 +4304,15 @@ private enum ReviewedProductionFormMutationRoute {
         teamReadByContext[key]?.revoke()
         guard let approval = try? TeamReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         teamReadByContext[key] = approval
+        return approval
+    }
+
+    func merchantOperationsWrite(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard context.market == .china, context.role == "merchant" else { return nil }
+        let key = contextKey(context)
+        if let existing = merchantOperationsWriteByContext[key] { return existing }
+        guard let approval = makeEndpoint(context, paths: ReviewedMerchantOperationsRoute.writePaths) else { return nil }
+        merchantOperationsWriteByContext[key] = approval
         return approval
     }
 
