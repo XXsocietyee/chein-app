@@ -14,8 +14,11 @@ struct ProfileParticipantsView: View {
     @State private var recoveryVisible = false
     @State private var recoveryGeneration: UInt64 = 0
     @State private var recoveryIssue: ParticipantScreenIssue?
-    init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil) {
-        self.reader = reader; self.coordinator = coordinator
+    /// WIRE-2: mini-program pages/address "select" mode. When a sign-up caller supplies this, a row tap hands back
+    /// the participant id instead of opening the detail. Nil (every current call site) keeps the list as before.
+    private let onSelect: ((Int) -> Void)?
+    init(reader: any ProfileReading, coordinator: ParticipantMutationCoordinator? = nil, onSelect: ((Int) -> Void)? = nil) {
+        self.reader = reader; self.coordinator = coordinator; self.onSelect = onSelect
     }
     var body: some View {
         let _ = recoveryRevision
@@ -56,7 +59,7 @@ struct ProfileParticipantsView: View {
                 List {
                     Section {
                         ForEach(participants) { participant in
-                            NavigationLink { ProfileParticipantDetailView(id: participant.id, reader: reader, coordinator: coordinator) } label: {
+                            let rowLabel = Group {
                                 VStack(alignment: .leading, spacing: 6) {
                                     if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(.body.weight(.bold)) }
                                     else { Text(verbatim: participant.fullName).font(.body.weight(.bold)) }
@@ -67,6 +70,13 @@ struct ProfileParticipantsView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.vertical, 4)
+                            }
+                            Group {
+                                if let onSelect {
+                                    Button { onSelect(participant.id) } label: { rowLabel }.buttonStyle(.plain)
+                                } else {
+                                    NavigationLink { ProfileParticipantDetailView(id: participant.id, reader: reader, coordinator: coordinator) } label: { rowLabel }
+                                }
                             }.accessibilityIdentifier("profile.participant.\(participant.id)")
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                                 if let coordinator, coordinator.canPrepare, reader.identity != nil {
