@@ -89,3 +89,11 @@ public struct NativeChannelProgressJournalOwner: Codable, Equatable {
         guard try restore() == nil else { throw NativeChannelProgressError.persistence }
     }
 }
+
+extension NativeChannelProgressPrivacyJournal {
+    /// Exposes the pure strictest-wins resolver; reads and writes nothing.
+    public func resolvedValues(preference: NativeChannelProgressPrivacyValues,
+                               channel: NativeChannelProgressPrivacyResolver.ChannelPermission) -> NativeChannelProgressPrivacyResolver.Resolved {
+        NativeChannelProgressPrivacyResolver.resolve(preference: preference, channel: channel)
+    }
+}
