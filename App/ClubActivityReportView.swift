@@ -108,7 +108,8 @@ import SwiftUI
                         if let time = target.choice.startTime { Text(verbatim: time).font(.subheadline) }
                         Text("club.activityReport.platformHint").font(.footnote)
                     }.padding().accessibilityElement(children: .combine)
-                    ClubGovernanceCommandForm(route: .init(operation: .report, scope: target.scope, seed: target.seed),
+                    ClubGovernanceCommandForm(route: .init(operation: .report, scope: target.scope,
+                        seed: target.seed.merging(ClubGovernanceReportPort.displayName(target.choice.name).map { ["targetName": ClubGovernanceValue.string($0)] } ?? [:]) { current, _ in current }),
                         identity: target.source.context.identity, access: flow.access, coordinator: coordinator,
                         validateTarget: { try await flow.validate(target) })
                         .id(target.id)

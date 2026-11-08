@@ -410,6 +410,21 @@ import SwiftUI
                 .keyboardType(["maxEventSize", "avgEventSize", "actualHours"].contains(key) ? .numberPad : .default)
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier("club.gov.input." + key)
+            // Mini inline "reason required" copy; display only (the command validation still blocks blank reasons).
+            if key == "reason", dirty, let mode = Self.reasonMode(route.operation), !ClubGovernanceReportPort.reasonIsValid(draft.text[key] ?? "") {
+                Text(LocalizedStringKey(ClubGovernanceReportPort.reasonRequiredKey(mode)), tableName: "ClubOpsGovernance")
+                    .font(.footnote).foregroundStyle(.red)
+                    .accessibilityIdentifier("club.gov.reasonRequired")
+            }
+        }
+    }
+    private static func reasonMode(_ operation: ClubGovernanceMutation) -> ClubGovernanceReportPort.ReasonMode? {
+        switch operation {
+        case .ban: return .ban
+        case .transferOwner: return .transfer
+        case .report: return .report
+        case .appeal: return .appeal
+        default: return nil
         }
     }
     private func flagRow(_ key: String) -> some View {
