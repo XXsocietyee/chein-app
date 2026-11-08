@@ -33,7 +33,7 @@ import SwiftUI
                             if !receipt.failCostLabel.isEmpty { LabeledContent("journey.cost") { Text(verbatim: receipt.failCostLabel) } }
                         }
                     }
-                    if let issue = model.issue { Text(verbatim: issue).foregroundStyle(.red).accessibilityIdentifier("journey.check.error") }
+                    if let issue = model.issue { Text(verbatim: issue).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("journey.check.error") }
                     if model.unknown {
                         Text("journey.unknown")
                         Button("journey.recover") { try? model.prepare(.settle, recoverUnknown: true) }

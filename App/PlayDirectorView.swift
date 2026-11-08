@@ -169,7 +169,7 @@ import UIKit
                 if action == .visibility { Toggle("playx.director.showLeaderboard", isOn: $visible) }
             }
             Section {
-                if invalid { Text("playx.director.invalid").foregroundStyle(.red) }
+                if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
                 Button("playx.review") { prepare() }.accessibilityIdentifier("playx.director.review")
             }
         }.navigationTitle("playx.director.title")
