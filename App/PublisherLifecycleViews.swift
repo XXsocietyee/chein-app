@@ -104,6 +104,8 @@ import SwiftUI
         }
         .navigationTitle(text("publisherPricing.confirmFinalPrice"))
         .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
+        // Mini-program pages/topic/pricing calls preview() in onLoad: load the floor without a manual tap.
+        .task { if preview == nil, !busy, subtype == .selfPlay { await load() } }
         .onChange(of: subtype) { _, _ in invalidate() }
         .onChange(of: cost) { _, _ in invalidate() }
         .onChange(of: team) { _, _ in invalidate() }

@@ -149097,6 +149097,23 @@
         }
       }
     },
+    "profile.avatar.notAvailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avatar upload is not available yet. Your current avatar is unchanged."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "头像上传暂未开放，当前头像保持不变。"
+          }
+        }
+      }
+    },
     "profile.avatar.preview": {
       "extractionState": "manual",
       "localizations": {
@@ -224316,6 +224333,23 @@
         }
       }
     },
+    "withdrawal.history.dateUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Date unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期未知"
+          }
+        }
+      }
+    },
     "withdrawal.history.denied.detail": {
       "extractionState": "manual",
       "localizations": {
@@ -224346,6 +224380,108 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前账号无法查看提现记录"
+          }
+        }
+      }
+    },
+    "withdrawal.history.detail.amount": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Amount"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "金额"
+          }
+        }
+      }
+    },
+    "withdrawal.history.detail.created": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requested"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请时间"
+          }
+        }
+      }
+    },
+    "withdrawal.history.detail.id": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Application ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请编号"
+          }
+        }
+      }
+    },
+    "withdrawal.history.detail.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is a read-only record. Payouts are handled offline; status shown here may lag behind your bank."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是只读记录。提现由线下处理，此处状态可能晚于银行到账。"
+          }
+        }
+      }
+    },
+    "withdrawal.history.detail.status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态"
+          }
+        }
+      }
+    },
+    "withdrawal.history.detail.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawal details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "提现详情"
           }
         }
       }
@@ -224515,6 +224651,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前余额"
+          }
+        }
+      }
+    },
+    "withdrawal.support.balanceCard": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available balance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用余额"
           }
         }
       }

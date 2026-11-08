@@ -6,6 +6,10 @@ import SwiftUI
     var body: some View {
         List {
             InvoiceLaunchStateSection(model: model)
+            if model.overview != nil, !model.allows(.saveTitle), model.issue == nil, !model.busy, !model.unresolved {
+                Section { invoiceText("titlesReadOnly").foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("invoice.titlesReadOnly")
+            }
             if let overview = model.overview {
                 if overview.titles.isEmpty {
                     ContentUnavailableView { Label { invoiceText("noTitles") } icon: { Image(systemName: "person.text.rectangle") } }

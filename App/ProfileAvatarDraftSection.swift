@@ -85,8 +85,14 @@ import UIKit
     @ObservedObject var model: ProfileEditModel
     let dependencies: ProfileAvatarDependencies?
     var body: some View {
-        // No avatar editor without its picker dependencies: hide the row rather than show a placeholder.
+        // Without the picker dependencies (upload grant not composed) say so honestly instead of hiding the row.
         if let dependencies { ProfileAvatarEnabledSection(model: model, dependencies: dependencies) }
+        else {
+            Section("profile.avatar.title") {
+                Text("profile.avatar.notAvailable").foregroundStyle(.secondary)
+                    .accessibilityIdentifier("profile.avatar.notAvailable")
+            }
+        }
     }
 }
 @MainActor private struct ProfileAvatarEnabledSection: View {

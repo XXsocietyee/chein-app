@@ -27,14 +27,27 @@ struct WithdrawalOrderLookupRequest {
     @State private var lookedUpOrderID: Int64?
     var body: some View {
         List {
-            Section("withdrawal.support.balance") {
-                if loading { ProgressView("wallet.loading") }
-                else if let balance, loadedScope == reader.scope {
-                    Text(verbatim: amount(balance.balance, currency: balance.currency)).font(.title.bold())
-                } else {
-                    Text(LocalizedStringKey(balanceFailed ? "wallet.failed" : "wallet.unavailable"))
-                    Button("wallet.retry") { Task { await load() } }.disabled(!reader.isConfigured || reader.scope == nil)
+            // Revolut-style balance card: one prominent figure, with loading / error-retry inside the card.
+            Section {
+                CYCard(variant: .elevated) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("withdrawal.support.balanceCard").font(.subheadline).foregroundStyle(.secondary)
+                        if loading { ProgressView("wallet.loading") }
+                        else if let balance, loadedScope == reader.scope {
+                            Text(verbatim: amount(balance.balance, currency: balance.currency))
+                                .font(.largeTitle.bold()).monospacedDigit()
+                                .minimumScaleFactor(0.6).lineLimit(1)
+                                .accessibilityIdentifier("withdrawal.support.balanceValue")
+                        } else {
+                            Text(LocalizedStringKey(balanceFailed ? "wallet.failed" : "wallet.unavailable"))
+                            Button("wallet.retry") { Task { await load() } }
+                                .frame(minHeight: 44)
+                                .disabled(!reader.isConfigured || reader.scope == nil)
+                        }
+                    }
                 }
+                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                .accessibilityElement(children: .contain).accessibilityIdentifier("withdrawal.support.balanceCard")
             }
             Section("withdrawal.support.notReceived") {
                 if let stages, loadedScope == reader.scope {

@@ -1,6 +1,38 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "titlesReadOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adding, editing and deleting invoice titles is not available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持在应用内新增、编辑或删除发票抬头。"
+          }
+        }
+      }
+    },
+    "applyUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Applying for an invoice is not available yet. You can still review your titles and orders."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持在应用内申请开票，你仍可查看抬头与订单。"
+          }
+        }
+      }
+    },
     "history": {
       "localizations": {
         "en": {
