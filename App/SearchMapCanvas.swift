@@ -23,13 +23,13 @@ struct SearchMapCanvas: View {
         Group {
             if offline {
                 VStack(spacing: 12) {
-                    Image(systemName: "map").font(.largeTitle).accessibilityHidden(true)
-                    Text("searchMap.offlineMap").accessibilityIdentifier("searchMap.map")
+                    Image(systemName: "map").font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                    Text("searchMap.offlineMap").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("searchMap.map")
                     ForEach(pins) { pin in
                         Button { onSelect?(pin.id) } label: {
                             HStack(spacing: 12) {
                                 QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)
-                                Text(verbatim: pin.title).fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: pin.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                             }
                         }.buttonStyle(.plain).frame(minHeight: 44)
                             .accessibilityLabel(Text(verbatim: pin.title))
@@ -42,7 +42,8 @@ struct SearchMapCanvas: View {
                     polyline: polyline, onViewportChange: onViewportChange, onSelect: onSelect)
                     .accessibilityIdentifier("searchMap.map")
             }
-        }.frame(minHeight: 240).clipShape(RoundedRectangle(cornerRadius: 20))
+        }.frame(minHeight: 240).clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 0.5))
     }
     /// Reform plan v9 §12.2 MV01: the offline canvas uses the versioned ground token for the
     /// system appearance. MapKit tiles keep QuestifyMapAppearance; the palette is still a candidate.

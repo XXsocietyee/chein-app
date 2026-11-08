@@ -300,7 +300,7 @@ struct RoamBrowserView: View {
         let reader = effectiveReader
         if reader.isOfflineExample {
             Label("roam.offlineExample", systemImage: "testtube.2")
-                .font(.caption).accessibilityIdentifier("roam.fixture.notice")
+                .font(CYTypography.caption).foregroundStyle(CYColor.warningText).accessibilityIdentifier("roam.fixture.notice")
         }
         if let area = reader.searchArea {
             Label {
@@ -347,11 +347,14 @@ struct RoamBrowserView: View {
                     interactionID: AnyHashable(renderedKey), onSelect: { item in
                     select(item, key: renderedKey, snapshot: renderedItems)
                 })
-                    .listRowInsets(EdgeInsets())
+                    .frame(minHeight: 280)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
+                    .listRowBackground(Color.clear)
                     .id(scope)
             }
             if loading || loadedKey != requestKey {
-                ProgressView("roam.loading").accessibilityIdentifier("roam.loading")
+                CYSkeleton().accessibilityIdentifier("roam.loading")
             } else if let issue {
                 RoamStatusView(issue: issue) { startLoad() }
             } else if visibleItems.isEmpty {
@@ -397,6 +400,8 @@ struct RoamBrowserView: View {
                     .accessibilityIdentifier("roam.row.\(item.id)")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .refreshable { await load() }
         .accessibilityIdentifier("roam.content")
     }
@@ -459,10 +464,10 @@ struct RoamItemRow: View {
     var showsCurrentReadStatus = false
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: item.symbol).foregroundStyle(.tint).frame(width: 26)
+            Image(systemName: item.symbol).foregroundStyle(CYColor.textPrimary).frame(width: 26)
             VStack(alignment: .leading, spacing: 6) {
-                RoamTitle(item.title).font(.headline)
-                Text(item.kindLabel).font(.caption).foregroundStyle(.secondary)
+                RoamTitle(item.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                Text(item.kindLabel).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                 if showsCurrentReadStatus, case .place(let place) = item {
                     RoamPlaceReadStatusLabel(status: place.readStatus).font(.caption)
                 }
@@ -473,7 +478,7 @@ struct RoamItemRow: View {
                 if item.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash").font(.caption) }
             }
             Spacer(minLength: 0)
-            if navigable { Image(systemName: "chevron.right").foregroundStyle(.secondary).font(.caption) }
+            if navigable { Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).font(.caption) }
         }
         .padding(.vertical, 8).contentShape(Rectangle())
         .accessibilityElement(children: .combine)
