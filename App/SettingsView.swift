@@ -54,7 +54,10 @@ struct SettingsView: View {
                 SettingsSupportSafetyEntry()
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                 SettingsSignOutEntry(session: session) { dismiss() }
+                // Mini-program pages/shezhi ends with the 素材署名 block under the sign-out button.
+                SettingsAttributionsSection(copyText: { LocalPasteboard.copy($0) })
             }
+            .cyGroupedSurface()
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")

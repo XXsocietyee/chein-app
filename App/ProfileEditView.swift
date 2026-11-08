@@ -554,7 +554,6 @@ struct ProfileEditView: View {
                     ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)
                     Section {
                         textFieldRow(.name, value: model.draft.name)
-                        textFieldRow(.introduction, value: model.draft.introduction)
                     } header: { Text("profile.edit.details") }
                         .disabled(!model.canBeginTextEdit)
                     if let phone = model.coordinator.phoneDisplay {
@@ -568,6 +567,11 @@ struct ProfileEditView: View {
                             }.privacySensitive().accessibilityIdentifier("profile.phone.value")
                         }
                     }
+                    // Mini-program order: 昵称 → 手机号 → 城市签名 → 探索作品.
+                    Section {
+                        textFieldRow(.introduction, value: model.draft.introduction)
+                    }
+                    .disabled(!model.canBeginTextEdit)
                     Section("profile.case.title") {
                         textFieldRow(.caseIntroduction, value: model.draft.caseIntroduction ?? model.coordinator.snapshot?.caseIntroduction ?? "")
                             .disabled(!model.canBeginTextEdit)
@@ -604,6 +608,7 @@ struct ProfileEditView: View {
     }
     private var editorNavigation: some View {
         editorForm
+        .cyGroupedSurface()
         .questifyBottomAction {
             if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
                             Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }

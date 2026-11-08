@@ -56,6 +56,7 @@ import SwiftUI
                 }.accessibilityIdentifier("member.privacy.media")
             } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile"))
         .sheet(isPresented: $showsRoam) {
             if let compliance {
