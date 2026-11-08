@@ -203,3 +203,16 @@ public struct NativeChannelProgressQuery: Equatable {
         boardKey = board.boardKey; self.period = period; self.completed = completed; self.teamID = teamID; self.limit = limit
     }
 }
+
+extension NativeChannelProgressScope {
+    /// Audience breadth: lower is stricter. Used only by `NativeChannelProgressPrivacyResolver`.
+    public var breadth: Int {
+        switch self { case .onlyMe: return 0; case .team: return 1; case .channel: return 2; case .publicAccess: return 3 }
+    }
+    /// The narrower (stricter) of two scopes.
+    public func strictest(with other: Self) -> Self { breadth <= other.breadth ? self : other }
+}
+extension NativeChannelProgressPhotoScope {
+    /// Photo audience breadth: lower is stricter. `.admin` and `.team` both require a non-private detail audience.
+    public var breadth: Int { self == .onlyMe ? 0 : 1 }
+}
