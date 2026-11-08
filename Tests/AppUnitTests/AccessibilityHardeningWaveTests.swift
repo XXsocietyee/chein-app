@@ -21,4 +21,16 @@ final class AccessibilityHardeningWaveTests: XCTestCase {
         XCTAssertEqual(ActivityLocationAccessibility.value(name: " ", addressName: "", address: "1 Main St"), "1 Main St")
         XCTAssertEqual(ActivityLocationAccessibility.value(name: "", addressName: nil, address: nil), "")
     }
+
+    // FP-A5
+    func testWalletAnnouncementOnlyAfterLoadCompletesWithValue() {
+        XCTAssertTrue(WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: false, hasValue: true))
+        XCTAssertFalse(WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: false, hasValue: false))
+        XCTAssertFalse(WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: true, hasValue: true))
+    }
+
+    func testWalletAnnouncementCarriesNoAmountAndFollowsLocale() {
+        XCTAssertEqual(WalletLoadAnnouncement.text(locale: Locale(identifier: "en")), "Wallet figures updated")
+        XCTAssertEqual(WalletLoadAnnouncement.text(locale: Locale(identifier: "zh-Hans")), "钱包数据已更新")
+    }
 }

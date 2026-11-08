@@ -77,5 +77,16 @@ class FPA4ActivityDetail(unittest.TestCase):
         self.assertIn('Button("action.close", action: onClose)', src('App/TicketWalletView.swift'))
 
 
+class FPA5WalletAndGrowth(unittest.TestCase):
+    def test_no_fixed_system_size_fonts(self):
+        for path in ('App/WalletCommerceViews.swift', 'App/GrowthCenterView.swift'):
+            self.assertNotIn('.system(size:', src(path), path)
+        self.assertIn('CYTypography.data2XL', src('App/GrowthCenterView.swift'))
+
+    def test_wallet_posts_announcement_when_loaded(self):
+        s = src('App/WalletCommerceViews.swift')
+        self.assertEqual(s.count('AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()'), 2)
+
+
 if __name__ == '__main__':
     unittest.main()
