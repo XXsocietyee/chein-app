@@ -51,3 +51,20 @@ Recorded by GM-INT-G during gap-wave integration. `App/AppSession.swift`, `App/A
 - `pages/gerenziliao/gerenziliao`: pass `ProfileAvatarDependencies(source:journal:pickerHost:)` into `ProfileEditView(avatarDependencies:)` once avatar upload is reviewed.
 - `pages/topic/pricing/index`: compose `PublisherLifecycleHTTP` grants so `grants.pricing` is non-nil for reviewed deployments (`App/PublisherLifecycleHostHooks.swift`).
 - `subpackageMember/invoice-apply/index` & `subpackageMember/invoice-titles/index`: provide `InvoiceLaunchService(mutationsEnabled: true)` and `InvoiceLaunchPresentation(permits:)` returning `true` for `.apply`/`.saveTitle`/`.deleteTitle`/`.cancel` under reviewed deployment.
+
+## Batch 3 (`cl-w7b`, `cl-w7c`, `cl-w8a`, `cl-w8b`)
+
+### `cl-w7b`
+- `subpackageMember/complaint/index`: set `ProfileComplaintPreparationLink.submitterFactory = { session in ProfileComplaintCoordinatorSubmitter(coordinator: <session's CoopFlowCoordinator>, enabled: { <reviewed complaint-report grant> }) }` once the grant exists (`AppSession`/`AppCompositionRoot`).
+- `pages/merchant/aftercare/detail/index` & `pages/merchant/customer/index`: wire `MerchantAftercareResponseDraft` / `MerchantCustomerBatchTag` into `App/MerchantBusinessEditor.swift` and supply reviewed `MerchantBusinessMutation` production transport when approved.
+
+### `cl-w7c`
+- `pages/merchant/aftercare/index`: respond write grant (`MerchantBusinessMutation` production transport, shared with aftercare detail).
+
+### `cl-w8a`
+- `pages/play/merchant/index`: inject an enabled `PlayStoreDayService` from composition root once the store-day check-in/answer grant exists.
+- `pages/publish/temp/index` & `subpackageMember/mytemplate/mytemplate` (`App/AppSession.swift:4669`): inject live `TemplateAuthoringRequestHTTPService` once reviewed.
+
+### `cl-w8b`
+- Composition hooks (once reviewed routes/grants exist): set `StoryParticipationWriterFactory.makeWriter`, `ChallengePOIWriterFactory.makeWriter` (plus location provider for `ChallengePOIHostView`), `TopicTemplateUseFactory.makeUser`, `MyProjectMutationFactory.makeMutator`, `FreeExploreCancelFactory.makeCanceler`, and `OrientScoreReviewFactory.makeSubmitter`.
+- Host view embedding: embed `TopicTemplateUseSection` in topic-template detail, `MyProjectMutationStatusView` + `begin(...)` in `MyProjectRowOperationsMenu`/list, cancel button + dialog in `FreeExploreBundleLaunchView`, and `OrientScoreReviewSection` + navigation entry in `OrientScoreReadyContent`.
