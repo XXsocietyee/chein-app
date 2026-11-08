@@ -91,3 +91,14 @@ enum MerchantEngagementPageState {
         return CloseW5dPageState.resolve(loading: loading, failed: issue != nil, denied: denied, hasContent: hasAccess && hasIdentity, isEmpty: false)
     }
 }
+
+/// Brand center (merchant decor) home: an inactive merchant has not finished onboarding
+/// (mini-program `loadState === 'empty'`); an active one with no visible entries lacks
+/// decor permission (`loadState === 'permission'`).
+enum MerchantOperationsHomeState {
+    static func resolve(active: Bool, visibleEntryCount: Int) -> CloseW5dPageState {
+        if !active { return .empty }
+        if visibleEntryCount <= 0 { return .denied }
+        return .content
+    }
+}

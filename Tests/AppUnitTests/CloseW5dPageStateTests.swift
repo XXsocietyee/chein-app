@@ -27,3 +27,18 @@ final class CloseW5dPageStateTests: XCTestCase {
         XCTAssertEqual(MerchantEngagementPageState.resolve(loading: false, issue: nil, hasAccess: true, hasIdentity: true), .content)
     }
 }
+
+final class CloseW5dMerchantOperationsHomeStateTests: XCTestCase {
+    func testInactiveMerchantShowsOnboardingEmptyState() {
+        XCTAssertEqual(MerchantOperationsHomeState.resolve(active: false, visibleEntryCount: 0), .empty)
+        XCTAssertEqual(MerchantOperationsHomeState.resolve(active: false, visibleEntryCount: 5), .empty)
+    }
+
+    func testActiveWithoutVisibleEntriesIsPermissionDenied() {
+        XCTAssertEqual(MerchantOperationsHomeState.resolve(active: true, visibleEntryCount: 0), .denied)
+    }
+
+    func testActiveWithEntriesShowsContent() {
+        XCTAssertEqual(MerchantOperationsHomeState.resolve(active: true, visibleEntryCount: 1), .content)
+    }
+}

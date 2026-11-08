@@ -1,6 +1,57 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "merchant.decor.state.empty.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Store can't be decorated yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时无法装修店铺"
+          }
+        }
+      }
+    },
+    "merchant.decor.state.empty.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Complete merchant onboarding to use the brand center."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成商家入驻后可用。"
+          }
+        }
+      }
+    },
+    "merchant.decor.save.gated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saving store changes is not available yet in this build. You can browse your store details, but edits are not sent."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前版本暂未开放保存门店修改，可浏览门店资料，修改不会提交。"
+          }
+        }
+      }
+    },
     "closew5d.state.loading" : {
       "extractionState" : "manual",
       "localizations" : {
