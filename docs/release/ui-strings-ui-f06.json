@@ -1,0 +1,6 @@
+[
+  {"key": "publishModes.quick.kicker.city", "en": "City orientation · gathered route", "zh-Hans": "城市定向 · 集合式路线"},
+  {"key": "publishModes.quick.kicker.free", "en": "Free explore · chapter-linked route", "zh-Hans": "自由探索 · 章节承接路线"},
+  {"key": "publishModes.quick.heroTitle", "en": "Hi, what kind of route do you want to make?", "zh-Hans": "嗨，想做一条什么样的路线？"},
+  {"key": "publishModes.quick.aiNote", "en": "AI only drafts. You confirm the places and everything you publish.", "zh-Hans": "AI 只协助起草，地点与发布内容终由你确认"}
+]

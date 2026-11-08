@@ -29,7 +29,7 @@ struct ClubOpsNotifyContentFields: View {
                 .lineLimit(3...8)
                 .accessibilityIdentifier("club.gov.input.content")
             if !(title.isEmpty && content.isEmpty), let issue = ClubOpsNotifyPresentation.draftIssue(title: title, content: content) {
-                ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).font(.footnote).foregroundStyle(.red)
+                ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("clubOpsJN.notify.issue")
             }
         }
@@ -37,7 +37,7 @@ struct ClubOpsNotifyContentFields: View {
     private func label(_ key: String, count text: String, limit: Int) -> some View {
         HStack(spacing: 2) {
             ClubOpsJoinNotifyCopy.text(key)
-            Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true)
+            Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
             Spacer()
             Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count)/\(limit)")
                 .font(.caption).monospacedDigit().foregroundStyle(.secondary)
@@ -67,7 +67,7 @@ struct ClubOpsNotifyCampaignRows: View {
         LabeledContent { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.phase." + campaign.phase.rawValue) } label: { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.status.label") }
             .accessibilityIdentifier("clubOpsJN.notify.phase")
         row("clubOpsJN.notify.total", campaign.totalCount)
-        row("clubOpsJN.notify.success", campaign.successCount, tint: .green)
+        row("clubOpsJN.notify.success", campaign.successCount, tint: CYColor.successText)
         LabeledContent {
             Text(campaign.pendingCount, format: .number).monospacedDigit()
         } label: {
@@ -76,7 +76,7 @@ struct ClubOpsNotifyCampaignRows: View {
                 if campaign.processing { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.processing").font(.caption).foregroundStyle(.secondary) }
             }
         }.accessibilityIdentifier("clubOpsJN.notify.pending")
-        row("clubOpsJN.notify.failed", campaign.failedCount, tint: .red)
+        row("clubOpsJN.notify.failed", campaign.failedCount, tint: CYColor.dangerText)
     }
     private var outcomeKey: String? {
         switch outcome {

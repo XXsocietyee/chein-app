@@ -39,21 +39,36 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
             let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))
             List {
-                // Mini-program profile block: cover hero, name, then two meta lines —
-                // 「类型 · N 名成员」 and the join policy (公开加入 / 需审核加入).
+                // Mini-program profile block (club/detail wxml .cover-wrap + .profile): full-bleed cover,
+                // logo overlapping the cover edge, name beside it, then icon+text meta chips stacked
+                // 「类型」/「N 名成员」/「公开加入」. The join CTA lives in ClubActionPanel below.
                 Section {
-                    VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                    VStack(alignment: .leading, spacing: 0) {
                         ClubDetailCover(source: club.cover)
-                        ClubName(value: club.name).font(Theme.Font.pageTitle)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("club.detail.name")
-                        Label { Text(verbatim: headerMeta(club)) } icon: { Image(systemName: "person.3") }
-                            .font(Theme.Font.label).foregroundStyle(.secondary)
-                        if club.joinPolicySupported {
-                            Label(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
-                                  systemImage: club.needsApproval ? "lock" : "checkmark")
-                                .font(Theme.Font.label).foregroundStyle(.secondary)
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            ClubDetailLogo(source: club.logo)
+                                .offset(y: -CYSpacing.xxl)
+                                .padding(.bottom, -CYSpacing.xxl)
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                ClubName(value: club.name).font(CYTypography.pageTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("club.detail.name")
+                                ForEach(metaChips(club), id: \.icon) { chip in
+                                    Label { Text(verbatim: chip.text) } icon: { Image(systemName: chip.icon) }
+                                        .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                                }
+                                if club.joinPolicySupported {
+                                    Label(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
+                                          systemImage: club.needsApproval ? "lock" : "checkmark.circle")
+                                        .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                                }
+                            }
+                            .padding(.top, CYSpacing.sm)
                         }
+                        .padding(.horizontal, CYSpacing.pageHorizontal)
+                        .padding(.top, CYSpacing.md)
+                        .padding(.bottom, CYSpacing.sm)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .listRowInsets(EdgeInsets())
@@ -206,10 +221,18 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Text(verbatim: description).textSelection(.enabled)
                         } else { Text("club.noIntroduction").foregroundStyle(.secondary) }
                     }
+                    // Mini-program .ov-facts: three equal tiles (主理人 / 等级 / 所在城市), value over label.
                     Section {
-                        LabeledContent("club.leader") { Text(verbatim: Self.dash(club.leaderName)) }
+                        HStack(spacing: CYSpacing.sm) {
+                            ClubDetailFactTile(value: Self.dash(club.leaderName), label: "club.leader")
+                            ClubDetailFactTile(value: club.level > 0 ? "Lv.\(club.level)" : "—", label: "club.detail.levelFact")
+                            ClubDetailFactTile(value: Self.dash(club.city ?? club.address), label: "club.detail.cityFact")
+                        }
+                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                        .listRowBackground(Color.clear)
+                    }
+                    Section {
                         LabeledContent("club.type") { Text(verbatim: Self.dash(club.clubType ?? club.clubTypes)) }
-                        LabeledContent("club.detail.cityFact") { Text(verbatim: Self.dash(club.city ?? club.address)) }
                         ClubOptionalRow(title: "club.preferences", value: club.activityPrefs.isEmpty ? nil : club.activityPrefs.joined(separator: ", "))
                         ClubOptionalRow(title: "club.keywords", value: club.keywords)
                         ClubOptionalRow(title: "club.style", value: club.style)
@@ -295,11 +318,13 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return text.isEmpty ? "—" : text
     }
-    private func headerMeta(_ club: ClubRecord) -> String {
-        let type = (club.clubType ?? club.clubTypes)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let count = ClubMemberCountLocalization.text(club.memberCount, locale: locale)
-        guard let type, !type.isEmpty else { return count }
-        return type + " · " + count
+    private func metaChips(_ club: ClubRecord) -> [ClubDetailMetaChip] {
+        var chips: [ClubDetailMetaChip] = []
+        if let type = (club.clubType ?? club.clubTypes)?.trimmingCharacters(in: .whitespacesAndNewlines), !type.isEmpty {
+            chips.append(ClubDetailMetaChip(icon: "safari", text: type))
+        }
+        chips.append(ClubDetailMetaChip(icon: "person.3", text: ClubMemberCountLocalization.text(club.memberCount, locale: locale)))
+        return chips
     }
 
     /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
@@ -318,6 +343,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     }
 }
 
+private struct ClubDetailMetaChip { let icon: String; let text: String }
+
 private struct ClubDetailManageGrantKey: Hashable {
     let clubID: Int
     let identity: ClubReadIdentity
@@ -325,21 +352,60 @@ private struct ClubDetailManageGrantKey: Hashable {
 }
 
 /// Club cover hero: the real cover when there is one, a clean text-free placeholder otherwise.
+/// Full-bleed like the mini-program `.cover-wrap` (no rounded card), 16:9-ish fixed band.
 private struct ClubDetailCover: View {
     let source: String?
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         ZStack {
-            Rectangle().fill(.quaternary)
-            Image(systemName: "person.3").font(.largeTitle).foregroundStyle(.tertiary)
+            Rectangle().fill(CYColor.bgElevated)
+            Image(systemName: "person.3").font(.largeTitle).foregroundStyle(CYColor.textTertiary)
             if let url = QuestifyCardArtwork.safeURL(source) {
                 AsyncImage(url: url, transaction: Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)) { phase in
                     if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) }
                 }
             }
         }
-        .frame(maxWidth: .infinity).frame(height: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .frame(maxWidth: .infinity).frame(height: 160)
+        .clipped()
         .accessibilityHidden(true)
+    }
+}
+
+/// Square logo that overlaps the cover's bottom edge (mini-program `.profile-logo-wrap`).
+private struct ClubDetailLogo: View {
+    let source: String?
+    @ScaledMetric(relativeTo: .title) private var side: CGFloat = 72
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgElevated)
+            Image(systemName: "person.3").foregroundStyle(CYColor.textTertiary)
+            if let url = QuestifyCardArtwork.safeURL(source) {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFit() }
+                }
+            }
+        }
+        .frame(width: side, height: side)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(CYColor.bgPage, lineWidth: 3))
+        .accessibilityHidden(true)
+    }
+}
+
+/// One of the three overview fact tiles (value over caption), mini-program `.ov-fact`.
+private struct ClubDetailFactTile: View {
+    let value: String
+    let label: LocalizedStringKey
+    var body: some View {
+        VStack(spacing: CYSpacing.xs) {
+            Text(verbatim: value).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
+            Text(label).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+        .padding(.vertical, CYSpacing.md).padding(.horizontal, CYSpacing.sm)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityElement(children: .combine)
     }
 }

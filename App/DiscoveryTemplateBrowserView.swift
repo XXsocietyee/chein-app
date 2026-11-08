@@ -60,7 +60,10 @@ struct DiscoveryTemplateBrowserView: View {
                     }
                     if tab == .topics { topicShelf }
                     else { gameShelf }
-                }.refreshable { await reloadCurrent() }
+                }
+                .scrollContentBackground(.hidden)
+                .background(CYColor.bgPage)
+                .refreshable { await reloadCurrent() }
             }
         }
         .appNavigationTitle("discovery.templateTab.title")
@@ -126,7 +129,8 @@ struct DiscoveryTemplateBrowserView: View {
 
     @ViewBuilder private var topicShelf: some View {
         Section {
-            HStack {
+            HStack(spacing: CYSpacing.sm) {
+                Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                 TextField("discovery.topicNameSearch", text: $topicKeyword)
                     .focused($topicSearchFocused)
                     .submitLabel(.search)
@@ -145,13 +149,12 @@ struct DiscoveryTemplateBrowserView: View {
             }
         }
         if let categories = home.value?.categories, !categories.isEmpty {
+            // Mini-program L2 chips (tpl-chips): first chip is 推荐, not 全部; selected = solid + weight.
             Section {
-                Picker("discovery.category", selection: $categoryID) {
-                    Text("discovery.recommended").tag(Optional<Int>.none)
-                    ForEach(categories) { category in
-                        Text(category.name).tag(Optional(category.id))
-                    }
-                }.accessibilityIdentifier("discovery.topicCategory")
+                CYChipRow(allTitle: "discovery.recommended", items: categories, selection: $categoryID) { $0.name }
+                    .accessibilityIdentifier("discovery.topicCategory")
+                    .listRowInsets(EdgeInsets())
+                    .listRowBackground(Color.clear)
             }
         }
         if let error = topics.error {
@@ -241,36 +244,42 @@ struct DiscoveryTemplateBrowserView: View {
                             coordinator: reader.publicTopicTemplateCoordinator(id: item.id))
                         topics.cover()
                     } label: {
-                        HStack(alignment: .top, spacing: 12) {
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
                             DiscoveryTopicCoverThumb(urlString: item.imgUrl)
-                            VStack(alignment: .leading, spacing: 6) {
-                                DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(.headline)
+                            VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
+                                DiscoveryTitle(text: item.name, fallback: "discovery.untitledTopic").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                                 if !item.subtitle.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                    Text(item.subtitle).font(.subheadline)
+                                    Text(item.subtitle).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                                 }
                                 DiscoveryTopicMetadata(item: item)
                             }
                         }.padding(.vertical, 6)
                     }.disabled(!topics.canOpen(reader: reader))
+                        .listRowBackground(CYColor.bgElevated)
                         .accessibilityIdentifier("discovery.topic.\(item.id)")
                 }
             } header: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(title)
-                    if let hint { Text(hint).font(.caption).textCase(nil) }
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    Text(title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
+                        .accessibilityAddTraits(.isHeader)
+                    if let hint { Text(hint).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).textCase(nil) }
                 }
             }
         }
     }
     @ViewBuilder private func gameSection(_ title: LocalizedStringKey, rows: [DiscoveryPlayTemplate]) -> some View {
         if !rows.isEmpty {
-            Section(title) {
+            Section {
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, item in
                     NavigationLink {
                         DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: { DiscoveryPlayRow(item: item) }
+                    .listRowBackground(CYColor.bgElevated)
                     .accessibilityIdentifier("discovery.play.\(item.id)")
                 }
+            } header: {
+                Text(title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
+                    .accessibilityAddTraits(.isHeader)
             }
         }
     }

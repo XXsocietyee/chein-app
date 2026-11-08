@@ -14,7 +14,7 @@ struct MerchantAftercareProgressView: View {
                     QuestifyHeroValue(value: Text(verbatim: progress.amount.display).monospacedDigit(),
                                       caption: Text(verbatim: heroSubtitle))
                 } else {
-                    QuestifyHeroValue(value: Text("merchant.aftercareProgress.amountUnknown").foregroundColor(.secondary),
+                    QuestifyHeroValue(value: Text("merchant.aftercareProgress.amountUnknown").foregroundColor(CYColor.textTertiary),
                                       caption: Text(verbatim: heroSubtitle))
                 }
             }
@@ -63,7 +63,7 @@ struct MerchantAftercareProgressView: View {
                             .accessibilityIdentifier("merchantOps.aftercare.policyText")
                         if let version = progress.policyVersion {
                             Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.policyVersion %lld", version))
-                                .font(.footnote).foregroundStyle(.secondary)
+                                .font(.footnote).foregroundStyle(CYColor.textTertiary)
                         }
                     }
                 }
@@ -73,7 +73,7 @@ struct MerchantAftercareProgressView: View {
         if let decision = MerchantAftercareDecision(rawValue: progress.opinion.rawValue) {
             Section {
                 Text(verbatim: MerchantOpsCopy.text(MerchantAftercareResponseGuide.consequenceKey(decision)))
-                    .font(.footnote).foregroundStyle(.secondary)
+                    .font(.footnote).foregroundStyle(CYColor.textTertiary)
                     .accessibilityIdentifier("merchantOps.aftercare.opinionConsequence")
             }
         }
@@ -99,10 +99,10 @@ struct MerchantAftercareProgressView: View {
                         if let content = response.content { Text(verbatim: content) }
                         if response.evidence != .none && response.evidence != .notProvided {
                             Text(LocalizedStringKey("merchant.aftercareProgress.evidence." + response.evidence.rawValue))
-                                .font(.footnote).foregroundStyle(.secondary)
+                                .font(.footnote).foregroundStyle(CYColor.textTertiary)
                         }
                     }
-                    if let time = event.occurredAt { Text(verbatim: MerchantAftercareTime.event(time, phoneTimeZone: phoneTimeZone)).font(.caption).foregroundStyle(.secondary) }
+                    if let time = event.occurredAt { Text(verbatim: MerchantAftercareTime.event(time, phoneTimeZone: phoneTimeZone)).font(.caption).foregroundStyle(CYColor.textTertiary) }
                 }
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityElement(children: .combine)
@@ -122,7 +122,7 @@ struct MerchantAftercareProgressView: View {
             Label {
                 Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.help")).font(.footnote)
             } icon: { Image(systemName: "questionmark.circle") }
-            .foregroundStyle(.secondary)
+            .foregroundStyle(CYColor.textTertiary)
             .accessibilityIdentifier("merchantOps.aftercare.help")
         }
         .onAppear { phoneTimeZone = .current }
