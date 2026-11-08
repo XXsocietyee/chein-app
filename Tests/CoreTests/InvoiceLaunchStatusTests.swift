@@ -21,7 +21,9 @@ final class InvoiceLaunchStatusTests: XCTestCase {
             XCTAssertEqual(status.noticeKey, "notice.issuing")
         }
         XCTAssertEqual(InvoiceLaunchStatus.paused.playerState, .paused)
-        XCTAssertEqual(InvoiceLaunchStatus.paused.filterKey, "PAUSED")
+        XCTAssertEqual(InvoiceLaunchStatus.paused.filterKey, "SUBMITTED", "mini IN_TAB.ing includes paused")
+        XCTAssertEqual(InvoiceLaunchStatus.paused.labelKey, "PAUSED")
+        XCTAssertEqual(InvoiceLaunchStatus.claimed.labelKey, "SUBMITTED")
         XCTAssertEqual(InvoiceLaunchStatus.issued.filterKey, "ISSUED")
         XCTAssertEqual(InvoiceLaunchStatus.rejected.noticeKey, "notice.rejected")
         XCTAssertEqual(InvoiceLaunchStatus.cancelled.noticeKey, "notice.cancelled")

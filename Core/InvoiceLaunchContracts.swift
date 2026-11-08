@@ -120,18 +120,17 @@ public enum InvoiceLaunchStatus: String, Decodable {
         case .cancelled: return .cancelled
         }
     }
-    /// Filter-chip key (SUBMITTED / ISSUED / REJECTED / CANCELLED, plus PAUSED which only "all" shows).
+    /// Filter-chip key. Source invoice/index.js IN_TAB: the 处理中 tab shows issuing AND paused rows.
     public var filterKey: String {
         switch playerState {
-        case .issuing: return "SUBMITTED"
-        case .paused: return "PAUSED"
+        case .issuing, .paused: return "SUBMITTED"
         case .issued: return "ISSUED"
         case .rejected: return "REJECTED"
         case .cancelled: return "CANCELLED"
         }
     }
     /// Key in the InvoiceLaunchUI string table for the status label in lists.
-    public var labelKey: String { filterKey }
+    public var labelKey: String { playerState == .paused ? "PAUSED" : filterKey }
     /// Key for the detail status notice.
     public var noticeKey: String { "notice." + playerState.rawValue }
 }
