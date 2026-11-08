@@ -318,6 +318,39 @@ final class G1ProductionGatesEndToEndTests: XCTestCase {
         XCTAssertTrue(wire.requests.contains { $0.url?.path == "/api/user/deregister/apply" })
     }
 
+    /// FP-B5: composition-side proof. The reviewed China composition enables account compliance, so Settings gets a
+    /// real coordinator (never the `SettingsUnavailableFeatureView` fallback) and deletion reads go to the server.
+    /// Whether the shipped build supplies a reviewed deployment is the owner's release decision (FP-O6).
+    func testReviewedChinaCompositionEnablesDeletionAndReadsServerState() async throws {
+        let wire = G1TestWire()
+        let vault = G1TestVault()
+        let (composition, session, _) = try makeReviewedSession(wire: wire, vault: vault)
+        XCTAssertTrue(composition.isAccountComplianceEnabled)
+        await session.authChannels.sendSMSCode(phone: "13800138000")
+        await session.authChannels.loginWithPhone(phone: "13800138000", code: "123456")
+        let coordinator = try XCTUnwrap(session.accountComplianceCoordinator, "Settings must receive a coordinator, not the unavailable fallback")
+        let safetyDir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+            .appendingPathComponent("AccountComplianceSafety", isDirectory: true)
+        if let safetyDir { try? FileManager.default.removeItem(at: safetyDir) }
+        addTeardownBlock { if let safetyDir { try? FileManager.default.removeItem(at: safetyDir) } }
+        let before = wire.requests.count
+        await coordinator.load()
+        XCTAssertNotEqual(coordinator.state.error, "compliance.unavailable")
+        XCTAssertEqual(coordinator.state.status?.status, "NORMAL")
+        XCTAssertTrue(wire.requests.dropFirst(before).contains { $0.httpMethod == "GET" && $0.url?.path == "/api/user/deregister/status" })
+    }
+
+    func testUnreviewedCompositionKeepsDeletionOnTheUnavailableFallback() async throws {
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: "g1-b5-" + UUID().uuidString))
+        let wire = G1TestWire(), vault = G1TestVault()
+        let composition = RegionalLaunchConfiguration.makeComposition(reviewed: nil,
+            build: .init(market: "CN", baseURL: Self.placeholderBaseURL, bundleIdentifier: Self.placeholderBundleIdentifier, realm: "g1-b5"),
+            storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire })
+        XCTAssertFalse(composition.isAccountComplianceEnabled)
+        XCTAssertNil(composition.makeSession().accountComplianceCoordinator)
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
     func testGate2LegalCatalogAndConsentWithdrawalEndToEndThroughReviewedComposition() async throws {
         let wire = G1TestWire()
         let vault = G1TestVault()
