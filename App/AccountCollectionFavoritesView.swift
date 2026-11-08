@@ -104,6 +104,8 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
             }
         }
         .listStyle(.insetGrouped)
+        // mylike.js onPullDownRefresh parity: same guarded refresh as the toolbar button.
+        .refreshable { await refresh() }
         .appNavigationTitle("accountCollection.favorites.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -251,6 +253,7 @@ private struct AccountCollectionFavoriteCard: View {
             }
         }
         .listStyle(.insetGrouped)
+        .refreshable { await refresh() }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 Button { Task { await refresh() } } label: { Label("accountCollection.refresh", systemImage: "arrow.clockwise") }
