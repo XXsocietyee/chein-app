@@ -58,3 +58,19 @@ final class CloseW5dMerchantReviewsStateTests: XCTestCase {
         XCTAssertFalse(MerchantReviewsPageState.showsGatedNotice(hasSnapshot: true, failureKey: nil, isBusy: false, reviewSourceOpen: true))
     }
 }
+
+final class CloseW5dStampAlbumErrorTests: XCTestCase {
+    func testForbiddenIsDeniedRegardlessOfLoadedStamps() {
+        XCTAssertEqual(StampAlbumErrorPresentation.resolve(error: APIError.httpStatus(403), hasStamps: false), .denied)
+        XCTAssertEqual(StampAlbumErrorPresentation.resolve(error: APIError.businessCode(403), hasStamps: true), .denied)
+    }
+
+    func testUnauthorizedIsSignInPrompt() {
+        XCTAssertEqual(StampAlbumErrorPresentation.resolve(error: APIError.unauthorized, hasStamps: false), .signIn)
+    }
+
+    func testOtherFailureIsWholePageRetryOnlyWhenNothingLoaded() {
+        XCTAssertEqual(StampAlbumErrorPresentation.resolve(error: APIError.httpStatus(500), hasStamps: false), .retryWholePage)
+        XCTAssertEqual(StampAlbumErrorPresentation.resolve(error: APIError.httpStatus(500), hasStamps: true), .retryContinuation)
+    }
+}

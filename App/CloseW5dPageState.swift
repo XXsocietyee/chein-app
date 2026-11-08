@@ -112,3 +112,25 @@ enum MerchantReviewsPageState {
         hasSnapshot && failureKey == nil && !isBusy && !reviewSourceOpen
     }
 }
+
+/// Stamp album: which failure presentation applies (mini `readAccess` / `error && !items.length` / continuation retry).
+enum StampAlbumErrorPresentation: Equatable {
+    case denied, signIn, retryWholePage, retryContinuation
+    static func resolve(error: Error, hasStamps: Bool) -> StampAlbumErrorPresentation {
+        switch CollectionReadAccess(error) {
+        case .some(.denied): return .denied
+        case .some(.login): return .signIn
+        case .none: return hasStamps ? .retryContinuation : .retryWholePage
+        }
+    }
+}
+
+/// Footer shown when a later page failed; already-read stamps stay in place.
+struct StampAlbumContinuationRetry: View {
+    let retry: () -> Void
+    var body: some View {
+        Button(action: retry) { Label("stampAlbum.continuationRetry", systemImage: "arrow.clockwise") }
+            .buttonStyle(.bordered).frame(minHeight: 44)
+            .accessibilityIdentifier("roam.experience.album.continuationRetry")
+    }
+}

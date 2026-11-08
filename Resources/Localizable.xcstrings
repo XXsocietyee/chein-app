@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "stampAlbum.continuationRetry" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This page didn't load · tap to retry"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一页没读到 · 点此重试"
+          }
+        }
+      }
+    },
     "merchant.business.reviews.writeGated" : {
       "extractionState" : "manual",
       "localizations" : {
