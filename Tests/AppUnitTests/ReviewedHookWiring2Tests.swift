@@ -287,3 +287,100 @@ final class ReviewedRoamShareSnapshotWiringTests: ReviewedHookWiring2Base {
         XCTAssertEqual(wire.requests.compactMap { $0.url?.path }, ["/api/roam/share/snapshot"])
     }
 }
+
+/// Item 4: city-node voucher issue (`api/verify/citynode/issue`, form field `poiId`). Ticket issue, redeem and receipt stay off.
+@MainActor
+final class ReviewedCityVoucherIssueWiringTests: ReviewedHookWiring2Base {
+    private func exactRequests() throws -> [(String, URLRequest)] {
+        let configuration = try APIConfiguration(baseURL: try XCTUnwrap(URL(string: Self.base)))
+        return [("issue", try RoamExperienceMutation.issueVoucher(poiID: 12).request(configuration: configuration, token: Self.token))]
+    }
+    private func neighbours() throws -> [(String, URLRequest)] {
+        let url = try XCTUnwrap(URL(string: Self.base)), evil = try XCTUnwrap(URL(string: "https://evil.example.org"))
+        func form(_ base: URL, _ path: String, _ fields: [String: String]) throws -> URLRequest {
+            try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent(path), fields: fields, token: Self.token)
+        }
+        return [
+            ("zero-id", try form(url, "api/verify/citynode/issue", ["poiId": "0"])),
+            ("leading-zero", try form(url, "api/verify/citynode/issue", ["poiId": "012"])),
+            ("extra-field", try form(url, "api/verify/citynode/issue", ["poiId": "12", "code": "x"])),
+            ("wrong-field", try form(url, "api/verify/citynode/issue", ["id": "12"])),
+            ("json-body", request("POST", Self.base + "/api/verify/citynode/issue", body: #"{"poiId":12}"#)),
+            ("redeem", try form(url, "api/verify/citynode/redeem", ["code": "x"])),
+            ("receipt", try form(url, "api/verify/citynode/receipt", ["code": "x"])),
+            ("dyncode", try form(url, "api/verify/dyncode/issue", ["registrationId": "12"])),
+            ("groupcode", try form(url, "api/verify/groupcode/issue", ["teamId": "12"])),
+            ("foreign", try RoamExperienceMutation.issueVoucher(poiID: 12).request(configuration: try APIConfiguration(baseURL: evil), token: Self.token))
+        ]
+    }
+
+    func testUnconfiguredCompositionIssuesNoLeaseAndRefusesTheRoute() async throws {
+        let wire = Wire()
+        let root = try unconfigured(wire: wire)
+        XCTAssertNil(root.verificationCodeApproval(try context(root)))
+        let transport = root.transport()
+        transport.current = { self.viewer() }
+        let sent = await sentPaths(transport, try exactRequests() + neighbours(), wire: wire)
+        XCTAssertFalse(sent.values.contains(true), "\(sent)")
+    }
+
+    func testReviewedWithoutProductionGatesIssuesNoLeaseAndRefusesTheRoute() async throws {
+        let wire = Wire()
+        let root = try composition(gates: false, wire: wire)
+        XCTAssertNil(root.verificationCodeApproval(try context(root)))
+        let transport = root.transport()
+        transport.current = { self.viewer() }
+        let sent = await sentPaths(transport, try exactRequests(), wire: wire)
+        XCTAssertFalse(sent.values.contains(true), "\(sent)")
+    }
+
+    func testLeaseCoversOnlyTheCityVoucherKindForPlayerClubMerchantInChina() throws {
+        let root = try composition(gates: true, wire: Wire())
+        for role in ["player", "club", "merchant"] {
+            let ctx = try context(root, role: role)
+            let approval = try XCTUnwrap(root.verificationCodeApproval(ctx), role)
+            XCTAssertTrue(approval.allows(.cityVoucher, context: ctx))
+            XCTAssertFalse(approval.allows(.ticket, context: ctx))
+            XCTAssertEqual(approval.endpoints.paths, ["api/verify/citynode/issue"])
+        }
+        XCTAssertNil(root.verificationCodeApproval(try context(root, role: "guest")))
+        XCTAssertNil(root.verificationCodeApproval(try context(root, market: .unitedStates)))
+    }
+
+    func testReviewedChinaCompositionAllowsExactlyTheIssueRoute() async throws {
+        let wire = Wire()
+        let root = try composition(gates: true, wire: wire)
+        let transport = root.transport()
+        transport.current = { self.viewer() }
+        let allowed = await sentPaths(transport, try exactRequests(), wire: wire)
+        for (name, sent) in allowed { XCTAssertTrue(sent, "must admit \(name)") }
+        let refused = await sentPaths(transport, try neighbours(), wire: wire)
+        for (name, sent) in refused { XCTAssertFalse(sent, "must refuse \(name)") }
+        XCTAssertEqual(wire.requests.count, 1)
+        let out = Wire()
+        let outTransport = try composition(gates: true, wire: out).transport()
+        outTransport.current = { CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil, viewerRevision: 1) }
+        let outSent = await sentPaths(outTransport, try exactRequests(), wire: out)
+        XCTAssertFalse(outSent.values.contains(true), "\(outSent)")
+    }
+
+    func testVerificationServiceIssuesOnlyThroughTheLease() async throws {
+        let wire = Wire()
+        let root = try composition(gates: true, wire: wire)
+        let transport = root.transport()
+        transport.current = { self.viewer() }
+        let ctx = try context(root)
+        let configuration = try APIConfiguration(baseURL: try XCTUnwrap(URL(string: Self.base)))
+        let service = VerificationCodeHTTPService(configuration: configuration, approval: root.verificationCodeApproval(ctx),
+            kind: .cityVoucher, transport: transport, current: { ctx })
+        XCTAssertTrue(service.enabled)
+        _ = try? await service.issue(VerificationCodeTarget(kind: .cityVoucher, id: 12), context: ctx)
+        XCTAssertEqual(wire.requests.compactMap { $0.url?.path }, ["/api/verify/citynode/issue"])
+        let ticket = VerificationCodeHTTPService(configuration: configuration, approval: root.verificationCodeApproval(ctx),
+            kind: .ticket, transport: transport, current: { ctx })
+        XCTAssertFalse(ticket.enabled)
+        let off = VerificationCodeHTTPService(configuration: configuration, approval: try unconfigured(wire: Wire()).verificationCodeApproval(ctx),
+            kind: .cityVoucher, transport: transport, current: { ctx })
+        XCTAssertFalse(off.enabled)
+    }
+}

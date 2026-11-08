@@ -5329,7 +5329,8 @@ final class AppSession: ObservableObject {
     func makeVerificationCodeCoordinator(target: VerificationCodeTarget) -> VerificationCodeCoordinator {
         VerificationCodeCoordinator(target: target,
             service: VerificationCodeHTTPService(configuration: regionalConfiguration?.apiConfiguration,
-                approval: runtimeDependencies.verificationCodeApproval, kind: target.kind,
+                approval: runtimeDependencies.verificationCodeApproval ?? currentRuntimeDependencyContext.flatMap { composition.verificationCodeApproval($0) },
+                kind: target.kind,
                 transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext }),
             current: { [weak self] in self?.currentRuntimeDependencyContext },
             onUnauthorized: { [weak self] captured in

@@ -612,6 +612,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
         return .init(reads: true, insight: true, settlement: false)
     }
+    /// City-node voucher issue grant (`api/verify/citynode/issue`, kind `.cityVoucher` only); nil unless the reviewed deployment enables production gates.
+    func verificationCodeApproval(_ context: RuntimeDependencyContext) -> VerificationCodeApproval? {
+        guard reviewed?.productionGatesEnabled == true else { return nil }
+        return productionGateLeases.cityVoucherIssue(context)
+    }
     /// Read-only nearby-team lease (`api/team/nearby`, `/applications`, `/my-applications`); nil unless the reviewed deployment enables production gates.
     func nearbyTeamReadApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
         guard reviewed?.productionGatesEnabled == true else { return nil }
@@ -4049,6 +4054,8 @@ private enum ReviewedProductionFormMutationRoute {
         case baseURL.appendingPathComponent("api/coupon/qr-token").absoluteString,
              baseURL.appendingPathComponent("api/coupon/status").absoluteString:
             requiredKeys = ["couponHistoryId"]; positiveKey = "couponHistoryId"; requiredTypeField = nil
+        case baseURL.appendingPathComponent("api/verify/citynode/issue").absoluteString:
+            requiredKeys = ["poiId"]; positiveKey = "poiId"; requiredTypeField = nil
         case baseURL.appendingPathComponent("api/topic/like").absoluteString:
             requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"
         case baseURL.appendingPathComponent("api/im/delete").absoluteString,
@@ -4099,6 +4106,7 @@ private enum ReviewedProductionFormMutationRoute {
     private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
     private var teamReadByContext: [String: TeamReadApproval] = [:]
     private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
+    private var cityVoucherIssueByContext: [String: VerificationCodeApproval] = [:]
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {
         "\(context.market.rawValue)|\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
@@ -4168,6 +4176,16 @@ private enum ReviewedProductionFormMutationRoute {
         teamReadByContext[key]?.revoke()
         guard let approval = try? TeamReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
         teamReadByContext[key] = approval
+        return approval
+    }
+
+    func cityVoucherIssue(_ context: RuntimeDependencyContext) -> VerificationCodeApproval? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = cityVoucherIssueByContext[key] { return existing }
+        guard let endpoints = makeEndpoint(context, paths: ["api/verify/citynode/issue"]) else { return nil }
+        let approval = VerificationCodeApproval(market: .china, endpoints: endpoints, kinds: [.cityVoucher])
+        cityVoucherIssueByContext[key] = approval
         return approval
     }
 
