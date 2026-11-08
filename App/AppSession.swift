@@ -7112,7 +7112,7 @@ final class AppSession: ObservableObject {
     var merchantMarketingCoordinator: MerchantMarketingCoordinator {
         if let retainedMarketing { return retainedMarketing }
         let service = MerchantMarketingService(configuration: regionalConfiguration?.apiConfiguration,
-            transport: runtimeHTTPTransport, gates: .init(reads: false, insight: false, settlement: false), locks: nil,
+            transport: runtimeHTTPTransport, gates: composition.merchantMarketingGates, locks: nil,
             currentSession: { [weak self] in
                 guard let self, let account = self.account, let token = self.token, let namespace = self.storageScope?.service else { return nil }
                 return try? MerchantMarketingScope(namespace: namespace, accountID: account.id, epoch: self.gate.currentStamp, token: token)

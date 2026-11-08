@@ -603,6 +603,11 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard reviewed?.productionGatesEnabled == true else { return nil }
         return productionGateLeases.profileParticipant(context)
     }
+    /// Merchant marketing dashboard + AI insight reads; settlement stays off. Nothing is enabled unless the reviewed China deployment enables production gates.
+    var merchantMarketingGates: MerchantMarketingService.Gates {
+        guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
+        return .init(reads: true, insight: true, settlement: false)
+    }
     /// Read-only nearby-team lease (`api/team/nearby`, `/applications`, `/my-applications`); nil unless the reviewed deployment enables production gates.
     func nearbyTeamReadApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
         guard reviewed?.productionGatesEnabled == true else { return nil }
@@ -2571,7 +2576,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -3466,6 +3471,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
                   captured.isPublicTemplateViewer,
@@ -3962,6 +3970,32 @@ enum ReviewedNearbyTeamReadRoute {
         default:
             return false
         }
+    }
+}
+
+/// Exact requests emitted by `MerchantMarketingService.home()` (with the fixed 30-day window) and `.insight()`.
+/// `api/merchant/access/me` and the query-less `marketing-home` stay on the coupon-management read lease. Settlement,
+/// subscription, commerce and prediction-inbox routes are not matched.
+enum ReviewedMerchantMarketingReadRoute {
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token),
+              request.httpMethod == "POST", request.httpBody == nil, request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              request.value(forHTTPHeaderField: "Content-Type") == nil,
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, url.fragment == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil else { return false }
+        func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
+        if exactPath("api/merchant/marketing-home") {
+            guard let items = parts.queryItems, items.count == 1, items[0].name == "windowDays",
+                  items[0].value == String(MerchantMarketingHome.windowDays) else { return false }
+            return true
+        }
+        return exactPath("api/ai/merchant/insight") && parts.query == nil
     }
 }
 
