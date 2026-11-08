@@ -70,7 +70,9 @@ import SwiftUI
             .deletingLastPathComponent()
             .deletingLastPathComponent()
         let source = try String(contentsOf: root.appendingPathComponent("App/ProfileParticipantsView.swift"), encoding: .utf8)
-        XCTAssertEqual(source.components(separatedBy: #"Text("participant.form.purpose")"#).count - 1, 3)
+        // integration/20261106/backend-latest (commit 8173a5c66 "删去多余说明") removed the purpose subtitle from
+        // pages/address and pages/addressinfo (addressinfo.wxml now `subtitle=""`), so native must not show it.
+        XCTAssertEqual(source.components(separatedBy: #"Text("participant.form.purpose")"#).count - 1, 0)
         XCTAssertFalse(source.contains(#"Text("profile.participants.hint")"#))
 
         let localizationsData = try Data(contentsOf: root.appendingPathComponent("docs/participant-localizations.json"))

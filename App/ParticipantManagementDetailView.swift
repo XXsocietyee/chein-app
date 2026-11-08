@@ -28,10 +28,10 @@ struct ParticipantManagementDetailView: View {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
                 List {
-                    Section {
+                    Section("profile.participants.contact") {
                         LabeledContent("profile.participants.name") { Text(verbatim: model.draft.fullName).textSelection(.enabled) }
                         LabeledContent("profile.participants.phone") { Text(verbatim: model.draft.mobilePhone).textSelection(.enabled) }
-                    } header: { Text("profile.participants.contact") } footer: { Text("participant.form.purpose") }
+                    }
                     if let province = model.draft.province, !province.isEmpty {
                         Section("profile.participants.savedAddress") {
                             Text(verbatim: [province, model.draft.detailAddress].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " "))

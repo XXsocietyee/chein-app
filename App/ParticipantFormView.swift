@@ -238,9 +238,6 @@ struct ParticipantFormView: View {
                             Text(LocalizedStringKey(field.messageKey)).font(.footnote).foregroundStyle(.red)
                                 .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
                         }
-                    } footer: {
-                        // Mini-program addressinfo page subtitle.
-                        Text("participant.form.purpose")
                     }
                     .disabled(model.operation.preventsNewMutation)
                     if let issue = model.issue {

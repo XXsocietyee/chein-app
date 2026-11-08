@@ -76,9 +76,6 @@ struct ProfileParticipantsView: View {
                                 }
                             }
                         }
-                    } footer: {
-                        // Mini-program address page subtitle: purpose of participant info.
-                        Text("participant.form.purpose")
                     }
                 }
                 .listStyle(.insetGrouped)
@@ -147,10 +144,10 @@ struct ParticipantListDeleteView: View {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
                 Form {
-                    Section {
+                    Section("profile.participants.contact") {
                         Text(verbatim: model.draft.fullName)
                         Text(verbatim: model.draft.mobilePhone).foregroundStyle(.secondary)
-                    } header: { Text("profile.participants.contact") } footer: { Text("participant.form.purpose") }
+                    }
                     Section {
                         Button("participant.form.delete", role: .destructive) { model.prepareDelete() }
                             .disabled(!model.canMutate || model.busy || model.showConfirmation)
@@ -202,7 +199,7 @@ struct ProfileParticipantDetailView: View {
                 } else {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.participant.detail", load: { try await reader.profileParticipant(id: id) }) { participant in
             List {
-                Section {
+                Section("profile.participants.contact") {
                     LabeledContent("profile.participants.name") {
                         if participant.fullName.isEmpty { Text("profile.valueUnknown") }
                         else { Text(verbatim: participant.fullName).textSelection(.enabled) }
@@ -211,7 +208,7 @@ struct ProfileParticipantDetailView: View {
                         if participant.mobilePhone.isEmpty { Text("profile.valueUnknown") }
                         else { Text(verbatim: participant.mobilePhone).textSelection(.enabled) }
                     }
-                } header: { Text("profile.participants.contact") } footer: { Text("participant.form.purpose") }
+                }
                 if !participant.oneLineAddress.isEmpty {
                     Section("profile.participants.savedAddress") {
                         Text(verbatim: participant.oneLineAddress).textSelection(.enabled)
