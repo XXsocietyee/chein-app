@@ -29,7 +29,7 @@ struct WelcomeView: View {
                         Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
                             .accessibilityIdentifier("welcome.upgradeRequired")
                     }
-                    roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk")
+                    roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk", primary: true)
                     roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
                     NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
                         .accessibilityIdentifier("ownerDraft.guestEntry")
@@ -61,7 +61,7 @@ struct WelcomeView: View {
     }
 
     private func roleButton(_ role: RegistrationIntent, title: LocalizedStringKey,
-                            detail: LocalizedStringKey, symbol: String) -> some View {
+                            detail: LocalizedStringKey, symbol: String, primary: Bool = false) -> some View {
         Button { destination = .login(role) } label: {
             HStack(alignment: .top, spacing: 16) {
                 Image(systemName: symbol).font(.title2).accessibilityHidden(true)
@@ -72,13 +72,24 @@ struct WelcomeView: View {
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
                     .foregroundStyle(.tertiary).accessibilityHidden(true)
             }
-            .foregroundStyle(.primary)
+            .foregroundStyle(primary ? Color(uiColor: .systemBackground) : .primary)
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .questifyCardSurface()
+            .modifier(WelcomeRoleSurface(primary: primary))
         }
-        // Two equal choices, so neither takes the screen's single primary style.
+        // One primary action per screen: players register first; merchants are the quiet secondary.
         .buttonStyle(QuestifyCardButtonStyle())
         .accessibilityIdentifier("welcome.\(role.rawValue)")
+    }
+}
+
+private struct WelcomeRoleSurface: ViewModifier {
+    let primary: Bool
+    func body(content: Content) -> some View {
+        if primary {
+            content.padding(16).background(QuestifyPalette.accent, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        } else {
+            content.questifyCardSurface()
+        }
     }
 }
 
