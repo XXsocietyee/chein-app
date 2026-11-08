@@ -478,6 +478,7 @@ struct RoamPOIMissingView: View {
             Divider()
             if RoamStampSlipPhotoPort.shouldShowPhotoBlock(got: slip.got) {
                 RoamStampSlipPhotoView(pictureURL: slip.pictureURL)
+                RoamStampSlipSaveRow(torn: torn, pictureURL: slip.pictureURL)
                 Divider()
             }
             Text("roamSub.w208.stamp.forYou").font(.caption2).foregroundStyle(.secondary)
