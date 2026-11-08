@@ -40,7 +40,7 @@ import SwiftUI
                     .disabled(!model.ruleSteps.canAdd).accessibilityIdentifier("templateRules.add")
             }
             if let key = model.ruleStepIssue {
-                Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(.red)
+                Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("templateRules.issue")
             }
         }.padding(.vertical, 3)

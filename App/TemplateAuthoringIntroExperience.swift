@@ -133,7 +133,7 @@ import Combine
                     ProgressView().frame(maxWidth:.infinity,minHeight:150)
                 case .failed:
                     VStack(alignment:.leading,spacing:8) {
-                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").font(.footnote).foregroundStyle(.red)
+                        Text("creatorIntro.failed",tableName:"CreatorIntroExamples").font(.footnote).foregroundStyle(CYColor.dangerText)
                         Button(action:{ controller.load(permit) }) { Text("creatorIntro.retry",tableName:"CreatorIntroExamples") }
                             .buttonStyle(.bordered)
                             .accessibilityIdentifier("creatorIntro.retry")
