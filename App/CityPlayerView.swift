@@ -94,7 +94,7 @@ struct CityPlayerView: View {
                             Label(lifecycle(snapshot.board.lifecycle), systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
                                 .font(.subheadline.weight(.semibold))
                                 .padding(.horizontal, 10).padding(.vertical, 5)
-                                .background((snapshot.board.lifecycle == "OPEN" ? Color.green : Color.secondary).opacity(0.18), in: Capsule())
+                                .background(snapshot.board.lifecycle == "OPEN" ? CYColor.successSoft : CYColor.borderSubtle, in: Capsule())
                             Label(membership(snapshot.membership), systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
                                 .font(.subheadline)
                                 .padding(.horizontal, 10).padding(.vertical, 5)
