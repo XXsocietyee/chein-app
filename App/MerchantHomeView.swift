@@ -57,6 +57,7 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
             }
         }
         .appNavigationTitle("merchant.title")
+        .preferredColorScheme(.light) // merchant surfaces are LIGHT (ui-agent-brief: role themes)
         .task(id: [reader.sessionRevision, childReturnRevision]) { await reload() }
     }
     private func reload() async {
@@ -225,7 +226,10 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             if access.isOwner || access.canReadAftercare {
                 Section("merchant.todo") {
                     MerchantSectionState(model: todo, retry: { Task { await loadTodo() } }) { value in
-                        if !value.hasPendingWork { Text("merchant.todo.empty").foregroundStyle(.secondary) }
+                        if !value.hasPendingWork {
+                            Label("merchant.todo.empty", systemImage: "checkmark.circle")
+                                .foregroundStyle(CYColor.textSecondary)
+                        }
                         if access.isOwner, value.pendingVerify > 0 { MerchantCountRow("merchant.todo.verify", value: value.pendingVerify) }
                         if access.isOwner, value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
                         if access.isOwner, value.pendingOrders > 0 { MerchantCountRow("merchant.todo.orders", value: value.pendingOrders) }
@@ -451,7 +455,22 @@ struct MerchantCountRow: View {
     let title: LocalizedStringKey
     let value: Int
     init(_ title: LocalizedStringKey, value: Int) { self.title = title; self.value = value }
-    var body: some View { LabeledContent { Text(value, format: .number).monospacedDigit() } label: { Text(title) } }
+    var body: some View {
+        LabeledContent {
+            Text(value, format: .number)
+                .font(.title3.weight(.semibold).monospacedDigit())
+                .foregroundStyle(CYColor.textPrimary)
+        } label: {
+            Text(title).foregroundStyle(CYColor.textSecondary)
+        }
+    }
+}
+
+#Preview("MerchantCountRow · light") {
+    List { MerchantCountRow("merchant.todo.verify", value: 12) }.preferredColorScheme(.light)
+}
+#Preview("MerchantCountRow · dark sanity") {
+    List { MerchantCountRow("merchant.todo.verify", value: 12) }.preferredColorScheme(.dark)
 }
 
 @MainActor
