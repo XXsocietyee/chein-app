@@ -92,8 +92,13 @@ extension MerchantContentServing {
 public struct MerchantContentWriteApproval: Equatable {
     public let chapterInvite: Bool
     public let chapterRespond: Bool
-    public init(chapterInvite: Bool = false, chapterRespond: Bool = false) {
+    /// Mini `merchantinfo` chapter application (`api/merchant/chapter-application/apply`). Default closed.
+    public let chapterApply: Bool
+    /// Withdraw a pending application (`api/merchant/chapter-application/withdraw`). Default closed.
+    public let chapterWithdraw: Bool
+    public init(chapterInvite: Bool = false, chapterRespond: Bool = false, chapterApply: Bool = false, chapterWithdraw: Bool = false) {
         self.chapterInvite = chapterInvite; self.chapterRespond = chapterRespond
+        self.chapterApply = chapterApply; self.chapterWithdraw = chapterWithdraw
     }
 }
 @MainActor public final class MerchantContentService: MerchantContentServing {
@@ -121,6 +126,8 @@ public struct MerchantContentWriteApproval: Equatable {
         switch command {
         case .invite: return writeApproval().chapterInvite
         case .respondChapterInvitation: return writeApproval().chapterRespond
+        case .apply: return writeApproval().chapterApply
+        case .withdraw: return writeApproval().chapterWithdraw
         default: return false
         }
     }
