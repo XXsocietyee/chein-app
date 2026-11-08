@@ -15,6 +15,7 @@ import SwiftUI
     @State private var reportTarget: ReportRoute?
     private struct ReportRoute: Identifiable { let id = UUID(); let target: SquareReportTarget }
     @State private var showsWorkspaceEdit = false
+    @State private var blockNotice = false
     private struct EditorRoute: Identifiable { let id = UUID(); let purpose: SocialEditorPurpose; let target: SocialActionTarget; let text: String; var enabled = true }
     @State private var editor: EditorRoute?
     @State private var post: SquarePost?
@@ -96,6 +97,9 @@ import SwiftUI
         .sheet(item: $editor) { item in
             if let actions { NavigationStack { SocialActionEditorView(purpose: item.purpose, target: item.target, coordinator: actions, initialText: item.text, contentGeneration: contentGeneration, initialEnabled: item.enabled) }.id(actions.identity) }
         }
+        .alert(Text("square.block.title"), isPresented: $blockNotice) {
+            Button("square.block.ok", role: .cancel) { }
+        } message: { Text("square.block.notAvailable") }
         .sheet(item: $reportTarget) { item in
             NavigationStack { SquareReportView(target: item.target, context: reportContext) }
                 .presentationDetents([.large])
@@ -163,6 +167,10 @@ import SwiftUI
                 }
                 .accessibilityIdentifier("squareReport.postEntry")
             }
+            if SquareAuthorSafety.showsBlockEntry(authorMemberID: post.memberID, viewerMemberID: actions.identity.accountID) {
+                Button("square.block", systemImage: "hand.raised") { blockNotice = true }
+                    .accessibilityIdentifier("square.block.postEntry")
+            }
         } label: {
             Label("social.actions", systemImage: "ellipsis.circle").labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 44)
         }
@@ -212,6 +220,10 @@ import SwiftUI
                                     else if let post, let target = try? SquareReportTarget(post: post, comment: comment) { reportTarget = .init(target: target) }
                                 }
                                 .accessibilityIdentifier("squareReport.commentEntry.\(comment.id)")
+                            }
+                            if SquareAuthorSafety.showsBlockEntry(authorMemberID: comment.memberID, viewerMemberID: actions.identity.accountID) {
+                                Button("square.block", systemImage: "hand.raised") { blockNotice = true }
+                                    .accessibilityIdentifier("square.block.commentEntry.\(comment.id)")
                             }
                             if comment.memberID == actions.identity.accountID, let post,
                                let target = SquareDeletionTarget(post: post, comment: comment), deletion?.isAllowed(target) == true {

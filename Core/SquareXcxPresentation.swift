@@ -115,3 +115,17 @@ public struct SquarePostCardFacts: Equatable {
         return value
     }
 }
+
+/// UGC safety entry for another member's post or comment on pages/square/detail.
+/// Reporting is wired through the reviewed report flow. The mini-program and the backend expose no
+/// "block this member" route for the square (blocking exists only inside a conversation), so the
+/// block entry is shown honestly as not available yet: it never claims success and sends nothing.
+public enum SquareAuthorSafety {
+    public enum BlockAvailability: Equatable { case notAvailableYet }
+    public static let blockAvailability: BlockAvailability = .notAvailableYet
+    /// Offered only for another signed-in viewer's view of someone else's content.
+    public static func showsBlockEntry(authorMemberID: Int, viewerMemberID: Int?) -> Bool {
+        guard let viewerMemberID, viewerMemberID > 0, authorMemberID > 0 else { return false }
+        return authorMemberID != viewerMemberID
+    }
+}
