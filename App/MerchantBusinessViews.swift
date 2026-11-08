@@ -460,6 +460,12 @@ import SwiftUI
                     if !state.isBusy, !state.isLocked { Button("action.retry") { Task { await reload() } } }
                 }
             }
+            if case .reviews = query, MerchantReviewsPageState.isDenied(failureKey: model.aftercareLoadFailureKey ?? state.failureKey) {
+                Section { CloseW5dStateView(state: .denied, emptyTitle: "closew5d.state.empty.title", emptyMessage: "closew5d.state.empty.message") { Task { await reload() } } }
+            }
+            if case .reviews = query, MerchantReviewsPageState.showsGatedNotice(hasSnapshot: state.snapshot != nil, failureKey: state.failureKey, isBusy: state.isBusy, reviewSourceOpen: reviewSource != nil) {
+                Section { CloseW5dGatedNotice(message: "merchant.business.reviews.writeGated") }
+            }
             if state.isLocked { Text("merchant.business.unknownResult").accessibilityIdentifier("merchant.business.locked") }
             if case .reviews = query, let snapshot = state.snapshot, state.isCurrent, !state.isBusy, state.failureKey == nil {
                 MerchantReviewReplyRecoverySection(reader: reader, journal: journal, access: snapshot.access)

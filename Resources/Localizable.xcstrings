@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "merchant.business.reviews.writeGated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Replying to or reporting reviews is only sent after the confirmation step shows it is available. If it is not available yet, the confirmation says so and nothing is sent."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "回复或举报评价只有在确认步骤显示可用后才会提交；若暂未开放，确认页会如实说明，且不会发送任何内容。"
+          }
+        }
+      }
+    },
     "merchant.decor.state.empty.title" : {
       "extractionState" : "manual",
       "localizations" : {

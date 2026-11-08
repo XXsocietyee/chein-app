@@ -102,3 +102,13 @@ enum MerchantOperationsHomeState {
         return .content
     }
 }
+
+/// Merchant reviews: permission-denied detection and the honest write-gate note.
+enum MerchantReviewsPageState {
+    static let deniedKey = "merchant.business.denied"
+    static func isDenied(failureKey: String?) -> Bool { failureKey == deniedKey }
+    /// Replies/reports are only dispatched after the confirmation sheet proves a grant; the list says so up front.
+    static func showsGatedNotice(hasSnapshot: Bool, failureKey: String?, isBusy: Bool, reviewSourceOpen: Bool) -> Bool {
+        hasSnapshot && failureKey == nil && !isBusy && !reviewSourceOpen
+    }
+}

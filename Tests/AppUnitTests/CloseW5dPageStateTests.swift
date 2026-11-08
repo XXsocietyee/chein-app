@@ -42,3 +42,19 @@ final class CloseW5dMerchantOperationsHomeStateTests: XCTestCase {
         XCTAssertEqual(MerchantOperationsHomeState.resolve(active: true, visibleEntryCount: 1), .content)
     }
 }
+
+final class CloseW5dMerchantReviewsStateTests: XCTestCase {
+    func testDeniedOnlyForDeniedKey() {
+        XCTAssertTrue(MerchantReviewsPageState.isDenied(failureKey: "merchant.business.denied"))
+        XCTAssertFalse(MerchantReviewsPageState.isDenied(failureKey: "merchant.business.loadFailed"))
+        XCTAssertFalse(MerchantReviewsPageState.isDenied(failureKey: nil))
+    }
+
+    func testGatedNoticeOnlyOnSettledListWithoutFailure() {
+        XCTAssertTrue(MerchantReviewsPageState.showsGatedNotice(hasSnapshot: true, failureKey: nil, isBusy: false, reviewSourceOpen: false))
+        XCTAssertFalse(MerchantReviewsPageState.showsGatedNotice(hasSnapshot: false, failureKey: nil, isBusy: false, reviewSourceOpen: false))
+        XCTAssertFalse(MerchantReviewsPageState.showsGatedNotice(hasSnapshot: true, failureKey: "merchant.business.denied", isBusy: false, reviewSourceOpen: false))
+        XCTAssertFalse(MerchantReviewsPageState.showsGatedNotice(hasSnapshot: true, failureKey: nil, isBusy: true, reviewSourceOpen: false))
+        XCTAssertFalse(MerchantReviewsPageState.showsGatedNotice(hasSnapshot: true, failureKey: nil, isBusy: false, reviewSourceOpen: true))
+    }
+}
