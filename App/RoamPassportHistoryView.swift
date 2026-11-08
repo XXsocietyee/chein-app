@@ -94,7 +94,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                                     Text(verbatim: "#" + item.sessionID).font(.headline)
                                     if let date = passportDate(item.timestamp) { Text(date, format: .dateTime.year().month().day().hour().minute()) }
                                     else { passportText("dateUnknown") }
-                                    HStack { Text(verbatim: item.distanceKM.map { String(format: "%.1f km", locale: locale, $0) } ?? "—"); Spacer(); Image(systemName: "chevron.right") }
+                                    HStack { Text(verbatim: item.distanceKM.map { String(format: "%.1f km", locale: locale, $0) } ?? "—"); Spacer(); Image(systemName: "chevron.forward") }
                                 }
                             }.accessibilityIdentifier("roam.serverHistory.record")
                         }

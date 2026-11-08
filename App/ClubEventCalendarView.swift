@@ -149,13 +149,13 @@ import SwiftUI
     @ViewBuilder private func calendar(_ snapshot: ClubEventCalendarSnapshot) -> some View {
         Section {
             HStack {
-                Button { shift(-1) } label: { Image(systemName: "chevron.left") }
+                Button { shift(-1) } label: { Image(systemName: "chevron.backward") }
                     .buttonStyle(.borderless).disabled(month.shifted(by: -1) == nil)
                     .accessibilityLabel("club.calendar.previous").accessibilityIdentifier("club.calendar.previous")
                 Spacer()
                 Text(verbatim: month.key).font(.headline).accessibilityIdentifier("club.calendar.month")
                 Spacer()
-                Button { shift(1) } label: { Image(systemName: "chevron.right") }
+                Button { shift(1) } label: { Image(systemName: "chevron.forward") }
                     .buttonStyle(.borderless).disabled(month.shifted(by: 1) == nil)
                     .accessibilityLabel("club.calendar.next").accessibilityIdentifier("club.calendar.next")
             }
