@@ -187,7 +187,6 @@ private final class DecorProofTransport: HTTPTransport {
         XCTAssertEqual(coordinator.saved.knowledge, "")
     }
 }
-#endif
 
 /// W5b: the shipped session reader has no approval/journal, so the editor shows the unavailable notice
 /// and the save confirmation stays disabled (coop-setting, decor, gallery).
@@ -199,3 +198,4 @@ private final class DecorProofTransport: HTTPTransport {
         XCTAssertFalse(reader.isAuthenticated)
     }
 }
+#endif
