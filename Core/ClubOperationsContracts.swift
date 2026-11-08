@@ -572,3 +572,12 @@ public struct ClubCreateToManageFlowState: Equatable, Sendable {
         return destination
     }
 }
+
+/// club/edit: the dissolve entry is owner-only (mini-program `scene-club-edit`: `isOwner === true`).
+/// Administrators may edit the display profile but never see the dissolve route.
+public enum ClubEditDissolveAccess {
+    public static func isAvailable(snapshot: ClubOperationsSnapshot?) -> Bool {
+        guard let snapshot, case .club(let id) = snapshot.target, let profile = snapshot.profile else { return false }
+        return profile.club.id == id && profile.club.isOwner
+    }
+}

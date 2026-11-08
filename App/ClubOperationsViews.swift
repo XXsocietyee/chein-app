@@ -353,6 +353,18 @@ struct ClubOperationsWorkspaceView: View {
                 }
             }
         }
+        if ClubEditDissolveAccess.isAvailable(snapshot: value), let profile = value.profile, let governance = hostApplication {
+            // Mini-program club/edit: owner-only dissolve. The blockers read gates the destructive step
+            // and the transfer-owner alternative lives on the governance members list.
+            Section {
+                NavigationLink {
+                    ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
+                        access: governance.access, coordinator: governance.coordinator)
+                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
+                    .disabled(loading || state.locksForm)
+                    .accessibilityIdentifier("club.ops.dissolve")
+            } footer: { Text("club.ops.dissolve.footer") }
+        }
         if access.writeAvailability == .unverified { Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") } }
     }
     @ViewBuilder private var status: some View {

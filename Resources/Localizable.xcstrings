@@ -1,6 +1,38 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "club.ops.dissolve" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dissolve club"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解散俱乐部"
+          }
+        }
+      }
+    },
+    "club.ops.dissolve.footer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dissolving first checks open deposits and settlements. To hand the club over instead, transfer ownership from the member list."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解散前会先核对未结清的保证金与结算。若想交接俱乐部，请改在成员列表中转让主理人。"
+          }
+        }
+      }
+    },
     "roam.poi.location.denied.message2" : {
       "extractionState" : "manual",
       "localizations" : {
