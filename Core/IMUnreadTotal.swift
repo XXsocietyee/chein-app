@@ -37,6 +37,24 @@ public struct IMUnreadTotalService {
     }
 }
 
+/// A response issued earlier than one already applied never rolls the badge back.
+/// A genuine decrease from a later read is still applied; ordering is by issue ticket.
+public struct IMUnreadTotalMonotonicGuard: Equatable {
+    private var issued = 0
+    private var appliedTicket = 0
+    private var latest: Int?
+    public init() {}
+    public mutating func begin() -> Int { issued += 1; return issued }
+    public mutating func accept(_ total: Int, ticket: Int, sessionIsCurrent: Bool) throws -> Int {
+        guard sessionIsCurrent else { throw CancellationError() }
+        guard total >= 0 else { throw APIError.malformedResponse }
+        if ticket < appliedTicket, let latest { return latest }
+        appliedTicket = ticket; latest = total
+        return total
+    }
+    public mutating func reset() { self = .init() }
+}
+
 @MainActor public protocol IMUnreadTotalReading: AnyObject {
     var identity: MessagingReadIdentity? { get }
     var isConfigured: Bool { get }
@@ -46,6 +64,8 @@ public struct IMUnreadTotalService {
 @MainActor public final class IMUnreadTotalReader: IMUnreadTotalReading {
     private let service: IMUnreadTotalService?
     private let session: () -> IMSafetySession?
+    private var monotonic = IMUnreadTotalMonotonicGuard()
+    private var guardedIdentity: MessagingReadIdentity?
     public init(service: IMUnreadTotalService?, session: @escaping () -> IMSafetySession?) {
         self.service = service; self.session = session
     }
@@ -54,8 +74,10 @@ public struct IMUnreadTotalService {
     public func unreadTotal() async throws -> Int {
         guard let service, service.isConfigured else { throw APIError.notConfigured }
         guard let snapshot = session() else { throw APIError.unauthorized }
+        if guardedIdentity != snapshot.identity { monotonic.reset(); guardedIdentity = snapshot.identity }
+        let ticket = monotonic.begin()
         let total = try await snapshot.withToken { try await service.total(token: $0) }
-        guard session() == snapshot, !Task.isCancelled else { throw CancellationError() }
-        return total
+        guard !Task.isCancelled else { throw CancellationError() }
+        return try monotonic.accept(total, ticket: ticket, sessionIsCurrent: session() == snapshot)
     }
 }
