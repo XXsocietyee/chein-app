@@ -45,16 +45,18 @@ import SwiftUI
         List {
             Section {
                 HStack(spacing: 8) {
-                    Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
+                    Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                     TextField("searchMap.placeholder", text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
+                    // Mini-program ghost 「筛选」 button: icon plus text beside the field; icon-only at accessibility sizes.
                     Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle") }
-                        .labelStyle(.iconOnly).buttonStyle(.borderless)
+                        .labelStyle(.titleAndIcon).font(CYTypography.label)
+                        .buttonStyle(.borderless).tint(CYColor.accentText)
                         .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
                 }
-                if historyFailure { Text("searchMap.historyUnavailable").font(.footnote).foregroundStyle(.secondary) }
-                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(.footnote).foregroundStyle(.secondary) }
+                if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             }
             Section {
                 Button("searchMap.search") { Task { await search() } }
@@ -138,7 +140,7 @@ import SwiftUI
             Section {
                 ForEach(history, id: \.self) { keyword in
                     Button { setKeyword(keyword); Task { await search() } } label: {
-                        Label(keyword, systemImage: "clock.arrow.circlepath").foregroundStyle(.primary)
+                        Label(keyword, systemImage: "clock.arrow.circlepath").font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
                     }
                     .frame(minHeight: 44)
                 }
@@ -147,18 +149,19 @@ import SwiftUI
                     Text("searchMap.history")
                     Spacer()
                     Button("searchMap.clearHistory") { if historyStore.clear(namespace: historyNamespace) { history = [] }; historyFailure = historyStore.failed }
-                        .font(.footnote).textCase(nil).buttonStyle(.borderless)
+                        .font(CYTypography.meta).textCase(nil).buttonStyle(.borderless).tint(CYColor.accentText)
                         .frame(minHeight: 44).accessibilityIdentifier("searchMap.clearHistory")
                 }
             }
         }
         if !recommendedKeywords.isEmpty {
             Section("searchMap.recommended") {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: 8) {
+                // Mini-program 推荐搜索: wrapping pill chips (`.hot-keys .li`).
+                LazyVGrid(columns: [GridItem(.adaptive(minimum: 88), spacing: CYSpacing.sm)], spacing: CYSpacing.sm) {
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
-                            Text(verbatim: keyword).frame(maxWidth: .infinity, minHeight: 44)
-                        }.buttonStyle(.bordered).disabled(!reader.isConfigured)
+                            Text(verbatim: keyword).font(CYTypography.label).lineLimit(1).frame(maxWidth: .infinity, minHeight: 44)
+                        }.buttonStyle(.bordered).buttonBorderShape(.capsule).tint(CYColor.textSecondary).disabled(!reader.isConfigured)
                             .accessibilityIdentifier("searchMap.recommended.\(index)")
                     }
                 }
@@ -178,14 +181,16 @@ import SwiftUI
                     .questifyCardListRow()
                 }
                 if !categories.isEmpty {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 125))], spacing: 12) {
+                    // Mini-program 类别: two-column card tiles (`.type-list .li { width: 50% }`).
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 125), spacing: CYSpacing.md)], spacing: CYSpacing.md) {
                         ForEach(categories) { category in
                             Button {
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                                 var next = filter; next.categoryID = category.id; applyFilter(next)
                             } label: {
-                                Text(verbatim: category.name).frame(maxWidth: .infinity, minHeight: 44)
-                            }.buttonStyle(.bordered).accessibilityIdentifier("searchMap.category.\(category.id)")
+                                Text(verbatim: category.name).font(CYTypography.label.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
+                            }.buttonStyle(.bordered).buttonBorderShape(.roundedRectangle(radius: CYRadius.sm)).tint(CYColor.textPrimary)
+                            .accessibilityIdentifier("searchMap.category.\(category.id)")
                         }
                     }
                     .padding(.vertical, 4)

@@ -22,7 +22,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         if community != nil {
             Picker("club.title", selection: $topTab) {
                 ForEach(ClubTabPresentation.TopTab.allCases, id: \.self) { Text(LocalizedStringKey($0.key)).tag($0) }
-            }.pickerStyle(.segmented).padding(.horizontal).padding(.vertical, 8)
+            }.pickerStyle(.segmented).padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
                 .accessibilityIdentifier("clubTab.topTabs")
         }
         if topTab == .feed, let community {
@@ -34,10 +34,10 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 // Mini-program club tab: 「创建你自己的俱乐部」 stays pinned above the list; merchants never see it.
                 if !discoveryScope.isMerchantViewer, let operations = management?.operations {
                     Section {
-                        HStack(spacing: Theme.Space.s3) {
-                            Text("club.tab.createPrompt").font(Theme.Font.body)
+                        HStack(spacing: CYSpacing.md) {
+                            Text("club.tab.createPrompt").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
-                            Spacer(minLength: Theme.Space.s2)
+                            Spacer(minLength: CYSpacing.sm)
                             ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
                                 .buttonStyle(.questifyPrimary)
                                 .fixedSize()
@@ -78,7 +78,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                 }
                 Section("club.events") {
                     if home.events.isEmpty {
-                        Text("club.emptyEvents").foregroundStyle(.secondary).accessibilityIdentifier("club.home.events.empty")
+                        Text("club.emptyEvents").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.home.events.empty")
                     }
                     ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
                         if let topicDestination, event.id > 0 {
@@ -114,7 +114,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         case .unavailable:
             Section {
                 Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("club.home.locality.unavailable")
                 Button("action.retry") { Task { await loadLocality() } }
                     .accessibilityIdentifier("club.home.locality.retry")
