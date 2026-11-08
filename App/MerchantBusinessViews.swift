@@ -1023,7 +1023,8 @@ import SwiftUI
             MerchantCustomerListFooter(total: total)
         }
         if case .customers = query, !selection.isEmpty, snapshot.access.allows("merchant:crm:segment") {
-            Button("merchant.business.batchTag") { editor = .init(kind: .tag(selection.sorted().compactMap { try? .init($0) })) }
+            Button(MerchantOpsCopy.text("merchantOps.customer.batchTag.count %lld", selection.count)) { editor = .init(kind: .tag(selection.sorted().compactMap { try? .init($0) })) }
+                .accessibilityIdentifier("merchant.business.batchTag")
         }
         if query == .operators, snapshot.access.canManageOperators {
             Button("merchant.business.inviteOperator") { editor = .init(kind: .invite) }

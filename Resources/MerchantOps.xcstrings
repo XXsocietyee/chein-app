@@ -885,6 +885,57 @@
         }
       }
     },
+    "merchantOps.customer.batchTag.count %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tag %lld selected (max 100)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "批量标签 · 已选 %lld / 100"
+          }
+        }
+      }
+    },
+    "merchantOps.customer.batchTag.issue.invalidName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a tag name of 1 to 16 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入1至16字标签名称"
+          }
+        }
+      }
+    },
+    "merchantOps.customer.batchTag.issue.noSelection": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select customers first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先选择客户"
+          }
+        }
+      }
+    },
     "merchantOps.customer.footer %lld": {
       "extractionState": "manual",
       "localizations": {
