@@ -187,4 +187,15 @@ private final class DecorProofTransport: HTTPTransport {
         XCTAssertEqual(coordinator.saved.knowledge, "")
     }
 }
+
+/// W5b: the shipped session reader has no approval/journal, so the editor shows the unavailable notice
+/// and the save confirmation stays disabled (coop-setting, decor, gallery).
+@MainActor final class MerchantOperationsReaderShippedGateTests: XCTestCase {
+    func testReaderWithoutApprovalAndJournalCannotSave() {
+        let reader = MerchantOperationsSessionReader(service: nil, currentSession: { nil })
+        XCTAssertFalse(reader.canSave)
+        XCTAssertFalse(reader.isOfflineExample)
+        XCTAssertFalse(reader.isAuthenticated)
+    }
+}
 #endif

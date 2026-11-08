@@ -110,6 +110,12 @@ public enum MerchantCityNodeWriteGate {
         guard gates.cityNodeWrites, let market else { return false }
         return gates.allows(path, market: market)
     }
+    /// The placement application route used by the create page; drives the up-front "not available yet" notice.
+    public static let savePath = "api/merchant/city-node/save"
+    public static func saveAvailable(permitsWrites: Bool, isOfflineExample: Bool,
+                                     gates: MerchantCityNPCParityGates = .disabled, market: RegionalMarket? = nil) -> Bool {
+        enabled(permitsWrites: permitsWrites, isOfflineExample: isOfflineExample, path: savePath, gates: gates, market: market)
+    }
 }
 
 /// `city-node/save` returns the application id either bare (`data: 92`) or as `{id}`.

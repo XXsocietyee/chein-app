@@ -28,6 +28,7 @@ struct MerchantOperationsEditor: View {
     var body: some View {
         Form {
             if isExample { Section { MerchantOperationsBoundary(isExample: isExample) } }
+            else if !coordinator.reader.canSave { Section { MerchantContentBoundary() } }
             if let draft = coordinator.draft {
                 fields(draft)
                 if let blocker = draft.blocker { Section { Text(LocalizedStringKey(blocker)).foregroundStyle(.secondary).accessibilityIdentifier("merchant.operations.blocker") } }

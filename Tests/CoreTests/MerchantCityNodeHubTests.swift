@@ -58,6 +58,16 @@ final class MerchantCityNodeHubTests: XCTestCase {
         XCTAssertFalse(MerchantCityNodeWriteGate.enabled(permitsWrites: true, isOfflineExample: true, path: "api/merchant/city-node/poster-code"))
         XCTAssertFalse(MerchantCityNPCParityGates.disabled.cityNodeWrites)
     }
+    func testSaveAvailabilityMatchesTheWriteGateForThePlacementRoute() {
+        XCTAssertEqual(MerchantCityNodeWriteGate.savePath, "api/merchant/city-node/save")
+        XCTAssertTrue(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: true, isOfflineExample: true))
+        XCTAssertFalse(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: true, isOfflineExample: false))
+        XCTAssertFalse(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: false, isOfflineExample: true))
+        var gates = MerchantCityNPCParityGates(); gates.cityNodeWrites = true
+        for market in RegionalMarket.allCases {
+            XCTAssertFalse(MerchantCityNodeWriteGate.saveAvailable(permitsWrites: true, isOfflineExample: false, gates: gates, market: market))
+        }
+    }
     func testPlacementReceiptAcceptsBareIntegerOrObjectID() throws {
         XCTAssertEqual(MerchantCityPlacementReceipt.applicationID(.integer(92)), 92)
         XCTAssertEqual(MerchantCityPlacementReceipt.applicationID(try value(#"{"id":93}"#)), 93)
