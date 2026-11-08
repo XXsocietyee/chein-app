@@ -74,4 +74,15 @@ final class RegionalConfigurationTests: XCTestCase {
             XCTAssertEqual(config.availableCapabilities, [.domesticChinaPhone])
         }
     }
+    /// FP-E1: the retained username/password route needs a mini-program WeChat code the native app cannot supply,
+    /// so even a fully approved and "verified" production profile must never expose it.
+    func testUsernamePasswordIsNeverAvailableEvenWithApprovedBackendAndVerification() throws {
+        let approvals: [RegionalMarket: Set<String>] = [.china: [cnURL], .unitedStates: [usURL]]
+        for (market, url) in [(RegionalMarket.china, cnURL), (.unitedStates, usURL)] {
+            let config = try RegionalConfiguration(market: market, baseURL: url, approvedBaseURLs: approvals,
+                                                   verifiedCapabilities: Set(RegionalCapability.allCases))
+            XCTAssertNotEqual(config.availability(of: .usernamePassword), .available)
+            XCTAssertFalse(config.availableCapabilities.contains(.usernamePassword))
+        }
+    }
 }
