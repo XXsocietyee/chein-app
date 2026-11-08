@@ -155,8 +155,8 @@ import SwiftUI
                 QuestifyCardArtwork(url: url, height: 196)
             } else {
                 // A clean placeholder with no text when the banner has no usable cover.
-                RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(uiColor: .tertiarySystemFill))
+                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                    .fill(CYColor.bgSurfaceSubtle)
                     .frame(height: 196)
                     .accessibilityHidden(true)
             }
@@ -183,7 +183,7 @@ import SwiftUI
                         ForEach(items) { item in row(item, section: section.rawValue) }
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 12) {
+                            LazyHStack(spacing: CYSpacing.md) {
                                 ForEach(items) { item in
                                     row(item, section: section.rawValue).frame(width: 280)
                                 }

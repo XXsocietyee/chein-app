@@ -49,7 +49,7 @@ import SwiftUI
                         .accessibilityIdentifier("squareReport.progress.entry")
                 }
                 Section {
-                    if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
+                    if reader.isOfflineExample { Text("square.offlineExample").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
                     Picker("square.feed", selection: $query.mode) {
                         ForEach(SquareFeedMode.visible, id: \.self) { mode in Text(mode.labelKey).tag(mode) }
                     }.accessibilityIdentifier("square.feed")
@@ -59,11 +59,13 @@ import SwiftUI
                 if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
                 else if gatePending { ProgressView("square.loading") }
                 else if communityClosed {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("square.xcx.closedTitle").font(.headline).accessibilityIdentifier("square.communityClosed")
-                        Text("square.xcx.closedDetail").font(.footnote).foregroundStyle(.secondary)
+                    VStack(spacing: CYSpacing.sm) {
+                        Text("square.xcx.closedTitle").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("square.communityClosed")
+                        Text("square.xcx.closedDetail").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                         Button("square.retry") { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
+                            .buttonStyle(.cySecondary(fullWidth: false)).frame(minHeight: CYSpacing.minTouchTarget)
                     }
+                    .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
                 }
                 else if query.mode.requiresAccount && !reader.isSignedIn { SquareIssueView(error: SquareReadFailure.signInRequired) }
                 else if loadedKey != key { ProgressView("square.loading") }
@@ -73,10 +75,12 @@ import SwiftUI
                         if query.keyword != nil { Text("square.empty").accessibilityIdentifier("square.empty") }
                         else {
                             // Source empty feed: 广场还很安静 / 成为第一个发布创意路线的人吧.
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("square.xcx.emptyTitle").font(.headline).accessibilityIdentifier("square.empty")
-                                Text("square.xcx.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                            VStack(spacing: CYSpacing.xs) {
+                                Image(systemName: "text.bubble").font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                                Text("square.xcx.emptyTitle").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("square.empty")
+                                Text("square.xcx.emptyDetail").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                             }
+                            .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
                         }
                     }
                     ForEach(pagination.items) { post in
