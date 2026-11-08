@@ -23,8 +23,10 @@ struct HomeHeroHeaderSectionView: View {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
-                            .font(.title2.weight(.bold))
+                            .font(CYTypography.pageTitle)
+                            .foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         HStack(spacing: 6) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
@@ -62,7 +64,7 @@ struct HomeHeroHeaderSectionView: View {
                                     } icon: {
                                         Image(systemName: "location.fill")
                                     }
-                                    .foregroundStyle(.secondary)
+                                    .foregroundStyle(CYColor.textSecondary)
                                     .accessibilityIdentifier("homeIndex.hero.city")
                                 }
                             }

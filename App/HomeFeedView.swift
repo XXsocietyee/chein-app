@@ -33,10 +33,12 @@ import SwiftUI
         let permit = model.permit(reader)
         ZStack {
             if !reader.isConfigured || unavailableMessageKey != nil {
-                ContentUnavailableView("homeFeed.unavailable", systemImage: "network.slash", description: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
+                CYEmptyStateView(systemImage: "network.slash", title: "homeFeed.unavailable", description: LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured"))
                     .accessibilityIdentifier("homeFeed.configurationUnavailable")
             } else if !model.matches(reader) {
                 ProgressView("homeFeed.loading")
+                    .font(CYTypography.bodyCompact)
+                    .tint(CYColor.accent)
             } else {
                 List {
                     if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
@@ -92,11 +94,13 @@ import SwiftUI
                         if model.pageFailed { retry("homeFeed.loadError", id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
                         if model.loadingPage { ProgressView("homeFeed.loading") }
                         else if !model.pageFailed && model.pagination.items.isEmpty {
-                            ContentUnavailableView("homeFeed.empty", systemImage: "magnifyingglass", description: Text("homeFeed.emptyHint"))
+                            CYEmptyStateView(systemImage: "magnifyingglass", title: "homeFeed.empty", description: "homeFeed.emptyHint")
                                 .accessibilityIdentifier("homeFeed.empty")
                         }
                         if model.pagination.hasMore && !model.loadingPage && !model.pageFailed {
                             Button("homeFeed.loadMore") { model.schedule(.page, reader: reader, permit: permit) }
+                                .buttonStyle(.cySecondary(fullWidth: true))
+                                .listRowBackground(Color.clear)
                                 .frame(minHeight: 44)
                                 .accessibilityIdentifier("homeFeed.loadMore")
                         } else if !model.pagination.hasMore && !model.loadingPage && !model.pageFailed && !model.pagination.items.isEmpty {
@@ -106,10 +110,12 @@ import SwiftUI
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
-                    } header: { Text("homeFeed.explore") }
+                    } header: { railHeader("homeFeed.explore") }
                 }
                 .listStyle(.insetGrouped)
-                .listSectionSpacing(20)
+                .listSectionSpacing(CYSpacing.xl)
+                .scrollContentBackground(.hidden)
+                .background(CYColor.bgPage)
                 .searchable(text: $keyword, prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
@@ -156,7 +162,7 @@ import SwiftUI
             } else {
                 // A clean placeholder with no text when the banner has no usable cover.
                 RoundedRectangle(cornerRadius: 14, style: .continuous)
-                    .fill(Color(uiColor: .tertiarySystemFill))
+                    .fill(CYColor.bgSurfaceSubtle)
                     .frame(height: 196)
                     .accessibilityHidden(true)
             }
@@ -183,7 +189,7 @@ import SwiftUI
                         ForEach(items) { item in row(item, section: section.rawValue) }
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
-                            LazyHStack(spacing: 12) {
+                            LazyHStack(spacing: CYSpacing.md) {
                                 ForEach(items) { item in
                                     row(item, section: section.rawValue).frame(width: 280)
                                 }
@@ -198,9 +204,9 @@ import SwiftUI
                 }
             } header: {
                 switch section {
-                case .recommended: Text("homeFeed.editorsPicks")
-                case .nearby: Text("homeFeed.activityHighlights")
-                case .upcoming: Text("homeFeed.upcoming")
+                case .recommended: railHeader("homeFeed.editorsPicks")
+                case .nearby: railHeader("homeFeed.activityHighlights")
+                case .upcoming: railHeader("homeFeed.upcoming")
                 }
             }
         }
@@ -211,13 +217,21 @@ import SwiftUI
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
             .questifyCardListRow()
     }
+    /// Rail / list section title: sectionTitle text style, high-contrast, not auto-uppercased; a VoiceOver heading.
+    private func railHeader(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .textCase(nil)
+            .accessibilityAddTraits(.isHeader)
+    }
     private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Label { Text(message) } icon: { Image(systemName: "exclamationmark.triangle") }
                 .font(CYTypography.bodyCompact)
                 .foregroundStyle(CYColor.textSecondary)
             Button("homeFeed.retry", action: action)
-                .buttonStyle(.bordered).controlSize(.large)
+                .buttonStyle(.cySecondary(fullWidth: false))
                 .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("homeFeed.retry.\(id)")
         }
@@ -257,3 +271,14 @@ struct HomeFeedCard: View {
         return nil
     }
 }
+
+#if DEBUG
+#Preview("Home feed – dark (player)") {
+    NavigationStack { HomeFeedView(reader: HomeFeedFixtureReader()) { _ in } }
+        .preferredColorScheme(.dark)
+}
+#Preview("Home feed empty – light sanity") {
+    NavigationStack { HomeFeedView(reader: HomeFeedFixtureReader(scenario: "empty")) { _ in } }
+        .preferredColorScheme(.light)
+}
+#endif
