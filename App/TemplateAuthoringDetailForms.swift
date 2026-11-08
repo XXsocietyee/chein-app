@@ -42,7 +42,7 @@ import SwiftUI
             if !configuration.isSupported {
                 Text("templateAuthor.optionMedia.unsupported").accessibilityIdentifier("templateAuthor.optionMedia.unsupported")
             }
-            if let issueKey { Text(LocalizedStringKey(issueKey)).font(.footnote).foregroundStyle(.red).accessibilityIdentifier("templateAuthor.optionMedia.limit") }
+            if let issueKey { Text(LocalizedStringKey(issueKey)).font(.footnote).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateAuthor.optionMedia.limit") }
             ForEach(TemplateChoiceOptionMedia.Letter.allCases) { letter in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(LocalizedStringKey(letter.labelKey)).font(.subheadline)
@@ -157,7 +157,7 @@ import SwiftUI
             if model.draft.storyEnabled {
                 if model.draft.storyTimelineEdited == true {
                     if let summary = try? model.draft.preparedStoryText() { Text(verbatim: summary).accessibilityIdentifier("templateStory.summary") }
-                    if let issue = model.draft.storyProjectionIssue { Text(LocalizedStringKey(issue)).foregroundStyle(.red) }
+                    if let issue = model.draft.storyProjectionIssue { Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText) }
                 } else { TemplateAuthoringField("storyText", text: model.optional(\.storyText), multiline: true) }
                 TemplateAuthoringField("storyImg", text: model.optional(\.storyImg))
                 NavigationLink("templateAuthor.storyTimeline") { TemplateAuthoringStoryView(model: model) }.accessibilityIdentifier("templateStory.open")
@@ -191,7 +191,7 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
-                if let issue = editor.visibleIssueKey { Text(LocalizedStringKey(issue)).foregroundStyle(.red).accessibilityIdentifier("templateStory.issue") }
+                if let issue = editor.visibleIssueKey { Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateStory.issue") }
             }
             ForEach(Array(editor.visibleBeats.enumerated()), id: \.element.id) { index, beat in
                 Section {
@@ -251,7 +251,7 @@ import SwiftUI
                     Text("playkitAuthor.presentation.inline").tag("inline")
                     Text("playkitAuthor.presentation.focused").tag("fullscreen")
                 }.accessibilityIdentifier("creatorComposition.presentation")
-                if model.draft.advanced.presentationRequiresFullscreen { Text("playkitAuthor.presentation.focusedRequired").font(.footnote).foregroundStyle(.red) }
+                if model.draft.advanced.presentationRequiresFullscreen { Text("playkitAuthor.presentation.focusedRequired").font(.footnote).foregroundStyle(CYColor.dangerText) }
             }
             Section("creatorRoot.rules") {
                 NavigationLink("creatorRoot.rules") { TemplateRootAuthoringView(model: model) }
@@ -271,7 +271,7 @@ import SwiftUI
                     TemplateTimerOutcomeEntryLabel()
                 }.accessibilityIdentifier("templateTimerOutcome.open")
             }
-            if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(.red) } } }
+            if !model.draft.advanced.issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(Array(Set(model.draft.advanced.issues)).sorted(), id: \.self) { Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(CYColor.dangerText) } } }
         }.disabled(!model.canEdit).navigationTitle("templateAuthor.advanced")
     }
     private func field(_ section: String, _ key: String) -> some View {
