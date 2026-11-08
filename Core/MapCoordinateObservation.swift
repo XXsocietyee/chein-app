@@ -17,16 +17,23 @@ public struct MapCoordinateObservation: Equatable {
     public let source: MapCoordinateSource
     public let accuracyMeters: Double?
     public let observedAt: Date?
+    /// When the client received the fix (distinct from `observedAt`, the sampling time). WP-09 / CT05.b.
+    public let receivedAt: Date?
+    /// True when the point was replayed from a queue/backfill; it is history, never "online now".
+    public let isBackfilled: Bool
     /// Set only by `projected(to:)`. A value that was already converted cannot be converted again.
     public let conversion: String?
 
     public init(latitude: Double, longitude: Double, datum: WalkingCoordinateDatum, source: MapCoordinateSource,
-                accuracyMeters: Double? = nil, observedAt: Date? = nil) throws {
+                accuracyMeters: Double? = nil, observedAt: Date? = nil,
+                receivedAt: Date? = nil, isBackfilled: Bool = false) throws {
         try self.init(latitude: latitude, longitude: longitude, datum: datum, source: source,
-                      accuracyMeters: accuracyMeters, observedAt: observedAt, conversion: nil)
+                      accuracyMeters: accuracyMeters, observedAt: observedAt, conversion: nil,
+                      receivedAt: receivedAt, isBackfilled: isBackfilled)
     }
     private init(latitude: Double, longitude: Double, datum: WalkingCoordinateDatum, source: MapCoordinateSource,
-                 accuracyMeters: Double?, observedAt: Date?, conversion: String?) throws {
+                 accuracyMeters: Double?, observedAt: Date?, conversion: String?,
+                 receivedAt: Date?, isBackfilled: Bool) throws {
         guard latitude.isFinite, longitude.isFinite else { throw MapCoordinateFailure.nonNumeric }
         guard (-90...90).contains(latitude), (-180...180).contains(longitude) else {
             // Never silently swap: report it so the entry point fixes its parameter order.
@@ -36,6 +43,7 @@ public struct MapCoordinateObservation: Equatable {
         if let accuracyMeters { guard accuracyMeters.isFinite, accuracyMeters >= 0 else { throw MapCoordinateFailure.nonNumeric } }
         self.latitude = latitude; self.longitude = longitude; self.datum = datum; self.source = source
         self.accuracyMeters = accuracyMeters; self.observedAt = observedAt; self.conversion = conversion
+        self.receivedAt = receivedAt; self.isBackfilled = isBackfilled
     }
 
     /// Entry-point normalization for untyped payloads (numbers or numeric strings, explicit datum string).
@@ -69,7 +77,7 @@ public struct MapCoordinateObservation: Equatable {
         let center = try RuntimeLocationProjection.gcj02MapCenter(.init(coordinate: roamCoordinate, datum: .wgs84))
         return try .init(latitude: center.coordinate.latitude, longitude: center.coordinate.longitude, datum: .gcj02,
                          source: source, accuracyMeters: accuracyMeters, observedAt: observedAt,
-                         conversion: "wgs84-gcj02-source-a63e9e9")
+                         conversion: "wgs84-gcj02-source-a63e9e9", receivedAt: receivedAt, isBackfilled: isBackfilled)
     }
 
     /// Distances are computed only within one datum; mixed datums fail instead of drifting.
@@ -82,5 +90,45 @@ public struct MapCoordinateObservation: Equatable {
     public func isStale(now: Date, maxAge: TimeInterval) -> Bool {
         guard let observedAt, maxAge.isFinite, maxAge >= 0 else { return true }
         return now.timeIntervalSince(observedAt) > maxAge || observedAt.timeIntervalSince(now) > 60
+    }
+
+    /// WP-09 / CT05.b: "online now" requires a live (non-backfilled) fix whose receive time is known,
+    /// whose sampling time is not after receipt, was fresh when received, and is still fresh now.
+    /// Receive time never substitutes for sampling time.
+    public func isOnlineNow(now: Date, maxAge: TimeInterval) -> Bool {
+        guard !isBackfilled, let observedAt, let receivedAt, maxAge.isFinite, maxAge >= 0 else { return false }
+        let latency = receivedAt.timeIntervalSince(observedAt)
+        guard latency >= -60, latency <= maxAge else { return false }
+        return !isStale(now: now, maxAge: maxAge)
+    }
+}
+
+/// WP-09 / CT05.b: physically impossible jumps are flagged and never accepted as a track point.
+public enum MapCoordinateJumpVerdict: Equatable {
+    case accepted
+    case flaggedImpossibleJump(impliedSpeedMetersPerSecond: Double)
+    case flaggedNonMonotonicTime
+    case flaggedMissingSampleTime
+    case flaggedDatumMismatch
+}
+
+public enum MapCoordinateJumpGuard {
+    /// Default ceiling (~ 55 m/s, 200 km/h): above walking/cycling/vehicle city travel.
+    public static let defaultMaxSpeedMetersPerSecond = 55.0
+
+    /// Judged on sampling time (`observedAt`), never receive time. Both fixes' reported accuracy is
+    /// allowed as slack so GPS noise is not mistaken for a teleport.
+    public static func evaluate(previous: MapCoordinateObservation, next: MapCoordinateObservation,
+                                maxSpeedMetersPerSecond: Double = defaultMaxSpeedMetersPerSecond) -> MapCoordinateJumpVerdict {
+        guard previous.datum == next.datum else { return .flaggedDatumMismatch }
+        guard let t0 = previous.observedAt, let t1 = next.observedAt else { return .flaggedMissingSampleTime }
+        let dt = t1.timeIntervalSince(t0)
+        guard dt >= 0 else { return .flaggedNonMonotonicTime }
+        guard let distance = try? MapCoordinateObservation.distanceMeters(previous, next) else { return .flaggedDatumMismatch }
+        let slack = (previous.accuracyMeters ?? 0) + (next.accuracyMeters ?? 0)
+        let allowed = maxSpeedMetersPerSecond * dt + slack
+        guard distance > allowed else { return .accepted }
+        let speed = dt > 0 ? distance / dt : Double.infinity
+        return .flaggedImpossibleJump(impliedSpeedMetersPerSecond: speed)
     }
 }

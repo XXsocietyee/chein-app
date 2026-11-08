@@ -166,3 +166,25 @@ public struct RoamCityStampDraft: Equatable {
         }
     }
 }
+
+/// WP-09 / CT05.e: mileage counts only measured, accepted fixes. Interpolated (tolerance/gap-fill)
+/// points are display-only and add no distance; jump-flagged fixes are dropped, not accumulated.
+public struct RoamMileageAccumulator: Equatable {
+    public enum Point: Equatable {
+        case measured(MapCoordinateObservation)
+        case interpolated(MapCoordinateObservation)
+    }
+    public private(set) var totalMeters: Double = 0
+    public private(set) var flaggedCount = 0
+    private var last: MapCoordinateObservation?
+    public init() {}
+    public mutating func add(_ point: Point) {
+        guard case .measured(let next) = point else { return }
+        if let previous = last {
+            guard MapCoordinateJumpGuard.evaluate(previous: previous, next: next) == .accepted,
+                  let d = try? MapCoordinateObservation.distanceMeters(previous, next) else { flaggedCount += 1; return }
+            totalMeters += d
+        }
+        last = next
+    }
+}
