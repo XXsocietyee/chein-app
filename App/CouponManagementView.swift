@@ -186,6 +186,10 @@ private enum CouponManagementNoticeSurface: String { case list, detail, editor }
                 if let end = model.core.draft.endTime {
                     LabeledContent("couponManagement.end", value: CouponValidityTime.display(end))
                 }
+                // PORT-5: mini-program shows the validity span next to the picked range, not only inside the sheet.
+                if let span = CouponValiditySpan.make(start: model.core.draft.startTime, end: model.core.draft.endTime) {
+                    CouponValiditySpanBadge(span: span)
+                }
                 Button("couponManagement.range.edit") {
                     closeRangeEditor(); rangeEditor = CouponValidityRangeEditorModel.make(screen: model)
                 }.disabled(model.core.session == nil).accessibilityIdentifier("couponManagement.range.open")
