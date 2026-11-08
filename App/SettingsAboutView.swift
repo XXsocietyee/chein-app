@@ -5,7 +5,7 @@ import UIKit
     let market: RegionalMarket?
     let appInformation: SettingsAppInformation
     let legalReader: any SettingsLegalReading
-    var copyText: (String) throws -> Void = { UIPasteboard.general.string = $0 }
+    var copyText: (String) throws -> Void = { LocalPasteboard.copy($0) }
     var body: some View {
         Form {
             Section {

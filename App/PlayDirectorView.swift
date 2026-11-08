@@ -87,7 +87,7 @@ import UIKit
                             }
                         }
                         if recap["exportAvailable"].bool == true {
-                            Button("playx.director.copyRecap") { Task { if let export = await model.exportRecap() { UIPasteboard.general.string = export } } }
+                            Button("playx.director.copyRecap") { Task { if let export = await model.exportRecap() { LocalPasteboard.copy(export) } } }
                                 .disabled(model.phase != "ready").accessibilityIdentifier("playx.director.copyRecap")
                         }
                     } else { Text("playx.director.recapPending") }

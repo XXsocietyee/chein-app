@@ -178,5 +178,5 @@ private final class ApprovedAudioDownload: NSObject, NativePlatformAudioDownload
     }
 }
 @MainActor struct NativePlatformAddressCopier: PlatformAddressCopying {
-    func copy(_ text: String) throws { UIPasteboard.general.string = text }
+    func copy(_ text: String) throws { LocalPasteboard.copy(text) }
 }

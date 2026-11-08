@@ -1,4 +1,6 @@
 import XCTest
+import UIKit
+import UniformTypeIdentifiers
 #if canImport(QuestifyApp)
 @testable import QuestifyApp
 #if canImport(QuestifyCore)
@@ -41,5 +43,30 @@ final class AccessibilityHardeningWaveTests: XCTestCase {
         XCTAssertEqual(ClubSeriesScheduleRemovalCopy.rowLabel(position: 3, day: "2026-12-01", locale: Locale(identifier: "zh-Hans")),
                        "移除第 3 个日期 2026-12-01")
         XCTAssertTrue(ClubSeriesScheduleRemovalCopy.confirmTitle(day: "2026-12-01", locale: Locale(identifier: "en")).contains("2026-12-01"))
+    }
+
+    // FP-M5
+    private final class RecordingBoard: PasteboardWriting {
+        var items: [[String: Any]] = []
+        var options: [UIPasteboard.OptionsKey: Any] = [:]
+        func setItems(_ items: [[String: Any]], options: [UIPasteboard.OptionsKey: Any]) {
+            self.items = items; self.options = options
+        }
+    }
+
+    func testLocalPasteboardCopiesLocalOnlyWithExpiry() {
+        let board = RecordingBoard()
+        let now = Date(timeIntervalSince1970: 1_000)
+        LocalPasteboard.copy("ORDER-1", now: now, to: board)
+        XCTAssertEqual(board.items.first?[UTType.utf8PlainText.identifier] as? String, "ORDER-1")
+        XCTAssertEqual(board.options[.localOnly] as? Bool, true)
+        XCTAssertEqual(board.options[.expirationDate] as? Date, now.addingTimeInterval(LocalPasteboard.defaultLifetime))
+    }
+
+    func testLocalPasteboardHonoursCustomLifetime() {
+        let board = RecordingBoard()
+        let now = Date(timeIntervalSince1970: 50)
+        LocalPasteboard.copy("x", lifetime: 30, now: now, to: board)
+        XCTAssertEqual(board.options[.expirationDate] as? Date, now.addingTimeInterval(30))
     }
 }

@@ -7,7 +7,7 @@ import UIKit
     let text: String
     let title: LocalizedStringKey
     let identifier: String
-    var copyText: (String) throws -> Void = { UIPasteboard.general.string = $0 }
+    var copyText: (String) throws -> Void = { LocalPasteboard.copy($0) }
     @Environment(\.locale) private var locale
     @State private var status: Status?
     private enum Status { case copied, failed }

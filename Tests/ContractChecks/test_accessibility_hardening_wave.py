@@ -98,5 +98,24 @@ class FPA6SeriesDateRemoval(unittest.TestCase):
         self.assertEqual(s.count('schedule.removeDate(id:'), 1)
 
 
+class FPM5Pasteboard(unittest.TestCase):
+    def test_no_plain_pasteboard_string_assignment_in_app(self):
+        offenders = []
+        for path in (ROOT / 'App').rglob('*.swift'):
+            if 'UIPasteboard.general.string' in path.read_text():
+                offenders.append(path.name)
+        self.assertEqual(offenders, [])
+
+    def test_helper_is_local_only_with_expiry(self):
+        s = src('App/LocalPasteboard.swift')
+        self.assertIn('.localOnly: true', s)
+        self.assertIn('.expirationDate:', s)
+
+    def test_listed_sites_use_helper(self):
+        for path in ('App/NativeCopyTextButton.swift', 'App/NativePlatformAdapters.swift',
+                     'App/SettingsSupportSections.swift', 'App/SettingsAboutView.swift'):
+            self.assertIn('LocalPasteboard.copy(', src(path), path)
+
+
 if __name__ == '__main__':
     unittest.main()
