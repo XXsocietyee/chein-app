@@ -4,8 +4,8 @@ import QuestifyCore
 #endif
 
 /// Mini-program `pages/club/topic-story` + `topic/components/project-join` surface from the topic page.
-/// DESIGNED: stations come from the already-read topic chapters; join and answer submission have no approved
-/// remote path here, so those actions explain that instead of posting.
+/// DESIGNED: stations come from the already-read topic chapters; join and answer go through an injected
+/// writer (StoryParticipationWriterFactory) that is gated by default, so they explain "Not available yet".
 @available(macOS 14.0, *)
 @MainActor struct TopicStoryParticipationLink: View {
     let topicID: Int
@@ -31,27 +31,28 @@ import QuestifyCore
     let topicID: Int
     let chapters: [TopicChapter]
     @State private var coordinator: StoryParticipationCoordinator?
-    @State private var joinBlocked = false
-    @State private var answerFeedback: [Int: StoryAnswerFeedback] = [:]
+    @StateObject private var actions = StoryParticipationActionModel(writer: StoryParticipationWriterFactory.makeWriter())
 
     var body: some View {
         ScrollView {
             if let coordinator {
-                StoryParticipationView(
-                    coordinator: coordinator,
-                    onJoinTap: { joinBlocked = true },
-                    onSubmitNodeAnswer: { nodeID in
-                        // Validate locally; a valid answer is never sent (no approved write path), so it is only "blocked".
-                        do {
-                            _ = try coordinator.buildAnswerRequest(nodeId: nodeID)
-                            answerFeedback[nodeID] = .blocked
-                        } catch {
-                            answerFeedback[nodeID] = .invalid(error.localizedDescription)
-                        }
-                    },
-                    joinBlocked: joinBlocked,
-                    answerFeedback: answerFeedback
-                )
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    StoryParticipationView(
+                        coordinator: coordinator,
+                        onJoinTap: { Task { await actions.join(coordinator: coordinator) } },
+                        onSubmitNodeAnswer: { nodeID in
+                            Task { await actions.submitAnswer(nodeId: nodeID, coordinator: coordinator) }
+                        },
+                        joinBlocked: actions.joinState == .unavailable,
+                        answerFeedback: StoryParticipationFeedbackMapping.answerFeedback(actions.answerStates)
+                    )
+                    if let message = StoryParticipationFeedbackMapping.joinMessage(actions.joinState) {
+                        Label(message, systemImage: "exclamationmark.triangle.fill")
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("story.joinMessage")
+                    }
+                }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.lg)
             } else {
