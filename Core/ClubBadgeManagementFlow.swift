@@ -227,3 +227,41 @@ public struct ClubBadgeGrantReview: Equatable, Identifiable {
         } catch { journalAvailable = false; throw ClubBadgeManagementFailure.persistence }
     }
 }
+
+
+/// Screen-level state of pages/club/badges/index (loading | ready | empty | error), derived only
+/// from facts the flow already publishes. It never grants anything; the flow's own gates
+/// (`canCreate` / `canGrant`) remain the only authority for write controls.
+public enum ClubBadgeScreenState: Equatable {
+    case loading
+    /// The read service is not configured for this build/session. Honest "not available yet".
+    case notAvailable
+    case error
+    case empty
+    case ready
+}
+
+public enum ClubBadgeMemberPickerState: Equatable {
+    case closed, loading, error, empty, ready
+}
+
+extension ClubBadgeManagementFlow {
+    public var screenState: ClubBadgeScreenState {
+        guard isCurrent else { return .error }
+        guard isConfigured else { return .notAvailable }
+        if loaded { return badges.isEmpty ? .empty : .ready }
+        if error != nil { return .error }
+        return .loading
+    }
+
+    /// Mini-program rule: only the owner sees management controls; everyone else reads the list.
+    /// True when the list is loaded and the viewer is not the owner (admin or ordinary member).
+    public var showsOwnerOnlyNotice: Bool { loaded && !isOwner && isCurrent }
+
+    public var memberPickerState: ClubBadgeMemberPickerState {
+        guard pickerOpen else { return .closed }
+        if memberError != nil { return .error }
+        if members.isEmpty { return busy ? .loading : .empty }
+        return .ready
+    }
+}

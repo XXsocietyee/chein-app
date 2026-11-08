@@ -191777,6 +191777,74 @@
         }
       }
     },
+    "square.block": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block user"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽用户"
+          }
+        }
+      }
+    },
+    "square.block.notAvailable": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocking from posts is not available yet. Nothing was blocked. You can report this content, or block the person from a chat."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持在动态里屏蔽用户，没有屏蔽任何人。你可以举报这条内容，或在聊天中屏蔽对方。"
+          }
+        }
+      }
+    },
+    "square.block.ok": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好"
+          }
+        }
+      }
+    },
+    "square.block.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block user"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽用户"
+          }
+        }
+      }
+    },
     "square.cityCode": {
       "extractionState": "manual",
       "localizations": {

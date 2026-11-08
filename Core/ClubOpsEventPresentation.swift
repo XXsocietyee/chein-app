@@ -221,3 +221,17 @@ public enum ClubOpsEventSeriesConflict {
         return true
     }
 }
+
+/// Honest state of the confirm step for a reviewed governance write. Cancel-occurrence and
+/// attendance correction are financial-risk writes that are not dispatchable in production
+/// builds; the screen must say so instead of leaving a silently disabled button.
+public enum ClubOpsEventWriteGate: Equatable {
+    case available, notAvailableYet, locked, busy
+    public static func state(canDispatch: Bool, busy: Bool, locked: Bool) -> ClubOpsEventWriteGate {
+        if locked { return .locked }
+        if !canDispatch { return .notAvailableYet }
+        if busy { return .busy }
+        return .available
+    }
+    public var showsNotAvailableNote: Bool { self == .notAvailableYet }
+}

@@ -13,29 +13,68 @@ import SwiftUI
         List {
             if model.working { ProgressView { Text("loading", tableName: "ClubBadge") } }
             if let flow = model.flow, flow.isCurrent {
-                if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
+                switch flow.screenState {
+                case .notAvailable:
+                    Text("notAvailable", tableName: "ClubBadge").foregroundStyle(.secondary)
+                case .error:
                     Text("readError", tableName: "ClubBadge")
-                    Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") }
+                    Button { model.perform { await $0.refresh() } } label: { Text("retry", tableName: "ClubBadge") }
+                        .frame(minHeight: 44)
+                case .loading:
+                    ProgressView { Text("loading", tableName: "ClubBadge") }
+                case .empty, .ready:
+                    if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
+                        Text("readError", tableName: "ClubBadge")
+                        Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") }
+                    }
                 }
                 resultStatus(flow.resultPresentation)
+                if flow.showsOwnerOnlyNotice {
+                    Text("ownerOnly", tableName: "ClubBadge").font(.footnote).foregroundStyle(.secondary)
+                }
                 if flow.canCreate {
                     Button { draft = .init(); creating = true } label: { Text("create", tableName: "ClubBadge") }
+                        .frame(minHeight: 44)
+                }
+                if flow.screenState == .empty {
+                    Text("empty", tableName: "ClubBadge").foregroundStyle(.secondary)
                 }
                 ForEach(flow.badges) { badge in
                     VStack(alignment: .leading) {
                         if let name = badge.badgeName, !name.isEmpty { Text(verbatim: name) }
                         else { Text("unnamed", tableName: "ClubBadge") }
+                        if let desc = badge.badgeDesc, !desc.isEmpty {
+                            Text(verbatim: desc).font(.footnote).foregroundStyle(.secondary)
+                        }
                         if flow.canGrant {
                             Button { model.perform { await $0.openGrant(badge) } } label: { Text("grant", tableName: "ClubBadge") }
+                                .frame(minHeight: 44)
                         }
                     }
                 }
                 if flow.pickerOpen {
                     Section {
-                        ForEach(flow.members) { member in
-                            Button {
-                                flow.selectMember(member); pendingReview = flow.review; model.changed()
-                            } label: { Text(verbatim: member.trimmedNickname ?? String(member.memberId)) }
+                        switch flow.memberPickerState {
+                        case .loading:
+                            ProgressView { Text("membersLoading", tableName: "ClubBadge") }
+                        case .error:
+                            Text("membersError", tableName: "ClubBadge")
+                            Button { model.perform { await $0.retryMembers() } } label: { Text("retry", tableName: "ClubBadge") }
+                                .frame(minHeight: 44)
+                        case .empty:
+                            Text("membersEmpty", tableName: "ClubBadge").foregroundStyle(.secondary)
+                        case .ready, .closed:
+                            ForEach(flow.members) { member in
+                                Button {
+                                    flow.selectMember(member); pendingReview = flow.review; model.changed()
+                                } label: {
+                                    HStack {
+                                        Text(verbatim: member.trimmedNickname ?? String(member.memberId))
+                                        if member.isOwner { Text("ownerMark", tableName: "ClubBadge").font(.caption).foregroundStyle(.secondary) }
+                                    }
+                                }
+                                .frame(minHeight: 44)
+                            }
                         }
                         Button { flow.closePicker(); pendingReview = nil; model.changed() } label: { Text("cancel", tableName: "ClubBadge") }
                     } header: { Text("recipient", tableName: "ClubBadge") }

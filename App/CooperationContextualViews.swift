@@ -294,21 +294,14 @@ import SwiftUI
     @State private var discard = false
     @FocusState private var typing: Bool
     private var drafts: [CoopFlowInvitation]? {
-        guard !contexts.isEmpty, contexts.allSatisfy({ $0.session == reader.session }) else { return nil }
-        let compensation: CoopFlowCompensation
-        if fixed {
-            guard let value = Decimal(string: fee, locale: Locale(identifier: "en_US_POSIX")), value > 0 else { return nil }
-            compensation = .fixed(value)
-        } else { compensation = .traffic }
-        return try? contexts.map { try $0.invitation(message: outgoingMessage, compensation: compensation, currentSession: reader.session) }
+        CoopFlowBatchInvite.drafts(contexts: contexts, message: message, defaultMessage: defaultMessage,
+                                   fixed: fixed, fee: fee, currentSession: reader.session)
     }
     private var dirty: Bool { !message.isEmpty || fixed || !fee.isEmpty }
     private var isClub: Bool { contexts.first?.kind == .club }
     @Environment(\.locale) private var locale
-    /// Source sends a default note when the inviter writes none.
-    private var outgoingMessage: String {
-        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
-        return trimmed.isEmpty ? appLocalized(isClub ? "cooperation.invite.defaultMessage.club" : "cooperation.invite.defaultMessage.merchant", locale: locale) : message
+    private var defaultMessage: String {
+        appLocalized(isClub ? "cooperation.invite.defaultMessage.club" : "cooperation.invite.defaultMessage.merchant", locale: locale)
     }
     var body: some View {
         Form {
