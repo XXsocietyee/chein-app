@@ -1225,6 +1225,22 @@
         }
       }
     },
+    "Show support contact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show support contact"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看客服联系方式"
+          }
+        }
+      }
+    },
     "Stage 0 基线与509条旧线索复核 (OPT-001..003 & D-01..D-10)": {
       "extractionState": "manual",
       "localizations": {
@@ -1272,6 +1288,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "将这些资料提交至创作者申请服务。"
+          }
+        }
+      }
+    },
+    "Support and safety": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Support and safety"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "客服与安全"
           }
         }
       }
