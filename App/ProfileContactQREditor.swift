@@ -12,7 +12,7 @@ import SwiftUI
                     Spacer()
                     Text(LocalizedStringKey(removes ? "profile.contactQR.staged" : (wechat.isEmpty ? "profile.contactQR.empty" : "profile.contactQR.available")))
                         .foregroundStyle(.secondary)
-                    Image(systemName: "chevron.right").font(.caption).accessibilityHidden(true)
+                    Image(systemName: "chevron.forward").font(.caption).accessibilityHidden(true)
                 }
             }.buttonStyle(.plain).accessibilityIdentifier("profile.contactQR.open")
         }
