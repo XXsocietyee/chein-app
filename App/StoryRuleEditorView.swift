@@ -9,6 +9,7 @@ import QuestifyCore
 @available(macOS 14.0, *)
 @MainActor struct StoryRuleEditorView: View {
     @Bindable var model: StoryRuleEditorModel
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -176,7 +177,10 @@ import QuestifyCore
                     Button {
                         model.onMoveUp(path: row.path)
                     } label: {
-                        Image(systemName: "arrow.up")
+                        Label(ChannelCopy.text("上移", "Move up", locale: locale), systemImage: "arrow.up")
+                            .labelStyle(.iconOnly)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
