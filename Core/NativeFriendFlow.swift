@@ -67,6 +67,8 @@ import Foundation
     public var isCurrent: Bool { !authorityRetired && service?.isCurrent == true }
     public var canRecover: Bool { isCurrent && pending != nil && !busy }
     public var onChange: (() -> Void)?
+    /// Block priority: a request to a peer the viewer has blocked is never composed or sent. Nil keeps prior behaviour.
+    public var isPeerBlocked: ((Int64) -> Bool)?
     private let service: (any NativeFriendServing)?
     private let journal: any OperationPendingListing
     private let ownerKey: String
@@ -199,6 +201,7 @@ import Foundation
     }
     public func reviewRequest(peerID: Int64, message: String, source: NativeFriendChannelSource? = nil) {
         guard validateAuthority(), canWrite, savedActionReview == nil, let service,
+              NativeFriendRequestPolicy.mayRequest(peerID: peerID, isBlocked: isPeerBlocked),
               peerID > 0, peerID != service.viewerID, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
               message.unicodeScalars.count <= 60 else { return }
         guard source == nil || source?.isValid == true else { return }
@@ -255,7 +258,9 @@ import Foundation
         await perform(review.command)
     }
     public func perform(_ command: NativeFriendCommand) async {
-        guard validateAuthority(), canWrite, let service, let intentJournal, intentJournal.acquire() else { return }
+        guard validateAuthority(), canWrite, let service else { return }
+        guard NativeFriendRequestPolicy.mayPerform(command, isBlocked: isPeerBlocked) else { savedActionReview = nil; issue = "friend.notSent"; changed(); return }
+        guard let intentJournal, intentJournal.acquire() else { return }
         defer { intentJournal.release() }
         savedActionReview = nil
         let stamp = generation
@@ -287,7 +292,7 @@ import Foundation
             do { try await refresh(service, stamp: stamp) } catch { if generation == stamp { phase = pending == nil ? .failed : .unknown; issue = "friend.loadFailure" } }
         } catch NativeFriendFailure.notSent { clearRejected(record, stamp: stamp, issue: "friend.notSent") }
         catch NativeFriendFailure.rejected(let code) {
-            clearRejected(record, stamp: stamp, issue: code == 401 ? "friend.sessionExpired" : (code == 409 ? "friend.conflict" : "friend.rejected"))
+            clearRejected(record, stamp: stamp, issue: NativeFriendRejectMessage.issueKey(forCode: code))
             if code == 409, generation == stamp, pending == nil, isCurrent {
                 // A definite stale-version refusal retires the reviewed row before another gesture.
                 // The server remains the version authority; never change the command and retry it.
@@ -402,5 +407,27 @@ import Foundation
         generation &+= 1; busy = false; clearConfirmedState()
         phase = .closed; issue = nil; changed()
         // No journal clearing. The same account can recover after sign-in; another account cannot see it.
+    }
+}
+
+/// Block priority for friend commands. Only a new request is gated; accept/reject/cancel answer rows that already exist.
+public enum NativeFriendRequestPolicy {
+    public static func mayRequest(peerID: Int64, isBlocked: ((Int64) -> Bool)?) -> Bool { isBlocked?(peerID) != true }
+    public static func mayPerform(_ command: NativeFriendCommand, isBlocked: ((Int64) -> Bool)?) -> Bool {
+        command.action != .request || mayRequest(peerID: command.peerID, isBlocked: isBlocked)
+    }
+}
+
+/// Maps already-defined server reject codes to a user-facing message key (FRIEND-P41-01).
+/// 403 is the fail-closed review refusal (e.g. Apple-only/phone-only account without a WeChat openid).
+public enum NativeFriendRejectMessage {
+    public static let reviewFailClosedKey = "friend.reviewUnavailable"
+    public static func issueKey(forCode code: Int) -> String {
+        switch code {
+        case 401: return "friend.sessionExpired"
+        case 409: return "friend.conflict"
+        case 403: return reviewFailClosedKey
+        default: return "friend.rejected"
+        }
     }
 }
