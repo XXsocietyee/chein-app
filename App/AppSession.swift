@@ -5210,15 +5210,16 @@ final class AppSession: ObservableObject {
         guard let area = roamArea else { return nil }
         return NearbyTeamBridge.roamQuery(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude)
     }
-    private var nearbyTeamCoordinatorCache: (approval: OperationEndpointApproval?, coordinator: NearbyTeamCoordinator)?
-    /// Rebuilt only when the reviewed nearby-read lease appears, changes owner or disappears, so a coordinator built
-    /// before sign-in never keeps a stale (nil) read grant. Without production gates the lease is always nil and the
+    private var nearbyTeamCoordinatorCache: (read: OperationEndpointApproval?, write: OperationEndpointApproval?, coordinator: NearbyTeamCoordinator)?
+    /// Rebuilt only when the reviewed nearby read or write lease appears, changes owner or disappears, so a coordinator built
+    /// before sign-in never keeps a stale (nil) grant. Without production gates both leases are always nil and the
     /// first coordinator is kept, exactly as before.
     var nearbyTeamCoordinator: NearbyTeamCoordinator {
-        let approval = currentRuntimeDependencyContext.flatMap { composition.nearbyTeamReadApproval($0) }
-        if let cached = nearbyTeamCoordinatorCache, cached.approval == approval { return cached.coordinator }
+        let read = currentRuntimeDependencyContext.flatMap { composition.nearbyTeamReadApproval($0) }
+        let write = currentRuntimeDependencyContext.flatMap { composition.nearbyTeamWriteApproval($0) }
+        if let cached = nearbyTeamCoordinatorCache, cached.read == read, cached.write == write { return cached.coordinator }
         let coordinator = makeNearbyTeamCoordinator()
-        nearbyTeamCoordinatorCache = (approval, coordinator)
+        nearbyTeamCoordinatorCache = (read, write, coordinator)
         return coordinator
     }
     func makeNearbyTeamCoordinator(readApproval: OperationEndpointApproval? = nil,
@@ -5226,23 +5227,49 @@ final class AppSession: ObservableObject {
                                    writeEvidence: ((NearbyTeamReview) async throws -> NearbyTeamWriteEvidence)? = nil,
                                    transport: (any HTTPTransport)? = nil) -> NearbyTeamCoordinator {
         let transport = scopedTransport(transport)
-        // Reads fall back to the reviewed production-gate lease (nil unless the deployment enables gates); writes stay off
-        // because no caller supplies a write grant or evidence loader.
+        // Reads and writes fall back to the reviewed production-gate leases (nil unless the deployment enables gates).
         let readApproval = readApproval ?? currentRuntimeDependencyContext.flatMap { composition.nearbyTeamReadApproval($0) }
+        let writeApproval = writeApproval ?? currentRuntimeDependencyContext.flatMap { composition.nearbyTeamWriteApproval($0) }
+        let readTransport: NearbyTeamHTTPReadTransport?
+        if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
+            readTransport = NearbyTeamHTTPReadTransport(configuration: configuration, transport: transport, approval: readApproval,
+                currentSession: { [weak self] in self?.nearbyTeamSession },
+                token: { [weak self] captured in guard let self, self.nearbyTeamSession == captured else { return nil }; return self.token })
+        } else { readTransport = nil }
+        let readService = readTransport.map { NearbyTeamService(readTransport: $0, liveReadGrant: true) }
+        // Fresh-evidence contract: the review's team, applicant and application are each re-read from the same reviewed read
+        // routes (`nearby`, `applications`, `my-applications`) and must be identical to what the user reviewed.
+        let evidence: ((NearbyTeamReview) async throws -> NearbyTeamWriteEvidence)? = writeEvidence ?? readService.map { service in
+            { [weak self] (review: NearbyTeamReview) async throws -> NearbyTeamWriteEvidence in
+                guard let self, self.nearbyTeamSession == review.session else { throw NearbyTeamFailure.stale }
+                var team: NearbyTeam?, applicant: NearbyApplicant?, application: NearbyMyApplication?
+                if let reviewed = review.team {
+                    guard let context = self.nearbyTeamQueryContext else { throw NearbyTeamFailure.stale }
+                    team = try await service.nearby(context, session: review.session).first { $0.id == reviewed.id }
+                    guard team != nil else { throw NearbyTeamFailure.stale }
+                }
+                if let reviewed = review.applicant {
+                    applicant = try await service.applications(review.action.teamID, session: review.session).first { $0.id == reviewed.id }
+                    guard applicant != nil else { throw NearbyTeamFailure.stale }
+                }
+                if let reviewed = review.application {
+                    application = try await service.myApplications(session: review.session).first { $0.id == reviewed.id }
+                    guard application != nil else { throw NearbyTeamFailure.stale }
+                }
+                return NearbyTeamWriteEvidence(session: review.session, team: team, applicant: applicant, application: application)
+            }
+        }
         let writer: NearbyTeamHTTPWriteAdapter?
-        if let writeApproval, let writeEvidence, let configuration = regionalConfiguration?.apiConfiguration {
+        if let writeApproval, let evidence, let configuration = regionalConfiguration?.apiConfiguration {
             writer = NearbyTeamHTTPWriteAdapter(configuration: configuration, transport: transport, approval: writeApproval,
                 journal: NearbyTeamDefaultsDispatchJournal(defaults: .standard),
                 currentSession: { [weak self] in self?.nearbyTeamSession },
                 token: { [weak self] captured in guard let self, self.nearbyTeamSession == captured else { return nil }; return self.token },
-                freshEvidence: writeEvidence)
+                freshEvidence: evidence)
         } else { writer = nil }
         let service: NearbyTeamService
-        if let readApproval, let configuration = regionalConfiguration?.apiConfiguration {
-            let reader = NearbyTeamHTTPReadTransport(configuration: configuration, transport: transport, approval: readApproval,
-                currentSession: { [weak self] in self?.nearbyTeamSession },
-                token: { [weak self] captured in guard let self, self.nearbyTeamSession == captured else { return nil }; return self.token })
-            service = NearbyTeamService(readTransport: reader, liveReadGrant: true, writeAdapter: writer)
+        if let readTransport {
+            service = NearbyTeamService(readTransport: readTransport, liveReadGrant: true, writeAdapter: writer)
         } else { service = NearbyTeamService(writeAdapter: writer) }
         return NearbyTeamCoordinator(service: service, session: nearbyTeamSession)
     }
@@ -5329,7 +5356,8 @@ final class AppSession: ObservableObject {
     func makeVerificationCodeCoordinator(target: VerificationCodeTarget) -> VerificationCodeCoordinator {
         VerificationCodeCoordinator(target: target,
             service: VerificationCodeHTTPService(configuration: regionalConfiguration?.apiConfiguration,
-                approval: runtimeDependencies.verificationCodeApproval, kind: target.kind,
+                approval: runtimeDependencies.verificationCodeApproval ?? currentRuntimeDependencyContext.flatMap { composition.verificationCodeApproval($0) },
+                kind: target.kind,
                 transport: runtimeHTTPTransport, current: { [weak self] in self?.currentRuntimeDependencyContext }),
             current: { [weak self] in self?.currentRuntimeDependencyContext },
             onUnauthorized: { [weak self] captured in
@@ -5846,12 +5874,21 @@ final class AppSession: ObservableObject {
         guard let account, let token else { return nil }
         return try? MerchantOperationsSession(accountID: account.id, epoch: gate.currentStamp, token: token, storageNamespace: storageScope?.service ?? "", viewerRevision: compositionViewerRevision)
     }
-    lazy var merchantOperationsReader = MerchantOperationsSessionReader(service: merchantOperationsService, currentSession: { [weak self] in
-        self?.currentMerchantOperationsSession
-    }, onUnauthorized: { [weak self] captured in
-        guard let self, self.currentMerchantOperationsSession == captured else { return }
-        self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
-    })
+    private var merchantOperationsReaderCache: (approval: OperationEndpointApproval?, reader: MerchantOperationsSessionReader)?
+    /// Rebuilt only when the reviewed merchant-operations save lease appears, changes owner or disappears. Without production
+    /// gates the lease is always nil, no journal is attached and the first reader is kept, exactly as before.
+    var merchantOperationsReader: MerchantOperationsSessionReader {
+        let approval = currentRuntimeDependencyContext.flatMap { composition.merchantOperationsWriteApproval($0) }
+        if let cached = merchantOperationsReaderCache, cached.approval == approval { return cached.reader }
+        let reader = MerchantOperationsSessionReader(service: merchantOperationsService, currentSession: { [weak self] in
+            self?.currentMerchantOperationsSession
+        }, approval: approval, journal: approval == nil ? nil : composition.storage.operationJournal(), onUnauthorized: { [weak self] captured in
+            guard let self, self.currentMerchantOperationsSession == captured else { return }
+            self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
+        })
+        merchantOperationsReaderCache = (approval, reader)
+        return reader
+    }
     private let merchantOnboardingService: MerchantOnboardingService?
     private var currentMerchantOnboardingSession: MerchantOnboardingSession? {
         guard let account, let token else { return nil }
@@ -7109,10 +7146,15 @@ final class AppSession: ObservableObject {
         guard let service = retainedComplianceService, let session = complianceSession else { return nil }
         return (service, session)
     }
+    /// Anonymous reader for `subpackageRoam/session?shareToken=`; nil (page shows "unavailable") unless the reviewed deployment approves it.
+    func makeRoamShareSnapshotReader() -> (any RoamShareSnapshotReading)? {
+        RoamShareSnapshotReaderFactory.make(baseURL: regionalConfiguration?.apiConfiguration?.baseURL, transport: runtimeHTTPTransport,
+            approval: composition.isRoamShareSnapshotApproved ? { [weak self] in self?.composition.isRoamShareSnapshotApproved == true } : nil)
+    }
     var merchantMarketingCoordinator: MerchantMarketingCoordinator {
         if let retainedMarketing { return retainedMarketing }
         let service = MerchantMarketingService(configuration: regionalConfiguration?.apiConfiguration,
-            transport: runtimeHTTPTransport, gates: .init(reads: false, insight: false, settlement: false), locks: nil,
+            transport: runtimeHTTPTransport, gates: composition.merchantMarketingGates, locks: nil,
             currentSession: { [weak self] in
                 guard let self, let account = self.account, let token = self.token, let namespace = self.storageScope?.service else { return nil }
                 return try? MerchantMarketingScope(namespace: namespace, accountID: account.id, epoch: self.gate.currentStamp, token: token)
