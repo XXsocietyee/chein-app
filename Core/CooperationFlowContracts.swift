@@ -485,3 +485,34 @@ public enum CoopFlowFinancialContract {
         return message
     }
 }
+
+/// Pure draft builder for pages/coop/invite when several targets are selected: one immutable
+/// invitation per recipient (the mini-program sends one POST /api/coop/invite per target), all
+/// sharing the same note and terms. Nothing is sent here; each draft still needs its own review.
+public enum CoopFlowBatchInvite {
+    public static let messageLimit = 100
+    /// A fixed fee must parse (POSIX decimal) and be greater than zero.
+    public static func feeValue(_ text: String) -> Decimal? {
+        guard let value = Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")), value > 0 else { return nil }
+        return value
+    }
+    /// Source sends a default note when the inviter writes none.
+    public static func outgoingMessage(_ raw: String, defaultMessage: String) -> String {
+        raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? defaultMessage : raw
+    }
+    /// nil when there is nothing safe to review: no targets, a stale or mixed session, duplicate or
+    /// mixed-kind recipients, or an invalid fixed fee.
+    public static func drafts(contexts: [CoopFlowInvitationContext], message: String, defaultMessage: String,
+                              fixed: Bool, fee: String, currentSession: CoopFlowSession?) -> [CoopFlowInvitation]? {
+        guard !contexts.isEmpty, contexts.allSatisfy({ $0.session == currentSession }),
+              Set(contexts.map(\.recipient.id)).count == contexts.count,
+              Set(contexts.map(\.kind)).count == 1 else { return nil }
+        let compensation: CoopFlowCompensation
+        if fixed {
+            guard let value = feeValue(fee) else { return nil }
+            compensation = .fixed(value)
+        } else { compensation = .traffic }
+        let note = outgoingMessage(message, defaultMessage: defaultMessage)
+        return try? contexts.map { try $0.invitation(message: note, compensation: compensation, currentSession: currentSession) }
+    }
+}
