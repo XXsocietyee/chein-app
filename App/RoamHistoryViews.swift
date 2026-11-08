@@ -77,6 +77,7 @@ import SwiftUI
                                 }
                             }
                         }.buttonStyle(QuestifyCardButtonStyle())
+                            .accessibilityLabel(record.portRunCardAccessibilityLabel)
                             .accessibilityIdentifier("roam.experience.history.record")
                     }
                 }
