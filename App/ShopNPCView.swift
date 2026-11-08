@@ -6,6 +6,9 @@ import SwiftUI
     let greeting: String?
     var capture: (any ShopNPCVoiceCapturing)? = nil
     var scriptedGuide: ShopNPCScriptedGuideSource? = nil
+    /// WP-07: AI identity is always disclosed on this screen; the shop NPC is a public merchant NPC.
+    var safetyPolicy: SafetyDisclosurePolicy? = ShopNPCView.defaultSafetyPolicy
+    static let defaultSafetyPolicy = SafetyDisclosurePolicy(surface: .publicMerchantNPC)
     @State private var draft = ""
     @State private var revision = 0
     @State private var recording = false
@@ -33,6 +36,7 @@ import SwiftUI
                 else { Text("shopNPC.stale") }
                 Text("shopNPC.disclosure").font(.footnote).foregroundStyle(.secondary)
                     .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
+                SafetyDisclosureBanner(policy: safetyPolicy)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
             ScrollViewReader { proxy in
                 ScrollView {
