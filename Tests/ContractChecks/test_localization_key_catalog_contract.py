@@ -22,6 +22,37 @@ class LocalizationKeyCatalogContractTests(unittest.TestCase):
         rows = FOUND['key_in_other_catalog'] + FOUND['key_table_missing']
         self.assertEqual([], rows, 'raw keys would render (add tableName: or define the key):\n' + describe(rows))
 
+    def test_no_looked_up_key_is_missing_from_every_catalog(self):
+        rows = FOUND['key_missing_everywhere']
+        self.assertEqual([], rows, 'keys used in Swift but defined in no catalog:\n' + describe(rows))
+
+    def test_message_key_families_rendered_through_state_strings_are_defined(self):
+        # These views/hosts store a key in a String (`message = "h5.invalid"`) and render it later,
+        # so the call-site scan cannot see the lookup. Identifier literals are skipped.
+        import re
+        import json
+        strings = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text(encoding='utf8'))['strings']
+        sources = ['App/ChannelAdmissionGovernanceView.swift', 'App/H5DeclaredSessionView.swift',
+                   'Core/H5PlatformHost.swift', 'Core/MerchantNPCDraftApprovalGate.swift',
+                   'Core/H5SessionCapabilityGate.swift', 'Core/H5DeclaredSessionEntry.swift']
+        pattern = re.compile(r'"((?:admission|h5|merchantNPC\.draft)\.[A-Za-z0-9_.]*[A-Za-z0-9_])"')
+        missing = []
+        for rel in sources:
+            for number, line in enumerate((ROOT / rel).read_text(encoding='utf8').splitlines(), 1):
+                if 'accessibilityIdentifier' in line:
+                    continue
+                for key in pattern.findall(line):
+                    entry = strings.get(key)
+                    if entry is None or set(entry['localizations']) < {'en', 'zh-Hans'}:
+                        missing.append((rel, number, key))
+        self.assertEqual([], missing, 'state-string keys without en+zh-Hans:\n' + describe(missing))
+
+    def test_state_message_text_is_localized_not_verbatim(self):
+        for rel in ('App/ChannelAdmissionGovernanceView.swift', 'App/H5DeclaredSessionView.swift'):
+            source = (ROOT / rel).read_text(encoding='utf8')
+            self.assertIn('Text(LocalizedStringKey(message))', source, rel)
+            self.assertNotIn('Text(verbatim: message)', source, rel)
+
 
 if __name__ == '__main__':
     unittest.main()
