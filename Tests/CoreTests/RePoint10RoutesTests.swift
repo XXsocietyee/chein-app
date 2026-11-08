@@ -1,5 +1,9 @@
 import XCTest
+#if canImport(QuestifyCore)
+@testable import QuestifyCore
+#elseif canImport(Core)
 @testable import Core
+#endif
 
 /// SYNTHETIC fixtures derived from ApiTopicController.topicInfo (form `id`), ApiImController.block
 /// (form `target_member_id`), ApiLoginController.smsSend (form `phone`). NOT COMPILED / NOT RUN.
