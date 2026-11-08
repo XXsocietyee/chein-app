@@ -832,6 +832,22 @@
           }
         }
       }
+    },
+    "opsSafety.pay.noAutoFunds": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No payment or deduction happens automatically. Funds move only after you confirm a payment yourself."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不会自动付款或扣款；只有你亲自确认支付后才会扣款。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

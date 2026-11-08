@@ -896,6 +896,22 @@
           }
         }
       }
+    },
+    "friend.reviewUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We can't process this friend request right now. Try again later, or use an account signed in with WeChat."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法处理该好友申请，请稍后再试或换用微信登录的账号。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
