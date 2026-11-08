@@ -66,6 +66,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     @StateObject private var model = AccountCollectionFavoritesScreenModel()
     @Environment(\.topicUnlikeController) private var unlike
     @State private var unliked: Set<Int> = []
+    @State private var showRecommendNote = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
         List {
@@ -77,6 +78,14 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
+                // mylike.wxml 推荐说明: shown once topics exist; honest that unfavoriting keeps recorded interest.
+                if !model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
+                    Button { showRecommendNote = true } label: {
+                        Label { Text("member.favorites.recommendNote.entry", tableName: "MemberProfile") } icon: { Image(systemName: "info.circle") }
+                    }
+                    .frame(minHeight: 44)
+                    .accessibilityIdentifier("accountCollection.favorites.recommendNote")
+                }
                 if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
                     ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart")
                         .accessibilityIdentifier("accountCollection.favorites.empty")
@@ -116,6 +125,11 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         }
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
         .modifier(TopicUnlikeFlow(controller: unlike) { unliked.insert($0) })
+        .alert(Text("member.favorites.recommendNote.title", tableName: "MemberProfile"), isPresented: $showRecommendNote) {
+            Button(role: .cancel) {} label: { Text("member.favorites.recommendNote.dismiss", tableName: "MemberProfile") }
+        } message: {
+            Text("member.favorites.recommendNote.body", tableName: "MemberProfile")
+        }
     }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.invalidate(); return }
