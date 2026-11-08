@@ -251,7 +251,7 @@ extension WalletScreen where Value == WithdrawalBalance {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
-                    Text(LocalizedStringKey(income ? "wallet.income.empty" : "wallet.empty")).accessibilityIdentifier("wallet.ledger.empty")
+                    Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
                 }
                 if points {
                     ForEach(WalletPointsMonthGroup.group(filtered)) { group in
