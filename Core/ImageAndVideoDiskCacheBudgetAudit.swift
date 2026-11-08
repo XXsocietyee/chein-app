@@ -68,3 +68,11 @@ public struct ImageAndVideoDiskCacheBudgetAudit: Sendable, Equatable {
         return (totalPools: total, compliantPools: compliant, isCacheBudgetReady: ready)
     }
 }
+
+extension ImageAndVideoDiskCacheBudgetAudit {
+    /// WP-11 / CT12.d: every live media cache key must be account-scoped. Returns the keys that are not
+    /// owned by `accountID` (cross-account residue that must be purged).
+    public static func foreignKeys(in index: ScopedCacheIndex, ownedBy accountID: String) -> [ScopedCacheKey] {
+        index.liveKeys.filter { $0.accountID != accountID }
+    }
+}
