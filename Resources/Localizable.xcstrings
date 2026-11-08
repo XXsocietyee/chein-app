@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "roam.history.denied" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This account cannot view roam history. Go back and open it again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前账号无法查看漫游历史，请返回后重新进入。"
+          }
+        }
+      }
+    },
     "stampAlbum.continuationRetry" : {
       "extractionState" : "manual",
       "localizations" : {

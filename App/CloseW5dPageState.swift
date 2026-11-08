@@ -134,3 +134,11 @@ struct StampAlbumContinuationRetry: View {
             .accessibilityIdentifier("roam.experience.album.continuationRetry")
     }
 }
+
+/// Roam history list: a 403 is a permission state (retry cannot help); everything else keeps the retryable issue.
+enum RoamHistoryErrorPresentation: Equatable {
+    case denied, retryable
+    static func resolve(error: Error) -> RoamHistoryErrorPresentation {
+        CollectionReadAccess(error) == .denied ? .denied : .retryable
+    }
+}

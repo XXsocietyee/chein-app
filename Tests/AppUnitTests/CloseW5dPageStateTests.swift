@@ -74,3 +74,12 @@ final class CloseW5dStampAlbumErrorTests: XCTestCase {
         XCTAssertEqual(StampAlbumErrorPresentation.resolve(error: APIError.httpStatus(500), hasStamps: true), .retryContinuation)
     }
 }
+
+final class CloseW5dRoamHistoryErrorTests: XCTestCase {
+    func testForbiddenIsDeniedAndOthersStayRetryable() {
+        XCTAssertEqual(RoamHistoryErrorPresentation.resolve(error: APIError.httpStatus(403)), .denied)
+        XCTAssertEqual(RoamHistoryErrorPresentation.resolve(error: APIError.businessCode(403)), .denied)
+        XCTAssertEqual(RoamHistoryErrorPresentation.resolve(error: APIError.unauthorized), .retryable)
+        XCTAssertEqual(RoamHistoryErrorPresentation.resolve(error: APIError.httpStatus(500)), .retryable)
+    }
+}
