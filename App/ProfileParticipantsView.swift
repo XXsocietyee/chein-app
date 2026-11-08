@@ -61,6 +61,8 @@ struct ProfileParticipantsView: View {
                                     if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(.body.weight(.bold)) }
                                     else { Text(verbatim: participant.fullName).font(.body.weight(.bold)) }
                                     if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).monospacedDigit().foregroundStyle(.secondary) }
+                                    // Mini-program pages/address row caption: 用于报名联系和到场核验.
+                                    Text("profile.participants.rowPurpose").font(.footnote).foregroundStyle(.secondary)
                                 }
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)

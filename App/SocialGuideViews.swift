@@ -17,6 +17,7 @@ import SwiftUI
                     if rows.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("guideXcx.docsEmpty").font(.headline)
+                            Text("guideXcx.docsEmptyDetail").font(.footnote).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.docsEmpty")
                     }
                     ForEach(rows) { row in
