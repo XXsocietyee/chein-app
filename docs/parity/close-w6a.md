@@ -1,0 +1,7 @@
+# close-w6a — W6 clubs/channels gap closure (slice index % 3 == 0)
+
+Nothing in this report was compiled or run; Swift cannot be built on this host. `tools/check_scaffold.py` was run before each commit (exit status recorded in the commit log of the final report).
+
+| row | what I built (file:line) | test (file::name) | remaining gap | hook needed |
+|---|---|---|---|---|
+| pages/club/apply/index | Audit found the UI already complete: intro/merchant-blocked/done states `App/ClubGovernanceViews.swift:1233`, four-section form `App/ClubGovernanceCommandForm.swift:115`, body builder `Core/ClubGovernanceFormDraft.swift:101`. Added the missing draft -> `api/club/become-leader` body proof. | Tests/CoreTests/ClubHostApplyDraftTests.swift::testUntouchedDraftIsRejectedBecauseNameAndPhoneAreRequired, ::testFilledDraftMatchesMiniProgramBody, ::testNoExperienceMeansHasExperienceZeroAndBadSizeIsRejected | The `hostApply` identity write gate stays `.notConfigured` in production (`ClubGovernanceContractTests::testFinancialIdentityAndProviderRemainIndependentGates`); credential images are local-only and block submission. No App test can tap the SwiftUI button; main action is proven at Core level. | none |
