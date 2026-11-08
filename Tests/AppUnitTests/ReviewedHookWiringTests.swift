@@ -95,9 +95,6 @@ final class ReviewedHookWiringTests: XCTestCase {
         let evil = "https://evil.example.org"
         let url = try XCTUnwrap(URL(string: evil))
         return [
-            ("apply", request("POST", b + "/api/team/apply", body: #"{"teamId":5}"#)),
-            ("withdraw", request("POST", b + "/api/team/withdraw", body: #"{"teamId":5}"#)),
-            ("handle", request("POST", b + "/api/team/handle", body: #"{"approved":true,"memberId":2,"teamId":5}"#)),
             ("kick", request("POST", b + "/api/team/kick", body: #"{"teamId":5}"#)),
             ("nearby-extra-query", request("GET", b + "/api/team/nearby?lat=31.2&lng=121.4&radius=3000&x=1")),
             ("nearby-bad-radius", request("GET", b + "/api/team/nearby?lat=31.2&lng=121.4&radius=999")),
@@ -114,6 +111,17 @@ final class ReviewedHookWiringTests: XCTestCase {
             ("foreign-nearby", request("GET", evil + "/api/team/nearby?lat=31.2&lng=121.4&radius=3000")),
             ("foreign-applications", request("POST", evil + "/api/team/applications", body: #"{"teamId":5}"#)),
             ("foreign-my", request("POST", evil + "/api/team/my", body: "{}"))
+        ]
+    }
+
+    /// Exact team-write requests. GM-HOOK2 wired these behind the production gates (see ReviewedNearbyTeamWriteWiringTests);
+    /// they must stay refused wherever the gates are off or the composition is unconfigured.
+    private func teamWrites() -> [(String, URLRequest)] {
+        let b = Self.base
+        return [
+            ("apply", request("POST", b + "/api/team/apply", body: #"{"teamId":5}"#)),
+            ("withdraw", request("POST", b + "/api/team/withdraw", body: #"{"teamId":5}"#)),
+            ("handle", request("POST", b + "/api/team/handle", body: #"{"approved":true,"memberId":2,"teamId":5}"#))
         ]
     }
 
@@ -136,7 +144,7 @@ final class ReviewedHookWiringTests: XCTestCase {
         XCTAssertNil(root.nearbyTeamReadApproval(ctx))
         let transport = root.transport()
         transport.current = { self.viewer }
-        let sent = await sentPaths(transport, try exactRequests() + neighbours(), wire: wire)
+        let sent = await sentPaths(transport, try exactRequests() + neighbours() + teamWrites(), wire: wire)
         XCTAssertFalse(sent.values.contains(true), "unconfigured composition must not send anything: \(sent)")
         XCTAssertTrue(wire.requests.isEmpty)
     }
@@ -150,7 +158,7 @@ final class ReviewedHookWiringTests: XCTestCase {
         XCTAssertNil(root.nearbyTeamReadApproval(ctx))
         let transport = root.transport()
         transport.current = { self.viewer }
-        let sent = await sentPaths(transport, try exactRequests(), wire: wire)
+        let sent = await sentPaths(transport, try exactRequests() + teamWrites(), wire: wire)
         XCTAssertFalse(sent.values.contains(true), "gates-off composition must refuse every new route: \(sent)")
     }
 
