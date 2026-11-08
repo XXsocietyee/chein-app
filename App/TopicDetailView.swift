@@ -53,31 +53,60 @@ struct TopicDetailView: View {
             Section {
                 let covers = value.images.isEmpty ? (value.imageURL.map { [$0] } ?? []) : Array(value.images.prefix(9))
                 if covers.isEmpty {
-                    // No cover: a clean surface with no text.
-                    RoundedRectangle(cornerRadius: 14, style: .continuous).fill(Color(uiColor: .tertiarySystemFill))
-                        .frame(height: 180).accessibilityHidden(true)
-                } else { NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true) }
+                    // Mini-program `cover-brief` (no cover): type, title and one-line hint on an opaque card.
+                    CYCard(variant: .elevated, radius: CYRadius.lg, padding: CYSpacing.xl) {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text(value.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering")
+                                .font(CYTypography.label).foregroundStyle(CYColor.accentText)
+                            Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                            if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                            else { Text("topicXcx.coverHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                        }
+                    }.accessibilityElement(children: .combine)
+                } else {
+                    NativeMediaGalleryEntry(sources: covers, scope: key.scope, titleKey: "media.destination.squareImages", compact: true)
+                    Text(verbatim: value.name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                }
                 TopicXcxHero(topic: value)
-                Text(verbatim: value.name).font(.title2.bold())
                 if value.betaFlag == 1 {
                     // Source topic-beta block: badge plus feedback note.
                     HStack(spacing: 8) {
-                        Text("topic.source.betaBadge").font(.caption.bold())
+                        Text("topic.source.betaBadge").font(CYTypography.label)
                             .padding(.horizontal, 8).padding(.vertical, 3)
-                            .background(Capsule().fill(QuestifyPalette.accent.opacity(0.18)))
-                        Text("topic.source.betaNote").font(.caption).foregroundStyle(.secondary)
+                            .foregroundStyle(CYColor.accentText)
+                            .background(Capsule().fill(CYColor.accentSoft))
+                        Text("topic.source.betaNote").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                     }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
                 }
                 TopicXcxStatBar(cells: TopicXcxFacts.statBar(value))
                 TopicXcxTabs(proxy: proxy)
             }
-            // 详情 tab: one-line intro, the long introduction and audio, then the plain facts.
+            // 详情 tab (mini-program `det3`): title, one-line subtitle, venue card, then the audio guide.
             Section {
                 TopicTotalStops(count: value.locationCount, identifier: "topic.totalStops")
-                if let subtitle = value.subtitle { Text(verbatim: subtitle).font(.headline) }
-                if let introduction = value.introduction { Text(verbatim: introduction).textSelection(.enabled) }
+                if let subtitle = value.subtitle { Text(verbatim: subtitle).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if let venue = TopicXcxFacts.venue(value.addressName) {
+                    Label { VStack(alignment: .leading, spacing: CYSpacing.xxs) { Text(verbatim: venue.name).font(CYTypography.bodyMedium); if let address = venue.address { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } } } icon: { Image(systemName: "mappin.circle.fill").foregroundStyle(CYColor.accentText) }
+                }
                 if let audio = value.audioURL, !audio.isEmpty { PlatformAudioHost(rawURL: audio, scope: reader.scope, makeModel: makeAudio) }
             }.id(TopicXcxTab.details.anchor)
+            if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
+            // 主题介绍 + 活动内容 (mini-program `det3` second block): long introduction, then what the activity includes.
+            let includes = TopicXcxFacts.includes(value)
+            if value.introduction != nil || !includes.isEmpty {
+                Section {
+                    if let introduction = value.introduction {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text("topicXcx.section.intro").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                            Text(verbatim: introduction).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
+                        }
+                    }
+                    if !includes.isEmpty {
+                        Text("topicXcx.section.contents").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                        TopicXcxIncludes(rows: includes)
+                    }
+                }
+            }
             if value.startDate != nil || value.endDate != nil || value.merchantCount != nil || value.totalTimeSeconds != nil {
                 Section {
                     if let start = value.startDate { LabeledContent("topic.start", value: start) }
@@ -94,16 +123,31 @@ struct TopicDetailView: View {
                     }.accessibilityIdentifier("topic.records.entry")
                 }
             }
-            if let venue = TopicXcxFacts.venue(value.addressName) {
-                Section("topicXcx.section.venue") {
-                    Label { VStack(alignment: .leading) { Text(verbatim: venue.name); if let address = venue.address { Text(verbatim: address).font(.caption) } } } icon: { Image(systemName: "mappin.circle") }
+            Section("topic.source.sessions") {
+                if value.tickets.isEmpty { Text("topic.noTickets") }
+                ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
+                    // Mini-program `sess`: name / time / meeting point / refund on the left, price and seats left on the right.
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Text(verbatim: ticket.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                            else {
+                                if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
+                                if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
+                            }
+                            if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                            if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        }
+                        Spacer(minLength: CYSpacing.sm)
+                        VStack(alignment: .trailing, spacing: CYSpacing.xs) {
+                            TopicPrice(value: ticket.price, label: "topic.price").font(CYTypography.numericBody).monospacedDigit()
+                            if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)").font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
+                            else { Text("topic.source.seatsUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        }
+                    }.accessibilityElement(children: .combine)
                 }
-            }
-            let includes = TopicXcxFacts.includes(value)
-            if !includes.isEmpty { Section("topicXcx.section.contents") { TopicXcxIncludes(rows: includes) } }
-            if value.templateCount != 0 { TopicXcxTemplatesSection(templates: TopicXcxFacts.nodeTemplates(value)) }
-            let lineup = TopicXcxFacts.lineup(value)
-            if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
+                if !value.tickets.isEmpty { Text("topic.source.sessionNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            }.id("topicXcx.anchor.sessions")
             if let activities = value.activities {
                 Section("topic.activities") {
                     if activities.isEmpty { Text("topic.noActivities").accessibilityIdentifier("topic.activities.empty") }
@@ -123,6 +167,8 @@ struct TopicDetailView: View {
                 }
             }
             if let publisherDestination { publisherDestination(value) }
+            let lineup = TopicXcxFacts.lineup(value)
+            if !lineup.isEmpty { Section("topicXcx.section.lineup") { TopicXcxLineup(members: lineup) } }
             Section("topic.availability") {
                 Text(LocalizedStringKey("topic.availability." + String(value.availability.rawValue)))
                 if value.merchantClosed { Label("topic.closedNotice", systemImage: "storefront") }
@@ -134,15 +180,16 @@ struct TopicDetailView: View {
                     }
                 }
             }
-            if value.showStoryPaywall {
-                Section("topic.lockedStory") {
-                    Label("topic.lockedNotice", systemImage: "lock")
-                    LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
-                    Text("topicXcx.paywall.detail").font(.footnote)
-                    if value.selfPlay == 1 && value.canOfferPurchase {
-                        Button("topicXcx.paywall.unlock") { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
-                    }
+            Section("topic.comments") {
+                if (value.commentCount ?? value.comments.count) == 0 {
+                    // Source ratings empty state.
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("topicXcx.reviews.emptyTitle").font(.headline)
+                        Text("topicXcx.reviews.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                    }.accessibilityIdentifier("topic.reviews.emptyPrompt")
                 }
+                Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")
+                TopicReviewsContent(reviews: value.reviews)
             }
             Section("topic.chapters") {
                 if value.chapters.isEmpty {
@@ -163,39 +210,22 @@ struct TopicDetailView: View {
                     }.accessibilityIdentifier("topic.chapter.\(chapter.id)")
                 }
             }.id(TopicXcxTab.nodes.anchor)
-            TopicStoryParticipationLink(topicID: id, chapters: value.chapters)
-            TopicXcxRouteSection(topic: value).id(TopicXcxTab.route.anchor)
-            Section("topic.source.sessions") {
-                if value.tickets.isEmpty { Text("topic.noTickets") }
-                ForEach(Array(value.tickets.enumerated()), id: \.offset) { _, ticket in
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(verbatim: ticket.name).font(.headline)
-                        TopicPrice(value: ticket.price, label: "topic.price")
-                        if let session = TopicXcxFacts.sessionTime(start: ticket.startTime, end: ticket.endTime) { Text(verbatim: session) }
-                        else {
-                            if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
-                            if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
-                        }
-                        if let meeting = ticket.meetingPoint { Text("topic.source.meetingPoint \(meeting)") }
-                        if let refund = ticket.refundRule { Text("topic.source.refundRule \(refund)").font(.footnote) }
-                        if let remaining = ticket.remaining { Text("topic.source.seatsLeft \(remaining)") }
-                        else { Text("topic.source.seatsUnknown").foregroundStyle(.secondary) }
+            if value.showStoryPaywall {
+                Section("topic.lockedStory") {
+                    Label("topic.lockedNotice", systemImage: "lock")
+                    LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
+                    Text("topicXcx.paywall.detail").font(.footnote)
+                    if value.selfPlay == 1 && value.canOfferPurchase {
+                        Button("topicXcx.paywall.unlock") { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
                     }
                 }
-                if !value.tickets.isEmpty { Text("topic.source.sessionNote").font(.caption).foregroundStyle(.secondary) }
-            }.id("topicXcx.anchor.sessions")
-            Section("topic.comments") {
-                if (value.commentCount ?? value.comments.count) == 0 {
-                    // Source ratings empty state.
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("topicXcx.reviews.emptyTitle").font(.headline)
-                        Text("topicXcx.reviews.emptyDetail").font(.footnote).foregroundStyle(.secondary)
-                    }.accessibilityIdentifier("topic.reviews.emptyPrompt")
-                }
-                Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")
-                TopicReviewsContent(reviews: value.reviews)
             }
+            TopicStoryParticipationLink(topicID: id, chapters: value.chapters)
+            TopicXcxRouteSection(topic: value).id(TopicXcxTab.route.anchor)
         }
+        .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .refreshable { await loads.run { await load() } }
         .safeAreaInset(edge: .bottom) {
             TopicXcxActionBar(topic: value, openSessions: { if !showingSessionSelection { showingSessionSelection = true } },

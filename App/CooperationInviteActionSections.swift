@@ -13,12 +13,13 @@ import SwiftUI
             switch view.footer {
             case .legacy: Text("cooperation.detail.footer.legacy").foregroundStyle(.secondary)
             case .decide:
-                handle(.accept, label: "cooperation.detail.accept")
+                // Mini bottom bar: 接受合作 is the single solid action, 拒绝 the quiet one.
+                handle(.accept, label: "cooperation.detail.accept", emphasis: true)
                 handle(.reject, label: "cooperation.detail.reject")
-                Text("cooperation.detail.reply.hint").font(.footnote).foregroundStyle(.secondary)
+                Text("cooperation.detail.reply.hint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             case .withdraw:
                 handle(.cancel, label: "cooperation.detail.withdraw")
-                Text("cooperation.detail.withdraw.hint").font(.footnote).foregroundStyle(.secondary)
+                Text("cooperation.detail.withdraw.hint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             case .deposit:
                 // 去缴纳保证金 has no payment path in the app; the owed amount is shown in 合作条款 above.
                 Text("cooperation.detail.deposit.owedFooter").foregroundStyle(.secondary)
@@ -55,13 +56,16 @@ import SwiftUI
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.cancelLocked")
             } else {
                 NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: .cancel, currentStatus: 1) } label: {
-                    Text("cooperation.detail.cancelAccepted").foregroundStyle(.red)
+                    Text("cooperation.detail.cancelAccepted").foregroundStyle(CYColor.dangerText)
                 }.accessibilityIdentifier("cooperation.detail.cancelAccepted")
             }
         }
     }
-    private func handle(_ action: CoopFlowHandle, label: String) -> some View {
-        NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: { Text(LocalizedStringKey(label)) }
+    private func handle(_ action: CoopFlowHandle, label: String, emphasis: Bool = false) -> some View {
+        NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: action, currentStatus: invite.status ?? 0) } label: {
+            Text(LocalizedStringKey(label)).font(emphasis ? CYTypography.bodyMedium : CYTypography.body)
+                .foregroundStyle(emphasis ? CYColor.accentText : CYColor.textPrimary)
+        }
             .accessibilityIdentifier("cooperation.detail.handle.\(action.rawValue)")
     }
 }
@@ -120,8 +124,8 @@ struct CooperationInviteDepositText: View {
     var body: some View {
         switch deposit {
         case .notRequired: Text("cooperation.detail.deposit.none")
-        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(cooperationInviteNumber(amount))").foregroundStyle(.orange)
-        case .owed(nil): Text("cooperation.detail.deposit.owedUnknown").foregroundStyle(.orange)
+        case .owed(let amount?): Text("cooperation.detail.deposit.owed \(cooperationInviteNumber(amount))").monospacedDigit().foregroundStyle(CYColor.dangerText)
+        case .owed(nil): Text("cooperation.detail.deposit.owedUnknown").foregroundStyle(CYColor.dangerText)
         }
     }
 }

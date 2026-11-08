@@ -17,13 +17,15 @@ import SwiftUI
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("cooperation.withdraw.notice")
             } else {
-                Section { Text("cooperation.login").accessibilityIdentifier("cooperation.withdraw.login") }
+                Section { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cooperation.withdraw.login") }
             }
         }
+        .cyMiniListScreen()
         .appNavigationTitle("cooperation.withdraw.title")
         .questifyBottomAction {
             if isSignedIn {
-                Button { showsSupport = true } label: { Text("cooperation.finance.withdraw").frame(maxWidth: .infinity) }
+                Button { showsSupport = true } label: { Text("cooperation.finance.withdraw") }
+                    .buttonStyle(.cyPrimary)
                     .accessibilityIdentifier("cooperation.withdraw.contact")
             }
         }

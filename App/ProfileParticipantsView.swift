@@ -61,11 +61,11 @@ struct ProfileParticipantsView: View {
                         ForEach(participants) { participant in
                             let rowLabel = Group {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(.body.weight(.bold)) }
-                                    else { Text(verbatim: participant.fullName).font(.body.weight(.bold)) }
-                                    if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).monospacedDigit().foregroundStyle(.secondary) }
+                                    if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(CYTypography.bodyMedium).bold().foregroundStyle(CYColor.textPrimary) }
+                                    else { Text(verbatim: participant.fullName).font(CYTypography.bodyMedium).bold().foregroundStyle(CYColor.textPrimary) }
+                                    if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
                                     // Mini-program pages/address row caption: 用于报名联系和到场核验.
-                                    Text("profile.participants.rowPurpose").font(.footnote).foregroundStyle(.secondary)
+                                    Text("profile.participants.rowPurpose").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 }
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -91,6 +91,7 @@ struct ProfileParticipantsView: View {
                     }
                 }
                 .listStyle(.insetGrouped)
+                .cyGroupedSurface()
             }
         }
         }

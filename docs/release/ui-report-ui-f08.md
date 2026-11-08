@@ -1,0 +1,32 @@
+# UI-F08 report: mini-program fidelity for coop / team / roam / crop
+
+**NOT COMPILED.** Swift was not built or run; Cursor must build and screenshot this branch. Presentation only: no contract, service, view-model, routing or gating change; every `accessibilityIdentifier` and existing string key kept.
+
+Mini-program source was available (backend repo `liboyang42-cpu/chengyin`, `chengyinhub-xcx/`). Screenshot paths below are relative to that repo. The mini-program is 390x844 light for coop pages (`theme-merchant`) and dark for team/roam/crop; iOS follows the brief (player dark via the role root; the one hard-coded `.themeDomain(.merchant)` in `CoopFinanceProfitView` was removed so the screen no longer flips light mid-flow).
+
+New files: `App/DesignSystem/CYMiniParity.swift` (`CYMiniBadge`, `CYMiniBadgeTone`, `CYMiniDueStrip`, `View.cyMiniListScreen()`, `View.cyMiniCardRow()`), `docs/release/ui-strings-ui-f08.json` (empty: 0 new string keys).
+
+## Page -> screenshot -> matched / deliberately changed
+
+| mini page | screenshot | iOS file(s) | matched | deliberately changed |
+|---|---|---|---|---|
+| coop/list | `chengyinhub-xcx/docs/screenshots/coop-list-merchant-white-2026-08-04.png` (loading state only) | CooperationBrowserView, CooperationComponents, CoopListParitySections | `.inv` card anatomy: status pill + "来自/发给 X" on row 1, title / type line / terms / deposit-due strip, dim for status>=3, tone-coloured badges (pending/accepted/rejected/muted), chapter-application block, loading/error/empty order, calm list page background and card gaps | Segmented direction picker, pool/new-invite rows and Form-style sections stay (Apple-native, no WeChat tabs). Accept/decline stay inside detail (iOS routes rows to detail; no new actions). Cover image not added (invite model has none). |
+| coop/invite-detail | none found | CooperationInviteDetailView, CooperationInviteActionSections | `.hd`: big status line in tone colour + counterparty beside it; topic title; contact block; terms card; message / handle-reason as `.bubble`; owed deposit in danger colour; accepted 合作操作 rows; accept = single accent action, reject quiet | Bottom action bar kept as List rows (system), not a fixed pill bar. Cover/countdown not shown (no data in model). |
+| coop/invite | `chengyinhub-xcx/docs/screenshots/cy-timeline-0827/timeline-02-invite.png` (not opened) | CooperationContextualViews | ①topic → ③targets → one solid continue; target rows with selected check; warn text when recruiting window closed; message counter | Terms editor stays in the batch editor sheet (iOS flow); `已选` chip replaced by system checkmark. |
+| coop/nearby | none found (player nearby shot `docs/evidence/player-e2e-20260927/127-nearby-final.png` not opened) | NearbyMerchantView | privacy purpose + consent first, result cards (name, address, distance), empty/failed/denied states | Consent block stays at top of the list (iOS consent is explicit, in-page); empty state uses `CYEmptyStateView`. |
+| coop/finance | `.scratch/coop-finance/finance-filled.png`, `finance-empty.png` | CoopFinanceProfitView (CoopFinanceBadge untouched, see below) | hero total in large tabular numerals over caption, one solid 提现 action, per-topic rows (name / amount / status), unknown amounts stay "—" | Hero + stats stay grouped List rows rather than a bespoke white card; light `.themeDomain(.merchant)` removed. |
+| coop/settlement-detail (+ component) | `docs/xcx-wechat-review-board-shots/stub-settlement.png` (stub, not opened) | CoopSettlementDetailView | `.sd__hero` (perspective + title, status badge right, label, big amount), 金额分解 rows, 结算进度 timeline, loading/missing/error states | Timeline dots remain label rows (no vertical rail drawing). |
+| coop/withdraw (+records) | `.scratch/coop-finance/withdraw-empty.png`, `withdraw-records.png` | CoopWithdrawShellViews | neutral notice + single primary bottom CTA | Mini's amount form is retired in iOS already; only styling changed. |
+| team/detail | none found | TeamHomeView (TeamDetailView), TeamPageParityViews, TeamComponents | `.team-head` (status pill, title, mode line, two-column meta), actions, leader 公开招募 card BEFORE the member list, member card with hairlines, leave/disband last, refund note | Status/stale/failure banners use CY soft tones. Disband = `.cyDestructive` with the existing confirm flow. |
+| team/join | none found | same | eyebrow-less head, explainer, meta card, single join primary | `TEAM INVITATION` eyebrow not added (no localized key; would need a new string). |
+| roam/index | `docs/evidence/player-e2e-20260927/110-roam-popup-entry.png`, `070-roam-player.png` | RoamBrowserView, RoamHomeTabsView | title + two tabs, snap-scrolling intro cards (icon tile, title, subtitle), one prominent GO/start action, nearby results as cards | Tabs remain a native segmented control. GO is a full-width primary (not the 160pt circle); side round buttons (rules/camera) not added (flows not in iOS home). Page-indicator dots skipped. The many roam overlay scenes (opening, runner, share, rules, etc.) belong to other iOS files and were not touched. |
+| crop/index | none found | MiniCropView, TemplateImageCropView | near-black stage, hairline frame, bottom bar: 取消 left, 选取 solid right, use-original quiet | Top bar is the native inline nav title. |
+
+## Files touched (17 + 1 new)
+App/CooperationBrowserView, CooperationComponents, CooperationContextualViews, CooperationInviteActionSections, CooperationInviteDetailView, CoopListParitySections, CoopFinanceProfitView, CoopSettlementDetailView, CoopWithdrawShellViews, NearbyMerchantView, TeamHomeView, TeamPageParityViews, TeamComponents, RoamBrowserView, RoamHomeTabsView, MiniCropView, TemplateImageCropView; new App/DesignSystem/CYMiniParity.swift; docs/release/ui-report-ui-f08.md; docs/release/ui-strings-ui-f08.json.
+
+## Overlap / not done
+- `cloud/ui-25` also edits `CoopFinanceProfitView` (CoopFinanceBadge colours) and `CoopListParitySections` (official-invite stage colour). Those exact lines were left untouched to avoid conflicts; `CoopFinanceBadge` still uses system colours on ui-25's version.
+- `cloud/ui-23` owns `RoamLiveSessionView` etc.; not touched. UI-11/12/15 files (`MerchantCoopCenterView`, `RoamHistoryViews`, ...) not touched.
+- No screenshots exist for team/detail, team/join, crop, coop/invite-detail in the mini repo; those were matched from WXML/WXSS only.
+- Not verified: `listSectionSpacing`, `scrollTargetBehavior`, `navigationDestination(isPresented:)` placement inside a List row on the roam home; check on device.

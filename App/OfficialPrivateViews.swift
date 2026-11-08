@@ -17,14 +17,21 @@ import SwiftUI
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "inbox", onLogin: onLogin,
                            issueCopy: OfficialInboxView.issueCopy, load: { try await reader.partyInbox() }) { rows in
             List {
-                // Mini-program `official-inbox`: no intro, just the invitations or 暂无待处理的活动职责.
+                // Mini-program `oi-hero`: eyebrow, headline and one explanatory paragraph above the invitations.
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text("officialInbox.hero.eyebrow").font(CYTypography.label).foregroundStyle(CYColor.accentText)
+                        Text("officialInbox.hero.title").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                        Text("officialInbox.hero.sub").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    }.accessibilityElement(children: .combine)
+                }
                 if rows.isEmpty {
                     ContentUnavailableView("official.inbox.empty", systemImage: "envelope.open")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: 8) {
-                        if row.title.isEmpty { Text("official.inviteUntitled").font(.headline) }
-                        else { Text(verbatim: row.title).font(.headline) }
+                        if row.title.isEmpty { Text("official.inviteUntitled").font(CYTypography.cardTitle) }
+                        else { Text(verbatim: row.title).font(CYTypography.cardTitle) }
                         if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
                         // Source meta line: "(city ‖ 全国) · role".
                         (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(.subheadline)
@@ -42,7 +49,7 @@ import SwiftUI
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
-                                .font(.caption).foregroundStyle(.orange)
+                                .font(CYTypography.meta).foregroundStyle(CYColor.warningText)
                         }
                         Label(LocalizedStringKey(row.sourceStatusKey), systemImage: "envelope")
                         if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status).font(.caption) }
@@ -50,7 +57,8 @@ import SwiftUI
                     if let actions { OfficialInviteResponseActions(coordinator: actions, invite: row, publisher: publisher) }
                 }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
-            }.accessibilityIdentifier("official.inbox.content")
+            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(CYColor.bgPage)
+            .accessibilityIdentifier("official.inbox.content")
         }.appNavigationTitle("official.inbox.title").navigationBarTitleDisplayMode(.inline)
     }
     private func cityText(_ row: OfficialPartyInvite) -> Text {
@@ -109,18 +117,19 @@ import SwiftUI
                         }
                 } header: { Text("official.published.broadcastsHeader \(broadcasts.count)") }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
-            }.accessibilityIdentifier("official.published.content")
+            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(CYColor.bgPage)
+            .accessibilityIdentifier("official.published.content")
         }.appNavigationTitle("official.published.title").navigationBarTitleDisplayMode(.inline)
     }
     private func publishedEventRow(_ event: OfficialEvent) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                if let title = OfficialPublishedPresentation.nonBlank(event.title) { Text(verbatim: title).font(.headline) }
-                else { Text("official.privateParity.published.untitledEvent").font(.headline) }
+                if let title = OfficialPublishedPresentation.nonBlank(event.title) { Text(verbatim: title).font(CYTypography.cardTitle) }
+                else { Text("official.privateParity.published.untitledEvent").font(CYTypography.cardTitle) }
                 Spacer(minLength: 8)
                 Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)))
-                    .font(.caption).padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                    .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                    .background(Capsule().fill(CYColor.bgSurfaceSubtle))
                     .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             }
             // Source sub line: city, then " · category" only when the server sent one.
@@ -133,7 +142,11 @@ import SwiftUI
     }
     /// Mini-program `cy-empty` with a title only.
     private func emptyRow(_ title: LocalizedStringKey, _ detail: LocalizedStringKey) -> some View {
-        Text(title).foregroundStyle(.secondary)
+        // Mini-program `cy-empty` (title + sub): quiet centred empty row.
+        VStack(spacing: CYSpacing.xs) {
+            Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
+            Text(detail).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
+        }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.md).accessibilityElement(children: .combine)
     }
 }
 @MainActor struct OfficialBroadcastStatsView: View {

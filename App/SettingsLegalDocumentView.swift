@@ -23,7 +23,7 @@ import SwiftUI
     private var loadID: String { type.rawValue + ":" + (market?.rawValue ?? "missing") }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                 switch model.state {
                 case .idle, .loading:
                     ProgressView("settingsNative.loading").frame(maxWidth: .infinity)
@@ -41,22 +41,22 @@ import SwiftUI
                     .font(.headline)
                     Text(LocalizedStringKey(reason.messageKey)).foregroundStyle(.secondary)
                 case .loaded(.sourceDocument(let document)):
-                    Text("settingsNative.legal.sourceNotice").font(.footnote).foregroundStyle(.primary)
+                    Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("settingsNative.legal.sourceNotice")
-                    Text(verbatim: document.title).font(.largeTitle.bold()).accessibilityAddTraits(.isHeader)
+                    Text(verbatim: document.title).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                     HStack(alignment: .firstTextBaseline) {
                         Text("settingsNative.legal.version")
                         Text(verbatim: document.version).accessibilityIdentifier("settingsNative.legal.version")
-                    }.font(.caption).foregroundStyle(.secondary)
-                    Text(verbatim: document.intro).textSelection(.enabled)
+                    }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: document.intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled)
                     ForEach(Array(document.sections.enumerated()), id: \.offset) { index, section in
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text(verbatim: section.heading).font(.headline).accessibilityAddTraits(.isHeader)
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text(verbatim: section.heading).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
                             ForEach(Array(SettingsLegalLine.lines(in: section.body).enumerated()), id: \.offset) { _, line in
                                 HStack(alignment: .top, spacing: 4) {
                                     if let marker = line.marker { Text(verbatim: marker).fixedSize(horizontal: true, vertical: false) }
                                     Text(verbatim: line.text).frame(maxWidth: .infinity, alignment: .leading)
-                                }.textSelection(.enabled).accessibilityElement(children: .combine)
+                                }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).textSelection(.enabled).accessibilityElement(children: .combine)
                             }
                         }
                         .accessibilityIdentifier("settingsNative.legal.section.\(index)")
@@ -64,12 +64,13 @@ import SwiftUI
                     HStack {
                         Text("settingsNative.legal.effectiveDate")
                         Text(verbatim: document.effectiveDate)
-                    }.font(.caption).foregroundStyle(.secondary)
+                    }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.top, CYSpacing.lg)
                 }
             }
-            .frame(maxWidth: 720, alignment: .leading).padding()
+            .frame(maxWidth: 720, alignment: .leading).padding(CYSpacing.pageHorizontal)
             .frame(maxWidth: .infinity)
         }
+        .cyDocumentSurface()
         .navigationTitle(Text(LocalizedStringKey(type.titleKey)))
         .navigationBarTitleDisplayMode(.inline)
         .task(id: loadID) { await model.load(type: type, market: market) }
