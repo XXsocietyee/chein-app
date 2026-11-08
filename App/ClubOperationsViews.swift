@@ -360,7 +360,7 @@ struct ClubOperationsWorkspaceView: View {
                 NavigationLink {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
-                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
+                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
             } footer: { Text("club.ops.dissolve.footer") }
@@ -926,7 +926,7 @@ private struct ClubOperationsProfileForm: View {
     @ViewBuilder private func counterLabel(_ key: String, _ value: String) -> some View {
         if let counter = ClubOperationsPort.counter(value, field: key) {
             Text("club.ops.counter \(counter.used) \(counter.limit)")
-                .foregroundStyle(counter.used > counter.limit ? Color.red : Color.secondary)
+                .foregroundStyle(counter.used > counter.limit ? CYColor.dangerText : CYColor.textTertiary)
                 .accessibilityIdentifier("club.ops.counter." + key)
         }
     }

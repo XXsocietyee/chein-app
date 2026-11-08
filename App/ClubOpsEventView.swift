@@ -167,8 +167,8 @@ struct ClubOpsEventOccurrenceBadgeText: View {
     let badge: ClubOpsEventOccurrenceBadge
     var body: some View {
         switch badge {
-        case .cancelled: Text("clubOpsEvent.occurrences.cancelled", tableName: "ClubOpsEvent").foregroundStyle(.red)
-        case .editable: Text("clubOpsEvent.occurrences.editable", tableName: "ClubOpsEvent").foregroundStyle(.green)
+        case .cancelled: Text("clubOpsEvent.occurrences.cancelled", tableName: "ClubOpsEvent").foregroundStyle(CYColor.dangerText)
+        case .editable: Text("clubOpsEvent.occurrences.editable", tableName: "ClubOpsEvent").foregroundStyle(CYColor.successText)
         case .lockReason(let reason): Text(verbatim: reason).foregroundStyle(.secondary)
         case .locked: Text("clubOpsEvent.occurrences.locked", tableName: "ClubOpsEvent").foregroundStyle(.secondary)
         }
@@ -198,7 +198,7 @@ struct ClubOpsEventOccurrenceMetaText: View {
         switch ClubOpsEventCancellation.state(value, activityID: activityID) {
         case .cancelled(let reason)?:
             VStack(alignment: .leading, spacing: 4) {
-                Text("clubOpsEvent.occurrences.cancelled", tableName: "ClubOpsEvent").font(.headline).foregroundStyle(.red)
+                Text("clubOpsEvent.occurrences.cancelled", tableName: "ClubOpsEvent").font(.headline).foregroundStyle(CYColor.dangerText)
                 if let reason { Text("clubOpsEvent.cancel.reason \(reason)", tableName: "ClubOpsEvent").font(.footnote) }
             }.accessibilityIdentifier("clubOpsEvent.cancel.cancelled")
         case .active?:

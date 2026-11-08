@@ -33,7 +33,7 @@ enum ClubOpsGovernanceCopy {
 
 private struct ClubOpsTag: View {
     let label: Text
-    var tint: Color = .accentColor
+    var tint: Color = CYColor.accentText
     var body: some View {
         label.font(.caption.weight(.semibold)).foregroundStyle(tint)
             .padding(.horizontal, 8).padding(.vertical, 3)
@@ -54,7 +54,7 @@ struct ClubOpsBanSection: View {
                     HStack(alignment: .firstTextBaseline) {
                         Text("clubOpsGov.banTarget \(ClubOpsGovernanceCopy.member(row.nickname, id: row.targetMemberID))", tableName: "ClubOpsGovernance").font(.headline)
                         Spacer()
-                        ClubOpsTag(label: ClubOpsGovernanceCopy.text("clubOpsGov.banStatus." + row.status.rawValue), tint: row.status == .active ? .red : .secondary)
+                        ClubOpsTag(label: ClubOpsGovernanceCopy.text("clubOpsGov.banStatus." + row.status.rawValue), tint: row.status == .active ? CYColor.dangerText : CYColor.textTertiary)
                     }
                     ClubOpsGovernanceCopy.banLine(source: row.source, bannedAt: row.bannedAt, expiry: row.expiry, platformOnly: row.platformOnly)
                         .font(.footnote).foregroundStyle(.secondary)
@@ -84,7 +84,7 @@ struct ClubOpsGovernanceMembersSection: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ClubOpsGovernanceCopy.member(member.nickname, id: member.id).font(.headline)
                     HStack(spacing: Theme.Space.s3) {
-                        ban(member).foregroundStyle(.red)
+                        ban(member).foregroundStyle(CYColor.dangerText)
                         if roster.viewerIsOwner { transfer(member) }
                     }.buttonStyle(.bordered).controlSize(.small)
                 }.accessibilityIdentifier("clubOpsGov.member.\(member.id)")

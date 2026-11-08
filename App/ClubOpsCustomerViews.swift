@@ -49,20 +49,36 @@ struct ClubOpsFailureSection: View {
 
 struct ClubOpsCustomerRowView: View {
     let row: ClubOpsCustomerRow
+    @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 40
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 6) {
-                if let name = row.displayName { Text(verbatim: name).font(.headline).accessibilityIdentifier("club.gov.fact.displayName") }
-                else { Text("clubOps.customers.noName", tableName: "ClubOpsCustomer").font(.headline) }
-                if row.hasRemark {
-                    Text("clubOps.customers.remarkBadge", tableName: "ClubOpsCustomer").font(.caption2)
-                        .padding(.horizontal, 6).padding(.vertical, 2)
-                        .background(Capsule().fill(Color.secondary.opacity(0.15)))
+        // Mini-program .cus-row: round initial avatar, then name (+ 备注 tag), meta, sub text.
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            Text(verbatim: initial)
+                .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textSecondary)
+                .frame(width: avatarSide, height: avatarSide)
+                .background(CYColor.bgElevated, in: Circle())
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                HStack(spacing: CYSpacing.xs) {
+                    if let name = row.displayName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("club.gov.fact.displayName") }
+                    else { Text("clubOps.customers.noName", tableName: "ClubOpsCustomer").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    if row.hasRemark {
+                        Text("clubOps.customers.remarkBadge", tableName: "ClubOpsCustomer").font(CYTypography.micro)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .padding(.horizontal, CYSpacing.xs + CYSpacing.xxs).padding(.vertical, CYSpacing.xxs)
+                            .background(Capsule().fill(CYColor.bgRaised))
+                    }
                 }
+                meta.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                if let sub = row.subText { Text(verbatim: sub).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1) }
             }
-            meta.font(.subheadline).foregroundStyle(.secondary)
-            if let sub = row.subText { Text(verbatim: sub).font(.footnote).foregroundStyle(.secondary).lineLimit(1) }
         }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .padding(.vertical, CYSpacing.xs)
+    }
+    private var initial: String {
+        guard let first = row.displayName?.trimmingCharacters(in: .whitespacesAndNewlines).first else { return "—" }
+        return String(first)
     }
     @ViewBuilder private var meta: some View {
         switch row.meta {
@@ -94,9 +110,14 @@ struct ClubOpsCustomerRowView: View {
             if let phone = detail.phoneText { Text(verbatim: phone).font(.footnote).foregroundStyle(.secondary) }
         }
         Section {
-            LabeledContent { Text(detail.arrivedCount, format: .number) } label: { Text("clubOps.customer.arrived", tableName: "ClubOpsCustomer") }
-            LabeledContent { Text(detail.pendingCount, format: .number) } label: { Text("clubOps.customer.pending", tableName: "ClubOpsCustomer") }
-            LabeledContent { Text(detail.refundedCount, format: .number) } label: { Text("clubOps.customer.refunded", tableName: "ClubOpsCustomer") }
+            // Mini-program customer-detail: three metric tiles (到店 / 待核销 / 已退款), numerals first.
+            HStack(spacing: CYSpacing.sm) {
+                ClubOpsCustomerMetricTile(value: detail.arrivedCount, label: "clubOps.customer.arrived")
+                ClubOpsCustomerMetricTile(value: detail.pendingCount, label: "clubOps.customer.pending")
+                ClubOpsCustomerMetricTile(value: detail.refundedCount, label: "clubOps.customer.refunded")
+            }
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
         } header: { Text("clubOps.customer.overview", tableName: "ClubOpsCustomer") }
         Section {
             if detail.records.isEmpty {
@@ -127,6 +148,21 @@ struct ClubOpsCustomerRowView: View {
     }
 }
 
+struct ClubOpsCustomerMetricTile: View {
+    let value: Int
+    let label: LocalizedStringKey
+    var body: some View {
+        VStack(spacing: CYSpacing.xs) {
+            Text(value, format: .number).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            Text(label, tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, CYSpacing.md)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+}
+
 struct ClubOpsCustomerRecordRow: View {
     let record: ClubOpsCustomerRecord
     let linked: Bool
@@ -148,10 +184,10 @@ struct ClubOpsCustomerRecordRow: View {
     }
     private var tone: Color {
         switch record.status {
-        case .verified: return .green
-        case .pending, .contacted: return .orange
-        case .refunded: return .red
-        case .cancelled, .registered: return .secondary
+        case .verified: return CYColor.successText
+        case .pending, .contacted: return CYColor.warningText
+        case .refunded: return CYColor.dangerText
+        case .cancelled, .registered: return CYColor.textTertiary
         }
     }
 }
@@ -179,8 +215,9 @@ struct ClubOpsTagFlow: View {
 
 private struct ClubOpsChip: ViewModifier {
     func body(content: Content) -> some View {
-        content.font(.footnote).padding(.horizontal, 8).padding(.vertical, 4)
-            .background(Capsule().fill(Color.secondary.opacity(0.15)))
+        content.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xs)
+            .background(Capsule().fill(CYColor.bgRaised))
     }
 }
 
@@ -210,7 +247,7 @@ struct ClubOpsCustomerTagRemarkEditor: View {
         TextField(text: $remark, axis: .vertical) { Text("clubOps.customer.remarkPlaceholder", tableName: "ClubOpsCustomer") }
             .accessibilityIdentifier("club.gov.input.remark")
         if let current = issue ?? ClubOpsCustomerTagRemarkDraft.issue(tagsText: tagsText, remark: remark) {
-            Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer").font(.footnote).foregroundStyle(.red)
+            Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("clubOps.customer.draftIssue")
         }
     }
