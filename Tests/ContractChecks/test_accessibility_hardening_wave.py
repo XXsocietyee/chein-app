@@ -24,5 +24,22 @@ class FPA1IconOnlyButtons(unittest.TestCase):
         self.assertNotIn('Image(systemName: "arrow.up")', s)
 
 
+class FPA2HomeSearchAndPublish(unittest.TestCase):
+    def test_publish_button_uses_tokens_and_44pt(self):
+        s = src('App/HomeSearchTabParityViews.swift')
+        body = s[s.index('struct PublishTabFloatingButton'):s.index('struct PublishTabFloatingSheetView')]
+        self.assertIn('.foregroundStyle(CYColor.textOnAccent)', body)
+        self.assertNotIn('.foregroundStyle(.white)', body)
+        self.assertIn('.frame(minHeight: CYSpacing.minTouchTarget)', body)
+        self.assertNotIn('.padding(.vertical, 10)', body)
+
+    def test_search_entry_has_search_trait_and_wraps(self):
+        s = src('App/HomeSearchTabParityViews.swift')
+        entry = s[s.index('GlobalSearchParityPresentation.placeholderCopy'):s.index('"homeIndex.hero.searchEntry"')]
+        self.assertIn('.lineLimit(2)', entry)
+        self.assertNotIn('.lineLimit(1)', entry)
+        self.assertIn('.accessibilityAddTraits(.isSearchField)', entry)
+
+
 if __name__ == '__main__':
     unittest.main()
