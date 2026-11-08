@@ -2794,16 +2794,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if url == api.baseURL.appendingPathComponent("api/common/dict") {
             guard deployment.reads.contains(.homeAndSearch), captured.isPublicTemplateViewer,
                   TemplateMetadataReadRoute(request: request, baseURL: api.baseURL) != nil else { throw APIError.notConfigured }
-        } else if let merchantOperations = ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: captured.token) {
+        } else if ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: captured.token) != nil {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
-            if case .write(let path) = merchantOperations {
-                guard let account = captured.accountID, let token = captured.token,
-                      let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                        namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
-                let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: "merchant", session: session)
-                guard merchantOperationsWriteApproval(context)?.paths.contains(path) == true else { throw APIError.notConfigured }
-            }
         } else if url == api.baseURL.appendingPathComponent("api/merchant/coop-profile") || url == api.baseURL.appendingPathComponent("api/coupon/command-receipt") {
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
