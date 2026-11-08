@@ -51,4 +51,17 @@ final class NativeEntryRoutingTests: XCTestCase {
         XCTAssertNil(NativeContentTarget(kind: .club, id: 0)); XCTAssertNil(NativeContentTarget(kind: .club, id: -1))
         XCTAssertNil(policy.parse(URL(string: "https://example.test/pages/activity/detail/index/extra?id=1")!))
     }
+    /// FP-C10: the push-tap seam routes nothing until the host names a reviewed payload key.
+    func testPushTapRouterDefaultsToNoRoutingAndRejectsExternalTargets() {
+        let payload: [AnyHashable: Any] = ["route": "pages/activity/detail/index?id=7", "other": "pages/club/detail/index?id=2"]
+        XCTAssertNil(PushTapRouter().intent(userInfo: payload))
+        let router = PushTapRouter(routeKeys: ["route"])
+        XCTAssertEqual(router.intent(userInfo: payload), .content(NativeContentTarget(kind: .activity, id: 7)!))
+        XCTAssertNil(PushTapRouter(routeKeys: ["missing"]).intent(userInfo: payload))
+        for bad in ["https://evil.test/pages/activity/detail/index?id=7", "weixin://dl/business", "pages/activity/detail/index?id=0", "pages/unknown/x?id=1", ""] {
+            XCTAssertNil(router.intent(userInfo: ["route": bad]), bad)
+        }
+        XCTAssertNil(router.intent(userInfo: ["route": 7]))
+        XCTAssertEqual(PushTapRouter(routeKeys: ["missing", "other"]).intent(userInfo: payload), .content(NativeContentTarget(kind: .club, id: 2)!))
+    }
 }

@@ -66,3 +66,19 @@ public struct NativeEntryLinkPolicy {
         return .merchantInvitation(route)
     }
 }
+
+/// FP-C10 seam. Maps a tapped push's payload to a typed intent. The backend has not published a payload key,
+/// so the default accepts no key and routes nothing; the host passes the reviewed key(s) when the contract
+/// exists. Only source paths (no scheme or host) are accepted, so a payload can never name an external URL.
+public struct PushTapRouter {
+    private let routeKeys: [String]
+    public init(routeKeys: [String] = []) { self.routeKeys = routeKeys }
+    public func intent(userInfo: [AnyHashable: Any]) -> NativeEntryIntent? {
+        for key in routeKeys {
+            guard let value = userInfo[key] as? String else { continue }
+            let path = value.hasPrefix("/") ? value : "/" + value
+            if let intent = NativeNavigationContract.parseInternal(path) { return intent }
+        }
+        return nil
+    }
+}
