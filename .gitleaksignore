@@ -268,3 +268,20 @@ c7ce1a4af9bf8ea6454f4954334fa74b66c838a3:docs/worker-reports/w5-roam-city-npc-st
 
 # Added 2026-11-07 during gap-wave integration: 1 generic-api-key false positive on dotted localization key nearby.w208.denied in cl-w7a test commit.
 ef7c470a7e6df01d58087aa689bc0bd4a29aa817:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:98
+
+# Added 2026-11-08 by owner approval: 14 generic-api-key false positives in history, verified key-shaped identifiers, not credentials:
+# messageKey nearby.w208.denied (test), UserDefaults key hiddenStampIDsV1 (App/RoamReceivedStampMetadataView.swift), dotted localization key w5.city.sim.fairnessCohort (worker strings report).
+3911a5f8deaae64fb794a110759603e866e213ce:App/RoamReceivedStampMetadataView.swift:generic-api-key:316
+494595b4589234ba017b45de02c30d36148be746:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
+65b54a12baaa7cd663bfa6d17091750724c8f8fb:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
+73ddff12b9ce18e1fa2396cb50f6e8b67b64f708:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:98
+7afb9a49d9a2aa3d73c8aa5d7edebdbbf88f9d1d:App/RoamReceivedStampMetadataView.swift:generic-api-key:316
+7d34b1bce57e4fcc5772fa48fbe511e0a7a19519:App/RoamReceivedStampMetadataView.swift:generic-api-key:316
+830330c46c37ffc14241501052d4f8f9018587d4:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
+87df8547bb60bea9b451e4b27e10bf9a04d10790:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:98
+9e11d71fdf2bef5ee3535c048dc28dc609566c98:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:98
+a0ba90b3d9428926d2533edd5e145bd45d14812a:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
+aa27b5f74a3f51bd7814b297bc4ea3d3a53f0130:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
+c8830870d383ee573d68486e82b061d7a0df22d9:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
+d0c9e94ac5c4284507ba479b447dac578165ae1a:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:98
+ed083f8e244d42529a0b5f19e8160402280570c6:App/RoamReceivedStampMetadataView.swift:generic-api-key:316
