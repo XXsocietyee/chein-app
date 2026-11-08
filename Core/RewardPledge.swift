@@ -513,7 +513,7 @@ public enum RewardPledgeRequests {
         return request
     }
     private static func form(_ path: String, _ fields: [String: String], _ baseURL: URL, _ token: String, _ boundary: String) throws -> URLRequest {
-        guard RewardPledgeRoutes.staffRedeem.contains(path) || path.hasPrefix("api/rewards/pledge/") else {
+        guard RewardPledgeRoutes.staffRedeem.contains(path) else {
             throw RewardPledgeFailure.closed("route")
         }
         return try AuthRequestBuilder.makeFormRequest(url: baseURL.appendingPathComponent(path), fields: fields, token: token, boundary: boundary)
