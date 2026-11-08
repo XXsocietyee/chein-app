@@ -18,6 +18,23 @@
         }
       }
     },
+    "merchantOps.aftercare.copyRefundNumber": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy refund number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制退款单号"
+          }
+        }
+      }
+    },
     "merchantOps.aftercare.day.monthDay %lld %lld": {
       "extractionState": "manual",
       "localizations": {
@@ -167,6 +184,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "尚未确认退回"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.help": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund review and payout questions are handled by the platform."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款审核与款项问题由平台处理"
           }
         }
       }
@@ -524,6 +558,142 @@
           "stringUnit": {
             "state": "translated",
             "value": "当前岗位只有查看权限，请联系店主调整权限。"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.consequence.AGREE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the merchant's opinion, not a refund. The platform reviews it and decides the final result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是商家意见，不代表款项已退。提交后由平台审核，最终是否退款以平台审核结果为准。"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.consequence.EVIDENCE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evidence is review material only. It does not change the refund or payout status."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "凭证只作为平台审核材料，不会直接改变退款或打款状态。提交后由平台审核。"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.consequence.REJECT": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the merchant's opinion and does not reject the request by itself. The platform decides the final result."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是商家意见，不会直接驳回申请。提交后由平台审核，最终结果以平台审核为准。"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.issue.contentTooLong": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your note can be at most 500 characters."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "意见内容不能超过500字"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.issue.decisionRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose how you want to respond."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择处理意见"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.issue.evidenceInvalid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The uploaded evidence is not valid. Please upload it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "凭证上传结果无效，请重新上传"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.issue.evidenceRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upload an evidence image first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先上传凭证图片"
+          }
+        }
+      }
+    },
+    "merchantOps.aftercare.respond.issue.reasonRequired": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Please give the reason for declining."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写不同意的原因"
           }
         }
       }

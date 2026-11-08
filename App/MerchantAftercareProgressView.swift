@@ -31,9 +31,19 @@ struct MerchantAftercareProgressView: View {
             LabeledContent("merchant.aftercareProgress.funds") {
                 Text(LocalizedStringKey("merchant.aftercareProgress.funds." + progress.funds.rawValue))
             }.accessibilityIdentifier("merchant.aftercareProgress.funds")
-            LabeledContent("merchant.aftercareProgress.refundNumber") {
-                Text(verbatim: progress.refundNumber ?? "#\(progress.refundID)").textSelection(.enabled).monospacedDigit()
+            // Source: tapping the refund number copies it (copyRefundNo).
+            Button {
+                UIPasteboard.general.string = progress.refundNumber ?? "#\(progress.refundID)"
+            } label: {
+                LabeledContent("merchant.aftercareProgress.refundNumber") {
+                    Label {
+                        Text(verbatim: progress.refundNumber ?? "#\(progress.refundID)").monospacedDigit()
+                    } icon: { Image(systemName: "doc.on.doc") }
+                }
             }
+            .buttonStyle(.plain)
+            .accessibilityHint(Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.copyRefundNumber")))
+            .accessibilityIdentifier("merchantOps.aftercare.copyRefundNumber")
             if let created = progress.createdAt {
                 LabeledContent("merchant.aftercareProgress.requestedAt",
                                value: MerchantAftercareTime.event(created, phoneTimeZone: phoneTimeZone))
@@ -57,6 +67,14 @@ struct MerchantAftercareProgressView: View {
                         }
                     }
                 }
+            }
+        }
+        // A merchant opinion never reads as a refund; the consequence copy follows the source RESPONSE_FLOW.
+        if let decision = MerchantAftercareDecision(rawValue: progress.opinion.rawValue) {
+            Section {
+                Text(verbatim: MerchantOpsCopy.text(MerchantAftercareResponseGuide.consequenceKey(decision)))
+                    .font(.footnote).foregroundStyle(.secondary)
+                    .accessibilityIdentifier("merchantOps.aftercare.opinionConsequence")
             }
         }
         if let reason = progress.reason {
@@ -99,6 +117,13 @@ struct MerchantAftercareProgressView: View {
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("merchantOps.aftercare.step.\(index)")
             }
+        }
+        Section {
+            Label {
+                Text(verbatim: MerchantOpsCopy.text("merchantOps.aftercare.help")).font(.footnote)
+            } icon: { Image(systemName: "questionmark.circle") }
+            .foregroundStyle(.secondary)
+            .accessibilityIdentifier("merchantOps.aftercare.help")
         }
         .onAppear { phoneTimeZone = .current }
         .onReceive(NotificationCenter.default.publisher(for: .NSSystemTimeZoneDidChange)) { _ in
