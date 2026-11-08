@@ -206,7 +206,9 @@ final class ParticipantCoordinatorSnapshotLifetimeTests: XCTestCase {
         XCTAssertEqual(writer.requestIDs, [confirmation.id])
     }
 
-    func testLegacyNilAcknowledgmentRemainsSuccessfulWithoutInventingReturnedRow() async throws {
+    /// Backend /api/user/address/action answers a create with success(saved) (the row) or an error,
+    /// so a create acknowledgement without a row cannot prove the write: stay outcome-unknown (read-only recovery).
+    func testNilCreateAcknowledgmentIsOutcomeUnknownWithoutInventingReturnedRow() async throws {
         let writer = SnapshotWriter(row: nil)
         let reader = SnapshotReader()
         var changes = 0
@@ -215,10 +217,10 @@ final class ParticipantCoordinatorSnapshotLifetimeTests: XCTestCase {
         let confirmation = try coordinator.prepare(.save(draft()), expectedIdentity: reader.identity!)
         let result = await coordinator.confirm(confirmation)
         XCTAssertEqual(result, .applied)
-        XCTAssertEqual(coordinator.state, .succeeded)
+        XCTAssertEqual(coordinator.state, .outcomeUnknown(.malformedResponse))
         XCTAssertNil(coordinator.savedParticipant)
         XCTAssertNil(try snapshot(coordinator).row)
-        XCTAssertEqual(changes, 1)
+        XCTAssertEqual(changes, 0)
         XCTAssertEqual(writer.requestIDs, [confirmation.id])
     }
 

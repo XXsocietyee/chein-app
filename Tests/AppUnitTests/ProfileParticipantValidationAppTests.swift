@@ -379,6 +379,12 @@ private actor ContinuationCiphertexts: ContentDraftCiphertextStore {
         _ = try mutation.fields(); writes += 1
         if loseResponse { throw ParticipantWriteError.outcomeUnknown(.transport) }
     }
+    /// The backend answers a create with the saved row, which the coordinator requires as proof.
+    func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
+        try await perform(mutation, expectedIdentity: expectedIdentity)
+        if case .save(let draft) = mutation, draft.id == nil { return try await profileParticipant(id: 911) }
+        return nil
+    }
     func profileOrders() async throws -> [ProfileOrder] { [] }
     func profileOrder(id: Int) async throws -> ProfileOrder { throw APIError.invalidRequest }
     func profileBadges() async throws -> ProfileBadgeWall { .init(identities: [], medals: []) }
