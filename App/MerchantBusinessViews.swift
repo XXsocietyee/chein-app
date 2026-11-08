@@ -579,6 +579,11 @@ import SwiftUI
                     Button("merchant.business.reviews.loadMore") { Task { await model.loadMoreReviews() } }
                         .disabled(state.isBusy).accessibilityIdentifier("merchant.business.reviews.loadMore")
                 }
+                else if reviewSource == nil, case .reviews = query, let pages = model.reviewLoadedPages,
+                        MerchantReviewListEndPort.showsEnd(hasMore: pages.hasMore, loadedCount: pages.rows.count) {
+                    Text("merchant.business.reviews.listEnd").font(.footnote).foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity).accessibilityIdentifier("merchant.business.reviews.listEnd")
+                }
                 if isAftercare {
                     if snapshot.document.hasMore {
                         Button("merchant.business.aftercare.loadMore") { Task { await model.loadMoreAftercare() } }

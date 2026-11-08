@@ -25,17 +25,18 @@ struct MerchantReviewSummaryHeader: View {
         }
         .padding(.vertical, 4)
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 12) {
-            metric(Text(presentation.pendingReplyCount.map { String($0) } ?? "—"), "merchant.reviewSummary.pending")
-            metric(Text(presentation.monthNewCount.map { String($0) } ?? "—"), "merchant.reviewSummary.month")
-            metric(Text(presentation.replyRatePct.map { "\($0)%" } ?? "—"), "merchant.reviewSummary.rate")
-            metric(Text(presentation.averageText ?? "—"), "merchant.reviewSummary.average30")
+            metric(Text(presentation.pendingReplyCount.map { String($0) } ?? "—"), "merchant.reviewSummary.pending", note: "merchant.reviewSummary.pending.note")
+            metric(Text(presentation.monthNewCount.map { String($0) } ?? "—"), "merchant.reviewSummary.month", note: "merchant.reviewSummary.month.note")
+            metric(Text(presentation.replyRatePct.map { "\($0)%" } ?? "—"), "merchant.reviewSummary.rate", note: "merchant.reviewSummary.rate.note")
+            metric(Text(presentation.averageText ?? "—"), "merchant.reviewSummary.average30", note: "merchant.reviewSummary.average30.note")
         }
         .accessibilityIdentifier("merchant.reviewSummary.metrics")
     }
-    private func metric(_ value: Text, _ title: LocalizedStringKey) -> some View {
+    private func metric(_ value: Text, _ title: LocalizedStringKey, note: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             value.font(.title3.weight(.semibold)).monospacedDigit()
             Text(title).font(.subheadline).foregroundStyle(.secondary)
+            Text(note).font(.caption2).foregroundStyle(.tertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
