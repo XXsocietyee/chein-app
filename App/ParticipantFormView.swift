@@ -261,6 +261,7 @@ struct ParticipantFormView: View {
                 }
             }
         }
+        .cyGroupedSurface()
         .appNavigationTitle(key: model.id == nil ? "participant.form.add" : "participant.form.edit")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -403,8 +404,8 @@ private struct ParticipantReadbackRow: View {
     let row: ProfileParticipant
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: row.fullName).font(.body.weight(.semibold))
-            Text(verbatim: row.mobilePhone).monospacedDigit().foregroundStyle(.secondary)
+            Text(verbatim: row.fullName).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: row.mobilePhone).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary)
             if !row.oneLineAddress.isEmpty { Text(verbatim: row.oneLineAddress).foregroundStyle(.secondary) }
         }
         .fixedSize(horizontal: false, vertical: true)

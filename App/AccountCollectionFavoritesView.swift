@@ -37,7 +37,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                     Text("social.posts").tag(Tab.posts)
                     Text("searchMap.kind.topic").tag(Tab.topics)
                 }
-                .pickerStyle(.segmented).padding()
+                .pickerStyle(.segmented).padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
                 .accessibilityIdentifier("accountCollection.favorites.tabs")
             }
             if postsAllowed && selectedTab == .posts {
@@ -107,12 +107,13 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.favorites.loadMore")
                 } else if !model.state.visibleRows(scope: key.scope).isEmpty {
-                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                    Text("member.favorites.topicsEnd", tableName: "MemberProfile").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.favorites.end")
                 }
             }
         }
         .listStyle(.insetGrouped)
+        .cyGroupedSurface()
         // mylike.js onPullDownRefresh parity: same guarded refresh as the toolbar button.
         .refreshable { await refresh() }
         .appNavigationTitle("accountCollection.favorites.title")
@@ -261,12 +262,13 @@ private struct AccountCollectionFavoriteCard: View {
                         .frame(minHeight: 44)
                         .accessibilityIdentifier("accountCollection.posts.loadMore")
                 } else if !model.state.visibleRows(scope: key.scope).isEmpty {
-                    Text("member.favorites.postsEnd", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
+                    Text("member.favorites.postsEnd", tableName: "MemberProfile").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .frame(maxWidth: .infinity).accessibilityIdentifier("accountCollection.posts.end")
                 }
             }
         }
         .listStyle(.insetGrouped)
+        .cyGroupedSurface()
         .refreshable { await refresh() }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
