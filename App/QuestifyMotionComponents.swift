@@ -232,7 +232,7 @@ struct MerchantM02Notice: View {
     let symbol: String
     var isError = false
     var body: some View {
-        QuestifyNotice(symbol: symbol, tint: isError ? .red : .secondary) { message.foregroundStyle(isError ? Color.red : Color.primary) }
+        QuestifyNotice(symbol: symbol, tint: isError ? .red : .secondary) { message.foregroundStyle(isError ? CYColor.dangerText : Color.primary) }
     }
 }
 
@@ -254,7 +254,7 @@ struct SquareFlowNoticeStyle: ViewModifier {
     func body(content: Content) -> some View {
         content
             .font(Theme.Font.label)
-            .foregroundStyle(tone == .critical ? Color.red : tone == .attention ? Color.orange : Color.secondary)
+            .foregroundStyle(tone == .critical ? CYColor.dangerText : tone == .attention ? CYColor.warningText : CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
     }
 }

@@ -150,8 +150,8 @@ public struct UITestFlowReadinessAnchorSectionView: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isFullyAnchored ? Color.green : Color.orange).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isFullyAnchored ? Color.green : Color.orange)
+                    .background((snapshot.isFullyAnchored ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
+                    .foregroundStyle(snapshot.isFullyAnchored ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("uiFlowReadinessAudit.overallBadge")
             }
 

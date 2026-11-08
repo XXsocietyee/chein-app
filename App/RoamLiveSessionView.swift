@@ -203,7 +203,7 @@ import Combine
                     .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 0)
-                Circle().fill(active ? Color.green : Color.secondary).frame(width: 10, height: 10)
+                Circle().fill(active ? CYColor.successText : CYColor.textTertiary).frame(width: 10, height: 10)
                     .accessibilityHidden(true)
             }
             HStack(alignment: .top, spacing: 8) {

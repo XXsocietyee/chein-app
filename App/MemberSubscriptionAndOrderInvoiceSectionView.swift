@@ -146,27 +146,27 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllCompliant ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("memberSubscriptionOrder.statusBadge")
             }
 
             Text(verbatim: subscriptionSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.storeKit2GateFailClosed ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.storeKit2GateFailClosed ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("memberSubscriptionOrder.subscriptionSummary")
 
             Text(verbatim: lifecycleStatesSummaryText)
                 .font(.footnote.monospaced())
                 .foregroundStyle(
                     snapshot.supportedOrderStates == MemberSubscriptionAndOrderSnapshot.fiveOrderLifecycleStates
-                        ? Color.secondary
-                        : Color.orange
+                        ? CYColor.textSecondary
+                        : CYColor.warningText
                 )
                 .accessibilityIdentifier("memberSubscriptionOrder.lifecycleStatesSummary")
 
             Text(verbatim: refundReceiptSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.refundReceiptReadbackRequired ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.refundReceiptReadbackRequired ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("memberSubscriptionOrder.refundReceiptSummary")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -178,21 +178,21 @@ public struct MemberSubscriptionAndOrderInvoiceSectionView: View {
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle((row.isCompliant && !row.liveChargeEnabled) ? Color.green : Color.orange)
+                                .foregroundStyle((row.isCompliant && !row.liveChargeEnabled) ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.policyDetail)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.bgSurfaceSubtle)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("memberSubscriptionOrder.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.bgSurfaceSubtle)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("memberSubscriptionOrder.section")

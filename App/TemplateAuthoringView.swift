@@ -334,7 +334,7 @@ import Combine
                     TemplateBasicFieldClearButton(model: model, field: .description)
                 }
                 if model.draft.publishIssues.contains("templateAuthor.validation.descriptionLength") {
-                    Text("templateAuthor.validation.descriptionLength").font(.footnote).foregroundStyle(.red)
+                    Text("templateAuthor.validation.descriptionLength").font(.footnote).foregroundStyle(CYColor.dangerText)
                 }
                 TemplateAuthoringField("requiredMaterials", text: model.optional(\.requiredMaterials))
                 TemplateAuthoringVenueField(model: model)
@@ -366,7 +366,7 @@ import Combine
             if !model.draft.publishIssues.isEmpty {
                 Section("templateAuthor.validationTitle") {
                     ForEach(Array(Set(model.draft.publishIssues)).sorted(), id: \.self) {
-                        Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(.red)
+                        Text(LocalizedStringKey($0)).font(.footnote).foregroundStyle(CYColor.dangerText)
                     }
                 }
             }

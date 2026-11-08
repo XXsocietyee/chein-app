@@ -138,18 +138,18 @@ public struct TestFlightInternalAndExternalSmokeSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllSmokePassed ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllSmokePassed ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("testFlightSmokeMatrix.statusBadge")
             }
 
             Text(verbatim: trackSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.isAllSmokePassed ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.isAllSmokePassed ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("testFlightSmokeMatrix.trackSummary")
 
             Text(verbatim: deviceCoverageBannerText)
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(snapshot.isAllSmokePassed ? Color.green : Color.red)
+                .foregroundStyle(snapshot.isAllSmokePassed ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("testFlightSmokeMatrix.deviceCoverageBanner")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -161,21 +161,21 @@ public struct TestFlightInternalAndExternalSmokeSectionView: View {
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle((row.isSmokePassed && row.isFailClosedVerified) ? Color.green : Color.red)
+                                .foregroundStyle((row.isSmokePassed && row.isFailClosedVerified) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.verificationSteps)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("testFlightSmokeMatrix.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("testFlightSmokeMatrix.section")

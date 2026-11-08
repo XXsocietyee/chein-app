@@ -151,8 +151,8 @@ public struct StoreKit2SubscriptionAndRefundSectionView: View {
                     .font(.caption.weight(.semibold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isFullyCompliant ? Color.green : Color.orange).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isFullyCompliant ? Color.green : Color.orange)
+                    .background((snapshot.isFullyCompliant ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
+                    .foregroundStyle(snapshot.isFullyCompliant ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("storeKit2Lifecycle.overallBadge")
             }
 

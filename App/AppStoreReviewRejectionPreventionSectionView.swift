@@ -172,7 +172,7 @@ public struct AppStoreReviewRejectionPreventionSectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reviewRejectionPlaybook.section")
@@ -226,9 +226,9 @@ public struct AppStoreReviewRejectionPreventionSectionView: View {
                     .padding(.vertical, 2)
                     .background(
                         Capsule(style: .continuous)
-                            .fill((rule.isDefenseVerified ? Color.green : Color.red).opacity(0.16))
+                            .fill((rule.isDefenseVerified ? CYColor.successText : CYColor.dangerText).opacity(0.16))
                     )
-                    .foregroundStyle(rule.isDefenseVerified ? Color.green : Color.red)
+                    .foregroundStyle(rule.isDefenseVerified ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier(rule.statusAccessibilityIdentifier)
             }
 

@@ -190,7 +190,7 @@ public struct UnifiedReleaseAuditHubView: View {
                 Spacer()
                 Text(verbatim: headerBadgeText)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllGreen ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllGreen ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("unifiedReleaseAuditHub.statusBadge")
             }
 
@@ -216,7 +216,7 @@ public struct UnifiedReleaseAuditHubView: View {
                         Spacer()
                         Text(verbatim: card.statusBadgeText)
                             .font(.caption2.monospaced())
-                            .foregroundStyle(card.isVerified ? Color.green : Color.orange)
+                            .foregroundStyle(card.isVerified ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("unifiedReleaseAuditHub.cardStatus.\(card.id)")
                     }
 

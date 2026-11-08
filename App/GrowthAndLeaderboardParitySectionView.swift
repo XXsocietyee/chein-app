@@ -204,7 +204,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("growthLeaderboardAudit.root")
@@ -255,7 +255,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
                 .font(.caption2.monospaced().weight(.bold))
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
-                .background(Capsule().fill(Color.orange.opacity(0.2)))
+                .background(Capsule().fill(CYColor.warningText.opacity(0.2)))
                 .accessibilityIdentifier("growthLeaderboardAudit.authStateCode")
 
             Text(verbatim: snapshot.statusBannerText)
@@ -281,7 +281,7 @@ public struct GrowthAndLeaderboardParitySectionView: View {
                         .padding(.vertical, 2)
                         .background(
                             Capsule()
-                                .fill(badge.isUnlocked ? Color.green.opacity(0.2) : Color.gray.opacity(0.2))
+                                .fill(badge.isUnlocked ? CYColor.successText.opacity(0.2) : Color.gray.opacity(0.2))
                         )
                     Text(verbatim: badge.title)
                         .font(.caption.weight(.medium))

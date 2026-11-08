@@ -142,7 +142,7 @@ public struct ProductionCanaryRolloutAndPhasedReleaseSectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 14, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("canaryPhasedRelease.section")
@@ -202,9 +202,9 @@ public struct ProductionCanaryRolloutAndPhasedReleaseSectionView: View {
                 .padding(.vertical, 2)
                 .background(
                     Capsule(style: .continuous)
-                        .fill((stage.isCompliant ? Color.green : Color.red).opacity(0.16))
+                        .fill((stage.isCompliant ? CYColor.successText : CYColor.dangerText).opacity(0.16))
                 )
-                .foregroundStyle(stage.isCompliant ? Color.green : Color.red)
+                .foregroundStyle(stage.isCompliant ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier(stage.statusAccessibilityIdentifier)
         }
         .padding(10)

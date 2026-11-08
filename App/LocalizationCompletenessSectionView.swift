@@ -112,7 +112,7 @@ public struct LocalizationCompletenessSectionView: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
-                            Capsule().fill(snapshot.isAllComplete ? Color.green.opacity(0.18) : Color.orange.opacity(0.18))
+                            Capsule().fill(snapshot.isAllComplete ? CYColor.successText.opacity(0.18) : CYColor.warningText.opacity(0.18))
                         )
                 }
                 .accessibilityIdentifier("localizationCompleteness.statusHeadline")
@@ -122,13 +122,13 @@ public struct LocalizationCompletenessSectionView: View {
                     Spacer()
                     Text(verbatim: "\(snapshot.totalMissingKeys)")
                         .font(.caption.monospaced())
-                        .foregroundStyle(snapshot.totalMissingKeys == 0 ? Color.secondary : Color.red)
+                        .foregroundStyle(snapshot.totalMissingKeys == 0 ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("localizationCompleteness.totalMissingKeys")
 
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: snapshot.verbatimViewsCompliant ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
-                        .foregroundStyle(snapshot.verbatimViewsCompliant ? Color.green : Color.orange)
+                        .foregroundStyle(snapshot.verbatimViewsCompliant ? CYColor.successText : CYColor.warningText)
                         .accessibilityHidden(true)
                     Text(verbatim: snapshot.verbatimComplianceNotice)
                         .font(.caption)
@@ -159,7 +159,7 @@ public struct LocalizationCompletenessSectionView: View {
                                 .foregroundStyle(.secondary)
                             Text(verbatim: row.isBilingualComplete ? "0 缺失" : "缺失 \(row.missingKeyCount)")
                                 .font(.caption2.weight(.semibold))
-                                .foregroundStyle(row.isBilingualComplete ? Color.green : Color.red)
+                                .foregroundStyle(row.isBilingualComplete ? CYColor.successText : CYColor.dangerText)
                         }
                     }
                     .accessibilityIdentifier("localizationCompleteness.catalog.\(row.id)")

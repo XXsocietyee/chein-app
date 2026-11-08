@@ -77,7 +77,7 @@ import SwiftUI
                     }
                     ForEach(rows) { row in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(LocalizedStringKey("cooperation.list.official.stage." + row.stage.rawValue)).font(.caption.weight(.semibold)).foregroundStyle(row.actionable ? Color.orange : Color.secondary)
+                            Text(LocalizedStringKey("cooperation.list.official.stage." + row.stage.rawValue)).font(.caption.weight(.semibold)).foregroundStyle(row.actionable ? CYColor.warningText : CYColor.textSecondary)
                             Text("cooperation.list.official.from").font(.footnote).foregroundStyle(.secondary)
                             Text(verbatim: row.title).font(.headline)
                             Text(verbatim: deadline(row.deadline)).font(.subheadline)

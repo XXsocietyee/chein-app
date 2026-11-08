@@ -137,8 +137,8 @@ public struct ThreeDocumentMasterCrosswalkSectionView: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isFullyAligned ? Color.green : Color.orange).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isFullyAligned ? Color.green : Color.orange)
+                    .background((snapshot.isFullyAligned ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
+                    .foregroundStyle(snapshot.isFullyAligned ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("threeDocCrosswalk.overallBadge")
             }
 

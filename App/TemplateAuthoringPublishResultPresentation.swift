@@ -67,7 +67,7 @@ struct TemplateAuthoringPublishResultPreferenceKey: PreferenceKey {
     let close: () -> Void
     var body: some View {
         VStack(spacing: 20) {
-            Image(systemName: "checkmark.circle.fill").font(.largeTitle).foregroundStyle(.green)
+            Image(systemName: "checkmark.circle.fill").font(.largeTitle).foregroundStyle(CYColor.successText)
             Text("templatePublishResult.title", tableName: "CreatorPublishResult").font(.title2.bold())
             Text(verbatim: result.title).font(.headline)
             Text("templatePublishResult.detail", tableName: "CreatorPublishResult").multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)

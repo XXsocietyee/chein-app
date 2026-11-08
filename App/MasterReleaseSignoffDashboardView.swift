@@ -235,7 +235,7 @@ public struct MasterReleaseSignoffDashboardView: View {
                 Spacer()
                 Text(verbatim: pillarsBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isReadyForSignoff ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isReadyForSignoff ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("masterReleaseDashboard.pillarsBadge")
             }
 
@@ -264,7 +264,7 @@ public struct MasterReleaseSignoffDashboardView: View {
 
             Text(verbatim: highRiskSwitchesBannerText)
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(snapshot.allHighRiskSwitchesFailClosed ? Color.green : Color.red)
+                .foregroundStyle(snapshot.allHighRiskSwitchesFailClosed ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("masterReleaseDashboard.highRiskSwitchesBanner")
 
             VStack(alignment: .leading, spacing: 6) {
@@ -276,21 +276,21 @@ public struct MasterReleaseSignoffDashboardView: View {
                             Spacer()
                             Text(verbatim: item.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle((item.isVerified && item.isFailClosed) ? Color.green : Color.orange)
+                                .foregroundStyle((item.isVerified && item.isFailClosed) ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: item.coverageSummary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("masterReleaseDashboard.pillarList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("masterReleaseDashboard.section")

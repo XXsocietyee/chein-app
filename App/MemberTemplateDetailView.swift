@@ -47,7 +47,7 @@ import SwiftUI
                         else if draft == 1 { Text("memberTemplate.published") }
                     }
                     if let feedback = detail.reviewFeedback {
-                        Text("discovery.templateDetail.reviewFeedback \(feedback)").foregroundStyle(.orange)
+                        Text("discovery.templateDetail.reviewFeedback \(feedback)").foregroundStyle(CYColor.warningText)
                             .accessibilityIdentifier("memberTemplate.reviewFeedback")
                     }
                     if !detail.gallery.isEmpty {

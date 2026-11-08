@@ -139,26 +139,26 @@ public struct AppStoreConnectMetadataAndScreenshotSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllReady ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("ascMetadataMatrix.statusBadge")
             }
 
             Text(verbatim: screenshotSetsSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.has69And65InchScreenshotSets ? Color.secondary : Color.orange)
+                .foregroundStyle(snapshot.has69And65InchScreenshotSets ? CYColor.textSecondary : CYColor.warningText)
                 .accessibilityIdentifier("ascMetadataMatrix.screenshotSetsSummary")
 
             Text(verbatim: localeMetadataSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.hasBilingualZhHansAndEnUSMetadata ? Color.secondary : Color.orange)
+                .foregroundStyle(snapshot.hasBilingualZhHansAndEnUSMetadata ? CYColor.textSecondary : CYColor.warningText)
                 .accessibilityIdentifier("ascMetadataMatrix.localeMetadataSummary")
 
             Text(verbatim: urlsAndEncryptionSummaryText)
                 .font(.footnote.monospaced())
                 .foregroundStyle(
                     (snapshot.hasHTTPSPrivacyAndSupportURLs && snapshot.nonExemptEncryptionFalseDeclared)
-                        ? Color.secondary
-                        : Color.red
+                        ? CYColor.textSecondary
+                        : CYColor.dangerText
                 )
                 .accessibilityIdentifier("ascMetadataMatrix.urlsAndEncryptionSummary")
 
@@ -171,21 +171,21 @@ public struct AppStoreConnectMetadataAndScreenshotSectionView: View {
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle(row.isReady ? Color.green : Color.orange)
+                                .foregroundStyle(row.isReady ? CYColor.successText : CYColor.warningText)
                         }
                         Text(verbatim: row.specificationSummary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("ascMetadataMatrix.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("ascMetadataMatrix.section")

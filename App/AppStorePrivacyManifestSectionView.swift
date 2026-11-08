@@ -140,18 +140,18 @@ public struct AppStorePrivacyManifestSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isManifestReady ? Color.green : Color.red)
+                    .foregroundStyle(snapshot.isManifestReady ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("privacyManifestAudit.statusBadge")
             }
 
             Text(verbatim: trackingBannerText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.nsPrivacyTrackingEnabled || snapshot.trackingDomainCount > 0 ? Color.red : Color.secondary)
+                .foregroundStyle(snapshot.nsPrivacyTrackingEnabled || snapshot.trackingDomainCount > 0 ? CYColor.dangerText : CYColor.textSecondary)
                 .accessibilityIdentifier("privacyManifestAudit.trackingBanner")
 
             Text(verbatim: locationDecouplingBannerText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.w13LocationPermissionDecoupled ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.w13LocationPermissionDecoupled ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("privacyManifestAudit.locationDecouplingBanner")
 
             Text(verbatim: requiredReasonSummaryText)
@@ -168,21 +168,21 @@ public struct AppStorePrivacyManifestSectionView: View {
                             Spacer()
                             Text(verbatim: check.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle(check.isCompliant ? Color.green : Color.red)
+                                .foregroundStyle(check.isCompliant ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: check.declarationSummary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("privacyManifestAudit.checkList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("privacyManifestAudit.section")

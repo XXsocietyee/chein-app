@@ -184,8 +184,8 @@ public struct SocialGraphAndProfilePrivacySectionView: View {
                     .background(
                         Capsule().fill(
                             snapshot.isAllReady
-                                ? Color.green.opacity(0.15)
-                                : Color.orange.opacity(0.15)
+                                ? CYColor.successSoft
+                                : CYColor.warningSoft
                         )
                     )
                     .accessibilityIdentifier("socialProfileParity.header.badge")

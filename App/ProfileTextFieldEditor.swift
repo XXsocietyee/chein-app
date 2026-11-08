@@ -117,7 +117,7 @@ struct ProfileFieldLimitCounter: View {
     var body: some View {
         Text(verbatim: "\(ProfileFieldLimit.count(text))/\(ProfileFieldLimit.maxUTF16)")
             .font(.caption.monospacedDigit())
-            .foregroundStyle(ProfileFieldLimit.exceeds(text) ? Color.red : Color.secondary)
+            .foregroundStyle(ProfileFieldLimit.exceeds(text) ? CYColor.dangerText : CYColor.textSecondary)
             .frame(maxWidth: .infinity, alignment: .trailing)
             .accessibilityIdentifier("profile.edit.limit")
     }
