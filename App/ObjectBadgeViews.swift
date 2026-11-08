@@ -58,7 +58,7 @@ struct ObjectBadgeWallLayoutSelection {
                 }
                 if !wall.identities.isEmpty {
                     Section("profile.badges.identities") {
-                        badgeRows(wall.identities.map { .identity($0) }, accessibilityPrefix: "profile.badge.identity", layout: layout)
+                        badgeRows(ObjectBadgeWallOrdering.litFirst(wall.identities).map { .identity($0) }, accessibilityPrefix: "profile.badge.identity", layout: layout)
                     }
                 }
                 if let medals = wall.medals {
