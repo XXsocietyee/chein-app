@@ -198,6 +198,7 @@ extension EnvironmentValues {
             Text(verbatim: row.name).font(.headline)
             if let category = row.category { Text(verbatim: category).font(.subheadline) }
             if let place = row.address ?? row.city { Text(verbatim: place).foregroundStyle(.secondary) }
+            if row.kind == .merchants { CoopRelationCardDetails(row: row) }
         }.fixedSize(horizontal: false, vertical: true).padding(.vertical, 6)
     }
 }

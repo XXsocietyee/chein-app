@@ -381,6 +381,7 @@ struct MerchantContentFields: View {
     var body: some View {
         Text(verbatim: snapshot.value["topic"]["name"].text ?? "—").font(.title2)
         if let message = snapshot.value["message"].text { Text(verbatim: message) }
+        MerchantTopicIntroSection(intro: MerchantTopicIntro(topic: snapshot.value["topic"]), topicName: snapshot.value["topic"]["name"].text)
         if snapshot.value["mode"].text == "chapters" {
             let rows = snapshot.value["chapters"].array ?? []
             if rows.isEmpty { Text("merchant.content.noChapters") }

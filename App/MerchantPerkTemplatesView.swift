@@ -6,6 +6,7 @@ import SwiftUI
     @Bindable var model: MerchantPerkTemplatesCoordinator
     @State private var draft = MerchantPerkTemplateDraft()
     @State private var showingForm = false
+    @State private var confirmingDiscard = false
     @State private var pendingDelete: MerchantPerkTemplateRow?
     @State private var validEndEnabled = false
     @State private var validEndDate = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
@@ -153,7 +154,13 @@ import SwiftUI
                 TextField("merchant.perks.form.quota", text: $draft.quota).keyboardType(.numberPad)
                 Toggle("merchant.perks.form.hasValidity", isOn: $validEndEnabled)
                 if validEndEnabled {
-                    DatePicker("merchant.perks.form.validEnd", selection: $validEndDate, displayedComponents: .date)
+                    DatePicker("merchant.perks.form.validEnd", selection: $validEndDate, in: MerchantPerkValidityDraft.minimum(now: Date())..., displayedComponents: .date)
+                        .environment(\.timeZone, MerchantPerkValidityDraft.timeZone).environment(\.calendar, MerchantPerkValidityDraft.calendar)
+                }
+                if let field = MerchantPerkTemplateFormPort.firstInvalidField(draft, validEnd: validEndEnabled ? Self.wire(validEndDate) : "", now: Date()),
+                   MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled) {
+                    Text(LocalizedStringKey("merchant.perks.form.hint." + field.rawValue)).font(.footnote).foregroundStyle(.secondary)
+                        .accessibilityIdentifier("merchant.perks.form.hint")
                 }
                 if !model.canWrite(.deleteTemplate(id: 1)) {
                     Text("merchant.perks.notAvailable").font(.footnote).foregroundStyle(.secondary)
@@ -162,7 +169,9 @@ import SwiftUI
             .appNavigationTitle("merchant.perks.form.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { showingForm = false }
+                    Button("action.cancel") {
+                        if MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled) { confirmingDiscard = true } else { showingForm = false }
+                    }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("merchant.perks.form.save") { submit() }
@@ -172,6 +181,11 @@ import SwiftUI
             }
         }
         .presentationDetents([.medium, .large])
+        .interactiveDismissDisabled(MerchantPerkTemplateFormPort.isDirty(draft, validEndEnabled: validEndEnabled))
+        .confirmationDialog("merchant.perks.discard.title", isPresented: $confirmingDiscard, titleVisibility: .visible) {
+            Button("merchant.perks.discard.confirm", role: .destructive) { showingForm = false }
+            Button("merchant.perks.discard.keep", role: .cancel) {}
+        }
     }
 
     private var formReady: Bool {
