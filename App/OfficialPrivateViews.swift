@@ -6,6 +6,7 @@ import SwiftUI
     var publisher = false
     var onLogin: (() -> Void)? = nil
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     /// Source official-inbox load failure: "邀约没有加载出来" above the retryable issue.
     nonisolated static func issueCopy(_ error: Error) -> OfficialIssueCopy? {
@@ -42,7 +43,7 @@ import SwiftUI
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
-                                .font(.caption).foregroundStyle(.orange)
+                                .font(.caption).foregroundStyle(palette.warning)
                         }
                         Label(LocalizedStringKey(row.sourceStatusKey), systemImage: "envelope")
                         if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status).font(.caption) }
@@ -68,6 +69,7 @@ import SwiftUI
     let reader: any OfficialEventReading
     var actions: OfficialActionCoordinator? = nil
     var onLogin: (() -> Void)? = nil
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         OfficialReadScreen(reader: reader, isPrivate: true, requestID: "published", onLogin: onLogin, load: { try await reader.myPublished() }) { value in
             List {
@@ -120,7 +122,7 @@ import SwiftUI
                 Spacer(minLength: 8)
                 Text(LocalizedStringKey(OfficialPublishedPresentation.ownerStatusKey(event.status)))
                     .font(.caption).padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                    .background(Capsule().fill(palette.bgRaised))
                     .accessibilityIdentifier("official.published.eventStatus.\(event.id)")
             }
             // Source sub line: city, then " · category" only when the server sent one.

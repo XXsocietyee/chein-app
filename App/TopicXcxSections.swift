@@ -26,49 +26,54 @@ struct TopicXcxTabs: View {
 
 struct TopicXcxHero: View {
     let topic: TopicDetail
+    @Environment(\.cyPalette) private var palette
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(topic.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering").font(.caption.bold()).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+            Text(topic.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering").font(Theme.Font.label.weight(.semibold)).foregroundStyle(.secondary)
             if !topic.categoryNames.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack { ForEach(topic.categoryNames, id: \.self) { Text(verbatim: $0).font(.caption).padding(.horizontal, 8).padding(.vertical, 3).background(Capsule().fill(Color.secondary.opacity(0.15))) } }
+                    HStack(spacing: Theme.Space.s2) { ForEach(topic.categoryNames, id: \.self) { Text(verbatim: $0).font(Theme.Font.label).lineLimit(1).padding(.horizontal, Theme.Space.s2).padding(.vertical, Theme.Space.s1).background(palette.bgRaised, in: RoundedRectangle(cornerRadius: Theme.Radius.sm, style: .continuous)) } }
                 }
             }
-            if let club = topic.clubName { Label { Text("topicXcx.clubHost \(club)") } icon: { Image(systemName: "person.3") }.font(.subheadline) }
+            if let club = topic.clubName { Label { Text("topicXcx.clubHost \(club)") } icon: { Image(systemName: "person.3") }.font(.subheadline).foregroundStyle(.secondary) }
         }
     }
 }
 
 struct TopicXcxStatBar: View {
     let cells: [TopicXcxFacts.StatCell]
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         if !cells.isEmpty {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+                HStack(spacing: Theme.Space.s5) {
                     ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
                         VStack(alignment: .leading, spacing: 2) {
                             switch cell {
                             case .rating(let value, let stars):
-                                Text("topicXcx.stat.rating").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: String(format: "%.1f", value)).font(.headline)
+                                Text("topicXcx.stat.rating").font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(verbatim: String(format: "%.1f", value)).font(.headline.monospacedDigit())
                                 HStack(spacing: 1) { ForEach(0..<stars, id: \.self) { _ in Image(systemName: "star.fill").font(.caption2) } }.accessibilityHidden(true)
                             case .hours(let text):
-                                Text("topicXcx.stat.hours").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: text).font(.headline); Text("topicXcx.stat.hoursUnit").font(.caption2)
+                                Text("topicXcx.stat.hours").font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(verbatim: text).font(.headline.monospacedDigit()); Text("topicXcx.stat.hoursUnit").font(Theme.Font.label).foregroundStyle(.secondary)
                             case .open(let start, let end):
-                                Text("topicXcx.stat.open").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: start + "-" + end).font(.headline)
+                                Text("topicXcx.stat.open").font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(verbatim: start + "-" + end).font(.headline.monospacedDigit())
                             case .mileage(let text):
-                                Text("topicXcx.stat.mileage").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: text).font(.headline); Text("topicXcx.stat.mileageUnit").font(.caption2)
+                                Text("topicXcx.stat.mileage").font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(verbatim: text).font(.headline.monospacedDigit()); Text("topicXcx.stat.mileageUnit").font(Theme.Font.label).foregroundStyle(.secondary)
                             case .merchants(let count):
-                                Text("topicXcx.stat.merchants").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: String(count)).font(.headline); Text("topicXcx.stat.merchantsUnit").font(.caption2)
+                                Text("topicXcx.stat.merchants").font(Theme.Font.label).foregroundStyle(.secondary)
+                                Text(verbatim: String(count)).font(.headline.monospacedDigit()); Text("topicXcx.stat.merchantsUnit").font(Theme.Font.label).foregroundStyle(.secondary)
                             }
                         }.accessibilityElement(children: .combine)
                     }
                 }
-            }.accessibilityIdentifier("topic.statBar")
+                .padding(Theme.Space.s4)
+            }
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
+            .accessibilityIdentifier("topic.statBar")
         }
     }
 }
@@ -117,13 +122,14 @@ struct TopicXcxLineup: View {
 
 /// Source bottom bar. Purchase/sign-up keep their existing flows; nothing here dispatches a write.
 struct TopicXcxActionBar: View {
+    @Environment(\.cyPalette) private var palette
     let topic: TopicDetail
     var openSessions: () -> Void
     var openSelfPlay: () -> Void
     var openPricing: (() -> Void)?
     var body: some View {
         VStack(spacing: 6) {
-            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(.orange) }
+            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(palette.warning) }
             HStack {
                 switch TopicXcxFacts.action(topic) {
                 case .ticketWallet:
@@ -136,7 +142,7 @@ struct TopicXcxActionBar: View {
                         Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(.secondary)
                     }
                 case .selfPlay(let price):
-                    Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered)
+                    Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
                     Button(action: openSelfPlay) {
                         if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                         else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
@@ -151,8 +157,9 @@ struct TopicXcxActionBar: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.horizontal, Theme.Space.pageX)
-        .padding(.vertical, Theme.Space.s2)
-        .background(Color(uiColor: .systemBackground))
+        .padding(.vertical, Theme.Space.s2_5)
+        .background(.bar)
+        .overlay(alignment: .top) { Rectangle().fill(palette.borderSubtle).frame(height: 0.5) }
     }
 }
 
@@ -167,6 +174,7 @@ extension EnvironmentValues {
 
 /// Source tab "路线": every stop in order with its walking estimate.
 struct TopicXcxRouteSection: View {
+    @Environment(\.cyPalette) private var palette
     let topic: TopicDetail
     var body: some View {
         Section("topicXcx.tab.route") {
@@ -179,9 +187,9 @@ struct TopicXcxRouteSection: View {
                 if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(.subheadline.bold()) }
                 ForEach(TopicChapterItinerary(chapter: chapter).stops) { stop in
                     VStack(alignment: .leading, spacing: 2) {
-                        if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").font(.caption2).foregroundStyle(.secondary) }
+                        if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").font(Theme.Font.label).foregroundStyle(.secondary) }
                         HStack(alignment: .top) {
-                            Text(verbatim: String(stop.id + 1)).font(.caption.bold()).frame(width: 22, height: 22).background(Circle().fill(Color.secondary.opacity(0.2)))
+                            Text(verbatim: String(stop.id + 1)).font(Theme.Font.label.weight(.bold).monospacedDigit()).frame(minWidth: 24, minHeight: 24).background(Circle().fill(palette.bgRaised)).accessibilityHidden(true)
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: stop.node.name)
                                 if let hours = stop.node.businessTime { Text(verbatim: hours).font(.caption) }
@@ -204,13 +212,14 @@ struct TopicXcxSessionChip: View {
                 Text(LocalizedStringKey("topicXcx.weekday." + String(chip.weekday)))
                 Text(verbatim: chip.monthDay)
                 if let time = chip.time { Text(verbatim: time) }
-            }.font(.caption.bold()).accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
+            }.font(Theme.Font.label.weight(.semibold).monospacedDigit()).accessibilityElement(children: .combine).accessibilityIdentifier("topic.sessionChip")
         }
     }
 }
 
 /// Source 节点介绍: horizontal template cards (title, players, minutes). Images stay behind the gated gallery.
 struct TopicXcxTemplatesSection: View {
+    @Environment(\.cyPalette) private var palette
     let templates: [TopicTemplate]
     var body: some View {
         if !templates.isEmpty {
@@ -222,8 +231,8 @@ struct TopicXcxTemplatesSection: View {
                                 Text(verbatim: template.title).font(.subheadline.bold()).lineLimit(1)
                                 if let players = template.players { Text(verbatim: players).font(.caption) }
                                 Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))").font(.caption).foregroundStyle(.secondary)
-                            }.frame(width: 140, alignment: .leading).padding(10)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+                            }.frame(width: 140, alignment: .leading).padding(Theme.Space.s3)
+                                .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: Theme.Radius.lg, style: .continuous))
                                 .accessibilityElement(children: .combine).accessibilityIdentifier("topic.nodeIntro.\(template.id)")
                         }
                     }
