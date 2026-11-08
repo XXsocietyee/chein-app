@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 private struct CooperationNearbyDestinationKey: EnvironmentKey {
     static let defaultValue: (@MainActor () -> AnyView)? = nil
@@ -26,6 +27,7 @@ extension EnvironmentValues {
     @State private var operation: Task<Void, Never>?
     @State private var publicHomeSelection: NearbyMerchantCoordinator.PublicHomeSelection?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.openURL) private var openURL
     var body: some View {
         List {
             Section {
@@ -42,6 +44,27 @@ extension EnvironmentValues {
                         Text("cooperation.nearby.failed").font(.headline)
                         Text("cooperation.nearby.failed.detail").font(.footnote).foregroundStyle(.secondary)
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.nearby.failed")
+                }
+                if model.phase == .locationFailed || model.phase == .failed {
+                    // Source `cy-error` retry: re-run the same explicit, consented search.
+                    Button("nearbyMerchant.retry") { operation = Task { await model.search(purposeAccepted: purposeAccepted) } }
+                        .disabled(!purposeAccepted || !model.available || model.isBusy)
+                        .frame(minHeight: 44).accessibilityIdentifier("nearbyMerchant.retry")
+                }
+                if model.phase == .locationDenied {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("nearbyMerchant.locationDenied.title").font(.headline)
+                        Text("nearbyMerchant.locationDenied.detail").font(.footnote).foregroundStyle(.secondary)
+                        Button("nearbyMerchant.openSettings") {
+                            if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
+                        }.frame(minHeight: 44).accessibilityIdentifier("nearbyMerchant.openSettings")
+                    }.accessibilityElement(children: .contain).accessibilityIdentifier("nearbyMerchant.locationDenied")
+                }
+                if model.phase == .permissionDenied {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("nearbyMerchant.permissionDenied.title").font(.headline)
+                        Text("nearbyMerchant.permissionDenied.detail").font(.footnote).foregroundStyle(.secondary)
+                    }.accessibilityElement(children: .combine).accessibilityIdentifier("nearbyMerchant.permissionDenied")
                 }
             }
             if model.phase == .ready {

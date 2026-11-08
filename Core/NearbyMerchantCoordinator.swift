@@ -44,7 +44,7 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
         fileprivate let rowID: Int
         fileprivate let generation: UInt64
     }
-    public enum Phase: Equatable { case idle, unavailable, consentRequired, locating, loading, ready, locationFailed, failed }
+    public enum Phase: Equatable { case idle, unavailable, consentRequired, locating, loading, ready, locationFailed, locationDenied, permissionDenied, failed }
     public private(set) var phase: Phase = .idle
     private var storedRows: [NearbyMerchantRow] = []
     private var owner: CoopFlowSession?
@@ -100,8 +100,24 @@ public struct NearbyMerchantRow: Identifiable, Equatable {
             storedRows = NearbyMerchantRow.ordered(rows); owner = session; phase = .ready
         } catch {
             guard !Task.isCancelled, stamp == generation, approved(), reader.session == session else { return }
-            phase = phase == .locating ? .locationFailed : .failed
+            phase = Self.failurePhase(during: phase, error: error)
         }
+    }
+    /// Source `failureKind`: a refused location grant is a distinct, recoverable permission state
+    /// (Settings link), a 401/403-style server refusal is permission-denied, anything else is a retryable error.
+    static func failurePhase(during phase: Phase, error: Error) -> Phase {
+        if phase == .locating {
+            if let play = error as? PlayExperienceError, play == .disabled { return .locationDenied }
+            return .locationFailed
+        }
+        if let flow = error as? CoopFlowFailure {
+            switch flow {
+            case .permission, .inactiveMerchant: return .permissionDenied
+            case .server(let code, _) where code == 401 || code == 403: return .permissionDenied
+            default: break
+            }
+        }
+        return .failed
     }
     public func cancel() {
         generation &+= 1; location.stop(); storedRows = []; owner = nil; phase = .idle
