@@ -54,6 +54,12 @@ private func nativeAttributeText(_ key: String) -> String {
                     Label(nativeAttributeText("nativeAttribute.confirmed"), systemImage: "checkmark.circle")
                 }
             }
+            // Local file inspection only (Qmod import): no coordinator, service or transport is passed in,
+            // so opening it can never issue a request. It sits behind the same author entry gate.
+            Section {
+                NavigationLink { QmodAuthorImportView() } label: { Label("qmodImport.title", systemImage: "doc.badge.plus") }
+                    .accessibilityIdentifier("nativeAttribute.qmodImport")
+            }
             if let draft = coordinator.draft {
                 Section(nativeAttributeText("nativeAttribute.definitions")) {
                     ForEach(draft.rows) { row in
