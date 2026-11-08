@@ -39,7 +39,7 @@ public struct MerchantInStoreGameDraftSectionView: View {
             ForEach(presentation.productIssues) { issue in
                 HStack(alignment: .top, spacing: 8) {
                     Image(systemName: "xmark.octagon.fill")
-                        .foregroundStyle(.red)
+                        .foregroundStyle(CYColor.dangerText)
                     Text(verbatim: issue.message)
                         .font(.footnote)
                 }

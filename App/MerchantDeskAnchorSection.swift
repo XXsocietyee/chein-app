@@ -49,7 +49,7 @@ struct MerchantDeskAnchorAcceptance:Equatable {
                 VStack(alignment:.leading){
                     Text("known",tableName:"MerchantAnchorReadRecovery").font(.headline)
                     Text("original.anchor",tableName:"MerchantAnchorReadRecovery").font(.caption)
-                    Text(verbatim:"#\(flow.knownTargetID ?? 0) · \(request)").font(.caption).textSelection(.enabled)
+                    Text(verbatim:"\(flow.knownTargetID.map { "#\($0)" } ?? "—") · \(request)").font(CYTypography.meta).textSelection(.enabled)
                 }.accessibilityElement(children:.combine)
             } else if !flow.pending.isEmpty,flow.issue,flow.readState != .denied {
                 Text("unknown",tableName:"MerchantAnchorReadRecovery")

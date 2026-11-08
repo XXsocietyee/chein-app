@@ -84,7 +84,7 @@ struct ClubOpsGovernanceMembersSection: View {
                 VStack(alignment: .leading, spacing: 8) {
                     ClubOpsGovernanceCopy.member(member.nickname, id: member.id).font(.headline)
                     HStack(spacing: Theme.Space.s3) {
-                        ban(member).foregroundStyle(.red)
+                        ban(member).foregroundStyle(CYColor.dangerText)
                         if roster.viewerIsOwner { transfer(member) }
                     }.buttonStyle(.bordered).controlSize(.small)
                 }.accessibilityIdentifier("clubOpsGov.member.\(member.id)")

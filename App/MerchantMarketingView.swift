@@ -268,7 +268,7 @@ import SwiftUI
                 Text(round.nodeName ?? appLocalized("merchantMarketing.unnamed", locale: locale)).font(.headline)
                 Text(round.playDay); if let question = round.question { Text(question) }
                 if let days = round.daysLeft {
-                    if days <= 0 { Label("merchantMarketing.today", systemImage: "exclamationmark.circle").foregroundStyle(.red) }
+                    if days <= 0 { Label("merchantMarketing.today", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
                     else { LabeledContent("merchantMarketing.daysLeft", value: String(days)) }
                 }
                 if let count = round.betCount, count > 0 { LabeledContent("merchantMarketing.bets", value: String(count)) }

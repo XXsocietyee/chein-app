@@ -465,7 +465,7 @@ import SwiftUI
         .toolbar { EditButton().disabled(!model.fullEdit) }
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: 8) {
+            VStack(spacing: CYSpacing.sm) {
                 HStack {
                     Button("projectEdit.saveLocal") { focusedField = nil; model.saveLocal() }
                         .buttonStyle(.bordered).disabled(!model.canSaveLocal).accessibilityIdentifier("projectEdit.saveLocal")
@@ -481,7 +481,7 @@ import SwiftUI
                     Button { focusedField = nil; model.review(intent: .saveCloudDraft) } label: { Text("action.saveCloud", tableName: "ProjectCloudDraftReceipt") }
                         .buttonStyle(.bordered).disabled(!model.canReview).accessibilityIdentifier("projectEdit.saveCloudDraft")
                 }
-            }.frame(maxWidth: .infinity, minHeight: 44).padding().background(.regularMaterial)
+            }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget).padding(CYSpacing.lg).background(.regularMaterial)
         }
         .task(id: sessionRevision) { await model.load() }
         .modifier(ProjectEditAutosaveObservation(model: model))

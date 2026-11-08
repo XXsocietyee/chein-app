@@ -360,7 +360,7 @@ struct ClubOperationsWorkspaceView: View {
                 NavigationLink {
                     ClubGovernanceReadView(operation: .dissolutionBlockers, scope: .init(clubID: profile.club.id), identity: identity,
                         access: governance.access, coordinator: governance.coordinator)
-                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(.red) }
+                } label: { Label("club.ops.dissolve", systemImage: "trash").foregroundStyle(CYColor.dangerText) }
                     .disabled(loading || state.locksForm)
                     .accessibilityIdentifier("club.ops.dissolve")
             } footer: { Text("club.ops.dissolve.footer") }

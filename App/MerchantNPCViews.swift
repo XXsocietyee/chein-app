@@ -134,7 +134,7 @@ import SwiftUI
                     Text("merchantNPCMessage.limitHint").font(.caption).foregroundStyle(.secondary)
                     if draftValidation.codePointCount > MerchantNPCMessageDraft.maximumCodePoints {
                         Label("merchantNPCMessage.overLimit", systemImage: "exclamationmark.circle")
-                            .font(.footnote).foregroundStyle(.red)
+                            .font(.footnote).foregroundStyle(CYColor.dangerText)
                             .accessibilityIdentifier("merchantNPCMessage.overLimit")
                     }
                 }.padding().background(.regularMaterial)

@@ -29,7 +29,7 @@ struct ClubOpsNotifyContentFields: View {
                 .lineLimit(3...8)
                 .accessibilityIdentifier("club.gov.input.content")
             if !(title.isEmpty && content.isEmpty), let issue = ClubOpsNotifyPresentation.draftIssue(title: title, content: content) {
-                ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).font(.footnote).foregroundStyle(.red)
+                ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.issue." + issue.rawValue).font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("clubOpsJN.notify.issue")
             }
         }
@@ -37,7 +37,7 @@ struct ClubOpsNotifyContentFields: View {
     private func label(_ key: String, count text: String, limit: Int) -> some View {
         HStack(spacing: 2) {
             ClubOpsJoinNotifyCopy.text(key)
-            Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true)
+            Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true)
             Spacer()
             Text(verbatim: "\(text.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count)/\(limit)")
                 .font(.caption).monospacedDigit().foregroundStyle(.secondary)

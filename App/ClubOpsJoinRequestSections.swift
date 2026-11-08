@@ -58,7 +58,7 @@ struct ClubOpsJoinRejectReasonField: View {
                 .accessibilityIdentifier("clubOpsJN.join.reason")
             HStack {
                 if !ClubOpsJoinReviewReason.isValid(text) {
-                    Text("clubOpsJN.join.reason.tooLong", tableName: "ClubOpsJoinNotify").foregroundStyle(.red)
+                    Text("clubOpsJN.join.reason.tooLong", tableName: "ClubOpsJoinNotify").foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("clubOpsJN.join.reason.tooLong")
                 }
                 Spacer()

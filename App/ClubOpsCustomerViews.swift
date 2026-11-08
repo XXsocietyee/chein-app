@@ -210,7 +210,7 @@ struct ClubOpsCustomerTagRemarkEditor: View {
         TextField(text: $remark, axis: .vertical) { Text("clubOps.customer.remarkPlaceholder", tableName: "ClubOpsCustomer") }
             .accessibilityIdentifier("club.gov.input.remark")
         if let current = issue ?? ClubOpsCustomerTagRemarkDraft.issue(tagsText: tagsText, remark: remark) {
-            Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer").font(.footnote).foregroundStyle(.red)
+            Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer").font(.footnote).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("clubOps.customer.draftIssue")
         }
     }
