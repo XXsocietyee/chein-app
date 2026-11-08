@@ -1,10 +1,10 @@
-# Re-point report RP-10 (chunk 10, 30 routes) — NOT COMPILED
+# Re-point report RP-10 (chunk 10, 29 routes) — NOT COMPILED
 
 Base: `origin/wip/gate-allowlist`. Backend source read: `chengyin` master checkout (commit 014fc0d8 is not present in the clone, so
 line numbers are from the local master; verify against the deployed commit). Controller dir: `chengyinhub-admin/src/main/java/com/chengyinhub/web/controller/api/` (abbrev `C/`); mini-program `chengyinhub-xcx/` (abbrev `XCX/`).
 New files: `Core/RePoint10Routes.swift`, `Tests/CoreTests/RePoint10RoutesTests.swift` (fixtures SYNTHETIC). No existing file edited. No gate opened.
 
-**Totals: REPOINTED 3 · TRUE-GAP 26 · NEEDS-OWNER 1**
+**Totals: REPOINTED 3 · TRUE-GAP 25 · NEEDS-OWNER 1**
 
 | iOS route | production equivalent | evidence | status | new files |
 |---|---|---|---|---|

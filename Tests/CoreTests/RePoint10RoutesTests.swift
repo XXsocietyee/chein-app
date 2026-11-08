@@ -6,13 +6,13 @@ import XCTest
 final class RePoint10RoutesTests: XCTestCase {
     private let base = URL(string: "https://example.invalid")!
 
-    func testTableCoversAllThirtyRoutesOnce() {
-        XCTAssertEqual(RePoint10Routes.table.count, 30)
-        XCTAssertEqual(Set(RePoint10Routes.table.map(\.iosPath)).count, 30)
+    func testTableCoversAll29RoutesOnce() {
+        XCTAssertEqual(RePoint10Routes.table.count, 29)
+        XCTAssertEqual(Set(RePoint10Routes.table.map(\.iosPath)).count, 29)
     }
     func testCounts() {
         let c = Dictionary(grouping: RePoint10Routes.table, by: \.status).mapValues(\.count)
-        XCTAssertEqual(c[.repointed], 3); XCTAssertEqual(c[.needsOwner], 1); XCTAssertEqual(c[.trueGap], 26)
+        XCTAssertEqual(c[.repointed], 3); XCTAssertEqual(c[.needsOwner], 1); XCTAssertEqual(c[.trueGap], 25)
     }
     func testGapRoutesProduceNoRequest() {
         XCTAssertNil(RePoint10Routes.formRequest(baseURL: base, iosPath: "/api/workshop/owned", fields: ["id": "1"], token: "t"))
