@@ -848,12 +848,12 @@ private struct ChannelBurstGroupCard: View {
 
             HStack(alignment: .top, spacing: 10) {
                 Circle()
-                    .fill(group.isSystemGroup ? Color.orange.opacity(0.2) : Color.accentColor.opacity(0.18))
+                    .fill(group.isSystemGroup ? CYColor.warningSoft : CYColor.accentSoft)
                     .frame(width: 34, height: 34)
                     .overlay(
                         Text(String(group.senderName.prefix(1)))
                             .font(.subheadline.weight(.bold))
-                            .foregroundStyle(group.isSystemGroup ? .orange : Color.accentColor)
+                            .foregroundStyle(group.isSystemGroup ? CYColor.warningText : CYColor.accentText)
                     )
 
                 VStack(alignment: .leading, spacing: 4) {
@@ -931,11 +931,12 @@ private struct ChannelBurstGroupCard: View {
                                             .foregroundStyle(.secondary)
                                     case ChannelOutboundSendPhase.failed.rawValue:
                                         Image(systemName: "exclamationmark.circle.fill")
-                                            .foregroundStyle(.red)
+                                            .foregroundStyle(CYColor.dangerText)
                                             .font(.caption2)
+                                            .accessibilityHidden(true)
                                         Text(copy("发送失败", "Failed to send"))
                                             .font(.caption2)
-                                            .foregroundStyle(.red)
+                                            .foregroundStyle(CYColor.dangerText)
                                         if let cid = item.transcriptMessage.clientMessageID {
                                             Button(copy("重试（先核对回执）", "Retry (check receipt first)")) {
                                                 onRetrySend(cid)
@@ -1063,12 +1064,12 @@ public struct ClubChannelMemberRosterSheet: View {
                                                 .font(.caption2.weight(.semibold))
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 1)
-                                                .background(Color.accentColor.opacity(0.14), in: Capsule())
-                                                .foregroundStyle(Color.accentColor)
+                                                .background(CYColor.accentSoft, in: Capsule())
+                                                .foregroundStyle(CYColor.accentText)
                                             if coordinator.blockedSenderIDs.contains(member.memberID) {
                                                 Text(copy("已拉黑", "Blocked"))
                                                     .font(.caption2)
-                                                    .foregroundStyle(.red)
+                                                    .foregroundStyle(CYColor.dangerText)
                                             }
                                         }
                                         if let expires = member.expiresText, !expires.isEmpty {
@@ -1093,7 +1094,7 @@ public struct ClubChannelMemberRosterSheet: View {
                                                 )
                                             }
                                         }
-                                        .tint(.orange)
+                                        .tint(CYColor.warningText)
 
                                         Button(copy("举报", "Report")) {
                                             Task {
@@ -1150,8 +1151,8 @@ public struct ClubChannelMemberRosterSheet: View {
                                                 .font(.caption2.weight(.semibold))
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 1)
-                                                .background(Color.red.opacity(0.14), in: Capsule())
-                                                .foregroundStyle(.red)
+                                                .background(CYColor.dangerSoft, in: Capsule())
+                                                .foregroundStyle(CYColor.dangerText)
                                         }
                                         Text("\(ban.reasonCode): \(ban.reasonText)")
                                             .font(.caption2)
