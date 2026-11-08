@@ -42,7 +42,7 @@ import SwiftUI
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
-                                .font(.caption).foregroundStyle(.orange)
+                                .font(.caption).foregroundStyle(CYColor.warningText)
                         }
                         Label(LocalizedStringKey(row.sourceStatusKey), systemImage: "envelope")
                         if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status).font(.caption) }

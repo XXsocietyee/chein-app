@@ -15,7 +15,7 @@ struct DiscoveryTemplateDetailParitySections: View {
             if showsPublisherRow { publisherRow }
             if let feedback = presentation.reviewFeedback {
                 Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                    .font(.callout).foregroundStyle(.orange)
+                    .font(.callout).foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("discovery.templateDetail.reviewFeedback")
             }
             if !stats.isEmpty {

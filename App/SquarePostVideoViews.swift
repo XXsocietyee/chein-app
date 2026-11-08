@@ -146,7 +146,7 @@ struct SquarePostVideoComposerSection: View {
                 preview(item)
                 if rejections.isEmpty { Label("square.video.withinPolicy", systemImage: "checkmark.circle").accessibilityIdentifier("square.video.accepted") }
                 ForEach(rejections, id: \.self) { rejection in
-                    Text(LocalizedStringKey("square.video.reject." + String(describing: rejection))).foregroundStyle(.red)
+                    Text(LocalizedStringKey("square.video.reject." + String(describing: rejection))).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("square.video.reject")
                 }
             case .restored(let item, let status):
