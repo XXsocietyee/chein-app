@@ -223,6 +223,10 @@ import SwiftUI
                         .frame(maxWidth: .infinity)
                         .listRowBackground(Color.clear)
                         .disabled(!coordinator.canDispatch(review.command) || busy || locked).accessibilityIdentifier("club.gov.confirm")
+                    if ClubOpsEventWriteGate.state(canDispatch: coordinator.canDispatch(review.command), busy: busy, locked: locked).showsNotAvailableNote {
+                        Text("clubOpsEvent.write.notAvailable", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("clubOpsEvent.write.notAvailable")
+                    }
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {

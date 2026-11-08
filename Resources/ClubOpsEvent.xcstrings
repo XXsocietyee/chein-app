@@ -1200,6 +1200,22 @@
           }
         }
       }
+    },
+    "clubOpsEvent.write.notAvailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This change is not available yet. Nothing will be sent."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该操作暂未开放，不会发送任何内容。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
