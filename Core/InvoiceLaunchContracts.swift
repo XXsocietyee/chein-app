@@ -104,6 +104,36 @@ public struct InvoiceLaunchOrder: Decodable, Equatable {
 }
 public enum InvoiceLaunchStatus: String, Decodable {
     case submitted = "SUBMITTED", issued = "ISSUED", rejected = "REJECTED", cancelled = "CANCELLED"
+    /// Back-office processing states the server also returns (UserInvoiceProcessingService). Without
+    /// them one such row would fail decoding of the whole list/detail.
+    case claimed = "CLAIMED", processing = "PROCESSING", issueUnknown = "ISSUE_UNKNOWN", paused = "PAUSED"
+
+    /// Source subpackageMember/invoice/base.js PLAYER_STATUS: the player sees one "issuing" state for
+    /// SUBMITTED/CLAIMED/PROCESSING/ISSUE_UNKNOWN, plus paused, issued, rejected and cancelled.
+    public enum PlayerState: String, Equatable { case issuing, paused, issued, rejected, cancelled }
+    public var playerState: PlayerState {
+        switch self {
+        case .submitted, .claimed, .processing, .issueUnknown: return .issuing
+        case .paused: return .paused
+        case .issued: return .issued
+        case .rejected: return .rejected
+        case .cancelled: return .cancelled
+        }
+    }
+    /// Filter-chip key (SUBMITTED / ISSUED / REJECTED / CANCELLED, plus PAUSED which only "all" shows).
+    public var filterKey: String {
+        switch playerState {
+        case .issuing: return "SUBMITTED"
+        case .paused: return "PAUSED"
+        case .issued: return "ISSUED"
+        case .rejected: return "REJECTED"
+        case .cancelled: return "CANCELLED"
+        }
+    }
+    /// Key in the InvoiceLaunchUI string table for the status label in lists.
+    public var labelKey: String { filterKey }
+    /// Key for the detail status notice.
+    public var noticeKey: String { "notice." + playerState.rawValue }
 }
 /// Preserve the Jackson Date representation for display; never infer a deadline.
 public enum InvoiceLaunchTime: Decodable, Equatable {

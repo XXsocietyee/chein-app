@@ -78,7 +78,7 @@ import SwiftUI
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: row.titleName).font(.headline)
                 Spacer()
-                invoiceText(row.status.rawValue)
+                invoiceText(row.status.labelKey)
             }
             LabeledContent { invoiceText(row.titleType) } label: { invoiceText("titleType") }
             if let tax = row.taxNoMasked, !tax.isEmpty {
