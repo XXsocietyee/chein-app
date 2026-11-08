@@ -7,3 +7,4 @@
 | discovery.emptyRefresh | Try refreshing | 刷新试试 | pages/template |
 | discovery.otherTemplatesHint | Not filtered out, still shown | 不筛掉，继续显示 | pages/template |
 | discovery.searchingFor %@ | Searching “%@” | 正在搜索「%@」 | pages/template |
+| myProject.syncing | Syncing the latest projects… | 正在同步最新项目… | subpackageA/pages/myproject |
