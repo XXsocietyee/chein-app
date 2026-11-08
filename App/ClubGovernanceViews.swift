@@ -1299,6 +1299,14 @@ struct ClubGovernanceReadView: View {
                 }.accessibilityElement(children: .combine)
                 ClubGovernanceFactRows(value: value, fields: ["startDate", "endDate", "playModeText"])
             }
+            // Mini 核销 card: only for running/ended, uncancelled sessions the server granted `canViewVerify`.
+            // Counts come from the overview payload when it carries them; missing counts render as an em dash.
+            let verifyAudit = ClubTopicDetailPort.State(rawValue: value["status"].string ?? "") ?? .confirmed
+            let verifyDisplay = ClubTopicDetailPort.display(audit: verifyAudit, sessionStatus: value["sessionStatus"].string)
+            if ClubTopicDetailPort.showsVerify(verifyDisplay, canViewVerify: value["canViewVerify"].bool) {
+                ClubTopicVerifySummarySection(metrics: ClubTopicDetailPort.verifyMetrics(
+                    pending: value["pendingVerifyCount"].int, verifiedByMe: value["verifiedByMeCount"].int, headcount: value["sessionHeadcount"].int))
+            }
             Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
                 Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
