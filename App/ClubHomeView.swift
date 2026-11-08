@@ -114,7 +114,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         case .unavailable:
             Section {
                 Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("club.home.locality.unavailable")
                 Button("action.retry") { Task { await loadLocality() } }
                     .accessibilityIdentifier("club.home.locality.retry")

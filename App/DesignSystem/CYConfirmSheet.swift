@@ -6,14 +6,39 @@ public struct CYConfirmSheet: View {
     private let message: String
     private let confirmTitle: String
     private let onConfirm: () -> Void
+    private let isDestructive: Bool
+    private let confirmIdentifier: String?
 
     @Environment(\.dismiss) private var dismiss
 
-    public init(title: String, message: String, confirmTitle: String, onConfirm: @escaping () -> Void) {
+    public init(title: String, message: String, confirmTitle: String,
+                isDestructive: Bool = false, confirmIdentifier: String? = nil,
+                onConfirm: @escaping () -> Void) {
+        self.isDestructive = isDestructive
+        self.confirmIdentifier = confirmIdentifier
         self.title = title
         self.message = message
         self.confirmTitle = confirmTitle
         self.onConfirm = onConfirm
+    }
+
+    @ViewBuilder private var confirmButton: some View {
+        let label = Button(action: onConfirm) {
+            Text(confirmTitle).frame(maxWidth: .infinity)
+        }
+        if let confirmIdentifier {
+            styled(label).accessibilityIdentifier(confirmIdentifier)
+        } else {
+            styled(label)
+        }
+    }
+
+    @ViewBuilder private func styled(_ label: some View) -> some View {
+        if isDestructive {
+            label.buttonStyle(.cyDestructive)
+        } else {
+            label.buttonStyle(.cyPrimary)
+        }
     }
 
     public var body: some View {
@@ -33,11 +58,7 @@ public struct CYConfirmSheet: View {
         .background(CYColor.bgElevated.ignoresSafeArea())
         .safeAreaInset(edge: .bottom) {
             VStack(spacing: CYSpacing.sm) {
-                Button(action: onConfirm) {
-                    Text(confirmTitle)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.cyPrimary)
+                confirmButton
                 Button("action.cancel") { dismiss() }
                     .buttonStyle(.cySecondary(fullWidth: true))
             }
