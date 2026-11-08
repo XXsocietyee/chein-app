@@ -29,9 +29,13 @@ import SwiftUI
     var body: some View {
         List {
             switch model.phase {
-            case .unavailable: Text("playx.backpack.unavailable").accessibilityIdentifier("playx.backpack.unavailable")
+            case .unavailable:
+                CYEmptyStateView(systemImage: "backpack", title: "playx.backpack.unavailable")
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("playx.backpack.unavailable")
             case .failed(let message):
                 Group { if let message { Text(verbatim: message) } else { Text("playx.backpack.failed") } }
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("playx.backpack.failed")
                 Button("playx.backpack.retry") { Task { await model.refresh() } }.accessibilityIdentifier("playx.backpack.retry")
             case .loading where model.backpack == nil: ProgressView("playx.loading")
@@ -40,6 +44,8 @@ import SwiftUI
             if let actions = model.actions { actionStatus(actions) }
             if let bag = model.displayedBackpack { content(bag) }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle(Text("playx.backpack.title"))
         .accessibilityIdentifier("playx.backpack")
         .refreshable { await model.refresh() }
@@ -67,13 +73,14 @@ import SwiftUI
 
     @ViewBuilder private func content(_ bag: PlayThemeBackpack) -> some View {
         Section {
-            LabeledContent { Text("playx.backpack.slots \(bag.used) \(bag.capacity)") } label: { Text("playx.backpack.load") }
+            LabeledContent { Text("playx.backpack.slots \(bag.used) \(bag.capacity)").font(CYTypography.numericBody) } label: { Text("playx.backpack.load") }
                 .accessibilityIdentifier("playx.backpack.load")
             ForEach(bag.values, id: \.key) { row in
                 LabeledContent {
                     Text(verbatim: row.max.map { "\(row.value) / \($0)" } ?? row.value)
+                        .font(CYTypography.numericBody)
                 } label: {
-                    HStack { name(row.name); if row.zero { Text("playx.backpack.zero").foregroundStyle(.red) } }
+                    HStack { name(row.name); if row.zero { Text("playx.backpack.zero").foregroundStyle(CYColor.dangerText) } }
                 }
                 .accessibilityIdentifier("playx.backpack.value.\(row.key)")
             }
@@ -119,7 +126,7 @@ import SwiftUI
                             VStack(alignment: .leading) { name(item.name); effect(item.effect).font(.caption).foregroundStyle(.secondary) }
                             Spacer()
                             VStack(alignment: .trailing) {
-                                if let q = item.quantity { Text(verbatim: "×\(q)") }
+                                if let q = item.quantity { Text(verbatim: "×\(q)").font(CYTypography.numericBody) }
                                 if let cost = item.slotCost { Text("playx.backpack.perItemSlots \(cost)").font(.caption) }
                             }
                         }
@@ -139,9 +146,17 @@ import SwiftUI
                     }
                 }
             }
-            if bag.items.isEmpty, bag.pending.isEmpty { Text("playx.backpack.noItems").accessibilityIdentifier("playx.backpack.noItems") }
+            if bag.items.isEmpty, bag.pending.isEmpty {
+                CYEmptyStateView(systemImage: "backpack", title: "playx.backpack.noItems")
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("playx.backpack.noItems")
+            }
         case .clues:
-            if bag.clues.isEmpty { Text("playx.backpack.noClues").accessibilityIdentifier("playx.backpack.noClues") }
+            if bag.clues.isEmpty {
+                CYEmptyStateView(systemImage: "magnifyingglass", title: "playx.backpack.noClues")
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("playx.backpack.noClues")
+            }
             ForEach(bag.clues) { clue in
                 VStack(alignment: .leading, spacing: 4) {
                     if let n = clue.name { Text(verbatim: n).font(.headline) } else { Text("playx.backpack.clue").font(.headline) }
@@ -340,7 +355,7 @@ import SwiftUI
                     if choice.operation == .discard {
                         Text(copy("将丢弃 1 件持有物资，请确认后继续。", "This discards one held item. Confirm to continue."))
                     }
-                    if let error = actionError { Text(verbatim: error).foregroundStyle(.red) }
+                    if let error = actionError { Text(verbatim: error).foregroundStyle(CYColor.dangerText) }
                 }
                 if let actions = model.actions, actions.isCurrent {
                     if actions.facts?.status == "COMPLETED", choice.operation == .receive,
@@ -419,3 +434,8 @@ import SwiftUI
         }
     }
 }
+
+#if DEBUG
+#Preview("Backpack · dark (player)") { PlayThemeBackpackFixtureHost().preferredColorScheme(.dark) }
+#Preview("Backpack · light sanity") { PlayThemeBackpackFixtureHost().preferredColorScheme(.light) }
+#endif

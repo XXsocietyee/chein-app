@@ -65,7 +65,7 @@ import SwiftUI
                 if model.refreshing { Section { ProgressView("merchant.perks.refreshing") } }
                 if model.rows.isEmpty {
                     Section {
-                        ContentUnavailableView("merchant.perks.empty", systemImage: "gift")
+                        CYEmptyStateView(systemImage: "gift", title: "merchant.perks.empty")
                             .accessibilityIdentifier("merchant.perks.empty")
                     }
                 }
@@ -79,21 +79,21 @@ import SwiftUI
         case .idle: EmptyView()
         case .saving: ProgressView("merchant.perks.saving")
         case .deleting: ProgressView("merchant.perks.deleting")
-        case .saved: bannerText("merchant.perks.saved", tint: .green)
-        case .deleted: bannerText("merchant.perks.deleted", tint: .green)
-        case .unconfirmed: bannerText("merchant.perks.unconfirmed", tint: .orange)
-        case .invalid: bannerText("merchant.perks.invalid", tint: .red)
-        case .notAvailableYet: bannerText("merchant.perks.notAvailable", tint: .secondary)
-        case .permissionDenied: bannerText("merchant.perks.permission.detail", tint: .red)
-        case .failed: bannerText("merchant.perks.actionFailed", tint: .red)
+        case .saved: bannerText("merchant.perks.saved", tint: CYColor.successText)
+        case .deleted: bannerText("merchant.perks.deleted", tint: CYColor.successText)
+        case .unconfirmed: bannerText("merchant.perks.unconfirmed", tint: CYColor.warningText)
+        case .invalid: bannerText("merchant.perks.invalid", tint: CYColor.dangerText)
+        case .notAvailableYet: bannerText("merchant.perks.notAvailable", tint: CYColor.textSecondary)
+        case .permissionDenied: bannerText("merchant.perks.permission.detail", tint: CYColor.dangerText)
+        case .failed: bannerText("merchant.perks.actionFailed", tint: CYColor.dangerText)
         }
     }
 
     private func bannerText(_ key: LocalizedStringKey, tint: Color) -> some View {
         HStack {
-            Text(key).font(.subheadline).foregroundStyle(tint)
+            Text(key).font(CYTypography.bodyCompact).foregroundStyle(tint)
             Spacer()
-            Button("action.close") { model.dismissAction() }.font(.footnote).frame(minHeight: 44)
+            Button("action.close") { model.dismissAction() }.font(CYTypography.meta).frame(minHeight: CYSpacing.minTouchTarget)
         }
         .accessibilityElement(children: .combine).accessibilityIdentifier("merchant.perks.banner")
     }
@@ -114,17 +114,26 @@ import SwiftUI
     private func rowView(_ row: MerchantPerkTemplateRow) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(verbatim: row.name).font(.headline)
+                Text(verbatim: row.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Spacer()
-                if row.usable { Text(typeKey(row.typeIndex)).font(.caption) }
-                else { Text("merchant.perks.expired").font(.caption).foregroundStyle(.orange) }
+                if row.usable {
+                    Text(typeKey(row.typeIndex)).font(CYTypography.caption)
+                        .foregroundStyle(CYColor.accentText)
+                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                        .background(CYColor.accentSoft, in: Capsule())
+                } else {
+                    Text("merchant.perks.expired").font(CYTypography.caption)
+                        .foregroundStyle(CYColor.warningText)
+                        .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xxs)
+                        .background(CYColor.warningSoft, in: Capsule())
+                }
             }
             HStack(spacing: 12) {
                 if let retail = row.retailValue { fact("merchant.perks.retail", NSDecimalNumber(decimal: retail).stringValue) }
                 if let cost = row.unitCost { fact("merchant.perks.cost", NSDecimalNumber(decimal: cost).stringValue) }
                 if let quota = row.quota { fact("merchant.perks.quota", String(quota)) }
                 if let end = row.validEnd { fact("merchant.perks.validUntil", end) }
-            }.font(.footnote).foregroundStyle(.secondary)
+            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }
         .accessibilityElement(children: .combine)
         .swipeActions {

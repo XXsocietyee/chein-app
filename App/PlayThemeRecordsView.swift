@@ -14,7 +14,9 @@ import SwiftUI
                     .accessibilityIdentifier("playx.themeRecords.row.\(row.sessionID)")
             }
             if model.rows.isEmpty, !model.busy, model.issue == nil {
-                Text("playx.themeRecords.empty").accessibilityIdentifier("playx.themeRecords.empty")
+                CYEmptyStateView(systemImage: "clock.arrow.circlepath", title: "playx.themeRecords.empty")
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("playx.themeRecords.empty")
             }
             if model.busy, model.cardSessionID == nil { ProgressView("playx.themeRecords.loading") }
             if model.cardSessionID == nil, let issue = model.issue { issueText(issue) }
@@ -28,6 +30,8 @@ import SwiftUI
                     .disabled(model.busy).accessibilityIdentifier("playx.themeRecords.more")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle(Text("playx.themeRecords.title"))
         .accessibilityIdentifier("playx.themeRecords")
         .task { if model.rows.isEmpty { await model.open() } }
@@ -42,16 +46,19 @@ import SwiftUI
 
     private func rowLabel(_ row: PlayThemeHistoryRow) -> some View {
         HStack {
-            Image(systemName: row.hasCard ? "checkmark.circle" : "clock")
-            VStack(alignment: .leading, spacing: 2) {
-                outcomeText(row.outcome).font(.headline)
-                if let scene = row.sceneName { Text(verbatim: scene).font(.caption) }
-                if let summary = row.summary { Text(verbatim: summary).font(.caption).foregroundStyle(.secondary) }
+            Image(systemName: row.hasCard ? "checkmark.circle.fill" : "clock")
+                .foregroundStyle(row.hasCard ? CYColor.successText : CYColor.textTertiary)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                outcomeText(row.outcome).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                if let scene = row.sceneName { Text(verbatim: scene).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let summary = row.summary { Text(verbatim: summary).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             }
             Spacer()
-            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).font(.caption) }
-            else { Text("playx.themeRecords.inProgress").font(.caption) }
+            if let ended = row.endedAt { Text(ended, format: .dateTime.year().month().day()).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+            else { Text("playx.themeRecords.inProgress").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
         }
+        .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)
     }
 
@@ -72,25 +79,25 @@ import SwiftUI
             case .teamCardMissing: Text("playx.themeRecords.teamCardMissing")
             }
         }
-        .foregroundStyle(.red).accessibilityIdentifier("playx.themeRecords.issue")
+        .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("playx.themeRecords.issue")
     }
 
     private var cardContent: some View {
         List {
             if let title { Text(verbatim: title).font(.caption) }
             if let card = model.card {
-                if let cardTitle = card.title { Text(verbatim: cardTitle).font(.title3.bold()) } else { Text("playx.themeRecords.cardTitle").font(.title3.bold()) }
+                if let cardTitle = card.title { Text(verbatim: cardTitle).font(CYTypography.sheetTitle) } else { Text("playx.themeRecords.cardTitle").font(CYTypography.sheetTitle) }
                 if let summary = card.summary { Text(verbatim: summary) }
                 if card.scene != nil || !card.values.isEmpty {
                     Section {
                         if let scene = card.scene { LabeledContent { Text(verbatim: scene) } label: { Text("playx.themeRecords.scene") } }
                         ForEach(Array(card.values.enumerated()), id: \.offset) { _, row in
-                            LabeledContent { Text(verbatim: row.value) } label: { valueName(row.name) }
+                            LabeledContent { Text(verbatim: row.value).font(CYTypography.numericBody) } label: { valueName(row.name) }
                         }
                     }
                 }
                 ForEach(Array((card.items + card.medals).enumerated()), id: \.offset) { _, row in
-                    LabeledContent(row.name, value: "×\(row.quantity)")
+                    LabeledContent { Text(verbatim: "×\(row.quantity)").monospacedDigit() } label: { Text(verbatim: row.name) }
                 }
                 ForEach(Array(card.epilogues.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading) { Text(verbatim: row.name).font(.headline); Text(verbatim: row.line) }
@@ -108,6 +115,8 @@ import SwiftUI
                     .accessibilityIdentifier("playx.themeRecords.retryCard")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .accessibilityIdentifier("playx.themeRecords.card")
     }
 
@@ -130,3 +139,8 @@ import SwiftUI
             && (!model.rows.isEmpty || model.issue == .historyFailed)
     }
 }
+
+#if DEBUG
+#Preview("Records · dark (player)") { PlayThemeRecordsFixtureHost().preferredColorScheme(.dark) }
+#Preview("Records · light sanity") { PlayThemeRecordsFixtureHost().preferredColorScheme(.light) }
+#endif

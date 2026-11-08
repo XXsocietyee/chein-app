@@ -80,7 +80,7 @@ struct QuestifyImageEntityCard<Details:View>:View {
         .contentShape(RoundedRectangle(cornerRadius:24,style:.continuous))
     }
     private var placeholder:some View {
-        Image(systemName:fallbackSymbol).font(.system(size:48,weight:.light))
+        Image(systemName:fallbackSymbol).font(.largeTitle.weight(.light)).imageScale(.large)
             .foregroundStyle(.white.opacity(0.2)).padding(28)
             .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.topTrailing)
             .accessibilityHidden(true)

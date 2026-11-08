@@ -41,7 +41,7 @@ struct LoginView: View {
                     Section { Label("auth.notConfigured",systemImage:"info.circle") }
                 }
                 if let key=session.errorKey {
-                    Section { Text(LocalizedStringKey(key)).foregroundStyle(.red).accessibilityIdentifier("auth.error") }
+                    Section { Text(LocalizedStringKey(key)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error") }
                 }
                 SessionRestorationRetrySection(session: session)
                 if !consentGranted {
@@ -60,6 +60,8 @@ struct LoginView: View {
                         .accessibilityIdentifier("auth.otherChannels")
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(CYColor.bgPage.ignoresSafeArea())
             .appNavigationTitle("auth.title")
             .toolbar {
                 ToolbarItem(placement:.confirmationAction) { LanguageSwitcher() }

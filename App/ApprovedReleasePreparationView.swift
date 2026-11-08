@@ -45,7 +45,7 @@ import SwiftUI
         NavigationStack {
             Form {
                 Text(String(localized: LocalizedStringResource("approvedRelease.readOnly", defaultValue: "This is a captured server-approved summary, not your editable draft. Reading it creates no release.", locale: locale)))
-                    .font(.footnote).accessibilityIdentifier("approvedRelease.readOnly")
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("approvedRelease.readOnly")
                 if !model.flow.isCurrent {
                     Text(String(localized: LocalizedStringResource("approvedRelease.changedContext", defaultValue: "This review is no longer current. Close it and return to the current submission.", locale: locale)))
                 } else {
@@ -64,6 +64,7 @@ import SwiftUI
                     if let publisher = model.publisher { publication(publisher) }
                 }
             }
+            .p04LifecycleSurface()
             .navigationTitle(String(localized: LocalizedStringResource("approvedRelease.title", defaultValue: "Approved snapshot", locale: locale)))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -72,6 +73,7 @@ import SwiftUI
                 }
             }
         }
+        .preferredColorScheme(.dark)
         .task(id: original.id) { await model.load() }
         .sheet(item: model.confirmationBinding(confirmation)) { captured in
             ApprovedReleasePublicationConfirmationView(original: captured, cancel: model.cancel, confirm: model.confirm)
@@ -82,7 +84,7 @@ import SwiftUI
         let captured = publisher.snapshot
         Section {
             Text(String(localized: LocalizedStringResource("approvedRelease.publishScope", defaultValue: "Creating an immutable release records this exact approved version. It does not by itself prove public listing, player eligibility or successful play.", locale: locale)))
-                .font(.footnote)
+                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             switch publisher.state {
             case .sending: ProgressView().accessibilityIdentifier("approvedRelease.publication.sending")
             case .known(let receipt):

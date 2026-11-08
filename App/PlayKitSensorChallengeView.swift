@@ -115,7 +115,7 @@ import SwiftUI
             let total = kind == .quietHold ? stage.quiet.targetSeconds : stage.shout.targetSeconds
             let color: Color = level > threshold ? .red : level > warning ? .orange : .green
             VStack(spacing: 12) {
-                Text(verbatim: decimal(max(0, total - held))).font(.system(size: 64, weight: .bold, design: .rounded)).monospacedDigit()
+                Text(verbatim: decimal(max(0, total - held))).font(.system(.largeTitle, design: .rounded, weight: .bold)).monospacedDigit()
                     .accessibilityLabel(Text("playkit.sensor.secondsLeft"))
                     .accessibilityValue(Text(verbatim: decimal(max(0, total - held))))
                 Gauge(value: level, in: 0...1) { Text("playkit.audio.livePeak") }.tint(color)

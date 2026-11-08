@@ -25,6 +25,7 @@ import SwiftUI
                 }
             }
         }
+        .preferredColorScheme(.dark)
         .onDisappear { cancel(original) }
     }
 }

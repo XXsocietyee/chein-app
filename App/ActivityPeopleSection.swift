@@ -51,7 +51,7 @@ import SwiftUI
             else { Text("activity.people.unnamed") }
             Spacer(minLength: 8)
             if person.memberID != nil, onOpenProfile != nil {
-                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.secondary).accessibilityHidden(true)
+                Image(systemName: "chevron.forward").font(.caption).foregroundStyle(.secondary).accessibilityHidden(true)
             }
         }.frame(minHeight: 44).contentShape(Rectangle())
             .accessibilityElement(children: .combine)

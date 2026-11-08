@@ -100,9 +100,22 @@ extension WalletScreen where Value == WithdrawalBalance {
                         ProgressView("wallet.loading").accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
-                        Text(verbatim: format.amount(value.balance, currency: value.currency))
-                            .font(.title2.bold()).privacySensitive()
-                            .accessibilityIdentifier("wallet.earnings.balance")
+                        // Revolut-style balance hero: one large tabular figure, calm surface.
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Text("withdrawal.support.balance")
+                                .font(CYTypography.caption.weight(.semibold))
+                                .foregroundStyle(CYColor.textSecondary)
+                                .accessibilityHidden(true)
+                            Text(verbatim: format.amount(value.balance, currency: value.currency))
+                                .font(CYTypography.data2XL)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .minimumScaleFactor(0.6)
+                                .lineLimit(1)
+                                .privacySensitive()
+                                .accessibilityIdentifier("wallet.earnings.balance")
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.vertical, CYSpacing.sm)
                         if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
                         WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
@@ -357,7 +370,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                             .font(.caption2.bold())
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(Color.accentColor.opacity(0.15), in: Capsule())
+                            .background(CYColor.accentSoft, in: Capsule())
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
@@ -374,10 +387,10 @@ extension WalletScreen where Value == WithdrawalBalance {
                     if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                     else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
-                .font(.body.weight(.semibold).monospacedDigit())
-                .foregroundStyle(direction.rawValue == "income" ? Color.green : Color.primary)
+                .font(CYTypography.numericBody)
+                .foregroundStyle(direction.rawValue == "income" ? CYColor.successText : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
-                    Text(verbatim: format.amount(balance, currency: row.currency)).font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: format.amount(balance, currency: row.currency)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                 }
             }
         }
