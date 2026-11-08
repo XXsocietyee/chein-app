@@ -1,6 +1,38 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "cooperation.detail.deposit.backToList" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to cooperation list"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回合作列表"
+          }
+        }
+      }
+    },
+    "cooperation.detail.deposit.unavailable" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Paying a deposit is not available in the app yet."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保证金缴纳暂未在 App 内开放。"
+          }
+        }
+      }
+    },
     "club.ops.dissolve" : {
       "localizations" : {
         "en" : {
