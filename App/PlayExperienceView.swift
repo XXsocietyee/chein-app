@@ -296,7 +296,7 @@ import SwiftUI
                 }
             }
             .controlSize(.large)
-            if model.remoteRunSaveFailed { Text("playx.run.saveFailed").font(.footnote).foregroundStyle(.orange) }
+            if model.remoteRunSaveFailed { Text("playx.run.saveFailed").font(.footnote).foregroundStyle(CYColor.warningText) }
         }
         .padding(.vertical, 4)
     }
@@ -530,7 +530,7 @@ struct PlayExperienceIssueView: View {
                 if let arrived = lead.arrived, !lead.members.isEmpty { LabeledContent("playx.lead.arrived") { Text(verbatim: "\(arrived) / \(lead.members.count)") } }
                 ForEach(lead.members) { member in
                     Label { if let name = member.name, !name.isEmpty { Text(verbatim: name) } else { Text("playx.player.unnamed") } }
-                        icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? Color.green : Color.secondary) }
+                        icon: { Image(systemName: member.arrived ? "checkmark.circle.fill" : "circle").foregroundStyle(member.arrived ? CYColor.successText : CYColor.textSecondary) }
                 }
                 if lead.exists && !lead.meArrived { actionButton(context: context, .arrive) }
                 if lead.isLeader {
