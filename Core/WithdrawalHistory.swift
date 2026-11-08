@@ -180,3 +180,57 @@ public struct WithdrawalHistoryPage: Equatable {
         }
     }
 }
+
+
+/// One China-calendar day of withdrawal history rows (Revolut-style date-grouped list).
+/// `dayKey` is `yyyy-MM-dd`; nil collects rows whose server time is missing or unparseable.
+public struct WithdrawalHistoryDayGroup: Equatable {
+    public let dayKey: String?
+    public let rows: [WithdrawalHistoryRow]
+    public init(dayKey: String?, rows: [WithdrawalHistoryRow]) {
+        self.dayKey = dayKey; self.rows = rows
+    }
+}
+
+/// Read-only presentation rules. Days follow `MoneyParityTime` (China calendar), the same
+/// rule the mini-program uses; no amount is computed here and nothing is sent.
+public enum WithdrawalHistoryGrouping {
+    /// Groups keep first-seen order (server order is newest first); undated rows come last.
+    public static func groups(_ rows: [WithdrawalHistoryRow]) -> [WithdrawalHistoryDayGroup] {
+        var order: [String] = []
+        var buckets: [String: [WithdrawalHistoryRow]] = [:]
+        var undated: [WithdrawalHistoryRow] = []
+        for row in rows {
+            guard let key = dayKey(row.createTime) else { undated.append(row); continue }
+            if buckets[key] == nil { order.append(key) }
+            buckets[key, default: []].append(row)
+        }
+        var result = order.map { WithdrawalHistoryDayGroup(dayKey: $0, rows: buckets[$0] ?? []) }
+        if !undated.isEmpty { result.append(WithdrawalHistoryDayGroup(dayKey: nil, rows: undated)) }
+        return result
+    }
+
+    public static func dayKey(_ raw: String?) -> String? {
+        guard let ms = MoneyParityTime.timestamp(raw) else { return nil }
+        return civilKey(daysSinceEpoch: MoneyParityTime.chinaDayIndex(ms))
+    }
+
+    private static func pad(_ value: Int64, _ width: Int) -> String {
+        let text = String(value)
+        return text.count >= width ? text : String(repeating: "0", count: width - text.count) + text
+    }
+
+    /// Howard Hinnant's civil-from-days; days are counted from 1970-01-01.
+    static func civilKey(daysSinceEpoch days: Int64) -> String {
+        let z = days + 719_468
+        let era = (z >= 0 ? z : z - 146_096) / 146_097
+        let doe = z - era * 146_097
+        let yoe = (doe - doe / 1460 + doe / 36_524 - doe / 146_096) / 365
+        let doy = doe - (365 * yoe + yoe / 4 - yoe / 100)
+        let mp = (5 * doy + 2) / 153
+        let day = doy - (153 * mp + 2) / 5 + 1
+        let month = mp < 10 ? mp + 3 : mp - 9
+        let year = yoe + era * 400 + (month <= 2 ? 1 : 0)
+        return pad(year, 4) + "-" + pad(month, 2) + "-" + pad(day, 2)
+    }
+}

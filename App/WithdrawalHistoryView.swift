@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor struct WithdrawalHistoryView: View {
     let reader: WalletCommerceReader
     @State private var model: WithdrawalHistoryCoordinator
+    @State private var selected: WithdrawalHistorySelection?
     init(reader: WalletCommerceReader) {
         self.reader = reader
         _model = State(initialValue: WithdrawalHistoryCoordinator(reader: reader))
@@ -15,9 +16,19 @@ import SwiftUI
             case .idle, .loading:
                 ProgressView("wallet.loading").accessibilityIdentifier("withdrawal.history.loading")
             case .ready:
-                ForEach(Array(model.rows.enumerated()), id: \.offset) { index, row in
-                    WithdrawalHistoryRowView(row: row)
-                        .accessibilityIdentifier("withdrawal.history.row.\(row.id.map(String.init) ?? "index\(index)")")
+                // Revolut-style: rows grouped by China calendar day, tap opens a read-only detail sheet.
+                ForEach(Array(WithdrawalHistoryGrouping.groups(model.rows).enumerated()), id: \.offset) { _, group in
+                    Section {
+                        ForEach(Array(group.rows.enumerated()), id: \.offset) { index, row in
+                            Button { selected = WithdrawalHistorySelection(row: row) } label: {
+                                WithdrawalHistoryRowView(row: row)
+                            }
+                            .buttonStyle(.plain).frame(minHeight: 44)
+                            .accessibilityIdentifier("withdrawal.history.row.\(row.id.map(String.init) ?? "index\(index)")")
+                        }
+                    } header: {
+                        if let day = group.dayKey { Text(verbatim: day) } else { Text("withdrawal.history.dateUnknown") }
+                    }
                 }
                 if model.page?.mayHaveMore == true {
                     Text("wallet.sourceLimited").font(.footnote).foregroundStyle(.secondary)
@@ -39,6 +50,7 @@ import SwiftUI
         .task(id: reader.scope) { await model.load() }
         .refreshable { await model.load() }
         .onDisappear { model.cancel() }
+        .sheet(item: $selected) { item in WithdrawalHistoryDetailSheet(row: item.row) }
         .accessibilityIdentifier("withdrawal.history")
     }
     @ViewBuilder private func state(title: LocalizedStringKey, detail: LocalizedStringKey, image: String, id: String) -> some View {
@@ -75,5 +87,37 @@ struct WithdrawalHistoryRowView: View {
         case .failed: return .red
         case .unknown: return .secondary
         }
+    }
+}
+
+struct WithdrawalHistorySelection: Identifiable {
+    let id = UUID()
+    let row: WithdrawalHistoryRow
+}
+
+/// Read-only detail sheet. It names no action: payouts are offline and nothing is sent from here.
+struct WithdrawalHistoryDetailSheet: View {
+    let row: WithdrawalHistoryRow
+    @Environment(\.dismiss) private var dismiss
+    var body: some View {
+        NavigationStack {
+            List {
+                Section {
+                    LabeledContent("withdrawal.history.detail.amount") {
+                        Text(verbatim: row.amountText ?? "—").monospacedDigit()
+                    }
+                    LabeledContent("withdrawal.history.detail.status") { Text(LocalizedStringKey(row.statusKey)) }
+                    LabeledContent("withdrawal.history.detail.created") { Text(verbatim: row.createTime ?? "—") }
+                    if let id = row.id {
+                        LabeledContent("withdrawal.history.detail.id") { Text(verbatim: String(id)).monospacedDigit() }
+                    }
+                } footer: { Text("withdrawal.history.detail.note") }
+            }
+            .navigationTitle("withdrawal.history.detail.title")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
+        }
+        .presentationDetents([.medium, .large]).presentationDragIndicator(.visible)
+        .accessibilityIdentifier("withdrawal.history.detail")
     }
 }
