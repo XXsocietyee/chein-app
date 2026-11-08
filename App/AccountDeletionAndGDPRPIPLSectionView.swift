@@ -133,7 +133,7 @@ public struct AccountDeletionAndGDPRPIPLSectionView: View {
 
                 Text(verbatim: Self.overallStatusText(for: snapshot))
                     .font(.subheadline)
-                    .foregroundStyle(snapshot.isAllCompliant ? .green : .red)
+                    .foregroundStyle(snapshot.isAllCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("accountDeletionPIPL.overallStatus")
 
                 Text(verbatim: Self.entryStatusText(for: snapshot))
@@ -201,7 +201,7 @@ private struct AccountDeletionStepRowView: View {
                 Spacer()
                 Text(verbatim: row.isStepCompliant ? "合规" : "告警")
                     .font(.caption)
-                    .foregroundStyle(row.isStepCompliant ? .green : .red)
+                    .foregroundStyle(row.isStepCompliant ? CYColor.successText : CYColor.dangerText)
             }
 
             Text(verbatim: row.summary)

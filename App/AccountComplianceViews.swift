@@ -110,7 +110,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if model.state.busy { ProgressView("compliance.loading").accessibilityIdentifier("compliance.loading") }
             if let error = model.state.error {
                 Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
-                    .foregroundStyle(.red).accessibilityIdentifier("compliance.error")
+                    .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("compliance.error")
             }
             switch destination {
             case .cancellation: cancellation
