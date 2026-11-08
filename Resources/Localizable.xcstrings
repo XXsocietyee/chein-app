@@ -86,6 +86,23 @@
         }
       }
     },
+    "A save or review-submission receipt does not mean approval, listing, or completed media checks.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A save or review-submission receipt does not mean approval, listing, or completed media checks."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存或提交审核的回执并不代表已通过审核、已上架或媒体检查已完成。"
+          }
+        }
+      }
+    },
     "AI网关安全、真实用量返还/NPC删除与作者AI草稿 (OPT-080..082)": {
       "extractionState": "manual",
       "localizations": {
@@ -99,6 +116,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "AI网关安全、真实用量返还/NPC删除与作者AI草稿 (OPT-080..082)"
+          }
+        }
+      }
+    },
+    "AVAILABLE BALANCE": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AVAILABLE BALANCE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用余额"
+          }
+        }
+      }
+    },
+    "An application profile already exists. The server does not support reapplication.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An application profile already exists. The server does not support reapplication."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已存在申请资料，服务器不支持重复申请。"
+          }
+        }
+      }
+    },
+    "An original pending installation was found and restored; no new request was created.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "An original pending installation was found and restored; no new request was created."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已找到并恢复原有的待处理安装，未创建新请求。"
+          }
+        }
+      }
+    },
+    "Apply armed fixture change": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apply armed fixture change"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "应用已准备的测试数据变更"
+          }
+        }
+      }
+    },
+    "Awaiting Server Review (Never Auto-Completes)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Awaiting Server Review (Never Auto-Completes)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待服务器审核（不会自动完成）"
           }
         }
       }
@@ -120,6 +222,414 @@
         }
       }
     },
+    "Choose image or video": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose image or video"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择图片或视频"
+          }
+        }
+      }
+    },
+    "Compatibility is unknown. The original installation request is retained, never automatically reinstalled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compatibility is unknown. The original installation request is retained, never automatically reinstalled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "兼容性未知。原有安装请求会保留，不会自动重新安装。"
+          }
+        }
+      }
+    },
+    "Confirm cancellation and refunds": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm cancellation and refunds"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认取消并退款"
+          }
+        }
+      }
+    },
+    "Confirm submission": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm submission"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认提交"
+          }
+        }
+      }
+    },
+    "Confirm this action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm this action"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认此操作"
+          }
+        }
+      }
+    },
+    "Confirmation installs the listed dependencies together, using one installation allowance from each original license. Only private drafts are created; fact confirmation and the original review and publication process still apply. Reading the original result does not install again or use allowance.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmation installs the listed dependencies together, using one installation allowance from each original license. Only private drafts are created; fact confirmation and the original review and publication process still apply. Reading the original result does not install again or use allowance."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认后将一并安装所列依赖，并占用每个原授权的一次安装额度。仅会创建私有草稿；事实确认以及原有的审核与发布流程仍然适用。读取原结果不会再次安装，也不会占用额度。"
+          }
+        }
+      }
+    },
+    "Content is unconfirmed: reading may be unapproved, rights may have changed, the profile may not be native text, or the read may be unavailable. This does not mean the original installation failed.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Content is unconfirmed: reading may be unapproved, rights may have changed, the profile may not be native text, or the read may be unavailable. This does not mean the original installation failed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容尚未确认：可能未获批准读取、权益可能已变化、资料可能不是原生文本，或读取暂不可用。这并不表示原安装失败。"
+          }
+        }
+      }
+    },
+    "Continue original post-processing only, without recreating the activity or resending media with unknown outcomes.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue original post-processing only, without recreating the activity or resending media with unknown outcomes."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅继续原有的后续处理，不会重新创建活动，也不会重发结果未知的媒体。"
+          }
+        }
+      }
+    },
+    "Continue this request's unfinished review processing": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue this request's unfinished review processing"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续处理此请求未完成的审核"
+          }
+        }
+      }
+    },
+    "Copy refund number": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copy refund number"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制退款编号"
+          }
+        }
+      }
+    },
+    "Create a new club draft and take the original topic offline. The initiator retains content ownership; the club organizes only.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create a new club draft and take the original topic offline. The initiator retains content ownership; the club organizes only."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建新的俱乐部草稿并下线原主题。发起人保留内容所有权，俱乐部仅负责组织。"
+          }
+        }
+      }
+    },
+    "Creator, payout, tax, copyright and risk approval remain in the original qualification/settlement flow. Reading owned history grants no payment, refund, settlement-application or publication permission.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Creator, payout, tax, copyright and risk approval remain in the original qualification/settlement flow. Reading owned history grants no payment, refund, settlement-application or publication permission."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创作者、打款、税务、版权和风控审批仍在原有的资质/结算流程中进行。读取自有历史记录不会授予付款、退款、申请结算或发布的权限。"
+          }
+        }
+      }
+    },
+    "Current mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Current mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前模式"
+          }
+        }
+      }
+    },
+    "DISABLED (Read-Only Navigation)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DISABLED (Read-Only Navigation)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停用（仅可只读导航）"
+          }
+        }
+      }
+    },
+    "DOWNGRADE WARNING": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DOWNGRADE WARNING"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "降级警告"
+          }
+        }
+      }
+    },
+    "Datum Violation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Datum Violation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标系违规"
+          }
+        }
+      }
+    },
+    "Disabled (Default Off)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disabled (Default Off)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停用（默认关闭）"
+          }
+        }
+      }
+    },
+    "Drift Detected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drift Detected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检测到偏差"
+          }
+        }
+      }
+    },
+    "Expire synthetic scope": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expire synthetic scope"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使模拟范围过期"
+          }
+        }
+      }
+    },
+    "Explicitly create another activity": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explicitly create another activity"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "明确创建另一个活动"
+          }
+        }
+      }
+    },
+    "First applications only. Live submission remains disabled.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "First applications only. Live submission remains disabled."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅限首次申请。实时提交仍处于关闭状态。"
+          }
+        }
+      }
+    },
+    "Fixture discussion events": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fixture discussion events"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "测试讨论事件"
+          }
+        }
+      }
+    },
+    "Licensed frozen source": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Licensed frozen source"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已授权的冻结来源"
+          }
+        }
+      }
+    },
+    "Location Privacy Warning: Check When-In-Use / Background Suspension Policy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location Privacy Warning: Check When-In-Use / Background Suspension Policy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "位置隐私警告：请检查“使用期间”/后台挂起策略"
+          }
+        }
+      }
+    },
     "MP切片对齐数": {
       "extractionState": "manual",
       "localizations": {
@@ -133,6 +643,261 @@
           "stringUnit": {
             "state": "translated",
             "value": "MP切片对齐数"
+          }
+        }
+      }
+    },
+    "My personal earnings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My personal earnings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的个人收益"
+          }
+        }
+      }
+    },
+    "No attempt limit or challenge deadline is configured. Failures retain the original unlimited retries.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No attempt limit or challenge deadline is configured. Failures retain the original unlimited retries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未设置尝试次数上限或挑战截止时间。失败后沿用原有的无限次重试。"
+          }
+        }
+      }
+    },
+    "Not Authorized": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not Authorized"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未授权"
+          }
+        }
+      }
+    },
+    "Only the joining mode changes; membership and registration stay unchanged. An unknown outcome remains locked without automatic retry.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the joining mode changes; membership and registration stay unchanged. An unknown outcome remains locked without automatic retry."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅更改加入方式；成员资格和报名保持不变。结果未知时会保持锁定，不会自动重试。"
+          }
+        }
+      }
+    },
+    "Open the activity created by this request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open the activity created by this request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开此请求创建的活动"
+          }
+        }
+      }
+    },
+    "Organizer cancellation and refunds are irreversible. The reason is shown to players.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizer cancellation and refunds are irreversible. The reason is shown to players."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主办方取消和退款不可撤销，取消原因将展示给玩家。"
+          }
+        }
+      }
+    },
+    "Original action receipt (not current state)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original action receipt (not current state)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原操作回执（非当前状态）"
+          }
+        }
+      }
+    },
+    "Original bound copy": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original bound copy"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原绑定文案"
+          }
+        }
+      }
+    },
+    "Original dependency installation group": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Original dependency installation group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原依赖安装组"
+          }
+        }
+      }
+    },
+    "Permanently remove the Beta designation. This cannot be undone.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permanently remove the Beta designation. This cannot be undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "永久移除 Beta 标识，此操作无法撤销。"
+          }
+        }
+      }
+    },
+    "Personal earnings need their own read approval. Merchant totals are not your personal balance.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal earnings need their own read approval. Merchant totals are not your personal balance."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人收益需要单独的读取授权。商家总额不是你的个人余额。"
+          }
+        }
+      }
+    },
+    "Policy Drift": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Policy Drift"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "策略偏差"
+          }
+        }
+      }
+    },
+    "Preview refund impact": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview refund impact"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览退款影响"
+          }
+        }
+      }
+    },
+    "Private content hidden": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Private content hidden"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私密内容已隐藏"
+          }
+        }
+      }
+    },
+    "Protected reading is not configured or the original installation is unavailable. No reinstall, purchase or record deletion occurs.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Protected reading is not configured or the original installation is unavailable. No reinstall, purchase or record deletion occurs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "受保护的读取尚未配置，或原安装不可用。不会重新安装、购买或删除记录。"
           }
         }
       }
@@ -154,6 +919,312 @@
         }
       }
     },
+    "Read current compatibility": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read current compatibility"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取当前兼容性"
+          }
+        }
+      }
+    },
+    "Read next original settlement page": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read next original settlement page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取下一页原结算记录"
+          }
+        }
+      }
+    },
+    "Read original MOD allocations and reversal facts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original MOD allocations and reversal facts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原 MOD 分配与冲正记录"
+          }
+        }
+      }
+    },
+    "Read original installation request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original installation request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原安装请求"
+          }
+        }
+      }
+    },
+    "Read original installed text/choice content": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original installed text/choice content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原已安装的文本/选项内容"
+          }
+        }
+      }
+    },
+    "Read original request result": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read original request result"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取原请求结果"
+          }
+        }
+      }
+    },
+    "Read the same original request": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read the same original request"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取同一原请求"
+          }
+        }
+      }
+    },
+    "Read this creation request's outcome": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read this creation request's outcome"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取此创建请求的结果"
+          }
+        }
+      }
+    },
+    "Read-only original paid MOD allocation facts. Amounts are not buyer gross payments, wallet balances, paid-out funds or available withdrawals. No payable amount, tax or reserve is calculated.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Read-only original paid MOD allocation facts. Amounts are not buyer gross payments, wallet balances, paid-out funds or available withdrawals. No payable amount, tax or reserve is calculated."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅供查看的原付费 MOD 分配记录。金额不是买家实付总额、钱包余额、已打款金额或可提现金额，也不计算应付金额、税费或备付金。"
+          }
+        }
+      }
+    },
+    "Readback is temporarily unavailable. Retain the original outcome without resending creation.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Readback is temporarily unavailable. Retain the original outcome without resending creation."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时无法回读。请保留原结果，不要重新提交创建。"
+          }
+        }
+      }
+    },
+    "Reading still requires a current license and original resource-use rights; ordinary delisting does not rewrite these terms.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reading still requires a current license and original resource-use rights; ordinary delisting does not rewrite these terms."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "读取仍需要有效授权和原资源使用权；普通下架不会改写这些条款。"
+          }
+        }
+      }
+    },
+    "Reference ID": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参考编号"
+          }
+        }
+      }
+    },
+    "Refresh and review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh and review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新并复核"
+          }
+        }
+      }
+    },
+    "Refresh status": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refresh status"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刷新状态"
+          }
+        }
+      }
+    },
+    "Refund/chargeback amounts are only totals confirmed by the original writer. Zero or an unset dispute flag does not prove there is no provider dispute. This view never queries a provider or converts UNKNOWN to zero.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Refund/chargeback amounts are only totals confirmed by the original writer. Zero or an unset dispute flag does not prove there is no provider dispute. This view never queries a provider or converts UNKNOWN to zero."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退款/拒付金额仅为原写入方确认的合计。零或未设置争议标记并不能证明不存在渠道争议。此页面不会查询渠道，也不会把“未知”当作零。"
+          }
+        }
+      }
+    },
+    "Report purchased version / recover receipt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Report purchased version / recover receipt"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "举报已购版本 / 找回回执"
+          }
+        }
+      }
+    },
+    "Requested mode": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Requested mode"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "申请的模式"
+          }
+        }
+      }
+    },
+    "Review application": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review application"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看申请"
+          }
+        }
+      }
+    },
     "Stage 0 基线与509条旧线索复核 (OPT-001..003 & D-01..D-10)": {
       "extractionState": "manual",
       "localizations": {
@@ -167,6 +1238,176 @@
           "stringUnit": {
             "state": "translated",
             "value": "Stage 0 基线与509条旧线索复核 (OPT-001..003 & D-01..D-10)"
+          }
+        }
+      }
+    },
+    "Store content and original reply": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store content and original reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "门店内容与原始回复"
+          }
+        }
+      }
+    },
+    "Submit these details to the creator application service.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Submit these details to the creator application service."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "将这些资料提交至创作者申请服务。"
+          }
+        }
+      }
+    },
+    "Technical compatibility is not installation authorization. Original dependency rights, resources, quota and version checks still apply.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Technical compatibility is not installation authorization. Original dependency rights, resources, quota and version checks still apply."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技术兼容不等于安装授权。原依赖权益、资源、额度和版本检查仍然适用。"
+          }
+        }
+      }
+    },
+    "The original H5 server result determines the branch. Closing the host does not count as abandoning the challenge.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original H5 server result determines the branch. Closing the host does not count as abandoning the challenge."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分支以原 H5 服务器结果为准。关闭容器不视为放弃挑战。"
+          }
+        }
+      }
+    },
+    "The original options or history exceeded the safe read capacity and are incomplete. No absence of pending requests is assumed and no new installation is enabled. Original requests and receipts are retained.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original options or history exceeded the safe read capacity and are incomplete. No absence of pending requests is assumed and no new installation is enabled. Original requests and receipts are retained."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原选项或历史记录超出安全读取容量，内容不完整。不会假定不存在待处理请求，也不会开放新的安装。原请求和回执均会保留。"
+          }
+        }
+      }
+    },
+    "The original post-processing link is temporarily unavailable. The submitted activity facts remain intact.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original post-processing link is temporarily unavailable. The submitted activity facts remain intact."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原后续处理链接暂时不可用。已提交的活动信息保持不变。"
+          }
+        }
+      }
+    },
+    "These are current records, not available slots or confirmation of the original creation request. That request remains unconfirmed. Do not submit it again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are current records, not available slots or confirmation of the original creation request. That request remains unconfirmed. Do not submit it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这些是当前记录，并非可用名额，也不是对原创建请求的确认。该请求仍未确认，请勿再次提交。"
+          }
+        }
+      }
+    },
+    "This album is no longer part of the current viewing session. Go back and open it again.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This album is no longer part of the current viewing session. Go back and open it again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此相册已不在当前浏览会话中。请返回后重新打开。"
+          }
+        }
+      }
+    },
+    "This is the original request's server receipt, not permission to submit in the latest state below. Exhausted attempts do not mean a correct answer.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is the original request's server receipt, not permission to submit in the latest state below. Exhausted attempts do not mean a correct answer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这是原请求的服务器回执，并不代表可以按下方最新状态提交。尝试次数用尽并不表示答案正确。"
+          }
+        }
+      }
+    },
+    "UNDEFENDED WARNING": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UNDEFENDED WARNING"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未防护警告"
           }
         }
       }
@@ -205,6 +1446,57 @@
         }
       }
     },
+    "UNSANITIZED WARNING": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UNSANITIZED WARNING"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未净化警告"
+          }
+        }
+      }
+    },
+    "Venue consent, opening hours and on-site dynamic codes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Venue consent, opening hours and on-site dynamic codes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "场地同意、营业时间和现场动态码"
+          }
+        }
+      }
+    },
+    "WGS-84 / GCJ-02 Isolated (Once-Only Projection)": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WGS-84 / GCJ-02 Isolated (Once-Only Projection)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WGS-84 / GCJ-02 已隔离（仅投影一次）"
+          }
+        }
+      }
+    },
     "Wave-2 (w2-01..w2-21) 全部部分/缺失项清零总表": {
       "extractionState": "manual",
       "localizations": {
@@ -218,6 +1510,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "Wave-2 (w2-01..w2-21) 全部部分/缺失项清零总表"
+          }
+        }
+      }
+    },
+    "Your original native text/choice snapshot only—not the current edited draft, or permission to save, export, publish or play. qmod, composed topics and H5 keep their existing entries.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your original native text/choice snapshot only—not the current edited draft, or permission to save, export, publish or play. qmod, composed topics and H5 keep their existing entries."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅为你原生文本/选项的原始快照，不是当前编辑中的草稿，也不代表可以保存、导出、发布或游玩。qmod、组合主题和 H5 保持原有入口。"
           }
         }
       }

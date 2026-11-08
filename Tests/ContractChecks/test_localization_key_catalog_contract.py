@@ -26,6 +26,10 @@ class LocalizationKeyCatalogContractTests(unittest.TestCase):
         rows = FOUND['key_missing_everywhere']
         self.assertEqual([], rows, 'keys used in Swift but defined in no catalog:\n' + describe(rows))
 
+    def test_no_english_prose_view_literal_lacks_a_localizable_entry(self):
+        rows = FOUND['english_literal_not_in_catalog']
+        self.assertEqual([], rows, 'implicit English keys that zh-Hans users would see untranslated:\n' + describe(rows))
+
     def test_message_key_families_rendered_through_state_strings_are_defined(self):
         # These views/hosts store a key in a String (`message = "h5.invalid"`) and render it later,
         # so the call-site scan cannot see the lookup. Identifier literals are skipped.
