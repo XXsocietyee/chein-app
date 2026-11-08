@@ -5210,13 +5210,25 @@ final class AppSession: ObservableObject {
         guard let area = roamArea else { return nil }
         return NearbyTeamBridge.roamQuery(latitude: area.coordinate.latitude, longitude: area.coordinate.longitude)
     }
-    lazy var nearbyTeamCoordinator = makeNearbyTeamCoordinator()
+    private var nearbyTeamCoordinatorCache: (approval: OperationEndpointApproval?, coordinator: NearbyTeamCoordinator)?
+    /// Rebuilt only when the reviewed nearby-read lease appears, changes owner or disappears, so a coordinator built
+    /// before sign-in never keeps a stale (nil) read grant. Without production gates the lease is always nil and the
+    /// first coordinator is kept, exactly as before.
+    var nearbyTeamCoordinator: NearbyTeamCoordinator {
+        let approval = currentRuntimeDependencyContext.flatMap { composition.nearbyTeamReadApproval($0) }
+        if let cached = nearbyTeamCoordinatorCache, cached.approval == approval { return cached.coordinator }
+        let coordinator = makeNearbyTeamCoordinator()
+        nearbyTeamCoordinatorCache = (approval, coordinator)
+        return coordinator
+    }
     func makeNearbyTeamCoordinator(readApproval: OperationEndpointApproval? = nil,
                                    writeApproval: OperationEndpointApproval? = nil,
                                    writeEvidence: ((NearbyTeamReview) async throws -> NearbyTeamWriteEvidence)? = nil,
                                    transport: (any HTTPTransport)? = nil) -> NearbyTeamCoordinator {
         let transport = scopedTransport(transport)
-        // No default caller supplies an operation grant or evidence loader; writes remain off.
+        // Reads fall back to the reviewed production-gate lease (nil unless the deployment enables gates); writes stay off
+        // because no caller supplies a write grant or evidence loader.
+        let readApproval = readApproval ?? currentRuntimeDependencyContext.flatMap { composition.nearbyTeamReadApproval($0) }
         let writer: NearbyTeamHTTPWriteAdapter?
         if let writeApproval, let writeEvidence, let configuration = regionalConfiguration?.apiConfiguration {
             writer = NearbyTeamHTTPWriteAdapter(configuration: configuration, transport: transport, approval: writeApproval,
