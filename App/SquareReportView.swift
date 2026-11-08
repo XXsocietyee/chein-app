@@ -71,7 +71,7 @@ extension EnvironmentValues {
                 Section("squareReport.description") {
                     TextEditor(text: $description).frame(minHeight: 140).focused($descriptionFocused)
                         .accessibilityLabel("squareReport.description").accessibilityIdentifier("squareReport.description")
-                    Text("\(description.utf16.count)/2000").foregroundStyle(description.utf16.count > 2000 ? Color.red : Color.secondary)
+                    Text("\(description.utf16.count)/2000").foregroundStyle(description.utf16.count > 2000 ? CYColor.dangerText : CYColor.textSecondary)
                     Text("squareReport.noAttachments").font(.footnote)
                 }
                 Section {

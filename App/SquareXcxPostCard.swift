@@ -14,7 +14,7 @@ struct SquareXcxPostCard: View {
         VStack(alignment: .leading, spacing: 10) {
             head
             if let lifecycle = facts.lifecycle {
-                Text(LocalizedStringKey("square.xcx.lifecycle." + lifecycle.rawValue)).font(.caption).foregroundStyle(.orange)
+                Text(LocalizedStringKey("square.xcx.lifecycle." + lifecycle.rawValue)).font(.caption).foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("square.card.lifecycle")
             }
             if let contents = post.contents, !contents.isEmpty {

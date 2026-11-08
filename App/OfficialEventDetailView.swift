@@ -106,8 +106,8 @@ enum OfficialDetailID {
                             Text("official.detailParity.tasks.signupNote").font(.footnote).foregroundStyle(.secondary)
                         }
                         if event.paused {
-                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(.red) }
-                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(.red) }
+                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(CYColor.dangerText) }
+                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(CYColor.dangerText) }
                         }
                         if presentation.missions.isEmpty { Text("official.detailParity.tasks.empty") }
                         if topicNameFailed {

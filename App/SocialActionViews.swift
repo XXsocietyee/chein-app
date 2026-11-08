@@ -54,7 +54,7 @@ public enum SocialEditorPurpose: String, Identifiable {
                             .font(.footnote).accessibilityIdentifier("social.editor.commentLength")
                         if commentTooLong {
                             Text("tooLong", tableName: "SocialCommentLength")
-                                .font(.footnote).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                                .font(.footnote).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("social.editor.commentTooLong")
                         }
                     }

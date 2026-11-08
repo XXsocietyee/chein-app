@@ -39,7 +39,7 @@ import SwiftUI
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
                     .font(.footnote)
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }

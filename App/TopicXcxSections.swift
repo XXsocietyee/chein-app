@@ -123,7 +123,7 @@ struct TopicXcxActionBar: View {
     var openPricing: (() -> Void)?
     var body: some View {
         VStack(spacing: 6) {
-            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(.orange) }
+            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(CYColor.warningText) }
             HStack {
                 switch TopicXcxFacts.action(topic) {
                 case .ticketWallet:
