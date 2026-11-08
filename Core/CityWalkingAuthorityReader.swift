@@ -9,9 +9,12 @@ import FoundationNetworking
     private let owner: RuntimeDependencyContext
     private let transport: any HTTPTransport
     private let current: () -> Bool
+    private let now: () -> Date
+    private let monotonicClock: any WalkingMonotonicClock
     public init(owner: RuntimeDependencyContext, transport: any HTTPTransport,
-                current: @escaping () -> Bool) {
-        self.owner=owner;self.transport=transport;self.current=current
+                current: @escaping () -> Bool, now: @escaping () -> Date = Date.init,
+                monotonicClock: any WalkingMonotonicClock = SystemWalkingMonotonicClock()) {
+        self.owner=owner;self.transport=transport;self.current=current;self.now=now;self.monotonicClock=monotonicClock
     }
     private struct Wire: Decodable {
         let schemaVersion: Int
@@ -40,7 +43,8 @@ import FoundationNetworking
         guard status == 200 else { throw APIError.httpStatus(status) }
         guard bytes.count <= 16_384 else { throw WalkingNavigationFailure.targetUnavailable }
         let wire=try JSONDecoder().decode(Wire.self,from:bytes)
-        let now=Date().timeIntervalSince1970, issued=Double(wire.issuedAtMs)/1000, expires=Double(wire.expiresAtMs)/1000
+        let receivedUptime=monotonicClock.uptime
+        let now=self.now().timeIntervalSince1970, issued=Double(wire.issuedAtMs)/1000, expires=Double(wire.expiresAtMs)/1000
         guard wire.schemaVersion == 1, wire.kind == reference.kind.rawValue, wire.id == reference.id,
               wire.datum == "wgs84", wire.longitude.isFinite, wire.latitude.isFinite,
               abs(wire.longitude) <= 180, abs(wire.latitude) <= 90,
@@ -52,7 +56,8 @@ import FoundationNetworking
         guard let point=RoamCoordinate(latitude:wire.latitude,longitude:wire.longitude) else { throw WalkingNavigationFailure.targetUnavailable }
         return try AuthorizedWalkingTarget(reference:reference,title:wire.title,
             coordinate:WalkingCoordinate(point:point,datum:.wgs84,region:wire.region),
-            authorityRevision:wire.authorityRevision,expiresAt:Date(timeIntervalSince1970:expires))
+            authorityRevision:wire.authorityRevision,expiresAt:Date(timeIntervalSince1970:expires),
+            monotonicDeadline:receivedUptime+(expires-now))
     }
     private func fence() throws {try Task.checkCancellation();guard current() else {throw WalkingNavigationFailure.staleContext}}
 }

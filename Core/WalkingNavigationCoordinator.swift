@@ -21,6 +21,9 @@ import Observation
     private let planner: any SearchRoutePlanning
     private let current: () -> Bool
     private let now: () -> Date
+    private let monotonicClock: any WalkingMonotonicClock
+    private let powerPolicy: WalkingNavigationPowerPolicy
+    public private(set) var powerCondition = WalkingNavigationPowerPolicy.Condition()
     private var generation = UUID()
     private var cameraRevision = UUID()
     private var cameraScopeValue: WalkingMapCamera.Scope?
@@ -30,10 +33,26 @@ import Observation
     public init(reference: WalkingTargetReference, ownerNamespace: String,
                 authorizer: any WalkingTargetAuthorizing, location: any WalkingLocationProviding,
                 planner: any SearchRoutePlanning, current: @escaping () -> Bool,
-                now: @escaping () -> Date = Date.init) {
+                now: @escaping () -> Date = Date.init,
+                monotonicClock: any WalkingMonotonicClock = SystemWalkingMonotonicClock(),
+                powerPolicy: WalkingNavigationPowerPolicy = .init()) {
+        self.monotonicClock = monotonicClock; self.powerPolicy = powerPolicy
         self.reference = reference; self.ownerNamespace = ownerNamespace; self.authorizer = authorizer
         self.location = location; self.planner = planner; self.current = current; self.now = now
     }
+    /// Foreground fix cadence for the current power/connectivity condition.
+    public var updateInterval: TimeInterval { powerPolicy.fixInterval(powerCondition) }
+    public var showsWeakState: Bool { powerPolicy.showsWeakState(powerCondition) }
+    public func setPowerCondition(lowPower: Bool, offline: Bool) {
+        powerCondition = .init(lowPower: lowPower, offline: offline)
+    }
+    /// Seconds of authority left. Monotonic when the reader supplied a deadline; otherwise the
+    /// legacy wall-clock comparison.
+    private func remaining(_ target: AuthorizedWalkingTarget) -> TimeInterval {
+        if let deadline = target.monotonicDeadline { return deadline - monotonicClock.uptime }
+        return target.expiresAt.timeIntervalSince(now())
+    }
+    private func isLive(_ target: AuthorizedWalkingTarget) -> Bool { remaining(target) > 0 }
     public var canUpdate: Bool {
         route != nil && target != nil && (phase == .navigating || phase == .nearDestination || phase == .failed(.weakGPS))
     }
@@ -46,7 +65,7 @@ import Observation
     public var cameraSnapshot: WalkingMapCamera.Snapshot? {
         guard cameraScope != nil,
               let target, let route, target.reference == reference,
-              target.expiresAt > now(), target.coordinate.datum == .wgs84,
+              isLive(target), target.coordinate.datum == .wgs84,
               route.datum == .wgs84, !route.isStraightLine else { return nil }
         return .init(revision: cameraRevision, ownerNamespace: ownerNamespace, target: target, route: route)
     }
@@ -54,10 +73,11 @@ import Observation
     /// Never carries a camera across account, permission, expiry or target boundaries.
     public var cameraScope: WalkingMapCamera.Scope? {
         guard current(), foreground, phase != .cancelled, phase != .paused,
-              location.authorization == .authorized, let scope = cameraScopeValue, scope.expiresAt > now() else { return nil }
+              location.authorization == .authorized, let scope = cameraScopeValue else { return nil }
+        guard target != nil || scope.expiresAt > now() else { return nil }
         if let target {
             let currentScope = WalkingMapCamera.Scope(ownerNamespace: ownerNamespace, target: target, now: now())
-            guard currentScope.identity == scope.identity, target.expiresAt > now() else { return nil }
+            guard currentScope.identity == scope.identity, isLive(target) else { return nil }
         }
         return scope
     }
@@ -111,6 +131,10 @@ import Observation
             if estimate.distanceFromRouteMeters > max(50, fix.accuracyMeters * 2) {
                 offRouteSamples += 1
                 if offRouteSamples >= 3 {
+                    if !powerPolicy.allowsReplan(powerCondition) {
+                        // Offline: keep the cached route and show the weak state; no replacement possible.
+                        offRouteSamples = 0; phase = .navigating; progress = nil; return
+                    }
                     guard replanCount < 2 else { throw WalkingNavigationFailure.replanLimit }
                     if let lastReplanAt, now().timeIntervalSince(lastReplanAt) < 30 {
                         phase = .failed(.throttled); progress = nil; return
@@ -176,7 +200,7 @@ import Observation
               datum: target.coordinate.datum, region: target.coordinate.region)
     }
     private func validate(_ value: AuthorizedWalkingTarget) throws {
-        guard value.reference == reference, value.expiresAt > now(), value.expiresAt.timeIntervalSince(now()) <= 300 else {
+        guard value.reference == reference, remaining(value) > 0, remaining(value) <= 300 else {
             throw WalkingNavigationFailure.targetUnavailable
         }
         // The first adapter accepts only explicitly supplied WGS84. Never reverse/project a
