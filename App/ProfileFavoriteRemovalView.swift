@@ -19,7 +19,9 @@ import Observation
         let finished = presentation?.isFinished == true
         events.append("\(event):scene=\(scene);identity=\(identity);finished=\(finished);phase=\(controller.phase)")
         // Keep evidence even if SwiftUI retires the row and its state during presentation.
+        #if DEBUG
         if let latest = events.last { print("PROFILE_FAVORITE_LIFECYCLE \(latest)") }
+        #endif
         if events.count > 16 { events.removeFirst(events.count - 16) }
     }
     var value: String { events.joined(separator: " | ") }

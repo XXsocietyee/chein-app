@@ -171,5 +171,30 @@ class FPM7FixturesAreDebugOnly(unittest.TestCase):
         self.assertNotIn('RoamPassportToolsFixtureReader', src('Core/RoamMonthlyRecapCoordinator.swift'))
 
 
+class FPX1NoReleasePrint(unittest.TestCase):
+    @staticmethod
+    def _lint():
+        import importlib.util
+        spec = importlib.util.spec_from_file_location('lint_no_release_print', ROOT / 'tools/lint_no_release_print.py')
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        return module
+
+    def test_repository_has_no_release_print(self):
+        import subprocess
+        import sys
+        result = subprocess.run([sys.executable, str(ROOT / 'tools/lint_no_release_print.py')], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 0, result.stdout)
+
+    def test_lint_flags_release_print_and_allows_debug(self):
+        lint = self._lint()
+        self.assertEqual([n for n, _ in lint.findings_for('func f() {\n    print("x")\n}')], [2])
+        self.assertEqual(lint.findings_for('#if DEBUG\nprint("x")\n#endif'), [])
+        self.assertEqual([n for n, _ in lint.findings_for('#if DEBUG\nlet a = 1\n#else\nprint("x")\n#endif')], [4])
+        self.assertEqual(lint.findings_for('// print("x")\nlet s = "print(1)"\nlet blueprint = 1\nobj.print(2)'), [])
+        self.assertEqual([n for n, _ in lint.findings_for('#if os(iOS)\nNSLog("x")\n#endif')], [2])
+        self.assertEqual(lint.findings_for('#if DEBUG\n#if os(iOS)\nprint("x")\n#endif\n#endif'), [])
+
+
 if __name__ == '__main__':
     unittest.main()
