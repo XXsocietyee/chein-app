@@ -186,8 +186,13 @@ struct RoamAnniversaryReadIntent {
             }
             if let reader, reader.isOfflineExample { Section { RoamExperienceNotice(offline: true) } }
             if let error = unavailableError ?? state.error {
-                Section { RoamExperienceIssue(error: error) { enqueue(retry) } }
-                    .accessibilityIdentifier("roam.tools.anniversary.error")
+                Section {
+                    if RoamHistoryErrorPresentation.resolve(error: error) == .denied {
+                        Label("roam.tools.anniversary.denied", systemImage: "lock")
+                            .accessibilityIdentifier("roam.tools.anniversary.denied")
+                    } else { RoamExperienceIssue(error: error) { enqueue(retry) } }
+                }
+                .accessibilityIdentifier("roam.tools.anniversary.error")
             }
             if state.isLoading {
                 Section { ProgressView("roam.tools.anniversary.loading") }

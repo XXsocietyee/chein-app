@@ -83,3 +83,10 @@ final class CloseW5dRoamHistoryErrorTests: XCTestCase {
         XCTAssertEqual(RoamHistoryErrorPresentation.resolve(error: APIError.httpStatus(500)), .retryable)
     }
 }
+
+final class CloseW5dRoamAnniversaryErrorTests: XCTestCase {
+    func testAnniversaryForbiddenIsDeniedWithoutRetryAndNotConfiguredStaysRetryable() {
+        XCTAssertEqual(RoamHistoryErrorPresentation.resolve(error: APIError.httpStatus(403)), .denied)
+        XCTAssertEqual(RoamHistoryErrorPresentation.resolve(error: APIError.notConfigured), .retryable)
+    }
+}
