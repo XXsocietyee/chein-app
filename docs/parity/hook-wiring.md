@@ -5,7 +5,7 @@ Scope: the hooks listed in `gap-wave-hooks.md`. Edited `App/AppCompositionRoot.s
 
 Rules held: every new lease comes from `ReviewedProductionGateLeases` and is issued only when the reviewed deployment has
 `productionGatesEnabled` and the market is China; every new transport route is an exact-path allowlist entry (method, path,
-same origin, signed-in viewer, Core-built body/query shape). No write route was added. Bank withdrawal payout, virtual goods
+same origin, signed-in viewer, Core-built body/query shape). Round 1 added no write route (GM-HOOK2 writes: see below). Bank withdrawal payout, virtual goods
 and password login are untouched (no route, still off). No hosts, tokens or bypasses.
 
 ## Wired (read-only)
