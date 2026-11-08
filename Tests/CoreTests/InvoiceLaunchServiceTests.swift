@@ -112,7 +112,7 @@ import FoundationNetworking
         let rows = try await h.service.applications(); XCTAssertTrue(rows[0].orders.isEmpty)
     }
     func testMismatchedIDsAndFutureStatusFailClosed() async throws {
-        let h = try S.Harness(); h.wire.responses = [try S.success(S.application(id: 52)), try S.success(S.application(status: "PROCESSING"))]
+        let h = try S.Harness(); h.wire.responses = [try S.success(S.application(id: 52)), try S.success(S.application(status: "SYNTHETIC_FUTURE_STATUS"))]
         await S.expect(.malformed) { _ = try await h.service.detail(id: 51) }
         do { _ = try await h.service.detail(id: 51); XCTFail("Future contract must not be silently enabled") } catch {}
     }

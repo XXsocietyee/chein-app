@@ -250,6 +250,7 @@ import XCTest
         await S.expect(.outcomeUnknown) { _ = try await h.coordinator().apply(h.command()) }
         let restarted = try S.Harness(memory: h.memory, captured: S.session(epoch: 2)); restarted.originalReceipts = true
         var app = S.application(); app["requestId"] = "synthetic-original-request"
+        app["titleId"] = "11" // recovery requires the projection to echo the journaled title (see ApplyTitleBindingTests)
         restarted.wire.responses = [try S.success(app)]
         _ = try await restarted.coordinator().recover()
         XCTAssertNil(try restarted.store.load())
