@@ -11830,9 +11830,19 @@
 			"path" = "App/SettingsInvoiceEntry.swift";
 			"sourceTree" = "<group>";
 		};
+		"45D384ACC059820671B3FE92" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/SettingsSupportSafetyEntry.swift";
+			"sourceTree" = "<group>";
+		};
 		"93D2B8ED56C215FC1B36D0D8" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "8431DEC178BE41ABCBC52D7A";
+		};
+		"9CA3B84F0EDAF73CC6452F5C" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "45D384ACC059820671B3FE92";
 		};
 		"4F6DA94D3E01A4BE1C8EA749" = {
 			"isa" = "PBXFileReference";
@@ -34680,6 +34690,7 @@
 				"5C155EF653642772F2DD52AD",
 				"E1C3C328B92BD48A4387623D",
 				"8431DEC178BE41ABCBC52D7A",
+				"45D384ACC059820671B3FE92",
 				"4F6DA94D3E01A4BE1C8EA749",
 				"5D038157A6AE502B928E5941",
 				"9CDFD2E03D77F0E63467F9DA",
@@ -39074,6 +39085,7 @@
 				"EAA499082B4720EF4007D930",
 				"65C2C8BDB00FEF55F3E4FA8F",
 				"93D2B8ED56C215FC1B36D0D8",
+				"9CA3B84F0EDAF73CC6452F5C",
 				"195E274A393D9920AAF3C3AE",
 				"03830DB54F1164A5DF9D86F6",
 				"0B1AF589DAA5F3404E6C8879",
