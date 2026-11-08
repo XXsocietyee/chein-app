@@ -165,7 +165,7 @@ public struct RoamStampExchangeReceipt: Decodable, Equatable {
         reason = try c.decodeIfPresent(String.self, forKey: .reason)
         stamp = try c.decodeIfPresent(RoamAlbumStamp.self, forKey: .stamp)
         idempotent = try c.decodeIfPresent(Bool.self, forKey: .idempotent) ?? false
-        if exchanged && (stamp == nil || stamp?.isVisible != true) { throw APIError.malformedResponse }
+        if exchanged, let stamp, !stamp.isVisible { throw APIError.malformedResponse }
     }
 }
 public enum RoamCheckinDisposition: Equatable { case tooFar, needsScan(poiID: Int), lit(firstVisit: Bool, awardedXP: Int) }

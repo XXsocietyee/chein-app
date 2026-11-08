@@ -30,7 +30,8 @@ struct MerchantOperationsHomeView: View {
                         Label { Text("cityMerchant.entry", tableName: "CityMerchantOperations") } icon: { Image(systemName: "storefront") }
                     }.accessibilityIdentifier("merchant.operations.cityEntry")
                 }
-                if let blocked = MerchantOperationsHomeState.resolve(active: access.identity.active, visibleEntryCount: groups.reduce(0) { total, group in total + group.destinations.filter { access.allows($0) }.count }), blocked != .content {
+                let blocked = MerchantOperationsHomeState.resolve(active: access.identity.active, visibleEntryCount: groups.reduce(0) { total, group in total + group.destinations.filter { access.allows($0) }.count })
+                if blocked != .content {
                     CloseW5dStateView(state: blocked, emptyTitle: "merchant.decor.state.empty.title", emptyMessage: "merchant.decor.state.empty.message") { Task { await load(readPermit) } }
                 }
                 if !reader.canSave && access.identity.active {

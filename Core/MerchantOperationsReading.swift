@@ -238,6 +238,9 @@ public struct MerchantOperationsConfirmation: Identifiable, Equatable {
         }
     }
     public func prepare() {
+        if isCurrent, !isBusy, !isLocked, isDirty, draft?.blocker != nil {
+            issue = .key("merchant.operations.invalidDraft"); return
+        }
         guard canReview, let draft, let baseline, let loadedScope else { return }
         do { if !draft.localOnlyReview { _ = try draft.previews() } }
         catch { issue = .key("merchant.operations.invalidDraft"); return }
