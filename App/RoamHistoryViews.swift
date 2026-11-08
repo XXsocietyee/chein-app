@@ -18,7 +18,11 @@ import SwiftUI
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
-                if let error { RoamExperienceIssue(error: error, retry: load) }
+                if let error {
+                    if RoamHistoryErrorPresentation.resolve(error: error) == .denied {
+                        Label("roam.history.denied", systemImage: "lock").accessibilityIdentifier("roam.experience.history.denied")
+                    } else { RoamExperienceIssue(error: error, retry: load) }
+                }
                 else if !loaded { ProgressView("roamSub.w208.history.loading") }
                 else if records.isEmpty {
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }

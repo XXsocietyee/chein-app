@@ -151,8 +151,11 @@ struct RoamAlbumReadOwner: Hashable {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let total = pager.total { StampAlbumTotalHeader(total: total) }
                 if let error = pager.error {
-                    if CollectionReadAccess(error) == .denied { StampAlbumDeniedNotice() }
-                    else { RoamExperienceIssue(error: error, retry: read) }
+                    switch StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) {
+                    case .denied: StampAlbumDeniedNotice()
+                    case .retryContinuation: EmptyView() // rendered after the stamps, below
+                    case .signIn, .retryWholePage: RoamExperienceIssue(error: error, retry: read)
+                    }
                 }
                 if pager.loaded && pager.stamps.isEmpty {
                     ContentUnavailableView("roam.experience.albumEmpty", systemImage: "rectangle.stack", description: Text("roam.experience.albumEmptyHint"))
@@ -167,6 +170,9 @@ struct RoamAlbumReadOwner: Hashable {
                     NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages) } label: {
                         RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
                     }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
+                }
+                if let error = pager.error, StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) == .retryContinuation {
+                    StampAlbumContinuationRetry(retry: read)
                 }
                 if presentation.loading { ProgressView("roam.loading") }
                 if pager.hasMore && !presentation.loading && pager.loaded {
