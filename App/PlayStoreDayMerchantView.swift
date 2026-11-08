@@ -32,6 +32,7 @@ import SwiftUI
             }
         }
         .privacySensitive()
+        .background(CYColor.bgPage)
         .navigationTitle(Text("playStoreDay.title", tableName: "PlayStoreDay"))
         .navigationBarTitleDisplayMode(.inline)
         .task(id: model.nodeID) { await model.load() }
@@ -87,47 +88,72 @@ import SwiftUI
     }
 
     // MARK: Page
+    // Mini-program order: hero -> head (tag, name, meta) -> proof steps -> reference stats -> feedback
+    // -> consent -> merchant info; primary action docked at the bottom.
     private func content(_ node: PlayStoreDayNode) -> some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: 0) {
                 hero(node)
-                header(node)
-                proofSection(node)
-                referenceSection(node)
-                if let notice = model.notice {
-                    Text(verbatim: noticeText(notice)).font(.callout).frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12).background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
-                        .accessibilityIdentifier("storeDayPage.feedback")
+                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                    header(node)
+                    proofSection(node)
+                    referenceSection(node)
+                    if let notice = model.notice {
+                        Text(verbatim: noticeText(notice)).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+                            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                            .accessibilityIdentifier("storeDayPage.feedback")
+                    }
+                    if model.consent == .agree { consentSection }
+                    if let address = node.address { infoSection(node, address: address) }
                 }
-                if model.consent == .agree { consentSection }
-                if let address = node.address { infoSection(node, address: address) }
-            }.padding()
+                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.top, CYSpacing.lg).padding(.bottom, CYSpacing.xxl)
+            }
         }
+        .background(CYColor.bgPage)
         .safeAreaInset(edge: .bottom) { bottomBar(node) }
     }
     @ViewBuilder private func hero(_ node: PlayStoreDayNode) -> some View {
         let url = node.heroImage.flatMap(URL.init(string:)).flatMap { $0.scheme == "https" && approvedImageHosts.contains($0.host?.lowercased() ?? "") ? $0 : nil }
         ZStack {
-            Color.secondary.opacity(0.12)
+            CYColor.bgElevated
             if let url {
-                AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Image(systemName: "mappin.circle").font(.largeTitle) }
-            } else { Image(systemName: "mappin.circle").font(.largeTitle).foregroundStyle(.secondary) }
+                AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { heroPlaceholder }
+            } else { heroPlaceholder }
+            // Vignette keeps the navigation bar and tag legible over artwork (mini-program .mp-hero__vig).
+            LinearGradient(colors: [Color.black.opacity(0.34), Color.black.opacity(0), Color.black.opacity(0.30)], startPoint: .top, endPoint: .bottom)
         }
-        .frame(maxWidth: .infinity).frame(height: 180).clipShape(RoundedRectangle(cornerRadius: 20)).accessibilityHidden(true)
+        .frame(maxWidth: .infinity).frame(height: 260).clipped()
+        .clipShape(UnevenRoundedRectangle(bottomLeadingRadius: CYRadius.sheet, bottomTrailingRadius: CYRadius.sheet, style: .continuous))
+        .accessibilityHidden(true)
+    }
+    private var heroPlaceholder: some View {
+        Image(systemName: "mappin.circle").font(.largeTitle).foregroundStyle(CYColor.textPlaceholder)
     }
     private func header(_ node: PlayStoreDayNode) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).font(.caption.bold()).padding(.horizontal, 10).padding(.vertical, 4)
-                .background(Color.accentColor.opacity(0.15), in: Capsule()).accessibilityIdentifier("storeDayPage.tag")
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(L(tagKey(PlayStoreDayHeaderTag(node)))).font(CYTypography.micro).tracking(1.5).foregroundStyle(CYColor.textTertiary)
+                .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                .background(CYColor.bgRaised, in: Capsule()).accessibilityIdentifier("storeDayPage.tag")
             Group {
                 if let name = node.name { Text(verbatim: name) } else { Text("playStoreDay.name.untitled", tableName: "PlayStoreDay") }
-            }.font(.title2.bold()).accessibilityIdentifier("storeDayPage.name")
-            if let open = openText {
-                LabeledContent { Text(verbatim: open) } label: { Text("playStoreDay.meta.open", tableName: "PlayStoreDay") }.accessibilityIdentifier("storeDayPage.meta.open")
-            }
-            LabeledContent { Text(L(crowdKey(PlayStoreDayCrowd(node)))) } label: { Text("playStoreDay.meta.onsite", tableName: "PlayStoreDay") }
-                .accessibilityIdentifier("storeDayPage.meta.onsite")
+            }.font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("storeDayPage.name")
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                if let open = openText {
+                    metaRow(label: Text("playStoreDay.meta.open", tableName: "PlayStoreDay"), value: Text(verbatim: open)).accessibilityIdentifier("storeDayPage.meta.open")
+                }
+                metaRow(label: Text("playStoreDay.meta.onsite", tableName: "PlayStoreDay"), value: Text(L(crowdKey(PlayStoreDayCrowd(node)))))
+                    .accessibilityIdentifier("storeDayPage.meta.onsite")
+            }.padding(.top, CYSpacing.xs)
         }
+    }
+    /// Letter-spaced key + primary value, baseline aligned (mini-program .mp-mc).
+    private func metaRow(label: Text, value: Text) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+            label.font(CYTypography.micro).tracking(1.5).foregroundStyle(CYColor.textTertiary)
+            value.font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).frame(maxWidth: .infinity, alignment: .leading)
+        }.accessibilityElement(children: .combine)
     }
     private var openText: String? {
         let parts = Calendar.current.dateComponents([.hour, .minute], from: Date())
@@ -139,27 +165,40 @@ import SwiftUI
         }
     }
     private func proofSection(_ node: PlayStoreDayNode) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("playStoreDay.section.proof", tableName: "PlayStoreDay").font(.headline)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("playStoreDay.section.proof", tableName: "PlayStoreDay").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
             step(1, done: node.arrived, title: L("playStoreDay.step.scan.title"), detail: L("playStoreDay.step.scan.detail"), id: "scan")
             step(2, done: node.selfReported, title: L("playStoreDay.step.photo.title"),
                  detail: node.arrived ? (node.photoDescription ?? L("playStoreDay.step.photo.default")) : L("playStoreDay.step.photo.locked"), id: "photo")
             step(3, done: node.done, title: L("playStoreDay.step.verify.title"), detail: L("playStoreDay.step.verify.detail"), id: "verify")
-            if node.arrived, let rule = node.rule { Text(verbatim: rule).font(.footnote).accessibilityIdentifier("storeDayPage.rule") }
+            if node.arrived, let rule = node.rule {
+                Text(verbatim: rule).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("storeDayPage.rule")
+            }
         }
     }
+    /// One bordered card per step with a numbered badge; done steps use primary ink, pending ones tertiary.
     private func step(_ index: Int, done: Bool, title: String, detail: String, id: String) -> some View {
-        HStack(alignment: .top, spacing: 12) {
-            Image(systemName: done ? "checkmark.circle.fill" : "\(index).circle").foregroundStyle(done ? Color.accentColor : .secondary)
-            VStack(alignment: .leading, spacing: 2) { Text(verbatim: title).font(.subheadline.bold()); Text(verbatim: detail).font(.footnote).foregroundStyle(.secondary) }
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            Image(systemName: done ? "checkmark.circle.fill" : "\(index).circle").font(.title3)
+                .foregroundStyle(done ? CYColor.accent : CYColor.textTertiary).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(verbatim: title).font(CYTypography.label).foregroundStyle(done ? CYColor.textPrimary : CYColor.textTertiary)
+                Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            }
+            Spacer(minLength: 0)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md)
         .accessibilityElement(children: .combine).accessibilityIdentifier("storeDayPage.step." + id)
         .accessibilityValue(done ? Text("playStoreDay.step.done", tableName: "PlayStoreDay") : Text(verbatim: ""))
     }
     private func referenceSection(_ node: PlayStoreDayNode) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("playStoreDay.section.reference", tableName: "PlayStoreDay").font(.headline)
-            HStack {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("playStoreDay.section.reference", tableName: "PlayStoreDay").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            // Unknown values stay an em dash (the mini-program shows 0 here; the native app must not).
+            HStack(alignment: .top, spacing: CYSpacing.sm) {
                 stat(node.inStoreLoad.map(String.init) ?? "—", L("playStoreDay.stat.load"), id: "load")
                 stat(node.servicePerHour.map(Self.number) ?? "—", L("playStoreDay.stat.perHour"), id: "perHour")
                 stat(node.expectedWaitMinutes.map(String.init) ?? "—", L("playStoreDay.stat.wait"), id: "wait")
@@ -168,23 +207,46 @@ import SwiftUI
     }
     private static func number(_ value: Double) -> String { value.rounded() == value ? String(Int(value)) : String(format: "%.1f", value) }
     private func stat(_ value: String, _ label: String, id: String) -> some View {
-        VStack(spacing: 4) { Text(verbatim: value).font(.title3.bold().monospacedDigit()); Text(verbatim: label).font(.caption).foregroundStyle(.secondary) }
-            .frame(maxWidth: .infinity).accessibilityElement(children: .combine).accessibilityIdentifier("storeDayPage.stat." + id)
+        VStack(spacing: CYSpacing.xs) {
+            Text(verbatim: value).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.6).lineLimit(1)
+            Text(verbatim: label).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary).multilineTextAlignment(.center)
+        }
+        .frame(maxWidth: .infinity)
+        .cyCardSurface(variant: .surface, radius: CYRadius.sm, padding: CYSpacing.md)
+        .accessibilityElement(children: .combine).accessibilityIdentifier("storeDayPage.stat." + id)
     }
     private var consentSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("playStoreDay.section.consent", tableName: "PlayStoreDay").font(.headline)
-            Text(verbatim: String(format: L("playStoreDay.consent.scope"), storeName)).font(.footnote)
-            Button { confirmRevoke = true } label: {
-                Text(L(model.consentBusy ? "playStoreDay.consent.revoking" : "playStoreDay.consent.revoke"))
-            }.disabled(model.consentBusy).accessibilityIdentifier("storeDayPage.consent.revoke")
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("playStoreDay.section.consent", tableName: "PlayStoreDay").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            HStack(spacing: CYSpacing.md) {
+                Text(verbatim: String(format: L("playStoreDay.consent.scope"), storeName)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                Button { confirmRevoke = true } label: {
+                    Text(L(model.consentBusy ? "playStoreDay.consent.revoking" : "playStoreDay.consent.revoke")).font(CYTypography.meta).underline()
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                }.buttonStyle(.plain).foregroundStyle(CYColor.textPrimary)
+                .disabled(model.consentBusy).accessibilityIdentifier("storeDayPage.consent.revoke")
+            }
+            .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md)
         }
     }
     private func infoSection(_ node: PlayStoreDayNode, address: String) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("playStoreDay.section.info", tableName: "PlayStoreDay").font(.headline)
-            Label { VStack(alignment: .leading) { Text(verbatim: address); if let open = openText { Text(verbatim: open).font(.caption) } } } icon: { Image(systemName: "mappin") }
-            mapControl(node, label: L("playStoreDay.info.navigate"), id: "storeDayPage.info.navigate")
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("playStoreDay.section.info", tableName: "PlayStoreDay").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            // Address card: pin, address, open hours, trailing navigate control (mini-program .mp-addr).
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Label {
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        Text(verbatim: address).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                        if let open = openText { Text(verbatim: open).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    }
+                } icon: { Image(systemName: "mappin").foregroundStyle(CYColor.textTertiary) }
+                mapControl(node, label: L("playStoreDay.info.navigate"), id: "storeDayPage.info.navigate")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .cyCardSurface(variant: .surface, radius: CYRadius.md, padding: CYSpacing.lg)
         }
     }
     /// Coordinates come only from the server row; the existing external-map host is reused.
@@ -193,24 +255,30 @@ import SwiftUI
             PlatformExternalMapHost(destination: .init(name: node.name ?? "", address: node.address, latitude: node.latitude, longitude: node.longitude),
                                     scope: mediaScope, makeModel: makeExternalMaps).accessibilityIdentifier(id)
         } else {
-            Button { model.mapUnavailable() } label: { Label(label, systemImage: "mappin") }.accessibilityIdentifier(id)
+            Button { model.mapUnavailable() } label: { Label(label, systemImage: "mappin") }
+                .buttonStyle(.cySecondary(fullWidth: false)).accessibilityIdentifier(id)
         }
     }
 
     // MARK: Bottom bar
+    // Status line sits right above the control it governs; colour only on the dot (mini-program .mp-status).
     private func bottomBar(_ node: PlayStoreDayNode) -> some View {
-        VStack(spacing: 8) {
+        VStack(spacing: CYSpacing.sm) {
             if let degraded = model.degraded {
                 Button { Task { await model.retryProofReadback() } } label: {
-                    HStack(spacing: 8) { Circle().fill(model.receipt == .unknown ? Color.orange : Color.secondary).frame(width: 8, height: 8); Text(verbatim: degradedText(degraded)).font(.footnote) }
+                    HStack(spacing: CYSpacing.sm) {
+                        Circle().fill(model.receipt == .unknown ? CYColor.warningText : CYColor.textSecondary).frame(width: 8, height: 8).accessibilityHidden(true)
+                        Text(verbatim: degradedText(degraded)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }.frame(minHeight: CYSpacing.minTouchTarget)
                 }.buttonStyle(.plain).disabled(model.receipt != .unknown).accessibilityIdentifier("storeDayPage.degraded")
             }
-            HStack(spacing: 12) {
+            HStack(spacing: CYSpacing.md) {
                 mapControl(node, label: L("playStoreDay.cta.address"), id: "storeDayPage.cta.address").fixedSize()
                 primaryButton(node).frame(maxWidth: .infinity)
             }
         }
-        .padding().background(.bar)
+        .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md).background(.bar)
     }
     @ViewBuilder private func primaryButton(_ node: PlayStoreDayNode) -> some View {
         switch PlayStoreDayPrimaryAction.resolve(node, receipt: model.receipt) {
@@ -222,24 +290,26 @@ import SwiftUI
         }
     }
     private func primary(_ title: String, disabled: Bool, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Text(verbatim: title).bold().frame(maxWidth: .infinity) }
-            .buttonStyle(.questifyPrimary).controlSize(.large).disabled(disabled).accessibilityIdentifier("storeDayPage.cta.primary")
+        Button(action: action) { Text(verbatim: title).frame(maxWidth: .infinity) }
+            .buttonStyle(.cyPrimary(fullWidth: true)).disabled(disabled).accessibilityIdentifier("storeDayPage.cta.primary")
     }
 
     // MARK: Sheets
+    // Mini-program half-screen cards: eyebrow, question, option rows with a selected state, one pill action.
     private var gameSheet: some View {
         NavigationStack {
             Form {
                 if let node = model.node {
                     Section {
-                        if let question = node.question { Text(verbatim: question).accessibilityIdentifier("storeDayPage.game.question") }
+                        if let question = node.question { Text(verbatim: question).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("storeDayPage.game.question") }
                     } header: {
                         if let title = node.gameTitle { Text(verbatim: title) } else { Text("playStoreDay.game.defaultTitle", tableName: "PlayStoreDay") }
                     }
                     if let result = model.game.result {
                         Section {
-                            Text(verbatim: resultText(result)).accessibilityIdentifier("storeDayPage.game.result")
-                            Button { model.closeGame() } label: { Text(L(node.selfReported ? "playStoreDay.game.finish" : "playStoreDay.game.next")) }
+                            Text(verbatim: resultText(result)).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("storeDayPage.game.result")
+                            Button { model.closeGame() } label: { Text(L(node.selfReported ? "playStoreDay.game.finish" : "playStoreDay.game.next")).frame(maxWidth: .infinity) }
+                                .buttonStyle(.cyPrimary(fullWidth: true)).listRowBackground(Color.clear)
                                 .accessibilityIdentifier("storeDayPage.game.close")
                         }
                     } else {
@@ -247,7 +317,12 @@ import SwiftUI
                             if let options = node.options {
                                 ForEach(options) { option in
                                     Button { model.pick(option.key) } label: {
-                                        HStack { Text(verbatim: option.key).bold(); Text(verbatim: option.text); Spacer(); if model.game.choice == option.key { Image(systemName: "checkmark") } }
+                                        HStack(spacing: CYSpacing.md) {
+                                            Text(verbatim: option.key).bold()
+                                            Text(verbatim: option.text).frame(maxWidth: .infinity, alignment: .leading)
+                                            if model.game.choice == option.key { Image(systemName: "checkmark").foregroundStyle(CYColor.accent) }
+                                        }.foregroundStyle(model.game.choice == option.key ? CYColor.textPrimary : CYColor.textSecondary)
+                                        .frame(minHeight: CYSpacing.minTouchTarget)
                                     }
                                     .accessibilityLabel(Text(verbatim: String(format: L("playStoreDay.game.option"), option.key) + " " + option.text))
                                     .accessibilityAddTraits(model.game.choice == option.key ? .isSelected : [])
@@ -260,33 +335,46 @@ import SwiftUI
                             if let error = model.game.error {
                                 Button { Task { await model.retryGameReadback() } } label: {
                                     Text(verbatim: gameErrorText(error) + (model.game.receipt == .unknown ? " · " + L("playStoreDay.game.recheck") : ""))
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(model.game.receipt == .unknown ? CYColor.warningText : CYColor.textTertiary)
                                 }.disabled(model.game.receipt != .unknown).accessibilityIdentifier("storeDayPage.game.error")
                             }
-                            let locked = model.game.submitting || model.game.receipt == .unknown
+                        }
+                        let locked = model.game.submitting || model.game.receipt == .unknown
+                        Section {
                             Button { Task { await model.submitGame() } } label: {
-                                Text(L(model.game.receipt == .unknown ? "playStoreDay.game.pending" : model.game.submitting ? "playStoreDay.game.submitting" : "playStoreDay.game.submit")).bold()
-                            }.disabled(locked).accessibilityIdentifier("storeDayPage.game.submit")
+                                Text(L(model.game.receipt == .unknown ? "playStoreDay.game.pending" : model.game.submitting ? "playStoreDay.game.submitting" : "playStoreDay.game.submit")).frame(maxWidth: .infinity)
+                            }.buttonStyle(.cyPrimary(fullWidth: true)).listRowBackground(Color.clear)
+                            .disabled(locked).accessibilityIdentifier("storeDayPage.game.submit")
                         }
                     }
                 }
             }
+            .scrollContentBackground(.hidden).background(CYColor.bgElevated)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button { model.closeSheets() } label: { Text("playStoreDay.mask.close", tableName: "PlayStoreDay") } } }
         }
+        .presentationBackground(CYColor.bgElevated).presentationDragIndicator(.visible)
     }
     private var taskSheet: some View {
         NavigationStack {
             Form {
                 Section {
-                    Text(verbatim: model.node?.photoDescription ?? L("playStoreDay.step.photo.default")).accessibilityIdentifier("storeDayPage.task.requirement")
-                    if let rule = model.node?.rule { Text(verbatim: rule).font(.footnote) }
+                    Text(verbatim: model.node?.photoDescription ?? L("playStoreDay.step.photo.default")).font(CYTypography.bodyMedium)
+                        .foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("storeDayPage.task.requirement")
+                    if let rule = model.node?.rule { Text(verbatim: rule).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 } header: { Text("playStoreDay.task.title", tableName: "PlayStoreDay") }
                 Section {
-                    Button { model.taskGoPhoto() } label: { Text(L(model.busy ? "playStoreDay.task.busy" : "playStoreDay.task.photo")).bold() }
+                    Button { model.taskGoPhoto() } label: { Text(L(model.busy ? "playStoreDay.task.busy" : "playStoreDay.task.photo")).frame(maxWidth: .infinity) }
+                        .buttonStyle(.cyPrimary(fullWidth: true)).listRowBackground(Color.clear)
                         .disabled(model.busy).accessibilityIdentifier("storeDayPage.task.photo")
-                    Button { model.closeTaskCard() } label: { Text("playStoreDay.task.later", tableName: "PlayStoreDay") }.accessibilityIdentifier("storeDayPage.task.later")
+                    Button { model.closeTaskCard() } label: { Text("playStoreDay.task.later", tableName: "PlayStoreDay").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
+                        .buttonStyle(.plain).foregroundStyle(CYColor.textTertiary).listRowBackground(Color.clear)
+                        .accessibilityIdentifier("storeDayPage.task.later")
                 }
             }
+            .scrollContentBackground(.hidden).background(CYColor.bgElevated)
         }
+        .presentationBackground(CYColor.bgElevated).presentationDragIndicator(.visible)
     }
 
     // MARK: Copy
