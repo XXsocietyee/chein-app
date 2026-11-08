@@ -77,7 +77,7 @@ public struct PublishTopicModerationSnapshot: Sendable, Equatable {
         nineGridMediaCount: Int = 9,
         topicDetailEndpoint: String = "api/topic/detail",
         commentListEndpoint: String = "api/comment/list",
-        ugcReportEndpoint: String = "api/ugc/report",
+        ugcReportEndpoint: String = "api/community-trust/reports/submit",
         ugcBlockUserEndpoint: String = "api/ugc/block",
         guideline12TermsAccepted: Bool = true,
         hasActiveUgcViolationBanner: Bool = false,

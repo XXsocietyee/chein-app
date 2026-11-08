@@ -1064,7 +1064,23 @@ final class AppSession: ObservableObject {
     private let storageScope:RegionalSessionStorageScope?
     let regionalConfiguration:RegionalConfiguration?
     var operationalMarket:RegionalMarket? { regionalConfiguration?.market ?? RegionalLaunchConfiguration.market }
-    var canUsePassword:Bool { storageScope != nil && regionalConfiguration?.availability(of:.usernamePassword) == .available }
+    /// ADAPT-5: compile-time switch, `false` in every non-DEBUG (shipped) build. The legacy password route needs a
+    /// mini-program WeChat `code` the app cannot supply, so it is compiled out of release builds; debug/test builds
+    /// keep the capability-gated behavior.
+    static var passwordLoginCompiledIn:Bool {
+#if DEBUG
+        true
+#else
+        false
+#endif
+    }
+    var canUsePassword:Bool {
+#if DEBUG
+        storageScope != nil && regionalConfiguration?.availability(of:.usernamePassword) == .available
+#else
+        false
+#endif
+    }
     var supportsDomesticPhoneInput:Bool { operationalMarket == .china }
     private let service: AuthService?
     private let accountSessionService: CNAccountSessionService?
@@ -7284,7 +7300,11 @@ final class AppSession: ObservableObject {
         if let scope, let regional, let configuration=regional.apiConfiguration {
             let transport=compositionTransport
             accountSessionService=try? CNAccountSessionService(configuration:regional,storageScope:scope,transport:transport)
+#if DEBUG
             service=regional.availability(of:.usernamePassword) == .available ? AuthService(configuration:configuration,transport:transport) : nil
+#else
+            service=nil
+#endif
             authChannelService=regional.canUseDomesticChinaPhone ? AuthChannelService(configuration:configuration,transport:transport,allowLoginRoleFallback:composition.reviewed?.allowLoginRoleFallbackOnRolelessUserInfo ?? false) : nil
             searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap, .publicMapLayers]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
             mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
@@ -7466,6 +7486,8 @@ final class AppSession: ObservableObject {
     }
 
     func login(username:String,password:String) async {
+        // ADAPT-5 defence in depth: even a caller that bypasses the UI cannot reach `AuthService.login` in release.
+        guard Self.passwordLoginCompiledIn else { errorKey="auth.notConfigured";return }
         guard !isWorking, !authChannels.state.isWorking, !weChatAuth.isWorking else { return }
         guard let service else { errorKey="auth.notConfigured";return }
         invalidateInvoiceLaunch()
