@@ -34,6 +34,8 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     public let welcomeNote: String?
     public let memberPostAllowed: Bool?
     public let prioritySignupEnabled: Bool?
+    /// Raw club review state when the owner list returns it (2 = rejected). Absent or non-numeric is unknown.
+    public let status: Int?
 
     public var canSeeMembers: Bool { isOwner || isJoined }
     public var canGovern: Bool { isOwner || viewerIsAdmin }
@@ -44,7 +46,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         case id, name, logo, cover, description, clubTypes, clubType, address, city, style
         case leaderName, keywords, activityPrefs, memberCount, isJoined, isOwner, viewerIsAdmin
         case level, joinPolicy, joinPolicySupported, myJoinStatus, myJoinReviewReason, viewerIdentityUnavailable
-        case welcomeNote, memberPostAllowed, prioritySignupEnabled
+        case welcomeNote, memberPostAllowed, prioritySignupEnabled, status
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -87,6 +89,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         }
         memberPostAllowed = try setting(.memberPostAllowed)
         prioritySignupEnabled = try setting(.prioritySignupEnabled)
+        status = (try? c.decodeIfPresent(Int.self, forKey: .status)) ?? nil
     }
 }
 
