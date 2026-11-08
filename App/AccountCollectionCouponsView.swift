@@ -19,12 +19,26 @@ import SwiftUI
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else {
-                Picker("accountCollection.coupons.filter", selection: $filter) {
-                    ForEach(AccountCollectionCouponFilter.allCases) { option in
-                        Text(LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue)).tag(option)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: CYSpacing.sm) {
+                        ForEach(AccountCollectionCouponFilter.allCases) { option in
+                            Button { filter = option } label: {
+                                Text(LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue))
+                                    .font(CYTypography.label)
+                                    .foregroundStyle(filter == option ? CYColor.textOnAccent : CYColor.textPrimary)
+                                    .padding(.horizontal, CYSpacing.lg)
+                                    .frame(minHeight: CYSpacing.minTouchTarget)
+                                    .background(filter == option ? CYColor.accent : CYColor.bgElevated, in: Capsule())
+                            }
+                            .buttonStyle(.plain)
+                            .accessibilityAddTraits(filter == option ? .isSelected : [])
+                        }
                     }
-                }.pickerStyle(.menu).accessibilityIdentifier("accountCollection.coupons.filter")
-                if model.isLoading || model.loadedRequest != offeredRequest { ProgressView("accountCollection.loading") }
+                }
+                .listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .accessibilityIdentifier("accountCollection.coupons.filter")
+                if model.isLoading || model.loadedRequest != offeredRequest { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("accountCollection.loading")) }
                 else if let issue = model.issue(for: offeredRequest) {
                     AccountCollectionIssueView(issue: issue, retry: { model.schedule(request: offeredRequest, reader: reader, presentation: presentation) })
                 } else if let coupons = model.rows(for: offeredRequest) {
@@ -98,13 +112,13 @@ struct AccountCollectionCouponRow: View {
         VStack(alignment: .leading, spacing: 12) {
             AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
-                .font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
             if let description = coupon.displayDescription, !description.isEmpty {
-                Text(verbatim: description).font(.subheadline).foregroundStyle(.secondary)
+                Text(verbatim: description).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
             if let day = coupon.futureStartDay(relativeTo: Date()) {
-                Text("accountCollection.coupon.startsLater").font(.footnote.weight(.semibold))
+                Text("accountCollection.coupon.startsLater").font(CYTypography.meta)
                     .accessibilityIdentifier("accountCollection.coupon.futureStart")
                 QuestifyMetadataLine(label: "accountCollection.coupon.validFrom", value: day, systemImage: "calendar.badge.clock")
             }
