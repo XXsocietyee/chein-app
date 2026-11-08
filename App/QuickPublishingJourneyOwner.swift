@@ -60,7 +60,7 @@ import UIKit
             guard let self, self.context == capturedContext, self.draftID == capturedDraft else { return .init() }; return self.draft
         }, set: { [weak self] value in
             guard let self, self.canEdit, self.context == capturedContext, self.draftID == capturedDraft else { return }
-            self.draft = value; self.revision &+= 1; self.problem = false
+            self.draft = QuickPublishFieldLimits.clamped(value); self.revision &+= 1; self.problem = false
         })
     }
     func addNodeAction() -> () -> Void {
@@ -105,7 +105,7 @@ import UIKit
               !value.nodes.isEmpty, value.nodes.count <= 3,
               Set(value.nodes.map(\.id)).count == value.nodes.count,
               value.nodes.allSatisfy({ $0.confirmedPlace == nil && !$0.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) else { return false }
-        replace(value); return true
+        replace(QuickPublishFieldLimits.clamped(value)); return true
     }
     @discardableResult func confirm(_ place: PublishingPlace, from original: Presentation) -> Bool {
         guard case .place(let id) = original.kind, isCurrent(original),
