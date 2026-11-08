@@ -164,8 +164,8 @@ enum MerchantGameNodeCopy {
     }
     @ViewBuilder private var toastView: some View {
         if let toast = c.toast {
-            MerchantGameNodeCopy.text(toast).font(.footnote).padding(.horizontal, 16).padding(.vertical, 10)
-                .background(.regularMaterial, in: Capsule()).padding(.bottom, 24)
+            MerchantGameNodeCopy.text(toast).font(.footnote).padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+                .background(.regularMaterial, in: Capsule()).padding(.bottom, CYSpacing.xxl)
                 .accessibilityIdentifier("gameNode.toast")
                 .task(id: c.toast) { try? await Task.sleep(nanoseconds: 2_000_000_000); if c.toast == toast { c.clearToast() } }
         }
@@ -231,7 +231,7 @@ enum MerchantGameNodeCopy {
                 }
                 Spacer()
                 MerchantGameNodeCopy.text(station.statusTextKey).font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10).padding(.vertical, 4)
+                    .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xs)
                     .foregroundStyle(toneColor(c.summary.tone)).background(toneColor(c.summary.tone).opacity(0.14), in: Capsule())
                     .accessibilityIdentifier("gameNode.status")
             }
