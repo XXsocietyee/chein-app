@@ -1207,7 +1207,7 @@ struct SessionMerchantRootContainerView: View {
             .tag(MerchantRootBusinessTab.mine)
         }
         .id(coordinator.merchantContainerGeneration)
-        .themeDomain(.merchant)
+        .roleTheme(.merchant)
         .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }
         .onChange(of: session.merchantMarketingCoordinator.scopeIdentity) { _, _ in selectedMarketingSuggestion = nil }
         .onChange(of: selectedMarketingSuggestion) { oldValue, newValue in
