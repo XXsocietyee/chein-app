@@ -71,6 +71,7 @@ import SwiftUI
                 onRetryContinuation: { Task { await reloadContinuationCards() } }
             ) { path.append($0) }
                 .toolbar {
+                    ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }
                     // Two actions at most: search, then everything else in one menu.
                     ToolbarItemGroup(placement:.topBarTrailing) {
                         Button("searchMap.title",systemImage:"magnifyingglass") { showsGlobalSearch=true }

@@ -10,6 +10,7 @@ public enum W8Text {
         if let languageOverride { return languageOverride.hasPrefix("zh") }
         // Unit tests run with a non-localized bundle; keep the original (Chinese) rule copy there.
         if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil || NSClassFromString("XCTestCase") != nil { return true }
+        if let active = AppLanguageRuntime.active, active != .system { return active.isChinese(systemLanguageCode: "") }
         let lang = Bundle.main.preferredLocalizations.first ?? Locale.preferredLanguages.first ?? "en"
         return lang.hasPrefix("zh")
     }

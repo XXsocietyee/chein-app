@@ -5,7 +5,7 @@ struct SettingsView: View {
     @EnvironmentObject private var session: AppSession
     @StateObject private var profileOwner = ProfileSettingsProfileOwner()
     @State private var favoritesOwner = ProfileSettingsFavoritesOwner()
-    @AppStorage("preferences.language") private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
+    @AppStorage(AppLanguage.storageKey) private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     @Environment(\.dismiss) private var dismiss
 
     private var language: Binding<AppLanguage> {
@@ -68,7 +68,7 @@ struct SettingsView: View {
         .onDisappear { profileOwner.retire() }
         .modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))
         // Explicitly update sheets as well as the app root when preference changes.
-        .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
+        .modifier(AppLanguageEnvironment(stored: storedLanguage))
     }
 }
 

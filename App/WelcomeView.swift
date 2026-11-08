@@ -45,6 +45,7 @@ struct WelcomeView: View {
             .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) { LanguageSwitcher() }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("settings.title", systemImage: "gearshape") { destination = .settings }
                         .accessibilityIdentifier("welcome.settings")

@@ -5,7 +5,15 @@ import Foundation
 enum MerchantOpsCopy {
     static let table = "MerchantOps"
     static func text(_ key: String, _ arguments: CVarArg...) -> String {
-        let format = Bundle.main.localizedString(forKey: key, value: nil, table: table)
-        return arguments.isEmpty ? format : String(format: format, locale: Locale.current, arguments: arguments)
+        let format = bundle.localizedString(forKey: key, value: nil, table: table)
+        return arguments.isEmpty ? format : String(format: format, locale: locale, arguments: arguments)
     }
+    /// Follows the in-app language choice; System (or an unavailable lproj) falls back to the main bundle.
+    private static var bundle: Bundle {
+        guard let active = AppLanguageRuntime.active, active != .system,
+              let path = Bundle.main.path(forResource: active.rawValue, ofType: "lproj"),
+              let localized = Bundle(path: path) else { return .main }
+        return localized
+    }
+    private static var locale: Locale { AppLanguageRuntime.active?.locale ?? .current }
 }
