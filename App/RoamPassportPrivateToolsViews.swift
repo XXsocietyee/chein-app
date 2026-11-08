@@ -262,6 +262,11 @@ struct RoamPrivatePageScope: Hashable {
             if let issue = model.issue {
                 Section { RoamPrivateIssueView(issue: issue, retry: issue == .outcomeUnknown ? nil : { page.read { await model.load() } }) }
             }
+            // Reads are approved but the write route is not: say so instead of silently hiding the compose button.
+            if tools.identity != nil, tools.isConfigured, !tools.allowsWrites, model.pending == nil, model.pendingRequestID == nil {
+                Section { Label("roam.capsule.writeUnavailable", systemImage: "lock").font(.footnote).foregroundStyle(.secondary) }
+                    .accessibilityIdentifier("roam.capsule.writeUnavailable")
+            }
             if model.pending != nil || model.pendingRequestID != nil {
                 Section {
                     Text("roam.capsule.pending").accessibilityIdentifier("roam.capsule.pending")

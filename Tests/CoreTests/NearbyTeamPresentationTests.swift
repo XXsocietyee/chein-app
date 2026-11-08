@@ -79,3 +79,23 @@ import XCTest
         }
     }
 }
+
+#if canImport(QuestifyCore)
+final class NearbyLoadIssueUnavailableTests: XCTestCase {
+    func testMissingReadGrantIsHonestUnavailableWithoutRetry() {
+        let issue = NearbyLoadIssue(messageKey: "nearby.unconfigured")
+        XCTAssertEqual(issue, .unavailable)
+        XCTAssertEqual(issue?.offersRetry, false)
+        XCTAssertEqual(issue?.subKey, "nearby.w208.issue.unavailableSub")
+        XCTAssertEqual(issue?.titleKey, "nearby.w208.issue.unavailable")
+    }
+    func testOrdinaryFailureStillOffersRetry() {
+        let issue = NearbyLoadIssue(messageKey: "nearby.loadFailed")
+        XCTAssertEqual(issue, .failed)
+        XCTAssertEqual(issue?.offersRetry, true)
+        XCTAssertEqual(issue?.subKey, "nearby.w208.issue.sub")
+        XCTAssertEqual(NearbyLoadIssue(messageKey: "nearby.signIn")?.offersRetry, true)
+        XCTAssertEqual(NearbyLoadIssue(messageKey: "nearby.w208.denied")?.offersRetry, true)
+    }
+}
+#endif

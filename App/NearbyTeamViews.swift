@@ -342,7 +342,9 @@ import SwiftUI
             }
             if mine.loading { ProgressView("nearby.w208.mine.loading") }
             else if model.running { ProgressView("nearby.loading") }
-            if mine.failed && !model.running {
+            if mine.failed && !model.running, let mineIssue = NearbyLoadIssue(messageKey: coordinator.messageKey), !mineIssue.offersRetry {
+                NearbyLoadIssueCard(issue: mineIssue, onSignIn: nil) {}
+            } else if mine.failed && !model.running {
                 Button { Task { await loadMine() } } label: { Text("nearby.w208.mine.failed").frame(maxWidth: .infinity, alignment: .leading) }
                     .frame(minHeight: 44).accessibilityIdentifier("nearby.w208.mine.retry")
             }

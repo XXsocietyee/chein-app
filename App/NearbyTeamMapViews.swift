@@ -42,8 +42,10 @@ struct NearbyLoadIssueCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(LocalizedStringKey(issue.titleKey)).font(.headline)
-            Text("nearby.w208.issue.sub").font(.subheadline).foregroundStyle(.secondary)
-            if issue == .signIn {
+            Text(LocalizedStringKey(issue.subKey)).font(.subheadline).foregroundStyle(.secondary)
+            if !issue.offersRetry {
+                EmptyView()
+            } else if issue == .signIn {
                 if let onSignIn { Button(LocalizedStringKey(issue.actionKey), action: onSignIn).frame(minHeight: 44).accessibilityIdentifier("nearby.w208.issue.action") }
             } else {
                 Button(LocalizedStringKey(issue.actionKey), action: retry).frame(minHeight: 44).accessibilityIdentifier("nearby.w208.issue.action")

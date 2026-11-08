@@ -9,17 +9,22 @@ public enum NearbyTeamBadge: String, CaseIterable {
 
 /// Read-failure presentation for the nearby map/list (xcx `nearbyReadAccess` login/denied plus load failure).
 public enum NearbyLoadIssue: String, Equatable {
-    case signIn, denied, failed
+    case signIn, denied, failed, unavailable
     public init?(messageKey: String?) {
         switch messageKey {
         case "nearby.signIn": self = .signIn
         case "nearby.w208.denied": self = .denied
-        case "nearby.loadFailed", "nearby.unconfigured": self = .failed
+        case "nearby.loadFailed": self = .failed
+        // No read grant in this build: an honest "not available yet", never a retry that cannot work.
+        case "nearby.unconfigured": self = .unavailable
         default: return nil
         }
     }
     public var titleKey: String { "nearby.w208.issue.\(rawValue)" }
     public var actionKey: String { self == .signIn ? "nearby.w208.issue.signInAction" : "nearby.w208.issue.retry" }
+    public var subKey: String { self == .unavailable ? "nearby.w208.issue.unavailableSub" : "nearby.w208.issue.sub" }
+    /// Retrying cannot change a missing grant.
+    public var offersRetry: Bool { self != .unavailable }
 }
 
 /// Pure copy helpers mirroring `subpackageRoam/utils/map-team.js` and `my-teams/index.js`.
