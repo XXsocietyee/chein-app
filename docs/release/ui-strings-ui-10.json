@@ -1,0 +1,5 @@
+[
+  {"key": "cy.state.loading", "en": "Loading", "zh-Hans": "正在加载"},
+  {"key": "cy.state.offline.title", "en": "You're offline. Showing what's saved.", "zh-Hans": "当前无网络连接，仅显示已保存的内容"},
+  {"key": "cy.state.offline.retry", "en": "Retry", "zh-Hans": "重试"}
+]
