@@ -24,8 +24,12 @@ import UIKit
                     Text("groupCode.imageUnavailable", tableName: "ClubGroupCodeDisplay")
                 }
             } else {
-                Label("club.gov.expiredCode", systemImage: "clock.badge.exclamationmark")
-                    .accessibilityIdentifier("club.gov.expiredCode")
+                VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                    Label("club.gov.expiredCode", systemImage: "clock.badge.exclamationmark")
+                        .accessibilityIdentifier("club.gov.expiredCode")
+                    // Mini-program re-issues automatically; native keeps issuance behind the reviewed command.
+                    Text("club.gov.expiredCode.hint").font(.footnote).foregroundStyle(.secondary)
+                }
             }
         }
     }

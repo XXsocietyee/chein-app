@@ -7,3 +7,4 @@
 | `club.ops.create.needName` | Localizable | `Enter a club name to continue.` | `请先填写俱乐部名称` |
 | `club.ops.create.needCity` | Localizable | `Enter the club's city to continue.` | `请先填写所在城市` |
 | `club.ops.counter %lld %lld` | Localizable | `%1$lld / %2$lld` | `%1$lld / %2$lld` |
+| `club.gov.expiredCode.hint` | Localizable | `This code has expired. Issue a new one to check in guests.` | `团码已过期，请重新出码后再核销。` |
