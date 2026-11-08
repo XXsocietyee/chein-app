@@ -1,10 +1,8 @@
 # WIRE-1 grant preparation
 
-Preparation only. No grant is issued by this document.
+The shipped composition is still `RegionalLaunchConfiguration.composition`, which calls `makeComposition(reviewed: nil, build: .current)` and therefore stays `DeploymentState.unconfigured`. Tests may select `reviewedMarketComposition` / `ReviewedMarketLaunch`. That China deployment's only approved base URL is `https://www.chengyinhub.com/prod-api/`. The same host is the `QUESTIFY_API_BASE_URL` build input in `Config/China.Production.xcconfig`. Neither one approves the shipped composition, and `productionGatesEnabled` stays false, so password login, bank withdrawal, and virtual goods stay off.
 
-The shipped composition is still `RegionalLaunchConfiguration.composition`, which calls `makeComposition(reviewed: nil, build: .current)` and therefore stays `DeploymentState.unconfigured`. `App/RegionalLaunchConfiguration.swift` is unchanged. This preparation does not call `reviewedComposition` or `makeComposition` with a non-nil `ReviewedAppDeployment`.
-
-The owner has not supplied the production base URL, bundle identifier, markets, or Apple Team ID. Those values are not guessed here. The app is not pointed at `https://www.chengyinhub.com` or `47.103.124.64`. Nothing is deployed and no production host is contacted.
+The US market has no reviewed host. `Config/Base.xcconfig`, the development loopback, and `Config/UnitedStates.Production.xcconfig` do not carry this URL. Nothing is deployed and no production host is contacted. `47.103.124.64` stays disallowed.
 
 `ReviewedAppDeployment.ReadGrant` has exactly six cases (`App/AppCompositionRoot.swift`). Together they are the in-scope read groups. Push notifications and webhooks are not among them. No new `ReadGrant` case is added.
 

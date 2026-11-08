@@ -17,11 +17,17 @@ public struct RegionalSessionStorageScope: Equatable {
         }
         market = configuration.market
         self.endpoint = endpoint
+        service = Self.serviceName(market: market, endpoint: endpoint, bundleIdentifier: bundleIdentifier, realm: realm)
+    }
+
+    /// Local vault name. Market is part of the identity, so two markets never share a scope.
+    /// This does not approve an endpoint.
+    public static func serviceName(market: RegionalMarket, endpoint: String, bundleIdentifier: String, realm: String) -> String {
         // Length-prefix each UTF-8 component so delimiters cannot create collisions.
         // This is an identifier, not encryption; it contains no token or account data.
         let components = [bundleIdentifier, market.rawValue, endpoint, realm]
         let identity = components.map { "\($0.utf8.count):\($0)" }.joined()
-        service = "questify.session.v2." + Data(identity.utf8).base64EncodedString()
+        return "questify.session.v2." + Data(identity.utf8).base64EncodedString()
     }
 
     /// A service may only use the endpoint/market that created this local vault scope.

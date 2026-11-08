@@ -3,6 +3,9 @@
 // Reset earlier local inputs so deployments cannot inherit another environment's address.
 QUESTIFY_API_BASE_URL =
 QUESTIFY_SESSION_REALM =
+// Reviewed China host only. `$()` keeps the URL from being read as an xcconfig comment.
+// This build input does not approve the shipped composition, which stays reviewed: nil.
+QUESTIFY_API_BASE_URL = https:/$()/www.chengyinhub.com/prod-api/
 #include? "Local.China.Production.xcconfig"
 // Bind environment and market after optional overrides; endpoints and realms remain local inputs.
 QUESTIFY_DEPLOYMENT_ENVIRONMENT = production

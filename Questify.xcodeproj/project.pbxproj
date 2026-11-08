@@ -38917,6 +38917,7 @@
 				"2D1D21C11C6C87D9817B1FDD",
 				"E0185683335B449F37C05200",
 				"CDEB61B5509073255B84D37B",
+				"7E71414EA78BC1A0A69044D0",
 				"E9FAECEB55310DB4AFF79E91",
 				"70DFAE2355B0B73853E1ED88",
 				"122937EC615E3B300333BFFC",
@@ -51667,6 +51668,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "CDEB61B5509073255B84D37B";
 		};
+		"7E71414EA78BC1A0A69044D0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "Tests/AppUnitTests/ReviewedChinaLaunchCompositionTests.swift";
+			"sourceTree" = "<group>";
+		};
+		"4B5D21F1163034680AF73E95" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "7E71414EA78BC1A0A69044D0";
+		};
 		"E9FAECEB55310DB4AFF79E91" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -54293,6 +54304,7 @@
 				"B3F7FB91EA51DA996A2517D3",
 				"544971B21F5D22B980694B0B",
 				"72BD30E84B64364825C924E3",
+				"4B5D21F1163034680AF73E95",
 				"D710D02C54C0EF2985117284",
 				"EE267FA061DA4B712724B77E",
 				"FFD3B43DA269AF69E1EE1436",
