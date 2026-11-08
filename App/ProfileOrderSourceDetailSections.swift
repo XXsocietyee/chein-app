@@ -53,7 +53,7 @@ private struct ProfileOrderTimelineStepRow: View {
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 10) {
             Image(systemName: step.state == .done ? "checkmark.circle.fill" : "circle.dotted")
-                .foregroundStyle(step.state == .done ? Color.accentColor : Color.secondary)
+                .foregroundStyle(step.state == .done ? CYColor.accent : CYColor.textSecondary)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
                 if let label = step.label { Text(verbatim: label) }

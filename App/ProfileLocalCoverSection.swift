@@ -223,7 +223,7 @@ extension ProfileLocalCoverOwner {
             } else { Text("profile.localCover.invalid") }
         } else {
             ZStack {
-                Color.secondary.opacity(0.12)
+                CYColor.bgSurfaceSubtle
                 Label("profile.localCover.default", systemImage: "photo")
             }.aspectRatio(16.0 / 9.0, contentMode: .fit).accessibilityIdentifier("profile.localCover.default")
         }
@@ -245,7 +245,7 @@ extension ProfileLocalCoverOwner {
             Text("profile.localCover.crop")
             if hasError {
                 Text("profile.localCover.cropFailed")
-                    .foregroundStyle(.red)
+                    .foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("profile.localCover.cropFailure")
             }
             if let rect {

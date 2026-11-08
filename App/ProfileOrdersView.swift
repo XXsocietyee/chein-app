@@ -448,7 +448,7 @@ private struct ProfileOrderStateNoticeSection: View {
                         Spacer(minLength: 8)
                         Text(LocalizedStringKey(notice.tagKey)).font(.caption)
                             .padding(.horizontal, 8).padding(.vertical, 2)
-                            .background(Capsule().fill(Color.secondary.opacity(0.15)))
+                            .background(Capsule().fill(CYColor.bgSurfaceSubtle))
                             .accessibilityIdentifier("profile.order.detail.stateTag")
                     }
                     if let hint = notice.hint { Text(verbatim: hint).font(.subheadline).foregroundStyle(.secondary) }
