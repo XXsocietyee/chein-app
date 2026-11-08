@@ -50,7 +50,7 @@ private struct ClubActivityCard: View {
                 else { Text("club.calendar.untitled").font(.headline) }
                 Spacer(minLength: 8)
                 Text(LocalizedStringKey("club.activityList.status." + row.status.rawValue)).font(.caption.bold())
-                    .foregroundStyle(row.status == .live ? Color.green : row.status == .ended ? Color.secondary : Color.primary)
+                    .foregroundStyle(row.status == .live ? CYColor.successText : row.status == .ended ? Color.secondary : Color.primary)
                     .accessibilityIdentifier("club.activityList.status.\(row.id)")
             }
             if let value = timeText { Text(verbatim: value).font(.subheadline) }

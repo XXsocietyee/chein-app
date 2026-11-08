@@ -148,23 +148,23 @@ public struct ClubAccessAndSettlementSectionView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllScopedAndFailClosed ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAllScopedAndFailClosed ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("clubAccessSettlement.statusBadge")
             }
 
             Text(verbatim: accessMeRouteSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.accessMeUsesPOSTForm ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.accessMeUsesPOSTForm ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("clubAccessSettlement.accessMeRouteSummary")
 
             Text(verbatim: governanceSummaryText)
                 .font(.footnote)
-                .foregroundStyle(snapshot.governanceRoleVerified ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.governanceRoleVerified ? Color.secondary : CYColor.dangerText)
                 .accessibilityIdentifier("clubAccessSettlement.governanceSummary")
 
             Text(verbatim: settlementParitySummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.liveSettlementPayoutEnabled ? Color.red : Color.secondary)
+                .foregroundStyle(snapshot.liveSettlementPayoutEnabled ? CYColor.dangerText : Color.secondary)
                 .accessibilityIdentifier("clubAccessSettlement.settlementParitySummary")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -178,8 +178,8 @@ public struct ClubAccessAndSettlementSectionView: View {
                                 .font(.caption2.monospaced())
                                 .foregroundStyle(
                                     (row.isPermissionScoped && !row.liveMutationOrPayoutEnabled)
-                                        ? Color.green
-                                        : Color.orange
+                                        ? CYColor.successText
+                                        : CYColor.warningText
                                 )
                         }
                         Text(verbatim: row.contractDetail)
