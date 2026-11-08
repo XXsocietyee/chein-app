@@ -537,7 +537,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.roamNearbyPlayersReadAccess = roamNearbyPlayersReadAccess
         self.roamEntryNearbyReadAccess = roamEntryNearbyReadAccess
         self.roamReceivedStampReadAccess = roamReceivedStampReadAccess
-        self.roamPassportHistoryReadAccess = roamPassportHistoryReadAccess
+        self.roamPassportHistoryReadAccess = { [gates] context in
+            roamPassportHistoryReadAccess(context) ?? (productionGatesEnabled ? gates.roamPassportHistory(context) : nil)
+        }
         self.roamPassportToolsReadAccess = { [gates] context in
             roamPassportToolsReadAccess(context) ?? (productionGatesEnabled ? gates.roamPassportTools(context) : nil)
         }
@@ -554,7 +556,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         self.profileWeeklyPointsReadApproval = profileWeeklyPointsReadApproval
         self.growthNormalReadApproval = growthNormalReadApproval
         self.cityPlayerReadApproval = cityPlayerReadApproval
-        self.teamReadApproval = teamReadApproval
+        self.teamReadApproval = { [gates] context in
+            teamReadApproval(context) ?? (productionGatesEnabled ? gates.teamRead(context) : nil)
+        }
         self.workshopCreatorDeclarationTargets = workshopCreatorDeclarationTargets
         self.workshopCreatorPendingAuthorApproval = workshopCreatorPendingAuthorApproval
         self.workshopCreatorPendingListApproval = workshopCreatorPendingListApproval
@@ -598,6 +602,11 @@ extension KeychainTokenStore: AppTokenStorage {}
     func profileParticipantAccess(_ context: RuntimeDependencyContext) -> ProfileParticipantAccess? {
         guard reviewed?.productionGatesEnabled == true else { return nil }
         return productionGateLeases.profileParticipant(context)
+    }
+    /// Read-only nearby-team lease (`api/team/nearby`, `/applications`, `/my-applications`); nil unless the reviewed deployment enables production gates.
+    func nearbyTeamReadApproval(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard reviewed?.productionGatesEnabled == true else { return nil }
+        return productionGateLeases.nearbyTeamRead(context)
     }
     func topicUnlikeApproval(_ context: RuntimeDependencyContext) -> TopicUnlikeApproval? {
         guard reviewed?.productionGatesEnabled == true else { return nil }
@@ -2562,7 +2571,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
@@ -3454,6 +3463,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedProductionFormMutationRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isSignedInContentViewer else { throw APIError.notConfigured }
         } else {
             guard request.httpMethod == "POST", deployment.reads.contains(.homeAndSearch),
                   captured.isPublicTemplateViewer,
@@ -3913,6 +3925,46 @@ enum ReviewedOrientOfficialRoute {
     }
 }
 
+/// Exact requests emitted by `NearbyTeamHTTPReadTransport` for the three read-only nearby-team descriptors. Neighbours
+/// (`apply`, `withdraw`, `handle`, extra query or body keys, other origins) are not matched.
+enum ReviewedNearbyTeamReadRoute {
+    static let approvalPaths: Set<String> = ["api/team/nearby", "api/team/applications", "api/team/my-applications"]
+
+    static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
+        guard let token, AuthRequestBuilder.isValidToken(token), request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization")?.utf8.elementsEqual(token.utf8) == true,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              let url = request.url, url.fragment == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil else { return false }
+        func exactPath(_ path: String) -> Bool { parts.path == baseURL.appendingPathComponent(path).path }
+        switch request.httpMethod {
+        case "GET":
+            guard request.httpBody == nil, exactPath("api/team/nearby"),
+                  let items = parts.queryItems, items.count == 3,
+                  items[0].name == "lat", items[1].name == "lng", items[2].name == "radius",
+                  let lat = items[0].value.flatMap(Double.init), let lng = items[1].value.flatMap(Double.init),
+                  let radius = items[2].value.flatMap(Int.init), String(lat) == items[0].value,
+                  String(lng) == items[1].value, String(radius) == items[2].value else { return false }
+            return NearbyQueryContext(latitude: lat, longitude: lng, radius: radius).valid
+        case "POST":
+            guard parts.query == nil else { return false }
+            if exactPath("api/team/my-applications") { return request.httpBody == nil }
+            guard exactPath("api/team/applications"), let body = request.httpBody, body.count <= 64,
+                  let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any], object.count == 1,
+                  let id = object["teamId"] as? Int, id > 0,
+                  (try? JSONSerialization.data(withJSONObject: ["teamId": id], options: .sortedKeys)) == body else { return false }
+            return true
+        default:
+            return false
+        }
+    }
+}
+
 private enum ReviewedProductionFormMutationRoute {
     static func accepts(_ request: URLRequest, baseURL: URL, token: String?) -> Bool {
         guard let token, AuthRequestBuilder.isValidToken(token),
@@ -3981,6 +4033,9 @@ private enum ReviewedProductionFormMutationRoute {
     private var roamLiveByContext: [String: RoamLiveApproval] = [:]
     private var roamPrivateToolsWriteByContext: [String: RoamPrivateToolsAccess] = [:]
     private var roamPassportToolsByContext: [String: RoamPassportToolsReadAccess] = [:]
+    private var roamPassportHistoryByContext: [String: RoamPassportHistoryReadAccess] = [:]
+    private var teamReadByContext: [String: TeamReadApproval] = [:]
+    private var nearbyTeamReadByContext: [String: OperationEndpointApproval] = [:]
 
     private func contextKey(_ context: RuntimeDependencyContext) -> String {
         "\(context.market.rawValue)|\(context.baseURL.absoluteString)|\(context.session.namespace)|\(context.session.accountID)|\(context.session.epoch)|\(context.role)"
@@ -4030,6 +4085,36 @@ private enum ReviewedProductionFormMutationRoute {
               let access = try? RoamPassportToolsReadAccess(context: context, approval: endpoints) else { return nil }
         roamPassportToolsByContext[key] = access
         return access
+    }
+
+    func roamPassportHistory(_ context: RuntimeDependencyContext) -> RoamPassportHistoryReadAccess? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = roamPassportHistoryByContext[key], existing.matches(context) { return existing }
+        roamPassportHistoryByContext[key]?.revoke()
+        guard let endpoints = makeEndpoint(context, paths: RoamPassportHistoryReadRoute.paths),
+              let access = try? RoamPassportHistoryReadAccess(context: context, approval: endpoints) else { return nil }
+        roamPassportHistoryByContext[key] = access
+        return access
+    }
+
+    func teamRead(_ context: RuntimeDependencyContext) -> TeamReadApproval? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = teamReadByContext[key], existing.matches(context) { return existing }
+        teamReadByContext[key]?.revoke()
+        guard let approval = try? TeamReadApproval(context: context, expiresAt: Date().addingTimeInterval(3600)) else { return nil }
+        teamReadByContext[key] = approval
+        return approval
+    }
+
+    func nearbyTeamRead(_ context: RuntimeDependencyContext) -> OperationEndpointApproval? {
+        guard context.market == .china, ["player", "club", "merchant"].contains(context.role) else { return nil }
+        let key = contextKey(context)
+        if let existing = nearbyTeamReadByContext[key] { return existing }
+        guard let approval = makeEndpoint(context, paths: ReviewedNearbyTeamReadRoute.approvalPaths) else { return nil }
+        nearbyTeamReadByContext[key] = approval
+        return approval
     }
 
     func walletHistory(_ context: RuntimeDependencyContext) -> WalletHistoryReadApproval? {
