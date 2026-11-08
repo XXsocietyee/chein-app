@@ -3,7 +3,7 @@ import SwiftUI
 @main
 struct QuestifyApp: App {
     @StateObject private var sessionContainer = AppSessionContainer()
-    @AppStorage("preferences.language") private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
+    @AppStorage(AppLanguage.storageKey) private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     init() {
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
@@ -151,7 +151,7 @@ struct QuestifyApp: App {
                 }
                 #endif
             }
-            .environment(\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)
+            .modifier(AppLanguageEnvironment(stored: storedLanguage))
             .tint(QuestifyPalette.accent)
             #if DEBUG
             .modifier(FixtureThemeDomainModifier(isFixture: sessionContainer.session == nil))

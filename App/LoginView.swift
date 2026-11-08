@@ -62,6 +62,7 @@ struct LoginView: View {
             }
             .appNavigationTitle("auth.title")
             .toolbar {
+                ToolbarItem(placement:.confirmationAction) { LanguageSwitcher() }
                 ToolbarItem(placement:.cancellationAction) {
                     Button("action.close") {
                         session.cancelPendingLogin();password="";dismiss()

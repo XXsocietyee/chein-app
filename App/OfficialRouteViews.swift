@@ -3,9 +3,9 @@ import SwiftUI
 // Mini-program subpackageRoam/official-routes + official-route, hosted inside the Roam start tab
 // (an intro-card push, no new top-level page). Read-only: "start this route" stays unported, as in the source.
 
-private var officialRouteIsChinese: Bool { Locale.current.language.languageCode?.identifier == "zh" }
-
 @MainActor struct OfficialRouteListView: View {
+    @Environment(\.locale) private var locale
+    private var officialRouteIsChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     let reader: OfficialRouteReader
     @State private var state: LoadState = .loading
     private enum LoadState { case loading, ready([OfficialRoute]), empty, failed }
@@ -53,6 +53,8 @@ private var officialRouteIsChinese: Bool { Locale.current.language.languageCode?
 }
 
 @MainActor struct OfficialRouteDetailView: View {
+    @Environment(\.locale) private var locale
+    private var officialRouteIsChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     let reader: OfficialRouteReader
     let routeID: String
     @State private var state: LoadState = .loading
