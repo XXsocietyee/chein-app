@@ -53,7 +53,7 @@ struct WelcomeView: View {
                     .padding(.top, 4)
                 }
                 .padding(.horizontal, 24)
-                .padding(.bottom, 16)
+                .padding(.bottom, onBrowse == nil ? 84 : 16) // clear the floating tab bar when shown as the Me tab
                 .padding(.top, 12)
                 .frame(maxWidth: 620)
                 .frame(maxWidth: .infinity)
