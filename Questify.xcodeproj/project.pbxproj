@@ -2965,6 +2965,26 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "1786A32ED568AB757F9569BF";
 		};
+		"948151614F64B25B9B60E4B3" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYFormSurface.swift";
+			"sourceTree" = "<group>";
+		};
+		"B23E8165E669DC0AC9A1E46B" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "948151614F64B25B9B60E4B3";
+		};
+		"61286ACF3A7746D80578648A" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYMiniParity.swift";
+			"sourceTree" = "<group>";
+		};
+		"56A9DFC3F110266FE6A5C5C2" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "61286ACF3A7746D80578648A";
+		};
 		"6D30BC01F5A5E489AB6ACBF0" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -34714,6 +34734,8 @@
 				"D65BB0D0B0C6ED10042C7AF8",
 				"1F9F31C354D82CBDE16666DB",
 				"1786A32ED568AB757F9569BF",
+				"948151614F64B25B9B60E4B3",
+				"61286ACF3A7746D80578648A",
 				"6D30BC01F5A5E489AB6ACBF0",
 				"BC3EF634F214F6A2D220551D",
 				"3FFA3958EDD157C5A3D94CAA",
@@ -39223,6 +39245,8 @@
 				"87D6719C75E6D3D131FE72CF",
 				"6A9224C98EA785A6714F504A",
 				"7A91C0FBCEBFB2304E218626",
+				"B23E8165E669DC0AC9A1E46B",
+				"56A9DFC3F110266FE6A5C5C2",
 				"B6613DF03F3A98A45BE6D658",
 				"985B2C5C5D720EF6D1FBFE71",
 				"69AB87740CE786288AB31FBB",
