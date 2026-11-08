@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "profile.avatar.notAvailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Avatar upload is not available yet. Your current avatar is unchanged."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "头像上传暂未开放，当前头像保持不变。"
+          }
+        }
+      }
+    },
     "roam.poi.location.denied.message2" : {
       "extractionState" : "manual",
       "localizations" : {
