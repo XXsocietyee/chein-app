@@ -259,6 +259,15 @@ final class ParticipantFakeWriter: ParticipantWriting {
         mutations.append(mutation)
         try await operation(mutation)
     }
+    /// The current create ACK carries the authoritative row (Core/ParticipantService.swift);
+    /// a nil row on create is intentionally outcome-unknown (ParticipantDurableUnknownTests).
+    func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
+        try await perform(mutation, expectedIdentity: expectedIdentity)
+        guard case .save(let draft) = mutation, draft.id == nil, let fields = try? draft.fields() else { return nil }
+        let object: [String: Any] = ["id": 99, "fullName": fields["fullName"] ?? "", "mobilePhone": fields["mobilePhone"] ?? ""]
+        let data = try JSONSerialization.data(withJSONObject: object)
+        return try JSONDecoder().decode(ProfileParticipant.self, from: data)
+    }
 }
 
 @MainActor

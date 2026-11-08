@@ -379,6 +379,14 @@ private actor ContinuationCiphertexts: ContentDraftCiphertextStore {
         _ = try mutation.fields(); writes += 1
         if loseResponse { throw ParticipantWriteError.outcomeUnknown(.transport) }
     }
+    /// A create ACK without the authoritative row is intentionally outcome-unknown in Core.
+    func performReturningParticipant(_ mutation: ParticipantMutation, requestID: UUID, expectedIdentity: ProfileReadIdentity) async throws -> ProfileParticipant? {
+        try await perform(mutation, expectedIdentity: expectedIdentity)
+        guard case .save(let draft) = mutation, draft.id == nil else { return nil }
+        let fields = try draft.fields()
+        let object: [String: Any] = ["id": 912, "fullName": fields["fullName"] ?? "", "mobilePhone": fields["mobilePhone"] ?? ""]
+        return try JSONDecoder().decode(ProfileParticipant.self, from: try JSONSerialization.data(withJSONObject: object))
+    }
     func profileOrders() async throws -> [ProfileOrder] { [] }
     func profileOrder(id: Int) async throws -> ProfileOrder { throw APIError.invalidRequest }
     func profileBadges() async throws -> ProfileBadgeWall { .init(identities: [], medals: []) }
