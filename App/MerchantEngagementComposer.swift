@@ -57,7 +57,7 @@ struct MerchantEngagementEditorContext: Identifiable {
                     SecureField("merchant.engagement.inviteToken", text: $inviteToken).textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("merchant.engagement.editor.inviteToken")
                     Text("merchant.engagement.invitationUnknownTarget").font(.footnote)
                 }
-                if invalid { Text("merchant.business.invalid").foregroundStyle(.red) }
+                if invalid { Text("merchant.business.invalid").foregroundStyle(CYColor.dangerText) }
                 Button("merchant.engagement.previewReview") {
                     do { onPrepare(try command()) } catch { invalid = true }
                 }.accessibilityIdentifier("merchant.engagement.editor.review")

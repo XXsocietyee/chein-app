@@ -53,7 +53,7 @@ import SwiftUI
                             fields: ["recurrenceType", "defaultLeadMemberId", "defaultCapacity", "waitlistEnabled", "offerMinutes"])
                         ForEach(Array(receipt.occurrences.enumerated()), id: \.offset) { _, row in
                             VStack(alignment: .leading) {
-                                Text(verbatim: "#\(row["activityId"].int ?? 0)")
+                                Text(verbatim: row["activityId"].int.map { "#\($0)" } ?? "—")
                                 if let ms = row["occurrenceAtEpochMs"].int {
                                     Text(Date(timeIntervalSince1970: Double(ms) / 1000), style: .date)
                                     Text(Date(timeIntervalSince1970: Double(ms) / 1000), style: .time)

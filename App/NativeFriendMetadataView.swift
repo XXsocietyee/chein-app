@@ -184,7 +184,7 @@ import SwiftUI
             }
         case .groupSave:
             LabeledContent { Text(verbatim: command.name ?? "—") } label: { text("friendMeta.groupName") }
-            LabeledContent { Text(verbatim: "\(command.position ?? 0)") } label: { text("friendMeta.position") }
+            LabeledContent { Text(verbatim: command.position.map(String.init) ?? "—") } label: { text("friendMeta.position") }
         case .groupDelete:
             LabeledContent { groupNameLabel(command.targetID) } label: { text("friendMeta.delete") }
             LabeledContent { groupNameLabel(command.groupID) } label: { text("friendMeta.moveTo") }

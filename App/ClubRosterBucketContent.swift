@@ -39,7 +39,7 @@ import SwiftUI
                     if let range = ClubOpsEventClock.correctionRange(start: roster.correctionStart, end: roster.correctionEnd, locale: locale) {
                         Text("clubOpsEvent.roster.window \(range)", tableName: "ClubOpsEvent")
                     } else { Text("clubOpsEvent.roster.windowGeneric", tableName: "ClubOpsEvent") }
-                }.font(.footnote).foregroundStyle(.orange).accessibilityIdentifier("club.roster.windowClosed")
+                }.font(.footnote).foregroundStyle(CYColor.warningText).accessibilityIdentifier("club.roster.windowClosed")
             }
         }
         Section(LocalizedStringKey(selected.localizationKey)) {
