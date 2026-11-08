@@ -144,3 +144,56 @@ public struct DevicePushRegistrationLifecycle: Equatable {
         return token
     }
 }
+
+/// WP-11 / CT12.f: a push token is bound to member + installation + environment.
+/// An account switch, environment change or revoke drops the old audience. Pure state; no APNs wiring.
+public struct PushMemberBinding: Equatable, Sendable {
+    public let memberID: String
+    public let installationID: String
+    public let environment: String
+    public let token: String
+}
+
+public struct PushMemberBindingRegistry: Equatable, Sendable {
+    public private(set) var bindingByInstallation: [String: PushMemberBinding] = [:]
+    public init() {}
+
+    public enum BindResult: Equatable, Sendable {
+        case bound(PushMemberBinding)
+        /// Token now belongs to a different member/environment; the previous binding was dropped.
+        case rebound(old: PushMemberBinding, new: PushMemberBinding)
+    }
+
+    @discardableResult
+    public mutating func bind(memberID: String?, installationID: String?, environment: String?, token: String?) throws -> BindResult {
+        let member = try Self.clean(memberID)
+        let installation = try Self.clean(installationID)
+        let env = try DevicePushRegistrationLifecycle.requireEnvironment(environment)
+        let tokenValue = try Self.clean(token)
+        let new = PushMemberBinding(memberID: member, installationID: installation, environment: env, token: tokenValue)
+        let old = bindingByInstallation[installation]
+        bindingByInstallation[installation] = new
+        if let old, old.memberID != member || old.environment != env {
+            return .rebound(old: old, new: new)
+        }
+        return .bound(new)
+    }
+
+    /// Whether a push for `memberID` may be delivered to this installation.
+    public func mayDeliver(memberID: String, installationID: String) -> Bool {
+        bindingByInstallation[installationID]?.memberID == memberID
+    }
+
+    /// Revoke / logout: removes the installation binding and returns it so the caller can deregister the token.
+    @discardableResult
+    public mutating func revoke(installationID: String) -> PushMemberBinding? {
+        bindingByInstallation.removeValue(forKey: installationID)
+    }
+
+    private static func clean(_ value: String?) throws -> String {
+        guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else {
+            throw NotifyFailure.missingOriginalRequestID
+        }
+        return trimmed
+    }
+}
