@@ -17,9 +17,14 @@ import SwiftUI
                     if rows.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("guideXcx.docsEmpty").font(.headline)
+                            Text("guideXcx.docsEmptyDetail").font(.footnote).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.docsEmpty")
                     }
                     ForEach(rows) { row in
+                        if !row.isUsable {
+                            // Mini-program disabled cell: unreadable/empty-body CMS rows are never tappable dead links.
+                            SocialGuideUnusableDocRow(title: row.title)
+                        } else {
                         NavigationLink {
                             if let informationDestination { informationDestination(row) }
                             else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
@@ -29,6 +34,7 @@ import SwiftUI
                                 if let summary = row.summary { Text(verbatim: summary).font(.footnote).foregroundStyle(.secondary) }
                             }
                         }.accessibilityIdentifier("social.information.\(row.id)")
+                        }
                     }
                 }
             } header: {
