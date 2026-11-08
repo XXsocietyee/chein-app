@@ -11,7 +11,7 @@ struct MerchantCustomerRowLabel: View {
                 Text(verbatim: row.name ?? MerchantOpsCopy.text("merchantOps.customer.unnamed")).font(.headline)
                 if let tier = row.tierKey {
                     Text(verbatim: MerchantOpsCopy.text(tier)).font(.caption.bold())
-                        .foregroundStyle(row.tierUrgent ? Color.orange : Color.secondary)
+                        .foregroundStyle(row.tierUrgent ? CYColor.warningText : CYColor.textSecondary)
                 }
                 if row.latestNote != nil { Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.noteBadge")).font(.caption).foregroundStyle(.secondary) }
             }

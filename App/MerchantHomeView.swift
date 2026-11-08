@@ -186,38 +186,65 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     var body: some View {
         // Source pages/merchant/index order: hero (name, revenue), quick actions (scan, customers,
         // finance), due reminders, projects, then the remaining tools ("更多") and recent activity.
+        ScrollViewReader { scrollProxy in
         List {
             Section {
-                Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
-                    .font(.title3.weight(.semibold))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .accessibilityIdentifier("merchant.store.name")
-                if access.canReadDashboard {
-                    MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
-                        QuestifyHeroValue(value: Text(MerchantMoney.display(value.revenue)).monospacedDigit(), caption: Text("merchant.revenue"))
+                VStack(spacing: CYSpacing.md) {
+                    Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
+                        .font(CYTypography.sectionTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .lineLimit(2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityAddTraits(.isHeader)
+                        .accessibilityIdentifier("merchant.store.name")
+                    // UIV-TODO: source shows a greeting + 营业中 status chip; no localisation key or open-status field exists yet.
+                    if access.canReadDashboard {
+                        MerchantSectionState(model: dashboard, retry: { Task { await loadDashboard() } }) { value in
+                            VStack(spacing: CYSpacing.xs) {
+                                Text("merchant.revenue")
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textSecondary)
+                                Text(MerchantMoney.display(value.revenue))
+                                    .font(CYTypography.data2XL)
+                                    .monospacedDigit()
+                                    .foregroundStyle(CYColor.textPrimary)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.5)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, CYSpacing.xxl)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("merchant.dashboard.revenue")
+                        }
                     }
                 }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
             }
             if showsScanAction || !quickShortcuts.isEmpty {
                 Section {
                     HStack(alignment: .top, spacing: Theme.Space.s2) {
                         if showsScanAction {
-                            QuestifyRoundAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder") { showsScan = true }
+                            MerchantQuickCircleAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder") { showsScan = true }
                                 .accessibilityIdentifier("merchant.workbench.scan")
                         }
                         ForEach(quickShortcuts) { shortcut in
-                            QuestifyRoundAction(title: LocalizedStringKey(shortcut.shortTitleKey), systemImage: shortcut.symbol) {
+                            MerchantQuickCircleAction(title: LocalizedStringKey(shortcut.shortTitleKey), systemImage: shortcut.symbol) {
                                 if let businessReader, let businessJournal {
                                     quickRoute = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal)
                                 }
                             }
                             .accessibilityIdentifier("merchant.workbench.direct." + shortcut.rawValue)
                         }
+                        // Source 更多: jumps to the remaining tools group below.
+                        MerchantQuickCircleAction(title: "merchant.workbench.more", systemImage: "ellipsis") {
+                            withAnimation(.easeOut(duration: 0.25)) { scrollProxy.scrollTo("merchant.workbench.moreSection", anchor: .top) }
+                        }
+                        .accessibilityIdentifier("merchant.workbench.more.action")
                     }
-                    .padding(.vertical, Theme.Space.s1)
+                    .padding(.vertical, CYSpacing.xs)
                 }
+                .listRowBackground(Color.clear)
             }
             MerchantWorkbenchReminders(todo: todo, access: access,
                 aftercareRoute: aftercareRoute,
@@ -265,6 +292,8 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
             // Source "更多" sheet plus the remaining tools, as one native group. A section with no visible rows renders nothing.
             Section("merchant.workbench.more") {
+                Color.clear.frame(height: 0).id("merchant.workbench.moreSection").accessibilityHidden(true)
+                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
                 if let aftercareRoute {
                     NavigationLink(value: aftercareRoute) {
                         Label(LocalizedStringKey(MerchantWorkbenchBusinessShortcut.aftercare.query.titleKey), systemImage: MerchantWorkbenchBusinessShortcut.aftercare.symbol)
@@ -356,6 +385,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 Button("merchant.refreshAccess") { Task { await refreshAccess() } }
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
+        .listSectionSpacing(CYSpacing.xxl)
         .navigationDestination(item: $quickRoute) { route in
             if let businessReader, let businessJournal,
                route.isCurrent(reader: businessReader, journal: businessJournal) {
@@ -392,7 +424,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             }
         }
         .refreshable { await refreshAccess() }
-
+        }
     }
     private func aftercareEvidenceDependencies(journal: any MerchantBusinessIntentStore) -> MerchantAftercareEvidenceDependencies? {
         guard let engagementReader, let exportRecovery else { return nil }
@@ -472,7 +504,36 @@ struct MerchantSectionState<Value, Content: View>: View {
             content(value)
         } else if let error = model.errorKey {
             MerchantInlineFailure(errorKey: error, retry: retry)
-        } else { ProgressView("merchant.loading") }
+        } else { CYSkeleton() }
+    }
+}
+
+/// Source 4-up quick action: white circle, hairline border, short label beneath (pages/merchant/index).
+private struct MerchantQuickCircleAction: View {
+    let title: LocalizedStringKey
+    let systemImage: String
+    let action: () -> Void
+    @ScaledMetric(relativeTo: .title3) private var diameter: CGFloat = 56
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: CYSpacing.sm) {
+                Image(systemName: systemImage)
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(CYColor.textPrimary)
+                    .frame(width: diameter, height: diameter)
+                    .background(CYColor.bgSurface, in: Circle())
+                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+                Text(title)
+                    .font(CYTypography.caption)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
+            }
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
