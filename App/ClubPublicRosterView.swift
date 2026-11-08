@@ -85,7 +85,7 @@ import SwiftUI
                         }
                         if current.memberIDs.isEmpty {
                             Group {
-                                if isLeaderboard { Text(LocalizedStringKey("club.publicRoster.emptyRank." + ClubDetailRankingPort.emptyKey(sort: mode.rawValue)), tableName: "ClubPublicRoster") }
+                                if isLeaderboard { Text("club.publicRoster.emptyRank", tableName: "ClubPublicRoster") }
                                 else { Text(current.club.memberCount > 0 ? "club.membersUnavailable" : "club.emptyMembers") }
                             }
                                 .font(Theme.Font.body).foregroundColor(Theme.Generated.color("--cy-color-text-secondary", in: domain))

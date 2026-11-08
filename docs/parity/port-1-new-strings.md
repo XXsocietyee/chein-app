@@ -28,4 +28,4 @@ Note: the report target card reads the optional seed key `targetName`; no curren
 | `club.publicRoster.emptyRank.mileage` | ClubPublicRoster | `No one has logged mileage this week.` | `本周还没有人跑出里程` |
 | `club.publicRoster.emptyRank.duration` | ClubPublicRoster | `No one has a completion time this week.` | `本周还没有人跑出用时` |
 
-Note: `club.publicRoster.emptyRank` (existing) stays as the fallback; once the three keys exist it can be retired. Until they are added the empty leaderboard shows the raw key.
+Note: ClubDetailRankingPort.emptyKey is NOT wired into ClubPublicRosterView (would show a raw key until these exist). After adding the keys, replace the `club.publicRoster.emptyRank` Text with `LocalizedStringKey("club.publicRoster.emptyRank." + ClubDetailRankingPort.emptyKey(sort: mode.rawValue))`.
