@@ -55,37 +55,69 @@ struct UsageConsentGateView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 18) {
-                    Text("authEntry.gate.body", tableName: "AuthEntry")
-                        .fixedSize(horizontal: false, vertical: true)
-                        .accessibilityIdentifier("authEntry.gate.body")
-                    Button { document = AuthEntryLegalSheet(type: .privacyPolicy) } label: { Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry") }
-                        .accessibilityIdentifier("authEntry.gate.privacyGuide")
-                    Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
-                        .accessibilityIdentifier("authEntry.gate.agreement")
-                    Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry") }
-                        .toggleStyle(.switch)
-                        .accessibilityIdentifier("authEntry.gate.checkbox")
-                    if showsCheckRequired && !checked {
-                        Text("authEntry.gate.checkRequired", tableName: "AuthEntry").foregroundStyle(.red)
-                            .accessibilityIdentifier("authEntry.gate.checkRequired")
+                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        Text("authEntry.gate.summary", tableName: "AuthEntry")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        // Full disclosure stays one tap away; the identifier keeps the original body text addressable.
+                        DisclosureGroup {
+                            Text("authEntry.gate.body", tableName: "AuthEntry")
+                                .font(CYTypography.bodyCompact)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, CYSpacing.sm)
+                                .accessibilityIdentifier("authEntry.gate.body")
+                        } label: {
+                            Text("authEntry.gate.details", tableName: "AuthEntry")
+                                .font(CYTypography.bodyCompact.weight(.semibold))
+                                .foregroundStyle(CYColor.textPrimary)
+                        }
+                        .tint(CYColor.textSecondary)
+                        .accessibilityIdentifier("authEntry.gate.details")
                     }
-                    HStack(spacing: 12) {
-                        Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity) }
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("authEntry.gate.decline")
+                    VStack(spacing: 0) {
+                        documentRow("authEntry.gate.openPrivacyGuide", id: "authEntry.gate.privacyGuide", type: .privacyPolicy)
+                        Divider().overlay(CYColor.borderSubtle)
+                        documentRow("authEntry.gate.openAgreement", id: "authEntry.gate.agreement", type: .userAgreement)
+                    }
+                    .padding(.horizontal, CYSpacing.lg)
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact) }
+                            .toggleStyle(.switch)
+                            .tint(CYColor.accent)
+                            .accessibilityIdentifier("authEntry.gate.checkbox")
+                        if showsCheckRequired && !checked {
+                            Label { Text("authEntry.gate.checkRequired", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }
+                                .font(CYTypography.bodyCompact)
+                                .foregroundStyle(CYColor.dangerText)
+                                .accessibilityIdentifier("authEntry.gate.checkRequired")
+                        }
+                    }
+                    VStack(spacing: CYSpacing.sm) {
+                        // One primary action; declining is a quiet text button (guest browsing continues).
                         Button {
                             guard checked else { showsCheckRequired = true; return }
                             onAgree()
-                        } label: { Text("authEntry.gate.agree", tableName: "AuthEntry").frame(maxWidth: .infinity) }
-                            .buttonStyle(.questifyPrimary)
+                        } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
+                            .buttonStyle(.cyPrimary)
                             .disabled(!checked)
                             .accessibilityIdentifier("authEntry.gate.agree")
+                        Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("authEntry.gate.decline")
+                        Text("authEntry.gate.localOnly", tableName: "AuthEntry")
+                            .font(.footnote).foregroundStyle(CYColor.textTertiary)
+                            .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
                     }
-                    Text("authEntry.gate.localOnly", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
                 }
-                .padding(24)
+                .padding(CYSpacing.xxl)
             }
+            .background(CYColor.bgPage)
             .navigationTitle(Text("authEntry.gate.title", tableName: "AuthEntry"))
             .navigationBarTitleDisplayMode(.inline)
             .sheet(item: $document) { sheet in
@@ -96,6 +128,24 @@ struct UsageConsentGateView: View {
             }
         }
         .interactiveDismissDisabled()
+    }
+
+    private func documentRow(_ title: LocalizedStringKey, id: String, type: SettingsLegalType) -> some View {
+        Button { document = AuthEntryLegalSheet(type: type) } label: {
+            HStack(spacing: CYSpacing.md) {
+                Text(title, tableName: "AuthEntry")
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .multilineTextAlignment(.leading)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                    .foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget + CYSpacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
     }
 }
 

@@ -17,11 +17,10 @@ struct WelcomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
+                VStack(alignment: .leading, spacing: 24) {
                     Image(systemName: "map")
-                        .font(.title2.weight(.semibold))
-                        .frame(width: 56, height: 56)
-                        .background(Color(uiColor: .secondarySystemFill), in: Circle())
+                        .font(.largeTitle)
+                        .foregroundStyle(CYColor.textPrimary)
                         .accessibilityHidden(true)
                     Text("welcome.title")
                         .font(.largeTitle.bold())
@@ -30,35 +29,20 @@ struct WelcomeView: View {
                         Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
                             .accessibilityIdentifier("welcome.upgradeRequired")
                     }
+                    roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk", primary: true)
+                    roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
+                    NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
+                        .accessibilityIdentifier("ownerDraft.guestEntry")
+                    if let onBrowse {
+                        Button("welcome.browse", action:onBrowse)
+                            .accessibilityIdentifier("welcome.browse")
+                    }
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 32)
+                .padding(24)
                 .frame(maxWidth: 620, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
-            .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 12) {
-                    roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk", primary: true)
-                    roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
-                    HStack(spacing: 24) {
-                        NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
-                            .accessibilityIdentifier("ownerDraft.guestEntry")
-                        if let onBrowse {
-                            Button("welcome.browse", action: onBrowse)
-                                .accessibilityIdentifier("welcome.browse")
-                        }
-                    }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 4)
-                }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 16)
-                .padding(.top, 12)
-                .frame(maxWidth: 620)
-                .frame(maxWidth: .infinity)
-                .background(.bar)
-            }
+            .background(CYColor.bgPage)
             .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -87,9 +71,9 @@ struct WelcomeView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary).accessibilityHidden(true)
+                    .foregroundStyle(primary ? CYColor.textOnAccent : CYColor.textTertiary).accessibilityHidden(true)
             }
-            .foregroundStyle(primary ? Color(uiColor: .systemBackground) : .primary)
+            .foregroundStyle(primary ? CYColor.textOnAccent : CYColor.textPrimary)
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
             .modifier(WelcomeRoleSurface(primary: primary))
         }

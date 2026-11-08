@@ -41,7 +41,7 @@ struct LoginView: View {
                     Section { Label("auth.notConfigured",systemImage:"info.circle") }
                 }
                 if let key=session.errorKey {
-                    Section { Text(LocalizedStringKey(key)).foregroundStyle(.red).accessibilityIdentifier("auth.error") }
+                    Section { Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error") }
                 }
                 SessionRestorationRetrySection(session: session)
                 if !consentGranted {
