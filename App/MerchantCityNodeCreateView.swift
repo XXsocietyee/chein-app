@@ -127,6 +127,12 @@ import SwiftUI
 
     @ViewBuilder private func ready(_ snapshot: MerchantContentSnapshot?) -> some View {
         MerchantCityNodeCopy.text("merchantCityNode.create.lede").font(.subheadline).foregroundStyle(.secondary)
+        if !MerchantCityNodeWriteGate.saveAvailable(permitsWrites: service.permitsWrites, isOfflineExample: isOfflineFixture) {
+            MerchantCityNodeCopy.text("merchantCityNode.write.disabled").font(.footnote).foregroundStyle(.secondary)
+                .padding(10).frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12))
+                .accessibilityIdentifier("cityNodeCreate.writeUnavailable")
+        }
         timeline
         templateCard(snapshot)
         addressCard
