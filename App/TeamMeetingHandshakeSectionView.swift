@@ -122,7 +122,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                     .font(.caption2.weight(.semibold))
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.blue.opacity(0.15)))
+                    .background(Capsule().fill(CYColor.infoSoft))
                     .accessibilityIdentifier("w16.meeting.handshakeBadge")
             }
 
