@@ -1,0 +1,57 @@
+[
+  {
+    "key": "playx.circle.loading",
+    "en": "Preparing free exploration…",
+    "zh-Hans": "正在准备自由探索…"
+  },
+  {
+    "key": "playx.circle.eyebrow",
+    "en": "PLAYER SELF-RECORD",
+    "zh-Hans": "玩家自助记录"
+  },
+  {
+    "key": "playx.circle.progress %lld",
+    "en": "Recorded %lld / 2 shops",
+    "zh-Hans": "已记录 %lld / 2 家"
+  },
+  {
+    "key": "playx.circle.inviteLabel",
+    "en": "Companion invite code",
+    "zh-Hans": "同行邀请码"
+  },
+  {
+    "key": "playx.circle.shareInvite",
+    "en": "Invite a companion",
+    "zh-Hans": "邀请同行加入"
+  },
+  {
+    "key": "playx.circle.recordedBadge",
+    "en": "Recorded",
+    "zh-Hans": "已记录"
+  },
+  {
+    "key": "playx.circle.recordOne",
+    "en": "Record this shop myself",
+    "zh-Hans": "自助记录这家"
+  },
+  {
+    "key": "playx.circle.interactions",
+    "en": "Light theme interactions",
+    "zh-Hans": "主题轻互动"
+  },
+  {
+    "key": "playx.circle.memoryTitle",
+    "en": "Shared memory card",
+    "zh-Hans": "共同记忆卡"
+  },
+  {
+    "key": "playx.circle.memoryEmpty",
+    "en": "Exploration complete. Your record card is ready.",
+    "zh-Hans": "本次探索已完成，记录卡已生成。"
+  },
+  {
+    "key": "playx.circle.disclaimer",
+    "en": "This card only records players' own choices. It does not mean a merchant confirmed a visit, booking, redemption or sale.",
+    "zh-Hans": "本卡仅记录玩家自助选择，不代表商家确认到店、预约、核销或成交。"
+  }
+]

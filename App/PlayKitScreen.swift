@@ -258,8 +258,8 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             }
         } else if source?.isEmpty == false {
             // Clean placeholder, no text, for an image this build may not load.
-            RoundedRectangle(cornerRadius: 16).fill(.secondary.opacity(0.12)).frame(height: 160)
-                .overlay { Image(systemName: "photo").font(.largeTitle).foregroundStyle(.secondary) }
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgSurfaceSubtle).frame(minHeight: 160)
+                .overlay { Image(systemName: "photo").font(.largeTitle).foregroundStyle(CYColor.textTertiary) }
                 .accessibilityHidden(true)
         }
     }
