@@ -5,6 +5,7 @@ import SwiftUI
 @MainActor struct CooperationInviteActionSections: View {
     let view: CooperationInvitePresentation
     let peerReader: (any CoopFlowReading)?
+    @Environment(\.dismiss) private var dismiss
     private var invite: CooperationInvite { view.invite }
     var body: some View {
         if view.showsContactPartner, let peerReader { accepted(peerReader) }
@@ -21,6 +22,10 @@ import SwiftUI
             case .deposit:
                 // 去缴纳保证金 has no payment path in the app; the owed amount is shown in 合作条款 above.
                 Text("cooperation.detail.deposit.owedFooter").foregroundStyle(.secondary)
+                // Mini goDeposit only sends the user back to the cooperation list, where the deposit flow lives.
+                Button("cooperation.detail.deposit.backToList") { dismiss() }
+                    .accessibilityIdentifier("cooperation.detail.deposit.backToList")
+                Text("cooperation.detail.deposit.unavailable").font(.footnote).foregroundStyle(.secondary)
             case .ongoing(let frozen):
                 Text(LocalizedStringKey(frozen ? "cooperation.detail.footer.ongoingFrozen" : "cooperation.detail.footer.ongoing")).foregroundStyle(.secondary)
             case .inactive: Text("cooperation.detail.footer.inactive").foregroundStyle(.secondary)

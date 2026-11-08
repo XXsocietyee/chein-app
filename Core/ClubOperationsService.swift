@@ -26,7 +26,8 @@ public struct ClubOperationsService {
             catch { throw APIError.malformedResponse }
             try checkSession()
             guard Set(owned.map(\.id)).count == owned.count, owned.allSatisfy(\.isOwner) else { throw APIError.malformedResponse }
-            return .init(target: target, accountRole: account.effectiveRole, ownedClubIDs: owned.map(\.id))
+            // Mini-program club/create: a rejected club (status 2) does not count against the two-club limit.
+            return .init(target: target, accountRole: account.effectiveRole, ownedClubIDs: owned.filter { $0.status != 2 }.map(\.id))
         case .club(let id):
             guard id > 0 else { throw APIError.invalidRequest }
             let request = try AuthRequestBuilder.makeFormRequest(url: configuration.baseURL.appendingPathComponent("api/club/detail"), fields: ["id": String(id)], token: token)

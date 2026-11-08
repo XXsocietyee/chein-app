@@ -1315,6 +1315,9 @@ struct ClubGovernanceReadView: View {
                         NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: {
                             if let name = row["name"].string { Text(verbatim: name) } else { Text("club.gov.eventID \(id)") }
                         }
+                        // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
+                        // command still checks check-in permission and the provider gate before any request.
+                        if scope.clubID != nil { edit(.issueGroupCode, scope: target) }
                         if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
                             NavigationLink("context.ops.title") {
                                 ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }

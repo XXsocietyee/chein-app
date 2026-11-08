@@ -177,7 +177,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 if (club.isOwner || club.viewerIsAdmin), tab == .manage, let management {
                     Section {
                         if let operations = management.operations {
-                            ClubOperationsEntryButton(target: .club(id), identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, onConfirmedReturn: { result in
+                            ClubOperationsEntryButton(target: .club(id), identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management.governance, onConfirmedReturn: { result in
                                 guard result.identity == reader.clubIdentity, result.clubID == id else { return }
                                 detailGeneration &+= 1; actionDetail = nil; actionIdentity = nil; manageGrant = nil
                                 managementRevision &+= 1
