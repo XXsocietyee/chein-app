@@ -19,8 +19,10 @@ import XCTest
     func send(_ request: URLRequest) async throws -> (Data, Int) {
         let path = request.url?.path ?? ""
         if path.hasSuffix("access/me") {
+            // The recruiting read needs merchant:project:manage AND merchant:marketing:read (MerchantContentService.access);
+            // accessDenied withholds only the marketing grant so the denial under test is the current refusal.
             let permissions = mode == .accessDenied ? "" : "merchant:marketing:read"
-            return (Data("{\"code\":200,\"data\":{\"active\":true,\"merchant\":{\"id\":31},\"roleCode\":\"MERCHANT_MANAGER\",\"permissions\":[\"\(permissions)\"]}}".utf8), 200)
+            return (Data("{\"code\":200,\"data\":{\"active\":true,\"merchant\":{\"id\":31},\"roleCode\":\"MERCHANT_MANAGER\",\"permissions\":[\"merchant:project:manage\",\"\(permissions)\"]}}".utf8), 200)
         }
         guard path.hasSuffix("marketing-home") else { XCTFail("Unexpected route"); throw Offline() }
         homeCalls += 1
