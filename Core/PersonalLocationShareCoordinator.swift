@@ -62,6 +62,9 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable, 
     public private(set) var clockUptime: TimeInterval
     public private(set) var confirmationRevision: UInt64 = 0
     public private(set) var authorizationBlocked = false
+    /// DEC-06: game location collection and personal sharing are separate switches.
+    public private(set) var collectionSwitches = PersonalLocationShareCollectionSwitches()
+    public enum StopTrigger: Equatable, Sendable { case background, offline, teamExit, ban }
     @ObservationIgnored private var issuedConfirmation: PersonalLocationShareConfirmationTicket?
     @ObservationIgnored private var pendingConfirmationStart: UUID?
     @ObservationIgnored private var pendingConfirmationPresentation: UUID?
@@ -335,6 +338,23 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable, 
         } else { throw PersonalLocationShareFailure.invalidContract }
         unpersistedStopKeys.remove(requestKey)
     }
+    /// The host reports whether game location collection is on. It never starts, stops or consents to sharing.
+    public func gameCollectionChanged(active: Bool) { collectionSwitches.setGameCollection(active: active) }
+    /// Every stop path halts collection synchronously first. None of them touches the game switch.
+    public func stop(for trigger: StopTrigger) async {
+        switch trigger {
+        case .background: suspend(foreground: false, connected: connected)
+        case .offline: suspend(foreground: foreground, connected: false)
+        case .teamExit:
+            // Revocation is still reachable, so every request key is revoked, not just hidden.
+            invalidateConfirmation(); stopLocalPublisher(); receiver.clear(); cancelReceiver(); acknowledgements.removeAll()
+            await stopAll()
+        case .ban:
+            // Same fail-closed path as a server authorization rejection; no revoke is attempted for a banned session.
+            if !authorizationBlocked { suspend(foreground: false, connected: false); authorizationBlocked = true }
+            if unpersistedStopKeys.isEmpty { message = "账号已被限制。已同步停止采集并清除接收位置；需重新核验会话与授权。" }
+        }
+    }
     public func stopAll() async {
         let keys = Set(pending.map(\.id)).union(ownedGrants.filter { $0.status == .active }.map(\.requestKey))
         for key in keys { await stop(requestKey: key) }
@@ -428,6 +448,7 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable, 
         let expiry = try Self.confirmedDeadline(grant: grant, ticket: ticket, serverNowMs: serverNowMs, requestStarted: requestStarted)
         guard uptime() < expiry else { throw PersonalLocationShareFailure.expiredConfirmation }
         stopLocalPublisher(); publishingRequestKey = grant.requestKey; publishingGrantId = grant.grantId; sequence = 0
+        collectionSwitches.shareStarted()
         grantExpiryUptime = expiry
         ownerDeadline = min(expiry, requestStarted + Double(min(grant.expiresAtMs, grant.ownerLeaseUntilMs) - serverNowMs) / 1000)
         scheduleOwnerLease(requestKey: grant.requestKey)
@@ -549,7 +570,7 @@ public struct PersonalLocationShareConfirmationTicket: Equatable, Identifiable, 
             }
         }
     }
-    private func stopLocalPublisher() { authorizationGeneration &+= 1; ownerLeaseTimer?.cancel(); ownerLeaseTimer = nil; grantExpiryUptime = nil; provider?.stop(); provider = nil; publishingGrantId = nil; publisher?.cancel(); publisher = nil; publishingRequestKey = nil; ownerDeadline = nil }
+    private func stopLocalPublisher() { collectionSwitches.shareStopped(); authorizationGeneration &+= 1; ownerLeaseTimer?.cancel(); ownerLeaseTimer = nil; grantExpiryUptime = nil; provider?.stop(); provider = nil; publishingGrantId = nil; publisher?.cancel(); publisher = nil; publishingRequestKey = nil; ownerDeadline = nil }
     private func cancelReceiver() { receiverReadRevision &+= 1; receiverPoll?.cancel(); receiverPoll = nil; leaseTimer?.cancel(); leaseTimer = nil }
     /// Called synchronously on background, path loss, logout, token/account/epoch changes.
     public func suspend(foreground: Bool, connected: Bool) {

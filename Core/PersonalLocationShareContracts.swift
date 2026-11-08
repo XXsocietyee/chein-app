@@ -157,3 +157,11 @@ public enum PersonalLocationShareFailure: Error, Equatable {
     case expiredConfirmation
     case journalUnavailable, unknownOutcome, existingLocationPermissionRequired, reducedAccuracyUnavailable, capturePurposeUnavailable, server(String)
 }
+
+/// Who is looking. A stranger layer is coarse-only by construction.
+public enum PersonalLocationShareViewerLayer: Equatable, Sendable { case friend, stranger }
+public enum PersonalLocationShareRenderedFix: Equatable, Sendable {
+    case exact(latitude: Double, longitude: Double)
+    case coarse(latitude: Double, longitude: Double)
+    case withheld
+}
