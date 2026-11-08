@@ -124,6 +124,7 @@ import SwiftUI
                 }.disabled(busy || locked || review != nil)
                 Section("club.host.step.skills") {
                     ForEach(["canDesignRoute", "canDesignTask", "canNpc", "canMerchantCoop"], id: \.self) { flagRow($0) }
+                    Text("club.host.skills.selectedCount \(ClubHostApplyPort.capabilityCount(draft.flags))").font(.footnote).foregroundStyle(.secondary)
                 }.disabled(busy || locked || review != nil)
                 Section("club.host.step.credentials") {
                     // 资质 / 案例图 upload has no working upload path yet, and picked images block submission,
@@ -230,7 +231,7 @@ import SwiftUI
                     Button("club.gov.cancelReview") { self.review = nil; coordinator.cancelReview() }.disabled(busy)
                 }
             } else if receipt == nil {
-                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady).accessibilityIdentifier("club.gov.prepare")
+                Button("club.gov.review") { Task { await prepare() } }.disabled(busy || locked || identity == nil || !roleAssignmentReady || !seriesScheduleReady || !seriesLeadReady || !hostMaterialsReady || !notificationAudienceReady || (route.operation == .hostApply && !ClubHostApplyPort.canReview(text: draft.text))).accessibilityIdentifier("club.gov.prepare")
             }
             if route.operation == .createSeries {
                 ClubSeriesOriginalResultSection(scope: route.scope, identity: identity, access: access,
