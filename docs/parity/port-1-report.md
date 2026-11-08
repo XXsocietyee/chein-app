@@ -1,0 +1,27 @@
+# port-1 report (branch cloud/port-1, based on origin/wip/gm-next)
+
+NOTHING HERE WAS COMPILED OR TESTED (no Swift toolchain in the cloud run). A local worker must build, run `Port1*Tests`, and add the strings in `port-1-new-strings.md`. Until those keys exist, the new Text rows show raw key names in the UI.
+No routes, endpoints, leases, approvals or gates were touched; no edits to Resources/, xcstrings, AppSession, AppCompositionRoot, QuestifyApp.
+
+Method: for each page I diffed the mini-program wxml/js against the native screen + Core types and ported only gaps that are pure logic or tiny view hunks. Most listed pages were already largely ported; the large gaps (live writes, uploads, auto re-issue, IM swipe/poll/send) are gated by design and were not touched.
+
+## Per page
+| page | native | added | still missing / not verified |
+|---|---|---|---|
+| club/apply | ClubGovernanceViews (form is in App/ClubGovernanceCommandForm.swift, one-line hunks) | `Core/ClubHostApplyPort.swift`: selected-capability count ("已选 N 项"), non-negative integer validation of max/avg event size, step gating helpers; form shows the count and the Review button is disabled on blank name/phone or bad sizes. `Port1ClubHostApplyTests` | wizard step-by-step navigation/morph, cert image upload (no upload path), done-state receipt name, reduced-motion. Edit landed in ClubGovernanceCommandForm.swift (not on the list) because that is where the hostApply form lives. |
+| club/badges | ClubBadgeManagementView | nothing: the source page `pages/club/badges` does not exist in the mini-program checkout (only generic badge pages), and the native flow already has list/create/grant/validation | cannot compare to a source; no change |
+| club/create | ClubOperationsViews | `Core/ClubOperationsPort.swift`: mini field limits, `missingCreateStep` (type→name→city, mirrors submit pre-check), counter helper; create form shows per-section "needs X" footers, description counter, create button disabled until type/name/city are present. `Port1ClubOperationsTests` (also cross-checks limits against `ClubOperationsDraft.validate`) | intro screen/progress morph, logo/cover crop upload (gated), maxlength truncation while typing (only counter + validator) |
+| club/edit | ClubOperationsViews (.club) | description "N / 200" counter (shared helper) | admin-note, locked card, discard confirm and dissolve already existed; dissolve blocker→transfer-owner link not re-verified |
+| club/detail | ClubDetailView / ClubPublicRosterView | `Core/ClubDetailRankingPort.swift`: leaderboard fold (top 3 + gap + viewer neighbourhood), duration text, 1-decimal values, per-sort empty copy key, member strip "+N". `Port1ClubDetailRankingTests` | NOT wired into views (roster empty copy would show a raw key until strings exist; fold changes row identity). Post composer limits/refs, comments, calendar view, owner stage timeline, share editions, settings counts were not ported (very large page, 3k lines). |
+| club/governance | ClubOpsGovernanceSections | `Core/ClubGovernanceReportPort.swift`: report target type/name sanitisation (40 chars), reason-required keys. Report form now shows a "举报目标" row (type + optional `targetName` seed). `Port1ClubGovernanceReportTests` | no entry currently passes `targetName`, so only the type shows; reason-required keys are declared but not rendered (command validation already blocks blank reasons). |
+| club/group-code | ClubGovernanceViews / ClubGroupCodePresentation | `Core/ClubGroupCodePort.swift`: session label `name · M月D日 HH:mm`, permission-denial classification (403 / 权限 / 无权 → terminal), reissue-at-expiry predicate; expired code now shows a hint. `Port1ClubGroupCodeTests` | auto re-issue on expiry/onShow (writes must stay behind the reviewed command), picker labels and no-permission terminal state are logic only, not wired. |
+| club/topic-detail | ClubGovernanceViews (.topicOverview) | `Core/ClubTopicDetailPort.swift`: audit/session six-state mapping (+CANCELLED), verify-card gate, verify metrics (em dash, never fake 0), primary-button plan, structure text; `App/ClubTopicDetail+Port.swift` with `ClubTopicVerifySummarySection`. `Port1ClubTopicDetailTests` | the section and primary footer button are NOT embedded (needs topicStats data and host); director sheets (unlock, roles, broadcast, incident), rules sheet, opsTime sheet not ported. |
+| im/list | MessagingHomeView | `Core/IMInboxPort.swift`: typed preview (`[图片]`, `[系统卡片]`), read-all outcome mapping and targets. `Port1IMInboxTests` | not wired: default preview policy stays redacted (privacy decision); coop-invite strip still needs its composition hook; swipe actions stay dormant. |
+| im/chat | MessagingHistoryView | `Core/IMChatPort.swift`: send trimming, confirmed-id check, card tappability, generic card title fallback, 5-minute divider rule, poll freshness, id/clientMessageId merge. `Port1IMChatTests` | not wired; send/read/poll writes stay dormant, image/location/route pickers unchanged. |
+
+## Commits
+One commit per page (plus a revert of an unwired roster hunk and this report). Pushed to `cloud/port-1` only.
+
+## Review hints for the compile worker
+- New Text keys use default table `Localizable` unless noted; `Text("key \(Int)")` interpolations need `%lld` catalog entries.
+- Possible compile risks: `Text(...)` with `if` inside `Section` footer closures (ClubOperationsViews), `LabeledContent` label/value order in ClubOpsGovernanceFormNotes, generic `ClubDetailRankingPort.Row<ID>`.
