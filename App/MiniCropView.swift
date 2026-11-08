@@ -11,13 +11,23 @@ import UIKit
     let ratio: String
     let onFinish: ([Result]) -> Void
     let onCancel: () -> Void
-    @State private var index = 0
-    @State private var results: [Result] = []
-    @State private var scale = 1.0
-    @State private var offset = CGSize.zero
+    @State private var session: MiniCropSession
     @State private var gestureScale = 1.0
     @State private var gestureOffset = CGSize.zero
-    @State private var displayedFrame = CGSize.zero
+
+    init(images: [UIImage], ratio: String, onFinish: @escaping ([Result]) -> Void, onCancel: @escaping () -> Void) {
+        self.images = images
+        self.ratio = ratio
+        self.onFinish = onFinish
+        self.onCancel = onCancel
+        _session = State(initialValue: MiniCropSession(
+            ratio: ratio,
+            imageSizes: images.map { MiniCropSession.ImageSize(width: Double($0.size.width), height: Double($0.size.height)) }))
+    }
+
+    private var index: Int { session.index }
+    private var scale: Double { session.scale }
+    private var offset: CGSize { CGSize(width: session.offsetX, height: session.offsetY) }
 
     var body: some View {
         VStack(spacing: 16) {
@@ -30,7 +40,7 @@ import UIKit
             HStack {
                 Button("publishParity.crop.cancel", role: .cancel, action: onCancel).accessibilityIdentifier("miniCrop.cancel")
                 Spacer()
-                Button("publishParity.crop.useOriginal") { advance(.original) }.accessibilityIdentifier("miniCrop.useOriginal")
+                Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }.accessibilityIdentifier("miniCrop.useOriginal")
                 Button("publishParity.crop.confirm") { confirm() }.buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("miniCrop.confirm")
             }
@@ -58,7 +68,7 @@ import UIKit
                         DragGesture().onChanged { gestureOffset = $0.translation }.onEnded { _ in commit(image: size, frame: frame) }))
                     .accessibilityLabel(Text("image.crop.preview"))
                     .accessibilityIdentifier("miniCrop.canvas")
-                    .task(id: frame.width * 10_000 + frame.height) { displayedFrame = CGSize(width: frame.width, height: frame.height) }
+                    .task(id: frame.width * 10_000 + frame.height) { session.setFrame(width: frame.width, height: frame.height) }
             }
         }.frame(minHeight: 240)
     }
@@ -69,27 +79,21 @@ import UIKit
     }
 
     private func commit(image: CGSize, frame: (width: Double, height: Double)) {
-        let t = clamped(scale: scale * gestureScale, x: offset.width + gestureOffset.width, y: offset.height + gestureOffset.height,
-                        image: image, frame: frame)
-        scale = t.scale; offset = CGSize(width: t.x, height: t.y); gestureScale = 1; gestureOffset = .zero
+        session.applyGesture(scale: scale * gestureScale, x: offset.width + gestureOffset.width, y: offset.height + gestureOffset.height)
+        gestureScale = 1; gestureOffset = .zero
     }
 
-    private func confirm() {
-        guard images.indices.contains(index) else { return }
-        // Untouched free-ratio crop keeps the original, exactly like the mini's confirm shortcut.
-        if MiniCropGeometry.keepsOriginal(ratio: ratio, scale: scale, x: offset.width, y: offset.height) { advance(.original); return }
-        let size = images[index].size
-        // Same inputs as the mini's computeCropRect: natural image size plus the on-screen frame and transform.
-        guard displayedFrame.width > 0,
-              let rect = MiniCropGeometry.cropRect(scale: scale, x: offset.width, y: offset.height,
-                                                   imageWidth: size.width, imageHeight: size.height,
-                                                   frameWidth: displayedFrame.width, frameHeight: displayedFrame.height) else { return }
-        advance(.crop(rect))
-    }
+    private func confirm() { if session.confirm() { afterAdvance() } }
 
-    private func advance(_ result: Result) {
-        results.append(result)
-        scale = 1; offset = .zero; gestureScale = 1; gestureOffset = .zero
-        if index + 1 < images.count { index += 1 } else { onFinish(results) }
+    private func afterAdvance() {
+        gestureScale = 1; gestureOffset = .zero
+        if session.isFinished {
+            onFinish(session.outcomes.map { outcome -> Result in
+                switch outcome {
+                case .original: return .original
+                case .crop(let rect): return .crop(rect)
+                }
+            })
+        }
     }
 }

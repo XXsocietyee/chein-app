@@ -259,13 +259,14 @@ import QuestifyCore
 
 /// Mini-program `subpackageRoam/nearby` opens `pages/play/poi-challenge` from a nearby place.
 /// DESIGNED host: built from the already-read roam node; the challenge write has no approved path in this build,
-/// so a validated submission explains that instead of posting (and never marks the attempt as sent).
+/// so a validated submission goes through the injected writer (gated by default) and never claims it was sent.
 @available(macOS 14.0, *)
 @MainActor struct ChallengePOIHostView: View {
     let node: RoamNodeDetail
     @State private var coordinator: ChallengePOICoordinator?
     @State private var feedback: String?
     @State private var readyButBlocked = false
+    @StateObject private var submitModel = ChallengePOISubmitModel(writer: ChallengePOIWriterFactory.makeWriter())
 
     var body: some View {
         ScrollView {
@@ -278,14 +279,13 @@ import QuestifyCore
                         load(coordinator)
                     },
                     onSubmit: {
-                        // Validate locally, then say honestly that nothing was sent: no approved write path exists.
-                        do {
-                            _ = try coordinator.buildCompletionPayload(userLat: nil, userLon: nil)
-                            feedback = nil
-                            readyButBlocked = true
-                        } catch {
-                            feedback = error.localizedDescription
-                            readyButBlocked = false
+                        // Validate locally, then send through the injected writer (gated by default: nothing is sent).
+                        await submitModel.submit(coordinator: coordinator, userLat: nil, userLon: nil)
+                        switch submitModel.state {
+                        case .unavailable: feedback = nil; readyButBlocked = true
+                        case .invalid(let message), .rejected(let message), .unconfirmed(let message):
+                            feedback = message; readyButBlocked = false
+                        case .idle, .submitting, .done: feedback = nil; readyButBlocked = false
                         }
                     },
                     submitFeedback: feedback,
