@@ -32,6 +32,10 @@ import SwiftUI
                     TextField(text: $tax) { invoiceText("taxNo") }
                         .textInputAutocapitalization(.characters).autocorrectionDisabled()
                         .privacySensitive().accessibilityIdentifier("invoice.title.tax")
+                    if !tax.isEmpty, !InvoiceLaunchTitleRules.isValidTax(tax) {
+                        invoiceText("taxInvalid").font(.footnote).foregroundStyle(.secondary)
+                            .accessibilityIdentifier("invoice.title.taxHint")
+                    }
                 }
                 Toggle(isOn: $isDefault) { invoiceText("defaultTitle") }
             }.disabled(!model.allows(.saveTitle))
@@ -39,13 +43,13 @@ import SwiftUI
             if model.allows(.saveTitle) {
                 Button {
                     do {
-                        let draft = try InvoiceLaunchTitleDraft(id: title?.id, titleType: type,
-                            titleName: name, taxNo: type == "COMPANY" ? tax : nil, isDefault: isDefault)
+                        let draft = try InvoiceLaunchTitleRules.draft(id: title?.id, type: type,
+                            name: name, tax: tax, isDefault: isDefault)
                         invalid = false
                         Task { if await model.save(draft) { tax = ""; dismiss() } }
                     } catch { invalid = true }
                 } label: { invoiceText("save") }
-                .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || (type == "COMPANY" && tax.isEmpty))
+                .disabled(!InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
                 .accessibilityIdentifier("invoice.title.save")
             }
         }

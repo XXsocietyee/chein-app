@@ -784,6 +784,22 @@
           }
         }
       }
+    },
+    "taxInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the full tax number: 15 to 20 digits or capital letters. A masked number can't be used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请填写完整税号：15～20 位数字或大写字母，不能使用掩码"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
