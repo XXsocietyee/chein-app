@@ -83,3 +83,64 @@ public struct PersonalLocationShareCaptureApproval: Equatable, Sendable {
         self.scope == scope && installedUsageDescription == usageDescription && purpose == "PERSONAL_LOCATION_SHARING_FOREGROUND"
     }
 }
+
+/// Owner-chosen place the owner never wants shown precisely (home, school). Held on device only.
+public struct PersonalLocationShareSensitivePlace: Equatable, Sendable {
+    public let id: String
+    public let latitude: Double
+    public let longitude: Double
+    public let radiusMeters: Double
+    public init(id: String, latitude: Double, longitude: Double, radiusMeters: Double) throws {
+        guard !id.isEmpty, PersonalLocationShareDistanceBanding.isValid(latitude, longitude),
+              radiusMeters.isFinite, radiusMeters > 0 else { throw PersonalLocationShareFailure.invalidContract }
+        self.id = id; self.latitude = latitude; self.longitude = longitude; self.radiusMeters = radiusMeters
+    }
+}
+public struct PersonalLocationShareSensitivePlacePolicy: Equatable, Sendable {
+    public let places: [PersonalLocationShareSensitivePlace]
+    public init(places: [PersonalLocationShareSensitivePlace]) { self.places = places }
+    public func hides(latitude: Double, longitude: Double) -> Bool {
+        places.contains { place in
+            // Distance is only compared with the radius here; it is never returned.
+            guard let meters = PersonalLocationShareDistanceBanding.meters(latitude, longitude, place.latitude, place.longitude) else { return false }
+            return meters <= place.radiusMeters
+        }
+    }
+}
+/// Decides what a viewer may see of a fix they are already entitled to receive.
+/// Strangers are coarse-only; a hidden sensitive place collapses to coarse for everyone; a coarse fix is never upgraded.
+public struct PersonalLocationShareFixRenderer: Equatable, Sendable {
+    public let latitudeStep: Double
+    public let longitudeStep: Double
+    public let sensitivePlaces: PersonalLocationShareSensitivePlacePolicy
+    public init(latitudeStep: Double, longitudeStep: Double, sensitivePlaces: PersonalLocationShareSensitivePlacePolicy) throws {
+        guard latitudeStep.isFinite, longitudeStep.isFinite, latitudeStep > 0, latitudeStep <= 180,
+              longitudeStep > 0, longitudeStep <= 360 else { throw PersonalLocationShareFailure.invalidContract }
+        self.latitudeStep = latitudeStep; self.longitudeStep = longitudeStep; self.sensitivePlaces = sensitivePlaces
+    }
+    public func render(latitude: Double, longitude: Double, mode: PersonalLocationShareMode,
+                       layer: PersonalLocationShareViewerLayer) -> PersonalLocationShareRenderedFix {
+        guard PersonalLocationShareDistanceBanding.isValid(latitude, longitude) else { return .withheld }
+        if layer == .friend, mode == .exact, !sensitivePlaces.hides(latitude: latitude, longitude: longitude) {
+            return .exact(latitude: latitude, longitude: longitude)
+        }
+        return .coarse(latitude: Self.cellCenter(latitude, origin: -90, span: 180, step: latitudeStep),
+                       longitude: Self.cellCenter(longitude, origin: -180, span: 360, step: longitudeStep))
+    }
+    private static func cellCenter(_ value: Double, origin: Double, span: Double, step: Double) -> Double {
+        let cells = (span / step).rounded(.up)
+        let index = min(max((value - origin) / step, 0).rounded(.down), cells - 1)
+        return min(origin + span, origin + (index + 0.5) * step)
+    }
+}
+
+/// DEC-06: game location collection and voluntary personal sharing are two independent switches.
+/// Neither implies, starts or stops the other.
+public struct PersonalLocationShareCollectionSwitches: Equatable, Sendable {
+    public private(set) var gameCollectionActive = false
+    public private(set) var shareActive = false
+    public init() {}
+    public mutating func setGameCollection(active: Bool) { gameCollectionActive = active }
+    public mutating func shareStarted() { shareActive = true }
+    public mutating func shareStopped() { shareActive = false }
+}

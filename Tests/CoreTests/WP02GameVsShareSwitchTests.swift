@@ -5,7 +5,7 @@ import XCTest
     func testStoppingShareDoesNotEndGameSession() async throws {
         let rig = try WP02Rig()
         rig.coordinator.gameCollectionChanged(active: true)
-        let key = try XCTUnwrap(await rig.startSharing())
+        let started = await rig.startSharing(); let key = try XCTUnwrap(started)
         XCTAssertTrue(rig.coordinator.collectionSwitches.shareActive)
         XCTAssertTrue(rig.coordinator.collectionSwitches.gameCollectionActive)
         await rig.coordinator.stop(requestKey: key)

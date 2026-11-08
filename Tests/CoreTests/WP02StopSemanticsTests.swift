@@ -73,7 +73,7 @@ enum WP02Fixture {
     }
     func revoke(requestKey: String) async throws -> PersonalLocationShareReceipt {
         revokedKeys.append(requestKey)
-        return .init(requestKey: requestKey, known: true, state: .stopped, requestHash: nil, grant: nil, serverNowMs: WP02Fixture.now, watermark: 2)
+        return .init(requestKey: requestKey, known: true, state: .stopped, requestHash: "opaque-server-test-hash", grant: nil, serverNowMs: WP02Fixture.now, watermark: 2)
     }
     func owned() async throws -> PersonalLocationShareOwned { .init(ownerId: scope.accountId, serverNowMs: WP02Fixture.now, grants: ownedValues) }
     func received() async throws -> PersonalLocationShareSnapshot {
@@ -125,7 +125,7 @@ enum WP02Fixture {
         XCTAssertEqual(rig.service.revokedKeys, [try XCTUnwrap(key)])
     }
     func testOfflineStopsShare() async throws {
-        let rig = try WP02Rig(); let key = try XCTUnwrap(await rig.startSharing())
+        let rig = try WP02Rig(); let started = await rig.startSharing(); let key = try XCTUnwrap(started)
         await rig.coordinator.stop(for: .offline)
         XCTAssertNil(rig.coordinator.publishingRequestKey)
         XCTAssertGreaterThanOrEqual(rig.provider.stops, 1)
@@ -139,7 +139,7 @@ enum WP02Fixture {
         XCTAssertEqual(rig.provider.makes, 1)
     }
     func testTeamExitStopsShare() async throws {
-        let rig = try WP02Rig(); let key = try XCTUnwrap(await rig.startSharing())
+        let rig = try WP02Rig(); let started = await rig.startSharing(); let key = try XCTUnwrap(started)
         await rig.coordinator.stop(for: .teamExit)
         XCTAssertNil(rig.coordinator.publishingRequestKey)
         XCTAssertGreaterThanOrEqual(rig.provider.stops, 1)
@@ -149,7 +149,7 @@ enum WP02Fixture {
         XCTAssertTrue(rig.journal.values.isEmpty)
     }
     func testBanStopsShare() async throws {
-        let rig = try WP02Rig(); let key = try XCTUnwrap(await rig.startSharing())
+        let rig = try WP02Rig(); let started = await rig.startSharing(); let key = try XCTUnwrap(started)
         await rig.coordinator.stop(for: .ban)
         XCTAssertNil(rig.coordinator.publishingRequestKey)
         XCTAssertGreaterThanOrEqual(rig.provider.stops, 1)

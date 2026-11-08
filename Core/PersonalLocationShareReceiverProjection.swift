@@ -31,6 +31,14 @@ public struct PersonalLocationShareReceiverProjection {
     public mutating func expire(at uptime: TimeInterval) {
         visible = visible.filter { uptime < $0.value.deadlineUptime }
     }
+    /// Banded distances only; coordinates stay inside this projection.
+    public func bandedDistances(observerLatitude: Double, observerLongitude: Double, uptime: TimeInterval) -> [PersonalLocationShareBandedDistance] {
+        PersonalLocationShareDistanceBanding.present(Array(visible.values), observerLatitude: observerLatitude,
+                                                     observerLongitude: observerLongitude, uptime: uptime)
+    }
+    public func rendered(_ item: Visible, layer: PersonalLocationShareViewerLayer, renderer: PersonalLocationShareFixRenderer) -> PersonalLocationShareRenderedFix {
+        renderer.render(latitude: item.observation.latitude, longitude: item.observation.longitude, mode: item.observation.mode, layer: layer)
+    }
     public var nextDeadline: TimeInterval? { visible.values.map(\.deadlineUptime).min() }
     @discardableResult public mutating func apply(_ snapshot: PersonalLocationShareSnapshot, ticket: Ticket,
                                                  uptime: TimeInterval) throws -> Bool {
