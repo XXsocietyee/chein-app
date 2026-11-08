@@ -211,7 +211,7 @@ import SwiftUI
                                                                                      topicStartDay: s.value["topicStartDate"].text, today: MerchantApplyXcx.chinaToday()) {
                 // Source merchantapply edit-block notice; the server still decides on submit.
                 Section {
-                    Text(LocalizedStringKey("merchantApplyXcx.editBlock." + String(describing: block))).foregroundStyle(.orange)
+                    Text(LocalizedStringKey("merchantApplyXcx.editBlock." + String(describing: block))).foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("merchantApply.editBlock")
                 } header: { Text("merchantApplyXcx.editBlockTitle") }
             }
@@ -377,7 +377,7 @@ import SwiftUI
             if let missing = MerchantApplyXcx.firstMissing(address: text["address"] ?? "", startDay: registrationDraft().createStartDay,
                                                            endDay: registrationDraft().createEndDay, description: text["activityDesc"] ?? "",
                                                            photoCount: (text["picUrl"] ?? "").split(separator: ",").count) {
-                Text(LocalizedStringKey("merchantApplyXcx.missing." + String(describing: missing))).font(.footnote).foregroundStyle(.orange)
+                Text(LocalizedStringKey("merchantApplyXcx.missing." + String(describing: missing))).font(.footnote).foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("merchantApply.firstMissing")
             }
         } header: { Text("merchantApplyXcx.timeGroup") } footer: { Text("merchantApplyXcx.notAWin") }

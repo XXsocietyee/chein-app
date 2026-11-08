@@ -114,7 +114,7 @@ struct MerchantBusinessEditorContext: Identifiable {
                 case .removeOperator, .revokeInvite:
                     TextField("merchant.business.reason", text: $content, axis: .vertical).lineLimit(3...8)
                 }
-                if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.red) }
+                if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText) }
                 let unchangedRole = roleNoChange
                 Button(unchangedRole == nil ? "merchant.business.reviewDraft" : "merchant.done") {
                     if let unchangedRole {

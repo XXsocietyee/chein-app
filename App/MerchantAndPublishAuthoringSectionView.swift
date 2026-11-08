@@ -159,7 +159,7 @@ public struct MerchantAndPublishAuthoringSectionView: View {
                 Spacer()
                 Text(verbatim: headerBadgeText)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.isAuditReady ? Color.green : Color.orange)
+                    .foregroundStyle(snapshot.isAuditReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("merchantPublishAudit.statusBadge")
             }
 
@@ -180,7 +180,7 @@ public struct MerchantAndPublishAuthoringSectionView: View {
                         Spacer()
                         Text(verbatim: pillar.statusBadgeText)
                             .font(.caption2.monospaced())
-                            .foregroundStyle(pillar.isVerified ? Color.green : Color.orange)
+                            .foregroundStyle(pillar.isVerified ? CYColor.successText : CYColor.warningText)
                             .accessibilityIdentifier("merchantPublishAudit.pillarStatus.\(pillar.id)")
                     }
 

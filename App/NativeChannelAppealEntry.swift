@@ -46,7 +46,7 @@ import SwiftUI
                             .accessibilityIdentifier("channel.appeal.explanation")
                         HStack {
                             if explanationCount > 500 {
-                                Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(.red)
+                                Text("input.tooLong", tableName: "NativeChannelAppealDetails").foregroundStyle(CYColor.dangerText)
                             }
                             Spacer(minLength: 8)
                             Text(verbatim: "\(explanationCount)/500").monospacedDigit().foregroundStyle(explanationCount > 500 ? AnyShapeStyle(.red) : AnyShapeStyle(.secondary))

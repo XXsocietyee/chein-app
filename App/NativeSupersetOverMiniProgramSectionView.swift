@@ -171,8 +171,8 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isSupersetIntact ? Color.green : Color.orange).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isSupersetIntact ? Color.green : Color.orange)
+                    .background(snapshot.isSupersetIntact ? CYColor.successSoft : CYColor.warningSoft, in: Capsule())
+                    .foregroundStyle(snapshot.isSupersetIntact ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("nativeSupersetPolicy.overallBadge")
             }
 
@@ -194,7 +194,7 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
                             .font(.caption2.weight(.bold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(badgeColor(for: row.status).opacity(0.15), in: Capsule())
+                            .background(badgeSoftColor(for: row.status), in: Capsule())
                             .foregroundStyle(badgeColor(for: row.status))
                     }
                     Text(verbatim: "对齐契约：\(row.miniProgramContract)")
@@ -216,11 +216,22 @@ public struct NativeSupersetOverMiniProgramSectionView: View {
     private func badgeColor(for status: NativeSupersetDomainRow.Status) -> Color {
         switch status {
         case .preservedSuperset:
-            return .green
+            return CYColor.successText
         case .downgradedWarning:
-            return .orange
+            return CYColor.warningText
         case .contractMismatch:
-            return .red
+            return CYColor.dangerText
+        }
+    }
+
+    private func badgeSoftColor(for status: NativeSupersetDomainRow.Status) -> Color {
+        switch status {
+        case .preservedSuperset:
+            return CYColor.successSoft
+        case .downgradedWarning:
+            return CYColor.warningSoft
+        case .contractMismatch:
+            return CYColor.dangerSoft
         }
     }
 }

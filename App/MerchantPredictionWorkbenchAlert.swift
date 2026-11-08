@@ -19,7 +19,7 @@ extension EnvironmentValues {
     var body: some View {
         let announcement = MerchantOpsCopy.text("merchantOps.predict.workbenchAlert %lld", pending)
         Label { Text(verbatim: announcement) } icon: { Image(systemName: "questionmark.bubble") }
-            .foregroundStyle(.orange)
+            .foregroundStyle(CYColor.warningText)
             // One informational announcement, not separate symbol and count focus stops.
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(Text(verbatim: announcement))
