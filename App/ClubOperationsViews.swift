@@ -309,7 +309,7 @@ struct ClubOperationsWorkspaceView: View {
                     Text(target == .create ? "club.ops.create" : "club.ops.reviewProfile").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.questifyPrimary)
-                .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty))
+                .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty) || (target == .create && ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: draft.name, city: draft.city) != nil))
                 .accessibilityIdentifier("club.ops.reviewProfile")
             }.listRowBackground(Color.clear)
         }
@@ -835,23 +835,32 @@ private struct ClubOperationsProfileForm: View {
     }
     /// Mini-program club/create steps, in order: 类型 → 活动方向 → 资料 → 城市.
     @ViewBuilder private var createSections: some View {
-        Section("club.ops.clubType") {
+        Section {
             Picker("club.ops.clubType", selection: $draft.clubType) {
                 ForEach(ClubOperationsCatalog.types, id: \.self) { Text(LocalizedStringKey("club.ops.value." + $0)).tag($0) }
                 if !draft.clubType.isEmpty, !ClubOperationsCatalog.types.contains(draft.clubType) { Text(verbatim: draft.clubType).tag(draft.clubType) }
             }.pickerStyle(.inline).labelsHidden().accessibilityIdentifier("club.ops.clubType")
+        } header: { Text("club.ops.clubType") } footer: {
+            if ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: "x", city: "x") == 1 { Text("club.ops.create.needType") }
         }
         Section {
             directionToggles
         } header: { Text("club.ops.directions") } footer: { Text("club.ops.directionsCount \(draft.activityPrefs.count)") }
-        Section("club.ops.profile") {
+        Section {
             field("name", text: $draft.name)
             field("description", text: $draft.description, axis: .vertical)
+        } header: { Text("club.ops.profile") } footer: {
+            VStack(alignment: .leading, spacing: 2) {
+                if ClubOperationsPort.missingCreateStep(clubType: "x", name: draft.name, city: "x") == 3 { Text("club.ops.create.needName") }
+                counterLabel("description", draft.description)
+            }
         }
-        Section("club.ops.city") {
+        Section {
             field("city", text: $draft.city)
             field("keywords", text: $draft.keywords)
             field("style", text: $draft.style)
+        } header: { Text("club.ops.city") } footer: {
+            if ClubOperationsPort.missingCreateStep(clubType: "x", name: "x", city: draft.city) == 4 { Text("club.ops.create.needCity") }
         }
     }
     /// Mini-program cy-scene-club-edit order: 基础信息 → 俱乐部介绍 → 定位 → 会员经营配置.
@@ -864,9 +873,9 @@ private struct ClubOperationsProfileForm: View {
             field("keywords", text: $draft.keywords)
             field("style", text: $draft.style)
         }
-        Section("club.ops.introduction") {
+        Section {
             field("description", text: $draft.description, axis: .vertical)
-        }
+        } header: { Text("club.ops.introduction") } footer: { counterLabel("description", draft.description) }
         Section("club.ops.positioning") {
             ClubProfileChoiceControl(kind: .type, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
             ClubProfileChoiceControl(kind: .directions, draft: $draft, context: choiceContext, isCurrent: choiceIsCurrent, controller: choiceController)
@@ -913,6 +922,13 @@ private struct ClubOperationsProfileForm: View {
             text = text + Text(verbatim: " · ") + Text(draft.joinPolicy == 1 ? "club.ops.locked.join.on" : "club.ops.locked.join.off")
         }
         return text + Text(verbatim: " · ") + Text("club.ops.locked.quota \(quota)")
+    }
+    @ViewBuilder private func counterLabel(_ key: String, _ value: String) -> some View {
+        if let counter = ClubOperationsPort.counter(value, field: key) {
+            Text("club.ops.counter \(counter.used) \(counter.limit)")
+                .foregroundStyle(counter.used > counter.limit ? Color.red : Color.secondary)
+                .accessibilityIdentifier("club.ops.counter." + key)
+        }
     }
     private func field(_ key: String, text: Binding<String>, axis: Axis = .horizontal) -> some View {
         TextField(LocalizedStringKey("club.ops." + key), text: text, axis: axis)
