@@ -132,3 +132,8 @@ public enum NativeBlacklistTransportPolicy {
     public init(_ dispatch: @escaping (URLRequest) async throws -> (Data, Int)) { self.dispatch = dispatch }
     public func send(_ request: URLRequest) async throws -> (Data, Int) { try await dispatch(request) }
 }
+
+/// Unblocking removes only the block. It never restores a friendship or a pending request that the block removed (EXEC-04).
+public enum NativeBlacklistRelationPolicy {
+    public static func relationAfterUnblock(previous: NativeFriendRelation) -> NativeFriendRelation { .none }
+}
