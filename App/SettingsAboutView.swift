@@ -12,9 +12,9 @@ import UIKit
                 VStack(spacing: 12) {
                     Image("SettingsBrandMark").resizable().scaledToFit().frame(width: 54, height: 54).accessibilityHidden(true)
                     if let name = appInformation.displayName {
-                        Text(verbatim: name).font(.largeTitle.bold()).accessibilityIdentifier("settingsNative.about.appName")
+                        Text(verbatim: name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader).accessibilityIdentifier("settingsNative.about.appName")
                     } else { Text("settingsNative.about.nameMissing") }
-                    Text("settingsNative.about.tagline").foregroundStyle(.secondary).multilineTextAlignment(.center)
+                    Text("settingsNative.about.tagline").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 }.frame(maxWidth: .infinity).padding(.vertical)
                 LabeledContent("settingsNative.about.version") {
                     if let version = appInformation.version {
@@ -57,6 +57,8 @@ import UIKit
             }
             SettingsAttributionsSection(copyText: copyText)
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage.ignoresSafeArea())
         .appNavigationTitle("settingsNative.about.title")
     }
 }
