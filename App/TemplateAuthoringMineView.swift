@@ -54,7 +54,7 @@ import SwiftUI
                     if let id = MemberPlayTemplateID(rawValue: row.id), memberDetail != nil {
                         Button { selectedMember = id } label: {
                             HStack {
-                                Text(verbatim: row.title).font(.headline).foregroundStyle(Color.primary)
+                                Text(verbatim: row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                                 Spacer()
                                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
                             }
@@ -107,6 +107,8 @@ import SwiftUI
             .navigationDestination(item: $selectedMember) { id in
                 if let memberDetail { memberDetail(id) }
             }
+            .p04LifecycleSurface()
+            .preferredColorScheme(.dark)
             .navigationDestination(item: $selectedConfiguration) { id in
                 if let ownerConfiguration { ownerConfiguration(id) }
             }

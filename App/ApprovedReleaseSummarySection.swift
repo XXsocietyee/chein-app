@@ -23,7 +23,7 @@ import SwiftUI
             field(String(localized: LocalizedStringResource("approvedRelease.manifestHash", defaultValue: "Full manifest SHA-256", locale: locale)), prepared.manifestHash, identifier("manifestHash"))
             field(String(localized: LocalizedStringResource("approvedRelease.auditHash", defaultValue: "Audit snapshot SHA-256", locale: locale)), prepared.auditSnapshotHash, identifier("auditHash"))
             Text(String(localized: LocalizedStringResource("approvedRelease.serverOnly", defaultValue: "Answer values and private guide text remain server-side. The hashes bind the full captured content, including fields omitted from this readable summary.", locale: locale)))
-                .font(.footnote)
+                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         }
         if let cover = prepared.selectedCover {
             ApprovedTopicSelectedCoverSection(cover: cover, prefix: identifierPrefix, approved: true, source: coverSource, session: coverSession, parentCurrent: coverContextCurrent)
@@ -58,9 +58,10 @@ import SwiftUI
     }
     private func field(_ title: String, _ value: String?, _ identifier: String) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-            Text(verbatim: title).font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: title).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 .fixedSize(horizontal: false, vertical: true)
             Text(verbatim: value ?? String(localized: LocalizedStringResource("approvedRelease.missing", defaultValue: "Not supplied", locale: locale)))
+                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
                 .textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(identifier)
         }.p04FactRow()
     }
