@@ -61,6 +61,7 @@ public struct ObjectBadgeDetailParameters: Equatable {
     public let name, subtitle, image: String
     public let style: String
     public let rarity: Int
+    public let glyph: String
     public init(query: [String: String], fallbackName: String) {
         let raw = query["name"] ?? ""
         name = raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? fallbackName : raw
@@ -70,7 +71,46 @@ public struct ObjectBadgeDetailParameters: Equatable {
            parts.host?.isEmpty == false, parts.user == nil, parts.password == nil, parts.fragment == nil {
             image = candidate
         } else { image = "" }
-        style = query["style"] == "glow" ? "glow" : "enamel"
+        // Source badge-3d/index.js: glow / pin / enamel (default). pin is the wall's enamel pin.
+        style = query["style"] == "glow" ? "glow" : (query["style"] == "pin" ? "pin" : "enamel")
         rarity = min(4, max(0, Int(query["rarity"] ?? "") ?? 0))
+        // Source: /^[A-Za-z]{1,24}$/ else DEFAULT.
+        let rawGlyph = query["glyph"] ?? ""
+        glyph = !rawGlyph.isEmpty && rawGlyph.utf8.count <= 24 && rawGlyph.utf8.allSatisfy({ ($0 >= 65 && $0 <= 90) || ($0 >= 97 && $0 <= 122) })
+            ? rawGlyph : "DEFAULT"
+    }
+}
+
+/// Native stand-in for the mini-program's xr-badge turntable: drag rotates the artwork around its
+/// vertical axis, a tap on a `pin` badge spins it once. Reduced motion keeps it static, like the source.
+public struct ObjectBadgeTurntable: Equatable {
+    public static let degreesPerPoint = 0.5
+    public private(set) var committedAngle = 0.0
+    public private(set) var liveTranslation = 0.0
+    public let style: String
+    public let reducedMotion: Bool
+    public init(style: String, reducedMotion: Bool) { self.style = style; self.reducedMotion = reducedMotion }
+
+    public var angle: Double { reducedMotion ? 0 : committedAngle + liveTranslation * Self.degreesPerPoint }
+    public mutating func drag(translationWidth: Double) {
+        guard !reducedMotion, style != "glow", translationWidth.isFinite else { return }
+        liveTranslation = translationWidth
+    }
+    public mutating func endDrag() {
+        committedAngle = angle.truncatingRemainder(dividingBy: 360); liveTranslation = 0
+    }
+    /// Pin badges turn a full circle on tap; other styles ignore taps.
+    public mutating func tap() {
+        guard !reducedMotion, style == "pin" else { return }
+        committedAngle += 360
+    }
+    /// Source hint line under the badge (nil = no hint, e.g. the glow style).
+    public var hintKey: String? {
+        if reducedMotion { return "objects.badge3d.hint.reduced" }
+        switch style {
+        case "pin": return "objects.badge3d.hint.pin"
+        case "glow": return nil
+        default: return "objects.badge3d.hint.drag"
+        }
     }
 }
