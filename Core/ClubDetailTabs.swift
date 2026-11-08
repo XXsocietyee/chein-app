@@ -20,8 +20,11 @@ public struct ClubDetailManageGrant: Equatable, Sendable {
     ]
     public let clubID: Int
     public let allowsManage: Bool
+    /// Granted permission codes (empty when the access read was inactive); drives per-entry gates.
+    public let permissions: Set<String>
     public init(clubID: Int, permissions: Set<String>, hasEventScope: Bool) {
         self.clubID = clubID
+        self.permissions = permissions
         allowsManage = hasEventScope || !permissions.isDisjoint(with: Self.managePermissions)
     }
     public init(_ permissions: ClubGovernancePermissions) {
