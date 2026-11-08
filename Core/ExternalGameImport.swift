@@ -121,6 +121,8 @@ public enum ExternalGameValidationError: Error, LocalizedError, Equatable, Senda
     case paymentOrIAPDetected(String)
     case symlinkOrEscapeDetected(String)
     case malformedArchive
+    /// FP-H4: the user blocked this package or its creator on this device.
+    case blockedByUser(String)
 
     public var errorDescription: String? {
         switch self {
@@ -164,6 +166,8 @@ public enum ExternalGameValidationError: Error, LocalizedError, Equatable, Senda
             return W8Text.t("检测到符号链接或沙盒目录越界：\(path)", "Symbolic link or sandbox escape detected: \(path)")
         case .malformedArchive:
             return W8Text.t("游戏包格式损坏或无法解析", "Package is corrupt or cannot be parsed")
+        case .blockedByUser(let name):
+            return W8Text.t("你已屏蔽「\(name)」，无法导入或运行", "You blocked \"\(name)\" on this device, so it cannot be imported or run")
         }
     }
 }
@@ -588,6 +592,10 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
     public var pendingConfirmation: ExternalGamePendingConfirmation?
     public var activeLaunchingGame: InstalledExternalGame?
     public private(set) var lastError: String = ""
+    /// FP-H4. Local, device-only blocklist of package ids and creator names. It is not a server block and
+    /// not a report; it only stops this device from importing or running the blocked package or creator.
+    public private(set) var blockedPackageIDs: Set<String> = []
+    public private(set) var blockedCreators: Set<String> = []
 
     private var progressByGameID: [String: [String: String]] = [:]
 
@@ -604,6 +612,44 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         }
         self.verificationSecret = verificationSecret
         loadRegistryFromDisk()
+        loadBlocklistFromDisk()
+    }
+
+    public static func normalizedCreator(_ author: String?) -> String? {
+        guard let value = author?.trimmingCharacters(in: .whitespacesAndNewlines).lowercased(), !value.isEmpty else { return nil }
+        return value
+    }
+    public func isBlocked(_ manifest: ExternalGameManifest) -> Bool {
+        if blockedPackageIDs.contains(manifest.id) { return true }
+        if let creator = Self.normalizedCreator(manifest.author), blockedCreators.contains(creator) { return true }
+        return false
+    }
+    /// Blocks the package and, when the manifest names one, its creator; closes a running game.
+    public func block(_ manifest: ExternalGameManifest, includingCreator: Bool = true) {
+        blockedPackageIDs.insert(manifest.id)
+        if includingCreator, let creator = Self.normalizedCreator(manifest.author) { blockedCreators.insert(creator) }
+        if let active = activeLaunchingGame, isBlocked(active.manifest) { activeLaunchingGame = nil }
+        saveBlocklistToDisk()
+    }
+    public func unblock(_ manifest: ExternalGameManifest) {
+        blockedPackageIDs.remove(manifest.id)
+        if let creator = Self.normalizedCreator(manifest.author) { blockedCreators.remove(creator) }
+        saveBlocklistToDisk()
+    }
+    /// Plain-text report body for the user to send through a channel they choose. No address or endpoint is
+    /// built in: the support contact is an owner decision (FP-O7) and the backend has no report route for packages.
+    public func reportSummary(for manifest: ExternalGameManifest) -> String {
+        [
+            "Package report",
+            "id: \(manifest.id)",
+            "name: \(manifest.name)",
+            "version: \(manifest.version)",
+            "creator: \(manifest.author ?? "-")",
+            "sha256: \(manifest.sha256)",
+            "contentRating: \(manifest.contentRating)",
+            "permissions: \(manifest.permissions.joined(separator: ","))",
+            "allowedDomains: \(manifest.allowedDomains.joined(separator: ","))"
+        ].joined(separator: "\n")
     }
 
     public func packageDirectory(for gameID: String) -> URL {
@@ -613,6 +659,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
     }
 
     public func entryFileURL(for game: InstalledExternalGame) -> URL? {
+        guard !isBlocked(game.manifest) else { return nil }
         let pkgRoot = packageDirectory(for: game.manifest.id)
         let target = pkgRoot.appendingPathComponent(game.manifest.entry, isDirectory: false)
         guard ExternalGameSandboxPolicy.allowsNavigation(to: target, packageRoot: pkgRoot, manifest: game.manifest) else {
@@ -642,6 +689,7 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
         }
 
         try ExternalGameValidator.validateArchive(archive, secret: verificationSecret)
+        guard !isBlocked(archive.manifest) else { throw ExternalGameValidationError.blockedByUser(archive.manifest.name) }
         let totalBytes = archive.files.values.reduce(0) { $0 + $1.count }
         let existing = installedGames.first(where: { $0.manifest.id == archive.manifest.id })
         let confirmation = ExternalGamePendingConfirmation(
@@ -850,6 +898,20 @@ public struct ExternalGamePendingConfirmation: Equatable, Identifiable, Sendable
                let pMap = try? JSONDecoder().decode([String: String].self, from: pData) {
                 progressByGameID[game.manifest.id] = pMap
             }
+        }
+    }
+
+    private var blocklistFileURL: URL { rootDirectory.appendingPathComponent("blocklist-v1.json", isDirectory: false) }
+    private struct Blocklist: Codable { var packages: Set<String>; var creators: Set<String> }
+    private func loadBlocklistFromDisk() {
+        guard let data = try? Data(contentsOf: blocklistFileURL),
+              let decoded = try? JSONDecoder().decode(Blocklist.self, from: data) else { return }
+        blockedPackageIDs = decoded.packages; blockedCreators = decoded.creators
+    }
+    private func saveBlocklistToDisk() {
+        try? FileManager.default.createDirectory(at: rootDirectory, withIntermediateDirectories: true)
+        if let data = try? JSONEncoder().encode(Blocklist(packages: blockedPackageIDs, creators: blockedCreators)) {
+            try? data.write(to: blocklistFileURL, options: [.atomic])
         }
     }
 

@@ -289,6 +289,7 @@ import WebKit
     @Environment(\.locale) private var locale
     let store: ExternalGameStore
     let game: InstalledExternalGame
+    @State private var confirmsBlock = false
 
     var body: some View {
         NavigationStack {
@@ -336,6 +337,27 @@ import WebKit
                         store.activeLaunchingGame = nil
                     }
                 }
+                // App Store 1.2 / 4.7: report and block the package and its creator from the runner itself.
+                ToolbarItem(placement: .primaryAction) {
+                    Menu {
+                        ShareLink(item: store.reportSummary(for: game.manifest)) {
+                            Label(W8Text.t("举报此游戏包", "Report this game"), systemImage: "exclamationmark.bubble")
+                        }
+                        .accessibilityIdentifier("externalGame.report")
+                        Button(role: .destructive) { confirmsBlock = true } label: {
+                            Label(W8Text.t("屏蔽此游戏及创作者", "Block this game and its creator"), systemImage: "hand.raised")
+                        }
+                        .accessibilityIdentifier("externalGame.block")
+                    } label: {
+                        Label(W8Text.t("举报或屏蔽", "Report or block"), systemImage: "ellipsis.circle")
+                    }
+                    .accessibilityIdentifier("externalGame.safetyMenu")
+                }
+            }
+            .confirmationDialog(W8Text.t("屏蔽后将关闭并无法再导入或运行此游戏及其创作者的其他游戏包。", "Blocking closes this game and stops you importing or running it or other packages from its creator."),
+                                isPresented: $confirmsBlock, titleVisibility: .visible) {
+                Button(W8Text.t("屏蔽", "Block"), role: .destructive) { store.block(game.manifest) }
+                Button(W8Text.t("取消", "Cancel"), role: .cancel) {}
             }
         }
     }
