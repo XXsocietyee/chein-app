@@ -174,7 +174,7 @@ struct RoamAlbumReadOwner: Hashable {
                 if let error = pager.error, StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) == .retryContinuation {
                     StampAlbumContinuationRetry(retry: read)
                 }
-                if presentation.loading { ProgressView("roam.loading") }
+                if presentation.loading { ProgressView(pager.stamps.isEmpty ? "roam.loading" : "stampAlbum.loadingNext") }
                 if pager.hasMore && !presentation.loading && pager.loaded {
                     Button("roam.experience.loadMore", action: read)
                         .buttonStyle(.bordered).accessibilityIdentifier("roam.experience.album.more")
