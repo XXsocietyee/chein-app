@@ -325,6 +325,8 @@ struct ActivityDetailView: View {
         }
         .listStyle(.insetGrouped)
         .listSectionSpacing(20)
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .accessibilityIdentifier("activity.detail.content")
         .safeAreaInset(edge:.bottom,spacing:0) {
             // This view exists only for .allowed details. Preserve the caller's
@@ -353,7 +355,7 @@ struct ActivityDetailView: View {
         Group {
             if primaryAction == .signUp {
                 Button { showsRegistration=true } label: { primaryActionLabel(.signUp) }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.cyPrimary)
                     .controlSize(.large)
                     .accessibilityIdentifier("activity.openRegistration")
             } else {
@@ -361,7 +363,7 @@ struct ActivityDetailView: View {
                 let action = primaryAction
                 let walletAvailable = reader is AppSession
                 Button { if action != .cancelled, walletAvailable { showsTicketWallet=true } } label: { primaryActionLabel(action) }
-                    .buttonStyle(.questifyPrimary)
+                    .buttonStyle(.cyPrimary)
                     .controlSize(.large)
                     .disabled(action == .cancelled || !walletAvailable)
                     .accessibilityIdentifier("activity.primaryAction")

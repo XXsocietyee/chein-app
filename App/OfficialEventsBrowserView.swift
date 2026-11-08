@@ -81,7 +81,7 @@ import SwiftUI
                         case .mine: Text("official.summary.mine \(visible.count)")
                         }
                     }
-                }.font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("officialList.summary")
+                }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("officialList.summary")
                 if visible.isEmpty {
                     ContentUnavailableView {
                         Label(LocalizedStringKey(query.emptyTitleKey), systemImage: "sparkles")
@@ -98,6 +98,8 @@ import SwiftUI
             Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
     }
     private func checkPublisherPermission() async {
         let captured = reader.scope

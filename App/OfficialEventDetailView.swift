@@ -68,8 +68,8 @@ enum OfficialDetailID {
                 OfficialEventCard(event: event).questifyCardListRow()
                 OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
                 HStack(spacing: 8) {
-                    Text(LocalizedStringKey(presentation.categoryKey)).font(.caption.weight(.semibold)).foregroundStyle(.tint)
-                    Text("official.detailParity.organizer").font(.subheadline).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(presentation.categoryKey)).font(CYTypography.label).foregroundStyle(CYColor.accentText)
+                    Text("official.detailParity.organizer").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.organizer)
                 Section("official.facts") {
                     OfficialDetailFactsStrip(facts: presentation.facts).accessibilityIdentifier(OfficialDetailID.facts)
@@ -81,14 +81,9 @@ enum OfficialDetailID {
                 }
                 Section {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text(verbatim: event.title).font(.title3.weight(.semibold))
-                        if let intro = presentation.intro { Text(verbatim: intro).textSelection(.enabled) }
+                        Text(verbatim: event.title).font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                        if let intro = presentation.intro { Text(verbatim: intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
-                }
-                if let story = presentation.storyDetail {
-                    Section("official.detailParity.storyHeading") {
-                        Text(verbatim: story).textSelection(.enabled).accessibilityIdentifier(OfficialDetailID.story)
-                    }
                 }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
@@ -100,14 +95,19 @@ enum OfficialDetailID {
                         }
                     }.accessibilityIdentifier(OfficialDetailID.cards)
                 }
+                if let story = presentation.storyDetail {
+                    Section("official.detailParity.storyHeading") {
+                        Text(verbatim: story).textSelection(.enabled).accessibilityIdentifier(OfficialDetailID.story)
+                    }
+                }
                 if event.isV2 {
                     Section {
                         if event.signed != true {
                             Text("official.detailParity.tasks.signupNote").font(.footnote).foregroundStyle(.secondary)
                         }
                         if event.paused {
-                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(.red) }
-                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(.red) }
+                            if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(CYColor.dangerText) }
+                            else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(CYColor.dangerText) }
                         }
                         if presentation.missions.isEmpty { Text("official.detailParity.tasks.empty") }
                         if topicNameFailed {
@@ -152,13 +152,13 @@ enum OfficialDetailID {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack(alignment: .firstTextBaseline) {
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(verbatim: collective.detailPercentText).font(.title2.weight(.semibold))
+                                    Text(verbatim: collective.detailPercentText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                                     Text("official.detailParity.collective.lit").font(.caption).foregroundStyle(.secondary)
                                 }
                                 Spacer()
                                 Text(verbatim: collective.detailCountText).monospacedDigit()
                             }
-                            ProgressView(value: collective.displayFraction ?? 0).accessibilityHidden(true)
+                            ProgressView(value: collective.displayFraction ?? 0).tint(CYColor.accent).accessibilityHidden(true)
                             Text(LocalizedStringKey(presentation.collectiveTipKey)).font(.footnote).foregroundStyle(.secondary)
                         }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.collective)
                     }
@@ -216,7 +216,8 @@ enum OfficialDetailID {
                     OfficialDetailRoamJumpSection(event: event, cta: presentation.cta, onOpenRoam: onOpenRoam)
                 }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
-            }.accessibilityIdentifier("official.detail.content")
+            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(CYColor.bgPage)
+            .accessibilityIdentifier("official.detail.content")
             .task(id: namesKey) {
                 await loadTopicNames(namesKey, detailVisit: namesVisit)
             }
@@ -278,12 +279,12 @@ struct OfficialDetailFactsStrip: View {
     let facts: [OfficialDetailFact]
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(alignment: .top, spacing: 20) {
+            HStack(alignment: .top, spacing: CYSpacing.xl) {
                 ForEach(facts) { fact in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(fact.labelKey)).font(.caption).foregroundStyle(.secondary)
-                        value(fact.value).font(.headline)
-                        sub(fact.sub).font(.caption).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(fact.labelKey)).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
+                        value(fact.value).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                        sub(fact.sub).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
                     }.accessibilityElement(children: .combine)
                 }
             }.padding(.vertical, 4)
@@ -319,10 +320,10 @@ struct OfficialDetailMissionRow: View {
     var topicName: String? = nil
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            OfficialDetailTextView(value: mission.title).font(.headline)
+            OfficialDetailTextView(value: mission.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
-            OfficialDetailTextView(value: mission.description)
-            Label(LocalizedStringKey(mission.action.key), systemImage: symbol)
+            OfficialDetailTextView(value: mission.description).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            Label(LocalizedStringKey(mission.action.key), systemImage: symbol).font(CYTypography.label).foregroundStyle(mission.action == .verified ? CYColor.successText : CYColor.accentText)
         }.accessibilityElement(children: .combine)
     }
     private var symbol: String {

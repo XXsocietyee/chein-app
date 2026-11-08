@@ -28,13 +28,13 @@ struct TopicXcxHero: View {
     let topic: TopicDetail
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(topic.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering").font(.caption.bold()).foregroundStyle(.secondary)
+            Text(topic.productType == 2 ? "topicXcx.type.explore" : "topicXcx.type.orienteering").font(CYTypography.label).foregroundStyle(CYColor.accentText)
             if !topic.categoryNames.isEmpty {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack { ForEach(topic.categoryNames, id: \.self) { Text(verbatim: $0).font(.caption).padding(.horizontal, 8).padding(.vertical, 3).background(Capsule().fill(Color.secondary.opacity(0.15))) } }
+                    HStack(spacing: CYSpacing.sm) { ForEach(topic.categoryNames, id: \.self) { Text(verbatim: $0).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xs).background(Capsule().fill(CYColor.bgSurfaceSubtle)) } }
                 }
             }
-            if let club = topic.clubName { Label { Text("topicXcx.clubHost \(club)") } icon: { Image(systemName: "person.3") }.font(.subheadline) }
+            if let club = topic.clubName { Label { Text("topicXcx.clubHost \(club)") } icon: { Image(systemName: "person.3") }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
         }
     }
 }
@@ -43,34 +43,34 @@ struct TopicXcxStatBar: View {
     let cells: [TopicXcxFacts.StatCell]
     var body: some View {
         if !cells.isEmpty {
+            // Mini-program `statbar`: horizontal strip, hairline between cells, each "label / big number / unit".
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
-                    ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
-                        VStack(alignment: .leading, spacing: 2) {
+                HStack(alignment: .top, spacing: CYSpacing.lg) {
+                    ForEach(Array(cells.enumerated()), id: \.offset) { index, cell in
+                        if index > 0 { Rectangle().fill(CYColor.borderSubtle).frame(width: 1).frame(maxHeight: .infinity) }
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             switch cell {
                             case .rating(let value, let stars):
-                                Text("topicXcx.stat.rating").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: String(format: "%.1f", value)).font(.headline)
-                                HStack(spacing: 1) { ForEach(0..<stars, id: \.self) { _ in Image(systemName: "star.fill").font(.caption2) } }.accessibilityHidden(true)
+                                label("topicXcx.stat.rating"); number(String(format: "%.1f", value))
+                                HStack(spacing: 1) { ForEach(0..<stars, id: \.self) { _ in Image(systemName: "star.fill").font(.caption2).foregroundStyle(CYColor.accentWarm) } }.accessibilityHidden(true)
                             case .hours(let text):
-                                Text("topicXcx.stat.hours").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: text).font(.headline); Text("topicXcx.stat.hoursUnit").font(.caption2)
+                                label("topicXcx.stat.hours"); number(text); unit("topicXcx.stat.hoursUnit")
                             case .open(let start, let end):
-                                Text("topicXcx.stat.open").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: start + "-" + end).font(.headline)
+                                label("topicXcx.stat.open"); number(start + "-" + end)
                             case .mileage(let text):
-                                Text("topicXcx.stat.mileage").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: text).font(.headline); Text("topicXcx.stat.mileageUnit").font(.caption2)
+                                label("topicXcx.stat.mileage"); number(text); unit("topicXcx.stat.mileageUnit")
                             case .merchants(let count):
-                                Text("topicXcx.stat.merchants").font(.caption2).foregroundStyle(.secondary)
-                                Text(verbatim: String(count)).font(.headline); Text("topicXcx.stat.merchantsUnit").font(.caption2)
+                                label("topicXcx.stat.merchants"); number(String(count)); unit("topicXcx.stat.merchantsUnit")
                             }
                         }.accessibilityElement(children: .combine)
                     }
-                }
+                }.fixedSize(horizontal: false, vertical: true).padding(.vertical, CYSpacing.xs)
             }.accessibilityIdentifier("topic.statBar")
         }
     }
+    private func label(_ key: LocalizedStringKey) -> some View { Text(key).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary) }
+    private func number(_ text: String) -> some View { Text(verbatim: text).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
+    private func unit(_ key: LocalizedStringKey) -> some View { Text(key).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary) }
 }
 
 struct TopicXcxDurationText: View {
@@ -107,10 +107,17 @@ struct TopicXcxIncludes: View {
 struct TopicXcxLineup: View {
     let members: [TopicXcxFacts.LineupMember]
     var body: some View {
-        ForEach(Array(members.enumerated()), id: \.offset) { _, member in
-            LabeledContent {
-                Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").foregroundStyle(.secondary)
-            } label: { Text(verbatim: member.name) }
+        // Mini-program `lineup-row`: horizontal scroll of avatar / name / role cards.
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                ForEach(Array(members.enumerated()), id: \.offset) { _, member in
+                    VStack(spacing: CYSpacing.xs) {
+                        CYAvatarView(name: member.name, size: .lg)
+                        Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                        Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
+                    }.frame(width: 88).accessibilityElement(children: .combine)
+                }
+            }
         }
     }
 }
@@ -123,26 +130,26 @@ struct TopicXcxActionBar: View {
     var openPricing: (() -> Void)?
     var body: some View {
         VStack(spacing: 6) {
-            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(.footnote).foregroundStyle(.orange) }
+            if topic.merchantClosed && !topic.isSignUp { Text("topicXcx.merchantClosed").font(CYTypography.meta).foregroundStyle(CYColor.warningText) }
             HStack {
                 switch TopicXcxFacts.action(topic) {
                 case .ticketWallet:
                     Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
                 case .locked(let lifecycle):
                     if TopicXcxFacts.opensPricing(topic), let openPricing {
-                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
+                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                             .accessibilityIdentifier("topic.cta.pricing")
                     } else {
-                        Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                     }
                 case .selfPlay(let price):
-                    Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered)
+                    Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.cySecondary)
                     Button(action: openSelfPlay) {
                         if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                         else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
-                    }.buttonStyle(.questifyPrimary).disabled(!topic.canOfferPurchase)
+                    }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
                 case .signUp:
-                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
+                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                         .disabled(topic.merchantClosed)
                 }
             }
@@ -152,7 +159,7 @@ struct TopicXcxActionBar: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, Theme.Space.pageX)
         .padding(.vertical, Theme.Space.s2)
-        .background(Color(uiColor: .systemBackground))
+        .background(CYColor.bgElevated)
     }
 }
 
@@ -176,12 +183,12 @@ struct TopicXcxRouteSection: View {
                 }.accessibilityIdentifier("topic.route.empty")
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
-                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(.subheadline.bold()) }
+                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 ForEach(TopicChapterItinerary(chapter: chapter).stops) { stop in
                     VStack(alignment: .leading, spacing: 2) {
                         if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").font(.caption2).foregroundStyle(.secondary) }
                         HStack(alignment: .top) {
-                            Text(verbatim: String(stop.id + 1)).font(.caption.bold()).frame(width: 22, height: 22).background(Circle().fill(Color.secondary.opacity(0.2)))
+                            Text(verbatim: String(stop.id + 1)).font(CYTypography.label).monospacedDigit().frame(width: 28, height: 28).foregroundStyle(CYColor.accentText).background(Circle().fill(CYColor.accentSoft))
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(verbatim: stop.node.name)
                                 if let hours = stop.node.businessTime { Text(verbatim: hours).font(.caption) }
@@ -219,11 +226,11 @@ struct TopicXcxTemplatesSection: View {
                     HStack(alignment: .top, spacing: 12) {
                         ForEach(templates, id: \.id) { template in
                             VStack(alignment: .leading, spacing: 4) {
-                                Text(verbatim: template.title).font(.subheadline.bold()).lineLimit(1)
-                                if let players = template.players { Text(verbatim: players).font(.caption) }
-                                Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))").font(.caption).foregroundStyle(.secondary)
+                                Text(verbatim: template.title).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                                if let players = template.players { Text(verbatim: players).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                                Text("topicXcx.templateMinutes \(TopicXcxFacts.templateMinutes(template))").font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
                             }.frame(width: 140, alignment: .leading).padding(10)
-                                .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.1)))
+                                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgElevated))
                                 .accessibilityElement(children: .combine).accessibilityIdentifier("topic.nodeIntro.\(template.id)")
                         }
                     }
