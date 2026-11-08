@@ -37,6 +37,13 @@ import UIKit
                 .accessibilityIdentifier("settingsNative.openLegal.\(type.rawValue)")
             }
         }
+        // UIV-06: 关于 sits with legal; privacy/compliance (incl. account deregistration) follows, then sign-out last.
+        Section {
+            NavigationLink {
+                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
+            } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
+            .accessibilityIdentifier("settingsNative.openAbout")
+        }
         if let complianceCoordinator {
             AccountComplianceSettingsSection(makeCoordinator: { complianceCoordinator }, market: market, legalReader: legalReader, showsNPCChatDataEntry: showsNPCChatDataEntry)
         } else {
@@ -48,13 +55,6 @@ import UIKit
                 .accessibilityIdentifier("settingsNative.openBlocked.\(feature.rawValue)")
             }
         }
-        }
-        // Mini-program pages/shezhi ends its list with 关于, after the agreement and deregister rows.
-        Section {
-            NavigationLink {
-                SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
-            } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
-            .accessibilityIdentifier("settingsNative.openAbout")
         }
     }
 }

@@ -145,6 +145,7 @@ struct ObjectBadgeWallBadgeLabel: View {
 }
 
 @MainActor struct ObjectBadgeDetailView: View {
+    @Environment(\.cyPalette) private var palette
     let badge: ProfileBadgeSelection
     let reader: any ProfileReading
     let expectedIdentity: ProfileReadIdentity?
@@ -158,7 +159,7 @@ struct ObjectBadgeWallBadgeLabel: View {
     private var style: String {
         switch badge { case .identity: return "glow"; case .medal(let value): return ObjectBadgePresentation.style(medal: value) }
     }
-    private var tint: Color { [.green, .secondary, .orange, .gray, .red][track] }
+    private var tint: Color { [palette.success, palette.textSecondary, palette.warning, palette.textTertiary, palette.danger][track] }
     var body: some View {
         List {
             if !valid { Text("objects.sessionChanged") }

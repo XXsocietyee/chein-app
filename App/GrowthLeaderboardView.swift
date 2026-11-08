@@ -18,10 +18,10 @@ import SwiftUI
             Section {
                 Picker("growth.board.metric", selection: $query.metric) {
                     ForEach(GrowthBoardMetric.allCases) { option in Text(LocalizedStringKey("growth.metric." + option.rawValue)).tag(option) }
-                }.pickerStyle(.menu).accessibilityIdentifier("growth.board.metric")
+                }.pickerStyle(.segmented).accessibilityIdentifier("growth.board.metric")
                 Picker("growth.board.period", selection: $query.period) {
                     ForEach(GrowthBoardPeriod.allCases) { option in Text(LocalizedStringKey("growth.period." + option.rawValue)).tag(option) }
-                }.pickerStyle(.menu).accessibilityIdentifier("growth.board.period")
+                }.pickerStyle(.segmented).accessibilityIdentifier("growth.board.period")
             }
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
@@ -108,32 +108,48 @@ struct GrowthLeaderboardExploreSelection {
     }
 }
 private struct GrowthLeaderboardRow: View {
+    @Environment(\.cyPalette) private var palette
     let entry: GrowthLeaderboardEntry
     let fallback: LocalizedStringKey
     let metric: GrowthBoardMetric
-    /// Podium position (1-3) of a server-ordered row; the source shows gold/silver/bronze rings.
     var place: Int? = nil
     var isMe = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
+        // Mini-program order: rank, name, trailing score + unit. One tappable-height row.
+        HStack(alignment: .center, spacing: 12) {
+            Group {
                 if let place { GrowthPodiumMark(place: place) }
-                GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline).fixedSize(horizontal: false, vertical: true)
-                if isMe { Text("growth.board.meTag").font(.caption.bold()).padding(.horizontal, 6).background(.tint.opacity(0.18), in: Capsule()) }
-            }
-            LabeledContent("growth.rank") {
-                if let rank = entry.rank { Text(rank, format: .number).monospacedDigit() }
+                else if let rank = entry.rank { Text(rank, format: .number).monospacedDigit() }
                 else { Text("growth.unranked") }
             }
-            LabeledContent(LocalizedStringKey("growth.unit." + metric.rawValue)) { GrowthCenterInteger(value: entry.score) }
-            if let percentage = GrowthCenterFormatting.nonempty(entry.rankPercentage) { Text(verbatim: percentage).font(.caption).foregroundStyle(.secondary) }
+            .font(.headline).foregroundStyle(palette.textTertiary)
+            .frame(minWidth: 28, alignment: .leading)
+            VStack(alignment: .leading, spacing: 4) {
+                HStack(spacing: 8) {
+                    GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline)
+                        .foregroundStyle(palette.textPrimary).lineLimit(2)
+                    if isMe {
+                        Text("growth.board.meTag").font(.caption.bold()).foregroundStyle(palette.textPrimary)
+                            .padding(.horizontal, 6).background(palette.bgRaised, in: Capsule())
+                    }
+                }
+                if let percentage = GrowthCenterFormatting.nonempty(entry.rankPercentage) {
+                    Text(verbatim: percentage).font(.caption).foregroundStyle(palette.textSecondary)
+                }
+            }
+            Spacer(minLength: 8)
+            VStack(alignment: .trailing, spacing: 2) {
+                GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
+                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
+            }
         }.accessibilityElement(children: .combine).padding(.vertical, 4)
     }
 }
 
 struct GrowthPodiumMark: View {
+    @Environment(\.cyPalette) private var palette
     let place: Int
-    private var tint: Color { place == 1 ? .yellow : place == 2 ? .gray : .brown }
+    private var tint: Color { place == 1 ? palette.warning : place == 2 ? palette.textSecondary : palette.textTertiary }
     private var label: LocalizedStringKey { place == 1 ? "growth.board.podium.first" : place == 2 ? "growth.board.podium.second" : "growth.board.podium.third" }
     var body: some View {
         Image(systemName: "medal.fill").foregroundStyle(tint)

@@ -150,6 +150,7 @@ import SwiftUI
 }
 
 struct OwnMediaRow: View {
+    @Environment(\.cyPalette) private var palette
     let asset: OwnMediaAsset
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -172,9 +173,9 @@ struct OwnMediaRow: View {
     }
     @ViewBuilder private var state: some View {
         switch asset.reviewState {
-        case .hold: Text("member.media.state.hold", tableName: "MemberProfile").foregroundStyle(.orange)
-        case .approved: Text("member.media.state.approved", tableName: "MemberProfile").foregroundStyle(.green)
-        case .rejected: Text("member.media.state.rejected", tableName: "MemberProfile").foregroundStyle(.red)
+        case .hold: Text("member.media.state.hold", tableName: "MemberProfile").foregroundStyle(palette.warning)
+        case .approved: Text("member.media.state.approved", tableName: "MemberProfile").foregroundStyle(palette.success)
+        case .rejected: Text("member.media.state.rejected", tableName: "MemberProfile").foregroundStyle(palette.danger)
         case .unavailable: Text("member.media.state.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
         }
     }
