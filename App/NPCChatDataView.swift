@@ -1,27 +1,71 @@
 import SwiftUI
 
+/// Client-side view of the read consent. `revoked`/`expired` end this screen's local copies only.
+enum NPCChatDataConsentState: Equatable { case active, revoked, expired }
+
+/// Injected by a host that holds the read approval; nil keeps the screen exactly as before.
+struct NPCChatDataConsentProbe {
+    let isRevoked: () -> Bool
+    let expiresAt: Date
+    let revoke: () -> Void
+    var now: () -> Date = { Date() }
+    var state: NPCChatDataConsentState {
+        if isRevoked() { return .revoked }
+        return now() >= expiresAt ? .expired : .active
+    }
+}
+
 @MainActor final class NPCChatDataViewModel: ObservableObject {
     let coordinator: NPCChatDataCoordinator
+    private let consent: NPCChatDataConsentProbe?
+    /// Non-nil once revoke/expiry was observed; local copies were cleared at that moment.
+    @Published private(set) var consentEnded: NPCChatDataConsentState?
     @Published private(set) var revision = 0
     @Published private(set) var loadIntent: UUID?
     /// Set only by the destructive dialog's confirm button; lifecycle exits clear it.
     @Published private(set) var deletionIntent: UUID?
     private var visible = false
     private var active = false
-    init(coordinator: NPCChatDataCoordinator) {
+    init(coordinator: NPCChatDataCoordinator, consent: NPCChatDataConsentProbe? = nil) {
         self.coordinator = coordinator
+        self.consent = consent
         coordinator.onChange = { [weak self] in self?.revision += 1 }
     }
     func appear(active: Bool) {
         visible = true; self.active = active
         coordinator.appear(active: active); requestLoad()
     }
+    /// Re-checks consent and, if it ended, clears every local copy. Returns true while still usable.
+    @discardableResult func refreshConsent() -> Bool {
+        guard let consent else { return true }
+        let state = consent.state
+        guard state != .active else { return consentEnded == nil }
+        if consentEnded == nil {
+            consentEnded = state
+            loadIntent = nil; deletionIntent = nil
+            coordinator.invalidate() // drops records, pending confirmation and read generation
+        }
+        return false
+    }
+    func revokeConsent() {
+        guard let consent, consentEnded == nil else { return }
+        consent.revoke(); refreshConsent()
+    }
+    /// States only what the client did; the server is never claimed to have deleted anything.
+    var consentNoticeKeys: [String] {
+        switch consentEnded {
+        case .revoked: return ["npcData.consent.revoked", "npcData.consent.localOnly"]
+        case .expired: return ["npcData.consent.expired", "npcData.consent.localOnly"]
+        case .active, nil: return []
+        }
+    }
+    var canRevokeConsent: Bool { consent != nil && consentEnded == nil }
     func requestLoad() {
-        guard visible, active, coordinator.canLoad else { return }
+        guard refreshConsent(), visible, active, coordinator.canLoad else { return }
         loadIntent = UUID()
     }
     func load(_ intent: UUID?) async {
-        guard !Task.isCancelled, visible, active, let intent, intent == loadIntent else { return }
+        guard !Task.isCancelled, visible, active, let intent, intent == loadIntent, refreshConsent() else { return }
         await coordinator.load()
     }
     func requestDeletion() { guard visible, active else { return }; coordinator.requestDeletion() }
@@ -36,7 +80,7 @@ import SwiftUI
         if deletionIntent == intent { deletionIntent = nil }
     }
     func suspend() { active = false; loadIntent = nil; deletionIntent = nil; coordinator.suspend() }
-    func foreground() { guard visible else { return }; active = true; coordinator.foreground() }
+    func foreground() { guard visible else { return }; active = true; coordinator.foreground(); refreshConsent() }
     func sessionChanged() { loadIntent = nil; deletionIntent = nil; coordinator.sessionChanged() }
     func disappear() { visible = false; active = false; loadIntent = nil; deletionIntent = nil; coordinator.invalidate() }
     var deletionFailureKey: LocalizedStringKey? {
@@ -57,7 +101,9 @@ struct NPCChatDataPresentation: Identifiable {
     @State private var query = ""
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
-    init(coordinator: NPCChatDataCoordinator) { _model = StateObject(wrappedValue: .init(coordinator: coordinator)) }
+    init(coordinator: NPCChatDataCoordinator, consent: NPCChatDataConsentProbe? = nil) {
+        _model = StateObject(wrappedValue: .init(coordinator: coordinator, consent: consent))
+    }
     private var coordinator: NPCChatDataCoordinator { model.coordinator }
     private var filtered: [NPCChatDataRecord] {
         Array((coordinator.data?.records ?? []).reversed()).filter { $0.matches(query) }
@@ -66,6 +112,16 @@ struct NPCChatDataPresentation: Identifiable {
         NavigationStack {
             List {
                 Section { Text("npcData.boundary").font(.footnote).foregroundStyle(.secondary) }
+                if !model.consentNoticeKeys.isEmpty {
+                    Section {
+                        ForEach(model.consentNoticeKeys, id: \.self) { Text(LocalizedStringKey($0)) }
+                    }.accessibilityIdentifier("npcData.consentEnded")
+                } else if model.canRevokeConsent {
+                    Section {
+                        Button(role: .destructive) { model.revokeConsent() } label: { Text("npcData.consent.revoke") }
+                            .accessibilityIdentifier("npcData.consent.revoke")
+                    }
+                }
                 if coordinator.phase == .loading { ProgressView("npcData.loading") }
                 if let value = coordinator.data {
                     Section("npcData.policy") {
@@ -99,7 +155,7 @@ struct NPCChatDataPresentation: Identifiable {
                 if coordinator.canRequestDeletion || coordinator.deletion != .idle {
                     NPCChatLogDeletionSection(model: model)
                 }
-                if coordinator.canLoad {
+                if coordinator.canLoad && model.consentEnded == nil {
                     Section {
                         Button("npcData.reload") { query = ""; model.requestLoad() }
                             .accessibilityIdentifier("npcData.reload")
