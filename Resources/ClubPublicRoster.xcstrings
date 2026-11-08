@@ -180,6 +180,22 @@
           }
         }
       }
+    },
+    "club.publicRoster.rankGap %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⋯ %lld hidden"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "⋯ 已折叠 %lld 位"
+          }
+        }
+      }
     }
   }
 }
