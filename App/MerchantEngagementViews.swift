@@ -18,9 +18,13 @@ import SwiftUI
         _filter = State(initialValue: filter); _model = StateObject(wrappedValue: .init(reader: reader, journal: journal, exports: exportRecovery))
     }
     private var state: MerchantEngagementCoordinator { model.coordinator }
+    private var pageState: CloseW5dPageState { MerchantEngagementPageState.resolve(loading: model.loading, issue: model.issue, hasAccess: model.access != nil, hasIdentity: model.access?.identity != nil) }
     private func allowed(_ permission: String) -> Bool { model.access?.identity?.allows(permission) == true }
     var body: some View {
         List {
+            if pageState != .content {
+                Section { CloseW5dStateView(state: pageState, emptyTitle: "closew5d.state.empty.title", emptyMessage: "closew5d.state.empty.message") { Task { await model.load() } } }
+            }
             Section {
                 if reader.isSyntheticEnabled { Text("merchant.engagement.synthetic").font(.footnote).foregroundStyle(.secondary) }
                 if let name = model.access?.identity?.name { Text(name).font(.headline) }
@@ -52,10 +56,10 @@ import SwiftUI
                 }
             }
             if allowed("merchant:marketing:write") {
-                Section("merchant.engagement.outreach") {
+                Section {
                     Button("merchant.engagement.createCampaign") { editor = .init(kind: .campaign) }.accessibilityIdentifier("merchant.engagement.createCampaign")
                     Button("merchant.engagement.broadcast") { editor = .init(kind: .broadcast) }.accessibilityIdentifier("merchant.engagement.broadcast")
-                }
+                } header: { Text("merchant.engagement.outreach") } footer: { CloseW5dGatedNotice(message: "merchant.engagement.campaigns.gated") }
                 Section("merchant.engagement.history") {
                     ForEach(model.campaigns) { task in
                         Button { Task { await model.loadTask(task.id) } } label: { VStack(alignment: .leading) { Text(task.title ?? "#\(task.id)"); MerchantEngagementStatus(value: task.status) } }
