@@ -27,8 +27,8 @@ import SwiftUI
                     .font(.footnote)
                 Button("只回读原退出结果与当前供给"){clearLocal();model.recover()}.disabled(flow.busy || !flow.isCurrent)
             }
-            if let issue=flow.issue{Section{Text(issue).foregroundStyle(.orange)}}
-            if let localIssue{Section{Text(localIssue).foregroundStyle(.orange)}}
+            if let issue=flow.issue{Section{Text(issue).foregroundStyle(CYColor.warningText)}}
+            if let localIssue{Section{Text(localIssue).foregroundStyle(CYColor.warningText)}}
             if let r=flow.receipt{receipt(r)}
             if let s=flow.snapshot{
                 Section("当前原供给（不是历史请求结果）"){

@@ -100,7 +100,7 @@ import SwiftUI
                                 Button("merchant.industry.remove") { model.select(id) }
                             }
                         }
-                        if model.selection.limitReached { Text("merchant.industry.limit").foregroundStyle(.orange).fixedSize(horizontal: false, vertical: true) }
+                        if model.selection.limitReached { Text("merchant.industry.limit").foregroundStyle(CYColor.warningText).fixedSize(horizontal: false, vertical: true) }
                         Text("merchant.industry.selectionInvalid").font(.footnote).fixedSize(horizontal: false, vertical: true)
                     }
                     Button("merchant.industry.reload") { Task { await model.reload() } }.accessibilityIdentifier("merchant.industry.reload")

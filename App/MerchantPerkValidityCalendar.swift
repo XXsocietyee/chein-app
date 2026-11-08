@@ -120,7 +120,7 @@ struct MerchantPerkValidityContext: Equatable {
                             in: MerchantPerkValidityDraft.minimum(now: now)..., displayedComponents: [.date])
                             .datePickerStyle(.graphical).accessibilityIdentifier("merchant.perkCalendar.day")
                     }
-                    if session.invalid { Text("merchant.perkCalendar.invalid").foregroundStyle(.red) }
+                    if session.invalid { Text("merchant.perkCalendar.invalid").foregroundStyle(CYColor.dangerText) }
                     Text("merchant.perkCalendar.localOnly").font(.footnote)
                 }.disabled(!session.isCurrent || session.asksDiscard)
             }

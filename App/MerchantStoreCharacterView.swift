@@ -251,7 +251,7 @@ private struct StoreCharacterRow: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 title.foregroundStyle(.primary)
-                if required { Text(verbatim: "*").foregroundStyle(.red).accessibilityHidden(true) }
+                if required { Text(verbatim: "*").foregroundStyle(CYColor.dangerText).accessibilityHidden(true) }
                 Spacer(minLength: 12)
                 value.foregroundStyle(.secondary).lineLimit(1)
                 Image(systemName: "chevron.right").font(.footnote).foregroundStyle(.tertiary).accessibilityHidden(true)
@@ -324,7 +324,7 @@ struct StoreCharacterSaveIssueView: View {
                     .accessibilityIdentifier("aiNPC.save.readback")
             }
         }
-        .font(.footnote).foregroundStyle(.red).accessibilityIdentifier("aiNPC.save.issue")
+        .font(.footnote).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("aiNPC.save.issue")
     }
 }
 
@@ -468,14 +468,14 @@ private struct StoreCharacterVoiceSheet: View {
                         Button { c.resetRecording() } label: { t("storeCharacter.voice.rerecord") }.accessibilityIdentifier("aiNPC.voice.rerecord")
                     }
                 case .none, .failed:
-                    if status == .failed { Section { t("storeCharacter.voice.failedBody").foregroundStyle(.red) } }
+                    if status == .failed { Section { t("storeCharacter.voice.failedBody").foregroundStyle(CYColor.dangerText) } }
                     if let recording = c.recording { recorded(recording) } else { voiceMode }
                 }
                 if let confirmation = c.voiceConfirmation { consentDialog(confirmation) }
                 if let issue = c.voiceIssue {
                     Section {
                         VStack(alignment: .leading, spacing: 4) { t("storeCharacter.issue.title").bold(); issueText(issue) }
-                            .font(.footnote).foregroundStyle(.red).accessibilityIdentifier("aiNPC.voice.issue")
+                            .font(.footnote).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("aiNPC.voice.issue")
                     }
                 }
                 if c.voiceUnknown {
