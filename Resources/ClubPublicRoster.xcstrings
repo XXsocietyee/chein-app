@@ -129,6 +129,57 @@
           }
         }
       }
+    },
+    "club.publicRoster.emptyRank.composite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No one has contributed this week."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周还没有人产生贡献"
+          }
+        }
+      }
+    },
+    "club.publicRoster.emptyRank.mileage": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No one has logged mileage this week."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周还没有人跑出里程"
+          }
+        }
+      }
+    },
+    "club.publicRoster.emptyRank.duration": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No one has a completion time this week."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周还没有人跑出用时"
+          }
+        }
+      }
     }
   }
 }
