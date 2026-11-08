@@ -15,3 +15,14 @@ Recorded by GM-INT-G during gap-wave integration.
 ### Open / Stale Pre-existing Bugs Noted by Lanes
 - `pages/merchant/citynode/index` (`cl-w5c`): 5 assertions in `CityNodeRedemptionTests` are stale against the hardened exact-message contract (`CityNodeRedemptionExactContractTests` 4/4 pass on the current contract).
 - `subpackageTools/monthly-recap/index` (`cl-w5c`): `RoamPassportToolsTests.testRecapRequestFieldsWeeksAndDuplicateCollapse` fixture has `routes.total = 4` with only 3 distinct items (`RoamMonthlyRecapContractTests` 3/3 pass with consistent fixtures).
+
+## Batch 2 (`cl-w5a`, `cl-w5b`, `cl-w6c`, `cl-w7a`)
+
+### Bugs & Stale Tests Resolved by Lanes in Batch 2
+1. **`MerchantCoopPlazaDenialTests`** (`cl-w6c`):
+   - Fixture granted only `merchant:marketing:read`, whereas `MerchantContentService.access` also requires `merchant:project:manage` for `.recruiting` queries. Fixed in `Tests/AppUnitTests/MerchantCoopPlazaDenialTests.swift` and verified with `MerchantCoopCenterAccessGateTests` (5/5 pass).
+2. **`ParticipantCoordinatorTests` / `ParticipantCoordinatorSnapshotLifetimeTests` / `ProfileParticipantValidationAppTests`** (`cl-w7a`):
+   - Test fakes only implemented `perform` (returning `nil` row) for creates, which `ParticipantCoordinator.confirm()` rightly treats as outcome-unknown. Updated fakes to implement `performReturningParticipant` and inverted the stale nil-ack assertion (`testNilCreateAcknowledgmentIsOutcomeUnknownWithoutInventingReturnedRow`).
+
+### Open Contract Mismatch Noted by Lanes
+- `pages/club/topic-detail/index` (`cl-w6c`): mini-program `confirmEndTopic` sends `cancellationEpoch` with `clubId`/`topicId` and expects `cancellationState`/`sessionTotal`/`cancelledSessions`/`closedPendingOrders`, whereas `Core/ClubGovernanceCommands.swift` (`.endTopic`) and `ClubGovernanceService.swift:161` currently validate only `refundedOrders`/`manualOrders`/`failedSessions`. (`ClubTopicEndSummary` added and tested 6/6; command shape left unchanged to preserve `ClubGovernanceContractTests` while the write is gated.)

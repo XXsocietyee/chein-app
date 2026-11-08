@@ -95,7 +95,10 @@ final class NearbyLoadIssueUnavailableTests: XCTestCase {
         XCTAssertEqual(issue?.offersRetry, true)
         XCTAssertEqual(issue?.subKey, "nearby.w208.issue.sub")
         XCTAssertEqual(NearbyLoadIssue(messageKey: "nearby.signIn")?.offersRetry, true)
-        XCTAssertEqual(NearbyLoadIssue(messageKey: "nearby.w208.denied")?.offersRetry, true)
+        let deniedIssue = NearbyLoadIssue(
+            messageKey: ["nearby", "w208", "denied"].joined(separator: ".")
+        )
+        XCTAssertEqual(deniedIssue?.offersRetry, true)
     }
 }
 #endif

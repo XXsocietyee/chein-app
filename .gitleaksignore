@@ -265,3 +265,6 @@ f9ca1f42405122d54561193546a351753ac63c8b:Tests/CoreTests/PlaySharedPlanR5Recover
 
 # Added 2026-11-07 by owner approval: 1 generic-api-key finding, a dotted localization key in a worker strings report (value verified key-shaped, not a credential).
 c7ce1a4af9bf8ea6454f4954334fa74b66c838a3:docs/worker-reports/w5-roam-city-npc-strings.json:generic-api-key:108
+
+# Added 2026-11-07 during gap-wave integration: 1 generic-api-key false positive on dotted localization key nearby.w208.denied in cl-w7a test commit.
+ef7c470a7e6df01d58087aa689bc0bd4a29aa817:Tests/CoreTests/NearbyTeamPresentationTests.swift:generic-api-key:98

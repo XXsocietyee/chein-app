@@ -23,3 +23,31 @@ Recorded by GM-INT-G during gap-wave integration. `App/AppSession.swift`, `App/A
 
 ### `cl-w6b`
 - `pages/square/detail/index`: if/when a backend square block route and grant exist, inject a block coordinator through an environment key.
+
+## Batch 2 (`cl-w5a`, `cl-w5b`, `cl-w6c`, `cl-w7a`)
+
+### `cl-w5a`
+- `pages/merchant/decor/perks/index`: in `MerchantOperationsHomeView` destination list, add a link to `MerchantPerkTemplatesFactory.makeView(coordinator: MerchantPerkTemplatesFactory.makeCoordinator(reader: session.cooperationFlowReader, executor: <CoopFlowDormantExecutor(service:) or nil>))`, plus reviewed grants for `api/coop/perk-template/save` and `/delete`.
+- `pages/merchant/decor/ai-npc/index`: pass a reviewed grant + writer into `StoreCharacterCoordinator(reader:writer:gates:)` when `api/merchant/npc/save` is approved.
+- `pages/merchant/team/index`: supply a reviewed `MerchantBusinessProductionApproval` for `api/merchant/operators/invite|role|remove|invite/revoke|invite/accept`.
+- `subpackageRoam/my-teams/index`: pass `readApproval`/`writeApproval` to `makeNearbyTeamCoordinator()` once `api/team/my-applications` and `/api/team/my` are approved.
+- `subpackageTools/capsule/index`: set `roamPrivateToolsReadAccess` / `roamPrivateToolsWriteAccess` and `makeRoamLiveWriteTransport(profile: .privateTools)` approval for `api/capsules/*`.
+
+### `cl-w5b`
+- `pages/merchant/citynode/create/index`: pass `gates:` and `market:` from composition root into `MerchantCityNodeWriteGate`/view, and add reviewed `api/merchant/city-node/save` in `reviewedEndpoints`.
+- `pages/merchant/decor/coop-setting/index` (`App/AppSession.swift:5837`): pass `OperationEndpointApproval` for `api/merchant/coop-profile/save` and `OperationPendingJournal` into `MerchantOperationsSessionReader`.
+- `pages/merchant/marketing/ai-insight/index` (`App/AppSession.swift:7103`): pass reviewed `reads: true, insight: true` with approval.
+- `pages/topic/merchantapply/index`: add `register`/`updateRegistration` grants to `MerchantContentWriteApproval` and supply approval from composition root.
+- `subpackageRoam/citynode-code/index`: provide `verificationCodeApproval` (kind `.cityVoucher`, paths `api/verify/citynode/issue` + `api/registration/info`).
+- `subpackageRoam/nearby/index`: pass read grants (`api/team/nearby`, `api/team/applications`), write grants (`api/team/apply`, `api/team/withdraw`, `api/team/handle`), and fresh-evidence loader to `makeNearbyTeamCoordinator()`.
+
+### `cl-w6c`
+- `pages/club/detail/index` (`App/ClubDetailView.swift`): construct `ClubDetailEntryGate(club: club, signedIn: reader.clubIdentity.isSignedIn, grant: manageGrant)` and gate role/member/appeal/cooperation entries.
+- `pages/club/governance/index`: call `ClubGovernanceEntryRoute.resolve(options)` in the club governance router.
+- `pages/club/topic-detail/index`: add `cancellationEpoch` to `.endTopic` in `Core/ClubGovernanceCommands.swift` and route replies through `ClubTopicEndSummary.parse(_:sentEpoch:)`.
+- `subpackageB/pages/im/chat/index`: inject `MessageSessionWriter` approved for sends when reviewed.
+
+### `cl-w7a`
+- `pages/gerenziliao/gerenziliao`: pass `ProfileAvatarDependencies(source:journal:pickerHost:)` into `ProfileEditView(avatarDependencies:)` once avatar upload is reviewed.
+- `pages/topic/pricing/index`: compose `PublisherLifecycleHTTP` grants so `grants.pricing` is non-nil for reviewed deployments (`App/PublisherLifecycleHostHooks.swift`).
+- `subpackageMember/invoice-apply/index` & `subpackageMember/invoice-titles/index`: provide `InvoiceLaunchService(mutationsEnabled: true)` and `InvoiceLaunchPresentation(permits:)` returning `true` for `.apply`/`.saveTitle`/`.deleteTitle`/`.cancel` under reviewed deployment.
