@@ -1313,7 +1313,7 @@ struct ClubGovernanceReadView: View {
                     if let id = row["id"].int {
                         let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
                         NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: {
-                            if let name = row["name"].string { Text(verbatim: name) } else { Text("club.gov.eventID \(id)") }
+                            if let name = row["name"].string { Text(verbatim: ClubGroupCodePort.sessionLabel(id: id, name: name, startDate: row["startDate"].string, startTime: row["startTime"].string)) } else { Text("club.gov.eventID \(id)") }
                         }
                         // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
                         // command still checks check-in permission and the provider gate before any request.

@@ -201,7 +201,14 @@ import SwiftUI
                 }
             }.disabled(busy || locked || review != nil)
             }
-            if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
+            if let failure, route.operation == .issueGroupCode, ClubGroupCodePort.classify(failure) == .noPermission {
+                // Mini isPermissionDenial: terminal state with an exit, not a retry.
+                Section {
+                    Label("club.gov.groupCode.noPermission", systemImage: "lock").accessibilityIdentifier("club.gov.groupCode.noPermission")
+                    Text("club.gov.groupCode.noPermission.hint").font(.footnote).foregroundStyle(.secondary)
+                    Button("club.gov.groupCode.backToClub") { dismiss() }.accessibilityIdentifier("club.gov.groupCode.back")
+                }
+            } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy { ProgressView() }
             if let review {
                 Section {
