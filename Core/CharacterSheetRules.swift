@@ -12,6 +12,23 @@ public struct CharacterAttributeLevel: Equatable, Sendable {
     }
 }
 
+extension CharacterAttributeLevel {
+    /// Mirrors `utils/user-character.js` `attribute()`: only `rules.levels` rows with an integer `at`
+    /// and a non-empty text `label` are kept. Anything else is ignored; raw rules never reach the UI.
+    static func read(rules: PlayWireValue) -> [CharacterAttributeLevel] {
+        guard let rows = rules["levels"].array else { return [] }
+        var result: [CharacterAttributeLevel] = []
+        for row in rows {
+            guard let at = row["at"].integer,
+                  let raw = row["label"].text else { continue }
+            let label = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            if label.isEmpty { continue }
+            result.append(CharacterAttributeLevel(at: at, label: label))
+        }
+        return result
+    }
+}
+
 public struct CharacterStarPip: Equatable, Identifiable, Sendable {
     public var id: Int { index }
     public let index: Int

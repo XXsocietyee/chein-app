@@ -71,11 +71,14 @@ public struct CharacterCard: Equatable {
     public let breakdown: CharacterCheckBreakdown
     public let expiry: EnvironmentExpiryClock
     public let originalRequestID: String?
+    /// Level thresholds per attribute `stateKey` (mini-program `rules.levels`). Display-only.
+    public var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
     func updating(breakdown: CharacterCheckBreakdown? = nil, originalRequestID: String? = nil) -> Self {
         .init(topicID: topicID, created: created, running: running, attributes: attributes,
               environment: environment, party: party, equipment: equipment,
               breakdown: breakdown ?? self.breakdown, expiry: expiry,
-              originalRequestID: originalRequestID ?? self.originalRequestID)
+              originalRequestID: originalRequestID ?? self.originalRequestID,
+              attributeLevels: attributeLevels)
     }
 }
 
@@ -205,6 +208,7 @@ public enum GameReceiptOriginalRecovery {
                   let created = raw["created"].bool, let running = raw["running"].bool,
                   let rows = raw["attributes"].array else { throw PlayExperienceError.malformed }
             var attributes: [CharacterCardAttribute] = []; var keys = Set<String>()
+            var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
             for row in rows {
                 guard let stateKey = row["stateKey"].text, !stateKey.isEmpty, stateKey.utf16.count <= 64, keys.insert(stateKey).inserted,
                       let label = row["label"].text, !label.isEmpty, label.utf16.count <= 64,
@@ -213,6 +217,8 @@ public enum GameReceiptOriginalRecovery {
                       let display = row["displayType"].text, !display.isEmpty,
                       let scope = row["persistScope"].text, ["run", "topic"].contains(scope) else { throw PlayExperienceError.malformed }
                 attributes.append(.init(stateKey: stateKey, label: label, value: value, min: min, max: max, displayType: display, persistScope: scope))
+                let levels = CharacterAttributeLevel.read(rules: row["rules"])
+                if !levels.isEmpty { attributeLevels[stateKey] = levels }
             }
             var environment = WorldEnvironmentProjection.read(raw)
             var expiry = EnvironmentExpiryClock.read(raw["rpg"]["environment"] == .null ? raw["environment"] : raw["rpg"]["environment"])
@@ -246,7 +252,8 @@ public enum GameReceiptOriginalRecovery {
             try check(session, stamp)
             card = CharacterCard(topicID: topic, created: created, running: running, attributes: attributes,
                                  environment: environment, party: party, equipment: equipment,
-                                 breakdown: .waitingSource, expiry: expiry, originalRequestID: originalRequestID)
+                                 breakdown: .waitingSource, expiry: expiry, originalRequestID: originalRequestID,
+                                 attributeLevels: attributeLevels)
             availability = .ready
         } catch is CancellationError {
             return
