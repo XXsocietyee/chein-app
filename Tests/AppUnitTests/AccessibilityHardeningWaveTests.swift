@@ -33,4 +33,13 @@ final class AccessibilityHardeningWaveTests: XCTestCase {
         XCTAssertEqual(WalletLoadAnnouncement.text(locale: Locale(identifier: "en")), "Wallet figures updated")
         XCTAssertEqual(WalletLoadAnnouncement.text(locale: Locale(identifier: "zh-Hans")), "钱包数据已更新")
     }
+
+    // FP-A6
+    func testSeriesDateRemovalLabelNamesRowAndDate() {
+        XCTAssertEqual(ClubSeriesScheduleRemovalCopy.rowLabel(position: 3, day: "2026-12-01", locale: Locale(identifier: "en")),
+                       "Remove date 3, 2026-12-01")
+        XCTAssertEqual(ClubSeriesScheduleRemovalCopy.rowLabel(position: 3, day: "2026-12-01", locale: Locale(identifier: "zh-Hans")),
+                       "移除第 3 个日期 2026-12-01")
+        XCTAssertTrue(ClubSeriesScheduleRemovalCopy.confirmTitle(day: "2026-12-01", locale: Locale(identifier: "en")).contains("2026-12-01"))
+    }
 }

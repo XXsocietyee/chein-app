@@ -88,5 +88,15 @@ class FPA5WalletAndGrowth(unittest.TestCase):
         self.assertEqual(s.count('AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()'), 2)
 
 
+class FPA6SeriesDateRemoval(unittest.TestCase):
+    def test_remove_requires_confirmation_and_row_label(self):
+        s = src('App/ClubSeriesScheduleEditor.swift')
+        self.assertNotIn('Button(role: .destructive) { schedule.removeDate(id: item.id) }', s)
+        self.assertIn('pendingRemoval = item', s)
+        self.assertIn('.confirmationDialog(', s)
+        self.assertIn('ClubSeriesScheduleRemovalCopy.rowLabel(position: index + 1', s)
+        self.assertEqual(s.count('schedule.removeDate(id:'), 1)
+
+
 if __name__ == '__main__':
     unittest.main()
