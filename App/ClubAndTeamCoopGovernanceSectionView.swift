@@ -188,8 +188,8 @@ public struct ClubAndTeamCoopGovernanceSectionView: View {
                     .background(
                         Capsule().fill(
                             snapshot.allPillarsHealthy
-                                ? Color.green.opacity(0.15)
-                                : Color.orange.opacity(0.15)
+                                ? CYColor.successSoft
+                                : CYColor.warningSoft
                         )
                     )
                     .accessibilityIdentifier("clubTeamGovernance.header.badge")
