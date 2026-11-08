@@ -14,19 +14,19 @@ public enum NativeChannelReportReason: String, CaseIterable, Codable, Identifiab
     public var id: String { rawValue }
     public var title: String {
         switch self {
-        case .dangerous: "现实人身危险或违法行为"
-        case .minorSafety: "未成年人安全"
-        case .selfHarm: "自伤或自杀风险"
-        case .sexualContent: "色情低俗内容"
-        case .harassment: "人身攻击或骚扰"
-        case .hate: "仇恨或歧视"
-        case .fraud: "诈骗"
-        case .impersonation: "冒充他人"
-        case .falseInformation: "虚假信息"
-        case .spam: "垃圾广告或站外导流"
-        case .privacy: "隐私泄露"
-        case .intellectualProperty: "知识产权或内容盗用"
-        case .other: "其他"
+        case .dangerous: W8Text.t("现实人身危险或违法行为", "Real-world danger or illegal activity")
+        case .minorSafety: W8Text.t("未成年人安全", "Minor safety")
+        case .selfHarm: W8Text.t("自伤或自杀风险", "Self-harm or suicide risk")
+        case .sexualContent: W8Text.t("色情低俗内容", "Sexual or vulgar content")
+        case .harassment: W8Text.t("人身攻击或骚扰", "Personal attacks or harassment")
+        case .hate: W8Text.t("仇恨或歧视", "Hate or discrimination")
+        case .fraud: W8Text.t("诈骗", "Fraud")
+        case .impersonation: W8Text.t("冒充他人", "Impersonation")
+        case .falseInformation: W8Text.t("虚假信息", "False information")
+        case .spam: W8Text.t("垃圾广告或站外导流", "Spam or off-platform redirection")
+        case .privacy: W8Text.t("隐私泄露", "Privacy leak")
+        case .intellectualProperty: W8Text.t("知识产权或内容盗用", "Intellectual property or content theft")
+        case .other: W8Text.t("其他", "Other")
         }
     }
 }

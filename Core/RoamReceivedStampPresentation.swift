@@ -11,8 +11,8 @@ public enum RoamReceivedStampTab: String, CaseIterable, Equatable, Hashable, Ide
 
     public var title: String {
         switch self {
-        case .collected: return "集章册"
-        case .received: return "收到的章"
+        case .collected: return W8Text.t("集章册", "Stamp book")
+        case .received: return W8Text.t("收到的章", "Received stamps")
         }
     }
 
@@ -25,15 +25,15 @@ public enum RoamReceivedStampTab: String, CaseIterable, Equatable, Hashable, Ide
 
     public var emptyTitle: String {
         switch self {
-        case .collected: return "还没有留下城市签"
-        case .received: return "还没有收到交换的城市签"
+        case .collected: return W8Text.t("还没有留下城市签", "No city stamps yet")
+        case .received: return W8Text.t("还没有收到交换的城市签", "No exchanged city stamps received yet")
         }
     }
 
     public var emptySubtitle: String {
         switch self {
-        case .collected: return "完成一次漫游印章记录后会显示在集章册中"
-        case .received: return "通过印章交换获得的城市签会展示在这里"
+        case .collected: return W8Text.t("完成一次漫游印章记录后会显示在集章册中", "Stamps you collect while roaming will appear in your stamp book")
+        case .received: return W8Text.t("通过印章交换获得的城市签会展示在这里", "City stamps you get through stamp exchange will appear here")
         }
     }
 
@@ -56,16 +56,16 @@ public enum RoamReceivedStampAvailability: Equatable, Sendable {
 
     public var statusTitle: String? {
         switch self {
-        case .signInRequired: return "请先登录"
-        case .notConfigured: return "暂未开放"
+        case .signInRequired: return W8Text.t("请先登录", "Sign in first")
+        case .notConfigured: return W8Text.t("暂未开放", "Not available yet")
         case .ready: return nil
         }
     }
 
     public var statusSubtitle: String? {
         switch self {
-        case .signInRequired: return "登录后可查看当前账号的印章记录"
-        case .notConfigured: return "当前环境尚未开启该印章读取授权"
+        case .signInRequired: return W8Text.t("登录后可查看当前账号的印章记录", "Sign in to see this account’s stamp records")
+        case .notConfigured: return W8Text.t("当前环境尚未开启该印章读取授权", "Stamp reading isn’t enabled in this environment yet")
         case .ready: return nil
         }
     }
@@ -94,7 +94,7 @@ public struct RoamReceivedStampCardPresentation: Equatable, Identifiable, Sendab
         self.serialText = String(format: "NO. %04d", max(0, stamp.id) % 10000)
         let trimmedCaption = stamp.caption?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         if trimmedCaption.isEmpty {
-            self.captionText = "未留寄语"
+            self.captionText = W8Text.t("未留寄语", "No message left")
             self.hasCaption = false
         } else {
             self.captionText = stamp.caption ?? trimmedCaption

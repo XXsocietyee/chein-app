@@ -5,12 +5,12 @@ public enum NativeNotificationPermissionAuthorization: Equatable {
     case notDetermined, denied, authorized, provisional, ephemeral, unknown(Int)
     public var label: String {
         switch self {
-        case .notDetermined: return "尚未选择"
-        case .denied: return "系统通知已关闭"
-        case .authorized: return "系统允许通知"
-        case .provisional: return "允许安静送达"
-        case .ephemeral: return "临时授权"
-        case .unknown: return "系统权限状态未知"
+        case .notDetermined: return W8Text.t("尚未选择", "Not chosen yet")
+        case .denied: return W8Text.t("系统通知已关闭", "Notifications are off in Settings")
+        case .authorized: return W8Text.t("系统允许通知", "Notifications are allowed")
+        case .provisional: return W8Text.t("允许安静送达", "Quiet delivery allowed")
+        case .ephemeral: return W8Text.t("临时授权", "Temporary authorization")
+        case .unknown: return W8Text.t("系统权限状态未知", "Notification permission status unknown")
         }
     }
 }
@@ -68,7 +68,7 @@ public struct NativeNotificationPermissionSnapshot: Equatable {
             let value = try await provider.read()
             guard ticket == generation, !Task.isCancelled else { return }
             snapshot = value; issue = nil
-        } catch { if ticket == generation, !Task.isCancelled { snapshot = nil; issue = "无法读取系统通知权限，请重试。" } }
+        } catch { if ticket == generation, !Task.isCancelled { snapshot = nil; issue = W8Text.t("无法读取系统通知权限，请重试。", "Couldn’t read the notification permission. Try again.") } }
     }
     public func requestFromUserAction(expectedRevision: UInt64? = nil) async {
         guard accepts(expectedRevision), !busy, snapshot?.authorization == .notDetermined else { return }
@@ -82,7 +82,7 @@ public struct NativeNotificationPermissionSnapshot: Equatable {
             guard ticket == generation, !Task.isCancelled else { return }
             snapshot = value
             issue = nil
-        } catch { if ticket == generation, !Task.isCancelled { snapshot = nil; issue = "系统授权操作未完成，请重新读取权限状态。" } }
+        } catch { if ticket == generation, !Task.isCancelled { snapshot = nil; issue = W8Text.t("系统授权操作未完成，请重新读取权限状态。", "The system authorization did not finish. Read the permission status again.") } }
     }
     public func openSettingsFromUserAction(expectedRevision: UInt64? = nil) async {
         guard accepts(expectedRevision), !busy, let authorization = snapshot?.authorization, authorization != .notDetermined else { return }
@@ -100,6 +100,6 @@ public struct NativeNotificationPermissionSnapshot: Equatable {
             guard ticket == generation, !Task.isCancelled else { return }
             snapshot = value; issue = nil
         }
-        catch { if ticket == generation, !Task.isCancelled { issue = opened ? "无法读取系统通知权限，请重试。" : "无法打开系统设置，请稍后重试。" } }
+        catch { if ticket == generation, !Task.isCancelled { issue = opened ? W8Text.t("无法读取系统通知权限，请重试。", "Couldn’t read the notification permission. Try again.") : W8Text.t("无法打开系统设置，请稍后重试。", "Couldn’t open Settings. Try again later.") } }
     }
 }

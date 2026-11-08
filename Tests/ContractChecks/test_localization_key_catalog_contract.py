@@ -57,6 +57,11 @@ class LocalizationKeyCatalogContractTests(unittest.TestCase):
             self.assertIn('Text(LocalizedStringKey(message))', source, rel)
             self.assertNotIn('Text(verbatim: message)', source, rel)
 
+    def test_merchant_authoring_view_has_no_verbatim_chinese_labels(self):
+        import re
+        source = (ROOT / 'App/MerchantAuthoringView.swift').read_text(encoding='utf8')
+        self.assertIsNone(re.search(r'Text\(verbatim: "[^"]*[\u3400-\u9fff]', source))
+
 
 if __name__ == '__main__':
     unittest.main()

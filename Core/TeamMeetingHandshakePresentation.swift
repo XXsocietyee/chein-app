@@ -128,26 +128,26 @@ public enum TeamMeetingHandshakePresentation {
         let subtitle: String
         switch meeting.phase {
         case .realNameRequired:
-            title = "需完成实名核验"
-            subtitle = "仅陌生人组队见面步需要实名核验，普通游玩与好友邀请无需实名"
+            title = W8Text.t("需完成实名核验", "Real-name verification required")
+            subtitle = W8Text.t("仅陌生人组队见面步需要实名核验，普通游玩与好友邀请无需实名", "Only the stranger-team meet-up step needs real-name verification; regular play and friend invites don’t")
         case .readyToMeet:
-            title = "队伍已确认，准备当面核验"
-            subtitle = "仅对已确认成团的队友开放，无兴趣匹配，出示动态二维码完成核验"
+            title = W8Text.t("队伍已确认，准备当面核验", "Team confirmed. Get ready to verify in person")
+            subtitle = W8Text.t("仅对已确认成团的队友开放，无兴趣匹配，出示动态二维码完成核验", "Open only to confirmed teammates, with no interest matching. Show the dynamic QR code to verify")
         case .handshaking:
-            title = "出示或扫描动态二维码"
-            subtitle = codeState.isExpired ? "当前二维码已过期，请刷新动态码" : "请向队友出示动态二维码，或扫描对方动态码"
+            title = W8Text.t("出示或扫描动态二维码", "Show or scan the dynamic QR code")
+            subtitle = codeState.isExpired ? W8Text.t("当前二维码已过期，请刷新动态码", "This QR code has expired. Refresh the dynamic code") : W8Text.t("请向队友出示动态二维码，或扫描对方动态码", "Show your dynamic QR code to a teammate, or scan theirs")
         case .confirmationPending:
-            title = "正在等待服务端确认"
-            subtitle = "核验请求已提交，结果未明时可通过原请求回读确认"
+            title = W8Text.t("正在等待服务端确认", "Waiting for server confirmation")
+            subtitle = W8Text.t("核验请求已提交，结果未明时可通过原请求回读确认", "The verification request was submitted. If the result is unclear, read back the original request to confirm")
         case .met:
-            title = "已完成当面核验"
-            subtitle = "服务端已确认本次组队见面"
+            title = W8Text.t("已完成当面核验", "In-person verification complete")
+            subtitle = W8Text.t("服务端已确认本次组队见面", "The server confirmed this team meet-up")
         case .cancelled:
-            title = "见面已取消"
-            subtitle = "任一方取消或撤回后本次见面终止，后续迟到响应不再生效"
+            title = W8Text.t("见面已取消", "Meet-up cancelled")
+            subtitle = W8Text.t("任一方取消或撤回后本次见面终止，后续迟到响应不再生效", "The meet-up ends once either side cancels or withdraws, and later responses no longer apply")
         case .expired:
-            title = "见面已过期"
-            subtitle = "超出有效时段，本次组队见面已结束"
+            title = W8Text.t("见面已过期", "Meet-up expired")
+            subtitle = W8Text.t("超出有效时段，本次组队见面已结束", "The valid window has passed and this team meet-up has ended")
         }
 
         let isTerminal = [.met, .cancelled, .expired].contains(meeting.phase)
@@ -209,22 +209,22 @@ public enum TeamMeetingHandshakePresentation {
             let retryable: Bool
             switch delivery {
             case .notSent:
-                badge = "待发送"
+                badge = W8Text.t("待发送", "Pending")
                 retryable = true
             case .sent:
-                badge = "已发送"
+                badge = W8Text.t("已发送", "Sent")
                 retryable = false
             case .rejected(let code):
-                badge = "已拒绝（\(code)）"
+                badge = W8Text.t("已拒绝（\(code)）", "Declined (\(code))")
                 retryable = false
             case .failed:
-                badge = "发送失败，可重试"
+                badge = W8Text.t("发送失败，可重试", "Failed to send. You can retry")
                 retryable = true
             case .unknown:
-                badge = "结果未明，需先回读"
+                badge = W8Text.t("结果未明，需先回读", "Result unclear. Read back first")
                 retryable = false
             case .revoked:
-                badge = "已撤回"
+                badge = W8Text.t("已撤回", "Withdrawn")
                 retryable = false
             }
             return RecipientRow(
@@ -291,17 +291,17 @@ public enum TeamMeetingHandshakePresentation {
         let text: String
         switch state.display {
         case .pending:
-            text = "待回应"
+            text = W8Text.t("待回应", "Awaiting reply")
         case .accepted:
-            text = "已接受"
+            text = W8Text.t("已接受", "Accepted")
         case .declined:
-            text = "已婉拒"
+            text = W8Text.t("已婉拒", "Declined")
         case .revoked:
-            text = "已撤回（终态）"
+            text = W8Text.t("已撤回（终态）", "Withdrawn (final)")
         case .expired:
-            text = "已过期"
+            text = W8Text.t("已过期", "Expired")
         case .unknown:
-            text = "状态待确认"
+            text = W8Text.t("状态待确认", "Status unconfirmed")
         }
         return RevokeLedgerBadge(
             subjectId: state.subjectId,
@@ -339,19 +339,19 @@ public enum TeamMeetingHandshakePresentation {
         let hint = deadline.hint(deviceNow: deviceNow, serverOffset: serverOffset, uncertainty: uncertainty)
         let headline: String
         if let beijing = pair.beijing {
-            headline = "截止时间：\(pair.local)（北京时间 \(beijing)）"
+            headline = W8Text.t("截止时间：\(pair.local)（北京时间 \(beijing)）", "Deadline: \(pair.local) (Beijing time \(beijing))")
         } else {
-            headline = "截止时间：\(pair.local)"
+            headline = W8Text.t("截止时间：\(pair.local)", "Deadline: \(pair.local)")
         }
 
         let advisory: String
         switch hint {
         case .open(let remainingSeconds):
-            advisory = "距离截止还有 \(remainingSeconds) 秒"
+            advisory = W8Text.t("距离截止还有 \(remainingSeconds) 秒", "\(remainingSeconds) seconds until the deadline")
         case .boundary:
-            advisory = "临近截止时间，提交结果以服务端为准"
+            advisory = W8Text.t("临近截止时间，提交结果以服务端为准", "Close to the deadline. The server decides the result of any submission")
         case .likelyClosed:
-            advisory = "已过截止时间（仍可提交由服务端裁定）"
+            advisory = W8Text.t("已过截止时间（仍可提交由服务端裁定）", "Past the deadline (you can still submit; the server decides)")
         }
 
         return DeadlineBanner(
