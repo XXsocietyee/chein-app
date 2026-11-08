@@ -1,6 +1,40 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "nearby.w208.issue.unavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nearby teams are not available yet"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "附近队伍暂未开放"
+          }
+        }
+      }
+    },
+    "nearby.w208.issue.unavailableSub" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This version cannot read team lists yet. Nothing is wrong with your account; try again after an update."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前版本暂时无法读取队伍名单，并非账号问题，更新后再试。"
+          }
+        }
+      }
+    },
     "merchant.perks.actionFailed" : {
       "extractionState" : "manual",
       "localizations" : {
