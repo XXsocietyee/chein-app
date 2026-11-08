@@ -169,6 +169,11 @@ public struct NativeChannelMessageProjection {
         versions[row.id] = row.version
         if row.status == 0 { withheld.remove(row.id) } else { withheld.insert(row.id) }
     }
+    /// Visible ids in the host's server order. A message approved late is placed where the
+    /// server order puts it, never appended; withheld ids stay vetoed.
+    public func visibleIDs(inServerOrder ids: [NativeChannelMessageID]) -> [NativeChannelMessageID] {
+        ids.filter { !withheld.contains($0) }
+    }
     public mutating func retire() { expectedBinding = nil; mutationCursor = nil; withheld.removeAll(); versions.removeAll() }
 }
 

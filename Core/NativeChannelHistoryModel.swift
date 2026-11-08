@@ -27,6 +27,8 @@ import Foundation
     private var active = false
     private var activeOperation: Operation?
     public var onChange: (() -> Void)?
+    /// Fired once per committed seen-ACK receipt; never for a failed or unknown outcome.
+    public var onSeenReceipt: ((NativeChannelReadReceipt) -> Void)?
     public var isCurrent: Bool { active && client.isConfigured && capturedIdentity != nil && client.identity == capturedIdentity }
     public var visibleMessages: [MessagingMessage] { isCurrent ? history.messages : [] }
     /// A pushed message detail may outlive the history screen's active loading
@@ -129,6 +131,7 @@ import Foundation
                 guard isCurrent, request == generation, !Task.isCancelled else { return }
                 receipt = result
                 NativePushAttemptReader.signalOriginalReadCommitted()
+                onSeenReceipt?(result)
             }
             failedOperation = nil
         } catch {

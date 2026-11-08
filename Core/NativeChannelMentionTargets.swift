@@ -41,6 +41,17 @@ import FoundationNetworking
         self.binding=binding;self.captured=captured;self.channels=channels;self.context=context;self.transport=transport
         self.current=current;self.permits=permits;self.unauthorized=unauthorized
     }
+    /// Pure mapping for a reply: the replied-to message's sender becomes the REPLY mention
+    /// target only when it is a known member other than the viewer. No wiring, no write.
+    nonisolated public static func replyMentionTarget(for quote: NativeChannelMessageQuote?, viewerMemberID: NativeChannelMessageID?,
+                                          members: [Member]) -> NativeChannelMessageID? {
+        guard let sender = quote?.senderId, sender != viewerMemberID,
+              members.contains(where: { $0.id == sender }) else { return nil }
+        return sender
+    }
+    public func replyMentionTarget(for quote: NativeChannelMessageQuote?, viewerMemberID: NativeChannelMessageID?) -> NativeChannelMessageID? {
+        Self.replyMentionTarget(for: quote, viewerMemberID: viewerMemberID, members: members)
+    }
     public func retire() { retired=true;memberRows=[];roleRows=[];cursor=nil;more=false }
     public func validates(_ reference: NativeChannelMessageTextReference) -> Bool {
         guard isCurrent,reference.binding.sameTarget(as:binding),!reference.mentionEveryone || allowsEveryone,

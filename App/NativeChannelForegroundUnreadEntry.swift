@@ -23,6 +23,19 @@ import SwiftUI
     }
 }
 
+/// Requests one unread-directory refresh per committed seen-ACK receipt. An unknown or failed
+/// outcome never refreshes; the receipt itself is the only evidence of a server-side change.
+@MainActor final class NativeChannelSeenAckRefreshGate {
+    private var lastReceipt: NativeChannelReadReceipt?
+    private let refresh: () -> Void
+    init(refresh: @escaping () -> Void) { self.refresh = refresh }
+    func seenReceipt(_ receipt: NativeChannelReadReceipt?) {
+        guard let receipt, receipt != lastReceipt else { return }
+        lastReceipt = receipt
+        refresh()
+    }
+}
+
 /// One retained original coordinator per visible identity. Foreground/re-entry only read.
 /// No settings write, ACK, token registration, permission prompt or automatic retry of a write.
 @MainActor struct NativeChannelForegroundUnreadEntry: View {
@@ -56,6 +69,9 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in
             if phase == .active, visible { Task { await refresh() } }
             else if phase != .active { onReadModelChanged?(nil); model?.deactivate(); permission.retire() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NativePushAttemptReader.originalReadCommitted)) { _ in
+            if current, scenePhase == .active { Task { await refresh() } }
         }
         .onChange(of: currentIdentity()) { _, value in if value != identity { retire() } }
         .tint(Theme.Color.accent(in: domain))
