@@ -597,7 +597,7 @@ extension RoamGoalState {
                                 (Text(verbatim: "\(row.progress) / ") + amountText(row.metric, row.target)).font(.headline).monospacedDigit()
                                 Spacer()
                                 Text(row.state.titleKey).font(.caption.bold()).padding(.horizontal, 8).padding(.vertical, 2)
-                                    .background(row.state == .achieved ? Color.green.opacity(0.2) : Color.secondary.opacity(0.15), in: Capsule())
+                                    .background(row.state == .achieved ? CYColor.successSoft : CYColor.borderSubtle, in: Capsule())
                             }
                             ProgressView(value: Double(row.percent), total: 100)
                             (Text(verbatim: "\(row.startDate) – \(row.endDateExclusive) · ") + Text(row.metric.titleKey)).font(.caption).foregroundStyle(.secondary)

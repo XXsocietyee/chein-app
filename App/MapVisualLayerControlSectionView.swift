@@ -46,7 +46,7 @@ public struct MapVisualLayerControlSectionView: View {
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
-                            Capsule().fill(theme.isCandidatePalette ? Color.orange.opacity(0.18) : Color.green.opacity(0.18))
+                            Capsule().fill(theme.isCandidatePalette ? CYColor.warningSoft : CYColor.successSoft)
                         )
                         .accessibilityIdentifier("mapVisual.theme.candidateBadge")
                 }
@@ -60,7 +60,7 @@ public struct MapVisualLayerControlSectionView: View {
                             : "存在不足: \(theme.contrastShortfalls.joined(separator: ", "))"
                     )
                     .font(.caption)
-                    .foregroundStyle(theme.contrastShortfalls.isEmpty ? Color.secondary : Color.red)
+                    .foregroundStyle(theme.contrastShortfalls.isEmpty ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityIdentifier("mapVisual.theme.contrastStatus")
 
@@ -72,7 +72,7 @@ public struct MapVisualLayerControlSectionView: View {
                             .font(.caption.monospaced().weight(.semibold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Capsule().fill(Color.blue.opacity(0.15)))
+                            .background(Capsule().fill(CYColor.infoSoft))
                             .accessibilityIdentifier("mapVisual.coordinate.datumBadge")
                     }
                 }
