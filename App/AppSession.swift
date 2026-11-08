@@ -7109,6 +7109,11 @@ final class AppSession: ObservableObject {
         guard let service = retainedComplianceService, let session = complianceSession else { return nil }
         return (service, session)
     }
+    /// Anonymous reader for `subpackageRoam/session?shareToken=`; nil (page shows "unavailable") unless the reviewed deployment approves it.
+    func makeRoamShareSnapshotReader() -> (any RoamShareSnapshotReading)? {
+        RoamShareSnapshotReaderFactory.make(baseURL: regionalConfiguration?.apiConfiguration?.baseURL, transport: runtimeHTTPTransport,
+            approval: composition.isRoamShareSnapshotApproved ? { [weak self] in self?.composition.isRoamShareSnapshotApproved == true } : nil)
+    }
     var merchantMarketingCoordinator: MerchantMarketingCoordinator {
         if let retainedMarketing { return retainedMarketing }
         let service = MerchantMarketingService(configuration: regionalConfiguration?.apiConfiguration,

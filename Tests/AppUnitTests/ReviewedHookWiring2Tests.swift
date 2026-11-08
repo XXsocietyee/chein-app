@@ -197,3 +197,93 @@ final class ReviewedMerchantMarketingWiringTests: ReviewedHookWiring2Base {
         XCTAssertFalse(off.permitsReads); XCTAssertFalse(off.permitsInsight)
     }
 }
+
+/// Item 2: anonymous roam share-snapshot read (`api/roam/share/snapshot?token=`). The share-token entry point
+/// (link -> `RoamSharedFootprintView`) has no production host yet; only the reader and the transport route are wired.
+@MainActor
+final class ReviewedRoamShareSnapshotWiringTests: ReviewedHookWiring2Base {
+    private static let hex = "0123456789abcdef0123456789abcdef"
+    private func anonymous(_ url: String, method: String = "GET") -> URLRequest {
+        var r = URLRequest(url: URL(string: url)!)
+        r.httpMethod = method
+        r.setValue("application/json", forHTTPHeaderField: "Accept")
+        return r
+    }
+    private func exactRequests() throws -> [(String, URLRequest)] {
+        let token = try XCTUnwrap(RoamShareToken(Self.hex))
+        return [("snapshot", try token.request(baseURL: try XCTUnwrap(URL(string: Self.base))))]
+    }
+    private func neighbours() throws -> [(String, URLRequest)] {
+        let b = Self.base
+        let evil = "https://evil.example.org"
+        var withAuth = anonymous(b + "/api/roam/share/snapshot?token=" + Self.hex)
+        withAuth.setValue(Self.token, forHTTPHeaderField: "Authorization")
+        var withCookie = anonymous(b + "/api/roam/share/snapshot?token=" + Self.hex)
+        withCookie.setValue("a=b", forHTTPHeaderField: "Cookie")
+        var withBody = anonymous(b + "/api/roam/share/snapshot?token=" + Self.hex)
+        withBody.httpBody = Data("x".utf8)
+        return [
+            ("authorized", withAuth), ("cookie", withCookie), ("body", withBody),
+            ("post", anonymous(b + "/api/roam/share/snapshot?token=" + Self.hex, method: "POST")),
+            ("uppercase", anonymous(b + "/api/roam/share/snapshot?token=" + Self.hex.uppercased())),
+            ("short", anonymous(b + "/api/roam/share/snapshot?token=abc")),
+            ("no-token", anonymous(b + "/api/roam/share/snapshot")),
+            ("extra-query", anonymous(b + "/api/roam/share/snapshot?token=" + Self.hex + "&x=1")),
+            ("wrong-key", anonymous(b + "/api/roam/share/snapshot?id=" + Self.hex)),
+            ("revoke", anonymous(b + "/api/roam/share/revoke?token=" + Self.hex)),
+            ("sibling", anonymous(b + "/api/roam/share/snapshots?token=" + Self.hex)),
+            ("foreign", anonymous(evil + "/api/roam/share/snapshot?token=" + Self.hex))
+        ]
+    }
+
+    func testUnconfiguredCompositionIsNotApprovedAndRefusesTheRoute() async throws {
+        let wire = Wire()
+        let root = try unconfigured(wire: wire)
+        XCTAssertFalse(root.isRoamShareSnapshotApproved)
+        let transport = root.transport()
+        for identity in [viewer(), CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil, viewerRevision: 1)] {
+            transport.current = { identity }
+            let sent = await sentPaths(transport, try exactRequests(), wire: wire)
+            XCTAssertFalse(sent.values.contains(true), "\(sent)")
+        }
+    }
+
+    func testReviewedWithoutProductionGatesIsNotApprovedAndRefusesTheRoute() async throws {
+        let wire = Wire()
+        let root = try composition(gates: false, wire: wire)
+        XCTAssertFalse(root.isRoamShareSnapshotApproved)
+        let transport = root.transport()
+        transport.current = { CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil, viewerRevision: 1) }
+        let sent = await sentPaths(transport, try exactRequests(), wire: wire)
+        XCTAssertFalse(sent.values.contains(true), "\(sent)")
+    }
+
+    func testReviewedChinaCompositionAllowsOnlyTheExactAnonymousReadForSignedOutAndSignedInViewers() async throws {
+        XCTAssertTrue(try composition(gates: true, wire: Wire()).isRoamShareSnapshotApproved)
+        for identity in [viewer(), CompositionHTTPTransport.SessionIdentity(epoch: 1, accountID: nil, role: nil, token: nil, viewerRevision: 1)] {
+            let wire = Wire()
+            let transport = try composition(gates: true, wire: wire).transport()
+            transport.current = { identity }
+            let allowed = await sentPaths(transport, try exactRequests(), wire: wire)
+            for (name, sent) in allowed { XCTAssertTrue(sent, "must admit \(name) for \(String(describing: identity.role))") }
+            let refused = await sentPaths(transport, try neighbours(), wire: wire)
+            for (name, sent) in refused { XCTAssertFalse(sent, "must refuse \(name)") }
+            XCTAssertEqual(wire.requests.count, 1)
+            XCTAssertNil(wire.requests.first?.value(forHTTPHeaderField: "Authorization"))
+        }
+    }
+
+    func testSessionReaderIsNilWhenUnapprovedAndReadsWhenApproved() async throws {
+        let off = try unconfigured(wire: Wire())
+        XCTAssertNil(RoamShareSnapshotReaderFactory.make(baseURL: URL(string: Self.base), transport: Wire(),
+            approval: off.isRoamShareSnapshotApproved ? { true } : nil))
+        let wire = Wire()
+        let root = try composition(gates: true, wire: wire)
+        let transport = root.transport()
+        transport.current = { self.viewer() }
+        let reader = try XCTUnwrap(RoamShareSnapshotReaderFactory.make(baseURL: URL(string: Self.base), transport: transport,
+            approval: root.isRoamShareSnapshotApproved ? { root.isRoamShareSnapshotApproved } : nil))
+        _ = await reader.snapshot(try XCTUnwrap(RoamShareToken(Self.hex)))
+        XCTAssertEqual(wire.requests.compactMap { $0.url?.path }, ["/api/roam/share/snapshot"])
+    }
+}

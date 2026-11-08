@@ -603,6 +603,10 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard reviewed?.productionGatesEnabled == true else { return nil }
         return productionGateLeases.profileParticipant(context)
     }
+    /// Anonymous share-snapshot read approval (`api/roam/share/snapshot`); false unless the reviewed China deployment enables production gates.
+    var isRoamShareSnapshotApproved: Bool {
+        reviewed?.productionGatesEnabled == true && reviewed?.regional.market == .china
+    }
     /// Merchant marketing dashboard + AI insight reads; settlement stays off. Nothing is enabled unless the reviewed China deployment enables production gates.
     var merchantMarketingGates: MerchantMarketingService.Gates {
         guard reviewed?.productionGatesEnabled == true, reviewed?.regional.market == .china else { return .init() }
@@ -2576,12 +2580,13 @@ extension KeychainTokenStore: AppTokenStorage {}
             return request.httpMethod == expectedMethod
         })
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
-        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
+        guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
         let appleAuth = url == api.url(for: .apple)
         let publicHome = PublicMerchantHomeCompositionScope.accepts(request, baseURL: api.baseURL)
+        let roamShareSnapshot = ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL)
         let publicTopicsRoute = ClubPublicTopicsRoute(request: request, baseURL: api.baseURL)
         let publicTopicsContext = ClubPublicTopicsContext(
             identity: .init(accountID: captured.accountID, epoch: captured.epoch),
@@ -3471,6 +3476,9 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer else { throw APIError.notConfigured }
+        } else if roamShareSnapshot {
+            guard deployment.productionGatesEnabled, deployment.regional.market == .china,
+                  captured.isPublicTemplateViewer else { throw APIError.notConfigured }
         } else if ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: captured.token) {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
@@ -3479,7 +3487,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   captured.isPublicTemplateViewer,
                   reads.contains(where: { api.baseURL.appendingPathComponent($0) == url }) else { throw APIError.notConfigured }
         }
-        if !auth && !appleAuth && !publicHome, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
+        if !auth && !appleAuth && !publicHome && !roamShareSnapshot, request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) != captured.token.map({ Data($0.utf8) }) { throw CancellationError() }
         try Task.checkCancellation()
         guard current() == captured, readApprovalStillValid?() != false else { throw CancellationError() }
         do {
@@ -3970,6 +3978,27 @@ enum ReviewedNearbyTeamReadRoute {
         default:
             return false
         }
+    }
+}
+
+/// Anonymous receiver-side read of a shared footprint: exactly `RoamShareToken.request` (GET, one lowercase-hex `token`
+/// query item, no Authorization, cookie or body).
+enum ReviewedRoamShareSnapshotReadRoute {
+    static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
+        guard request.httpMethod == "GET", request.httpBody == nil, request.httpBodyStream == nil,
+              request.value(forHTTPHeaderField: "Authorization") == nil,
+              request.value(forHTTPHeaderField: "Cookie") == nil,
+              request.value(forHTTPHeaderField: "Proxy-Authorization") == nil,
+              request.value(forHTTPHeaderField: "Content-Type") == nil,
+              request.value(forHTTPHeaderField: "Accept") == "application/json",
+              let url = request.url, url.fragment == nil,
+              url.scheme == baseURL.scheme, url.host == baseURL.host, url.port == baseURL.port,
+              let parts = URLComponents(url: url, resolvingAgainstBaseURL: false),
+              parts.user == nil, parts.password == nil,
+              parts.path == baseURL.appendingPathComponent(RoamShareSnapshot.path).path,
+              let items = parts.queryItems, items.count == 1, items[0].name == "token",
+              let value = items[0].value, RoamShareToken(value) != nil else { return false }
+        return true
     }
 }
 
