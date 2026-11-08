@@ -42,7 +42,7 @@ import SwiftUI
                 topicFilterSection(snapshot)
                 if let peerReader { CoopChapterApplicationSection(reader: peerReader, direction: direction, operationScope: operationScope) }
                 if snapshot.isPartial {
-                    Label("cooperation.partial", systemImage: "exclamationmark.triangle").font(.footnote)
+                    Label("cooperation.partial", systemImage: "exclamationmark.triangle").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("cooperation.partial")
                 }
                 invitationSection(snapshot.invitations, direction: snapshot.direction)
@@ -84,7 +84,7 @@ import SwiftUI
                     }
                 }.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")
                     .fixedSize(horizontal: false, vertical: true)
-                Text("cooperation.topicFilter.loadedOnly").font(.footnote).foregroundStyle(.secondary)
+                Text("cooperation.topicFilter.loadedOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
                 if selected != nil {
                     Button("cooperation.topicFilter.clear") {
@@ -101,20 +101,28 @@ import SwiftUI
             case .failure(let issue): CooperationIssueView(issue: issue)
             case .content(let list):
                 let rows = CooperationInboxTopicFilter.visibleRows(list.rows(direction), topicID: selectedTopicID, topic: { $0.topicId })
-                if rows.isEmpty { Text(selectedTopicID == nil ? "cooperation.invitations.empty" : "cooperation.topicFilter.empty").foregroundStyle(.secondary) }
+                if rows.isEmpty { Text(selectedTopicID == nil ? "cooperation.invitations.empty" : "cooperation.topicFilter.empty").font(CYTypography.body).foregroundStyle(CYColor.textTertiary) }
                 // Ordinal identities preserve duplicate server IDs without merging unrelated entries.
                 ForEach(rows, id: \.offset) { index, row in
                     NavigationLink {
                         CooperationInviteDetailView(key: CooperationInviteKey(id: row.id, direction: direction), reader: reader, peerReader: peerReader)
                             .environment(\.cooperationProjectDestination, topicDestination)
                     } label: {
-                        VStack(alignment: .leading, spacing: 8) {
-                            CooperationName(name: row.partner?.name).font(.headline)
-                            CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : "circle")
+                        // Mini `.inv`: row 1 status badge + peer ("来自/发给 X"), row 2 title/sub, row 3 terms, then meta.
+                        VStack(alignment: .leading, spacing: CYSpacing.md) {
+                            HStack(alignment: .center, spacing: CYSpacing.sm) {
+                                CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : row.status == 2 ? "xmark.circle" : "circle")
+                                Spacer(minLength: CYSpacing.sm)
+                                HStack(spacing: CYSpacing.xs) {
+                                    Text(LocalizedStringKey(direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
+                                    CooperationName(name: row.partner?.name).lineLimit(1).truncationMode(.tail)
+                                }.font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                            }
                             CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))
                             if let id = row.topicId { CooperationTopicReference(id: id) }
                             CooperationTimeField(key: "cooperation.created", value: row.createTime)
-                        }.padding(.vertical, 4)
+                        }.padding(.vertical, CYSpacing.xs)
+                        .opacity((row.status ?? 0) >= 3 ? 0.6 : 1)
                     }.accessibilityIdentifier("cooperation.invite.\(direction.rawValue).\(row.id).\(index)")
                 }
             }
@@ -128,16 +136,17 @@ import SwiftUI
                 let visible = CooperationInboxTopicFilter.visibleRows(rows, topicID: selectedTopicID, topic: { $0.topicId })
                 if visible.isEmpty { Text(selectedTopicID == nil ? "cooperation.applications.empty" : "cooperation.topicFilter.empty").foregroundStyle(.secondary) }
                 ForEach(visible, id: \.offset) { _, row in
-                    VStack(alignment: .leading, spacing: 8) {
-                        CooperationName(name: row.topicName, fallback: "cooperation.unnamedTopic").font(.headline)
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
                         let replied = direction == .received ? CooperationRepliedApplication(application: row, sent: sentInvites) : nil
+                        // Mini `.inv-top` then `.inv-title`: badge first, topic title second.
                         CooperationStatus(key: replied?.statusKey ?? row.statusKey)
+                        CooperationName(name: row.topicName, fallback: "cooperation.unnamedTopic").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                         CooperationField(key: direction == .received ? "cooperation.fromClub" : "cooperation.toMerchant", value: direction == .received ? row.clubName : row.merchantNick)
                         CooperationTopicReference(id: row.topicId)
                         CooperationTimeField(key: "cooperation.start", value: row.startDate)
                         if let message = row.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             CooperationField(key: "cooperation.message", value: message)
-                        } else { Text("cooperation.application.intent").font(.footnote).foregroundStyle(.secondary) }
+                        } else { Text("cooperation.application.intent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                         if direction == .received { CooperationCandidateLink(topicID: row.topicId, reader: reader) }
                         if let linked = replied?.linkedInviteID {
                             NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader)
@@ -145,7 +154,7 @@ import SwiftUI
                                 Text("cooperation.list.apply.viewCooperation")
                             }.accessibilityIdentifier("cooperation.list.apply.linked.\(linked)")
                         }
-                    }.padding(.vertical, 4)
+                    }.padding(.vertical, CYSpacing.xs)
                 }
             }
         }
@@ -158,10 +167,10 @@ import SwiftUI
                 let visible = CooperationInboxTopicFilter.visibleRows(page.rows, topicID: selectedTopicID, topic: { $0.topicId })
                 if visible.isEmpty { Text(selectedTopicID == nil ? "cooperation.registrations.empty" : "cooperation.topicFilter.empty").foregroundStyle(.secondary) }
                 ForEach(visible, id: \.offset) { _, row in
-                    VStack(alignment: .leading, spacing: 8) {
-                        CooperationName(name: row.merchantName, fallback: "cooperation.unnamedMerchant").font(.headline)
-                        if let member = row.memberId { CooperationField(key: "cooperation.merchant", value: "#\(member)") }
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
                         CooperationStatus(key: row.statusKey)
+                        CooperationName(name: row.merchantName, fallback: "cooperation.unnamedMerchant").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        if let member = row.memberId { CooperationField(key: "cooperation.merchant", value: "#\(member)") }
                         CooperationField(key: "cooperation.topic", value: row.topicName)
                         CooperationField(key: "cooperation.location", value: row.addressName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? row.addressName : row.address)
                         CooperationField(key: "cooperation.about", value: row.merchantMeta)
@@ -172,7 +181,7 @@ import SwiftUI
                     }.padding(.vertical, 4)
                 }
                 if page.hasMore == true {
-                    Text("cooperation.registrations.more").font(.footnote).foregroundStyle(.secondary)
+                    Text("cooperation.registrations.more").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("cooperation.registrations.more")
                 }
             }

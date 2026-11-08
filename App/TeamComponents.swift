@@ -79,15 +79,15 @@ import UniformTypeIdentifiers
     var body: some View {
         // Only real messages (and the example-content marker) earn a box; no standing "unavailable" banner.
         if canSimulate || messageKey != nil {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if canSimulate { Label("team.fixtureNotice", systemImage: "testtube.2").accessibilityIdentifier("team.fixtureNotice") }
             if let key = messageKey {
                 Label(LocalizedStringKey(key), systemImage: hasPending ? "exclamationmark.triangle" : "info.circle")
                     .accessibilityIdentifier("team.message")
             }
-        }.font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            .padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+        }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         }
     }
 }
@@ -108,14 +108,17 @@ struct TeamMemberRow: View {
     let member: TeamMember
     var remove: (() -> Void)?
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                if member.name.isEmpty { Text("team.member.unnamed") } else { Text(verbatim: member.name).fixedSize(horizontal: false, vertical: true) }
-                Text(member.isCaptain ? "team.member.captain" : member.role == 0 ? "team.member.player" : "team.member.unknownRole").font(.caption).foregroundStyle(.secondary)
+        // Mini `.team-member`: 32pt avatar, name (600) over role caption, trailing 移出 in danger text.
+        HStack(alignment: .center, spacing: CYSpacing.sm) {
+            Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Group {
+                    if member.name.isEmpty { Text("team.member.unnamed") } else { Text(verbatim: member.name).fixedSize(horizontal: false, vertical: true) }
+                }.font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                Text(member.isCaptain ? "team.member.captain" : member.role == 0 ? "team.member.player" : "team.member.unknownRole").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             }.frame(maxWidth: .infinity, alignment: .leading)
-            if let remove { Button("team.remove", role: .destructive, action: remove).frame(minHeight: 44).accessibilityIdentifier("team.remove.\(member.id)") }
-        }.padding(.vertical, 8)
+            if let remove { Button("team.remove", role: .destructive, action: remove).font(CYTypography.label).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget).accessibilityIdentifier("team.remove.\(member.id)") }
+        }.padding(.vertical, CYSpacing.xs)
     }
 }
 @MainActor struct TeamReviewSheet: View {

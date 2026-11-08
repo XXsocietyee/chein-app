@@ -30,23 +30,40 @@ import UIKit
     private var offset: CGSize { CGSize(width: session.offsetX, height: session.offsetY) }
 
     var body: some View {
-        VStack(spacing: 16) {
+        // Mini `pages/crop`: bar / near-black stage with a fixed frame / bottom bar (取消 text left, 选取 solid right).
+        VStack(spacing: 0) {
             if images.count > 1 {
-                Text("publishParity.crop.progress \(index + 1) \(images.count)").font(.caption)
+                Text("publishParity.crop.progress \(index + 1) \(images.count)").font(CYTypography.caption).monospacedDigit()
+                    .foregroundStyle(CYColor.textSecondary).padding(.vertical, CYSpacing.sm)
                     .accessibilityIdentifier("miniCrop.progress")
             }
-            if images.indices.contains(index) { canvas(images[index]) }
-            else { Text("publishParity.crop.failed").accessibilityIdentifier("miniCrop.failed") }
-            HStack {
-                Button("publishParity.crop.cancel", role: .cancel, action: onCancel).accessibilityIdentifier("miniCrop.cancel")
-                Spacer()
-                Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }.accessibilityIdentifier("miniCrop.useOriginal")
-                Button("publishParity.crop.confirm") { confirm() }.buttonStyle(.questifyPrimary)
+            Group {
+                if images.indices.contains(index) { canvas(images[index]) }
+                else {
+                    Text("publishParity.crop.failed").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, maxHeight: .infinity).accessibilityIdentifier("miniCrop.failed")
+                }
+            }.frame(maxWidth: .infinity, maxHeight: .infinity)
+            HStack(spacing: CYSpacing.md) {
+                Button("publishParity.crop.cancel", role: .cancel, action: onCancel)
+                    .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("miniCrop.cancel")
+                Spacer(minLength: CYSpacing.sm)
+                Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }
+                    .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("miniCrop.useOriginal")
+                Button("publishParity.crop.confirm") { confirm() }.buttonStyle(.cyPrimary(fullWidth: false))
                     .accessibilityIdentifier("miniCrop.confirm")
             }
+            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+            .background(CYColor.bgPage)
+            .overlay(alignment: .top) { Rectangle().fill(CYColor.borderSubtle).frame(height: 1) }
         }
-        .padding()
+        .background(CYColor.bgPage.ignoresSafeArea())
         .navigationTitle(Text("publishParity.crop.title"))
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private func canvas(_ image: UIImage) -> some View {
@@ -61,7 +78,7 @@ import UIKit
                     .frame(width: size.width * base * live.scale, height: size.height * base * live.scale)
                     .offset(x: live.x, y: live.y)
                     .frame(width: frame.width, height: frame.height).clipped()
-                    .overlay(Rectangle().stroke(Color.white, lineWidth: 1))
+                    .overlay(Rectangle().stroke(CYColor.borderStrong, lineWidth: 1))
                     .position(x: proxy.size.width / 2, y: proxy.size.height / 2)
                     .gesture(SimultaneousGesture(
                         MagnifyGesture().onChanged { gestureScale = $0.magnification }.onEnded { _ in commit(image: size, frame: frame) },

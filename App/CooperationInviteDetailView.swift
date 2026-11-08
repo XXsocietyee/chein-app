@@ -25,6 +25,24 @@ import UIKit
         self.key = key; self.reader = reader; self.peerReader = peerReader
         _phoneCopy = StateObject(wrappedValue: CooperationPhoneCopyOwner(reader: reader, key: key))
     }
+    private func statusTone(_ row: CooperationInvite) -> Color {
+        switch row.status {
+        case 0: return CYColor.warningText
+        case 1: return CYColor.successText
+        default: return CYColor.textTertiary
+        }
+    }
+    private func statusTitle(_ row: CooperationInvite) -> some View {
+        Text(LocalizedStringKey(row.statusKey)).font(CYTypography.sheetTitle).foregroundStyle(statusTone(row))
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    private func partnerLine(_ row: CooperationInvite) -> some View {
+        HStack(spacing: CYSpacing.xs) {
+            Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
+            if let name = row.partner?.name, !name.isEmpty { Text(verbatim: name) } else { Text("cooperation.detail.counterparty") }
+        }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityElement(children: .combine)
+            .accessibilityIdentifier("cooperation.detail.partner")
+    }
     var body: some View {
         CooperationReadScreen(reader: reader, resource: "invite.\(key.direction.rawValue).\(key.id).return.\(topicReturn)", operation: {
             guard key.id > 0 else { throw CooperationReadFailure.unavailable }
@@ -33,13 +51,12 @@ import UIKit
             let row = detail.row
             let view = CooperationInvitePresentation(invite: row, direction: key.direction)
             Section {
-                CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : "circle")
-                HStack(spacing: 4) {
-                    Text(LocalizedStringKey(key.direction == .received ? "cooperation.detail.from" : "cooperation.detail.to")).foregroundStyle(.secondary)
-                    if let name = row.partner?.name, !name.isEmpty { Text(verbatim: name) } else { Text("cooperation.detail.counterparty") }
-                }.font(.title3.weight(.semibold)).accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("cooperation.detail.partner")
-                if let name = row.topicName { Text(verbatim: name).font(.headline) }
+                // Mini `.hd`: the big line is the STATUS (tone-coloured), the counterparty sits quietly beside it.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) { statusTitle(row); Spacer(minLength: CYSpacing.sm); partnerLine(row) }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) { statusTitle(row); partnerLine(row) }
+                }
+                if let name = row.topicName { Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
                 if let topic = row.topicId {
                     CooperationTopicReference(id: topic)
                     CooperationProjectNavigationLink(topicID: topic, invite: key, destination: topicDestination, openedTopic: $openedTopic)
@@ -70,10 +87,10 @@ import UIKit
                     if let result = phoneCopy.resultKey {
                         Text(LocalizedStringKey(result)).accessibilityIdentifier("cooperation.phone.copy.result")
                     }
-                case .afterAcceptReceived: Text("cooperation.detail.contact.afterAcceptReceived").foregroundStyle(.secondary)
-                case .afterAcceptSent: Text("cooperation.detail.contact.afterAcceptSent").foregroundStyle(.secondary)
-                case .acceptedWithoutContact: Text("cooperation.detail.contact.none").foregroundStyle(.secondary)
-                case .ended: Text("cooperation.detail.contact.ended").foregroundStyle(.secondary)
+                case .afterAcceptReceived: Text("cooperation.detail.contact.afterAcceptReceived").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                case .afterAcceptSent: Text("cooperation.detail.contact.afterAcceptSent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                case .acceptedWithoutContact: Text("cooperation.detail.contact.none").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                case .ended: Text("cooperation.detail.contact.ended").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }
             }
             Section("cooperation.detail.section.terms") {
@@ -91,24 +108,29 @@ import UIKit
             }
             Section("cooperation.detail.messages") {
                 if let message = row.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: message)
-                        HStack(spacing: 4) {
+                    // Mini `.bubble`: raised rounded block, body text then "我方/对方 · time" caption.
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textPrimary)
+                        HStack(spacing: CYSpacing.xs) {
                             Text(LocalizedStringKey(view.messageIsOurs ? "cooperation.detail.us" : "cooperation.detail.them"))
                             CooperationTimeField(key: "cooperation.created", value: row.createTime)
-                        }.font(.caption).foregroundStyle(.secondary)
-                    }.accessibilityIdentifier("cooperation.detail.message")
+                        }.font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
+                        .accessibilityIdentifier("cooperation.detail.message")
                 }
                 if let reason = row.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: reason)
-                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).font(.caption).foregroundStyle(.secondary)
-                    }.accessibilityIdentifier("cooperation.detail.handleReason")
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(CYColor.textPrimary)
+                        Text(LocalizedStringKey(view.handleReasonIsOurs ? "cooperation.detail.reason.us" : "cooperation.detail.reason.them")).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
+                        .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgSurfaceStrong))
+                        .accessibilityIdentifier("cooperation.detail.handleReason")
                 }
                 if (row.message ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && (row.handleReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text("cooperation.detail.noMessages").foregroundStyle(.secondary)
+                    Text("cooperation.detail.noMessages").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }
-                if view.input == .hidden && row.status == 1 && !row.legacyReadonly { Text("cooperation.detail.contactHint").font(.footnote).foregroundStyle(.secondary) }
+                if view.input == .hidden && row.status == 1 && !row.legacyReadonly { Text("cooperation.detail.contactHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             }
             CooperationInviteActionSections(view: view, peerReader: peerReader)
             if !row.legacyReadonly && row.depositRefundPending {

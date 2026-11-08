@@ -31,18 +31,21 @@ extension EnvironmentValues {
     var body: some View {
         List {
             Section {
-                Text("nearbyMerchant.purpose")
+                // Mini opens with the privacy gate, then the result cards: purpose + consent stay one quiet block.
+                Text("nearbyMerchant.purpose").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 Toggle("nearbyMerchant.consent", isOn: $purposeAccepted)
                 Button("nearbyMerchant.search") { operation = Task { await model.search(purposeAccepted: purposeAccepted) } }
+                    .buttonStyle(.cyPrimary).listRowBackground(Color.clear)
                     .disabled(!purposeAccepted || !model.available || model.isBusy)
                     .accessibilityIdentifier("nearbyMerchant.search")
-                if !model.available { Text("coopflow.nearby.unavailable") }
-                if model.isBusy { ProgressView("cooperation.loading") }
-                if model.phase == .locationFailed { Text("nearbyMerchant.locationFailed") }
+                if !model.available { Text("coopflow.nearby.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if model.isBusy { ProgressView("cooperation.loading").frame(maxWidth: .infinity, minHeight: 88) }
+                if model.phase == .locationFailed { Text("nearbyMerchant.locationFailed").font(CYTypography.meta).foregroundStyle(CYColor.warningText) }
                 if model.phase == .failed {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("cooperation.nearby.failed").font(.headline)
-                        Text("cooperation.nearby.failed.detail").font(.footnote).foregroundStyle(.secondary)
+                    // Mini `cy-error` fill state: title, reason, one retry action (below).
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        Text("cooperation.nearby.failed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text("cooperation.nearby.failed.detail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.nearby.failed")
                 }
                 if model.phase == .locationFailed || model.phase == .failed {
@@ -53,8 +56,8 @@ extension EnvironmentValues {
                 }
                 if model.phase == .locationDenied {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("nearbyMerchant.locationDenied.title").font(.headline)
-                        Text("nearbyMerchant.locationDenied.detail").font(.footnote).foregroundStyle(.secondary)
+                        Text("nearbyMerchant.locationDenied.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text("nearbyMerchant.locationDenied.detail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         Button("nearbyMerchant.openSettings") {
                             if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
                         }.frame(minHeight: 44).accessibilityIdentifier("nearbyMerchant.openSettings")
@@ -62,18 +65,16 @@ extension EnvironmentValues {
                 }
                 if model.phase == .permissionDenied {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("nearbyMerchant.permissionDenied.title").font(.headline)
-                        Text("nearbyMerchant.permissionDenied.detail").font(.footnote).foregroundStyle(.secondary)
+                        Text("nearbyMerchant.permissionDenied.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        Text("nearbyMerchant.permissionDenied.detail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("nearbyMerchant.permissionDenied")
                 }
             }
             if model.phase == .ready {
                 Section {
                     if model.rows.isEmpty {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("cooperation.nearby.empty").font(.headline)
-                            Text("cooperation.nearby.empty.detail").font(.footnote).foregroundStyle(.secondary)
-                        }.accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.nearby.empty")
+                        CYEmptyStateView(systemImage: "mappin.slash", title: "cooperation.nearby.empty", description: "cooperation.nearby.empty.detail")
+                            .accessibilityIdentifier("cooperation.nearby.empty")
                     }
                     ForEach(model.rows) { row in
                         if model.publicHomeSelection(rowID: row.id) != nil {
@@ -83,7 +84,7 @@ extension EnvironmentValues {
                                 .accessibilityIdentifier("nearbyMerchant.open.\(row.id)")
                         } else {
                             VStack(alignment: .leading) {
-                                card(row); Text("nearbyMerchant.unlisted").font(.footnote)
+                                card(row); Text("nearbyMerchant.unlisted").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 // Source: unregistered leads with a server-released phone offer "电话联系" (system dialer only).
                                 if let phone = row.callablePhone, let url = URL(string: "tel:" + phone.filter { $0.isNumber || $0 == "+" }) {
                                     Link(destination: url) { Label("cooperation.nearby.call", systemImage: "phone") }
@@ -94,7 +95,7 @@ extension EnvironmentValues {
                     }
                 }
             }
-        }.appNavigationTitle("cooperation.nearby.title").accessibilityIdentifier("nearbyMerchant.list")
+        }.cyMiniListScreen().appNavigationTitle("cooperation.nearby.title").accessibilityIdentifier("nearbyMerchant.list")
             .sheet(item: $publicHomeSelection) { selection in
                 NavigationStack {
                     Group {
@@ -124,10 +125,11 @@ extension EnvironmentValues {
         model.cancel(); purposeAccepted = false
     }
     private func card(_ row: NearbyMerchantRow) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: row.name).font(.headline)
-            if let address = row.address { Text(verbatim: address).font(.subheadline) }
-            if let distance = row.distance { Text("\(distance, specifier: "%.0f") m").font(.caption) }
+        // Mini `cy-merchant-card variant="venue"`: name, then address and distance as quiet meta.
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: row.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            if let address = row.address { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if let distance = row.distance { Text("\(distance, specifier: "%.0f") m").font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
         }
     }
 }
