@@ -1,6 +1,23 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "roam.capsule.writeUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sealing new time capsules is not available yet. You can still read and open the ones you have."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时不能封存新的时光胶囊，已有的胶囊仍可查看和开启。"
+          }
+        }
+      }
+    },
     "nearby.w208.issue.unavailable" : {
       "extractionState" : "manual",
       "localizations" : {
