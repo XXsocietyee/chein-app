@@ -24,3 +24,8 @@
 | `clubOpsGov.reasonRequired.ban/.transfer/.report/.appeal` (declared in Core only, not rendered yet) | ClubOpsGovernance | `Enter a ban reason.` / `Enter a handover reason.` / `Describe the facts.` / `Describe the facts.` | `请填写封禁原因` / `请填写交接原因` / `请填写事实说明` / `请填写事实说明` |
 
 Note: the report target card reads the optional seed key `targetName`; no current entry supplies it, so only the type shows until a host passes the display name (the seed is display-only and is not part of the command anchors).
+| `club.publicRoster.emptyRank.composite` | ClubPublicRoster | `No one has contributed this week.` | `本周还没有人产生贡献` |
+| `club.publicRoster.emptyRank.mileage` | ClubPublicRoster | `No one has logged mileage this week.` | `本周还没有人跑出里程` |
+| `club.publicRoster.emptyRank.duration` | ClubPublicRoster | `No one has a completion time this week.` | `本周还没有人跑出用时` |
+
+Note: `club.publicRoster.emptyRank` (existing) stays as the fallback; once the three keys exist it can be retired. Until they are added the empty leaderboard shows the raw key.
