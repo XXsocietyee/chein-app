@@ -10,6 +10,7 @@ import SwiftUI
     func closePayment() { coordinator.closePaymentReturn(); revision += 1 }
     func invalidate() { coordinator.becameInactive(); revision += 1 }
     func confirm(_ id: UUID) async { revision += 1; await coordinator.confirm(reviewID: id); revision += 1 }
+    func agreeToSignupNotice(orderID: Int) async { revision += 1; await coordinator.agreeToSignupNotice(orderID: orderID); revision += 1 }
 }
 
 /// A retained session-owned coordinator is injected; no view constructs a live writer.
@@ -30,9 +31,14 @@ import SwiftUI
                 Section {
                     Label {
                         if let serverMessage = coordinator.serverMessage, !serverMessage.isEmpty { Text(verbatim: serverMessage) }
+                        else if issue == .reconsentRequired { Text(verbatim: c.t("活动报名的数据共享同意已更新，需要重新同意后才能支付。", "The activity sign-up data-sharing consent has changed. Agree again before paying.")) }
                         else { Text(LocalizedStringKey("orderLifecycle.issue." + issue.rawValue)) }
                     } icon: { Image(systemName: "exclamationmark.triangle") }
                         .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("orderLifecycle.issue")
+                    if issue == .reconsentRequired {
+                        Button(c.t("同意并继续", "Agree and continue")) { Task { await model.agreeToSignupNotice(orderID: id) } }
+                            .accessibilityIdentifier("orderLifecycle.reconsent")
+                    }
                 }
             }
             if coordinator.accountID == nil { Text("orderLifecycle.issue.login") }

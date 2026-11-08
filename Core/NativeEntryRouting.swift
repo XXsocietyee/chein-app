@@ -8,6 +8,30 @@ public enum NativeEntryIntent: Equatable {
     case door(DoorIntent)
     case merchantInvitation(MerchantOperatorInviteRoute)
     case publicMerchant(PublicMerchantHomeTarget)
+    /// FP-C3. A parsed destination only; no origin is enabled by it and presentation stays the host's choice.
+    case content(NativeContentTarget)
+}
+/// Positive server ids for public content destinations. Parsing grants no access: the destination screen
+/// still reads through its own approved, authenticated source.
+public struct NativeContentTarget: Equatable {
+    public enum Kind: String, CaseIterable, Equatable {
+        case activity, club, topic, template, post, poi, roamSession
+        /// Mini-program source paths (docs/parity/page-map.csv). The id travels in the single `id` query item.
+        public var sourcePath: String {
+            switch self {
+            case .activity: return "/pages/activity/detail/index"
+            case .club: return "/pages/club/detail/index"
+            case .topic: return "/pages/topic/index/index"
+            case .template: return "/pages/templatedetail/templatedetail"
+            case .post: return "/pages/square/detail/index"
+            case .poi: return "/subpackageRoam/poi-detail/index"
+            case .roamSession: return "/subpackageRoam/session/index"
+            }
+        }
+    }
+    public let kind: Kind
+    public let id: Int
+    public init?(kind: Kind, id: Int) { guard id > 0 else { return nil }; self.kind = kind; self.id = id }
 }
 public struct NativeEntryPresentation: Identifiable {
     public let id = UUID()
@@ -40,5 +64,21 @@ public struct NativeEntryLinkPolicy {
               c.percentEncodedQuery?.hasPrefix("invite=") == true,
               let route = try? MerchantOperatorInviteRoute(path: c.percentEncodedPath, queryItems: items) else { return nil }
         return .merchantInvitation(route)
+    }
+}
+
+/// FP-C10 seam. Maps a tapped push's payload to a typed intent. The backend has not published a payload key,
+/// so the default accepts no key and routes nothing; the host passes the reviewed key(s) when the contract
+/// exists. Only source paths (no scheme or host) are accepted, so a payload can never name an external URL.
+public struct PushTapRouter {
+    private let routeKeys: [String]
+    public init(routeKeys: [String] = []) { self.routeKeys = routeKeys }
+    public func intent(userInfo: [AnyHashable: Any]) -> NativeEntryIntent? {
+        for key in routeKeys {
+            guard let value = userInfo[key] as? String else { continue }
+            let path = value.hasPrefix("/") ? value : "/" + value
+            if let intent = NativeNavigationContract.parseInternal(path) { return intent }
+        }
+        return nil
     }
 }

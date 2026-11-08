@@ -62,7 +62,7 @@ public enum OrderLifecycleAttemptState: Equatable {
 }
 public enum OrderLifecycleCoordinatorIssue: String, Equatable {
     case login, notConfigured, unavailable, malformed, network, accessDenied, failure
-    case expiredReview, ineligible, alreadyAttempted, stale, dispatchDisabled, cancelled
+    case expiredReview, ineligible, alreadyAttempted, stale, dispatchDisabled, cancelled, reconsentRequired
     public init(_ error: Error) {
         if error is CancellationError { self = .cancelled }
         else if let error = error as? URLError { self = error.code == .cancelled ? .cancelled : .network }
@@ -81,6 +81,7 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
             case .ineligible: self = .ineligible
             case .alreadyAttempted: self = .alreadyAttempted
             case .stale: self = .stale
+            case .reconsentRequired: self = .reconsentRequired
             case .notDispatched: self = .dispatchDisabled
             case .response: self = .failure
             }
@@ -220,6 +221,24 @@ public enum OrderLifecycleCoordinatorIssue: String, Equatable {
         guard Self.isReviewable(action, detail: detail) else { storedIssue = .ineligible; return }
         storedReview = OrderLifecycleReview(id: UUID(), accountID: accountID, scope: reader.scope, detail: detail,
             action: action, expiresAt: loadedAt.addingTimeInterval(60), localAttemptID: UUID())
+    }
+    /// FP-E4. After `.reconsentRequired`, an explicit user agreement records the signup consent for the
+    /// current document and clears the issue. It never pays; the user starts a fresh payment review.
+    public func agreeToSignupNotice(orderID: Int) async {
+        guard storedIssue == .reconsentRequired, let dispatcher = currentProduction() else { return }
+        prepare(.payment, orderID: orderID)
+        guard let review = storedReview, dispatcher.canDispatch(review) else { if storedIssue == nil { storedIssue = .reconsentRequired }; return }
+        let stamp = generation
+        storedReview = nil
+        do {
+            try await dispatcher.recordSignupConsent(for: review, visible: { [weak self] in
+                guard let self else { return false }
+                return stamp == self.generation && review.scope == self.reader.scope && review.accountID == self.reader.accountID
+            })
+            if stamp == generation { storedIssue = nil }
+        } catch {
+            if stamp == generation { storedIssue = OrderLifecycleCoordinatorIssue(error) }
+        }
     }
     nonisolated public static func isReviewable(_ action: OrderLifecycleAction, detail: OrderLifecycleDetail) -> Bool {
         // Unknown, closed or contradictory status never authorizes cancellation or payment.

@@ -24,9 +24,26 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
     public let applicationId: Int?, appliedAt: Int64?, executeAfterAtAcceptance: Int64?, recordedAt: Int64?
     public let reason: String?
     public let impactAtConfirmation: AccountDeregistrationImpact?
+    /// True when built from `GET status` (FP-E2). The backend has no `/result` route, so a derived receipt
+    /// cannot carry application id, applied or recorded timestamps, or the impact snapshot at confirmation.
+    public private(set) var derivedFromStatus = false
+    enum CodingKeys: String, CodingKey {
+        case receiptVersion, actorId, requestId, outcome, applicationId, appliedAt, executeAfterAtAcceptance, recordedAt, reason, impactAtConfirmation
+    }
     public var accepted: Bool { outcome == "ACCEPTED" }
     public var settled: Bool { ["ACCEPTED", "REJECTED", "EXISTING_APPLICATION"].contains(outcome) }
+    init(derivedOutcome outcome: String, requestId: String, actorId: Int, executeAfterAtAcceptance: Int64?) {
+        receiptVersion = 1; self.actorId = actorId; self.requestId = requestId; self.outcome = outcome
+        applicationId = nil; appliedAt = nil; self.executeAfterAtAcceptance = executeAfterAtAcceptance; recordedAt = nil
+        reason = nil; impactAtConfirmation = nil; derivedFromStatus = true
+    }
     public func validate(request: String, actor: Int) throws {
+        if derivedFromStatus {
+            guard receiptVersion == 1, actorId == actor, requestId.utf8.elementsEqual(request.utf8) else { throw ComplianceFailure.readbackMismatch }
+            guard applicationId == nil, appliedAt == nil, recordedAt == nil,
+                  accepted ? (executeAfterAtAcceptance ?? 0) > 0 : (outcome == "UNKNOWN" && executeAfterAtAcceptance == nil) else { throw ComplianceFailure.malformed }
+            return
+        }
         guard receiptVersion == 1, actorId == actor, requestId.utf8.elementsEqual(request.utf8) else { throw ComplianceFailure.readbackMismatch }
         if accepted {
             guard (applicationId ?? 0) > 0, (appliedAt ?? 0) > 0, (executeAfterAtAcceptance ?? 0) > 0, (recordedAt ?? 0) > 0 else { throw ComplianceFailure.malformed }
@@ -44,6 +61,11 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
     private let transport: any HTTPTransport
     private let current: () -> RuntimeDependencyContext?, stillApproved: () -> Bool, unauthorized: () -> Void
     private var sent = Set<String>()
+    /// Where `result(_:session:)` reads the receipt. The backend maps only precheck, apply, cancel and status
+    /// (no `GET api/user/deregister/result`), so the default derives the receipt from `status`.
+    /// Switch to `.resultEndpoint` only once the backend ships the route.
+    public enum ReceiptSource: Equatable { case derivedFromStatus, resultEndpoint }
+    public var receiptSource: ReceiptSource = .derivedFromStatus
     public init(context: RuntimeDependencyContext, approval: AccountDeregistrationOriginalApproval, transport: any HTTPTransport,
                 current: @escaping () -> RuntimeDependencyContext?, stillApproved: @escaping () -> Bool, onUnauthorized: @escaping () -> Void) {
         self.context = context; self.approval = approval; self.transport = transport; self.current = current
@@ -95,12 +117,32 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
     public func result(_ intent: CompliancePendingOperation, session: ComplianceSession) async throws -> AccountDeregistrationOriginalReceipt {
         guard intent.operation == "deregister", intent.scope == session.journalScope, intent.deregistrationOriginalVersion == 1,
               intent.deregistrationRealm?.utf8.elementsEqual(context.baseURL.absoluteString.utf8) == true, Self.validUUID(intent.requestID) else { throw ComplianceFailure.unresolved }
+        if receiptSource == .derivedFromStatus { return try await derivedResult(intent, session: session) }
         let receipt = try await send(request(Self.base + "result", query: ["requestId": intent.requestID]), session: session, as: AccountDeregistrationOriginalReceipt.self)
         try receipt.validate(request: intent.requestID, actor: session.accountID)
         if let revision = intent.deregistrationImpactRevision, receipt.accepted {
             guard let impact = receipt.impactAtConfirmation, impact.valid(for: session.accountID), impact.revision.utf8.elementsEqual(revision.utf8) else { throw ComplianceFailure.readbackMismatch }
         }
         return receipt
+    }
+    /// FP-E2. `status` cannot attribute an application to a request ID, so PENDING counts as this request's
+    /// acceptance only after this client sent `apply` for it. Any other state stays UNKNOWN (never a guessed
+    /// rejection), so cold-launch recovery leaves the journaled intent unresolved exactly as before.
+    private func derivedResult(_ intent: CompliancePendingOperation, session: ComplianceSession) async throws -> AccountDeregistrationOriginalReceipt {
+        let state = try await status(session: session)
+        let after = Self.milliseconds(state.executeAfter)
+        let receipt = state.pending && sent.contains(intent.requestID) && (after ?? 0) > 0
+            ? AccountDeregistrationOriginalReceipt(derivedOutcome: "ACCEPTED", requestId: intent.requestID, actorId: session.accountID, executeAfterAtAcceptance: after)
+            : AccountDeregistrationOriginalReceipt(derivedOutcome: "UNKNOWN", requestId: intent.requestID, actorId: session.accountID, executeAfterAtAcceptance: nil)
+        try receipt.validate(request: intent.requestID, actor: session.accountID)
+        return receipt
+    }
+    static func milliseconds(_ value: String?) -> Int64? {
+        guard let value, !value.isEmpty else { return nil }
+        let full = ISO8601DateFormatter(); full.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        let plain = ISO8601DateFormatter(); plain.formatOptions = [.withInternetDateTime]
+        guard let date = full.date(from: value) ?? plain.date(from: value) else { return nil }
+        return Int64(date.timeIntervalSince1970 * 1000)
     }
     public func apply(code: String, intent: CompliancePendingOperation, session: ComplianceSession) async throws {
         guard matches(session), approval.writes, approval.legalApproved, intent.scope == session.journalScope,

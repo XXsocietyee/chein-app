@@ -51,6 +51,7 @@ struct SettingsView: View {
                 MemberScoreAppealSettingsEntry(session: session)
                 SettingsInvoiceEntry(session: session)
                 NPCChatDataReadSettingsEntry(session: session)
+                SettingsSupportSafetyEntry()
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                 SettingsSignOutEntry(session: session) { dismiss() }
             }

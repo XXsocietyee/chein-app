@@ -247,4 +247,57 @@ import XCTest
         XCTAssertFalse(ExternalGameSandboxPolicy.allowsNavigation(to: URL(string: "itms-apps://itunes.apple.com")!, packageRoot: root, manifest: archive.manifest))
         XCTAssertFalse(ExternalGameSandboxPolicy.allowsNavigation(to: URL(string: "weixin://wap/pay")!, packageRoot: root, manifest: archive.manifest))
     }
+
+    // MARK: FP-H4 (App Store 1.2 / 4.7)
+
+    func testManifestAllowedDomainsAreEmptyByDefaultAndNoNetworkIsReachable() {
+        let manifest = ExternalGameManifest(id: "rpg.default.domains", name: "Default", version: "1.0.0", entry: "index.html", sha256: "x", signature: "y")
+        XCTAssertEqual(manifest.allowedDomains, [])
+        let root = URL(fileURLWithPath: "/tmp/sandbox/packages/rpg.default.domains", isDirectory: true)
+        for url in ["https://cdn.example.com/a.png", "https://example.com", "http://example.com/a.png"] {
+            XCTAssertFalse(ExternalGameSandboxPolicy.allowsNavigation(to: URL(string: url)!, packageRoot: root, manifest: manifest), url)
+        }
+        XCTAssertTrue(ExternalGameSandboxPolicy.contentSecurityPolicy(for: manifest).contains("default-src 'self'"))
+    }
+
+    func testBlockingAPackageAlsoBlocksItsCreatorAcrossRelaunch() throws {
+        let (store, tempDir) = makeTempStore()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let first = ExternalGameStore.makeSampleSignedArchive(id: "rpg.block.one", allowedDomains: [])
+        _ = try store.prepareImport(archive: first, source: .file(URL(fileURLWithPath: "/tmp/one.json")))
+        let installed = try store.confirmInstall()
+        XCTAssertNotNil(store.entryFileURL(for: installed))
+        store.activeLaunchingGame = installed
+
+        store.block(installed.manifest)
+        XCTAssertNil(store.activeLaunchingGame, "block closes the running game")
+        XCTAssertNil(store.entryFileURL(for: installed), "a blocked package cannot run")
+        XCTAssertTrue(store.isBlocked(installed.manifest))
+
+        let sibling = ExternalGameStore.makeSampleSignedArchive(id: "rpg.block.two", allowedDomains: [])
+        XCTAssertThrowsError(try store.prepareImport(archive: sibling, source: .file(URL(fileURLWithPath: "/tmp/two.json")))) {
+            XCTAssertEqual($0 as? ExternalGameValidationError, .blockedByUser(sibling.manifest.name))
+        }
+        XCTAssertNil(store.pendingConfirmation)
+
+        let relaunched = ExternalGameStore(rootDirectory: tempDir)
+        XCTAssertTrue(relaunched.isBlocked(installed.manifest))
+        XCTAssertThrowsError(try relaunched.prepareImport(archive: sibling, source: .file(URL(fileURLWithPath: "/tmp/two.json"))))
+
+        relaunched.unblock(installed.manifest)
+        XCTAssertFalse(relaunched.isBlocked(installed.manifest))
+        XCTAssertNoThrow(try relaunched.prepareImport(archive: sibling, source: .file(URL(fileURLWithPath: "/tmp/two.json"))))
+    }
+
+    func testReportSummaryNamesThePackageAndCreatorWithoutAnyEndpoint() {
+        let (store, tempDir) = makeTempStore()
+        defer { try? FileManager.default.removeItem(at: tempDir) }
+        let manifest = ExternalGameStore.makeSampleSignedArchive(id: "rpg.report.one", allowedDomains: ["cdn.example.com"]).manifest
+        let text = store.reportSummary(for: manifest)
+        for expected in ["id: rpg.report.one", "creator: Questify Workshop", "sha256: \(manifest.sha256)", "allowedDomains: cdn.example.com"] {
+            XCTAssertTrue(text.contains(expected), expected)
+        }
+        XCTAssertFalse(text.contains("http"), "no URL or support endpoint is invented")
+        XCTAssertFalse(text.contains("@"), "no email address is invented")
+    }
 }

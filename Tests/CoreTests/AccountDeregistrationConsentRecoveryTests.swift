@@ -81,6 +81,7 @@ private final class ConsentRecoveryHTTP: HTTPTransport {
         let captured = context
         client = AccountDeregistrationOriginalClient(context: captured, approval: approval, transport: http,
             current: { self.context }, stillApproved: { self.approved }, onUnauthorized: {})
+        client?.receiptSource = .resultEndpoint
     }
     nonisolated static var impact: [String: Any] {
         ["schemaVersion": 1, "actorId": 7, "revision": String(repeating: "a", count: 64),

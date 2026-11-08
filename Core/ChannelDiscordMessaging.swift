@@ -2962,7 +2962,11 @@ public struct ClubAdminSurfaceContractStatus: Equatable, Sendable, Identifiable 
     public let surfaceKey: String
     public let miniProgramRoute: String
     public let title: String
+    /// Routes verified to exist on the backend (AN-1 route table, MATCH only).
     public let backendEndpoints: [String]
+    /// Mini-program names the backend has no route for. Documentation only; nothing may dispatch these
+    /// (FP-E6). The surface stays gated until the backend ships a route.
+    public let nativeOnlyEndpoints: [String]
     public let isReadOnlyFallback: Bool
     public let flaggedOffFeatureNote: String?
 
@@ -2971,6 +2975,7 @@ public struct ClubAdminSurfaceContractStatus: Equatable, Sendable, Identifiable 
         miniProgramRoute: String,
         title: String,
         backendEndpoints: [String],
+        nativeOnlyEndpoints: [String] = [],
         isReadOnlyFallback: Bool = false,
         flaggedOffFeatureNote: String? = nil
     ) {
@@ -2978,6 +2983,7 @@ public struct ClubAdminSurfaceContractStatus: Equatable, Sendable, Identifiable 
         self.miniProgramRoute = miniProgramRoute
         self.title = title
         self.backendEndpoints = backendEndpoints
+        self.nativeOnlyEndpoints = nativeOnlyEndpoints
         self.isReadOnlyFallback = isReadOnlyFallback
         self.flaggedOffFeatureNote = flaggedOffFeatureNote
     }
@@ -2996,49 +3002,55 @@ public enum ClubTabAndAdminParityCatalog {
             surfaceKey: "club.detail",
             miniProgramRoute: "pages/club/detail/index",
             title: "俱乐部主页与内嵌频道",
-            backendEndpoints: ["api/club/detail", "api/club/channels"]
+            backendEndpoints: ["api/club/detail"],
+            nativeOnlyEndpoints: ["api/club/channels"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.apply_join",
             miniProgramRoute: "pages/club/apply/index",
             title: "加入/申请加入俱乐部",
-            backendEndpoints: ["api/club/join", "api/club/join-requests/apply", "api/club/quit"]
+            backendEndpoints: ["api/club/join", "api/club/quit"],
+            nativeOnlyEndpoints: ["api/club/join-requests/apply"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.enroll",
             miniProgramRoute: "pages/club/enroll/index",
             title: "俱乐部活动报名与候补",
-            backendEndpoints: ["api/club/activity/join", "api/club/activity/cancel", "api/club/activity/detail"]
+            backendEndpoints: [],
+            nativeOnlyEndpoints: ["api/club/activity/join", "api/club/activity/cancel", "api/club/activity/detail"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.create_edit",
             miniProgramRoute: "pages/club/create/index",
             title: "创建与编辑俱乐部",
-            backendEndpoints: ["api/club/create", "api/club/update"]
+            backendEndpoints: ["api/club/create"],
+            nativeOnlyEndpoints: ["api/club/update"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.roles",
             miniProgramRoute: "pages/club/roles/index",
             title: "角色与权限委派",
-            backendEndpoints: ["api/club/roles", "api/club/roles/assign", "api/club/roles/revoke"]
+            backendEndpoints: ["api/club/roles/list", "api/club/roles/assign", "api/club/roles/revoke"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.badges",
             miniProgramRoute: "pages/club/badges/index",
             title: "俱乐部徽章与成长体系",
-            backendEndpoints: ["api/club/badges", "api/club/badges/save", "api/club/badges/grant"]
+            backendEndpoints: ["api/club/badge/list", "api/club/badge/create", "api/club/badge/grant"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.notices",
             miniProgramRoute: "pages/club/notify/index",
             title: "俱乐部公告与通知历史",
-            backendEndpoints: ["api/club/notices", "api/club/notices/send"]
+            backendEndpoints: [],
+            nativeOnlyEndpoints: ["api/club/notices", "api/club/notices/send"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.group_code",
             miniProgramRoute: "pages/club/group-code/index",
             title: "俱乐部入群码配置",
-            backendEndpoints: ["api/club/group-code", "api/club/group-code/save"]
+            backendEndpoints: [],
+            nativeOnlyEndpoints: ["api/club/group-code", "api/club/group-code/save"]
         )
     ]
 
@@ -3048,20 +3060,22 @@ public enum ClubTabAndAdminParityCatalog {
             surfaceKey: "club.admin.workbench",
             miniProgramRoute: "pages/club/workbench/index",
             title: "主理人工作台（统一收敛至俱乐部管理 Tab）",
-            backendEndpoints: ["api/club/workbench", "api/club/detail?tab=manage"]
+            backendEndpoints: ["api/club/detail"],
+            nativeOnlyEndpoints: ["api/club/workbench"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.admin.customers",
             miniProgramRoute: "pages/club/customers/index",
             title: "客户资产与精细化CRM画像（只读视图）",
-            backendEndpoints: ["api/club/customers", "api/club/customers/summary"],
+            backendEndpoints: ["api/club/crm/customers/list", "api/club/crm/customers/count"],
             isReadOnlyFallback: true
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.admin.event_ops",
             miniProgramRoute: "pages/club/event-ops/index",
             title: "赛事/活动排期、核销与代报",
-            backendEndpoints: [
+            backendEndpoints: [],
+            nativeOnlyEndpoints: [
                 "api/club/events",
                 "api/club/events/save",
                 "api/club/events/Checkin",
@@ -3072,13 +3086,14 @@ public enum ClubTabAndAdminParityCatalog {
             surfaceKey: "club.admin.join_requests",
             miniProgramRoute: "pages/club/join-requests/index",
             title: "入会申请审批队列",
-            backendEndpoints: ["api/club/join-requests", "api/club/join-requests/review"]
+            backendEndpoints: ["api/club/join-requests", "api/club/join-request/approve", "api/club/join-request/reject"]
         ),
         ClubAdminSurfaceContractStatus(
             surfaceKey: "club.admin.settlement",
             miniProgramRoute: "pages/club/settlement/index",
             title: "俱乐部收支与结算流水（只读对账）",
-            backendEndpoints: ["api/club/settlements", "api/club/settlements/export"],
+            backendEndpoints: [],
+            nativeOnlyEndpoints: ["api/club/settlements", "api/club/settlements/export"],
             isReadOnlyFallback: true,
             flaggedOffFeatureNote: "pages/coop/withdraw 银行卡提现已按规范 Flagged Off，仅保留俱乐部结算单与订单分成只读核对。"
         )
