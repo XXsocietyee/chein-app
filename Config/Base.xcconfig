@@ -13,7 +13,7 @@ INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
 INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight
 CODE_SIGN_STYLE = Automatic
-// No ATS relaxation, credentials, service endpoints, capabilities, or entitlements.
+// No ATS relaxation, credentials, or service endpoints. The only entitlement is Sign in with Apple (Config/Questify.entitlements, set on the app target).
 
 // Set only an approved public API base URL; never put secrets in build settings.
 QUESTIFY_MARKET = CN

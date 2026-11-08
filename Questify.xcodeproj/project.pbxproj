@@ -41329,6 +41329,7 @@
 				"FRAMEWORK_SEARCH_PATHS" = "$(inherited) $(BUILT_PRODUCTS_DIR)";
 				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks";
 				"SWIFT_OBJC_BRIDGING_HEADER" = "$(SRCROOT)/App/Questify-Bridging-Header.h";
+				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-Onone";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf";
 				"SWIFT_ACTIVE_COMPILATION_CONDITIONS" = "DEBUG $(inherited)";
@@ -41346,6 +41347,7 @@
 				"FRAMEWORK_SEARCH_PATHS" = "$(inherited) $(BUILT_PRODUCTS_DIR)";
 				"LD_RUNPATH_SEARCH_PATHS" = "$(inherited) @executable_path/Frameworks";
 				"SWIFT_OBJC_BRIDGING_HEADER" = "$(SRCROOT)/App/Questify-Bridging-Header.h";
+				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
 				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift";
