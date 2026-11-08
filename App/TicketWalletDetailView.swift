@@ -17,10 +17,10 @@ import SwiftUI
     var body: some View {
         let offeredPresentation = model.presentation
         List {
-            if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
+            if reader.isOfflineExample { Text("ticketWallet.offlineExample").font(CYTypography.caption) }
             if !reader.isAuthenticated { TicketWalletIssueView(issue: .login) }
             else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedOwner != key { ProgressView("ticketWallet.loading") }
+            else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("ticketWallet.loading")) }
             else if let issue = model.issue(owner: key) {
                 TicketWalletIssueView(issue: issue, retry: { schedule(offeredPresentation) })
             } else if let ticket = model.value(owner: key), ticket.id == id {
@@ -35,12 +35,15 @@ import SwiftUI
                    playEntry.canOpen(ticket: ticket, requestedID: id, reader: reader, provider: playProvider) {
                     let presentationID = playEntry.presentationID
                     Section {
-                        Button("playerJourney.start", systemImage: "play.fill") {
+                        Button {
                             guard !model.isLoading, model.value(owner: key) == ticket,
                                   playReadOwner == playProvider.owner else { return }
                             playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: playProvider,
                                                presentationID: presentationID)
-                        }.accessibilityIdentifier("ticketWallet.play.open")
+                        } label: { Label("playerJourney.start", systemImage: "play.fill") }
+                        .buttonStyle(.cyPrimary(fullWidth: true))
+                        .listRowBackground(Color.clear)
+                        .accessibilityIdentifier("ticketWallet.play.open")
                     }
                 }
                 if [ticket.registrationNumber, ticket.realName, ticket.phone, ticket.verificationTime].contains(where: { $0?.isEmpty == false }) {
@@ -241,15 +244,15 @@ private struct TicketWalletDetailHeader: View {
                 TicketWalletStatusBadge(status: ticket.status)
                 if !expiry.isEmpty {
                     Text(verbatim: c.tr(expiry))
-                        .font(.caption.weight(.semibold))
+                        .font(CYTypography.caption)
                         .foregroundStyle(CYColor.warningText)
                 }
                 Spacer(minLength: 0)
                 Image(systemName: "ticket")
-                    .font(.title).foregroundStyle(QuestifyPalette.accent).accessibilityHidden(true)
+                    .font(CYTypography.sheetTitle).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
             }
             TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                .font(.title2.weight(.bold)).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.sheetTitle).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("ticketWallet.detail.title")
             if let date = ticket.participateDate, !date.isEmpty {
                 QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
@@ -259,7 +262,7 @@ private struct TicketWalletDetailHeader: View {
             }
             if let notice = fulfillment.fulfillmentNotice {
                 Text(verbatim: c.tr(notice))
-                    .font(.caption)
+                    .font(CYTypography.caption)
                     .foregroundStyle(CYColor.textSecondary)
             }
         }
@@ -287,7 +290,7 @@ private struct TicketWalletEntitlementRow: View {
                     else if let id = entitlement.chapterID { Text("ticketWallet.chapter"); Text(verbatim: String(id)) }
                     else { Text("ticketWallet.unnamedChapter") }
                 }
-                .font(.headline).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
                 if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
                 Label {
                     if let label = entitlement.statusLabel { Text(verbatim: label) }

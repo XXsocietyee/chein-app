@@ -26,7 +26,7 @@ import SwiftUI
     private var coordinator: OrderLifecycleCoordinator { model.coordinator }
     var body: some View {
         List {
-            if coordinator.isOfflineExample { Text("orderLifecycle.offline").font(.footnote).accessibilityIdentifier("orderLifecycle.offline") }
+            if coordinator.isOfflineExample { Text("orderLifecycle.offline").font(CYTypography.meta).accessibilityIdentifier("orderLifecycle.offline") }
             if let issue = coordinator.issue {
                 Section {
                     Label {
@@ -42,7 +42,7 @@ import SwiftUI
                 }
             }
             if coordinator.accountID == nil { Text("orderLifecycle.issue.login") }
-            else if coordinator.isLoading { ProgressView("orderLifecycle.loading") }
+            else if coordinator.isLoading { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("orderLifecycle.loading")) }
             else if let detail = coordinator.detail, detail.id == id {
                 summary(detail)
                 payment(detail)
@@ -55,7 +55,7 @@ import SwiftUI
                     }.accessibilityIdentifier("orderLifecycle.pass.open")
                 }
             }
-            Section { Text("orderLifecycle.production.caution").font(.footnote).foregroundStyle(.secondary) }
+            Section { Text("orderLifecycle.production.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .listStyle(.insetGrouped)
         .appNavigationTitle("orderLifecycle.title")
@@ -93,26 +93,27 @@ import SwiftUI
         return Section {
             VStack(alignment: .leading, spacing: 12) {
                 Label(LocalizedStringKey("orderLifecycle.state." + state.state.rawValue), systemImage: "ticket")
-                    .font(.subheadline.weight(.semibold)).accessibilityIdentifier("orderLifecycle.state")
-                if let title = detail.title, !title.isEmpty { Text(verbatim: title).font(.title2.bold()) }
-                else { Text("orderLifecycle.untitled").font(.title2.bold()) }
-                if let reason = state.serverReason { Text(verbatim: reason).foregroundStyle(.secondary) }
-                else { Text(LocalizedStringKey(state.explanationKey)).foregroundStyle(.secondary) }
+                    .font(CYTypography.label).accessibilityIdentifier("orderLifecycle.state")
+                if let title = detail.title, !title.isEmpty { Text(verbatim: title).font(CYTypography.sheetTitle) }
+                else { Text("orderLifecycle.untitled").font(CYTypography.sheetTitle) }
+                if let reason = state.serverReason { Text(verbatim: reason).foregroundStyle(CYColor.textSecondary) }
+                else { Text(LocalizedStringKey(state.explanationKey)).foregroundStyle(CYColor.textSecondary) }
                 if let notice = fulfillment.fulfillmentNotice {
-                    Text(verbatim: c.tr(notice)).font(.caption).foregroundStyle(.secondary)
+                    Text(verbatim: c.tr(notice)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                 }
             }.fixedSize(horizontal: false, vertical: true).padding(.vertical, 8)
             OrderLifecycleField(label: "orderLifecycle.number", value: detail.registrationNumber)
             OrderLifecycleField(label: "orderLifecycle.ticket", value: detail.ticketName)
-            LabeledContent("orderLifecycle.amount") { AmountLabel(amount: detail.payableAmount) }
+            LabeledContent("orderLifecycle.amount") { AmountLabel(amount: detail.payableAmount).font(CYTypography.numericBody) }
         }
+        .listRowBackground(CYColor.bgSurface)
     }
     private func payment(_ detail: OrderLifecycleDetail) -> some View {
         let observation = OrderPaymentObservation(payment: detail.paymentStatus, registration: detail.registrationStatus)
         return Section("orderLifecycle.payment.title") {
             Text(LocalizedStringKey("orderLifecycle.payment." + observation.rawValue))
                 .accessibilityIdentifier("orderLifecycle.payment.observation")
-            Text("orderLifecycle.payment.caution").font(.footnote).foregroundStyle(.secondary)
+            Text("orderLifecycle.payment.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             OrderLifecycleField(label: "orderLifecycle.payment.deadline", value: detail.payExpireTime)
         }
     }
@@ -122,12 +123,12 @@ import SwiftUI
                 Label {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(LocalizedStringKey(row.labelKey))
-                        if let time = row.time { Text(verbatim: time).font(.caption).foregroundStyle(.secondary) }
+                        if let time = row.time { Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
                     }.fixedSize(horizontal: false, vertical: true)
                 } icon: { Image(systemName: row.done ? "checkmark.circle" : "clock").accessibilityHidden(true) }
                     .accessibilityIdentifier("orderLifecycle.timeline." + row.id)
             }
-            Text("orderLifecycle.timeline.zone").font(.caption).foregroundStyle(.secondary)
+            Text("orderLifecycle.timeline.zone").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
     @ViewBuilder private func refund(_ detail: OrderLifecycleDetail) -> some View {
@@ -142,20 +143,23 @@ import SwiftUI
                     LabeledContent(c.t("退款进度", "Refund status")) {
                         Text(verbatim: c.tr(payout.label))
                     }
-                    Text(verbatim: c.tr(payout.hint)).font(.footnote).foregroundStyle(.secondary)
+                    Text(verbatim: c.tr(payout.hint)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
                 OrderLifecycleField(label: "orderLifecycle.refund.reason", value: detail.refundReason)
                 OrderLifecycleField(label: "orderLifecycle.refund.deadline", value: detail.refundDeadline)
                 if let amount = detail.refundApplication?.amount { LabeledContent("orderLifecycle.refund.amount") { AmountLabel(amount: amount) } }
-                Text("orderLifecycle.refund.caution").font(.footnote).foregroundStyle(.secondary)
+                Text("orderLifecycle.refund.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
     }
     private func actions(_ detail: OrderLifecycleDetail) -> some View {
         Section("orderLifecycle.actions") {
+            let reviewable = OrderLifecycleAction.allCases.filter { OrderLifecycleCoordinator.isReviewable($0, detail: detail) }
             ForEach(OrderLifecycleAction.allCases, id: \.self) { action in
                 if OrderLifecycleCoordinator.isReviewable(action, detail: detail) {
                     Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
+                        .buttonStyle(CYOrderActionButtonStyle(primary: action == reviewable.first))
+                        .listRowBackground(Color.clear)
                         .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
                         .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
                 }
@@ -188,7 +192,7 @@ struct OrderLifecycleField: View {
     var body: some View {
         if let value, !value.isEmpty {
             if size.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: 4) { Text(label).foregroundStyle(.secondary); Text(verbatim: value) }
+                VStack(alignment: .leading, spacing: 4) { Text(label).foregroundStyle(CYColor.textSecondary); Text(verbatim: value) }
                     .fixedSize(horizontal: false, vertical: true)
             } else { LabeledContent(label) { Text(verbatim: value).fixedSize(horizontal: false, vertical: true) } }
         }
@@ -214,8 +218,7 @@ struct OrderLifecycleField: View {
                     if canDispatch {
                         if review.action == .payment {
                             Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), action: confirm)
-                                .buttonStyle(.questifyPrimary)
-                                .frame(maxWidth: .infinity)
+                                .buttonStyle(.cyPrimary(fullWidth: true))
                                 .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
                         } else {
@@ -236,5 +239,32 @@ struct OrderLifecycleField: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+}
+
+/// One white primary CTA per screen; every other action is a quiet secondary button.
+private struct CYOrderActionButtonStyle: ButtonStyle {
+    let primary: Bool
+    func makeBody(configuration: Configuration) -> some View {
+        Group {
+            if primary { configuration.label.modifier(CYOrderActionPrimaryLabel()) }
+            else { configuration.label.modifier(CYOrderActionSecondaryLabel()) }
+        }
+        .scaleEffect(configuration.isPressed ? 0.97 : 1)
+        .opacity(configuration.isPressed ? 0.85 : 1)
+    }
+}
+private struct CYOrderActionPrimaryLabel: ViewModifier {
+    func body(content: Content) -> some View {
+        content.font(CYTypography.label).foregroundStyle(CYColor.textOnAccent)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(CYColor.accent, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+    }
+}
+private struct CYOrderActionSecondaryLabel: ViewModifier {
+    func body(content: Content) -> some View {
+        content.font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+            .frame(maxWidth: .infinity, minHeight: 50)
+            .background(CYColor.actionSecondary, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
     }
 }
