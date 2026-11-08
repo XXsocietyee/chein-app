@@ -64,5 +64,18 @@ class FPA3ClubChannelMessaging(unittest.TestCase):
         self.assertIn('.fixedSize(horizontal: false, vertical: true)', top)
 
 
+class FPA4ActivityDetail(unittest.TestCase):
+    def test_map_is_static_and_has_value(self):
+        s = src('App/ActivityDetailView.swift')
+        self.assertIn('interactionModes:[]', s)
+        self.assertIn('.accessibilityValue(Text(verbatim:ActivityLocationAccessibility.value(', s)
+
+    def test_sheets_have_detent_and_indicator_and_labelled_close(self):
+        s = src('App/ActivityDetailView.swift')
+        self.assertGreaterEqual(s.count('.presentationDragIndicator(.visible)'), 2)
+        self.assertIn('Button("action.close"', src('App/RegistrationSheetView.swift'))
+        self.assertIn('Button("action.close", action: onClose)', src('App/TicketWalletView.swift'))
+
+
 if __name__ == '__main__':
     unittest.main()
