@@ -339,7 +339,7 @@ import SwiftUI
                             Button("contextPublish.mode.choose") { modeReview.open() }
                                 .disabled(!model.fullEdit || model.coordinator.session == nil || model.draft.owner == .merchant).accessibilityIdentifier("contextPublish.mode.open")
                         }
-                        if modeCopyFailed { Text("contextPublish.mode.failed").foregroundStyle(.red) }
+                        if modeCopyFailed { Text("contextPublish.mode.failed").foregroundStyle(CYColor.dangerText) }
                     }
                 }
                 if model.hasRestore {
@@ -398,10 +398,10 @@ import SwiftUI
                         ForEach(issueRows) { row in
                             if let capture = row.capture {
                                 Button { focusedField = nil; issueNavigation.open(capture) } label: {
-                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                                    Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
                                 }.accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             } else {
-                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(.red)
+                                Label(LocalizedStringKey(row.issue.key), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText)
                                     .accessibilityIdentifier("projectEdit.issue." + row.issue.id)
                             }
                         }
@@ -672,7 +672,7 @@ struct ProjectEditReferenceField: View {
                     // Invalid text clears selection; review must not silently send old IDs.
                     selection = invalid ? [] : ids
                 }
-            if invalid { Text("projectEdit.validation.categories").font(.footnote).foregroundStyle(.red) }
+            if invalid { Text("projectEdit.validation.categories").font(.footnote).foregroundStyle(CYColor.dangerText) }
             if let categoryModel { ProjectCategoryPickerEntry(model: categoryModel) }
         }.onAppear { text = selection.map(String.init).joined(separator: ",") }
             .onChange(of: selection) { _, value in if !focused { text = value.map(String.init).joined(separator: ",") } }

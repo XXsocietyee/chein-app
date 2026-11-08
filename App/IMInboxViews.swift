@@ -67,8 +67,8 @@ struct IMUnreadBadge: View {
             Text(verbatim: text)
                 .font(.caption2.weight(.semibold)).monospacedDigit()
                 .padding(.horizontal, 6).padding(.vertical, 2)
-                .foregroundStyle(muted ? Color.secondary : Color.white)
-                .background(Capsule().fill(muted ? Color.secondary.opacity(0.25) : Color.red))
+                .foregroundStyle(muted ? Color.secondary : CYColor.textOnAccent)
+                .background(Capsule().fill(muted ? Color.secondary.opacity(0.25) : CYColor.dangerSolid))
                 .accessibilityLabel(Text("messaging.unread"))
                 .accessibilityValue(Text(verbatim: text))
         }

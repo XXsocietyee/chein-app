@@ -37,9 +37,10 @@ private struct ProfileOrderFilterChip: View {
     var body: some View {
         Button(action: choose) {
             Text(LocalizedStringKey(filter.chipTitleKey)).font(.subheadline)
-                .padding(.horizontal, 12).frame(minHeight: 32)
-                .background(Capsule().fill(isSelected ? Color.accentColor : Color.secondary.opacity(0.15)))
-                .foregroundStyle(isSelected ? Color.white : Color.primary)
+                .padding(.horizontal, 12).frame(minHeight: CYSpacing.minTouchTarget)
+                .background(Capsule().fill(isSelected ? CYColor.accent : Color.secondary.opacity(0.15)))
+                .foregroundStyle(isSelected ? CYColor.textOnAccent : Color.primary)
+                .contentShape(Capsule())
         }
         .buttonStyle(.plain)
         .accessibilityAddTraits(isSelected ? .isSelected : [])

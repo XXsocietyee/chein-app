@@ -652,7 +652,7 @@ enum TemplateBasicClearField {
         Button(action: controller.clearAction()) {
             if iconOnly {
                 Image(systemName: "xmark.circle.fill").foregroundStyle(.secondary).imageScale(.large)
-                    .frame(minWidth: 32, minHeight: 32)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
             } else {
                 Label { Text(verbatim: controller.field.label(locale)) } icon: { Image(systemName: "xmark.circle") }
             }

@@ -69,4 +69,12 @@ final class AccessibilityHardeningWaveTests: XCTestCase {
         LocalPasteboard.copy("x", lifetime: 30, now: now, to: board)
         XCTAssertEqual(board.options[.expirationDate] as? Date, now.addingTimeInterval(30))
     }
+
+    // FP-M12
+    func testReduceMotionSlowsTickingViews() {
+        XCTAssertEqual(RoamLiveTick.interval(reduceMotion: false), 1)
+        XCTAssertGreaterThan(RoamLiveTick.interval(reduceMotion: true), RoamLiveTick.interval(reduceMotion: false))
+        XCTAssertEqual(PlayStopwatchTick.interval(reduceMotion: false), 0.05)
+        XCTAssertGreaterThan(PlayStopwatchTick.interval(reduceMotion: true), PlayStopwatchTick.interval(reduceMotion: false))
+    }
 }

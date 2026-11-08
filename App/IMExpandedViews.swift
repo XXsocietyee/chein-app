@@ -802,6 +802,7 @@ private extension IMOutgoingPayload {
                             .onMapCameraChange(frequency:.onEnd) { context in
                                 guard available,consented else{return};renderedCenter=context.region.center
                             }
+                            .accessibilityAddTraits(.allowsDirectInteraction)
                             .onTapGesture { point in
                                 guard available,consented,let coordinate=proxy.convert(point,from:.local) else { selectionUnavailable=true;return }
                                 choose(coordinate)

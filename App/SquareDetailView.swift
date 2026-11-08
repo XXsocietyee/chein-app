@@ -231,7 +231,7 @@ import SwiftUI
                                     .accessibilityIdentifier("square.delete.commentEntry.\(comment.id)")
                             }
                         } label: {
-                            Label("social.actions", systemImage: "ellipsis").labelStyle(.iconOnly).frame(minWidth: 44, minHeight: 32)
+                            Label("social.actions", systemImage: "ellipsis").labelStyle(.iconOnly).frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
                         }
                         .buttonStyle(.borderless)
                         .accessibilityIdentifier("social.comment.actions.\(comment.id)")

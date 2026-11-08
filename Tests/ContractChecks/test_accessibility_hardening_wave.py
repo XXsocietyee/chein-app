@@ -196,5 +196,66 @@ class FPX1NoReleasePrint(unittest.TestCase):
         self.assertEqual(lint.findings_for('#if DEBUG\n#if os(iOS)\nprint("x")\n#endif\n#endif'), [])
 
 
+class FPM12TapTargetsTokensTraits(unittest.TestCase):
+    def test_controls_meet_44pt_via_token(self):
+        for path, forbidden in (
+                ('App/SquareDetailView.swift', 'minWidth: 44, minHeight: 32'),
+                ('App/ProfileOrderFilterSection.swift', 'minHeight: 32'),
+                ('App/TemplateAuthoringView.swift', 'minWidth: 32, minHeight: 32'),
+                ('App/MapPublicLayerSectionView.swift', 'minHeight: 36'),
+                ('App/RoamLiveSessionView.swift', 'minHeight: 30')):
+            s = src(path)
+            self.assertNotIn(forbidden, s, path)
+            self.assertIn('CYSpacing.minTouchTarget', s, path)
+
+    def test_filter_chip_has_selected_trait_and_tokens(self):
+        s = src('App/ProfileOrderFilterSection.swift')
+        self.assertIn('.accessibilityAddTraits(isSelected ? .isSelected : [])', s)
+        self.assertIn('CYColor.textOnAccent', s)
+        self.assertNotIn('Color.white', s)
+        self.assertNotIn('Color.accentColor', s)
+
+    def test_off_token_status_colours_replaced(self):
+        for path in ('App/TeamMeetingHandshakeSectionView.swift', 'App/MerchantGameNodeView.swift',
+                     'App/PublishingModesViews.swift', 'App/ProjectEditView.swift'):
+            s = src(path)
+            for bad in ('.foregroundStyle(.red)', '.foregroundStyle(.orange)', '.foregroundStyle(.green)',
+                        'Color.red', 'Color.orange', 'Color.green'):
+                self.assertNotIn(bad, s, path + ' ' + bad)
+        self.assertIn('CYColor.dangerText', src('App/PublishingModesViews.swift'))
+
+    def test_badge_and_route_labels_use_tokens(self):
+        self.assertNotIn('Color.white', src('App/IMInboxViews.swift'))
+        self.assertIn('CYColor.textOnAccent', src('App/IMInboxViews.swift'))
+        route = src('App/PlayRouteMapView.swift')
+        self.assertIn('stop.state == .current ? CYColor.textOnAccent : Color.primary', route)
+        self.assertIn('stop.state == .current ? CYColor.accent :', route)
+
+    def test_coordinate_pickers_offer_non_gesture_alternative(self):
+        im = src('App/IMExpandedViews.swift')
+        self.assertIn('"d7.imMap.useCenter"', im)
+        self.assertIn('.accessibilityAddTraits(.allowsDirectInteraction)', im)
+        desk = src('App/MerchantDeskAnchorSection.swift')
+        self.assertIn('"d7.imMap.useCenter"', desk)
+        self.assertIn('merchant.desk.anchor.useCenter', desk)
+        self.assertIn('.onMapCameraChange(frequency:.onEnd)', desk)
+
+    def test_turntable_is_a_button_with_action(self):
+        s = src('App/ObjectBadgeViews.swift')
+        self.assertIn('.accessibilityAddTraits(.isButton)', s)
+        self.assertIn('.accessibilityAction {', s)
+
+    def test_ticking_views_honour_reduce_motion(self):
+        self.assertIn('RoamLiveTick.interval(reduceMotion: reduceMotion)', src('App/RoamLiveSessionView.swift'))
+        stopwatch = src('App/PlayDeviceTaskViews.swift')
+        self.assertIn('PlayStopwatchTick.interval(reduceMotion: reduceMotion)', stopwatch)
+        self.assertIn('.accessibilityAddTraits(.updatesFrequently)', stopwatch)
+
+    def test_pinned_palette_files_unchanged(self):
+        # Contrast-verified literals pinned by test_map_visual_foundation.py; FP-M12 intentionally leaves them.
+        self.assertIn('red:109.0/255,green:40.0/255,blue:217.0/255', src('App/QuestifyPalette.swift'))
+        self.assertIn('red: 0.0, green: 0.28, blue: 0.65', src('App/SearchMapCanvas.swift'))
+
+
 if __name__ == '__main__':
     unittest.main()

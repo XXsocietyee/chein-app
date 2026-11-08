@@ -93,7 +93,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             HStack(spacing: 8) {
                 Text(verbatim: banner.advisoryStatusText)
                     .font(.caption)
-                    .foregroundStyle(banner.hint == .likelyClosed ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
+                    .foregroundStyle(banner.hint == .likelyClosed ? AnyShapeStyle(CYColor.warningText) : AnyShapeStyle(.secondary))
                     .accessibilityIdentifier("w16.deadline.advisory")
                 Spacer()
                 if banner.allowsSubmission {
@@ -154,7 +154,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "当前动态二维码载荷（有效）")
                         .font(.caption.weight(.semibold))
-                        .foregroundStyle(.green)
+                        .foregroundStyle(CYColor.successText)
                     Text(verbatim: payload)
                         .font(.caption2.monospaced())
                         .lineLimit(1)
@@ -164,7 +164,7 @@ public struct TeamMeetingHandshakeSectionView: View {
             } else if card.phase == .handshaking && card.isChallengeExpired {
                 Text(verbatim: "动态二维码已过期或未签发，请刷新后再出示")
                     .font(.caption)
-                    .foregroundStyle(.orange)
+                    .foregroundStyle(CYColor.warningText)
                     .accessibilityIdentifier("w16.meeting.qrExpiredNotice")
             }
 
@@ -204,7 +204,7 @@ public struct TeamMeetingHandshakeSectionView: View {
 
             Text(verbatim: card.isReviewValid ? "名单复核有效，可发送邀请" : "选择变更后需重新复核名单")
                 .font(.subheadline.weight(.medium))
-                .foregroundStyle(card.isReviewValid ? AnyShapeStyle(.primary) : AnyShapeStyle(.orange))
+                .foregroundStyle(card.isReviewValid ? AnyShapeStyle(.primary) : AnyShapeStyle(CYColor.warningText))
                 .accessibilityIdentifier("w16.invite.reviewStatus")
 
             Text(verbatim: "发送汇总：已发 \(card.summary.sent) · 待重试 \(card.summary.retryable) · 未明 \(card.summary.unknown) · 已撤回 \(card.summary.revoked)")
@@ -216,7 +216,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: "存在结果未明受邀人（\(card.unknownRecipientIds.joined(separator: ", "))），重试前必须先回读服务端状态。")
                         .font(.caption)
-                        .foregroundStyle(.orange)
+                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("w16.invite.unknownReadbackGate")
                     if let onReadbackUnknownInvites {
                         Button(action: { onReadbackUnknownInvites(card.unknownRecipientIds) }) {
@@ -241,7 +241,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                     Spacer()
                     Text(verbatim: row.statusBadgeText)
                         .font(.caption)
-                        .foregroundStyle(row.isRetryable ? AnyShapeStyle(.orange) : AnyShapeStyle(.secondary))
+                        .foregroundStyle(row.isRetryable ? AnyShapeStyle(CYColor.warningText) : AnyShapeStyle(.secondary))
                 }
                 .accessibilityIdentifier("w16.invite.row.\(row.friendId)")
             }
@@ -276,7 +276,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                     .foregroundStyle(.secondary)
                 Text(verbatim: badge.statusText)
                     .font(.subheadline.weight(.medium))
-                    .foregroundStyle(badge.isRevokeFinal ? AnyShapeStyle(.red) : AnyShapeStyle(.primary))
+                    .foregroundStyle(badge.isRevokeFinal ? AnyShapeStyle(CYColor.dangerText) : AnyShapeStyle(.primary))
                     .accessibilityIdentifier("w16.revoke.statusText")
             }
             Spacer()
@@ -285,7 +285,7 @@ public struct TeamMeetingHandshakeSectionView: View {
                     .font(.caption2.weight(.semibold))
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Capsule().fill(Color.red.opacity(0.15)))
+                    .background(Capsule().fill(CYColor.dangerText.opacity(0.15)))
                     .accessibilityIdentifier("w16.revoke.finalBadge")
             }
         }

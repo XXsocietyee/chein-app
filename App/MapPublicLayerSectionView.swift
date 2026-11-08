@@ -98,7 +98,7 @@ import SwiftUI
                     }
                     .buttonStyle(.bordered)
                     .tint(isSelected ? .accentColor : .secondary)
-                    .frame(minHeight: 36)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("mapPublicLayers.toggle.\(source)")
                 }
             }
@@ -222,7 +222,7 @@ import SwiftUI
                     )
                     .font(.caption)
                 }
-                .frame(minHeight: 36)
+                .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("mapPublicLayers.select.\(item.key.type.rawValue).\(item.key.id)")
 
                 if item.key.type == .store,
@@ -244,7 +244,7 @@ import SwiftUI
                         Label("searchMap.routePreview", systemImage: "location.north.line")
                             .font(.caption)
                     }
-                    .frame(minHeight: 36)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .accessibilityIdentifier("mapPublicLayers.navigate.store.\(storeID)")
                 }
             }
