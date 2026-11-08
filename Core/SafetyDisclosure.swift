@@ -193,3 +193,30 @@ public enum PresenceReviewOutcome: Equatable {
         }
     }
 }
+
+// MARK: Disclosure policy (WP-07)
+
+/// Decides which fixed disclosures a real screen must show. Presentation only: it performs no
+/// request, grants no approval and never decides that a node is safe or a payment is allowed.
+public struct SafetyDisclosurePolicy: Equatable {
+    /// Copy key for the "nothing is paid or deducted automatically" clause shown beside a pay action.
+    public static let noAutoFundsKey = "opsSafety.pay.noAutoFunds"
+
+    public let surface: AIIdentitySurface
+    /// Server-provided node safety, or nil when no signal has arrived.
+    public let nodeSafety: OfflineNodeSafetyState?
+    public let hasPayAction: Bool
+
+    public init(surface: AIIdentitySurface, nodeSafety: OfflineNodeSafetyState? = nil, hasPayAction: Bool = false) {
+        self.surface = surface; self.nodeSafety = nodeSafety; self.hasPayAction = hasPayAction
+    }
+
+    /// Every AI reply or draft carries the identity disclosure, whatever else is present.
+    public var aiIdentity: AIIdentityDisclosure { AIIdentityDisclosure(surface: surface) }
+
+    /// No signal is never treated as open or safe.
+    public var effectiveNodeSafety: OfflineNodeSafetyState { nodeSafety ?? .unknown }
+
+    /// Shown before a pay action only; nil when the screen has none.
+    public var noAutoFundsClauseKey: String? { hasPayAction ? Self.noAutoFundsKey : nil }
+}
