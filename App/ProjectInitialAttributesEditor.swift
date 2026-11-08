@@ -149,7 +149,7 @@ import SwiftUI
                         Button { controller.add(in: original); invalid = false } label: { text("add") }
                             .disabled(buffer.rows.count >= 32).accessibilityIdentifier("projectInitialAttributes.add")
                         text("keysHint").font(.caption)
-                        if invalid { text("invalid").foregroundStyle(.red).accessibilityIdentifier("projectInitialAttributes.invalid") }
+                        if invalid { text("invalid").foregroundStyle(CYColor.dangerText).accessibilityIdentifier("projectInitialAttributes.invalid") }
                     }
                 } else { text("unsupported") }
             }

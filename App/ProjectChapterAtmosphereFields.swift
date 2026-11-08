@@ -101,7 +101,7 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
                             .padding(14).frame(minWidth: 112, maxWidth: 160, minHeight: 112, alignment: .leading)
                             .foregroundStyle(color(preset.foregroundRGB))
                             .background(color(preset.backgroundRGB), in: RoundedRectangle(cornerRadius: 12))
-                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.primary.opacity(selected == preset ? 1 : 0.25), lineWidth: selected == preset ? 3 : 1))
+                            .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder((selected == preset ? CYColor.borderStrong : CYColor.borderSubtle), lineWidth: selected == preset ? 3 : 1))
                             .padding(2)
                         }
                         .buttonStyle(.plain).disabled(captured == nil)
@@ -122,7 +122,7 @@ struct ProjectChapterAtmosphereHostIdentity: Hashable {
                 .frame(maxWidth: .infinity, alignment: .leading).padding()
                 .foregroundStyle(color(selected.foregroundRGB))
                 .background(color(selected.backgroundRGB), in: RoundedRectangle(cornerRadius: 12))
-                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(Color.primary.opacity(0.25)))
+                .overlay(RoundedRectangle(cornerRadius: 12).strokeBorder(CYColor.borderSubtle))
                 .accessibilityIdentifier("projectChapterAtmosphere.preview")
             }
             if let chapter = controller.chapter, !ProjectChapterAtmosphere.canSubmit(chapter) {

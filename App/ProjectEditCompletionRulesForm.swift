@@ -23,7 +23,7 @@ struct ProjectEditCompletionRulesForm: View {
                 }
                 Toggle("projectEdit.completion.enabled", isOn: $rules.bingoEnabled)
                     .accessibilityIdentifier("projectEdit.completion.enabled")
-                if let key = rules.validationIssue(totalNodes: totalNodes) { Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle").foregroundStyle(.red) }
+                if let key = rules.validationIssue(totalNodes: totalNodes) { Label(LocalizedStringKey(key), systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
                 if rules.bingoEnabled, rules.cells.count == 9 {
                     ForEach(ProjectEditCompletionRules.displayOrder, id: \.self) { position in
                         DisclosureGroup {
