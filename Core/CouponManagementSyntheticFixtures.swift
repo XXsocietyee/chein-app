@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 public enum CouponManagementSyntheticFixtures {
     public static let published = Data(#"{"code":200,"data":[{"id":710,"name":"Synthetic gift coupon","description":"Example only","couponType":0,"status":1,"publishCount":20,"receiveCount":3,"useCount":1,"startTime":"2026-10-01 09:30:00","endTime":"2026-10-31 18:45:00","amount":null,"currency":null,"perLimit":null},{"id":711,"name":"Synthetic stopped coupon","couponType":3,"status":4,"publishCount":null,"receiveCount":null,"useCount":null},{"id":712,"name":"Synthetic unknown status","status":99}]}"#.utf8)
     public static func draft() -> CouponManagementDraft {
@@ -8,3 +9,4 @@ public enum CouponManagementSyntheticFixtures {
         return value
     }
 }
+#endif

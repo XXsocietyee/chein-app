@@ -128,5 +128,48 @@ class FPM6NoForcedOperations(unittest.TestCase):
         self.assertNotIn('instance!', src('Core/OrientSessionRecovery.swift'))
 
 
+def _is_debug_wrapped(text):
+    lines = text.split('\n')
+    i = 0
+    while i < len(lines):
+        t = lines[i].strip()
+        if t == '' or t.startswith('import ') or t.startswith('//'):
+            i += 1
+        elif t.startswith('#if canImport'):
+            while not lines[i].strip().startswith('#endif'):
+                i += 1
+            i += 1
+        else:
+            break
+    return i < len(lines) and lines[i].strip() == '#if DEBUG' and text.rstrip().endswith('#endif')
+
+
+class FPM7FixturesAreDebugOnly(unittest.TestCase):
+    def test_files_with_synthetic_token_are_debug_only(self):
+        offenders = []
+        for folder in ('App', 'Core'):
+            for path in (ROOT / folder).glob('*.swift'):
+                text = path.read_text()
+                if 'synthetic-token' in text and not _is_debug_wrapped(text):
+                    offenders.append(path.name)
+        self.assertEqual(offenders, [])
+
+    def test_named_fixture_files_are_debug_only(self):
+        offenders = []
+        for folder in ('App', 'Core'):
+            for path in sorted((ROOT / folder).glob('*Fixture*.swift')):
+                if path.name.endswith('FixtureView.swift') or 'Audit' in path.name or 'SectionView' in path.name:
+                    continue
+                if not _is_debug_wrapped(path.read_text()):
+                    offenders.append(path.name)
+        self.assertEqual(offenders, [])
+
+    def test_roam_fixture_reader_is_debug_only_and_clock_is_not(self):
+        s = src('Core/RoamPassportTools.swift')
+        self.assertLess(s.index('public enum RoamPassportToolsOfflineClock'), s.index('#if DEBUG'))
+        self.assertGreater(s.index('RoamPassportToolsFixtureReader'), s.index('#if DEBUG'))
+        self.assertNotIn('RoamPassportToolsFixtureReader', src('Core/RoamMonthlyRecapCoordinator.swift'))
+
+
 if __name__ == '__main__':
     unittest.main()

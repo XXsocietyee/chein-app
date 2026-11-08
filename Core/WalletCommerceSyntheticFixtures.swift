@@ -3,6 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
+#if DEBUG
 /// Offline only; all IDs and financial values are invented test data. Never a live factory.
 public struct WalletCommerceSyntheticTransport: HTTPTransport {
     public let fail: Bool
@@ -27,3 +28,4 @@ public struct WalletCommerceSyntheticTransport: HTTPTransport {
         return (Data(("{\"code\":200,\"data\":" + payload + "}").utf8), 200)
     }
 }
+#endif

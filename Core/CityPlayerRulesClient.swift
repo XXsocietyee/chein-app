@@ -62,7 +62,7 @@ public struct CityPlayerRulesRoute {
               Self.number(query["revision"]), CityMembership(rawValue: query["membership"] ?? "") != nil,
               query["membership"] != "JOINED" || (CityReadRoute.validID(query["participationId"] ?? "") && Self.number(query["membershipVersion"])) else { return nil }
         regionID = query["regionId"]!; values = query
-        guard let canonical = try? self.request(baseURL: baseURL, token: "synthetic-token"), canonical.url?.absoluteString == url.absoluteString else { return nil }
+        guard let canonical = try? self.request(baseURL: baseURL, token: "route-validation-placeholder"), canonical.url?.absoluteString == url.absoluteString else { return nil }
     }
     private static func number(_ text: String?) -> Bool { guard let text, let value = Int64(text), String(value) == text else { return false }; return (0...9_007_199_254_740_991).contains(value) }
 }

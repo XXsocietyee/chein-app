@@ -313,13 +313,18 @@ public struct RoamPassportToolsService {
     }
 }
 
+/// Fixed synthetic "now" (2026-10-19 12:00 Asia/Shanghai) used when a reader reports `isOfflineExample`.
+public enum RoamPassportToolsOfflineClock {
+    public static let asOfMs: Int64 = 1_792_382_400_000
+}
+
+#if DEBUG
 /// Synthetic offline data for previews and UI tests. Never a real account's memories.
 @MainActor public final class RoamPassportToolsFixtureReader: RoamPassportToolsReading {
     public enum Scenario: String { case content, empty, failure, unauthorized }
     public let scenario: Scenario
     private let scope = try! RoamHistoryScope(market: "cn", deployment: URL(string: "https://example.com/synthetic-roam")!, accountID: 900)
-    /// Fixed synthetic "now": 2026-10-19 12:00 Asia/Shanghai.
-    public static let asOfMs: Int64 = 1_792_382_400_000
+    public static let asOfMs = RoamPassportToolsOfflineClock.asOfMs
     public init(scenario: Scenario = .content) { self.scenario = scenario }
     public var identity: RoamExperienceIdentity? { scenario == .unauthorized ? nil : RoamExperienceIdentity(scope: scope, epoch: 1) }
     public var isConfigured: Bool { true }
@@ -355,3 +360,4 @@ public struct RoamPassportToolsService {
         return try RoamMonthlyRecapPage.decode(Data(json.utf8), query: query)
     }
 }
+#endif

@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// In-memory fixture only. No credential, network, image upload, or production identity.
 public actor ProfileEditSyntheticService: ProfileEditServing {
     public enum Scenario: Equatable { case success, rejected, unknown, missingPreservation, refreshFailure, portfolioImages, contactQR, preferenceRemoval, caseRemoval }
@@ -41,3 +42,4 @@ public actor ProfileEditSyntheticService: ProfileEditServing {
         }
     }
 }
+#endif

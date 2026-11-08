@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Synthetic offline public projections with no hosts, accounts or credentials.
 public enum PublicTopicTemplateFixtures {
     public static func content(id: Int = 801, merchant: Bool = false) -> String {
@@ -15,3 +16,4 @@ public enum PublicTopicTemplateFixtures {
         """
     }
 }
+#endif

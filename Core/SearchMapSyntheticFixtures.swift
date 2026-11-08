@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Synthetic records only; deliberately equal numeric IDs prove domain separation.
 public enum SearchMapSyntheticFixtures {
     public static let categories = #"[{"id":7,"categoryName":"Synthetic culture","type":1}]"#
@@ -11,3 +12,4 @@ public enum SearchMapSyntheticFixtures {
     public static let nearby = #"[{"id":71,"nodeId":909,"topicId":72,"addressName":"Synthetic route stop","address":"Example lane","latitude":"1.002","longitude":"1.004","distance":350}]"#
     public static let merchant = #"{"data":{"id":71,"name":"Synthetic shop","description":"Offline public description","tags":"[\"Coffee\",\"Culture\"]","address":"Example lane","businessTime":"10:00–18:00"},"featured":{"name":"Synthetic featured route","featuredType":4,"featuredId":72}}"#
 }
+#endif

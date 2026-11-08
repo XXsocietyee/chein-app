@@ -1,5 +1,6 @@
 import SwiftUI
 
+#if DEBUG
 /// Explicit fixture root only; never instantiated by ordinary app navigation.
 @MainActor private final class IMExpandedFixtureWriter: IMExpandedWriting {
     var identity: MessagingReadIdentity? = .init(accountID: 7, epoch: 1)
@@ -39,3 +40,4 @@ import SwiftUI
         #endif
     }
 }
+#endif

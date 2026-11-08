@@ -34,7 +34,7 @@ public struct RoamMonthlyRecapPresentation: Equatable, Identifiable {
         readScope = (reader as? RoamPassportToolsSessionReader)?.readScope
         let clock: () -> Date = now ?? {
             reader?.isOfflineExample == true
-                ? Date(timeIntervalSince1970: TimeInterval(RoamPassportToolsFixtureReader.asOfMs) / 1000) : Date()
+                ? Date(timeIntervalSince1970: TimeInterval(RoamPassportToolsOfflineClock.asOfMs) / 1000) : Date()
         }
         self.now = clock
         month = RoamShanghaiCalendar.month(now: clock())

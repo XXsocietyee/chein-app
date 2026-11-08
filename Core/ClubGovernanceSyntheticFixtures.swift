@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Invented fixture records only. Never read from accounts or production services.
 public enum ClubGovernanceFixtures {
     public static let scope = ClubGovernanceScope(clubID: 81, topicID: 91, activityID: 101, seriesID: 111, memberID: 704, registrationID: 121, campaignID: 131, nodeID: 141, chapterID: 151)
@@ -117,3 +118,4 @@ public enum ClubGovernanceFixtures {
         return ClubGovernanceFixtures.receipt(command.operation)
     }
 }
+#endif

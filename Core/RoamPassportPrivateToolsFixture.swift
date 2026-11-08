@@ -1,5 +1,6 @@
 import Foundation
 
+#if DEBUG
 /// Synthetic offline server for previews, DEBUG UI tests and Core tests. Never a real account's records.
 /// Every response is serialized to JSON and decoded by the same strict projections as live responses.
 @MainActor public final class RoamPrivateToolsFixture: RoamPrivateToolsServing {
@@ -187,3 +188,4 @@ import Foundation
         return try RoamExportChunk.decode(envelope(object), original: checkpoint)
     }
 }
+#endif

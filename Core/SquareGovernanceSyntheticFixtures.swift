@@ -3,6 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
+#if DEBUG
 public final class SquareGovernanceSyntheticTransport: SquareGovernanceOfflineTransport {
     public private(set) var requests: [URLRequest] = []
     public var mutationFailure: SquareGovernanceFailure?
@@ -34,3 +35,4 @@ public final class SquareGovernanceSyntheticTransport: SquareGovernanceOfflineTr
     public init() {}
     public func freshComments() async throws -> [SquareGovernanceComment] { comments }
 }
+#endif

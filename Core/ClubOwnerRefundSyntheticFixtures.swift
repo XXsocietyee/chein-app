@@ -3,6 +3,7 @@ import Foundation
 import FoundationNetworking
 #endif
 
+#if DEBUG
 /// Offline examples only. No URLSession, credentials from accounts or provider calls.
 public struct ClubOwnerRefundFixtureTransport: ClubOwnerRefundOfflineTransport {
     public let status: Int
@@ -65,3 +66,4 @@ public struct ClubOwnerRefundFixtureTransport: ClubOwnerRefundOfflineTransport {
         }
     }
 }
+#endif
