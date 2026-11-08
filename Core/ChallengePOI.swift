@@ -154,6 +154,31 @@ public enum ChallengePOIRules {
         return (allowed, rounded)
     }
 
+    /// WP-09 / CT05.e: the +30 m tolerance in `checkArrival` is a navigation/UX allowance only.
+    /// Authoritative arrival is the node radius itself; tolerance never counts as arrival.
+    public enum ArrivalAssessment: Equatable {
+        case authoritativeArrival(distanceMeters: Int?)
+        case withinNavigationTolerance(distanceMeters: Int)
+        case outOfRange(distanceMeters: Int?)
+    }
+    public static let navigationToleranceMeters = 30.0
+
+    public static func assessArrival(
+        node: ChallengePOINode,
+        userLatitude: Double?,
+        userLongitude: Double?
+    ) -> ArrivalAssessment {
+        guard let nLat = node.latitude, let nLon = node.longitude else {
+            return .authoritativeArrival(distanceMeters: nil)
+        }
+        guard let uLat = userLatitude, let uLon = userLongitude else { return .outOfRange(distanceMeters: nil) }
+        let dist = haversineDistanceMeters(lat1: uLat, lon1: uLon, lat2: nLat, lon2: nLon)
+        let rounded = Int(dist.rounded())
+        if dist <= node.radiusM { return .authoritativeArrival(distanceMeters: rounded) }
+        if dist <= node.radiusM + navigationToleranceMeters { return .withinNavigationTolerance(distanceMeters: rounded) }
+        return .outOfRange(distanceMeters: rounded)
+    }
+
     public static func initialStep(for node: ChallengePOINode) -> ChallengePOIState {
         if node.completed { return .done }
         if node.photoRequired { return .photo }
