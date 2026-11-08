@@ -296,10 +296,14 @@ import SwiftUI
         } message: { Text("clubOpsEvent.cancel.confirmBody", tableName: "ClubOpsEvent") }
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { if dirty || busy || locked { showDiscard = true } else { dismiss() } } } }
         .interactiveDismissDisabled(dirty || busy || locked)
-        .confirmationDialog("club.gov.discardTitle", isPresented: $showDiscard, titleVisibility: .visible) {
-            Button("club.gov.discard", role: .destructive) { retirePresentation(); coordinator.cancelReview(); dismiss() }
-            Button("club.gov.keepEditing", role: .cancel) {}
-        } message: { Text(locked ? "club.gov.unknown" : "club.gov.discardBody") }
+        .sheet(isPresented: $showDiscard) {
+            CYConfirmSheet(
+                title: String(localized: "club.gov.discardTitle"),
+                message: locked ? String(localized: "club.gov.unknown") : String(localized: "club.gov.discardBody"),
+                confirmTitle: String(localized: "club.gov.discard"),
+                isDestructive: true
+            ) { showDiscard = false; retirePresentation(); coordinator.cancelReview(); dismiss() }
+        }
         .sheet(item: $scheduleSession) { session in
             NavigationStack {
                 ClubSeriesScheduleEditor(session: session, canApply: { canApplySchedule(session) }, apply: { selection in

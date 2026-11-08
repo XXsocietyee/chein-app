@@ -261,7 +261,7 @@ extension EnvironmentValues {
             Button { open(.checkin, source: source) } label: {
                 Label(LocalizedStringKey("club.enroll.checkin." + registrant.checkin.rawValue), systemImage: registrant.checkin == .done ? "checkmark.circle" : "ticket")
                     .font(.subheadline)
-                    .foregroundStyle(registrant.checkin == .done ? Color.green : (registrant.checkin == .pending ? Color.orange : Color.secondary))
+                    .foregroundStyle(registrant.checkin == .done ? CYColor.successText : (registrant.checkin == .pending ? CYColor.warningText : CYColor.textSecondary))
             }
             .buttonStyle(.borderless).accessibilityIdentifier("club.enroll.checkin.\(registrant.id)")
         }.padding(.vertical, 4).disabled(source == nil || navigation.item != nil)

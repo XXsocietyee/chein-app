@@ -1239,7 +1239,7 @@ struct ClubGovernanceReadView: View {
                     .listRowBackground(Color.clear)
             } else if value["accountRole"] == .string("club") {
                 Section("club.host.done.title") {
-                    LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(.green) }
+                    LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(CYColor.successText) }
                     LabeledContent("club.host.done.limitLabel") { Text("club.host.done.limitValue") }
                 }
             } else {
@@ -1294,7 +1294,7 @@ struct ClubGovernanceReadView: View {
                         .fixedSize(horizontal: false, vertical: true)
                     if let status = value["status"].string, ["reviewing", "rejected", "confirmed", "preparing", "running", "ended"].contains(status) {
                         Text(LocalizedStringKey("club.topic.status." + status)).font(.subheadline.weight(.semibold))
-                            .foregroundStyle(status == "rejected" ? Color.red : (status == "running" ? Color.green : Color.secondary))
+                            .foregroundStyle(status == "rejected" ? CYColor.dangerText : (status == "running" ? CYColor.successText : CYColor.textSecondary))
                     }
                 }.accessibilityElement(children: .combine)
                 ClubGovernanceFactRows(value: value, fields: ["startDate", "endDate", "playModeText"])
@@ -1309,7 +1309,7 @@ struct ClubGovernanceReadView: View {
             }
             Section { link(.topicStats); link(.topicSettings); link(.topicCustomers); link(.recruit); enrollmentLink(focusTopicID: scope.topicID) }
             if let reason = value["rejectReason"].text?.trimmingCharacters(in: .whitespacesAndNewlines), !reason.isEmpty {
-                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(.red) }
+                Section("club.topic.rejectReason") { Text(verbatim: reason).foregroundStyle(CYColor.dangerText) }
             }
             Section {
                 NavigationLink { ClubGovernanceStoryView(snapshot: $snapshot, snapshotContext: $snapshotContext, snapshotGeneration: $snapshotGeneration, loading: $loading, failure: $failure, context: readContext, identity: identity, access: access, coordinator: coordinator, reload: { await load() }) } label: { Label("club.gov.story", systemImage: "book.pages") }.accessibilityIdentifier("club.gov.openStory")
@@ -1349,7 +1349,7 @@ struct ClubGovernanceReadView: View {
         } else if operation == .dissolutionBlockers {
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
-            edit(.dissolve).foregroundStyle(.red)
+            edit(.dissolve).foregroundStyle(CYColor.dangerText)
         } else if operation == .settlement {
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }

@@ -66,15 +66,16 @@ struct ClubActionPanel: View {
                 if let issueKey { Text(LocalizedStringKey(issueKey)).foregroundStyle(.secondary).accessibilityIdentifier("club.action.error") }
             }
         } header: { Text("club.action.membership") }
-        .confirmationDialog(LocalizedStringKey(confirmation.map { actionKey($0.action) } ?? "club.action.membership"),
-                            isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } }),
-                            titleVisibility: .visible, presenting: confirmation) { value in
-            Button(LocalizedStringKey(actionKey(value.action)), role: value.action == .leave ? .destructive : nil) { submit(value) }
-                .accessibilityIdentifier("club.action.confirm")
-            Button("action.cancel", role: .cancel) { cancelConfirmation() }
-        } message: { value in
-            Text(verbatim: value.clubName) + Text("\n") + Text(LocalizedStringKey(confirmationKey(value.action)))
-                + Text(verbatim: value.action == .apply ? "\n" + value.joinMessage : "")
+        .sheet(isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } })) {
+            if let value = confirmation {
+                CYConfirmSheet(
+                    title: String(localized: String.LocalizationValue(actionKey(value.action))),
+                    message: confirmationMessage(value),
+                    confirmTitle: String(localized: String.LocalizationValue(actionKey(value.action))),
+                    isDestructive: value.action == .leave,
+                    confirmIdentifier: "club.action.confirm"
+                ) { submit(value) }
+            }
         }
         .onChange(of: identity) { _, _ in reset() }
         .onChange(of: club.id) { old, _ in reset(clubID: old) }
@@ -135,6 +136,11 @@ struct ClubActionPanel: View {
         case .apply: return "club.action.apply"
         case .leave: return "club.action.leave"
         }
+    }
+    private func confirmationMessage(_ value: ClubActionConfirmation) -> String {
+        var text = value.clubName + "\n" + String(localized: String.LocalizationValue(confirmationKey(value.action)))
+        if value.action == .apply { text += "\n" + value.joinMessage }
+        return text
     }
     private func confirmationKey(_ action: ClubAction) -> String {
         switch action {
