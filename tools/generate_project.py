@@ -70,6 +70,7 @@ def configurations(scope):
         settings = {'SDKROOT':'iphoneos','CLANG_ENABLE_MODULES':'YES'} if scope=='project' else {'PRODUCT_NAME':'$(TARGET_NAME)','SUPPORTED_PLATFORMS':'iphoneos iphonesimulator','SWIFT_EMIT_LOC_STRINGS':'YES'}
         if scope=='target': settings.update({'FRAMEWORK_SEARCH_PATHS':'$(inherited) $(BUILT_PRODUCTS_DIR)','LD_RUNPATH_SEARCH_PATHS':'$(inherited) @executable_path/Frameworks'})
         if scope=='target': settings['SWIFT_OBJC_BRIDGING_HEADER']='$(SRCROOT)/App/Questify-Bridging-Header.h'
+        if scope=='target': settings['CODE_SIGN_ENTITLEMENTS']='Config/Questify.entitlements'
         if scope=='target': settings.update({'SWIFT_OPTIMIZATION_LEVEL':'-Onone' if name=='Debug' else '-O','DEBUG_INFORMATION_FORMAT':'dwarf' if name=='Debug' else 'dwarf-with-dsym'})
         if scope=='target' and name=='Debug':
             settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
