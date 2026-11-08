@@ -1,0 +1,44 @@
+# Re-point report 05 (cloud/rp-05)
+
+NOT COMPILED. No Swift files added: no chunk route has a production equivalent that carries the receipt/ledger/governance semantics the iOS call site requires.
+
+**Evidence base:** commit `014fc0d8` (now present locally). Production IM controllers there: `ApiImController` (/api/im/{conversations,messages,send,send-receipt,read,delete,mute,unread-total,start,block,unblock,report}, all POST form) and `ApiImPollController` (/api/im/poll/{create,vote,close,result}). Line numbers cited were read at master `5e23cd52`; the only diff in ApiImController between the two is 4+/31- lines (send overload), the diff adds no route in this chunk (014fc0d8 itself has `/send-receipt`, outside chunk 05). No `cloud/be-gNN` branch exists on origin, so no closest-undeployed route is named.
+
+| iOS route | production equivalent | evidence | status | new files |
+|---|---|---|---|---|
+| /api/im/device/attempts | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativePushAttemptRead.swift:67` | TRUE-GAP | none |
+| /api/im/file/message | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:244` | TRUE-GAP | none |
+| /api/im/file/message/{}/authorization | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/IMFileService.swift:70` | TRUE-GAP | none |
+| /api/im/file/message/{}/preview | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/IMFileService.swift:89` | TRUE-GAP | none |
+| /api/im/file/receipt | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:239` | TRUE-GAP | none |
+| /api/im/file/scan | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:240` | TRUE-GAP | none |
+| /api/im/file/upload | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:238` | TRUE-GAP | none |
+| /api/im/interaction/request | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:233` | TRUE-GAP | none |
+| /api/im/members/{}/roles | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelRoleFlow.swift:301` | TRUE-GAP | none |
+| /api/im/message | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:163` | TRUE-GAP | none |
+| /api/im/message/{}/attachment | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `App/NativeChannelAttachmentPreviewAssembly.swift:15` | TRUE-GAP | none |
+| /api/im/message/{}/revisions | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:123` | TRUE-GAP | none |
+| /api/im/message/context | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:100` | TRUE-GAP | none |
+| /api/im/message/edit | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:84` | TRUE-GAP | none |
+| /api/im/message/mutations | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:107` | TRUE-GAP | none |
+| /api/im/message/recall | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:85` | TRUE-GAP | none |
+| /api/im/message/request | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:96` | TRUE-GAP | none |
+| /api/im/moderation | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelModerationFlow.swift:61` | TRUE-GAP | none |
+| /api/im/moderation/{}/revoke | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelModerationFlow.swift:66` | TRUE-GAP | none |
+| /api/im/moderation/actions | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:195` | TRUE-GAP | none |
+| /api/im/moderation/ban | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:202` | TRUE-GAP | none |
+| /api/im/moderation/kick | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:202` | TRUE-GAP | none |
+| /api/im/moderation/me | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:217` | TRUE-GAP | none |
+| /api/im/moderation/timeout | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/BusinessRuntimeConfiguration.swift:202` | TRUE-GAP | none |
+| /api/im/mute-receipt | write-only analogue: POST /api/im/mute, form `conversation_id`,`muted`=0/1, no data (ApiImController.java:143). No receipt/state read route | controller as cited; xcx list/index.js:320; iOS `Core/BusinessRuntimeConfiguration.swift:281` | NEEDS-OWNER (receipt cannot be proven from production; UNKNOWN must stay UNKNOWN) | none |
+| /api/im/mute-state | write-only analogue: same write route only; no read-back of mute flag except `/api/im/conversations` list rows (ApiImController.java:34). No receipt/state read route | controller as cited; xcx list/index.js:57,320; iOS `Core/BusinessRuntimeConfiguration.swift:282` | NEEDS-OWNER (receipt cannot be proven from production; UNKNOWN must stay UNKNOWN) | none |
+| /api/im/notification-requests | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/ChannelGovernanceProjection.swift:443` | TRUE-GAP | none |
+| /api/im/notify-log | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelNotificationFinalForward.swift:79` | TRUE-GAP | none |
+| /api/im/notify-pref | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelNotificationFinalForward.swift:75` | TRUE-GAP | none |
+| /api/im/pin | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:86` | TRUE-GAP | none |
+| /api/im/pins | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:101` | TRUE-GAP | none |
+| /api/im/pins/sort | none (not in ApiImController/ApiImPollController) | grep `/api/im/` in chengyinhub-xcx and admin controllers: no use; iOS `Core/NativeChannelMessageFinalForward.swift:88` | TRUE-GAP | none |
+| /api/im/poll/create-receipt | write-only analogue: POST /api/im/poll/create, JSON `ImPollCreateCommand`, synchronous result (ApiImPollController.java:22). No receipt/state read route | controller as cited; xcx none (grep of xcx: no poll call); iOS `Core/BusinessRuntimeConfiguration.swift:155` | NEEDS-OWNER (receipt cannot be proven from production; UNKNOWN must stay UNKNOWN) | none |
+| /api/im/read-receipt | write-only analogue: POST /api/im/read, form `conversation_id`, returns `{code,msg}` with no data (ApiImController.java:111). No receipt/state read route | controller as cited; xcx chat/index.js:500; list/index.js:252; iOS `Core/BusinessRuntimeConfiguration.swift:279` | NEEDS-OWNER (receipt cannot be proven from production; UNKNOWN must stay UNKNOWN) | none |
+
+Counts: REPOINTED 0 / TRUE-GAP 30 / NEEDS-OWNER 4
