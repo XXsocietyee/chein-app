@@ -73,6 +73,8 @@ struct PrivacyProtectionView: View {
             }
             if !granted { UsageConsentSignInRequirement(market: market, policy: policy, granted: $granted) }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle(Text("authEntry.privacy.title", tableName: "AuthEntry"))
         .sheet(item: $document) { sheet in
             NavigationStack {

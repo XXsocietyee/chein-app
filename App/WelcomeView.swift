@@ -20,7 +20,7 @@ struct WelcomeView: View {
                 VStack(alignment: .leading, spacing: 24) {
                     Image(systemName: "map")
                         .font(.largeTitle)
-                        .foregroundStyle(.tint)
+                        .foregroundStyle(CYColor.textPrimary)
                         .accessibilityHidden(true)
                     Text("welcome.title")
                         .font(.largeTitle.bold())
@@ -42,6 +42,7 @@ struct WelcomeView: View {
                 .frame(maxWidth: 620, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
+            .background(CYColor.bgPage)
             .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -70,9 +71,9 @@ struct WelcomeView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary).accessibilityHidden(true)
+                    .foregroundStyle(primary ? CYColor.textOnAccent : CYColor.textTertiary).accessibilityHidden(true)
             }
-            .foregroundStyle(primary ? Color(uiColor: .systemBackground) : .primary)
+            .foregroundStyle(primary ? CYColor.textOnAccent : CYColor.textPrimary)
             .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
             .modifier(WelcomeRoleSurface(primary: primary))
         }
