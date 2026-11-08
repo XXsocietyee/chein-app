@@ -1,6 +1,22 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "titlesReadOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adding, editing and deleting invoice titles is not available yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂不支持在应用内新增、编辑或删除发票抬头。"
+          }
+        }
+      }
+    },
     "applyUnavailable": {
       "localizations": {
         "en": {

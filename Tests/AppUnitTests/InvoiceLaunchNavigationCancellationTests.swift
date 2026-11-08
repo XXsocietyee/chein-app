@@ -139,6 +139,32 @@ import Foundation
         XCTAssertEqual((body["orderIds"] as? [NSNumber])?.map(\.int64Value), [21])
         XCTAssertTrue(h.memory.values.isEmpty)
     }
+    func testSaveTitleSendsFlatDraftAndSucceedsOnlyWhenListedAfterwards() async throws {
+        let h = try Harness(mutations: true)
+        await h.model.refresh()
+        let draft = try InvoiceLaunchTitleDraft(titleType: "PERSONAL", titleName: "Synthetic title")
+        let ok = await h.model.save(draft)
+        XCTAssertTrue(ok)
+        XCTAssertEqual(h.wire.paths.filter { $0 == "save" }.count, 1)
+        let body = try XCTUnwrap(h.wire.body(for: "save"))
+        XCTAssertEqual(body["titleType"] as? String, "PERSONAL")
+        XCTAssertEqual(body["titleName"] as? String, "Synthetic title")
+        XCTAssertEqual(h.model.overview?.titles.map(\.id), [11])
+        XCTAssertTrue(h.memory.values.isEmpty)
+    }
+    func testDeleteTitleSendsIDAndSucceedsOnlyWhenAbsentAfterwards() async throws {
+        let h = try Harness(mutations: true)
+        h.wire.titleRows = [Wire.title]
+        await h.model.refresh()
+        XCTAssertEqual(h.model.overview?.titles.map(\.id), [11])
+        let ok = await h.model.delete(11)
+        XCTAssertTrue(ok)
+        XCTAssertEqual(h.wire.paths.filter { $0 == "delete" }.count, 1)
+        let body = try XCTUnwrap(h.wire.body(for: "delete"))
+        XCTAssertEqual((body["id"] as? NSNumber)?.int64Value, 11)
+        XCTAssertEqual(h.model.overview?.titles.count, 0)
+        XCTAssertTrue(h.memory.values.isEmpty)
+    }
     func testMutationsStayGatedWhenHostGrantIsOff() async throws {
         let h = try Harness(mutations: false)
         await h.model.refresh()
@@ -174,6 +200,8 @@ import Foundation
     @MainActor private final class Wire: HTTPTransport {
         var requests: [URLRequest] = []
         var cancelStatus = "CANCELLED"
+        var titleRows: [[String: Any]] = []
+        static let title: [String: Any] = ["id": 11, "titleType": "PERSONAL", "titleName": "Synthetic title", "isDefault": false]
         var paths: [String] { requests.map { $0.url!.lastPathComponent } }
         func body(for path: String) -> [String: Any]? {
             guard let data = requests.first(where: { $0.url?.lastPathComponent == path })?.httpBody else { return nil }
@@ -197,6 +225,11 @@ import Foundation
                 let isCancelFlow = requests.contains { $0.url?.lastPathComponent == "cancel" }
                 data = application(status: isCancelFlow ? cancelStatus : "SUBMITTED", summary: false)
             case "list": data = [application(status: "SUBMITTED", summary: true)] as [Any]
+            case "titles": data = titleRows as [Any]
+            case "save": titleRows = [Wire.title]; data = Wire.title
+            case "delete":
+                titleRows = []
+                return (try JSONSerialization.data(withJSONObject: ["code": 200]), 200)
             default: data = [] as [Any]
             }
             return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200)
