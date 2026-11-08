@@ -2,6 +2,9 @@ import Foundation
 
 public enum OrderLifecycleFailure: Error, Equatable {
     case unavailable, accessDenied, expiredReview, ineligible, alreadyAttempted, stale
+    /// The signup data-sharing consent is missing, revoked or older than the current document.
+    /// The backend answers `pay`/`pay/app` with business code 500 in that state, so payment is not attempted.
+    case reconsentRequired
     case response(code: Int, message: String?)
     case notDispatched
 }

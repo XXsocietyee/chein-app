@@ -142,6 +142,39 @@ import FoundationNetworking
             XCTAssertEqual(http.mutations, 0); XCTAssertNil(journal.value)
         }
     }
+    /// FP-E4: a stale or revoked consent surfaces as a distinct re-consent state, never as a generic failure,
+    /// and `pay/app` is not called until the user explicitly re-agrees and starts a new review.
+    func testStaleConsentIsReconsentRequiredAndRecordedBeforePayApp() async throws {
+        let stale = #"{"docType":"activity_host_data_sharing","scene":"activity_signup","eventType":"AGREE","docVersion":"old"}"#
+        let http = HTTP(detail: orderData()), journal = Journal(); http.consent = stale
+        let dispatcher = try XCTUnwrap(make(configuration(.payment), holder: Holder(context()), http: http, journal: journal))
+        let first = try review(.payment)
+        do { _ = try await dispatcher.dispatch(first, visible: { true }); XCTFail("stale consent must stop payment") }
+        catch { XCTAssertEqual(error as? OrderLifecycleFailure, .reconsentRequired); XCTAssertEqual(OrderLifecycleCoordinatorIssue(error), .reconsentRequired) }
+        XCTAssertEqual(http.mutations, 0); XCTAssertNil(journal.value); XCTAssertTrue(http.consentPosts.isEmpty)
+        try await dispatcher.recordSignupConsent(for: first, visible: { true })
+        XCTAssertEqual(http.consentPosts.count, 1); XCTAssertEqual(http.mutations, 0, "re-consent never pays")
+        let post = try XCTUnwrap(http.consentPosts.first)
+        XCTAssertEqual(post.url?.absoluteString, "https://example.com/cn/api/compliance/consents")
+        let body = try XCTUnwrap(JSONSerialization.jsonObject(with: XCTUnwrap(post.httpBody)) as? [String: String])
+        XCTAssertEqual(body["eventType"], "AGREE"); XCTAssertEqual(body["docType"], "activity_host_data_sharing"); XCTAssertEqual(body["scene"], "activity_signup")
+        XCTAssertNotNil(body["requestId"].flatMap { UUID(uuidString: $0) })
+        let consentIndex = try XCTUnwrap(http.requests.firstIndex { $0.url?.path.hasSuffix("/compliance/consents") == true })
+        _ = try await dispatcher.dispatch(try review(.payment), visible: { true })
+        let payIndex = try XCTUnwrap(http.requests.firstIndex { $0.url?.path.hasSuffix("/pay/app") == true })
+        XCTAssertLessThan(consentIndex, payIndex, "consent POST precedes pay/app")
+    }
+    func testReconsentIsPaymentOnlyAndFailedConsentPostStaysRequired() async throws {
+        let http = HTTP(detail: orderData()), dispatcher = try XCTUnwrap(make(configuration(.cancel), holder: Holder(context()), http: http, journal: Journal()))
+        do { try await dispatcher.recordSignupConsent(for: review(.cancel), visible: { true }); XCTFail() } catch { }
+        XCTAssertTrue(http.consentPosts.isEmpty)
+        let stale = #"{"docType":"activity_host_data_sharing","scene":"activity_signup","eventType":"REVOKE","docVersion":"v1"}"#
+        let http2 = HTTP(detail: orderData()); http2.consent = stale; http2.failConsentPost = true
+        let pay = try XCTUnwrap(make(configuration(.payment), holder: Holder(context()), http: http2, journal: Journal()))
+        do { try await pay.recordSignupConsent(for: review(.payment), visible: { true }); XCTFail("readback must still be stale") }
+        catch { XCTAssertEqual(error as? OrderLifecycleFailure, .reconsentRequired) }
+        XCTAssertEqual(http2.mutations, 0)
+    }
     func testDocumentChangeAfterReservationPreventsPaymentParameters() async throws {
         let http = HTTP(detail: orderData()), journal = Journal(), document = Document()
         journal.afterReserve = { document.changed = true }
@@ -551,6 +584,7 @@ import FoundationNetworking
         var response = #"{"code":200,"msg":"Synthetic acknowledgment"}"#
         var consent = #"{"docType":"activity_host_data_sharing","scene":"activity_signup","eventType":"AGREE","docVersion":"v1"}"#
         var onRequest: ((URLRequest) -> Void)?
+        var consentPosts: [URLRequest] = []; var failConsentPost = false
         init(detail: Data) { self.detail = detail }
         var mutations: Int { requests.filter { $0.url?.path.hasSuffix("/cancel") == true || $0.url?.path.hasSuffix("/cancel-refund") == true || $0.url?.path.hasSuffix("/pay/app") == true }.count }
         func send(_ request: URLRequest) async throws -> (Data, Int) {
@@ -558,6 +592,11 @@ import FoundationNetworking
             let path = request.url?.path ?? ""
             if path.hasSuffix("/registration/info") { return (Data("{\"code\":200,\"data\":".utf8) + detail + Data("}".utf8), 200) }
             if path.hasSuffix("/consents/latest") { return (Data("{\"code\":200,\"data\":\(consent)}".utf8), 200) }
+            if path.hasSuffix("/compliance/consents") {
+                consentPosts.append(request)
+                if !failConsentPost { consent = #"{"docType":"activity_host_data_sharing","scene":"activity_signup","eventType":"AGREE","docVersion":"v1"}"# }
+                return (Data(#"{"code":200,"data":{}}"#.utf8), 200)
+            }
             if failMutation { throw URLError(.timedOut) }
             if path.hasSuffix("/pay/app") { return (Data(#"{"code":200,"data":{"payParams":{"appId":"synthetic","partnerId":"1","prepayId":"synthetic","packageValue":"Sign=WXPay","nonceStr":"synthetic","timeStamp":"1","sign":"synthetic"}}}"#.utf8), 200) }
             return (Data(response.utf8), 200)

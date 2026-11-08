@@ -259,11 +259,25 @@ public enum OrderLifecycleProductionResult {
         let data = try await send(request, review: review, visible: visible)
         struct Envelope: Decodable { let data: ComplianceConsent? }
         let consent = try JSONDecoder().decode(Envelope.self, from: data).data
-        guard consent?.matches(.signup, event: .agree) == true, consent?.docVersion == expected.version else { throw OrderLifecycleFailure.ineligible }
+        guard consent?.matches(.signup, event: .agree) == true, consent?.docVersion == expected.version else { throw OrderLifecycleFailure.reconsentRequired }
         // A provider may change while the consent read is suspended.
         let finalDocument = try await document.currentDocument(context: captured)
         try check(review, visible: visible)
         guard finalDocument == expected else { throw OrderLifecycleFailure.stale }
+    }
+    /// FP-E4. Records the signup data-sharing consent for the document the user was shown, then re-reads
+    /// the latest consent. Call only from an explicit user agreement after `.reconsentRequired`; it never
+    /// reserves, never fetches payment parameters and never opens the provider, so payment still needs a new review.
+    public func recordSignupConsent(for review: OrderLifecycleReview, visible: @escaping () -> Bool) async throws {
+        try check(review, visible: visible)
+        guard review.action == .payment, let expected = approval(review)?.signupDocument, let document else { throw OrderLifecycleFailure.notDispatched }
+        guard try await document.currentDocument(context: captured) == expected else { throw OrderLifecycleFailure.stale }
+        var fields = try ComplianceSubject.signup.fields()
+        fields["eventType"] = "AGREE"; fields["requestId"] = UUID().uuidString
+        let request = try OperationAdapterHTTP.json(configuration: api, path: "api/compliance/consents",
+            body: JSONSerialization.data(withJSONObject: fields, options: .sortedKeys), token: captured.session.token)
+        _ = try await send(request, review: review, visible: visible)
+        try await checkLegal(review, visible: visible)
     }
     private func send(_ request: URLRequest, review: OrderLifecycleReview, visible: @escaping () -> Bool) async throws -> Data {
         try check(review, visible: visible)
@@ -276,6 +290,16 @@ public enum OrderLifecycleProductionResult {
                       let data = request.httpBody,
                       let fields = try JSONSerialization.jsonObject(with: data) as? [String: String],
                       fields == ["docType": ComplianceSubject.signup.docType, "scene": ComplianceSubject.signup.scene] else { throw APIError.invalidRequest }
+            } else if request.url == self.api.baseURL.appendingPathComponent("api/compliance/consents") {
+                // Explicit re-consent only: exact signup subject, AGREE, UUID request id, payment review.
+                guard review.action == .payment, request.httpMethod == "POST",
+                      request.value(forHTTPHeaderField: "Content-Type") == "application/json",
+                      request.value(forHTTPHeaderField: "Authorization") == self.captured.session.token,
+                      let data = request.httpBody,
+                      let fields = try JSONSerialization.jsonObject(with: data) as? [String: String],
+                      Set(fields.keys) == ["docType", "scene", "eventType", "requestId"],
+                      fields["docType"] == ComplianceSubject.signup.docType, fields["scene"] == ComplianceSubject.signup.scene,
+                      fields["eventType"] == "AGREE", fields["requestId"].flatMap({ UUID(uuidString: $0) }) != nil else { throw APIError.invalidRequest }
             } else {
                 try self.validateForm(request, path: review.action.sourcePath, id: review.detail.id)
                 guard let lock = try self.pending(orderID: review.detail.id), lock.attemptID == review.localAttemptID,
