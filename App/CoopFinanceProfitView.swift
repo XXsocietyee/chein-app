@@ -187,8 +187,8 @@ struct CoopFinanceBadge: View {
         let badge: CoopFinanceProfit.Badge = settled ? .success : status.badge
         Text(LocalizedStringKey(settled ? "cooperation.finance.settled" : "cooperation.finance.status." + status.rawValue))
             .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 3)
-            .foregroundStyle(badge == .success ? Color.green : badge == .warning ? Color.orange : Color.secondary)
-            .background(Capsule().fill((badge == .success ? Color.green : badge == .warning ? Color.orange : Color.secondary).opacity(0.14)))
+            .foregroundStyle(badge == .success ? CYColor.successText : badge == .warning ? CYColor.warningText : CYColor.textSecondary)
+            .background(Capsule().fill(badge == .success ? CYColor.successSoft : badge == .warning ? CYColor.warningSoft : CYColor.bgSurfaceSubtle))
     }
 }
 

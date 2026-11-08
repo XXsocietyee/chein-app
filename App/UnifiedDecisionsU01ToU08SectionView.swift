@@ -179,7 +179,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                 Spacer()
                 Text(verbatim: headerBadgeText)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.allDecisionsVerified ? Color.green : Color.red)
+                    .foregroundStyle(snapshot.allDecisionsVerified ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("unifiedDecisionsAudit.statusBadge")
             }
 
@@ -200,7 +200,7 @@ public struct UnifiedDecisionsU01ToU08SectionView: View {
                         Spacer()
                         Text(verbatim: decision.statusBadgeText)
                             .font(.caption2.monospaced())
-                            .foregroundStyle(decision.isVerified ? Color.green : Color.red)
+                            .foregroundStyle(decision.isVerified ? CYColor.successText : CYColor.dangerText)
                             .accessibilityIdentifier("unifiedDecisionsAudit.decisionStatus.\(decision.id)")
                     }
 
