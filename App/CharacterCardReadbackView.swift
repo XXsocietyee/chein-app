@@ -20,7 +20,7 @@ import SwiftUI
                 if card.attributes.isEmpty {
                     ContentUnavailableView("characterCard.empty", systemImage: "person.text.rectangle")
                 } else {
-                    CharacterSheetDetailView(card: card)
+                    CharacterSheetDetailView(card: card, attributeLevels: card.attributeLevels)
                         .refreshable { await model.load() }
                 }
             } else {

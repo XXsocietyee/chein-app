@@ -105,6 +105,32 @@ import FoundationNetworking
         XCTAssertEqual(model.card?.breakdown.total, 99)
         XCTAssertNil(model.card?.breakdown.die)
     }
+    func testAttributeLevelsComeFromRulesLevelsAndDropMalformedRows() async throws {
+        var root = try XCTUnwrap(cardJSON().object)
+        root["attributes"] = .array([.object([
+            "stateKey": .string("counter.str"), "label": .string("Strength"),
+            "value": .int(5), "min": .int(0), "max": .int(20),
+            "displayType": .string("bar"), "persistScope": .string("run"),
+            "rules": .object(["levels": .array([
+                .object(["at": .int(1), "label": .string("Novice")]),
+                .object(["at": .int(4), "label": .string("  Skilled ")]),
+                .object(["at": .string("x"), "label": .string("Bad")]),
+                .object(["at": .int(9), "label": .string("   ")])
+            ])])
+        ])])
+        let (_, _, model) = try setup(card: .object(root))
+        await model.load()
+        let card = try XCTUnwrap(model.card)
+        let levels = try XCTUnwrap(card.attributeLevels["counter.str"])
+        XCTAssertEqual(levels, [CharacterAttributeLevel(at: 1, label: "Novice"), CharacterAttributeLevel(at: 4, label: "Skilled")])
+        let attribute = try XCTUnwrap(card.attributes.first)
+        XCTAssertEqual(attribute.levelLabel(levels: levels), "Skilled")
+    }
+    func testAttributeWithoutRulesHasNoLevelEntry() async throws {
+        let (_, _, model) = try setup()
+        await model.load()
+        XCTAssertEqual(model.card?.attributeLevels, [:])
+    }
     func testHiddenSkillIsRedactedAndSuccessIsNotRecomputed() {
         let hidden = CharacterCheckBreakdown.read(.object(["die": .int(6), "total": .int(10), "dc": .int(99),
                                                            "skill": .object(["hidden": .bool(true), "statKey": .string("counter.fate"), "label": .string("Fate"), "value": .int(4)])]))
