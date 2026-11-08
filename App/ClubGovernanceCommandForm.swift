@@ -201,7 +201,14 @@ import SwiftUI
                 }
             }.disabled(busy || locked || review != nil)
             }
-            if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
+            if let failure, route.operation == .issueGroupCode, ClubGroupCodePort.classify(failure) == .noPermission {
+                // Mini isPermissionDenial: terminal state with an exit, not a retry.
+                Section {
+                    Label("club.gov.groupCode.noPermission", systemImage: "lock").accessibilityIdentifier("club.gov.groupCode.noPermission")
+                    Text("club.gov.groupCode.noPermission.hint").font(.footnote).foregroundStyle(.secondary)
+                    Button("club.gov.groupCode.backToClub") { dismiss() }.accessibilityIdentifier("club.gov.groupCode.back")
+                }
+            } else if let failure { Section { Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.gov.formError"); if let message = failure.message { Text(verbatim: message) } } }
             if busy { ProgressView() }
             if let review {
                 Section {
@@ -410,6 +417,21 @@ import SwiftUI
                 .keyboardType(["maxEventSize", "avgEventSize", "actualHours"].contains(key) ? .numberPad : .default)
                 .textInputAutocapitalization(.never).autocorrectionDisabled()
                 .accessibilityIdentifier("club.gov.input." + key)
+            // Mini inline "reason required" copy; display only (the command validation still blocks blank reasons).
+            if key == "reason", dirty, let mode = Self.reasonMode(route.operation), !ClubGovernanceReportPort.reasonIsValid(draft.text[key] ?? "") {
+                Text(LocalizedStringKey(ClubGovernanceReportPort.reasonRequiredKey(mode)), tableName: "ClubOpsGovernance")
+                    .font(.footnote).foregroundStyle(.red)
+                    .accessibilityIdentifier("club.gov.reasonRequired")
+            }
+        }
+    }
+    private static func reasonMode(_ operation: ClubGovernanceMutation) -> ClubGovernanceReportPort.ReasonMode? {
+        switch operation {
+        case .ban: return .ban
+        case .transferOwner: return .transfer
+        case .report: return .report
+        case .appeal: return .appeal
+        default: return nil
         }
     }
     private func flagRow(_ key: String) -> some View {

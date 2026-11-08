@@ -85,7 +85,7 @@ import SwiftUI
                         }
                         if current.memberIDs.isEmpty {
                             Group {
-                                if isLeaderboard { Text("club.publicRoster.emptyRank", tableName: "ClubPublicRoster") }
+                                if isLeaderboard { Text(LocalizedStringKey("club.publicRoster.emptyRank." + ClubDetailRankingPort.emptyKey(sort: mode.rawValue)), tableName: "ClubPublicRoster") }
                                 else { Text(current.club.memberCount > 0 ? "club.membersUnavailable" : "club.emptyMembers") }
                             }
                                 .font(Theme.Font.body).foregroundColor(Theme.Generated.color("--cy-color-text-secondary", in: domain))
@@ -98,16 +98,30 @@ import SwiftUI
                                 if let time = member.joinTime, !time.isEmpty { Text("club.memberJoined \(time)").font(Theme.Font.label).fixedSize(horizontal: false, vertical: true) }
                             }
                         }
-                        ForEach(Array(current.ranks.enumerated()), id: \.element.memberId) { index, member in
-                            memberLink(id: member.memberId, nickname: member.nickname) {
-                                let rankLayout = dynamicTypeSize.isAccessibilitySize
-                                    ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Generated.length("--cy-space-1", in: domain)))
-                                    : AnyLayout(HStackLayout(spacing: Theme.Generated.length("--cy-space-2", in: domain)))
-                                rankLayout {
-                                    Text("#\(index + 1)").monospacedDigit()
-                                    if let value = member.metric(mode) { Text(value, format: .number.precision(.fractionLength(0...1))).monospacedDigit() }
-                                    Text(LocalizedStringKey("club.publicRoster.unit." + mode.rawValue), tableName: "ClubPublicRoster")
-                                }.font(Theme.Font.label)
+                        // Mini `foldLeaderboard`: top 3, a hidden-count gap, then the tail (viewer id is not in the snapshot).
+                        ForEach(Array(ClubDetailRankingPort.fold(current.ranks.map(\.memberId), me: nil).enumerated()), id: \.offset) { _, row in
+                            switch row {
+                            case .gap(let hidden):
+                                Text("club.publicRoster.rankGap \(hidden)", tableName: "ClubPublicRoster").font(Theme.Font.label)
+                                    .foregroundStyle(Theme.Color.textSecondary(in: domain))
+                                    .accessibilityIdentifier("club.publicRoster.rankGap")
+                            case .member(let rank, let memberID, _):
+                                if let member = current.ranks.first(where: { $0.memberId == memberID }) {
+                                    memberLink(id: member.memberId, nickname: member.nickname) {
+                                        let rankLayout = dynamicTypeSize.isAccessibilitySize
+                                            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Generated.length("--cy-space-1", in: domain)))
+                                            : AnyLayout(HStackLayout(spacing: Theme.Generated.length("--cy-space-2", in: domain)))
+                                        rankLayout {
+                                            Text("#\(rank)").monospacedDigit()
+                                            if mode == .duration {
+                                                Text(verbatim: ClubDetailRankingPort.durationText(minutes: member.metric(mode))).monospacedDigit()
+                                            } else {
+                                                if let value = member.metric(mode) { Text(verbatim: ClubDetailRankingPort.oneDecimal(value)).monospacedDigit() }
+                                                Text(LocalizedStringKey("club.publicRoster.unit." + mode.rawValue), tableName: "ClubPublicRoster")
+                                            }
+                                        }.font(Theme.Font.label)
+                                    }
+                                }
                             }
                         }
                         Text("club.publicRoster.readOnly", tableName: "ClubPublicRoster").font(Theme.Font.label)

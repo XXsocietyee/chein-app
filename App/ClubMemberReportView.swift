@@ -25,7 +25,8 @@ import SwiftUI
                         else { Text("club.memberReport.unnamed").font(.headline) }
                         Text("club.memberReport.explanation").font(.footnote).foregroundStyle(.secondary)
                     }.padding().accessibilityElement(children: .combine).accessibilityIdentifier("club.memberReport.target")
-                    ClubGovernanceCommandForm(route: .init(operation: .report, scope: target.scope, seed: target.seed),
+                    ClubGovernanceCommandForm(route: .init(operation: .report, scope: target.scope,
+                                                   seed: target.seed.merging(ClubGovernanceReportPort.displayName(target.displayName).map { ["targetName": ClubGovernanceValue.string($0)] } ?? [:]) { current, _ in current }),
                                               identity: identity, access: governance.access, coordinator: governance.coordinator)
                         .id(target.id)
                 }
