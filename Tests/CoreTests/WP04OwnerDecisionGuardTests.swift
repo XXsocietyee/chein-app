@@ -133,7 +133,7 @@ import Foundation
         let property = String(text[start.lowerBound..<end.lowerBound])
         XCTAssertFalse(property.contains("reviewedComposition"))
         XCTAssertFalse(property.contains("reviewedDeployment"))
-        XCTAssertEqual(matches(#"makeComposition\(reviewed:\s*(?!nil)"#, in: property), [])
+        XCTAssertEqual(matches(#"makeComposition\(reviewed:\s*(?!nil\b)\S"#, in: property), [])
         // The approved-URL registry stays empty.
         XCTAssertTrue(text.contains("let approved:[RegionalMarket:Set<String>]=[:]"))
         XCTAssertTrue(text.contains("verifiedCapabilities:[]"))

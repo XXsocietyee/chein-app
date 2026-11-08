@@ -34,7 +34,7 @@ public enum BundleShelfFailure: Error, Equatable {
 
 /// Default client: always unavailable, never returns data.
 @MainActor public final class UnavailableBundleShelfClient: BundleShelfClient {
-    public init() {}
+    nonisolated public init() {}
     public func page(cursor: String?, limit: Int) async throws -> BundleShelfPage {
         throw BundleShelfFailure.unavailable
     }

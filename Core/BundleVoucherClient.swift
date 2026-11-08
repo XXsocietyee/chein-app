@@ -125,7 +125,7 @@ public enum BundleRedeemResultOutcome: Equatable {
 
 /// Shipped default until the backend exists: every call reports unavailable, nothing is invented.
 public struct UnavailableBundleVoucherClient: BundleVoucherServing {
-    public init() {}
+    nonisolated public init() {}
     public func voucher(registrationID: String) async -> BundleVoucherFetchOutcome { .unavailable }
     public func version(registrationID: String) async -> BundleVoucherVersionOutcome { .unavailable }
     public func redeemResult(registrationID: String, unitID: String) async -> BundleRedeemResultOutcome { .unavailable }
