@@ -40,7 +40,7 @@ final class Port1ClubTopicDetailTests: XCTestCase {
         XCTAssertEqual(plan(.confirmed, canDirect: true, n: 1), .action(.confirmed))
         XCTAssertEqual(plan(.confirmed, canDirect: true, n: 2), .chooseSession)
         XCTAssertEqual(plan(.confirmed, manage: true, n: 0), .openSession)
-        XCTAssertEqual(plan(.confirmed, manage: true, n: 0, club: false), .none)
+        XCTAssertEqual(plan(.confirmed, manage: true, club: false, n: 0), .none)
         XCTAssertEqual(plan(.running), .none)
     }
     func testStructureParts() {
