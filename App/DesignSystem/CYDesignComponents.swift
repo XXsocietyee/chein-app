@@ -212,7 +212,7 @@ public struct CYSecondaryButtonStyle: ButtonStyle {
             .padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: isFullWidth ? .infinity : nil, minHeight: CYSpacing.minTouchTarget)
             .background(
-                shape.fill(configuration.isPressed ? CYColor.bgSurfaceStrong : CYColor.bgSurfaceSubtle)
+                shape.fill(configuration.isPressed ? CYColor.bgSurfaceStrong : CYColor.actionSecondary)
             )
             .overlay(
                 shape.strokeBorder(CYColor.borderStrong, lineWidth: 1)
@@ -413,7 +413,8 @@ public struct CYUnreadBadge: View {
 
     private var foregroundColor: Color {
         switch style {
-        case .danger, .accent: return CYColor.textOnAccent
+        case .danger: return Color.white
+        case .accent: return CYColor.textOnAccent
         case .muted: return CYColor.textSecondary
         }
     }

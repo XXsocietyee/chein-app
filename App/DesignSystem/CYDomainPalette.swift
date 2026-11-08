@@ -76,9 +76,14 @@ struct CYDomainPalette {
     // MARK: Brand / actions (NO violet; violet is the selected-tab tint only)
 
     /// `--cy-color-brand`: `#F8F8F8` (player) / `#33363C` (merchant).
+    /// This is also the primary CTA fill. Merchant does not use `--cy-color-action-primary-bg` (`#000000`).
     var brand: Color { token("--cy-color-brand", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
+    /// `--cy-color-brand-strong`: pressed brand (`#B7B7B7` / `#33363C`).
+    var brandStrong: Color { token("--cy-color-brand-strong", dark: CYRGB(hex: 0xB7B7B7), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-brand-soft`: `rgba(248,248,248,.12)` / `#EAEBEE`.
     var brandSoft: Color { token("--cy-color-brand-soft", dark: CYRGB(hex: 0xF8F8F8, alpha: 0.12), light: CYRGB(hex: 0xEAEBEE)) }
+    /// `--cy-color-selection`: same pair as brand (`#F8F8F8` / `#33363C`).
+    var selection: Color { token("--cy-color-selection", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x33363C)) }
     /// `--cy-color-action-primary-bg`: `#F8F8F8` / `#000000`.
     var actionPrimaryBg: Color { token("--cy-color-action-primary-bg", dark: CYRGB(hex: 0xF8F8F8), light: CYRGB(hex: 0x000000)) }
     /// `--cy-color-action-primary-fg`: `#0A0A0A` / `#FFFFFF`.
@@ -108,13 +113,28 @@ struct CYDomainPalette {
 
     var skeletonBase: Color { token("--cy-color-skeleton-base", dark: CYRGB(hex: 0x191919), light: CYRGB(hex: 0xECEFF3)) }
     var skeletonHighlight: Color { token("--cy-color-skeleton-highlight", dark: CYRGB(hex: 0x242424), light: CYRGB(hex: 0xF6F8FA)) }
+    /// `--cy-color-bg-glass`: `rgba(28,28,30,.82)` / `rgba(255,255,255,.88)`.
+    var bgGlass: Color { token("--cy-color-bg-glass", dark: CYRGB(hex: 0x1C1C1E, alpha: 0.82), light: CYRGB(hex: 0xFFFFFF, alpha: 0.88)) }
     /// `--cy-color-overlay`: `rgba(0,0,0,.56)` in both domains.
-    var overlay: Color { CYRGB(hex: 0x000000, alpha: 0.56).swiftUIColor }
+    var overlay: Color { token("--cy-color-overlay", dark: CYRGB(hex: 0x000000, alpha: 0.56), light: CYRGB(hex: 0x000000, alpha: 0.56)) }
 
     // MARK: Tab bar (components/tabBar/index.wxss)
 
-    /// Selected tab icon/label tint: the ONLY violet left in the mini-program (`--cy-ref-violet-500` `#7A5CFF`).
-    var tabSelectedTint: Color { CYColor.accent }
+    /// Selected tab icon/label tint: the only violet (`--cy-ref-violet-500` `#7A5CFF`).
+    var tabSelectedTint: Color {
+        token(
+            "--cy-ref-violet-500",
+            dark: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex),
+            light: CYRGB(hex: Theme.MiniProgramChrome.tabSelectedHex)
+        )
+    }
+}
+
+extension CYDomainPalette {
+    /// Palette `CYColor` reads. Dark is the player role; light is the merchant role.
+    static func resolving(_ scheme: ColorScheme) -> CYDomainPalette {
+        CYDomainPalette(scheme == .dark ? .player : .merchant)
+    }
 }
 
 // MARK: - Environment access

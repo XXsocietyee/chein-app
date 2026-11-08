@@ -5,6 +5,7 @@ struct QuestifyApp: App {
     @StateObject private var sessionContainer = AppSessionContainer()
     @AppStorage(AppLanguage.storageKey) private var storedLanguage = RegionalLaunchConfiguration.language(nil).rawValue
     init() {
+        CYTabBarAppearance.install()
         #if DEBUG
         if ProcessInfo.processInfo.arguments.contains("--uitesting-reset-language") {
             UserDefaults.standard.set(AppLanguage.system.rawValue,forKey:"preferences.language")
@@ -301,6 +302,7 @@ struct SessionRootView: View {
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                .cyDomainTabBar(.player)
                 .roleTheme(.player)
                 }
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).roleTheme(.player) }
