@@ -46,6 +46,9 @@ import SwiftUI
         guard case .registrationEdit(let id) = kind, c.isCurrent, let snapshot = c.snapshot else { return nil }
         return .init(scope: snapshot.scope, registrationID: id, observedAt: snapshot.observedAt)
     }
+    private var registrationWritesGated: Bool {
+        switch kind { case .apply, .registrationCreate, .registrationEdit: return true; default: return false }
+    }
     private var canEditAvailability: Bool {
         availabilityContext != nil && !c.busy && !c.locked && c.review == nil && c.receipt == nil
     }
@@ -66,6 +69,8 @@ import SwiftUI
                 addressGeneration = UUID()
                 await model.load()
             }) }
+            // Registration create/edit has no live write grant yet: say so up front instead of after the review sheet.
+            if registrationWritesGated, !service.permitsWrites { Section { MerchantContentBoundary() } }
             // Keep this entry mounted while the parent's existing read clears its snapshot.
             if case .placement = kind { Section { MerchantCityTemplateHandoffField(binding: placementTemplateBinding, model: cityTemplateHandoff) } }
             if availabilityReplacement != nil, c.receipt != nil, c.snapshot == nil, !c.busy {

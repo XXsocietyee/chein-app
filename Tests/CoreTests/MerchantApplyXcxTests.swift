@@ -51,3 +51,20 @@ final class MerchantApplyXcxTests: XCTestCase {
         XCTAssertThrowsError(try MerchantContentCommand.register(topicID: 3, nodeID: 4, draft: draft, cooperateDate: "").request())
     }
 }
+
+/// W5b: without the offline harness and without a registration grant, merchantapply writes stay gated.
+@MainActor final class MerchantApplyWriteGateTests: XCTestCase {
+    private struct DeadTransport: HTTPTransport {
+        func send(_ request: URLRequest) async throws -> (Data, Int) { throw APIError.notConfigured }
+    }
+    func testRegistrationCreateAndUpdateAreNotPermittedOnTheDisabledService() throws {
+        let session = try MerchantContentSession(accountID: 5, epoch: 1, storageScope: "cn", token: "token")
+        let service = MerchantContentService(configuration: nil, transport: DeadTransport(), currentSession: { session },
+                                             journal: MerchantContentMemoryPendingStorage())
+        XCTAssertFalse(service.permitsWrites)
+        var draft = MerchantRegistrationContentDraft()
+        draft.addressName = "Synthetic shop"; draft.address = "Synthetic street"; draft.activityDesc = "Room for 6"
+        XCTAssertFalse(service.permits(.register(topicID: 3, nodeID: 4, draft: draft, cooperateDate: "")))
+        XCTAssertFalse(service.permits(.updateRegistration(id: 9, topicID: 3, draft: draft)))
+    }
+}
