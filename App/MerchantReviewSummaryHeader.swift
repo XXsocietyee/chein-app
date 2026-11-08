@@ -6,25 +6,25 @@ struct MerchantReviewSummaryHeader: View {
     let presentation: MerchantReviewSummaryPresentation
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("merchant.reviewSummary.title").font(.headline)
+            Text("merchant.reviewSummary.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
             HStack(alignment: .firstTextBaseline, spacing: 8) {
-                Text(presentation.averageText ?? "—").font(.largeTitle.weight(.semibold)).monospacedDigit()
+                Text(presentation.averageText ?? "—").font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary).monospacedDigit()
                     .accessibilityIdentifier("merchant.reviewSummary.average")
                 HStack(spacing: 2) {
                     ForEach(1...5, id: \.self) { star in
                         Image(systemName: star <= presentation.filledStars ? "star.fill" : "star")
-                            .foregroundStyle(star <= presentation.filledStars ? Color.orange : Color.secondary)
+                            .foregroundStyle(star <= presentation.filledStars ? CYColor.warningText : CYColor.textTertiary)
                     }
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text("merchant.reviewSummary.stars \(presentation.filledStars)"))
             }
             Text("merchant.reviewSummary.total \(presentation.total)")
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("merchant.reviewSummary.total")
         }
         .padding(.vertical, 4)
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: 12) {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], alignment: .leading, spacing: CYSpacing.md) {
             metric(Text(presentation.pendingReplyCount.map { String($0) } ?? "—"), "merchant.reviewSummary.pending", note: "merchant.reviewSummary.pending.note")
             metric(Text(presentation.monthNewCount.map { String($0) } ?? "—"), "merchant.reviewSummary.month", note: "merchant.reviewSummary.month.note")
             metric(Text(presentation.replyRatePct.map { "\($0)%" } ?? "—"), "merchant.reviewSummary.rate", note: "merchant.reviewSummary.rate.note")
@@ -34,11 +34,13 @@ struct MerchantReviewSummaryHeader: View {
     }
     private func metric(_ value: Text, _ title: LocalizedStringKey, note: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 2) {
-            value.font(.title3.weight(.semibold)).monospacedDigit()
-            Text(title).font(.subheadline).foregroundStyle(.secondary)
-            Text(note).font(.caption2).foregroundStyle(.tertiary)
+            value.font(CYTypography.cardTitle.monospacedDigit()).foregroundStyle(CYColor.textPrimary).monospacedDigit()
+            Text(title).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            Text(note).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(CYSpacing.md)
+        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }
