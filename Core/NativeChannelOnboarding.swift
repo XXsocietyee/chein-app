@@ -7,6 +7,8 @@ import FoundationNetworking
 
 private enum NativeOnboardingReadFailure:Error { case notConfigured,screeningPending }
 
+/// Onboarding is not the rules gate (DEC-02): answering or skipping it never counts as rules agreement.
+/// `configuration_hash` here is a 64-hex string and is unrelated to the integer rules version.
 /// Only J15/J16 and the existing personal admission receipt. Config publishing is not a member capability.
 public struct NativeChannelOnboardingApproval:Equatable {
     public static let read="api/onboarding/get",submit="api/onboarding/submit",receipts="api/channel-platform/admission/requests/"

@@ -92,6 +92,39 @@ public struct ChannelRevokeIsolation: Equatable, Sendable {
     }
 }
 
+/// WP-13 Core hook only: WP-11 owns the concrete channel cache keys. The App row does not use this yet.
+public protocol ChannelRevokePurgeHook: AnyObject {
+    /// Called once per revoke so the owner of channel caches can drop them.
+    func purgeChannelCaches(channelID: Int, identity: ChannelAccount4Identity,
+                            reason: ChannelRevokeReason, revokedAtGeneration: UInt64)
+}
+
+/// Delivers a revoke fact to a purge hook at most once per (channel, identity, generation).
+public final class ChannelRevokePurgeDispatcher: @unchecked Sendable {
+    private struct Key: Hashable {
+        let channelID: Int
+        let identity: ChannelAccount4Identity
+        let generation: UInt64
+    }
+    private let lock = NSLock()
+    private var delivered = Set<Key>()
+    public init() {}
+
+    /// Returns true when the hook ran. A non-revoked isolation or a repeated revoke does nothing.
+    @discardableResult
+    public func dispatch(_ isolation: ChannelRevokeIsolation, to hook: ChannelRevokePurgeHook) -> Bool {
+        guard let reason = isolation.reason, let generation = isolation.revokedAtGeneration else { return false }
+        let key = Key(channelID: isolation.channelID, identity: isolation.identity, generation: generation)
+        lock.lock()
+        let inserted = delivered.insert(key).inserted
+        lock.unlock()
+        guard inserted else { return false }
+        hook.purgeChannelCaches(channelID: isolation.channelID, identity: isolation.identity,
+                                reason: reason, revokedAtGeneration: generation)
+        return true
+    }
+}
+
 public extension ChannelRevokeIsolation {
     /// Write votes require current membership. After revoke the original exception
     /// keeps result reads and rejects new votes without wiping history.
