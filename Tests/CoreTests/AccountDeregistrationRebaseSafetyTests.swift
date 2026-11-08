@@ -47,7 +47,7 @@ import FoundationNetworking
         journal: journal, current: { self.session }, token: { self.context.session.token }, deregistrationOriginal: { self.client })
     lazy var coordinator = AccountComplianceCoordinator(service: service, auth: auth, effects: C08SafetyEffects(),
         current: { self.session }, invalidateSession: { _ in self.logout += 1 })
-    init(scoped: Bool = false, writes: Bool = false) throws {
+    init(scoped: Bool = false, writes: Bool = false, receipt: AccountDeregistrationOriginalClient.ReceiptSource = .resultEndpoint) throws {
         context = RuntimeDependencyContext(market: .china, baseURL: URL(string: "https://c08.example.test/native")!, role: "player",
             session: try .init(accountID: 7, epoch: 2, namespace: "fixture", token: "synthetic-token", role: "player"))
         let approval = try AccountDeregistrationOriginalApproval(endpoint: .init(baseURL: url, namespace: "fixture", accountID: 7,
@@ -57,6 +57,7 @@ import FoundationNetworking
             underlying: wire, current: { self.context }, stillApproved: { self.active }) : wire
         client = AccountDeregistrationOriginalClient(context: captured, approval: approval, transport: transport,
             current: { self.context }, stillApproved: { self.active }, onUnauthorized: { self.unauthorized += 1 })
+        client.receiptSource = receipt
     }
     func replaceContext(account: Int = 7, epoch: UInt64 = 2, role: String = "player", sessionRole: String = "player", token: String = "synthetic-token", namespace: String = "fixture", base: String? = nil) throws {
         context = RuntimeDependencyContext(market: .china, baseURL: base.flatMap(URL.init(string:)) ?? url, role: role,
@@ -269,12 +270,48 @@ import FoundationNetworking
         let captured = f.context, approval = f.client.approval
         f.client = AccountDeregistrationOriginalClient(context: captured, approval: approval, transport: f.wire,
             current: { f.context }, stillApproved: { f.active }, onUnauthorized: { f.unauthorized += 1 })
+        f.client.receiptSource = .resultEndpoint
         f.coordinator.invalidate(); let count = f.wire.requests.count; await f.coordinator.load()
         XCTAssertEqual(f.coordinator.state.step, .pending); XCTAssertEqual(f.coordinator.state.originalApplicationRequestID, intent.requestID)
         XCTAssertEqual(f.journal.rows, [intent]); XCTAssertEqual(f.wire.requests.dropFirst(count).map(\.httpMethod), ["GET", "GET"])
         await f.coordinator.cancel(explicitlyConfirmed: true)
         XCTAssertFalse(f.wire.requests.contains { $0.url!.lastPathComponent == "cancel" })
         XCTAssertEqual(f.journal.rows, [intent]) // Original apply approval never authorizes cancel.
+    }
+    /// FP-E2: the backend has no `GET api/user/deregister/result`; the default receipt comes from `GET status`.
+    func testDerivedReceiptJourneyNeverCallsMissingResultRoute() async throws {
+        let f = try C08SafetyFixture(scoped: true, writes: true, receipt: .derivedFromStatus)
+        var applied = false
+        f.wire.reply = { request in
+            var data: [String: Any]
+            switch request.url!.lastPathComponent {
+            case "status": data = applied ? ["status": "PENDING", "executeAfter": "2026-11-21T00:00:00Z"] : ["status": "NORMAL"]
+            case "precheck": data = ["status": "ELIGIBLE", "verificationMethod": "SMS", "impact": C08SafetyFixture.impact]
+            case "consents":
+                let body = try JSONSerialization.jsonObject(with: request.httpBody!) as! [String: String]
+                data = ["requestId": body["requestId"]!, "docType": "account_cancellation_notice", "scene": "account_cancel", "eventType": "AGREE", "docVersion": "synthetic-v1"]
+            case "apply": applied = true; data = [:]
+            default: XCTFail("Unexpected path \(request.url!.lastPathComponent)"); throw ComplianceFailure.unavailable
+            }
+            return (try JSONSerialization.data(withJSONObject: ["code": 200, "data": data]), 200)
+        }
+        await f.reachReview(); XCTAssertEqual(f.coordinator.state.step, .review)
+        await f.coordinator.apply(explicitlyConfirmed: true)
+        XCTAssertEqual(f.coordinator.state.step, .freshLogin)
+        XCTAssertEqual(f.wire.requests.map { $0.url!.lastPathComponent }, ["status", "precheck", "consents", "status", "apply", "status", "status"])
+        XCTAssertFalse(f.wire.requests.contains { $0.url!.lastPathComponent == "result" })
+        XCTAssertEqual(f.journal.rows.count, 1)
+    }
+    func testDerivedReceiptIsUnknownUntilThisClientSentApplyAndNeverGuessesRejection() async throws {
+        let f = try C08SafetyFixture(writes: true, receipt: .derivedFromStatus)
+        let intent = f.originalIntent(), session = try XCTUnwrap(f.session)
+        for state in [["status": "NORMAL"], ["status": "PENDING", "executeAfter": "2026-11-21T00:00:00Z"], ["status": "FAILED"]] {
+            f.wire.reply = { _ in (try JSONSerialization.data(withJSONObject: ["code": 200, "data": state]), 200) }
+            let receipt = try await f.client.result(intent, session: session)
+            XCTAssertEqual(receipt.outcome, "UNKNOWN", "PENDING cannot be attributed to this request before apply was sent")
+            XCTAssertFalse(receipt.settled); XCTAssertTrue(receipt.derivedFromStatus)
+            XCTAssertEqual(f.wire.requests.last?.url?.lastPathComponent, "status")
+        }
     }
     func testOriginalNonSMSVerificationStopsBeforeConsentAndSMS() async throws {
         for verification in ["WECHAT", "UNAVAILABLE"] {
