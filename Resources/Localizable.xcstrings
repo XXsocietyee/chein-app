@@ -228015,6 +228015,22 @@
         }
       }
     },
+    "wallet.analysis.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Analysis"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分析"
+          }
+        }
+      }
+    },
     "wallet.approved": {
       "localizations": {
         "en": {

@@ -178,6 +178,8 @@ ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 # Every dot-separated UI string is a localized key except explicit accessibility/storage IDs.
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
 localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
+localizable_ui=re.sub(r'(?:confirmIdentifier|icon):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
+localizable_ui=re.sub(r'(?<![\w.])id:\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 localizable_ui=re.sub(r'(?:systemImage|systemName|symbol):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 # These four values are explicit nonlocalized identifiers at these exact calls.
