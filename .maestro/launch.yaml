@@ -1,0 +1,22 @@
+appId: invalid.example.questify.ios
+---
+# Cold start. The generated launch screen has no accessibility identifier, so this
+# flow does not assert it. clearState and clearKeychain keep a saved token from
+# being restored. No launch arguments, typed text, payment, or host URL.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+- extendedWaitUntil:
+    visible:
+      id: "authEntry.gate.body"
+    timeout: 20000
+- assertVisible:
+    id: "authEntry.gate.privacyGuide"
+- scrollUntilVisible:
+    element:
+      id: "authEntry.gate.decline"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "authEntry.gate.decline"
