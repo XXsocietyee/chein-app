@@ -29,10 +29,9 @@ import SwiftUI
                     }
                 }
                 if rows.isEmpty {
-                    ContentUnavailableView {
-                        Label { invoiceText(InvoiceLaunchHistoryRules.emptyKey(total: overview.applications.count, filter: filter)) }
-                            icon: { Image(systemName: "doc.text") }
-                    }
+                    CYEmptyState(systemImage: "doc.text", LocalizedStringKey(InvoiceLaunchHistoryRules.emptyKey(total: overview.applications.count, filter: filter)),
+                                 tableName: "InvoiceLaunchUI")
+                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                 }
                 ForEach(rows, id: \.id) { row in
                     NavigationLink {
@@ -74,19 +73,22 @@ import SwiftUI
         }
     }
     private func historyRow(_ row: InvoiceLaunchApplication) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: row.titleName).font(.headline)
-                Spacer()
-                invoiceText(row.status.labelKey)
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                Text(verbatim: row.titleName).font(CYTypography.cardTitle).lineLimit(2)
+                Spacer(minLength: CYSpacing.sm)
+                Text(verbatim: invoiceAmount(row.totalAmount, locale: locale)).font(CYTypography.numericBody).monospacedDigit()
             }
-            LabeledContent { invoiceText(row.titleType) } label: { invoiceText("titleType") }
+            HStack(spacing: CYSpacing.sm) {
+                CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
+                Text(verbatim: invoiceTime(row.createTime, locale: locale)).font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary).lineLimit(1)
+            }
             if let tax = row.taxNoMasked, !tax.isEmpty {
-                LabeledContent { Text(verbatim: tax) } label: { invoiceText("taxNo") }
+                Text(verbatim: tax).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
-            LabeledContent { Text(verbatim: invoiceTime(row.createTime, locale: locale)) } label: { invoiceText("created") }
-            LabeledContent { Text(row.orderCount, format: .number) } label: { invoiceText("orderCount") }
-            LabeledContent { Text(verbatim: invoiceAmount(row.totalAmount, locale: locale)) } label: { invoiceText("amount") }
-        }.fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .combine)
     }
 }

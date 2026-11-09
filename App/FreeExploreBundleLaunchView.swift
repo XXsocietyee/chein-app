@@ -10,32 +10,40 @@ import SwiftUI
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
     var body: some View {
         Form {
-            if !model.current { text("stale") }
+            if !model.current {
+                CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
+                    .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+            }
             else {
                 if model.busy { ProgressView { text("loading") } }
-                if model.failure != nil { text("error").accessibilityIdentifier("freeBundle.error") }
+                if model.failure != nil {
+                    Label { text("error") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("freeBundle.error")
+                }
                 if model.state == .outcomeUnknown {
                     Section {
-                        text("unknown")
-                        Button { Task { await model.recover() } } label: { text("recover") }
-                            .disabled(model.busy)
-                        Button { Task { await model.retryOriginal() } } label: { text("retry") }
-                            .disabled(!model.canRetry)
+                        Label { text("unknown") } icon: { Image(systemName: "clock.badge.questionmark") }
+                            .font(CYTypography.body)
+                        CYPillButton(LocalizedStringKey("recover"), style: .primary, tableName: table) { Task { await model.recover() } }
+                            .disabled(model.busy).listRowBackground(Color.clear)
+                        CYPillButton(LocalizedStringKey("retry"), style: .tertiary, tableName: table) { Task { await model.retryOriginal() } }
+                            .disabled(!model.canRetry).listRowBackground(Color.clear)
                     }
                 }
                 if let catalog = model.catalog {
                     Section {
-                        if let name = catalog.topicName { Text(verbatim: name) }
-                        if catalog.items.isEmpty { text("empty") }
+                        if let name = catalog.topicName { Text(verbatim: name).font(CYTypography.sectionTitle) }
+                        if catalog.items.isEmpty {
+                            CYEmptyState(systemImage: "tray", LocalizedStringKey("empty"), tableName: table)
+                                .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                        }
                         ForEach(catalog.items, id: \.chapterId) { item in
-                            if let name = item.name { Text(verbatim: name).font(.headline) }
-                            if let terms = item.termsMode { Text(verbatim: terms).font(.footnote) }
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                if let name = item.name { Text(verbatim: name).font(CYTypography.cardTitle) }
+                                if let terms = item.termsMode { Text(verbatim: terms).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                            }
                             ForEach(item.stores, id: \.offerId) { store in
-                                VStack(alignment: .leading) {
-                                    if let name = store.merchantName { Text(verbatim: name) }
-                                    Text(verbatim: store.offerId.text).font(.caption).textSelection(.enabled)
-                                    if let end = store.validEnd { Text(verbatim: end).font(.footnote) }
-                                }
+                                CYListRow(verbatim: store.merchantName ?? store.offerId.text, meta: store.validEnd, trailing: .none) { CYRowIcon(systemImage: "storefront") }
                             }
                         }
                     } header: { text("catalog") }
@@ -68,18 +76,20 @@ import SwiftUI
                                 }
                             } label: { text("offer") }
                             DatePicker(selection: $date) { text("date") }
-                            Button {
+                            CYPillButton(LocalizedStringKey("review"), style: .primary, tableName: table) {
                                 guard let unitID, let offerID else { return }
                                 let millis = date.timeIntervalSince1970 * 1_000
                                 guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
                                 model.prepare(unitID: unitID, offerID: offerID, startAt: Int64(millis))
-                            } label: { text("review") }
-                                .disabled(!model.canReserve || unitID == nil || offerID == nil)
+                            }
+                            .disabled(!model.canReserve || unitID == nil || offerID == nil).listRowBackground(Color.clear)
                         } else { text("legacy") }
-                        if !model.canReserve { text("disabled").font(.footnote) }
+                        if !model.canReserve { text("disabled").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                     }
                 }
-                if model.state == .confirmed { text("confirmed") }
+                if model.state == .confirmed {
+                    Label { text("confirmed") } icon: { Image(systemName: "checkmark.circle") }.font(CYTypography.body)
+                }
             }
         }
         .navigationTitle(text("title"))
@@ -100,9 +110,10 @@ import SwiftUI
                         Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .date)
                         Text(Date(timeIntervalSince1970: Double(review.command.startAt) / 1_000), style: .time)
                     } label: { text("date") }
-                    Button { Task { await model.confirm(review) } } label: { text("confirm") }
-                        .disabled(!model.canReserve)
-                    Button(role: .cancel) { model.cancelReview() } label: { text("cancel") }
+                    CYPillButton(LocalizedStringKey("confirm"), style: .primary, tableName: table) { Task { await model.confirm(review) } }
+                        .disabled(!model.canReserve).listRowBackground(Color.clear)
+                    CYPillButton(LocalizedStringKey("cancel"), style: .tertiary, tableName: table) { model.cancelReview() }
+                        .listRowBackground(Color.clear)
                 }.navigationTitle(text("review"))
             }
         }
