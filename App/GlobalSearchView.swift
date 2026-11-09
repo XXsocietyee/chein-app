@@ -257,15 +257,14 @@ import SwiftUI
     private enum MapRoute: String, Hashable, Identifiable { case city, nearby, layers, shops
         var id: Self { self }
     }
-    private static let recentRoutesKey = "globalSearch.recentRoutes.v1"
     private func recordRoute(_ route: MapRoute) {
-        var list = (UserDefaults.standard.stringArray(forKey: Self.recentRoutesKey) ?? []).filter { $0 != route.rawValue }
+        var list = (UserDefaults.standard.stringArray(forKey: globalSearchRecentRoutesKey) ?? []).filter { $0 != route.rawValue }
         list.insert(route.rawValue, at: 0)
-        UserDefaults.standard.set(Array(list.prefix(4)), forKey: Self.recentRoutesKey)
+        UserDefaults.standard.set(Array(list.prefix(4)), forKey: globalSearchRecentRoutesKey)
     }
     /// Routes ordered by last use (never-used ones follow), as art tiles in a horizontal shelf.
     private var routeTiles: [MapRoute] {
-        let recent = (UserDefaults.standard.stringArray(forKey: Self.recentRoutesKey) ?? []).compactMap(MapRoute.init(rawValue:))
+        let recent = (UserDefaults.standard.stringArray(forKey: globalSearchRecentRoutesKey) ?? []).compactMap(MapRoute.init(rawValue:))
         var all: [MapRoute] = [.city, .nearby]
         if publicLayers != nil { all.append(.layers) }
         if !hidesMerchants { all.append(.shops) }
@@ -465,3 +464,5 @@ import SwiftUI
         }
     }
 }
+
+private let globalSearchRecentRoutesKey = "globalSearch.recentRoutes.v1"
