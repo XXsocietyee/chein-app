@@ -15,6 +15,10 @@ enum DesignFixtureRegistry {
         case "d2-search": return AnyView(D2Fixture(screen: .search))
         case "d2-square": return AnyView(D2Fixture(screen: .square))
         case "d2-roam": return AnyView(D2Fixture(screen: .roam))
+        case "welcome": return AnyView(WelcomeFixture())
+        case "welcome-menu": return AnyView(WelcomeMenuFixture())
+        case "consent": return AnyView(ConsentFixture())
+        case "login-player": return AnyView(LoginFixture())
         // D1..D5: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
         default:
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }

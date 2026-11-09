@@ -145,11 +145,11 @@ import SwiftUI
                             } label: {
                                 VStack(alignment: .leading, spacing: 4) {
                                     HStack {
-                                        Text(verbatim: role.name)
+                                        Text(verbatim: role.name).font(.headline)
                                         Spacer()
                                         if roleCode == role.code { Image(systemName: "checkmark").accessibilityLabel("club.rolePicker.selected") }
                                     }
-                                    Text(LocalizedStringKey(role.summaryKey)).font(.footnote).foregroundStyle(.secondary)
+                                    Text(LocalizedStringKey(role.summaryKey)).font(.footnote).foregroundStyle(CYColor.textSecondary)
                                 }.contentShape(Rectangle())
                             }.accessibilityIdentifier("club.rolePicker.role.\(role.code)")
                         }

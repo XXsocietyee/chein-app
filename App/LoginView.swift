@@ -29,16 +29,17 @@ struct LoginView: View {
                     Button { submit() } label: {
                         HStack {
                             Text("auth.signIn")
-                            Spacer()
                             if session.isWorking { ProgressView() }
                         }
                     }
+                    .buttonStyle(.cyPrimary)
+                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                     .disabled(!session.canUsePassword || session.isWorking || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
                     .accessibilityIdentifier("auth.signIn")
                 }
                 } else if session.operationalMarket != .china { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
                 if !session.isConfigured {
-                    Section { Label("auth.notConfigured",systemImage:"info.circle") }
+                    Section { Label("auth.notConfigured",systemImage:"info.circle").foregroundStyle(CYColor.textSecondary) }
                 }
                 if let key=session.errorKey {
                     Section { Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error") }
@@ -60,6 +61,9 @@ struct LoginView: View {
                         .accessibilityIdentifier("auth.otherChannels")
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(CYColor.bgPage)
+            .themeDomain(.player)
             .appNavigationTitle("auth.title")
             .toolbar {
                 ToolbarItem(placement:.confirmationAction) { LanguageSwitcher() }
