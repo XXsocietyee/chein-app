@@ -3,6 +3,15 @@ import UIKit
 import MapKit
 import Combine
 
+/// Form chrome shared by the publish forms: page background from the role palette.
+private struct PublishFormChrome: ViewModifier {
+    @Environment(\.cyPalette) private var palette
+    func body(content: Content) -> some View {
+        content.scrollContentBackground(.hidden).cyDomainPageBackground().tint(palette.textPrimary)
+    }
+}
+private extension View { func publishFormChrome() -> some View { modifier(PublishFormChrome()) } }
+
 /// Additive composition surface. Parent supplies professional-editor routing and the current
 /// account epoch. No production mutation approval, map provider or token is created here.
 @MainActor struct PublishingModesView: View {
@@ -25,47 +34,55 @@ import Combine
     var body: some View {
         // Same choices and order as the mini-program publish menu (cy-publish-sheet):
         // a topic (city orientation or free explore, quick or professional), then interaction.
-        List {
-            Section("publishModes.section.topic") {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                CYHeroHeader("publishModes.title")
+                // One primary action: the quick publish journey ("Quick setup").
                 NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) } label: {
                     Label("publishModes.quick", systemImage: "wand.and.stars")
-                }
-                if let makeProfessional {
-                    NavigationLink { makeProfessional(.city) } label: { Label("publishModes.pro.city", systemImage: "map") }
-                        .accessibilityIdentifier("publishModes.pro.city")
-                    NavigationLink { makeProfessional(.freeExplore) } label: { Label("publishModes.pro.freeExplore", systemImage: "location.magnifyingglass") }
-                        .accessibilityIdentifier("publishModes.pro.freeExplore")
-                }
-            }
-            if let makeTemplateAuthoring {
-                Section("publishModes.section.interaction") {
-                    NavigationLink { makeTemplateAuthoring() } label: { Label("publishModes.interaction", systemImage: "puzzlepiece.extension") }
-                        .accessibilityIdentifier("publishModes.interaction")
-                }
-            }
-            if showsActivity {
-                Section {
-                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
-                        Label("publishModes.activity", systemImage: "calendar.badge.plus")
+                }.buttonStyle(CYPillButtonStyle(style: .primary))
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    CYSectionHeader("publishModes.section.topic")
+                    if let makeProfessional {
+                        NavigationLink { makeProfessional(.city) } label: { CYListRow("publishModes.pro.city", card: true) { CYRowIcon(systemImage: "map") } }
+                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.pro.city")
+                        NavigationLink { makeProfessional(.freeExplore) } label: { CYListRow("publishModes.pro.freeExplore", card: true) { CYRowIcon(systemImage: "location.magnifyingglass") } }
+                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.pro.freeExplore")
                     }
                 }
-            }
-            Section {
-                NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
-                    Label("publishModes.projects", systemImage: "square.stack")
+                if let makeTemplateAuthoring {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        CYSectionHeader("publishModes.section.interaction")
+                        NavigationLink { makeTemplateAuthoring() } label: { CYListRow("publishModes.interaction", card: true) { CYRowIcon(systemImage: "puzzlepiece.extension") } }
+                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.interaction")
+                    }
                 }
-                NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
-                    Label("publishModes.identity", systemImage: "person.text.rectangle")
+                VStack(spacing: CYSpacing.md) {
+                    if showsActivity {
+                        NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
+                            CYListRow("publishModes.activity", card: true) { CYRowIcon(systemImage: "calendar.badge.plus") }
+                        }.buttonStyle(.plain)
+                    }
+                    NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
+                        CYListRow("publishModes.projects", card: true) { CYRowIcon(systemImage: "square.stack") }
+                    }.buttonStyle(.plain)
+                    NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
+                        CYListRow("publishModes.identity", card: true) { CYRowIcon(systemImage: "person.text.rectangle") }
+                    }.buttonStyle(.plain)
                 }
             }
-        }.scrollContentBackground(.hidden).background(CYColor.bgPage)
-        .navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .cyDomainPageBackground()
+        .navigationTitle("").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("publishModes.home")
     }
 }
 @MainActor struct QuickPublishingView: View {
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var journey = QuickPublishingJourneyOwner()
+    @Environment(\.cyPalette) private var palette
     var placeSearch: (any PublishingPlaceSearching)?
     var account: PublishingSession? = nil
     var draftStore: PublishingDraftStore? = nil
@@ -77,51 +94,32 @@ import Combine
         // Mini-program publish/simple order: AI draft, the draft (route type, name, story),
         // the stops to confirm on the map, then one primary action into the editor.
         Form {
-            // Mini-program publish/simple hero: kicker for the route type, then the large prompt line.
-            Section {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    Text(draft.wrappedValue.product == .city ? LocalizedStringKey("publishModes.quick.kicker.city") : LocalizedStringKey("publishModes.quick.kicker.free"))
-                        .font(CYTypography.label).foregroundStyle(CYColor.accentText)
-                    Text("publishModes.quick.heroTitle")
-                        .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
-                        .accessibilityAddTraits(.isHeader)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
-            }
             Section {
                 Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
-                    Label("contextPublish.ai.title", systemImage: "sparkles")
-                }.accessibilityIdentifier("contextPublish.ai.open")
-            } footer: {
-                Text("publishModes.quick.aiNote").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    CYListRow("contextPublish.ai.title") { CYRowIcon(systemImage: "sparkles") }
+                }.buttonStyle(.plain).accessibilityIdentifier("contextPublish.ai.open")
             }
-            Section("publishModes.details") {
+            Section {
                 Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
                 TextField("publishModes.name", text: draft.title).accessibilityIdentifier("publishModes.quick.name")
                 TextField("publishModes.description", text: draft.description, axis: .vertical).lineLimit(3...8)
-            }
+            } header: { CYSectionHeader("publishModes.details") }
             ForEach(draft.nodes) { $node in
                 let index = (draft.wrappedValue.nodes.firstIndex { $0.id == node.id } ?? 0) + 1
                 Section {
                     TextField("publishModes.name", text: $node.name)
                     TextField("publishModes.description", text: $node.description, axis: .vertical).lineLimit(2...6)
                     Button(action: journey.openPlaceAction(node.id)) {
-                        HStack {
-                            Label {
-                                Text(verbatim: node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? appLocalized("publishModes.choosePlace", locale: locale))
-                                    .foregroundStyle(node.confirmedPlace == nil ? CYColor.accentText : CYColor.textPrimary)
-                            } icon: { Image(systemName: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill") }
-                            Spacer()
-                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        CYListRow("publishModes.choosePlace", trailing: .valueChevron(node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? "—")) {
+                            CYRowIcon(systemImage: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill")
                         }
-                    }
+                    }.buttonStyle(.plain)
                     Button("publishModes.remove", role: .destructive, action: journey.removeNodeAction(node.id))
-                } header: { Text("publishModes.stopNumber \(index)") }
+                } header: { CYSectionHeader("publishModes.stopNumber \(index)") }
             }
             Section {
-                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle") }
+                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle").frame(maxWidth: .infinity) }
+                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
                     .accessibilityIdentifier("publishModes.quick.add")
             }
             if account != nil && draftStore != nil {
@@ -131,20 +129,19 @@ import Combine
                     if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
                 }
             }
-        }.scrollContentBackground(.hidden).background(CYColor.bgPage)
-        .disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
+        }.publishFormChrome().disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if journey.problem {
-                    Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(CYColor.dangerText).multilineTextAlignment(.center)
+                    Text("publishModes.confirmEveryPlace").font(CYTypography.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
                     ForEach(Array(QuickPublishValidation.issues(draft.wrappedValue).enumerated()), id: \.offset) { _, issue in
-                        Text(verbatim: issue.message).font(.footnote).foregroundStyle(CYColor.dangerText).multilineTextAlignment(.center)
+                        Text(verbatim: issue.message).font(CYTypography.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
                     }
                 }
-                Button(action: journey.handoffAction(openProfessional)) { Text("publishModes.continueEditor").frame(maxWidth: .infinity) }
+                CYPillButton("publishModes.continueEditor", action: journey.handoffAction(openProfessional))
                     .disabled(!journey.canEdit)
                     .accessibilityIdentifier("publishModes.quick.continue")
-            }
+            }.background(palette.bgPage)
         }
         .onAppear { journey.appear(active: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in journey.setActive(phase == .active) }
@@ -160,6 +157,7 @@ import Combine
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     @StateObject private var localClear = ActivityPublishingLocalClearOwner()
     @StateObject private var timeRange = ActivityPublishingTimeRangeOwner()
     @StateObject private var identityRegistration = PublisherIdentityRegistrationOwner()
@@ -242,7 +240,7 @@ import Combine
                     }
                 }
                 .questifyBottomAction {
-                    CYPillButton("publishModes.confirm") { if let snapshot { Task { await submit(snapshot) } } }
+                    Button { if let snapshot { Task { await submit(snapshot) } } } label: { Text("publishModes.confirm").frame(maxWidth: .infinity) }
                         .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
                 }
             }
@@ -255,11 +253,6 @@ import Combine
         // tickets (collaborators, ticket options, add ticket, publisher identity).
         // Input errors sit in red under the field they refer to.
         Form {
-            Section {
-                CYHeroHeader("publishModes.activity", subtitle: Self.wizardSubtitle(wizardStep))
-                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                    .listRowBackground(Color.clear)
-            }
             Section { ActivityPublishingWizardChrome(step: wizardStep, block: wizardBlock) }
             if ActivityPublishingWizard.clamp(wizardStep) == 0 {
                 Section {
@@ -305,10 +298,10 @@ import Combine
                         TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
                     }
                 }.disabled(!editable)
-                Section("publishModes.coverSection") {
+                Section {
                     ActivityCoverAuthoringSection(owner: cover)
                     fieldError("imgUrl")
-                }
+                } header: { CYSectionHeader("publishModes.coverSection") }
                 Section {
                     Button {
                         localClear.invalidate(); timeRange.retire()
@@ -395,17 +388,17 @@ import Combine
                 }
             }
             submissionResult
-        }.navigationTitle(Text("publishModes.activity"))
+        }.publishFormChrome().navigationTitle(Text("publishModes.activity"))
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if !message.isEmpty {
                     Text(LocalizedStringKey(message)).font(.footnote)
-                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? CYColor.dangerText : CYColor.textSecondary)
+                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishModes.message")
                 }
                 ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
-            }
+            }.background(palette.bgPage)
         }
         .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
         .onChange(of: account) { _, _ in
@@ -446,24 +439,12 @@ import Combine
     @ViewBuilder private func fieldError(_ field: String) -> some View {
         if wizardBlock == field {
             Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: field))
-                .font(.footnote).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.meta).foregroundStyle(palette.danger).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.validation")
         }
     }
-    private static func wizardSubtitle(_ step: Int) -> LocalizedStringKey {
-        switch ActivityPublishingWizard.clamp(step) {
-        case 0: return "publishModes.wizard.step.basic"
-        case 1: return "publishModes.wizard.step.content"
-        default: return "publishModes.wizard.step.ticket"
-        }
-    }
-    @ViewBuilder private func chooserRow(_ title: LocalizedStringKey, value: String?, icon: String? = nil) -> some View {
-        let shown = value?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? value! : "—"
-        if let icon {
-            CYListRow(title, trailing: .valueChevron(shown)) { CYRowIcon(systemImage: icon) }
-        } else {
-            CYListRow(title, trailing: .valueChevron(shown))
-        }
+    private func chooserRow(_ title: LocalizedStringKey, value: String?, icon: String? = nil) -> some View {
+        CYListRow(title, trailing: .valueChevron(value ?? "—")) { if let icon { CYRowIcon(systemImage: icon) } }
     }
     private func clearButton(_ field: ActivityPublishingLocalClearOwner.Field) -> some View {
         let action = localClear.action(field, draft: $draft, account: account, draftID: draftID, allowed: { mayClear })

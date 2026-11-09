@@ -30,6 +30,17 @@ struct CYImageCard: View {
         self.aspectRatio = style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0
     }
 
+    /// Server-authored title and meta shown verbatim (never looked up as localisation keys).
+    /// An empty title falls back to `fallback`; a blank meta line is omitted.
+    init(verbatim title: String, fallback: LocalizedStringKey, meta: String? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
+        self.style = style
+        self.title = title.isEmpty ? Text(fallback) : Text(verbatim: title)
+        let trimmed = meta?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        self.meta = trimmed.isEmpty ? nil : Text(verbatim: meta ?? "")
+        self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
+        self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
+    }
+
     /// Pre-formatted (already localized) meta line, shown verbatim.
     init(_ title: LocalizedStringKey, metaText: String, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.init(title, imageURL: imageURL, aspectRatio: aspectRatio, style: style)

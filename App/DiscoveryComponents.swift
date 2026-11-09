@@ -96,14 +96,35 @@ struct DiscoveryTitle: View {
 
 struct DiscoveryPlayRow: View {
     let item: DiscoveryPlayTemplate
+    @Environment(\.cyPalette) private var palette
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(CYTypography.cardTitle)
-            DiscoveryPlayMetadata(item: item)
-            if let text = item.description, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text(text).lineLimit(3).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(CYTypography.cardTitle)
+                    .foregroundStyle(palette.textPrimary)
+                metaLine
+                if let text = item.description, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(text).lineLimit(2).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
+                }
             }
-        }.padding(.vertical, 6)
+            Spacer(minLength: CYSpacing.sm)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+        }
+    }
+}
+
+extension DiscoveryPlayRow {
+    /// One quiet line: pack · players · minutes. Unknown parts are skipped, never shown as 0.
+    @ViewBuilder fileprivate var metaLine: some View {
+        let parts: [Text] = [
+            item.pack.map { Text($0.label) },
+            item.playersText.map { Text(verbatim: $0) },
+            item.durationMinutes.map { Text("discovery.minutes \($0)") }
+        ].compactMap { $0 }
+        if let first = parts.first {
+            parts.dropFirst().reduce(first) { $0 + Text(verbatim: " · ") + $1 }
+                .font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+        }
     }
 }
 

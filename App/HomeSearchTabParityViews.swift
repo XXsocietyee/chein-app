@@ -1280,38 +1280,26 @@ struct PublishTabFloatingSheetView: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                if let quotaBadgeText = presentation.quotaBadgeText {
-                    Section {
-                        Label {
-                            Text(verbatim: copy.tr(quotaBadgeText))
-                                .font(.subheadline.weight(.medium))
-                        } icon: {
-                            Image(systemName: "sparkles")
-                                .foregroundStyle(QuestifyPalette.accent)
-                        }
-                        .accessibilityIdentifier("publishTab.sheet.quotaBadge")
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    if let quotaBadgeText = presentation.quotaBadgeText {
+                        CYStatusChip(LocalizedStringKey(copy.tr(quotaBadgeText)), systemImage: "sparkles")
+                            .accessibilityIdentifier("publishTab.sheet.quotaBadge")
                     }
-                }
-
-                Section {
                     ForEach(presentation.actions) { item in
                         Button {
                             guard item.isEnabled else { return }
                             onSelectAction?(item.kind)
                         } label: {
-                            HStack(spacing: 12) {
-                                Image(systemName: item.systemImage)
-                                    .font(.title3)
-                                    .foregroundStyle(item.isEnabled ? QuestifyPalette.accent : CYColor.textSecondary)
-                                    .frame(minWidth: 28)
-                                VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: CYSpacing.md) {
+                                CYRowIcon(systemImage: item.systemImage)
+                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                                     Text(verbatim: copy.tr(item.title))
-                                        .font(.headline)
-                                        .foregroundStyle(item.isEnabled ? .primary : .secondary)
+                                        .font(CYTypography.cardTitle)
+                                        .foregroundStyle(item.isEnabled ? CYColor.textPrimary : CYColor.textSecondary)
                                     Text(verbatim: copy.tr(item.subtitle))
-                                        .font(.caption)
-                                        .foregroundStyle(.secondary)
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(CYColor.textTertiary)
                                     if let reason = item.disabledReason, !item.isEnabled {
                                         Text(verbatim: copy.tr(reason))
                                             .font(CYTypography.micro)
@@ -1319,18 +1307,25 @@ struct PublishTabFloatingSheetView: View {
                                             .accessibilityIdentifier("publishTab.sheet.disabledReason.\(item.id)")
                                     }
                                 }
-                                Spacer()
+                                Spacer(minLength: CYSpacing.sm)
                                 Image(systemName: "chevron.right")
-                                    .font(.caption)
-                                    .foregroundStyle(.tertiary)
+                                    .font(.footnote.weight(.semibold))
+                                    .foregroundStyle(CYColor.textTertiary)
+                                    .accessibilityHidden(true)
                             }
-                            .padding(.vertical, 4)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                         .disabled(!item.isEnabled)
                         .accessibilityIdentifier("publishTab.sheet.action.\(item.id)")
                     }
                 }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
             }
+            .cyDomainPageBackground()
             .navigationTitle(Text(verbatim: copy.tr(presentation.sheetTitle)))
             .toolbar {
                 if let onClose {

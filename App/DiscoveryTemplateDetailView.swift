@@ -9,6 +9,7 @@ struct DiscoveryTemplateDetailView: View {
     let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: any RetainedPublicImageReading
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
+    @Environment(\.cyPalette) private var palette
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
@@ -43,7 +44,7 @@ struct DiscoveryTemplateDetailView: View {
             if !reader.isConfigured {
                 ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
             } else if detail.isLoading || loadedKey != requestKey {
-                ProgressView("discovery.loading")
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await reload() } }
             } else if let read = detail.value {
@@ -52,23 +53,26 @@ struct DiscoveryTemplateDetailView: View {
                 List {
                     // Mini-program `xb-head` then `xb-cta`: title and publisher, then 应用 right under them.
                     Section {
-                        DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                        DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay")
+                            .font(.system(.largeTitle, design: .default).weight(.heavy))
+                            .foregroundStyle(palette.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
                         DiscoveryPlayMetadata(item: item)
                         if authoringFactory != nil {
                             Button {
                                 guard loadedKey == requestKey, reader.isConfigured,
                                       authoringCompletion?.isCurrent() != false else { return }
                                 adoption = Adoption(source: item, key: requestKey)
-                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc").frame(maxWidth: .infinity, minHeight: 44) }
-                                .buttonStyle(.cyPrimary(fullWidth: true))
+                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
+                                .buttonStyle(CYPillButtonStyle(style: .primary))
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .accessibilityIdentifier("templateAuthor.adopt")
                         }
                     }
                     DiscoveryPlayTemplatePresentationView(presentation: .init(item), scope: galleryScope, imageReader: imageReader)
-                    textSection("discovery.introduction", icon: "info.circle", text: item.description)
-                    textSection("discovery.rules", icon: "point.topleft.down.curvedto.point.bottomright.up", text: item.ruleInstructions)
-                    textSection("discovery.location", icon: "mappin.and.ellipse", text: item.usageLocation)
+                    textSection("discovery.introduction", text: item.description)
+                    textSection("discovery.rules", text: item.ruleInstructions)
+                    textSection("discovery.location", text: item.usageLocation)
                     if let parity {
                         // Carries 怎么验证, 分类与适用场景, 所需物料, 评价 and the 不能直接开团 notice.
                         if parity.materialChips.isEmpty { textSection("discovery.materials", text: item.requiredMaterials) }
@@ -81,7 +85,7 @@ struct DiscoveryTemplateDetailView: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .background(CYColor.bgPage)
+                .cyDomainPageBackground()
                 .refreshable { await reload() }
                 .accessibilityIdentifier("discovery.detail.content")
             }
@@ -101,19 +105,9 @@ struct DiscoveryTemplateDetailView: View {
             }
         }
     }
-    /// Mini-program `xb-section-title`: small icon + title, then a soft body card.
-    @ViewBuilder private func textSection(_ title: LocalizedStringKey, icon: String? = nil, text: String?) -> some View {
+    @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section {
-                Text(text).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
-                    .listRowBackground(CYColor.bgElevated)
-            } header: {
-                Group {
-                    if let icon { Label(title, systemImage: icon) } else { Text(title) }
-                }
-                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).textCase(nil)
-                .accessibilityAddTraits(.isHeader)
-            }
+            Section(title) { Text(text).textSelection(.enabled) }
         }
     }
     private func reload() async {
@@ -185,7 +179,8 @@ struct DiscoveryTopicTemplatePreview: View {
                 List {
                     Section {
                         if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
-                        DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                        DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic")
+                            .font(.system(.largeTitle, design: .default).weight(.heavy)).accessibilityAddTraits(.isHeader)
                         optionalText(item.subtitle)
                         TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
                         if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
@@ -241,7 +236,7 @@ struct DiscoveryTopicTemplatePreview: View {
                     }
                 }
                 .scrollContentBackground(.hidden)
-                .background(CYColor.bgPage)
+                .cyDomainPageBackground()
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")
             } else { ProgressView("discovery.loading") }
@@ -266,7 +261,7 @@ private struct PublicTemplateSilhouette: View {
                                            y: 12 + point.y * max(0, geometry.size.height - 24))
                     if index == 0 { path.move(to: position) } else { path.addLine(to: position) }
                 }
-            }.stroke(CYColor.accent, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
+            }.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
         }.accessibilityElement(children: .ignore)
     }
 }

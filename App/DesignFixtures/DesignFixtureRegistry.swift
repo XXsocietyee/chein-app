@@ -36,6 +36,8 @@ enum DesignFixtureRegistry {
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
         case "d6-real-live": return AnyView(D6RealLiveHost())
+        // D7 creator / publish (PublishDesignFixtures)
+        case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
         default: return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }

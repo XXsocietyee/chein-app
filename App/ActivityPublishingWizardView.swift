@@ -23,10 +23,10 @@ import SwiftUI
                 ForEach(ActivityPublishingWizard.progress(current)) { item in
                     VStack(spacing: 6) {
                         Capsule()
-                            .fill(item.state == "todo" ? palette.borderSubtle : palette.brand)
+                            .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
                             .frame(height: 4)
                         Text(Self.titleKey(item.key))
-                            .font(item.state == "current" ? .footnote.weight(.semibold) : .footnote)
+                            .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
                             .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
                             .lineLimit(2).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
@@ -39,13 +39,13 @@ import SwiftUI
             }
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
-                    .font(.footnote)
-                    .foregroundStyle(CYColor.dangerText)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.danger)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
             Text(verbatim: CoreLoopCopy(locale: locale).wizardHeading(for: current))
-                .font(.subheadline.weight(.semibold))
+                .font(CYTypography.cardTitle)
                 .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.heading")
@@ -72,27 +72,35 @@ import SwiftUI
     let onBack: () -> Void
     let onNext: () -> Void
     let onReview: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        HStack(spacing: CYSpacing.md) {
-            if current == 0 {
-                CYPillButton("publishModes.cancel", style: .secondary, fullWidth: false, action: onCancel)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.wizard.cancel")
-            } else {
-                CYPillButton("publishModes.wizard.back", style: .secondary, fullWidth: false, action: onBack)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.wizard.back")
-            }
-            if current < ActivityPublishingWizard.steps.count - 1 {
-                CYPillButton("publishModes.wizard.next", action: onNext)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.wizard.next")
-            } else {
-                CYPillButton("publishModes.review", action: onReview)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.review")
-            }
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(spacing: CYSpacing.sm) { primary(current); secondary(current) }
+        } else {
+            HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
+        }
+    }
+    @ViewBuilder private func secondary(_ current: Int) -> some View {
+        if current == 0 {
+            CYPillButton("publishModes.cancel", style: .secondary, fullWidth: false, action: onCancel)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.wizard.cancel")
+        } else {
+            CYPillButton("publishModes.wizard.back", style: .secondary, fullWidth: false, action: onBack)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.wizard.back")
+        }
+    }
+    @ViewBuilder private func primary(_ current: Int) -> some View {
+        if current < ActivityPublishingWizard.steps.count - 1 {
+            CYPillButton("publishModes.wizard.next", action: onNext)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.wizard.next")
+        } else {
+            CYPillButton("publishModes.review", action: onReview)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.review")
         }
     }
 }
@@ -143,16 +151,15 @@ import SwiftUI
 
     @ViewBuilder
     private func summaryRow(label: String, value: String, id: String) -> some View {
-        let shown = value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : value
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
-                Text(verbatim: shown).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         } else {
             LabeledContent {
-                Text(verbatim: shown)
+                Text(verbatim: value)
                     .fixedSize(horizontal: false, vertical: true)
             } label: {
                 Text(verbatim: label)
