@@ -8,14 +8,19 @@ public struct CYConfirmSheet: View {
     private let onConfirm: () -> Void
     private let isDestructive: Bool
     private let confirmIdentifier: String?
+    private let cancelIdentifier: String?
+    private let titleIdentifier: String?
 
     @Environment(\.dismiss) private var dismiss
 
     public init(title: String, message: String, confirmTitle: String,
                 isDestructive: Bool = false, confirmIdentifier: String? = nil,
+                cancelIdentifier: String? = nil, titleIdentifier: String? = nil,
                 onConfirm: @escaping () -> Void) {
         self.isDestructive = isDestructive
         self.confirmIdentifier = confirmIdentifier
+        self.cancelIdentifier = cancelIdentifier
+        self.titleIdentifier = titleIdentifier
         self.title = title
         self.message = message
         self.confirmTitle = confirmTitle
@@ -47,6 +52,7 @@ public struct CYConfirmSheet: View {
                 .font(CYTypography.sheetTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
+                .cyOptionalAccessibilityIdentifier(titleIdentifier)
             Text(message)
                 .font(CYTypography.body)
                 .foregroundStyle(CYColor.textSecondary)
@@ -61,12 +67,19 @@ public struct CYConfirmSheet: View {
                 confirmButton
                 Button("action.cancel") { dismiss() }
                     .buttonStyle(.cySecondary(fullWidth: true))
+                    .cyOptionalAccessibilityIdentifier(cancelIdentifier)
             }
             .padding(CYSpacing.lg)
             .background(CYColor.bgElevated)
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+}
+
+private extension View {
+    @ViewBuilder func cyOptionalAccessibilityIdentifier(_ identifier: String?) -> some View {
+        if let identifier { accessibilityIdentifier(identifier) } else { self }
     }
 }
 
