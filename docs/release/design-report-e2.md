@@ -43,3 +43,6 @@ Checklist items 7 to 10 (states, XL, EN/zh, builds) are all open. Possible compi
 
 ## New strings
 None added (all changes reuse existing keys). Unknown city stats now show an em dash instead of the old "unavailable" key.
+
+## Update (after GO attempt)
+The one batch was attempted and every build failed on base errors (not on my pages). Eight base fixes are on this branch (duplicates of the integrator's `ui/main` fixes; drop them when merging `ui/main`). Since then, blind and unbuilt: compare-question page, city value panel, object card reveal, and 30 plain `ContentUnavailableView` uses in the family became `CYEmptyState`. Waiting for a compiling `ui/main` SHA (currently `85ab77ac3`), then merge, run ONE batch with `docs`-listed fixtures (`e2-*`), fix, and push.
