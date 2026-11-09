@@ -258,6 +258,47 @@ class OfflinePackAndNavConsentContracts(unittest.TestCase):
         self.assertIn("t41ScoringWriter", tests)
         self.assertIn("vol12ResumeWriter", tests)
 
+    def test_limited_offline_claims_do_not_widen_play_or_hide_empty_api(self):
+        pack = self.sources["Core/OfflinePackOperation.swift"]
+        tests = self.sources["Tests/CoreTests/OfflinePackOperationTests.swift"]
+        manifest = pack.split("public struct OfflinePackManifest", 1)[1].split("public struct OfflinePackSnapshot", 1)[0]
+        self.assertNotIn("onlineRequired", manifest)
+        self.assertNotIn("URLSession", pack)
+        self.assertNotIn("https://", pack)
+        no_bytes = pack.split("func finishDownload() throws", 1)[1].split("func finishDownload(payload:", 1)[0]
+        self.assertIn("waitingSource", no_bytes)
+        self.assertNotIn("phase = .ready", no_bytes)
+        no_update = pack.split("func finishUpdate() throws", 1)[1].split("func finishUpdate(payload:", 1)[0]
+        self.assertIn("waitingSource", no_update)
+        self.assertNotIn("phase = .ready", no_update)
+        for name in [
+            "testRevisionOrOnlineNotRequiredDoesNotProveFullOfflinePlay",
+            "testMissingChecksumStaysUnverified",
+            "testExpiredStartDoesNotOccupyThenLaterManifestCanStart",
+            "testMismatchedContractAndMissingBytesDoNotFinish",
+            "testExpiredOrForeignUpdateDoesNotCoverVerifiedPack",
+            "testFinishUpdateWithoutBytesDoesNotInstall",
+            "testReadyPackRecordDoesNotCarryServerOutcomes",
+        ]:
+            self.assertIn(name, tests)
+        regional = (ROOT / "Core/RegionalConfiguration.swift").read_text()
+        empty = regional.split("if value.isEmpty", 1)[1].split("} else {", 1)[0]
+        self.assertIn("apiConfiguration = nil", empty)
+        self.assertNotIn("approvedBaseURLs", empty)
+        self.assertIn(
+            "testEmptyAPIURLStaysUnconfiguredEvenWhenApprovalsExist",
+            (ROOT / "Tests/CoreTests/RegionalConfigurationTests.swift").read_text(),
+        )
+        self.assertIn(
+            "testEmptyAPIURLFailsBeforeAnyRequest",
+            (ROOT / "Tests/CoreTests/PlayGameSessionCompositionTests.swift").read_text(),
+        )
+        flow = self.sources["Core/OfflinePackLifecycleFlow.swift"]
+        self.assertNotIn("URLSession", flow)
+        self.assertNotIn("https://", flow)
+        self.assertIn("claimsInstalled", flow)
+        self.assertNotIn("phase = .ready", flow)
+
     def test_sha256_payload_covers_whitelist(self):
         digest = hashlib.sha256()
         for path in CORE_FILES + TEST_FILES + [
