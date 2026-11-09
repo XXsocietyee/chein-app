@@ -6,7 +6,7 @@ def ident(name): return hashlib.sha256(name.encode()).hexdigest()[:24].upper()
 objects = {}
 def obj(object_key, **fields):
     key = ident(object_key); objects[key] = fields; return key
-sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
+sources = sorted([*ROOT.glob('App/*.swift'), *ROOT.glob('App/Theme/*.swift'), *ROOT.glob('App/DesignSystem/*.swift'), *ROOT.glob('App/DesignFixtures/*.swift'), *ROOT.glob('App/*.m'), *ROOT.glob('Core/*.swift')])
 ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
 # Compile this canonical demo source in the app only for Debug. Release AppUnit
 # retains the old tests by compiling that same source in the test bundle instead.

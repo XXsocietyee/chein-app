@@ -19,7 +19,9 @@ struct QuestifyApp: App {
         WindowGroup {
             Group {
                 #if DEBUG
-                if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
+                if let designFixture = fixtureArgument("--design-fixture") {
+                    DesignFixtureRegistry.make(designFixture)
+                } else if ProcessInfo.processInfo.arguments.contains("--owner-draft-fixture") {
                     OwnerDraftFixtureHost(mode: fixtureArgument("--owner-draft-fixture") ?? "ready")
                 } else if ProcessInfo.processInfo.arguments.contains("--ops-safety-fixture") {
                     OpsSafetyFixtureHost(scenario: fixtureArgument("--ops-safety-fixture") ?? "theme")
