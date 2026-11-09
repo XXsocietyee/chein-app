@@ -32,7 +32,9 @@ struct CYDomainPalette {
     /// `--cy-color-bg-page`: `#000000` / `#F3F4F4`.
     var bgPage: Color { token("--cy-color-bg-page", dark: CYRGB(hex: 0x000000), light: CYRGB(hex: 0xF3F4F4)) }
     /// `--cy-color-bg-surface`: `#0A0A0B` / `#FFFFFF`.
-    var bgSurface: Color { token("--cy-color-bg-surface", dark: CYRGB(hex: 0x0A0A0B), light: CYRGB(hex: 0xFFFFFF)) }
+    /// e5c: dark layering is #000 page / #111 surface / #1C1C1E elevated. The generated token (#0A0A0B) sat too close to the
+    /// page to read as a layer, so the player surface is pinned to #111111. Light domain still follows the token sheet.
+    var bgSurface: Color { isDark ? CYRGB(hex: 0x111111).swiftUIColor : token("--cy-color-bg-surface", dark: CYRGB(hex: 0x111111), light: CYRGB(hex: 0xFFFFFF)) }
     /// `--cy-color-bg-surface-subtle`: `#141416` / `#EEEEEE` (dividers, nested slots).
     var bgSurfaceSubtle: Color { token("--cy-color-bg-surface-subtle", dark: CYRGB(hex: 0x141416), light: CYRGB(hex: 0xEEEEEE)) }
     /// `--cy-color-bg-elevated` (= card fill `--cy-comp-card-bg`): `#1C1C1E` / `#FFFFFF`.
