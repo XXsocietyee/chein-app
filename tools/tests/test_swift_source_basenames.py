@@ -25,7 +25,7 @@ class SwiftSourceBasenameTests(unittest.TestCase):
         for folder in ['App', 'Core', 'Tests/AppUITests', 'Tests/AppUnitTests',
                        'Config', 'Resources', 'tools', 'Vendor/GLTFKit2/GLTFKit2.xcodeproj']:
             (self.root / folder).mkdir(parents=True, exist_ok=True)
-        for name in ['generate_project.py', 'check_scaffold.py']:
+        for name in ['generate_project.py', 'check_scaffold.py', 'check_design_lint.py']:
             shutil.copy2(ROOT / 'tools' / name, self.root / 'tools' / name)
         # Small synthetic project exercises the real generator and scaffold.
         self.write('App/Main.swift', '// preferences.language\n')
