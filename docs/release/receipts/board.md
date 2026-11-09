@@ -22,3 +22,8 @@
 - wire40 [x] 2d3997af6. PR 1021. Ledger order reads MerchantLedgerOrderPage.phase. Not merged.
 - wire31 [x] d136c4bad. PR 1022. Customer roster reads MerchantCustomerRosterPage.project. Not merged.
 - wire35 [x] d2862daa9. PR 1023. Brand center reads MerchantBrandCenterPage.reading. Not merged.
+- wire34 [x] 56e0a9e55. PR 1024. Gallery reads MerchantGalleryPage.facts. Not merged.
+- wire38 [x] 539af654b. PR 1025. Merchant home reads MerchantHomePage.project. Not merged.
+- wire42 [x] 1df583e72. PR 1026. Marketing board reads MerchantMarketingBoardPage.project. Not merged.
+- wire33 [x] c2a4966f1. PR 1027. Coop setting reads MerchantCoopSettingPage.project. Not merged.
+- wire39 [x] 2e531ba1a. PR 1028. Settlement batch reads MerchantSettlementBatchPage.make. Not merged.
