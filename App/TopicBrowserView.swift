@@ -33,10 +33,10 @@ struct TopicBrowserView: View {
                     Toggle("topic.recommended", isOn: $recommend)
                 }
                 if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-                else if loadedKey != key { ProgressView("topic.loading") }
+                else if loadedKey != key { CYLoadingStateView(rows: 3).listRowBackground(Color.clear).accessibilityLabel(Text("topic.loading")) }
                 else {
                     if let issue { TopicIssueView(issue: issue) { Task { await load(reset: pagination.rows.isEmpty) } } }
-                    if pagination.rows.isEmpty && !loading && issue == nil { Text("topic.empty") }
+                    if pagination.rows.isEmpty && !loading && issue == nil { CYEmptyState(systemImage: "map", "topic.empty", messageIdentifier: "topic.empty").listRowBackground(Color.clear) }
                     ForEach(pagination.rows) { item in
                         NavigationLink {
                             TopicDetailView(id: item.id, reader: reader, publicMerchant: publicMerchant, makeAudio: makeAudio, makeExternalMaps: makeExternalMaps, selfPlayDestination: selfPlayDestination)
@@ -51,13 +51,13 @@ struct TopicBrowserView: View {
                         }.buttonStyle(QuestifyCardButtonStyle()).questifyHidesLinkIndicator().questifyCardListRow()
                         .accessibilityIdentifier("topic.row.\(item.id)")
                     }
-                    if loading { ProgressView("topic.loading") }
+                    if loading { CYLoadingStateView(rows: 1).listRowBackground(Color.clear).accessibilityLabel(Text("topic.loading")) }
                     else if pagination.hasMore && issue == nil {
                         Button("topic.loadMore") { Task { await load(reset: false) } }
                             .accessibilityIdentifier("topic.loadMore")
                     }
                 }
-                Section { Text("topic.readOnly").font(.footnote).foregroundStyle(.secondary) }
+                Section { Text("topic.readOnly").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }.listRowBackground(Color.clear)
             }
             .appNavigationTitle("topic.title")
             .toolbar { if let onClose { ToolbarItem(placement:.cancellationAction) { Button("action.close",action:onClose) } } }
