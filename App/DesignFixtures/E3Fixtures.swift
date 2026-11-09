@@ -233,15 +233,17 @@ struct E3FileCard: View {
     let size: String
     var kind = "doc.fill"
     var isOwn = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(spacing: CYSpacing.md) {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.md))
+        layout {
             Image(systemName: kind).font(.title3).foregroundStyle(isOwn ? CYChat.sent : CYColor.textInverse)
                 .frame(width: 44, height: 44).background(isOwn ? Color.white : CYColor.textPrimary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: name).font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: size).font(CYTypography.meta).opacity(0.72)
             }
-            Spacer(minLength: 0)
+            if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
             Image(systemName: "arrow.down.circle").font(.title3).opacity(0.8)
         }
         .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
