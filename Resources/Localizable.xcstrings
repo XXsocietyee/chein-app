@@ -238753,7 +238753,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Read"
+            "value": "Review"
           }
         },
         "zh-Hans": {
@@ -238896,6 +238896,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "确认提交申请"
+          }
+        }
+      }
+    },
+    "settingsNative.about.brandName": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "chein - 城瘾"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾"
           }
         }
       }

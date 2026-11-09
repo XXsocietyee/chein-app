@@ -512,7 +512,6 @@ extension EnvironmentValues {
 struct ComplianceHeader: View {
     let destination: ComplianceDestination
     let step: ComplianceStep
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var symbol: String {
         switch destination { case .cancellation: return "person.crop.circle.badge.minus"; case .marketing: return "megaphone.fill"; case .roam: return "location.fill" }
     }
@@ -541,26 +540,27 @@ struct ComplianceHeader: View {
             Text(intro).font(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
             if destination == .cancellation, ![.completed, .pending, .freshLogin, .unknown].contains(step) {
                 let names = ["compliance.step.1", "compliance.step.2", "compliance.step.3"]
-                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    HStack(spacing: CYSpacing.sm) {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    HStack(spacing: 0) {
                         ForEach(0..<3, id: \.self) { i in
-                            Capsule().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.14)).frame(height: 4)
-                        }
-                    }
-                    if dynamicTypeSize.isAccessibilitySize {
-                        Text(LocalizedStringKey(names[stage])).font(.caption.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                    } else {
-                        HStack(spacing: CYSpacing.sm) {
-                            ForEach(0..<3, id: \.self) { i in
-                                Text(LocalizedStringKey(names[i])).font(.caption.weight(i == stage ? .semibold : .regular))
-                                    .foregroundStyle(i == stage ? CYColor.textPrimary : CYColor.textSecondary)
-                                    .frame(maxWidth: .infinity, alignment: .leading).lineLimit(1)
+                            if i > 0 { Capsule().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.16)).frame(height: 3) }
+                            ZStack {
+                                Circle().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.12))
+                                if i < stage { Image(systemName: "checkmark").font(.caption2.weight(.heavy)).foregroundStyle(.white) }
+                                else { Text(verbatim: String(i + 1)).font(.caption.weight(.bold).monospacedDigit()).foregroundStyle(i == stage ? Color.white : CYColor.textSecondary) }
                             }
+                            .frame(width: 26, height: 26)
                         }
                     }
+                    HStack(spacing: CYSpacing.xs) {
+                        Text(verbatim: "\(stage + 1)/3").monospacedDigit().foregroundStyle(CYColor.textSecondary)
+                        Text(LocalizedStringKey(names[stage])).foregroundStyle(CYColor.textPrimary)
+                    }
+                    .font(.subheadline.weight(.semibold))
                 }
                 .accessibilityElement(children: .ignore)
                 .accessibilityLabel(Text(LocalizedStringKey(names[stage])))
+                .accessibilityValue(Text(verbatim: "\(stage + 1)/3"))
                 .padding(.top, CYSpacing.xs)
             }
         }
