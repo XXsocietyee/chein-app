@@ -81,3 +81,119 @@ public enum ProfileGuideReadRoute: Equatable {
     }
     public func retire() { isRetired = true }
 }
+
+/// Document total for the play-guide list. A missing, null, boolean, fractional,
+/// negative, or non-numeric total is unknown. Unknown is an em dash, never 0,
+/// and never the number of decoded rows.
+public enum PlayGuideDocumentCount: Equatable {
+    case unknown
+    case value(Int)
+
+    public static let unknownMark = "\u{2014}"
+
+    public var literal: Int? {
+        if case .value(let number) = self { return number }
+        return nil
+    }
+
+    public var displayText: String {
+        switch self {
+        case .unknown: return Self.unknownMark
+        case .value(let number): return String(number)
+        }
+    }
+
+    static func parse(json: Any?) -> PlayGuideDocumentCount {
+        guard let number = json as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID(),
+              number.doubleValue.isFinite, number.doubleValue == Double(number.intValue),
+              number.intValue >= 0 else { return .unknown }
+        return .value(number.intValue)
+    }
+}
+
+/// Projection of the existing bodyless list read (`ProfileGuideReadRoute.listPath`).
+/// A closed guide grant stays hidden. This type does not send a request or promote the route.
+public struct PlayGuideInformationListPage: Equatable {
+    public enum Phase: Equatable {
+        case loading
+        case empty
+        case error
+        case unknown
+        case ready([SocialInformation])
+    }
+
+    public static let listPath = ProfileGuideReadRoute.listPath
+    public static let routeMarkedLive = false
+    public static let unknownMark = PlayGuideDocumentCount.unknownMark
+
+    public let capabilityPresent: Bool
+    public let phase: Phase?
+    public let documentCount: PlayGuideDocumentCount
+
+    public var isHidden: Bool { phase == nil }
+    public var documentCountText: String { documentCount.displayText }
+
+    public static var hidden: PlayGuideInformationListPage {
+        .init(capabilityPresent: false, phase: nil, documentCount: .unknown)
+    }
+
+    public static var loading: PlayGuideInformationListPage {
+        .init(capabilityPresent: true, phase: .loading, documentCount: .unknown)
+    }
+
+    public static func project(capabilityPresent: Bool, body: Data?, status: Int?) -> PlayGuideInformationListPage {
+        guard capabilityPresent else { return .hidden }
+        guard let body, let status else { return PlayGuideInformationListPage.loading }
+        guard (200..<300).contains(status),
+              let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              PlayGuideDocumentCount.parse(json: object["code"]).literal == 200 else {
+            return .init(capabilityPresent: true, phase: .error, documentCount: .unknown)
+        }
+        guard let data = object["data"] else {
+            return .init(capabilityPresent: true, phase: .unknown, documentCount: .unknown)
+        }
+        if data is NSNull { return .init(capabilityPresent: true, phase: .unknown, documentCount: .unknown) }
+        if (data as? String) == "UNKNOWN" {
+            return .init(capabilityPresent: true, phase: .unknown, documentCount: .unknown)
+        }
+        guard let rawRows = data as? [Any] else {
+            return .init(capabilityPresent: true, phase: .error, documentCount: .unknown)
+        }
+        let rows: [SocialInformation]
+        do {
+            rows = try JSONDecoder().decode([SocialInformation].self, from: JSONSerialization.data(withJSONObject: rawRows))
+        } catch {
+            return .init(capabilityPresent: true, phase: .error, documentCount: .unknown)
+        }
+        let usable = rows.filter(\.isUsable)
+        guard Set(usable.map(\.id)).count == usable.count else {
+            return .init(capabilityPresent: true, phase: .error, documentCount: .unknown)
+        }
+        let count = PlayGuideDocumentCount.parse(json: object["total"])
+        if usable.isEmpty {
+            return .init(capabilityPresent: true, phase: .empty, documentCount: count)
+        }
+        return .init(capabilityPresent: true, phase: .ready(usable), documentCount: count)
+    }
+}
+
+/// Applies an already-produced list receipt. Detail and unknown routes are not adopted.
+public struct PlayGuideInformationListCoordinator: Equatable {
+    public let capabilityPresent: Bool
+    public private(set) var page: PlayGuideInformationListPage
+
+    public init(capabilityPresent: Bool) {
+        self.capabilityPresent = capabilityPresent
+        page = capabilityPresent ? PlayGuideInformationListPage.loading : PlayGuideInformationListPage.hidden
+    }
+
+    public mutating func apply(route: ProfileGuideReadRoute?, body: Data?, status: Int?) {
+        guard capabilityPresent else { page = .hidden; return }
+        guard route == .list else { return }
+        page = .project(capabilityPresent: true, body: body, status: status)
+    }
+
+    public static func == (lhs: PlayGuideInformationListCoordinator, rhs: PlayGuideInformationListCoordinator) -> Bool {
+        lhs.capabilityPresent == rhs.capabilityPresent && lhs.page == rhs.page
+    }
+}
