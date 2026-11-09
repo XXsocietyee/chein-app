@@ -34,12 +34,16 @@ import SwiftUI
                 TextField("context.ai.minutes", text: $minutes).keyboardType(.numberPad).focused($focused)
                 ClubAIDesignIdeaChips(clubID: clubID, session: session, idea: $idea, operationID: $operationID, generating: $generating)
             }.disabled(generating)
-            if !model.flow.isConfigured { Text("context.ai.disabled") }
+            if !model.flow.isConfigured {
+                Label { Text("context.ai.disabled") } icon: { Image(systemName: "sparkles") }
+                    .font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+            }
             if generating {
                 ProgressView("context.ai.generating")
-                Button("action.cancel") { operationID = UUID(); generating = false; model.flow.cancel(); model.revision += 1 }
+                CYPillButton("action.cancel", style: .tertiary) { operationID = UUID(); generating = false; model.flow.cancel(); model.revision += 1 }
+                    .listRowBackground(Color.clear)
             } else {
-                Button("context.ai.generate") {
+                CYPillButton("context.ai.generate", style: model.flow.result == nil ? .primary : .secondary, systemImage: "sparkles") {
                     guard let input else { return }; focused = false
                     let request = UUID(); operationID = request; generating = true
                     Task {
@@ -48,9 +52,11 @@ import SwiftUI
                         guard operationID == request else { return }; generating = false; model.revision += 1
                     }
                 }.disabled(input == nil || !model.flow.canGenerate).accessibilityIdentifier("club.context.ai.generate")
+                    .listRowBackground(Color.clear)
             }
             if let failure = model.flow.failure {
-                Text(LocalizedStringKey("context.ai.error." + String(describing: failure)))
+                Label { Text(LocalizedStringKey("context.ai.error." + String(describing: failure))) } icon: { Image(systemName: "exclamationmark.triangle") }
+                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
             }
             if let result = model.flow.result, let resultGeneration = model.flow.resultGeneration, let source = model.flow.resultInput {
                 Section(showsPreviousResult ? LocalizedStringKey("clubAICandidate.previous") : LocalizedStringKey("context.ai.plan")) {
@@ -68,24 +74,30 @@ import SwiftUI
                             else { Text("clubAICandidate.unspecified") }
                         }
                     }.accessibilityIdentifier("clubAICandidate.source")
-                    Text(verbatim: result.title).font(.headline)
-                    Text(verbatim: result.subtitle); Text(verbatim: result.storyline)
-                    if !result.fitReason.isEmpty { Text(verbatim: result.fitReason) }
-                    ForEach(Array(result.nodes.enumerated()), id: \.offset) { _, node in
-                        VStack(alignment: .leading) { Text(verbatim: node.name).font(.headline); Text(verbatim: node.address); Text(verbatim: node.task) }
+                    Text(verbatim: result.title).font(CYTypography.sectionTitle)
+                    Text(verbatim: result.subtitle).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                    Text(verbatim: result.storyline).font(CYTypography.body)
+                    if !result.fitReason.isEmpty { Text(verbatim: result.fitReason).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    ForEach(Array(result.nodes.enumerated()), id: \.offset) { idx, node in
+                        CYListRow(verbatim: node.name, meta: [node.address, node.task].filter { !$0.isEmpty }.joined(separator: " · "), trailing: .none) {
+                            Text(verbatim: String(idx + 1)).font(CYTypography.label).monospacedDigit().frame(width: 28, height: 28)
+                                .background(CYColor.bgRaised, in: Circle())
+                        }
                     }
-                    ForEach(Array(result.risks.enumerated()), id: \.offset) { _, risk in Text(verbatim: risk) }
+                    ForEach(Array(result.risks.enumerated()), id: \.offset) { _, risk in
+                        Label { Text(verbatim: risk) } icon: { Image(systemName: "exclamationmark.triangle") }.font(CYTypography.meta)
+                    }
                 }
                 Section("context.ai.suggestions") { ForEach(Array(result.merchantSuggestions.enumerated()), id: \.offset) { _, value in Text(verbatim: value) } }
                 if !result.promoCopy.isEmpty { Section("context.ai.promo") { Text(verbatim: result.promoCopy).textSelection(.enabled) } }
                 ClubAIDesignPromoFeedback(clubID: clubID, session: session, flow: model.flow, resultGeneration: resultGeneration, promoCopy: result.promoCopy, operationID: $operationID, generating: $generating)
                 Section {
-                    Text("context.ai.adoptHint")
-                    Button(showsPreviousResult ? LocalizedStringKey("clubAICandidate.adoptPrevious") : LocalizedStringKey("context.ai.adopt")) {
+                    Text("context.ai.adoptHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    CYPillButton(showsPreviousResult ? LocalizedStringKey("clubAICandidate.adoptPrevious") : LocalizedStringKey("context.ai.adopt"), style: .primary) {
                         guard !generating else { return }
                         if let draft = try? model.flow.adopt(clubID: clubID, generation: resultGeneration) { onAdopt(draft) }
                     }.disabled(generating || !model.flow.canAdoptResult)
-                        .accessibilityIdentifier("club.context.ai.adopt")
+                        .accessibilityIdentifier("club.context.ai.adopt").listRowBackground(Color.clear)
                 }
             }
         }.navigationTitle("context.ai.title").scrollDismissesKeyboard(.interactively)
