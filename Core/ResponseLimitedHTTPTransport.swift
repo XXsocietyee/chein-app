@@ -65,6 +65,7 @@ public final class ResponseLimitedHTTPTransport: HTTPTransport, @unchecked Senda
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(nil, forHTTPHeaderField: "Cookie")
         request.setValue(nil, forHTTPHeaderField: "Cookie2")
+        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request)
 
         let exchange = ResponseLimitedHTTPExchange(maximumResponseBytes: maximumResponseBytes)
         return try await withTaskCancellationHandler(operation: {

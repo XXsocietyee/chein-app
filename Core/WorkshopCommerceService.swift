@@ -129,7 +129,7 @@ import FoundationNetworking
         request.httpBody = body; request.setValue(lease.context.session.token, forHTTPHeaderField: "Authorization")
         request.setValue("application/json; charset=utf-8", forHTTPHeaderField: "Content-Type")
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control"); request.cachePolicy = .reloadIgnoringLocalCacheData
-        try check(); let (data, response) = try await session.data(for: request); try check()
+        try check(); try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request); let (data, response) = try await session.data(for: request); try check()
         guard let http = response as? HTTPURLResponse, data.count <= 524288, let text = String(data: data, encoding: .utf8),
               (try? ContentDraftJSON.parse(text)) != nil else { throw WorkshopCommerceIssue.malformed }
         let code = try? JSONDecoder().decode(Code.self, from: data).code

@@ -277,6 +277,7 @@ public extension ModInstallationServing {
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         request.setValue("no-store", forHTTPHeaderField: "Cache-Control"); request.cachePolicy = .reloadIgnoringLocalCacheData
         try check(mutating: method == "POST"); guard acceptsResult() else { throw ModInstallationIssue.disabled }
+        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request)
         let (data, response) = try await session.data(for: request)
         try check(mutating: method == "POST"); guard acceptsResult() else { throw ModInstallationIssue.disabled }
         guard let http = response as? HTTPURLResponse, data.count <= 2_097_152,
