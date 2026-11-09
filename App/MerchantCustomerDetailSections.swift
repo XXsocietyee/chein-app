@@ -34,18 +34,18 @@ import SwiftUI
             if canRead {
                 // Source customer/detail order: name and 累计实付 first, then 客户概览, 参与记录, 标签与备注, 跟进与触达.
                 Section {
-                    Text(verbatim: detail.customer.title).font(.title3.bold())
+                    Text(verbatim: detail.customer.title).font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     MerchantCustomerIdentityLine(lastInteraction: detail.lastInteractionAt)
                     LabeledContent("merchant.business.field.paidAmount") {
                         switch paidCardState {
                         case .amount(let text):
-                            Text(verbatim: text).monospacedDigit()
+                            Text(verbatim: text).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
                         case .unknown:
                             Text("merchant.customerDetail.paidAmountUnrecorded", tableName: "MerchantReviewAndCustomerDetail")
-                                .foregroundStyle(.secondary)
+                                .foregroundStyle(CYColor.textTertiary)
                         case .permissionHidden:
-                            Text("merchant.business.sensitiveUnavailable").foregroundStyle(.secondary)
+                            Text("merchant.business.sensitiveUnavailable").foregroundStyle(CYColor.textTertiary)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
                 }.accessibilityIdentifier("merchant.customerDetail.paidCard")
@@ -57,18 +57,18 @@ import SwiftUI
                 }
                 Section("merchant.customerDetail.participation") {
                     if detail.participation.isEmpty {
-                        Text("merchant.customerDetail.participationEmpty").foregroundStyle(.secondary)
+                        Text("merchant.customerDetail.participationEmpty").foregroundStyle(CYColor.textTertiary)
                             .accessibilityIdentifier("merchant.customerDetail.participationEmpty")
                     }
                     ForEach(detail.participation) { group in
                         VStack(alignment: .leading, spacing: 8) {
-                            if let title = group.title { Text(verbatim: title).font(.headline) }
-                            else { Text("merchant.customerDetail.untitledActivity").font(.headline) }
+                            if let title = group.title { Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            else { Text("merchant.customerDetail.untitledActivity").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                             if let latest = group.latest {
                                 Text(LocalizedStringKey(latest.kind.titleKey))
                                 LabeledContent("merchant.customerDetail.recordTime") { timestamp(latest.occurredAt) }
                             } else {
-                                Text("merchant.customerDetail.orderUncertain").foregroundStyle(.secondary)
+                                Text("merchant.customerDetail.orderUncertain").foregroundStyle(CYColor.textTertiary)
                             }
                             if group.events.count > 1 || group.latest == nil {
                                 DisclosureGroup("merchant.customerDetail.sourceEvents") {
@@ -96,18 +96,18 @@ import SwiftUI
                             Text(verbatim: note.description ?? "").fixedSize(horizontal: false, vertical: true)
                         }.accessibilityIdentifier("merchant.customerDetail.latestNote")
                     } else if detail.hasNotes {
-                        Text("merchant.customerDetail.latestNoteUnknown").foregroundStyle(.secondary)
+                        Text("merchant.customerDetail.latestNoteUnknown").foregroundStyle(CYColor.textTertiary)
                     } else if detail.systemTags.isEmpty && detail.merchantTags.isEmpty {
-                        Text("merchant.customerDetail.tagsAndNotesEmpty").foregroundStyle(.secondary)
+                        Text("merchant.customerDetail.tagsAndNotesEmpty").foregroundStyle(CYColor.textTertiary)
                     }
                 }
                 Section("merchant.customerDetail.history") {
                     if detail.history.isEmpty {
-                        Text("merchant.customerDetail.historyEmpty").foregroundStyle(.secondary)
+                        Text("merchant.customerDetail.historyEmpty").foregroundStyle(CYColor.textTertiary)
                     }
                     ForEach(detail.history) { event in
                         VStack(alignment: .leading, spacing: 8) {
-                            Text(verbatim: event.record.title).font(.headline)
+                            Text(verbatim: event.record.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                             eventFacts(event)
                             actions(event.record)
                         }
@@ -124,8 +124,8 @@ import SwiftUI
     @ViewBuilder private func timestamp(_ date: Date?) -> some View {
         if let date {
             Text(verbatim: MerchantCustomerDetailTime.display(date, phoneTimeZone: phoneTimeZone))
-                .font(.subheadline).monospacedDigit()
-        } else { Text("merchant.customerDetail.timeUnknown").font(.subheadline).foregroundStyle(.secondary) }
+                .font(CYTypography.meta).monospacedDigit()
+        } else { Text("merchant.customerDetail.timeUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
     }
     private func eventFacts(_ event: MerchantCustomerDetailPresentation.Event) -> some View {
         VStack(alignment: .leading, spacing: 5) {

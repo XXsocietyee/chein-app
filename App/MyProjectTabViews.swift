@@ -134,7 +134,7 @@ extension EnvironmentValues {
             merchantScopeAccess: merchantScopeAccess
         )
         HStack(spacing: 6) {
-            if card.pending { Circle().fill(Color.red).frame(width: 6, height: 6).accessibilityHidden(true) }
+            if card.pending { Circle().fill(CYColor.dangerText).frame(width: 6, height: 6).accessibilityHidden(true) }
             Text(LocalizedStringKey(card.roleKey)).font(.caption.bold())
         }
         if let when = MyProjectListPresentation.whenText(start: project.startTime, end: project.endTime, chinese: chinese) {

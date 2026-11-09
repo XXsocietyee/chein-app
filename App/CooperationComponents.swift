@@ -67,11 +67,16 @@ import SwiftUI
             else if let issue = model.issue(owner: owner) {
                 CooperationIssueView(issue: issue, retry: issue.canRetry ? { schedule(permit) } : nil)
             } else if let value = model.value(owner: owner) {
-                if reader.isOfflineExample { Label("cooperation.offline", systemImage: "network.slash").font(.footnote).foregroundStyle(.secondary) }
+                if reader.isOfflineExample { Label("cooperation.offline", systemImage: "network.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 content(value)
-            } else { ProgressView("cooperation.loading").accessibilityIdentifier("cooperation.loading") }
+            } else {
+                // Mini `cy-skeleton type="list"`: a calm centred spinner until rows arrive.
+                ProgressView("cooperation.loading").frame(maxWidth: .infinity, minHeight: 160)
+                    .accessibilityIdentifier("cooperation.loading")
+            }
         }
         .listStyle(.insetGrouped)
+        .cyMiniListScreen()
         .toolbar {
             if reader.isAuthenticated && reader.isConfigured && model.value(owner: owner) != nil {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -111,10 +116,10 @@ struct CooperationIssueView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Label(LocalizedStringKey(issue.key), systemImage: issue == .login ? "lock" : symbol)
-                .font(.headline).accessibilityIdentifier("cooperation.issue")
-            if case .server(let text) = issue { Text(verbatim: text).textSelection(.enabled) }
+                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("cooperation.issue")
+            if case .server(let text) = issue { Text(verbatim: text).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
             if case .forbidden(let message) = issue, let message, !message.isEmpty {
-                Text(verbatim: message).textSelection(.enabled)
+                Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).textSelection(.enabled)
             }
             if let retry { Button("cooperation.retry", action: retry).accessibilityIdentifier("cooperation.retry") }
         }.padding(.vertical, 8)
@@ -141,10 +146,17 @@ struct CooperationName: View {
 struct CooperationStatus: View {
     let key: String
     var symbol = "circle"
+    /// Mini `.inv-badge--pending/accepted/muted`: tone follows the status glyph the caller already passes.
+    private var tone: CYMiniBadgeTone {
+        switch symbol {
+        case "clock": return .pending
+        case "checkmark.circle": return .accepted
+        case "xmark.circle": return .rejected
+        default: return .muted
+        }
+    }
     var body: some View {
-        Label(LocalizedStringKey(key), systemImage: symbol)
-            .font(.subheadline).foregroundStyle(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
+        CYMiniBadge(Text(LocalizedStringKey(key)), tone: tone, systemImage: symbol)
     }
 }
 struct CooperationField: View {

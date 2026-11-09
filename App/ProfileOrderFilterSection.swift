@@ -38,8 +38,8 @@ private struct ProfileOrderFilterChip: View {
         Button(action: choose) {
             Text(LocalizedStringKey(filter.chipTitleKey)).font(.subheadline)
                 .padding(.horizontal, 12).frame(minHeight: CYSpacing.minTouchTarget)
-                .background(Capsule().fill(isSelected ? CYColor.accent : Color.secondary.opacity(0.15)))
-                .foregroundStyle(isSelected ? CYColor.textOnAccent : Color.primary)
+                .background(Capsule().fill(isSelected ? CYColor.accent : CYColor.bgSurfaceSubtle))
+                .foregroundStyle(isSelected ? CYColor.textOnAccent : CYColor.textPrimary)
                 .contentShape(Capsule())
         }
         .buttonStyle(.plain)

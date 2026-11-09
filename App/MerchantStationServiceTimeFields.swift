@@ -74,7 +74,7 @@ import SwiftUI
                 }
                 timeSection("merchant.stationTime.start", start: true)
                 timeSection("merchant.stationTime.end", start: false)
-                if !draft.isValid { Text("merchant.stationTime.invalidOrder").foregroundStyle(.red) }
+                if !draft.isValid { Text("merchant.stationTime.invalidOrder").foregroundStyle(CYColor.dangerText) }
                 if stale { Text("merchant.stationTime.changed").foregroundStyle(.secondary) }
                 Text("merchant.content.civilTime").font(.footnote).foregroundStyle(.secondary)
             }

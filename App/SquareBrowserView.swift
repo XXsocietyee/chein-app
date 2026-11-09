@@ -63,7 +63,9 @@ import SwiftUI
                         Text("square.xcx.closedTitle").font(CYTypography.cardTitle).accessibilityIdentifier("square.communityClosed")
                         Text("square.xcx.closedDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         Button("square.retry") { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
+                            .buttonStyle(.cySecondary(fullWidth: false)).frame(minHeight: CYSpacing.minTouchTarget)
                     }
+                    .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
                 }
                 else if query.mode.requiresAccount && !reader.isSignedIn { SquareIssueView(error: SquareReadFailure.signInRequired) }
                 else if loadedKey != key { ProgressView("square.loading") }
@@ -77,6 +79,7 @@ import SwiftUI
                                 Text("square.xcx.emptyTitle").font(CYTypography.cardTitle).accessibilityIdentifier("square.empty")
                                 Text("square.xcx.emptyDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             }
+                            .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
                         }
                     }
                     ForEach(pagination.items) { post in

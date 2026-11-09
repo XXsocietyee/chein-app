@@ -35,12 +35,12 @@ struct PrivacyProtectionView: View {
 
     var body: some View {
         Form {
-            Section { Text("authEntry.gate.body", tableName: "AuthEntry").fixedSize(horizontal: false, vertical: true) }
+            Section { Text("authEntry.gate.body", tableName: "AuthEntry").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).fixedSize(horizontal: false, vertical: true) }
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(.subheadline.weight(.medium))
-                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(.footnote).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                     }
                 }
             }

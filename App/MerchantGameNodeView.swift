@@ -164,8 +164,8 @@ enum MerchantGameNodeCopy {
     }
     @ViewBuilder private var toastView: some View {
         if let toast = c.toast {
-            MerchantGameNodeCopy.text(toast).font(.footnote).padding(.horizontal, 16).padding(.vertical, 10)
-                .background(.regularMaterial, in: Capsule()).padding(.bottom, 24)
+            MerchantGameNodeCopy.text(toast).font(.footnote).padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+                .background(.regularMaterial, in: Capsule()).padding(.bottom, CYSpacing.xxl)
                 .accessibilityIdentifier("gameNode.toast")
                 .task(id: c.toast) { try? await Task.sleep(nanoseconds: 2_000_000_000); if c.toast == toast { c.clearToast() } }
         }
@@ -208,11 +208,11 @@ enum MerchantGameNodeCopy {
             content()
         }
         .padding().frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain).accessibilityIdentifier(id)
     }
     private func toneColor(_ tone: MerchantGameNodeSummary.Tone) -> Color {
-        switch tone { case .ready: return CYColor.successText; case .paused: return CYColor.warningText; case .pending: return .blue; case .muted: return .secondary; case .error: return CYColor.dangerText }
+        switch tone { case .ready: return CYColor.successText; case .paused: return CYColor.warningText; case .pending: return CYColor.infoText; case .muted: return CYColor.textSecondary; case .error: return CYColor.dangerText }
     }
     private var summaryText: String {
         let key = c.summary.textKey
@@ -231,22 +231,22 @@ enum MerchantGameNodeCopy {
                 }
                 Spacer()
                 MerchantGameNodeCopy.text(station.statusTextKey).font(.caption.weight(.semibold))
-                    .padding(.horizontal, 10).padding(.vertical, 4)
+                    .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xs)
                     .foregroundStyle(toneColor(c.summary.tone)).background(toneColor(c.summary.tone).opacity(0.14), in: Capsule())
                     .accessibilityIdentifier("gameNode.status")
             }
             Text(verbatim: summaryText).font(.subheadline).accessibilityIdentifier("gameNode.summary")
             HStack {
-                fact(Text(verbatim: String(station.capacity ?? 0)), "merchantGameNode.fact.capacity")
+                fact(Text(verbatim: station.capacity.map(String.init) ?? "—"), "merchantGameNode.fact.capacity")
                 fact(Text(verbatim: String(station.pendingVerificationCount)), "merchantGameNode.fact.pending")
                 fact(MerchantGameNodeCopy.text(station.playable ? "merchantGameNode.fact.playable" : "merchantGameNode.fact.notPlayable"), "merchantGameNode.fact.playerState")
             }
         }
-        .padding().background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16))
+        .padding(CYSpacing.lg).background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain).accessibilityIdentifier("gameNode.hero")
     }
     private func fact(_ value: Text, _ label: String) -> some View {
-        VStack(spacing: 2) { value.font(.headline).monospacedDigit(); MerchantGameNodeCopy.text(label).font(.caption2).foregroundStyle(.secondary) }
+        VStack(spacing: CYSpacing.xxs) { value.font(CYTypography.numericBody).monospacedDigit(); MerchantGameNodeCopy.text(label).font(CYTypography.micro).foregroundStyle(CYColor.textSecondary) }
             .frame(maxWidth: .infinity)
     }
     private func runbook(_ station: MerchantGameNodeStation) -> some View {

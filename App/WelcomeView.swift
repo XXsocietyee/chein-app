@@ -24,7 +24,8 @@ struct WelcomeView: View {
                         .background(Color(uiColor: .secondarySystemFill), in: Circle())
                         .accessibilityHidden(true)
                     Text("welcome.title")
-                        .font(.largeTitle.bold())
+                        .font(CYTypography.display)
+                        .foregroundStyle(CYColor.textPrimary)
                         .accessibilityAddTraits(.isHeader)
                     if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
                         Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
@@ -83,7 +84,7 @@ struct WelcomeView: View {
             HStack(alignment: .top, spacing: 16) {
                 Image(systemName: symbol).font(.title2).accessibilityHidden(true)
                 // Title only: ui-spec allows no subtitle captions under rows.
-                Text(title).font(.headline)
+                Text(title).font(CYTypography.cardTitle)
                     .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.footnote.weight(.semibold))

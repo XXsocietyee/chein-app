@@ -17,7 +17,7 @@ import SwiftUI
                 TextField(nativeWebhookLocalized("d7.webhook.editor.rateLimit"), text: $draft.rateLimit)
                     .keyboardType(.numberPad).accessibilityIdentifier("webhook.endpoint.rateLimit")
                 if rateLimitInvalid {
-                    Text(nativeWebhookLocalized("d7.webhook.editor.rateLimit.error")).font(.footnote).foregroundStyle(.red)
+                    Text(nativeWebhookLocalized("d7.webhook.editor.rateLimit.error")).font(.footnote).foregroundStyle(CYColor.dangerText)
                 }
                 SecureField(nativeWebhookLocalized("d7.webhook.editor.avatar"), text: $draft.avatarURL)
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -29,7 +29,7 @@ import SwiftUI
                     .accessibilityLabel(nativeWebhookLocalized("d7.webhook.editor.allowedIPs.label"))
                     .accessibilityIdentifier("webhook.endpoint.allowedIPs")
                 if ipCount > 32 {
-                    Text(nativeWebhookLocalized("d7.webhook.editor.allowedIPs.error")).font(.footnote).foregroundStyle(.red)
+                    Text(nativeWebhookLocalized("d7.webhook.editor.allowedIPs.error")).font(.footnote).foregroundStyle(CYColor.dangerText)
                 }
             }
             NativeWebhookStatusSection(model: model)

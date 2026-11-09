@@ -138,7 +138,8 @@ struct RoamBrowserView: View {
         let reader = effectiveReader
         NavigationStack {
             VStack(spacing: 0) {
-                RoamHomeTabPicker(selection: $homeTab).padding(.horizontal).padding(.top, 6)
+                // Mini: page title + two text tabs (开始漫游 / 漫游护照). Native segmented control carries the tabs.
+                RoamHomeTabPicker(selection: $homeTab).padding(.horizontal, CYSpacing.pageHorizontal).padding(.top, CYSpacing.xs)
                 if homeTab == .passport {
                     RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
                         stampDestination: stampDestination, liveDestination: liveDestination,
@@ -363,12 +364,12 @@ struct RoamBrowserView: View {
                 } description: {
                     Text(LocalizedStringKey(query.isEmpty && placeFilter == .all && eventFilter == .all ? "roam.emptyHint" : "roam.filteredEmptyHint"))
                 } actions: {
-                    Button("action.retry") { startLoad() }
+                    Button("action.retry") { startLoad() }.buttonStyle(.cySecondary)
                 }
                 .accessibilityIdentifier("roam.empty")
             } else if showsMap && !visibleItems.contains(where: { $0.coordinate != nil }) {
                 Label("roam.noCoordinates", systemImage: "mappin.slash")
-                    .foregroundStyle(.secondary)
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             }
             if let snapshot = readSnapshot {
                 Section {
@@ -379,7 +380,7 @@ struct RoamBrowserView: View {
                     if snapshot.isRetained {
                         Label("roamRetained.previous", systemImage: "clock.arrow.circlepath")
                             .fixedSize(horizontal: false, vertical: true)
-                        Text("roamRetained.readOnly").font(.subheadline).foregroundStyle(.secondary)
+                        Text("roamRetained.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("roamRetained.notice")
                         ForEach(retainedRows) { item in
@@ -403,6 +404,7 @@ struct RoamBrowserView: View {
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .refreshable { await load() }
+        .cyMiniListScreen()
         .accessibilityIdentifier("roam.content")
     }
     // Both map members and ordinary rows resolve against the same current read.
@@ -469,18 +471,18 @@ struct RoamItemRow: View {
                 RoamTitle(item.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 Text(item.kindLabel).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                 if showsCurrentReadStatus, case .place(let place) = item {
-                    RoamPlaceReadStatusLabel(status: place.readStatus).font(.caption)
+                    RoamPlaceReadStatusLabel(status: place.readStatus).font(CYTypography.caption)
                 }
-                if let address = item.address, !address.isEmpty { Text(verbatim: address).font(.subheadline) }
+                if let address = item.address, !address.isEmpty { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 if let distance = item.distance, distance >= 0, distance.isFinite {
                     RoamDistanceLabel(meters: distance)
                 }
-                if item.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash").font(.caption) }
+                if item.coordinate == nil { Label("roam.noCoordinates", systemImage: "mappin.slash").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
             }
             Spacer(minLength: 0)
             if navigable { Image(systemName: "chevron.right").foregroundStyle(CYColor.textTertiary).font(.caption) }
         }
-        .padding(.vertical, 8).contentShape(Rectangle())
+        .padding(.vertical, CYSpacing.sm).contentShape(Rectangle())
         .accessibilityElement(children: .combine)
     }
 }

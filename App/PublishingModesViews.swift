@@ -58,7 +58,8 @@ import Combine
                     Label("publishModes.identity", systemImage: "person.text.rectangle")
                 }
             }
-        }.navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
+        }.scrollContentBackground(.hidden).background(CYColor.bgPage)
+        .navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
     }
 }
 @MainActor struct QuickPublishingView: View {
@@ -76,10 +77,25 @@ import Combine
         // Mini-program publish/simple order: AI draft, the draft (route type, name, story),
         // the stops to confirm on the map, then one primary action into the editor.
         Form {
+            // Mini-program publish/simple hero: kicker for the route type, then the large prompt line.
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(draft.wrappedValue.product == .city ? LocalizedStringKey("publishModes.quick.kicker.city") : LocalizedStringKey("publishModes.quick.kicker.free"))
+                        .font(CYTypography.label).foregroundStyle(CYColor.accentText)
+                    Text("publishModes.quick.heroTitle")
+                        .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
+            }
             Section {
                 Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
                     Label("contextPublish.ai.title", systemImage: "sparkles")
                 }.accessibilityIdentifier("contextPublish.ai.open")
+            } footer: {
+                Text("publishModes.quick.aiNote").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
             }
             Section("publishModes.details") {
                 Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
@@ -95,7 +111,7 @@ import Combine
                         HStack {
                             Label {
                                 Text(verbatim: node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? appLocalized("publishModes.choosePlace", locale: locale))
-                                    .foregroundStyle(node.confirmedPlace == nil ? Color.accentColor : Color.primary)
+                                    .foregroundStyle(node.confirmedPlace == nil ? CYColor.accentText : CYColor.textPrimary)
                             } icon: { Image(systemName: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill") }
                             Spacer()
                             Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
@@ -115,7 +131,8 @@ import Combine
                     if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
                 }
             }
-        }.disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
+        }.scrollContentBackground(.hidden).background(CYColor.bgPage)
+        .disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if journey.problem {

@@ -108,7 +108,7 @@ public struct ReformWorldHostWorkbenchView: View {
                 Spacer()
                 Text(verbatim: readinessVerdictBadgeText)
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(readinessReport.isReleaseReady ? Color.green : Color.red)
+                    .foregroundStyle(readinessReport.isReleaseReady ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("reformWorldWorkbench.verdictBadge")
             }
 
@@ -140,7 +140,7 @@ public struct ReformWorldHostWorkbenchView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reformWorldWorkbench.inventorySection")
@@ -153,7 +153,7 @@ public struct ReformWorldHostWorkbenchView: View {
 
             Text(verbatim: failClosedSwitchesSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(readinessReport.allHighRiskSwitchesFailClosed ? Color.secondary : Color.red)
+                .foregroundStyle(readinessReport.allHighRiskSwitchesFailClosed ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("reformWorldWorkbench.failClosedSwitchesSummary")
 
             ForEach(highRiskSwitches, id: \.name) { item in
@@ -163,7 +163,7 @@ public struct ReformWorldHostWorkbenchView: View {
                     Spacer()
                     Text(verbatim: item.isFailClosed ? "OFF (Fail-Closed)" : "ON (Open)")
                         .font(.caption2.monospaced())
-                        .foregroundStyle(item.isFailClosed ? Color.secondary : Color.red)
+                        .foregroundStyle(item.isFailClosed ? CYColor.textSecondary : CYColor.dangerText)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("reformWorldWorkbench.switchRow.\(item.name)")
@@ -173,7 +173,7 @@ public struct ReformWorldHostWorkbenchView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reformWorldWorkbench.switchesSection")

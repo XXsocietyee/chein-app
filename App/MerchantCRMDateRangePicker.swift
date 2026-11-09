@@ -53,7 +53,7 @@ import SwiftUI
             Form {
                 dateField("merchant.business.sourceStart", .start)
                 dateField("merchant.business.sourceEnd", .end)
-                if !draft.isValid { Text("merchant.crmDate.invalid").foregroundStyle(.red) }
+                if !draft.isValid { Text("merchant.crmDate.invalid").foregroundStyle(CYColor.dangerText) }
                 if stale { Text("merchant.crmDate.stale").foregroundStyle(.secondary) }
             }
             .navigationTitle("merchant.crmDate.choose")

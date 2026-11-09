@@ -60,6 +60,8 @@ struct LoginView: View {
                         .accessibilityIdentifier("auth.otherChannels")
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(CYColor.bgPage.ignoresSafeArea())
             .appNavigationTitle("auth.title")
             .toolbar {
                 ToolbarItem(placement:.confirmationAction) { LanguageSwitcher() }

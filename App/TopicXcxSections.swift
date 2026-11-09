@@ -45,6 +45,7 @@ struct TopicXcxStatBar: View {
     @Environment(\.cyPalette) private var palette
     var body: some View {
         if !cells.isEmpty {
+            // Mini-program `statbar`: horizontal strip, hairline between cells, each "label / big number / unit".
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Theme.Space.s5) {
                     ForEach(Array(cells.enumerated()), id: \.offset) { _, cell in
@@ -76,6 +77,9 @@ struct TopicXcxStatBar: View {
             .accessibilityIdentifier("topic.statBar")
         }
     }
+    private func label(_ key: LocalizedStringKey) -> some View { Text(key).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary) }
+    private func number(_ text: String) -> some View { Text(verbatim: text).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
+    private func unit(_ key: LocalizedStringKey) -> some View { Text(key).font(CYTypography.micro).foregroundStyle(CYColor.textTertiary) }
 }
 
 struct TopicXcxDurationText: View {
@@ -112,10 +116,17 @@ struct TopicXcxIncludes: View {
 struct TopicXcxLineup: View {
     let members: [TopicXcxFacts.LineupMember]
     var body: some View {
-        ForEach(Array(members.enumerated()), id: \.offset) { _, member in
-            LabeledContent {
-                Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").foregroundStyle(.secondary)
-            } label: { Text(verbatim: member.name) }
+        // Mini-program `lineup-row`: horizontal scroll of avatar / name / role cards.
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                ForEach(Array(members.enumerated()), id: \.offset) { _, member in
+                    VStack(spacing: CYSpacing.xs) {
+                        CYAvatarView(name: member.name, size: .lg)
+                        Text(verbatim: member.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                        Text(member.kind == .club ? "topicXcx.lineup.club" : "topicXcx.lineup.merchant").font(CYTypography.micro).foregroundStyle(CYColor.textTertiary)
+                    }.frame(width: 88).accessibilityElement(children: .combine)
+                }
+            }
         }
     }
 }
@@ -136,19 +147,19 @@ struct TopicXcxActionBar: View {
                     Label("topicXcx.cta.ticketWallet", systemImage: "ticket").frame(maxWidth: .infinity)
                 case .locked(let lifecycle):
                     if TopicXcxFacts.opensPricing(topic), let openPricing {
-                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
+                        Button(action: openPricing) { Text("topicXcx.cta.confirmPrice").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                             .accessibilityIdentifier("topic.cta.pricing")
                     } else {
-                        Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey("topicXcx.cta.locked." + String(lifecycle))).frame(maxWidth: .infinity).foregroundStyle(CYColor.textSecondary)
                     }
                 case .selfPlay(let price):
                     Button(action: openSessions) { Text("topicXcx.cta.sessions").frame(maxWidth: .infinity) }.buttonStyle(.bordered).frame(minHeight: 44)
                     Button(action: openSelfPlay) {
                         if let price { Text("topicXcx.cta.selfPlay \(NSDecimalNumber(decimal: price).stringValue)").frame(maxWidth: .infinity) }
                         else { Text("topicXcx.cta.selfPlayNoPrice").frame(maxWidth: .infinity) }
-                    }.buttonStyle(.questifyPrimary).disabled(!topic.canOfferPurchase)
+                    }.buttonStyle(.cyPrimary).disabled(!topic.canOfferPurchase)
                 case .signUp:
-                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.questifyPrimary)
+                    Button(action: openSessions) { Text("topicXcx.cta.signUp").frame(maxWidth: .infinity) }.buttonStyle(.cyPrimary)
                         .disabled(topic.merchantClosed)
                 }
             }
@@ -184,7 +195,7 @@ struct TopicXcxRouteSection: View {
                 }.accessibilityIdentifier("topic.route.empty")
             }
             ForEach(Array(topic.chapters.enumerated()), id: \.offset) { _, chapter in
-                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(.subheadline.bold()) }
+                if !chapter.nodes.isEmpty { Text(verbatim: chapter.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                 ForEach(TopicChapterItinerary(chapter: chapter).stops) { stop in
                     VStack(alignment: .leading, spacing: 2) {
                         if let minutes = stop.estimatedWalkingMinutes { Text("topicXcx.route.walk \(minutes)").font(Theme.Font.label).foregroundStyle(.secondary) }

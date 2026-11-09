@@ -136,18 +136,18 @@ public struct AppStoreSubmissionFinalPreflightGateView: View {
                 Spacer()
                 Text(verbatim: statusBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isSubmissionReady ? Color.green : Color.red)
+                    .foregroundStyle(snapshot.isSubmissionReady ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("finalPreflightGateRunner.statusBadge")
             }
 
             Text(verbatim: runnerSummaryText)
                 .font(.footnote.monospaced())
-                .foregroundStyle(snapshot.zeroSecretOrCredentialLeak ? Color.secondary : Color.red)
+                .foregroundStyle(snapshot.zeroSecretOrCredentialLeak ? CYColor.textSecondary : CYColor.dangerText)
                 .accessibilityIdentifier("finalPreflightGateRunner.runnerSummary")
 
             Text(verbatim: submissionDecisionBannerText)
                 .font(.footnote.weight(.semibold))
-                .foregroundStyle(snapshot.isSubmissionReady ? Color.green : Color.red)
+                .foregroundStyle(snapshot.isSubmissionReady ? CYColor.successText : CYColor.dangerText)
                 .accessibilityIdentifier("finalPreflightGateRunner.submissionDecisionBanner")
 
             VStack(alignment: .leading, spacing: 8) {
@@ -159,21 +159,21 @@ public struct AppStoreSubmissionFinalPreflightGateView: View {
                             Spacer()
                             Text(verbatim: row.statusBadgeText)
                                 .font(.caption2.monospaced())
-                                .foregroundStyle((row.isPassed && row.isFailClosed) ? Color.green : Color.red)
+                                .foregroundStyle((row.isPassed && row.isFailClosed) ? CYColor.successText : CYColor.dangerText)
                         }
                         Text(verbatim: row.checkSummary)
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.textSecondary.opacity(0.06))
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("finalPreflightGateRunner.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("finalPreflightGateRunner.section")

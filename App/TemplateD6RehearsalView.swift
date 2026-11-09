@@ -96,7 +96,7 @@ import Combine
                     Section("templateD6.sampleResult") {
                         HStack {
                             ForEach(Array(sample.pips.enumerated()), id: \.offset) { _, value in
-                                Image(systemName: "die.face.\(value).fill").font(.system(size: 48))
+                                Image(systemName: "die.face.\(value).fill").font(.largeTitle).imageScale(.large)
                                     .accessibilityLabel(Text(verbatim: String(value)))
                             }
                         }

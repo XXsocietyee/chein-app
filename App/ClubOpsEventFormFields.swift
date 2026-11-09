@@ -25,7 +25,7 @@ import SwiftUI
                 TextField(text: $capacity, prompt: Text("clubOpsEvent.capacity.placeholder", tableName: "ClubOpsEvent")) { Text("club.gov.field.capacity") }
                     .keyboardType(.numberPad).accessibilityIdentifier("club.gov.input.capacity")
                 if ClubOpsEventInput.capacityInvalid(capacity) {
-                    Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.red)
+                    Text("clubOpsEvent.capacity.invalid", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("clubOpsEvent.capacity.invalid")
                 }
                 Text("clubOpsEvent.capacity.help", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.secondary)
@@ -45,7 +45,7 @@ import SwiftUI
             Text("clubOpsEvent.offer.help", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.secondary)
         }
         if ClubOpsEventInput.offerInvalid(minutes) {
-            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(.red)
+            Text("clubOpsEvent.offer.invalid", tableName: "ClubOpsEvent").font(.caption).foregroundStyle(CYColor.dangerText)
                 .accessibilityIdentifier("clubOpsEvent.offer.invalid")
         }
     }
@@ -64,7 +64,7 @@ import SwiftUI
             .accessibilityIdentifier("club.gov.input.reason")
             if !reason.isEmpty, cancel ? ClubOpsEventInput.cancelReasonInvalid(reason) : ClubOpsEventInput.correctionReasonInvalid(reason) {
                 Text(cancel ? "clubOpsEvent.cancel.reasonInvalid" : "clubOpsEvent.correct.reasonInvalid", tableName: "ClubOpsEvent")
-                    .font(.caption).foregroundStyle(.red).accessibilityIdentifier("clubOpsEvent.reason.invalid")
+                    .font(.caption).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("clubOpsEvent.reason.invalid")
             }
             if cancel {
                 Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)

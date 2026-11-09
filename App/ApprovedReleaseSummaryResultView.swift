@@ -28,6 +28,7 @@ import SwiftUI
                 // Historical media is metadata-only: no new media-read authority is inferred.
                 ApprovedReleaseSummarySection(prepared: original.record.prepared, identifierPrefix: "approvedRelease.history")
             }
+            .p04LifecycleSurface()
             .navigationTitle(String(localized: LocalizedStringResource("approvedRelease.history.title", defaultValue: "Saved publication requests", table: "ApprovedReleaseHistory", locale: locale)))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -36,6 +37,7 @@ import SwiftUI
                 }
             }
         }
+        .preferredColorScheme(.dark)
         .onDisappear { close(original) }
     }
 }

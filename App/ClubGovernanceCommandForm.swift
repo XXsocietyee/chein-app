@@ -424,7 +424,7 @@ import SwiftUI
             // Mini inline "reason required" copy; display only (the command validation still blocks blank reasons).
             if key == "reason", dirty, let mode = Self.reasonMode(route.operation), !ClubGovernanceReportPort.reasonIsValid(draft.text[key] ?? "") {
                 Text(LocalizedStringKey(ClubGovernanceReportPort.reasonRequiredKey(mode)), tableName: "ClubOpsGovernance")
-                    .font(.footnote).foregroundStyle(.red)
+                    .font(.footnote).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("club.gov.reasonRequired")
             }
         }

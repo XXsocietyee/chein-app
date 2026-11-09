@@ -197,8 +197,8 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
                     .background(
                         Capsule().fill(
                             snapshot.isAllSafe
-                                ? Color.green.opacity(0.15)
-                                : Color.red.opacity(0.15)
+                                ? CYColor.successText.opacity(0.15)
+                                : CYColor.dangerText.opacity(0.15)
                         )
                     )
                     .accessibilityIdentifier("rolloutAllowlistSwitchboard.header.badge")
@@ -209,7 +209,7 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
             }
         }
         .padding(12)
-        .background(RoundedRectangle(cornerRadius: 12).fill(Color.secondary.opacity(0.08)))
+        .background(RoundedRectangle(cornerRadius: 12).fill(CYColor.textSecondary.opacity(0.08)))
         .accessibilityIdentifier("rolloutAllowlistSwitchboard.section")
     }
 
@@ -246,7 +246,7 @@ public struct BackendRolloutAllowlistSwitchboardSectionView: View {
             }
         }
         .padding(10)
-        .background(RoundedRectangle(cornerRadius: 8).fill(Color.secondary.opacity(0.06)))
+        .background(RoundedRectangle(cornerRadius: 8).fill(CYColor.textSecondary.opacity(0.06)))
         .accessibilityIdentifier("rolloutAllowlistSwitchboard.row.\(row.id)")
     }
 }

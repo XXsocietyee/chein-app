@@ -49,8 +49,10 @@ import SwiftUI
                     TextField("searchMap.placeholder", text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
+                    // Mini-program ghost 「筛选」 button: icon plus text beside the field; icon-only at accessibility sizes.
                     Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle") }
-                        .labelStyle(.iconOnly).buttonStyle(.borderless)
+                        .labelStyle(.titleAndIcon).font(CYTypography.label)
+                        .buttonStyle(.borderless).tint(CYColor.accentText)
                         .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
                 }
                 if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
@@ -157,8 +159,8 @@ import SwiftUI
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: CYSpacing.sm) {
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
-                            Text(verbatim: keyword).frame(maxWidth: .infinity, minHeight: 44)
-                        }.buttonStyle(.bordered).disabled(!reader.isConfigured)
+                            Text(verbatim: keyword).font(CYTypography.label).lineLimit(1).frame(maxWidth: .infinity, minHeight: 44)
+                        }.buttonStyle(.bordered).buttonBorderShape(.capsule).tint(CYColor.textSecondary).disabled(!reader.isConfigured)
                             .accessibilityIdentifier("searchMap.recommended.\(index)")
                     }
                 }
@@ -184,8 +186,9 @@ import SwiftUI
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                                 var next = filter; next.categoryID = category.id; applyFilter(next)
                             } label: {
-                                Text(verbatim: category.name).frame(maxWidth: .infinity, minHeight: 44)
-                            }.buttonStyle(.bordered).accessibilityIdentifier("searchMap.category.\(category.id)")
+                                Text(verbatim: category.name).font(CYTypography.label.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
+                            }.buttonStyle(.bordered).buttonBorderShape(.roundedRectangle(radius: CYRadius.sm)).tint(CYColor.textPrimary)
+                            .accessibilityIdentifier("searchMap.category.\(category.id)")
                         }
                     }
                     .padding(.vertical, 4)

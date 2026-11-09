@@ -241,7 +241,7 @@ import UIKit
                             }
                             Text(LocalizedStringKey(row.status.localizationKey)).font(.caption)
                                 .padding(.horizontal, 8).padding(.vertical, 2)
-                                .background(Capsule().fill(row.status == .credited ? Color.green.opacity(0.18) : Color.secondary.opacity(0.15)))
+                                .background(Capsule().fill(row.status == .credited ? CYColor.successSoft : CYColor.textSecondary.opacity(0.15)))
                             LabeledContent("club.settlementDetail.original") { Text(verbatim: row.originalAmountText) }
                             LabeledContent("club.settlementDetail.adjustment") { Text(verbatim: row.executedAdjustmentText) }
                             LabeledContent("club.settlementDetail.net") { Text(verbatim: row.netAmountText) }

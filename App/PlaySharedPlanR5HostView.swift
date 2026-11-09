@@ -51,7 +51,7 @@ import SwiftUI
             }
             Button("核对原记录") { Task { await host.load() } }.disabled(host.busy)
         }
-        .navigationTitle("原题组").preferredColorScheme(.dark)
+        .navigationTitle("原题组")
         .task { await host.load() }
         .confirmationDialog("开始当前原题组？", isPresented: $startConfirmation, titleVisibility: .visible) {
             Button("确认开始") { Task { await host.startConfirmed() } }.disabled(!host.canStart)

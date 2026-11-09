@@ -111,7 +111,7 @@ import Combine
                     ForEach(TemplatePredictionPlan.days, id: \.self) { day in dayLabel(day).tag(day) }
                 }.accessibilityIdentifier("templatePrediction.revealDays")
                 hourPicker(.revealHour)
-                if editor.sameDayConflict { Text("templatePrediction.conflict").foregroundStyle(.red) }
+                if editor.sameDayConflict { Text("templatePrediction.conflict").foregroundStyle(CYColor.dangerText) }
             }.disabled(!editor.canEdit)
             if editor.isSupported {
                 Section("templatePrediction.summary") {
@@ -121,7 +121,7 @@ import Combine
                 }
             }
             if !editor.issues.isEmpty {
-                Section("templateAuthor.validationTitle") { ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } } }
+                Section("templateAuthor.validationTitle") { ForEach(editor.issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } } }
             }
             Section { Button("templateAuthor.saveLocal", action: editor.saveAction()).disabled(!editor.canEdit || !model.draft.canSave).accessibilityIdentifier("templatePrediction.saveLocal") }
         }.navigationTitle("templatePrediction.title")

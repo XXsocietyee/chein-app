@@ -168,7 +168,7 @@ public struct MiniProgram99PageParitySectionView: View {
         .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(Color.secondary.opacity(0.08))
+                .fill(CYColor.textSecondary.opacity(0.08))
         )
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("miniProgramParity.root")
@@ -182,7 +182,7 @@ public struct MiniProgram99PageParitySectionView: View {
                 Spacer()
                 Text(verbatim: totalCoveredPages == 99 && integratedWave2Count == 21 ? "ALIGNED (99/99)" : "PARTIAL")
                     .font(.caption2.weight(.semibold))
-                    .foregroundStyle(totalCoveredPages == 99 && integratedWave2Count == 21 ? Color.green : Color.orange)
+                    .foregroundStyle(totalCoveredPages == 99 && integratedWave2Count == 21 ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("miniProgramParity.statusBadge")
             }
             Text(verbatim: overallHeaderBadgeText)
@@ -205,7 +205,7 @@ public struct MiniProgram99PageParitySectionView: View {
                         Spacer()
                         Text(verbatim: "\(row.coveredPageCount)/\(row.totalPageCount) pages")
                             .font(.caption.monospacedDigit())
-                            .foregroundStyle(row.isFullyAligned ? Color.green : Color.orange)
+                            .foregroundStyle(row.isFullyAligned ? CYColor.successText : CYColor.warningText)
                     }
                     Text(verbatim: row.coverageSummaryText)
                         .font(.caption2.monospaced())
@@ -246,7 +246,7 @@ public struct MiniProgram99PageParitySectionView: View {
                     Spacer()
                     Text(verbatim: badge.isIntegrated ? "INTEGRATED [FAIL-CLOSED]" : "PENDING")
                         .font(.caption2.monospaced())
-                        .foregroundStyle(badge.isIntegrated ? Color.secondary : Color.orange)
+                        .foregroundStyle(badge.isIntegrated ? CYColor.textSecondary : CYColor.warningText)
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("miniProgramParity.wave2Row.\(badge.id)")

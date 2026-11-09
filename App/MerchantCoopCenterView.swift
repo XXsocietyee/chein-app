@@ -416,7 +416,7 @@ struct MerchantCoopCenterEventCard: View {
             }
             HStack(spacing: 4) {
                 Text(mcc("merchantCoopCenter.official.open", locale))
-                Image(systemName: "chevron.right").accessibilityHidden(true)
+                Image(systemName: "chevron.forward").accessibilityHidden(true)
             }.font(.subheadline.weight(.semibold)).foregroundStyle(Color.accentColor)
         }
         .padding().frame(maxWidth: .infinity, alignment: .leading)

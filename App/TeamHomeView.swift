@@ -12,16 +12,16 @@ import SwiftUI
     }
     var body: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 18) {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 NavigationLink {
                     TeamInvitationEntryView(makeCoordinator: makeCoordinator, onLogin: onLogin, onOpen: onOpenInvitation)
                 } label: { Label("nativeNav.team.open", systemImage: "person.badge.plus") }
                 TeamNotice(coordinator: model.coordinator)
                 if !model.coordinator.authenticated {
-                    if let onLogin { Button("team.signIn", action: onLogin).frame(minHeight: 44) }
+                    if let onLogin { Button("team.signIn", action: onLogin).buttonStyle(.cyPrimary) }
                 } else if model.running && model.coordinator.teams.isEmpty { ProgressView("team.loading") }
                 else if model.coordinator.messageKey == nil && model.coordinator.teams.isEmpty {
-                    ContentUnavailableView("team.empty", systemImage: "person.3", description: Text("team.empty.detail"))
+                    CYEmptyStateView(systemImage: "person.3", title: "team.empty", description: "team.empty.detail")
                 }
                 ForEach(model.coordinator.teams) { team in
                     NavigationLink { TeamDetailView(lookup: .id(team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator) } label: { TeamCard(team: team) }
@@ -31,10 +31,10 @@ import SwiftUI
                     Button("team.refresh") {
                         let permit = model.captureRun()
                         Task { await reload(permit: permit) }
-                    }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
-            }.padding()
-        }.appNavigationTitle("team.title")
+            }.padding(CYSpacing.pageHorizontal)
+        }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle("team.title")
             .toolbar { if let nearbyDestination { NavigationLink("nearby.title") { nearbyDestination(model.coordinator.teams) } } }
             .task { await reload() }.refreshable { await reload() }
             .onDisappear { model.leave() }
@@ -65,7 +65,7 @@ import SwiftUI
     private var invitationCode: String? { if case .invitation(let code) = lookup { return code.trimmingCharacters(in: .whitespacesAndNewlines) }; return nil }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 TeamNotice(coordinator: model.coordinator)
                 if model.running { ProgressView(LocalizedStringKey(TeamPagePresentation.loadingKey(pageKind, hasDetail: model.coordinator.detail != nil))) }
                 if !model.running, let state = TeamPagePresentation.blockingState(kind: pageKind, messageKey: model.coordinator.messageKey,
@@ -78,6 +78,7 @@ import SwiftUI
                 }
                 if model.coordinator.retiredMembershipTeamID != nil {
                     Label("team.changed", systemImage: "person.crop.circle.badge.xmark")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.warningText)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("teamMembershipRetired")
                 }
@@ -98,15 +99,15 @@ import SwiftUI
                             NavigationLink {
                                 TeamDetailView(lookup: .id(teamID), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true, readOnly: true)
                             } label: { Label("team.detail", systemImage: "person.3") }
-                                .frame(minHeight: 44).disabled(model.running || model.coordinator.busy)
+                                .buttonStyle(.cyPrimary).disabled(model.running || model.coordinator.busy)
                                 .accessibilityIdentifier("team.postJoin.openDetail")
                         }
                         else if detail.joined == true {
-                            Label("team.alreadyJoined", systemImage: "checkmark.circle")
+                            Label("team.alreadyJoined", systemImage: "checkmark.circle").font(CYTypography.label).foregroundStyle(CYColor.successText)
                             NavigationLink {
                                 TeamDetailView(lookup: .id(detail.team.id), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, requiresMembership: true)
                             } label: { Label("team.detail", systemImage: "person.3") }
-                                .frame(minHeight: 44).disabled(model.actionLocked)
+                                .buttonStyle(.cyPrimary).disabled(model.actionLocked)
                                 .accessibilityIdentifier("team.invitation.openDetail")
                         }
                         else if TeamPagePresentation.invitationCTA(detail) == .join {
@@ -121,47 +122,60 @@ import SwiftUI
                     if invitationCode == nil, !readOnly, let code = TeamPagePresentation.joinRouteCode(detail) {
                         NavigationLink {
                             TeamDetailView(lookup: .invitation(code), coordinator: makeCoordinator(), makeCoordinator: makeCoordinator, onLogin: onLogin)
-                        } label: { Text("team.page.joinTeam").frame(maxWidth: .infinity, minHeight: 44) }
-                            .buttonStyle(.bordered).disabled(model.actionLocked).accessibilityIdentifier("teamPage.joinRoute")
+                        } label: { Text("team.page.joinTeam") }
+                            .buttonStyle(.cySecondary(fullWidth: true)).disabled(model.actionLocked).accessibilityIdentifier("teamPage.joinRoute")
                     }
                     if !readOnly, detail.team.status == .recruiting, let code = detail.team.inviteCode, TeamLookup.validInvite(code) {
-                        Button(invitationCode == nil ? "team.page.inviteTeammates" : "team.invitePreview") { invitationPreview = true }.frame(minHeight: 44).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
-                    }
-                    Text("team.members.title").font(Theme.Font.sectionTitle).accessibilityAddTraits(.isHeader)
-                    if detail.members.isEmpty {
-                        Text("team.page.membersEmpty").foregroundStyle(.secondary)
-                    }
-                    ForEach(detail.members) { member in
-                        let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
-                        TeamMemberRow(member: member, remove: !readOnly && action.isAllowed(detail: detail) ? { model.prepare(action) } : nil).disabled(model.actionLocked)
-                        Divider()
-                    }
-                    actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
-                    actionButton(.disband(teamID: detail.team.id), detail: detail)
-                    if TeamPagePresentation.showsRefundNote(detail) {
-                        Text("team.page.refundNote").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    }
-                    if !readOnly, invitationCode == nil {
-                        TeamReformEntries(detail: detail, hooks: reformHooks) { reformSheet = $0 }.disabled(model.actionLocked)
+                        // Mini `.team-actions`: 邀请队友 is the primary on the detail page; on the invitation page 加入 is.
+                        if invitationCode == nil {
+                            Button("team.page.inviteTeammates") { invitationPreview = true }.buttonStyle(.cyPrimary).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
+                        } else {
+                            Button("team.invitePreview") { invitationPreview = true }.buttonStyle(.cySecondary(fullWidth: true)).disabled(model.actionLocked).accessibilityIdentifier("team.invitePreview")
+                        }
                     }
                     if detail.leader == true, detail.team.status == .recruiting {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("team.mode.title").font(.headline)
+                        // Mini leader card (公开招募): shown right after the actions, before the member list.
+                        CYCard {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text("team.mode.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                             Text(LocalizedStringKey((model.coordinator.confirmedJoinMode ?? detail.team.joinMode).key))
-                                .accessibilityIdentifier("team.mode.current")
+                                .font(CYTypography.label).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("team.mode.current")
                             Text(LocalizedStringKey(TeamPagePresentation.joinModeHelpKey(model.coordinator.confirmedJoinMode ?? detail.team.joinMode)))
-                                .font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                             if !readOnly {
                                 ForEach([TeamJoinMode.invitation, .publicApplication], id: \.rawValue) { mode in
                                     let action = TeamAction.changeJoinMode(teamID: detail.team.id, mode: mode)
                                     if action.isAllowed(detail: detail) {
                                         Button { model.prepare(action) } label: { Text(LocalizedStringKey(mode.key)) }
-                                            .frame(minHeight: 44).disabled(model.actionLocked)
+                                            .buttonStyle(.cySecondary(fullWidth: true)).disabled(model.actionLocked)
                                             .accessibilityIdentifier("team.mode.change.\(mode.rawValue)")
                                     }
                                 }
                             }
                         }
+                        }
+                    }
+                    Text("team.members.title").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+                    // Mini `.team-card`: members share one card, hairline between rows.
+                    CYCard(padding: CYSpacing.md) {
+                        VStack(spacing: 0) {
+                            if detail.members.isEmpty {
+                                Text("team.page.membersEmpty").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                            }
+                            ForEach(Array(detail.members.enumerated()), id: \.element.id) { index, member in
+                                let action = TeamAction.remove(teamID: detail.team.id, memberID: member.id)
+                                TeamMemberRow(member: member, remove: !readOnly && action.isAllowed(detail: detail) ? { model.prepare(action) } : nil).disabled(model.actionLocked)
+                                if index < detail.members.count - 1 { Divider().overlay(CYColor.borderSubtle) }
+                            }
+                        }
+                    }
+                    actionButton(.leave(teamID: detail.team.id), detail: detail, labelKey: TeamPagePresentation.leaveLabelKey(detail))
+                    actionButton(.disband(teamID: detail.team.id), detail: detail)
+                    if TeamPagePresentation.showsRefundNote(detail) {
+                        Text("team.page.refundNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if !readOnly, invitationCode == nil {
+                        TeamReformEntries(detail: detail, hooks: reformHooks) { reformSheet = $0 }.disabled(model.actionLocked)
                     }
                 }
                 if !readOnly, model.coordinator.pending != nil {
@@ -169,16 +183,16 @@ import SwiftUI
                         let permit = model.captureRun()
                         Task { await model.run(permit: permit) { await model.coordinator.checkOutcome() } }
                     }
-                        .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
+                        .buttonStyle(.cySecondary).disabled(model.running || !model.coordinator.canSimulate).accessibilityIdentifier("team.checkOutcome")
                 }
                 if lookup.isValid && model.coordinator.authenticated && model.coordinator.retiredMembershipTeamID == nil {
                     Button("team.refresh") {
                         let permit = model.captureRun()
                         Task { await reload(permit: permit) }
-                    }.frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("team.refresh")
+                    }.buttonStyle(.cySecondary).disabled(model.running).accessibilityIdentifier("team.refresh")
                 }
-            }.padding()
-        }.appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
+            }.padding(CYSpacing.pageHorizontal)
+        }.background(CYColor.bgPage.ignoresSafeArea()).appNavigationTitle(invitationCode == nil ? "team.detail" : "team.invitation")
             .task { await reload() }.refreshable { await reload() }
             .onDisappear { model.leave() }
             .sheet(item: model.reviewBinding) { TeamReviewSheet(model: model, review: $0) }
@@ -189,14 +203,20 @@ import SwiftUI
         if !readOnly, action.isAllowed(detail: detail) {
             if case .join = action {
                 // Mini-program 加入队伍 is the page's one primary action.
-                Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)).frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(.questifyPrimary).disabled(model.actionLocked)
+                Button { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }
+                    .buttonStyle(.cyPrimary).disabled(model.actionLocked)
                     .accessibilityIdentifier(action.key)
             } else {
                 // 解散队伍 is the source's danger action; native destructive role keeps it red.
-                Button(role: destructiveRole(action)) { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)).frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(.bordered).disabled(model.actionLocked)
-                    .accessibilityIdentifier(action.key)
+                if case .disband = action {
+                    Button(role: .destructive) { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }
+                        .buttonStyle(.cyDestructive).disabled(model.actionLocked)
+                        .accessibilityIdentifier(action.key)
+                } else {
+                    Button(role: destructiveRole(action)) { model.prepare(action) } label: { Text(LocalizedStringKey(labelKey ?? action.key)) }
+                        .buttonStyle(.cySecondary(fullWidth: true)).disabled(model.actionLocked)
+                        .accessibilityIdentifier(action.key)
+                }
             }
         }
     }

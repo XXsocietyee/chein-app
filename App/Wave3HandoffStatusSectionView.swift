@@ -173,7 +173,7 @@ public struct Wave3HandoffStatusSectionView: View {
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(
-                                Capsule().fill(gate.isEnabled ? Color.green.opacity(0.18) : Color.orange.opacity(0.18))
+                                Capsule().fill(gate.isEnabled ? CYColor.successText.opacity(0.18) : CYColor.warningText.opacity(0.18))
                             )
                     }
                     .accessibilityIdentifier("wave3Handoff.gate.\(gate.id)")

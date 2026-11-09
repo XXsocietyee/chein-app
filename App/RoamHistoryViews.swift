@@ -58,7 +58,7 @@ import SwiftUI
                                     Text(distance, format: .number.precision(.fractionLength(1)))
                                 } else { Text(verbatim: "—") }
                             }
-                            .font(.system(size: 52, weight: .heavy).italic()).monospacedDigit()
+                            .font(.system(.largeTitle, weight: .heavy).italic()).monospacedDigit()
                             .lineLimit(1).minimumScaleFactor(0.5)
                             Text("roam.history.km").font(.headline).foregroundStyle(.secondary)
                         }

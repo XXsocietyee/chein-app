@@ -98,6 +98,8 @@ import SwiftUI
             Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
     }
     private func checkPublisherPermission() async {
         let captured = reader.scope

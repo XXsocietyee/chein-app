@@ -188,8 +188,8 @@ public struct AssetPointsAndOrderCancellationSectionView: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isConservationCompliant ? Color.green : Color.red).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isConservationCompliant ? Color.green : Color.red)
+                    .background((snapshot.isConservationCompliant ? CYColor.successText : CYColor.dangerText).opacity(0.15), in: Capsule())
+                    .foregroundStyle(snapshot.isConservationCompliant ? CYColor.successText : CYColor.dangerText)
                     .accessibilityIdentifier("assetPointsCancellation.overallBadge")
             }
 

@@ -34,7 +34,7 @@ import SwiftUI
                 if operation == "TIME_BETWEEN" { Section { Text("nativeCondition.epochWindow") } }
                 if operation == "GRANT_BADGE" { Section { Text("nativeCondition.topicMedalOnly") } }
                 if operation == "EMIT_EVENT" { Section { Text("nativeCondition.customEventOnly") } }
-                if error { Section { Text("nativeCondition.fieldFailed").foregroundStyle(.red) } }
+                if error { Section { Text("nativeCondition.fieldFailed").foregroundStyle(CYColor.dangerText) } }
                 if !isCurrent { Section { Text("nativeCondition.unavailable") } }
             } else { Text("nativeCondition.unavailable") }
         }.navigationTitle("nativeCondition.editFields")

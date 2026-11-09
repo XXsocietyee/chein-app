@@ -25,6 +25,7 @@ struct HomeHeroHeaderSectionView: View {
                         Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
                             .font(CYTypography.sectionTitle)
                             .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
                             .accessibilityIdentifier("homeIndex.hero.greeting")
                         HStack(spacing: 6) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {

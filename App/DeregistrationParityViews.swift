@@ -22,9 +22,9 @@ struct DeregistrationExecuteAfterRow: View {
                 HStack(spacing: 4) {
                     Text("authEntry.deregister.beijingTime", tableName: "AuthEntry")
                     Text(verbatim: beijing)
-                }.font(.footnote).foregroundStyle(.secondary).accessibilityElement(children: .combine)
+                }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
             }
-            Text("authEntry.deregister.serverDecides", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
+            Text("authEntry.deregister.serverDecides", tableName: "AuthEntry").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }
     }
 }

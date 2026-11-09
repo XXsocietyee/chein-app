@@ -10,6 +10,7 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[1]
 MARKETS = {'China': 'CN', 'UnitedStates': 'US'}
+CHINA_PRODUCTION_API = 'https://www.chengyinhub.com/prod-api/'
 ENVIRONMENTS = ('Development', 'Staging', 'Production')
 CONFIG_FILES = ('Base.xcconfig', 'China.xcconfig', 'UnitedStates.xcconfig') + tuple(
     f'{market}.{environment}.xcconfig' for market in MARKETS for environment in ENVIRONMENTS)
@@ -93,7 +94,9 @@ class L2EnvironmentConfigChecks(unittest.TestCase):
                     files = dict(self.files)
                     files[f'Local.{market}.xcconfig'] = 'QUESTIFY_API_BASE_URL = https:/$()/earlier.example.test\nQUESTIFY_SESSION_REALM = earlier\n'
                     result = settings(f'{market}.{environment}.xcconfig', files)
-                    self.assertEqual(result['QUESTIFY_API_BASE_URL'], '')
+                    expected = CHINA_PRODUCTION_API if market == 'China' and environment == 'Production' else ''
+                    self.assertEqual(result['QUESTIFY_API_BASE_URL'], expected)
+                    self.assertNotEqual(result['QUESTIFY_API_BASE_URL'], 'https://earlier.example.test')
                     self.assertEqual(result['QUESTIFY_SESSION_REALM'], '')
 
     def test_environment_local_overrides_are_scoped_and_identity_is_pinned(self):
@@ -126,7 +129,14 @@ class L2EnvironmentConfigChecks(unittest.TestCase):
                     if earlier != environment:
                         files[f'Local.{market}.{earlier}.xcconfig'] = 'QUESTIFY_API_BASE_URL = https:/$()/wrong.example.test\nQUESTIFY_SESSION_REALM = wrong\n'
                 result = settings(f'{market}.{environment}.xcconfig', files)
-                self.assertEqual(result['QUESTIFY_API_BASE_URL'], 'http://127.0.0.1:8099' if environment == 'Development' else '')
+                if environment == 'Development':
+                    expected = 'http://127.0.0.1:8099'
+                elif market == 'China' and environment == 'Production':
+                    expected = CHINA_PRODUCTION_API
+                else:
+                    expected = ''
+                self.assertEqual(result['QUESTIFY_API_BASE_URL'], expected)
+                self.assertNotIn('wrong.example.test', result['QUESTIFY_API_BASE_URL'])
                 self.assertEqual(result['QUESTIFY_SESSION_REALM'], code.lower() + '-development' if environment == 'Development' else '')
 
     def test_empty_override_clears_both_inputs_and_next_evaluation_recovers(self):

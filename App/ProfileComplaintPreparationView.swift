@@ -170,7 +170,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
             Section {
                 if let validation = model.validation {
-                    Text(LocalizedStringKey(validation.titleKey)).font(.footnote).foregroundStyle(.red)
+                    Text(LocalizedStringKey(validation.titleKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.validation")
                 }
                 Button("profile.complaint.review") {
@@ -192,7 +192,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 topicLabel(review.topic).font(.headline)
                 Text(verbatim: review.reason).accessibilityIdentifier("profile.complaint.reviewText")
                 if sending.state == .succeeded {
-                    Label("profile.complaint.submit.done", systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+                    Label("profile.complaint.submit.done", systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
                         .accessibilityIdentifier("profile.complaint.submit.done")
                 } else if !sending.isConfigured {
                     Text("profile.complaint.notSubmitted").font(.footnote)
@@ -201,7 +201,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
             if case .failed(let failure) = sending.state {
                 Section {
-                    Text(LocalizedStringKey(failure.titleKey)).font(.footnote).foregroundStyle(.red)
+                    Text(LocalizedStringKey(failure.titleKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.submit.failure")
                     if case .rejected(let message?) = failure {
                         Text(verbatim: message).font(.footnote).accessibilityIdentifier("profile.complaint.submit.serverMessage")

@@ -104,4 +104,51 @@ public struct RegionalConfiguration {
     public var canUseDomesticChinaPhone: Bool {
         availability(of: .domesticChinaPhone) == .available
     }
+
+    /// Absent capabilities stay hidden. Only an available capability is shown.
+    public func isFeatureShown(_ capability: RegionalCapability) -> Bool {
+        availability(of: capability) == .available
+    }
+}
+
+/// Explicit reviewed hosts. This registry does not replace the shipped composition.
+/// The US market has no approved host and must not be given an invented one.
+public enum ReviewedMarketLaunch {
+    public static let chinaProductionBaseURL = "https://www.chengyinhub.com/prod-api/"
+    /// China is the only key. A missing US entry is the disabled reviewed path.
+    public static let approvedBaseURLs: [RegionalMarket: Set<String>] = [
+        .china: [chinaProductionBaseURL]
+    ]
+    /// Domestic China phone is verified only for this China deployment.
+    public static let chinaVerifiedCapabilities: Set<RegionalCapability> = [.domesticChinaPhone]
+
+    public static func configuration(market: RegionalMarket, baseURL: String) throws -> RegionalConfiguration {
+        let value = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard market == .china, approvedBaseURLs[market]?.contains(value) == true else {
+            throw RegionalConfigurationError.unapprovedBackend
+        }
+        guard let url = URL(string: value), url.absoluteString == value else {
+            throw RegionalConfigurationError.unapprovedBackend
+        }
+        return try RegionalConfiguration(
+            market: market,
+            baseURL: value,
+            approvedBaseURLs: approvedBaseURLs,
+            verifiedCapabilities: chinaVerifiedCapabilities
+        )
+    }
+
+    public static func storageScope(
+        market: RegionalMarket = .china,
+        baseURL: String = chinaProductionBaseURL,
+        bundleIdentifier: String,
+        realm: String
+    ) throws -> RegionalSessionStorageScope {
+        let configuration = try self.configuration(market: market, baseURL: baseURL)
+        return try RegionalSessionStorageScope(
+            configuration: configuration,
+            bundleIdentifier: bundleIdentifier,
+            realm: realm
+        )
+    }
 }

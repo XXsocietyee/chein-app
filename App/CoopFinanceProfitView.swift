@@ -36,7 +36,7 @@ extension EnvironmentValues {
         .appNavigationTitle("cooperation.finance.title")
         .modifier(CoopOperationListPresentation())
         .labeledContentStyle(CoopFinancialRowStyle())
-        .themeDomain(.merchant)
+        .cyMiniListScreen()
         .task(id: "\(reader.session?.accountID ?? 0):\(reader.session?.epoch ?? 0):\(refresh)") { await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
@@ -51,31 +51,33 @@ extension EnvironmentValues {
                 Group {
                     if stat.key == .income {
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                            // Mini `.profit-hero`: caption label over one big tabular total.
                             Text(LocalizedStringKey("cooperation.finance.stat." + stat.key.rawValue))
-                                .font(.subheadline).foregroundStyle(.secondary)
-                            Text(verbatim: statText(stat)).font(.largeTitle.weight(.semibold)).monospacedDigit()
+                                .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: statText(stat)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }.padding(.vertical, Theme.Space.s2).accessibilityElement(children: .combine)
                     } else {
-                        LabeledContent { Text(verbatim: statText(stat)).monospacedDigit().fontWeight(.semibold) } label: {
-                            Text(LocalizedStringKey("cooperation.finance.stat." + stat.key.rawValue)).foregroundStyle(.secondary)
+                        LabeledContent { Text(verbatim: statText(stat)).monospacedDigit().font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary) } label: {
+                            Text(LocalizedStringKey("cooperation.finance.stat." + stat.key.rawValue)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                 }
                     .accessibilityIdentifier("cooperation.finance.stat.\(stat.key.rawValue)")
             }
-            if let reason = profit.adjustReason { Text(verbatim: reason).font(.footnote).foregroundStyle(.secondary) }
+            if let reason = profit.adjustReason { Text(verbatim: reason).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
         }
         if profit.isOwner, let walletReader { CoopFinanceFundsStagesSection(reader: walletReader) }
         Section {
+            // Mini puts 提现 beside the hero total as the one solid action.
             Button { if profit.canWithdraw, loadedSession == reader.session { showsSupport = true } } label: {
-                Text("cooperation.finance.withdraw").frame(maxWidth: .infinity)
+                Text("cooperation.finance.withdraw")
             }
-            .buttonStyle(.questifyPrimary).controlSize(.large).disabled(!profit.canWithdraw)
+            .buttonStyle(.cyPrimary).listRowBackground(Color.clear).disabled(!profit.canWithdraw)
             .accessibilityLabel(Text(LocalizedStringKey(withdrawAccessibilityKey(profit.withdrawState))))
             .accessibilityIdentifier("cooperation.finance.withdraw")
-            if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").font(.footnote).foregroundStyle(.secondary) }
-            else if profit.withdrawState == .zero { Text("cooperation.finance.withdraw.zero").font(.footnote).foregroundStyle(.secondary) }
+            if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            else if profit.withdrawState == .zero { Text("cooperation.finance.withdraw.zero").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
         }
         if profit.topics.isEmpty {
             Section {
@@ -99,12 +101,12 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: 6) {
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                    Text(verbatim: topicName(topic)).font(.headline).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: topicName(topic)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     topicAmount(topic)
                 }
             } else {
                 HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
-                    Text(verbatim: topicName(topic)).font(.headline).fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: topicName(topic)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     Spacer(minLength: Theme.Space.s2)
                     topicAmount(topic)
                 }
@@ -129,13 +131,13 @@ extension EnvironmentValues {
     }
     private func topicAmount(_ topic: CoopFinanceProfit.Topic) -> some View {
         Text(verbatim: topic.status != .unsettled && topic.status != .settlementUnknown ? topic.income.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—" : "—")
-            .font(.headline).monospacedDigit().fixedSize(horizontal: false, vertical: true)
+            .font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
     }
     private func topicStatus(_ topic: CoopFinanceProfit.Topic) -> some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1) {
-            Text(LocalizedStringKey("cooperation.finance.status." + topic.status.rawValue)).font(.subheadline)
+            Text(LocalizedStringKey("cooperation.finance.status." + topic.status.rawValue)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
             Text(LocalizedStringKey("cooperation.finance.merchant." + topic.merchantStatus.rawValue))
-                .font(.footnote).foregroundStyle(.secondary)
+                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         }.fixedSize(horizontal: false, vertical: true)
     }
 
@@ -143,8 +145,8 @@ extension EnvironmentValues {
         let key: String = issue == .authRequired ? "auth" : issue == .accessDenied ? "denied" : "failed"
         Section {
             VStack(alignment: .leading, spacing: 6) {
-                Label(LocalizedStringKey("cooperation.finance.issue." + key + ".title"), systemImage: issue == .accessDenied ? "lock" : "exclamationmark.circle").font(.headline)
-                Text(LocalizedStringKey("cooperation.finance.issue." + key + ".detail")).font(.footnote).foregroundStyle(.secondary)
+                Label(LocalizedStringKey("cooperation.finance.issue." + key + ".title"), systemImage: issue == .accessDenied ? "lock" : "exclamationmark.circle").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text(LocalizedStringKey("cooperation.finance.issue." + key + ".detail")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }.padding(.vertical, Theme.Space.s2).accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.finance.issue.\(key)")
             // Sign-in is owned by the account entry; this page never presents credentials itself.
             if issue != .authRequired || reader.session != nil {
@@ -187,8 +189,8 @@ struct CoopFinanceBadge: View {
         let badge: CoopFinanceProfit.Badge = settled ? .success : status.badge
         Text(LocalizedStringKey(settled ? "cooperation.finance.settled" : "cooperation.finance.status." + status.rawValue))
             .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 3)
-            .foregroundStyle(badge == .success ? Color.green : badge == .warning ? Color.orange : Color.secondary)
-            .background(Capsule().fill((badge == .success ? Color.green : badge == .warning ? Color.orange : Color.secondary).opacity(0.14)))
+            .foregroundStyle(badge == .success ? CYColor.successText : badge == .warning ? CYColor.warningText : CYColor.textSecondary)
+            .background(Capsule().fill(badge == .success ? CYColor.successSoft : badge == .warning ? CYColor.warningSoft : CYColor.bgSurfaceSubtle))
     }
 }
 

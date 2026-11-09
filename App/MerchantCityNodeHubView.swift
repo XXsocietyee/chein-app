@@ -41,7 +41,7 @@ struct MerchantCityNodeInlineError: View {
             Button(action: action) { MerchantCityNodeCopy.text(actionKey) }.font(.footnote.weight(.semibold))
                 .accessibilityIdentifier(identifier)
         }.padding(10).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.red.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            .background(CYColor.dangerSoft, in: RoundedRectangle(cornerRadius: 12))
             .accessibilityElement(children: .contain)
     }
 }
@@ -183,7 +183,7 @@ struct MerchantCityNodeInlineError: View {
                 MerchantCityNodeCopy.text("merchantCityNode.write.lockedBody").font(.footnote).foregroundStyle(.secondary)
                 Button { Task { await reload() } } label: { MerchantCityNodeCopy.text("merchantCityNode.write.readback") }
                     .font(.footnote.weight(.semibold)).disabled(c.busy).accessibilityIdentifier("cityNodeHub.readback")
-            }.padding(10).background(Color.orange.opacity(0.1), in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeHub.locked")
+            }.padding(10).background(CYColor.warningSoft, in: RoundedRectangle(cornerRadius: 12)).accessibilityIdentifier("cityNodeHub.locked")
         }
         ForEach(p.applications) { applicationRow($0) }
         if p.isEmpty {

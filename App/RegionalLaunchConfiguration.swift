@@ -55,6 +55,51 @@ enum RegionalLaunchConfiguration {
         return makeComposition(reviewed: deployment, build: build, storage: storage, makeTransport: makeTransport)
     }
 
+    /// Selectable reviewed deployment. The shipped `composition` does not call this.
+    /// Password login, bank withdrawal, and virtual goods stay off: `productionGatesEnabled` is false.
+    static func reviewedMarketDeployment(
+        market: RegionalMarket,
+        baseURL: String,
+        bundleIdentifier: String,
+        realm: String,
+        reads: Set<ReviewedAppDeployment.ReadGrant> = []
+    ) throws -> ReviewedAppDeployment {
+        let regional = try ReviewedMarketLaunch.configuration(market: market, baseURL: baseURL)
+        return try ReviewedAppDeployment(
+            market: regional.market,
+            baseURL: baseURL.trimmingCharacters(in: .whitespacesAndNewlines),
+            approvedBaseURLs: ReviewedMarketLaunch.approvedBaseURLs,
+            verifiedCapabilities: regional.availableCapabilities,
+            bundleIdentifier: bundleIdentifier,
+            realm: realm,
+            reads: reads,
+            productionGatesEnabled: false
+        )
+    }
+
+    @MainActor static func reviewedMarketComposition(
+        market: RegionalMarket,
+        baseURL: String,
+        bundleIdentifier: String,
+        realm: String,
+        reads: Set<ReviewedAppDeployment.ReadGrant> = [],
+        storage: AppScopedStorageFactory? = nil,
+        makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() }
+    ) -> AppCompositionRoot {
+        let trimmed = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let build = BuildMetadata(market: market.rawValue, baseURL: trimmed, bundleIdentifier: bundleIdentifier, realm: realm)
+        guard let deployment = try? reviewedMarketDeployment(
+            market: market,
+            baseURL: trimmed,
+            bundleIdentifier: bundleIdentifier,
+            realm: realm,
+            reads: reads
+        ) else {
+            return .init(deployment: .incompatibleBuild, storage: storage, makeTransport: makeTransport)
+        }
+        return makeComposition(reviewed: deployment, build: build, storage: storage, makeTransport: makeTransport)
+    }
+
     struct BuildMetadata {
         let market: String?
         let baseURL: String?

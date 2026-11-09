@@ -53,7 +53,7 @@ import SwiftUI
                     if model.session?.state == .localSaved { Text("nativeCondition.localSaved").foregroundStyle(.secondary) }
                 } footer: { Text("nativeCondition.originalFlow") }
             } else { Section { Text("nativeCondition.unavailable") } }
-            if let key = model.errorKey { Section { Text(LocalizedStringKey(key)).foregroundStyle(.red) } }
+            if let key = model.errorKey { Section { Text(LocalizedStringKey(key)).foregroundStyle(CYColor.dangerText) } }
         }
         .navigationTitle("nativeCondition.title")
         .toolbar {

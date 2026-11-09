@@ -18,7 +18,7 @@ import SwiftUI
                     if value.isEmpty { Text("merchant.npcField.empty").foregroundStyle(.secondary) }
                     else { Text(verbatim: value).lineLimit(2).foregroundStyle(.secondary) }
                 }
-                Image(systemName: "chevron.right").accessibilityHidden(true)
+                Image(systemName: "chevron.forward").accessibilityHidden(true)
             }.frame(minHeight: 44).contentShape(Rectangle())
         }.buttonStyle(.plain).disabled(!editable || !presentation.active)
             .accessibilityIdentifier("merchant.npcField.open." + field.rawValue)

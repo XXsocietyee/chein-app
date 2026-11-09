@@ -17,22 +17,23 @@ import SwiftUI
         Group {
             if loading || failed || !visible.isEmpty {
                 Section("cooperation.list.chapter.title") {
-                    if loading { Text("cooperation.list.chapter.loading").foregroundStyle(.secondary) }
+                    if loading { Text("cooperation.list.chapter.loading").font(CYTypography.label).foregroundStyle(CYColor.textSecondary) }
                     if failed {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("cooperation.list.chapter.failed").font(.subheadline.weight(.semibold))
+                            Text("cooperation.list.chapter.failed").font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.dangerText)
                             Button("cooperation.refresh") { refresh = UUID() }.accessibilityIdentifier("cooperation.list.chapter.retry")
                         }.accessibilityIdentifier("cooperation.list.chapter.failed")
                     }
                     ForEach(visible) { row in
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(LocalizedStringKey("cooperation.list.chapter.status." + row.status.rawValue)).font(.caption.weight(.semibold)).foregroundStyle(.secondary)
-                            Text(verbatim: row.topicName ?? "#" + String(row.topicID ?? 0)).font(.headline)
+                        // Mini `.inv` (chapter variant): status line, title, "chapter · merchant", secondary action label.
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text(LocalizedStringKey("cooperation.list.chapter.status." + row.status.rawValue)).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: row.topicName ?? "#" + String(row.topicID ?? 0)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                             if let chapter = row.chapterName {
-                                Text(verbatim: row.leg == .owner && row.merchantName != nil ? chapter + " · " + (row.merchantName ?? "") : chapter).font(.subheadline)
+                                Text(verbatim: row.leg == .owner && row.merchantName != nil ? chapter + " · " + (row.merchantName ?? "") : chapter).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                             }
-                            Text(LocalizedStringKey("cooperation.list.chapter.action." + row.action.rawValue)).font(.footnote).foregroundStyle(.tint)
-                        }.padding(.vertical, 2).accessibilityElement(children: .combine)
+                            Text(LocalizedStringKey("cooperation.list.chapter.action." + row.action.rawValue)).font(CYTypography.label.weight(.semibold)).foregroundStyle(CYColor.accentText)
+                        }.padding(.vertical, CYSpacing.xs).accessibilityElement(children: .combine)
                             .accessibilityIdentifier("cooperation.list.chapter.\(row.id)")
                     }
                 }
@@ -76,7 +77,7 @@ import SwiftUI
                     }
                     ForEach(rows) { row in
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(LocalizedStringKey("cooperation.list.official.stage." + row.stage.rawValue)).font(.caption.weight(.semibold)).foregroundStyle(row.actionable ? Color.orange : Color.secondary)
+                            Text(LocalizedStringKey("cooperation.list.official.stage." + row.stage.rawValue)).font(.caption.weight(.semibold)).foregroundStyle(row.actionable ? CYColor.warningText : CYColor.textSecondary)
                             Text("cooperation.list.official.from").font(.footnote).foregroundStyle(.secondary)
                             Text(verbatim: row.title).font(.headline)
                             Text(verbatim: deadline(row.deadline)).font(.subheadline)
@@ -125,18 +126,19 @@ struct CooperationInviteCardDetails: View {
     let view: CooperationInvitePresentation
     var body: some View {
         let invite = view.invite
-        VStack(alignment: .leading, spacing: 4) {
+        // Mini `.inv-main` / `.inv-terms` / `.deposit-due`: title, sub line, terms, then the owed strip.
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            if let name = invite.topicName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+            CooperationInvitePartyText(view: view).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             if let party = invite.viewerPartyName {
-                Text(verbatim: party).font(.footnote).foregroundStyle(.secondary)
+                Text(verbatim: party).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     .accessibilityLabel(Text(LocalizedStringKey(view.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) + Text(verbatim: " " + party))
             }
-            if let name = invite.topicName { Text(verbatim: name).font(.subheadline.weight(.semibold)) }
-            CooperationInvitePartyText(view: view).font(.footnote).foregroundStyle(.secondary)
-            CooperationInviteTermsText(terms: view.terms).font(.footnote)
-            if case .owed = view.deposit { CooperationInviteDepositText(deposit: view.deposit).font(.footnote) }
-            if view.direction == .sent && invite.status == 2 { Text("cooperation.list.sent.declinedHint").font(.footnote).foregroundStyle(.secondary) }
+            CooperationInviteTermsText(terms: view.terms).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+            if case .owed = view.deposit { CYMiniDueStrip { CooperationInviteDepositText(deposit: view.deposit) } }
+            if view.direction == .sent && invite.status == 2 { Text("cooperation.list.sent.declinedHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             if invite.status == 0 && view.direction == .received && !invite.legacyReadonly && !view.decisionReady {
-                Label("cooperation.list.incomplete", systemImage: "exclamationmark.triangle").font(.footnote).foregroundStyle(.orange)
+                Label("cooperation.list.incomplete", systemImage: "exclamationmark.triangle").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
             }
         }
     }

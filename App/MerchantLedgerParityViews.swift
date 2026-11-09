@@ -1,52 +1,61 @@
 import SwiftUI
 
-/// Source pages/merchant/ledger/index.wxml rows: title, "who · HH:mm", state chip and right-aligned amount.
+/// Source pages/merchant/ledger/index.wxml `.fin-row`: leading status dot, title, "who · HH:mm" + state chip, right-aligned amount.
 struct MerchantLedgerRowLabel: View {
     let line: MerchantLedgerParity.Line
     let identifier: String
     private var chipColor: Color {
-        switch line.variant { case .warning: return .orange; case .success: return .green; case .danger: return .red; case .neutral: return .secondary }
+        switch line.variant { case .warning: return CYColor.warningText; case .success: return CYColor.successText; case .danger: return CYColor.dangerText; case .neutral: return CYColor.textTertiary }
     }
     private var amountColor: Color {
-        switch line.tone { case .positive: return .green; case .negative: return .red; case .muted: return .secondary }
+        switch line.tone { case .positive: return CYColor.successText; case .negative: return CYColor.dangerText; case .muted: return CYColor.textTertiary }
     }
     private func copy(_ text: String?, _ key: String?) -> String? { text ?? key.map { MerchantOpsCopy.text($0) } }
     var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 3) {
-                if let title = copy(line.title, line.titleKey) { Text(verbatim: title).font(.headline) }
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            Circle().fill(chipColor).frame(width: 8, height: 8).padding(.top, 7).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                if let title = copy(line.title, line.titleKey) {
+                    Text(verbatim: title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                }
                 let detail = [copy(line.subtitle, line.subtitleKey), line.timeText].compactMap { $0 }.joined(separator: " · ")
-                if !detail.isEmpty { Text(verbatim: detail).font(.subheadline).foregroundStyle(.secondary) }
-                HStack(spacing: 6) {
+                if !detail.isEmpty { Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                HStack(spacing: CYSpacing.sm) {
                     switch line.state {
                     case .key(let key): Text(verbatim: MerchantOpsCopy.text(key))
                     case .server(let text): Text(verbatim: text)
                     }
-                    if let extra = line.extraKey { Text(verbatim: MerchantOpsCopy.text(extra)).foregroundStyle(.secondary) }
-                }.font(.footnote).foregroundStyle(chipColor)
+                    if let extra = line.extraKey { Text(verbatim: MerchantOpsCopy.text(extra)).foregroundStyle(CYColor.textTertiary) }
+                }.font(CYTypography.caption).foregroundStyle(chipColor)
             }
-            Spacer(minLength: 8)
-            if let amount = copy(line.amount, line.amountKey) { Text(verbatim: amount).monospacedDigit().foregroundStyle(amountColor) }
+            Spacer(minLength: CYSpacing.sm)
+            if let amount = copy(line.amount, line.amountKey) {
+                Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(amountColor)
+            }
         }
+        .padding(.vertical, CYSpacing.xs)
+        .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier(identifier)
     }
 }
 
-/// Source ledger summary strip: this month's redemptions, pending and arrived, only from server totals.
+/// Source ledger `.fin-summary`: three key/value cells (this month's redemptions, pending, arrived), server totals only.
 struct MerchantLedgerSummaryStrip: View {
     let summary: MerchantLedgerParity.Summary
     var body: some View {
-        HStack {
-            cell("merchantOps.ledger.summary.count", MerchantOpsCopy.text("merchantOps.ledger.summary.countValue %lld", summary.count))
-            if let pending = summary.pending { cell("merchantOps.ledger.summary.pending", pending) }
-            if let arrived = summary.arrived { cell("merchantOps.ledger.summary.arrived", arrived) }
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.summary")
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            cell("merchantOps.ledger.summary.count", MerchantOpsCopy.text("merchantOps.ledger.summary.countValue %lld", summary.count), CYColor.textPrimary)
+            if let pending = summary.pending { cell("merchantOps.ledger.summary.pending", pending, CYColor.warningText) }
+            if let arrived = summary.arrived { cell("merchantOps.ledger.summary.arrived", arrived, CYColor.successText) }
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.summary")
     }
-    private func cell(_ key: String, _ value: String) -> some View {
-        VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: MerchantOpsCopy.text(key)).font(.caption).foregroundStyle(.secondary)
-            Text(verbatim: value).font(.headline).monospacedDigit()
+    private func cell(_ key: String, _ value: String, _ tone: Color) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: MerchantOpsCopy.text(key)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: value).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(tone)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }
 }
@@ -55,15 +64,15 @@ struct MerchantLedgerSummaryStrip: View {
 struct MerchantLedgerRedemptionHero: View {
     let hero: MerchantLedgerParity.RedemptionHero
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             let title = hero.title ?? hero.titleKey.map { MerchantOpsCopy.text($0) } ?? ""
-            Text(verbatim: hero.showsIncome ? MerchantOpsCopy.text("merchantOps.ledger.detail.income %@", title) : title).font(.subheadline)
+            Text(verbatim: hero.showsIncome ? MerchantOpsCopy.text("merchantOps.ledger.detail.income %@", title) : title).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
             if hero.showsIncome, let amount = hero.amount ?? hero.amountKey.map({ MerchantOpsCopy.text($0) }) {
-                Text(verbatim: amount).font(.largeTitle.bold()).monospacedDigit().foregroundStyle(hero.amount == nil ? .secondary : .primary)
+                Text(verbatim: amount).font(CYTypography.data2XL).monospacedDigit().foregroundStyle(hero.amount == nil ? CYColor.textTertiary : CYColor.textPrimary)
             }
             switch hero.state {
-            case .key(let key): Text(verbatim: MerchantOpsCopy.text(key)).font(.footnote.bold())
-            case .server(let text): Text(verbatim: text).font(.footnote.bold())
+            case .key(let key): Text(verbatim: MerchantOpsCopy.text(key)).font(CYTypography.caption.bold()).foregroundStyle(CYColor.textSecondary)
+            case .server(let text): Text(verbatim: text).font(CYTypography.caption.bold()).foregroundStyle(CYColor.textSecondary)
             }
             LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.store"), value: hero.store ?? MerchantOpsCopy.text("merchantOps.ledger.detail.storeMissing"))
             if let accrual = hero.accrual { LabeledContent(MerchantOpsCopy.text("merchantOps.ledger.detail.accrual"), value: accrual) }
@@ -77,12 +86,12 @@ struct MerchantLedgerBatchHero: View {
     let hero: MerchantLedgerParity.BatchHero
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(verbatim: MerchantOpsCopy.text("merchantOps.ledger.batch.net %@", hero.period ?? "")).font(.subheadline)
-            Text(verbatim: hero.amount ?? MerchantOpsCopy.text("merchantOps.ledger.amount.pending")).font(.largeTitle.bold()).monospacedDigit()
-                .foregroundStyle(hero.amount == nil ? .secondary : .primary)
+            Text(verbatim: MerchantOpsCopy.text("merchantOps.ledger.batch.net %@", hero.period ?? "")).font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: hero.amount ?? MerchantOpsCopy.text("merchantOps.ledger.amount.pending")).font(CYTypography.data2XL).monospacedDigit()
+                .foregroundStyle(hero.amount == nil ? CYColor.textTertiary : CYColor.textPrimary)
             HStack {
-                Text(verbatim: MerchantOpsCopy.text(hero.stateKey)).font(.footnote.bold())
-                Text(verbatim: MerchantOpsCopy.text(hero.invoiceKey)).font(.footnote).foregroundStyle(.secondary)
+                Text(verbatim: MerchantOpsCopy.text(hero.stateKey)).font(CYTypography.caption.bold()).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: MerchantOpsCopy.text(hero.invoiceKey)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
             }
         }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.batchHero")
     }
@@ -92,7 +101,7 @@ struct MerchantLedgerBatchStatementCard: View {
     let statement: MerchantLedgerParity.BatchStatementSummary
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview").font(.headline)
+            Text("merchant.settlementOverview.statement", tableName: "MerchantSettlementOverview").font(CYTypography.cardTitle)
             if let total = statement.totalText {
                 LabeledContent {
                     Text(verbatim: total).monospacedDigit()

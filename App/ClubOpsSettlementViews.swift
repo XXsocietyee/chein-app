@@ -3,18 +3,27 @@ import SwiftUI
 struct ClubOpsSettlementSummaryCard: View {
     let summary: ClubOpsSettlementSummary
     var body: some View {
+        // Mini-program .settled-card: caption, then one large tabular amount; unknown stays 「金额待核验」, never 0.
         Section {
-            VStack(alignment: .leading, spacing: 6) {
-                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").font(.subheadline).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("clubOps.settlement.settledLabel", tableName: "ClubOpsCustomer").font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
                 Group {
-                    if let amount = summary.settledAmountText { Text(verbatim: amount) }
-                    else { Text("clubOps.settlement.amountUnverified", tableName: "ClubOpsCustomer") }
-                }.font(.title.bold()).accessibilityIdentifier("club.gov.fact.settledAmountStatus")
+                    if let amount = summary.settledAmountText { Text(verbatim: amount).font(CYTypography.data2XL).monospacedDigit() }
+                    else { Text("clubOps.settlement.amountUnverified", tableName: "ClubOpsCustomer").font(CYTypography.sectionTitle) }
+                }
+                .foregroundStyle(CYColor.textPrimary)
+                .minimumScaleFactor(0.6).lineLimit(1)
+                .accessibilityIdentifier("club.gov.fact.settledAmountStatus")
                 if summary.unverifiedSettledCount > 0 {
                     Text("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", tableName: "ClubOpsCustomer")
-                        .font(.footnote).foregroundStyle(.secondary)
+                        .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(CYSpacing.lg)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
         }
     }
 }
@@ -26,7 +35,7 @@ struct ClubOpsSettlementOwnerOnlyWithdraw: View {
         Section {
             Label { Text(LocalizedStringKey(ClubOpsWithdrawHint.ownerOnly.localizationKey), tableName: "ClubOpsCustomer") }
                 icon: { Image(systemName: "lock") }
-                .foregroundStyle(.secondary)
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("clubOps.settlement.withdraw.ownerOnly")
         }
     }
@@ -34,7 +43,7 @@ struct ClubOpsSettlementOwnerOnlyWithdraw: View {
 
 struct ClubOpsSettlementFootnote: View {
     var body: some View {
-        Text("clubOps.settlement.footnote", tableName: "ClubOpsCustomer").font(.footnote).foregroundStyle(.secondary)
+        Text("clubOps.settlement.footnote", tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
             .accessibilityIdentifier("clubOps.settlement.footnote")
     }
 }

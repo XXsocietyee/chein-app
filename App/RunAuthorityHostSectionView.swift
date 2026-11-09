@@ -77,7 +77,7 @@ public struct RunAuthorityHostSectionView: View {
                 Spacer()
                 Text(verbatim: capabilityBadgeText)
                     .font(.caption.weight(.semibold))
-                    .foregroundStyle(coordinator.isEnabled ? Color.green : Color.secondary)
+                    .foregroundStyle(coordinator.isEnabled ? CYColor.successText : CYColor.textSecondary)
                     .accessibilityIdentifier("runAuthorityHost.capabilityBadge")
             }
 
@@ -108,7 +108,7 @@ public struct RunAuthorityHostSectionView: View {
                 .accessibilityIdentifier("runAuthorityHost.nodeSummary")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.textSecondary.opacity(0.08))
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("runAuthorityHost.section")

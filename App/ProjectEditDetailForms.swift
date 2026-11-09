@@ -249,7 +249,7 @@ import SwiftUI
                     }
                     Button("projectEdit.addNode", systemImage: "plus", action: addNode).disabled(pendingGap != nil || chapter.wrappedValue.preserved["opening"] == .bool(true) || chapter.wrappedValue.preserved["ending"]?.object != nil || (model.draft.product == .city && !chapter.wrappedValue.hasRealStory) || (chapter.wrappedValue.blocks?.count ?? 0) >= 200)
                         .accessibilityIdentifier("projectEdit.addNode")
-                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").font(.footnote).foregroundStyle(.red) }
+                    if model.draft.product == .city && !chapter.wrappedValue.hasRealStory { Text("projectEdit.validation.story").font(.footnote).foregroundStyle(CYColor.dangerText) }
                 }.id("project-issue-anchor-nodes")
                 if let key = model.coordinator.messageKey {
                     Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectStoryAudio.localStatus") }

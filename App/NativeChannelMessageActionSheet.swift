@@ -16,6 +16,7 @@ import SwiftUI
     @State private var editRecallGeneration = 0
     @State private var pinSelection: NativeChannelMessagePinSelection?
     @Environment(\.scenePhase) private var phase
+    @Environment(\.themeDomain) private var domain
     private var current: Bool { coordinator.canDisplay(snapshot) && currentSnapshot() == snapshot && snapshot.status == 0 }
     private var canEdit: Bool {
         current && snapshot.kind == .text && snapshot.senderType == 1
@@ -58,7 +59,7 @@ import SwiftUI
                         TextEditor(text: $coordinator.draft).font(Theme.Font.body).frame(minHeight: 120).accessibilityIdentifier("ncm47.edit.draft")
                             .disabled(!canConfirmEditRecall || !canEdit)
                         if coordinator.draft.unicodeScalars.count > 2000 {
-                            Text("d7.channelMessage.tooLong").font(.footnote).foregroundStyle(.red)
+                            Text("d7.channelMessage.tooLong").font(.footnote).foregroundStyle(Theme.Color.danger(in: domain))
                         }
                     }
                     Section {
@@ -80,7 +81,7 @@ import SwiftUI
                             .lineLimit(1...4)
                             .disabled(!canConfirmEditRecall || !canRecall)
                         if !reason.isEmpty && !validRecallReason {
-                            Text("d7.channelMessage.reasonLength").font(.footnote).foregroundStyle(.red)
+                            Text("d7.channelMessage.reasonLength").font(.footnote).foregroundStyle(Theme.Color.danger(in: domain))
                         }
                     } header: { Text("message.recallConfirm", tableName: "NativeChannelMessage") }
                     Section {

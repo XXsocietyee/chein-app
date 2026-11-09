@@ -87,7 +87,7 @@ import SwiftUI
                     .accessibilityIdentifier("templateChoiceRows.reorderUnavailable")
             }
             if let issue = model.optionMediaIssue {
-                Text(LocalizedStringKey(issue)).foregroundStyle(.red).accessibilityIdentifier("templateAuthor.optionMedia.limit")
+                Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateAuthor.optionMedia.limit")
             }
             ForEach(editor.letters) { letter in
                 VStack(alignment: .leading, spacing: 6) {

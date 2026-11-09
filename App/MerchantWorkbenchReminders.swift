@@ -45,7 +45,7 @@ import SwiftUI
         }
     }
     private func reminder(_ text: Text) -> some View {
-        Label { text } icon: { Image(systemName: "exclamationmark.circle.fill").foregroundStyle(.orange) }
+        Label { text } icon: { Image(systemName: "exclamationmark.circle.fill").foregroundStyle(CYColor.warningText) }
     }
     private func unavailable(_ text: Text, id: String) -> some View {
         reminder(text)

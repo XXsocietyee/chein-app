@@ -160,7 +160,8 @@ import SwiftUI
                         Text(verbatim: [row.name, row.startDate, row.address].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")).tag(Optional(row.id))
                     }
                 }.disabled(model.topicsBusy)
-                if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed") }
+                // Mini `.card-hint--warn`: topic not in its recruiting window.
+                if model.topic != nil, model.topic?.inviteWindowOpen != true { Text("context.coop.closed").font(CYTypography.meta).foregroundStyle(CYColor.warningText) }
                 if model.hasMore, !model.topics.isEmpty { Button("context.picker.more") { Task { await model.more(permit) } }.disabled(model.topicsBusy || model.topicsFailed) }
             }
             // Source order: ① 关联主题, ③ 邀请对象 (club / merchant switch inside it); terms follow in the editor.
@@ -183,15 +184,19 @@ import SwiftUI
                 TextField("context.coop.search", text: $search).accessibilityIdentifier("context.coop.search")
                 if model.busy { ProgressView("cooperation.loading") }
                 if model.targetsFailed { Button("action.retry") { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
-                if !model.busy, !model.targetsFailed, filtered.isEmpty { Text("context.picker.empty") }
+                if !model.busy, !model.targetsFailed, filtered.isEmpty {
+                    Text("context.picker.empty").font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
+                }
                 ForEach(filtered) { candidate in
                     Button { model.toggle(candidate.id, permit: permit) } label: {
                         HStack {
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: candidate.name)
-                                CoopInviteTargetMeta(candidate: candidate).font(.caption).foregroundStyle(.secondary)
+                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                Text(verbatim: candidate.name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                                CoopInviteTargetMeta(candidate: candidate).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                             }
-                            Spacer(); if model.selected.contains(candidate.id) { Image(systemName: "checkmark") }
+                            Spacer()
+                            // Mini `.target-action`: "已选" chip when chosen; a check keeps it native.
+                            if model.selected.contains(candidate.id) { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.accentText).accessibilityHidden(true) }
                         }
                     }.disabled(model.targetsBusy || !model.isCurrent)
                         .accessibilityAddTraits(model.selected.contains(candidate.id) ? .isSelected : [])
@@ -199,16 +204,17 @@ import SwiftUI
                 }
             }
             if !model.selected.isEmpty, model.isCurrent {
-                LabeledContent("context.coop.selected", value: String(model.selected.count))
+                LabeledContent { Text(verbatim: String(model.selected.count)).monospacedDigit() } label: { Text("context.coop.selected") }
+                // Mini `.cta-bar`: one solid action for the whole screen.
                 Button("context.coop.continue") {
                     guard let contexts = model.contexts(permit: permit) else { return }
                     editing = contexts; showEditor = true
                 }
-                .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity).listRowBackground(Color.clear)
+                .buttonStyle(.cyPrimary).listRowBackground(Color.clear)
                 .disabled(model.contexts(permit: permit) == nil)
             }
             CoopFlowSafetyNotice()
-        }.navigationTitle("context.coop.new").scrollDismissesKeyboard(.interactively)
+        }.cyMiniListScreen().navigationTitle("context.coop.new").scrollDismissesKeyboard(.interactively)
             .onAppear {
                 let value = model.appear(active: scenePhase == .active)
                 Task { await model.loadInitial(value) }
@@ -308,7 +314,8 @@ import SwiftUI
             Section("context.coop.targets") { ForEach(contexts) { Text(verbatim: $0.recipientName) } }
             TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
                 .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
-            Text(verbatim: "\(message.count) / 100").font(.caption).foregroundStyle(.secondary)
+            Text(verbatim: "\(message.count) / 100").font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
+                .frame(maxWidth: .infinity, alignment: .trailing)
             Picker("cooperation.invite.terms", selection: $fixed) {
                 Text("cooperation.invite.terms.traffic").tag(false)
                 Text(LocalizedStringKey(isClub ? "cooperation.invite.fee.club" : "cooperation.invite.fee.merchant")).tag(true)
@@ -318,7 +325,7 @@ import SwiftUI
                     HStack(spacing: 4) {
                         Text(verbatim: "¥")
                         TextField(text: $fee, prompt: Text(verbatim: "0.00")) { Text("coopflow.field.fixedFee") }.keyboardType(.decimalPad).focused($typing)
-                        Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).font(.footnote).foregroundStyle(.secondary)
+                        Text(LocalizedStringKey(isClub ? "cooperation.invite.feeUnit.club" : "cooperation.invite.feeUnit.merchant")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 } label: { Text("coopflow.field.fixedFee") }
                 Text("coopflow.currency")
@@ -335,7 +342,7 @@ import SwiftUI
                 }
             }
             CoopFlowSafetyNotice()
-        }.navigationTitle("coopflow.invite.title").scrollDismissesKeyboard(.interactively)
+        }.cyMiniListScreen().navigationTitle("coopflow.invite.title").scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { if dirty { discard = true } else { dismiss() } } }
                 ToolbarItemGroup(placement: .keyboard) { Spacer(); Button("action.done") { typing = false } }

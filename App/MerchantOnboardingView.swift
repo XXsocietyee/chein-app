@@ -131,7 +131,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             default: reviewSection
             }
             if let error = model.errorKey {
-                Section { Text(LocalizedStringKey(error)).foregroundStyle(.red).accessibilityIdentifier("merchant.onboarding.error") }
+                Section { Text(LocalizedStringKey(error)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("merchant.onboarding.error") }
             }
             if model.isBusy || model.step > 1 {
                 Section {

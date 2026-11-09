@@ -142,8 +142,8 @@ public struct FinalTwentyBatchMasterCompletionView: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isMasterLedgerComplete ? Color.green : Color.orange).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isMasterLedgerComplete ? Color.green : Color.orange)
+                    .background((snapshot.isMasterLedgerComplete ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
+                    .foregroundStyle(snapshot.isMasterLedgerComplete ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("twentyBatchMasterManifest.overallBadge")
             }
 

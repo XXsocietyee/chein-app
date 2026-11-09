@@ -123,7 +123,7 @@ import Combine
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
-                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(.red) } }
+                    ForEach(Array(editor.issues.enumerated()), id: \.offset) { _, issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } }
                 }
             }
         }.navigationTitle("templateTeam.title").onAppear { editor.reload() }.onDisappear { editor.retire() }

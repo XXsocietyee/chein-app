@@ -188,8 +188,8 @@ public struct ReleaseArchiveChecklistSectionView: View {
                     .font(.caption2.weight(.bold))
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background((snapshot.isArchiveReady ? Color.green : Color.orange).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isArchiveReady ? Color.green : Color.orange)
+                    .background((snapshot.isArchiveReady ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
+                    .foregroundStyle(snapshot.isArchiveReady ? CYColor.successText : CYColor.warningText)
                     .accessibilityIdentifier("releaseArchiveChecklist.overallBadge")
             }
 

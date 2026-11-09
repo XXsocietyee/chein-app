@@ -49,9 +49,16 @@ struct MerchantCustomerListHero: View {
 struct MerchantCustomerListFooter: View {
     let total: Int
     var body: some View {
-        Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.footer %lld", total)).font(.footnote).foregroundStyle(.secondary)
+        Text(verbatim: MerchantOpsCopy.text("merchantOps.customer.footer %lld", total)).font(.footnote).foregroundStyle(CYColor.textSecondary)
             .frame(maxWidth: .infinity).accessibilityIdentifier("merchantOps.customer.footer")
     }
+}
+
+#Preview("MerchantCustomerListFooter · light") {
+    MerchantCustomerListFooter(total: 128).padding().preferredColorScheme(.light)
+}
+#Preview("MerchantCustomerListFooter · dark sanity") {
+    MerchantCustomerListFooter(total: 128).padding().preferredColorScheme(.dark)
 }
 
 /// Source customer/detail identity line: "最近互动 M月D日" or "尚无互动记录".

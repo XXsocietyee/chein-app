@@ -787,7 +787,7 @@ import SwiftUI
                         .accessibilityIdentifier("merchant.business.customers.manageAppliedFilter")
                     if !appliedExactly {
                         Text("merchant.business.customers.applyFirst")
-                            .font(.footnote).foregroundStyle(.red)
+                            .font(.footnote).foregroundStyle(CYColor.dangerText)
                     }
                 }
                 Picker("merchant.business.segment", selection: $segment) {

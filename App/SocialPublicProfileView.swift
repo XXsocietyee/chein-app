@@ -46,13 +46,15 @@ import SwiftUI
             context: .init(memberID: memberID, reader: reader, isCurrent: isCurrent())) {
         List {
             if memberID <= 0 {
-                VStack(alignment: .leading, spacing: 10) {
+                // Mini-program userinfo missing-param state: centred empty state with a back-to-home CTA.
+                VStack(spacing: CYSpacing.md) {
+                    Image(systemName: "link.badge.plus").font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                     Text("profile.incompleteLink.title")
-                        .font(.headline)
+                        .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                         .accessibilityIdentifier("social.incompleteLink.title")
                     Text("social.incompleteLink")
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.bodyCompact)
+                        .foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                     Button {
                         dismiss()
                     } label: {
@@ -61,7 +63,7 @@ import SwiftUI
                     .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("social.incompleteLink.backHome")
                 }
-                .padding(.vertical, 6)
+                .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
                 .accessibilityIdentifier("social.incompleteLink")
             }
             else {
@@ -94,16 +96,16 @@ import SwiftUI
                 }) { profile in
                     Section {
                         // Mini-program cy-profile identity head: round avatar beside name and level.
-                        HStack(spacing: 14) {
+                        HStack(spacing: CYSpacing.lg) {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
-                            VStack(alignment: .leading, spacing: 4) {
-                                if let name = profile.nickname { Text(verbatim: name).font(.title2.bold()) }
-                                else { Text("square.unknownAuthor").font(.title2.bold()) }
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                if let name = profile.nickname { Text(verbatim: name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary) }
+                                else { Text("square.unknownAuthor").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary) }
                                 if let level = profile.level {
                                     HStack(spacing: 6) {
                                         Text(verbatim: "Lv.\(level)")
                                         Text("member.card.levelTitle", tableName: "MemberProfile")
-                                    }.font(.subheadline).foregroundStyle(.secondary).accessibilityElement(children: .combine)
+                                    }.font(CYTypography.bodyCompact.monospacedDigit()).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
                                 }
                             }
                         }
@@ -195,14 +197,14 @@ import SwiftUI
                         }
                         Section("social.introduction") {
                             if let introduction = profile.introduction { Text(verbatim: introduction).textSelection(.enabled) }
-                            else { Text("social.noIntroduction").foregroundStyle(.secondary) }
+                            else { Text("social.noIntroduction").foregroundStyle(CYColor.textSecondary) }
                             if selfEditContext != nil {
                                 Button("profile.selfEdit.open") { selfEditNavigation.open(selfEditContext) }
                                     .accessibilityIdentifier("profile.selfEdit.open")
                             }
                         }
                         Section("social.interests") {
-                            if profile.interests.isEmpty { Text("social.noInterests").foregroundStyle(.secondary) }
+                            if profile.interests.isEmpty { Text("social.noInterests").foregroundStyle(CYColor.textSecondary) }
                             ForEach(profile.interests) { item in Label { Text(verbatim: item.name) } icon: { Image(systemName: "tag") } }
                         }
                         if !profile.workImages.isEmpty {
