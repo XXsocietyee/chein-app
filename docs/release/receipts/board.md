@@ -9,3 +9,6 @@
 - wire16 sent back. PR 1005. A nil notify capability currently defaults to canRead true.
 - wire27 [x] 4f8d35149. PR 1009. City-node hub reads MerchantCityNodeHubPage.project. Not merged.
 - wire20 [x] 00435acf7. PR 1010. Crop page reads CropPageModel.facts. Not merged.
+- wire18 [x] 1dde0ac7b. PR 1011. Coop list reads CoopListPage.project. Not merged.
+- wire26 [x] 4120e4adf. PR 1012. City-node create reads MerchantCityNodeCreatePage.project. Not merged.
+- wire22 sent back. PR 1013. Member home passes nil for every count, so a literal 0 becomes an em dash.
