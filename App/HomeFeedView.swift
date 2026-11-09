@@ -106,11 +106,13 @@ import SwiftUI
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
-                    } header: { Text("homeFeed.explore") }
+                    } header: { sectionHeader(Text("homeFeed.explore")) }
                 }
                 .listStyle(.insetGrouped)
                 .listSectionSpacing(CYSpacing.xxl)
-                .searchable(text: $keyword, prompt: Text("homeFeed.search"))
+                .scrollContentBackground(.hidden)
+                .background(CYColor.bgPage)
+                .searchable(text: $keyword, placement: onOpenUnifiedSearch == nil ? .automatic : .navigationBarDrawer(displayMode: .automatic), prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
                 .onChange(of: query) { _, value in model.schedule(.query(value), reader: reader, permit: permit) }
@@ -180,15 +182,16 @@ import SwiftUI
                             .font(CYTypography.bodyCompact)
                             .foregroundStyle(CYColor.textSecondary)
                     } else if dynamicTypeSize.isAccessibilitySize {
-                        ForEach(items) { item in row(item, section: section.rawValue) }
+                        ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             LazyHStack(spacing: CYSpacing.md) {
                                 ForEach(items) { item in
-                                    row(item, section: section.rawValue).frame(width: 280)
+                                    row(item, section: section.rawValue, style: .shelf)
                                 }
                             }
                             .scrollTargetLayout()
+                            .padding(.horizontal, CYSpacing.lg)
                         }
                         .scrollTargetBehavior(.viewAligned)
                         .questifyCardListRow()
@@ -198,15 +201,26 @@ import SwiftUI
                 }
             } header: {
                 switch section {
-                case .recommended: Text("homeFeed.editorsPicks")
-                case .nearby: Text("homeFeed.activityHighlights")
-                case .upcoming: Text("homeFeed.upcoming")
+                case .recommended: sectionHeader(Text("homeFeed.editorsPicks"))
+                case .nearby: sectionHeader(Text("homeFeed.activityHighlights"))
+                case .upcoming: sectionHeader(Text("homeFeed.upcoming"))
                 }
             }
         }
     }
-    private func row(_ item: HomeFeedItem, section: String) -> some View {
-        Button { if model.canOpen(reader) { onDestination(item.id) } } label: { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
+    /// Large, plain section title (mini-program `sec-title`): no small-caps grouped-list header.
+    private func sectionHeader(_ title: Text) -> some View {
+        title
+            .font(.title2.weight(.bold))
+            .foregroundStyle(CYColor.textPrimary)
+            .textCase(nil)
+            .padding(.leading, -CYSpacing.xs)
+            .accessibilityAddTraits(.isHeader)
+    }
+    private func row(_ item: HomeFeedItem, section: String, style: CYImageCard.Style? = nil) -> some View {
+        Button { if model.canOpen(reader) { onDestination(item.id) } } label: {
+            if let style { HomeFeedShelfCard(item: item, sourceTimeZone: sourceTimeZone, style: style) } else { HomeFeedCard(item: item, sourceTimeZone: sourceTimeZone) }
+        }
             .buttonStyle(QuestifyCardButtonStyle())
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
             .questifyCardListRow()
@@ -227,6 +241,22 @@ import SwiftUI
 extension HomeFeedItem {
     var accessibilityKey: String {
         switch id { case .activity(let id): return "activity.\(id)"; case .topic(let id): return "topic.\(id)" }
+    }
+}
+
+/// Kit image card for the rails: cover, title, then one meta line (date · place · price, em dash when unknown).
+struct HomeFeedShelfCard: View {
+    let item: HomeFeedItem
+    var sourceTimeZone: TimeZone?
+    var style: CYImageCard.Style
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
+    var body: some View {
+        let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
+        let line = [QuestifyCardText.metaLine(date: date, place: item.place), QuestifyCardText.amount(item.amount, locale: locale).map { String(localized: "playx.finishRoute.priceFrom \($0)") }]
+            .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
+        CYImageCard(LocalizedStringKey(item.name), meta: LocalizedStringKey(line.isEmpty ? "—" : line),
+                    imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
     }
 }
 

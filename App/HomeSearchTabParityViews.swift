@@ -3,6 +3,7 @@ import SwiftUI
 /// Hero greeting, city badge, and 3 fixed action banners (`成为俱乐部`, `成为商家`, `和朋友报名活动`) for Home (`pages/index/index`).
 @MainActor
 struct HomeHeroHeaderSectionView: View {
+    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     var nickname: String? = nil
     var selectedCity: String? = nil
@@ -23,10 +24,10 @@ struct HomeHeroHeaderSectionView: View {
                 HStack(alignment: .top, spacing: 12) {
                     VStack(alignment: .leading, spacing: 6) {
                         Text(verbatim: HomeIndexParityPresentation.greetingText(nickname: nickname, locale: locale))
-                            .font(CYTypography.sectionTitle)
+                            .font(CYTypography.display)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("homeIndex.hero.greeting")
-                        HStack(spacing: 6) {
+                        (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(spacing: 6))) {
                             if nickname?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false {
                                 Label("homeFeed.player", systemImage: "checkmark.seal.fill")
                                     .foregroundStyle(QuestifyPalette.accent)
@@ -73,7 +74,8 @@ struct HomeHeroHeaderSectionView: View {
                     HomeHeroAvatar(source: avatarSource)
                 }
                 if let onOpenUnifiedSearch {
-                    HStack(spacing: 8) {
+                    // One search pill (the single primary entry); the map search is its trailing icon.
+                    HStack(spacing: 0) {
                         Button {
                             onOpenUnifiedSearch(.list)
                         } label: {
@@ -87,9 +89,8 @@ struct HomeHeroHeaderSectionView: View {
                                     .minimumScaleFactor(0.85)
                                 Spacer(minLength: 0)
                             }
-                            .padding(.horizontal, CYSpacing.md)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                            .padding(.leading, CYSpacing.md)
+                            .frame(maxWidth: .infinity, minHeight: 52)
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
@@ -99,45 +100,42 @@ struct HomeHeroHeaderSectionView: View {
                         Button {
                             onOpenUnifiedSearch(.map)
                         } label: {
-                            Label {
-                                Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale))
-                                    .font(CYTypography.label)
-                                    .foregroundStyle(CYColor.textPrimary)
-                            } icon: {
-                                Image(systemName: "map")
-                                    .foregroundStyle(CYColor.accentText)
-                            }
-                            .padding(.horizontal, CYSpacing.md)
-                            .frame(minHeight: CYSpacing.minTouchTarget)
-                            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                            .contentShape(Rectangle())
+                            Image(systemName: "map")
+                                .font(.body.weight(.semibold))
+                                .foregroundStyle(CYColor.textPrimary)
+                                .frame(width: 52, height: 52)
+                                .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
+                        .accessibilityLabel(Text(verbatim: UnifiedSearchExperience.PresentationMode.map.title(locale: locale)))
                         .accessibilityIdentifier("homeIndex.hero.mapSearchEntry")
                     }
+                    .background(CYColor.bgElevated, in: Capsule())
+                    .overlay { Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
                 }
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 10) {
-                        ForEach(HomeIndexParityPresentation.fixedActionBanners) { banner in
-                            Button {
-                                onSelectBanner?(banner)
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Text(verbatim: banner.title(locale: locale))
-                                        .font(CYTypography.label)
-                                    Image(systemName: "arrow.up.right")
-                                        .font(CYTypography.meta)
-                                }
-                                .padding(.horizontal, CYSpacing.md)
-                                .frame(minHeight: CYSpacing.minTouchTarget)
-                            }
-                            .buttonStyle(.bordered)
-                            .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
+                // The three fixed action banners are demoted into one quiet menu row; every banner stays reachable.
+                Menu {
+                    ForEach(HomeIndexParityPresentation.fixedActionBanners) { banner in
+                        Button {
+                            onSelectBanner?(banner)
+                        } label: {
+                            Label(banner.title(locale: locale), systemImage: "arrow.up.right")
                         }
+                        .accessibilityIdentifier("homeIndex.actionBanner.\(banner.id)")
                     }
+                } label: {
+                    HStack(spacing: 6) {
+                        Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
+                        Image(systemName: "chevron.down").font(.caption2.weight(.bold))
+                    }
+                    .font(CYTypography.label)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                 }
+                .accessibilityIdentifier("homeIndex.actionBanner.menu")
             }
             .padding(.vertical, 4)
+            .listRowBackground(Color.clear)
         }
     }
 }

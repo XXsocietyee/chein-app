@@ -31,14 +31,20 @@ import SwiftUI
 @MainActor struct HomeFeedFixtureHostView: View {
     @State private var reader: HomeFeedFixtureReader
     @State private var path: [HomeFeedDestination] = []
-    init() {
+    private let hero: Bool
+    init(forceHero: Bool = false) {
+        hero = forceHero || ProcessInfo.processInfo.arguments.contains("--design-hero")
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-home-feed-scenario")
         _reader = State(initialValue: HomeFeedFixtureReader(scenario: index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "content"))
     }
     var body: some View {
         NavigationStack(path: $path) {
-            HomeFeedView(reader: reader) { path.append($0) }
+            HomeFeedView(reader: reader, viewerNickname: hero ? "Mia" : nil,
+                         selectedCity: hero ? "Shanghai" : nil,
+                         showsHeroBanners: hero,
+                         onActionBanner: hero ? { _ in } : nil,
+                         onOpenUnifiedSearch: hero ? { _ in } : nil) { path.append($0) }
                 .navigationDestination(for: HomeFeedDestination.self) { destination in
                     switch destination {
                     case .activity(let id): Text(verbatim: "Synthetic activity destination \(id)").accessibilityIdentifier("homeFeed.destination.activity")

@@ -16,6 +16,7 @@ import SwiftUI
     var reportProgressDestination: (() -> AnyView)? = nil
     @State private var showsWorkspace = false
     @State private var showsComposer = false
+    @State private var showsReportProgress = false
     var onClose: (() -> Void)? = nil
     @State private var query = SquareQuery()
     @State private var keyword = ""
@@ -39,20 +40,14 @@ import SwiftUI
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                if let workspace {
-                    Button("squareWorkspace.title") { showsWorkspace = true }.accessibilityIdentifier("square.workspace.entry")
-                        .disabled(workspace.busy)
-                }
+                // 我的草稿 and 举报进度 are demoted into the toolbar menu; governance keeps its own entry.
                 if let context = governanceContext(postID: nil) { SquareGovernanceEntryView(context: context) }
-                if let reportProgressDestination {
-                    NavigationLink { reportProgressDestination() } label: { memberReportProgressText("report.history.title") }
-                        .accessibilityIdentifier("squareReport.progress.entry")
-                }
                 Section {
                     if reader.isOfflineExample { Text("square.offlineExample").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
                     Picker("square.feed", selection: $query.mode) {
                         ForEach(SquareFeedMode.visible, id: \.self) { mode in Text(mode.labelKey).tag(mode) }
                     }.accessibilityIdentifier("square.feed")
+                    .listRowBackground(Color.clear)
                     filters
                 }
                 if let upcomingReader, reader.isConfigured { SquareXcxUpcomingStrip(reader: upcomingReader, destination: upcomingDestination) }
@@ -95,6 +90,22 @@ import SwiftUI
             .navigationDestination(for: Int.self) { id in SquareDetailView(id: id, contentGeneration: .communityV1, reader: reader, accountReader: accountReader, actions: actions, governanceContext: governanceContext(postID: id), workspace: workspace) }
             .toolbar { if let onClose { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose) } } }
             .toolbar {
+                if workspace != nil || reportProgressDestination != nil {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Menu {
+                            if let workspace {
+                                Button("squareWorkspace.title", systemImage: "doc.text") { showsWorkspace = true }
+                                    .accessibilityIdentifier("square.workspace.entry")
+                                    .disabled(workspace.busy)
+                            }
+                            if reportProgressDestination != nil {
+                                Button { showsReportProgress = true } label: { Label { memberReportProgressText("report.history.title") } icon: { Image(systemName: "flag") } }
+                                    .accessibilityIdentifier("squareReport.progress.entry")
+                            }
+                        } label: { Label("roam.toolbar.more", systemImage: "ellipsis.circle") }
+                            .accessibilityIdentifier("square.more")
+                    }
+                }
                 if let actions {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("social.editor.createPost", systemImage: "square.and.pencil") { if workspace != nil { showsWorkspace = true } else { showsComposer = true } }
@@ -108,6 +119,9 @@ import SwiftUI
             .sheet(isPresented: $showsWorkspace) {
                 if let workspace { NavigationStack { SquareWorkspaceView(coordinator: workspace) }.id(workspace.session) }
             }
+            .navigationDestination(isPresented: $showsReportProgress) { reportProgressDestination?() }
+            .scrollContentBackground(.hidden)
+            .background(CYColor.bgPage)
             .searchable(text: $keyword, prompt: "square.search")
             .onSubmit(of: .search) { query.keyword = keyword.isEmpty ? nil : keyword }
             .onChange(of: keyword) { _, value in if value.isEmpty { query.keyword = nil } }
