@@ -44,8 +44,23 @@ private struct ClubOpsTag: View {
 struct ClubOpsBanSection: View {
     let list: ClubOpsBanList
     let unban: (ClubOpsBanRow) -> AnyView
+    var scope: ClubGovernanceScope? = nil
+    var capability: ClubOpsGovernanceCapability? = nil
+    var document: ClubGovernanceValue? = nil
+    private var page: ClubOpsGovernancePage? {
+        guard let scope, let capability else { return nil }
+        return ClubOpsGovernancePage.project(bans: document, scope: scope, capability: capability)
+    }
+    private var countText: String? {
+        guard page?.hidden == false, capability?.manageMembers == true, let count = page?.counts?.bans else { return nil }
+        if count.literal == 0 { return "0" }
+        return count.literal == nil ? "—" : count.displayText
+    }
     var body: some View {
+        let list = (page?.hidden == false ? page?.bans : nil) ?? self.list
+        if page?.hidden != true, capability?.manageMembers != false {
         Section {
+            if let text = countText { Text(verbatim: text).font(.footnote).foregroundStyle(.secondary) }
             if list.rows.isEmpty {
                 ClubOpsGovernanceCopy.text("clubOpsGov.bans.empty").foregroundStyle(.secondary).accessibilityIdentifier("clubOpsGov.bans.empty")
             }
@@ -65,6 +80,7 @@ struct ClubOpsBanSection: View {
                 }.accessibilityIdentifier("clubOpsGov.ban.\(row.id)")
             }
         } header: { Text("club.gov.bans") }
+        }
     }
 }
 
