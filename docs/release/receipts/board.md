@@ -14,5 +14,5 @@
 - wire22 sent back. PR 1013. Member home passes nil for every count, so a literal 0 becomes an em dash.
 - wire25 [x] 9b79c45a0. PR 1014. Onboarding reads MerchantOnboardingPage.project. Not merged.
 - wire21 [x] 14e2cfbda. PR 1016. Deregister reads DeregisterIndexPageModel.page. Not merged.
-- wire19 sent back. PR 1015. Nearby rows prefix an em dash onto the distance and drop the meter suffix.
+- wire19 [x] f1868e9dc. PR 1015. Nearby page total reads NearbyMerchantPage.resolve. Distance line restored. Not merged.
 - wire23 sent back. PR 1017. Aftercare detail uses policyVersion as the amount value, and the copy grant defaults to true.
