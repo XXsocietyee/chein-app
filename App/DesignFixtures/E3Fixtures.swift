@@ -28,6 +28,9 @@ enum E3Fixtures {
         case "e3-invite": return wrap(E3InviteFixture())
         case "e3-notices": return wrap(E3NoticesFixture())
         case "e3-people": return wrap(E3PeopleFixture())
+        case "e3-real-friends": return wrap(E3RealFriendsHost())
+        case "e3-real-follow": return wrap(E3RealFollowHost())
+        case "e3-real-imcards": return wrap(E3RealIMCardsHost())
         default: return nil
         }
     }
@@ -392,6 +395,93 @@ struct E3PeopleFixture: View {
     }
     private func title(_ s: E3FollowState, _ t: (String, String) -> String) -> String {
         switch s { case .follow: return t("关注", "Follow"); case .following: return t("已关注", "Following"); case .requested: return t("已申请", "Requested"); case .mutual: return t("互相关注", "Friends") }
+    }
+}
+#endif
+
+
+// MARK: - Fifth pass: hosts that reach the REAL production views with stub data (DEBUG only)
+
+@MainActor private final class E3FriendService: NativeFriendDirectoryServing {
+    let viewerID: Int64 = 2
+    var isCurrent: Bool { true }
+    private let names = ["Mina Chen", "Jun Park", "林小满", "Aiko Tanaka", "周末骑行队长", "Sam Rivera", "Noor Haddad", "陈一鸣"]
+    private func item(_ i: Int) -> [String: Any] {
+        ["peer_id": 100 + i, "nickname": names[i], "state": 1, "version": 3, "msg": "", "expires_at_ms": 0, "starred": i < 2 ? 1 : 0]
+    }
+    func page(filter: NativeFriendDirectoryFilter, cursor: String?) async throws -> NativeFriendDirectoryPage {
+        let json: [String: Any] = [
+            "viewer_id": 2, "section": filter.section.rawValue, "group_id": NSNull(), "starred_only": filter.starredOnly,
+            "revision": String(repeating: "a", count: 64),
+            "groups": ["viewer_id": 2, "list": [["id": NSNull(), "name": "default", "position": 0, "version": 0, "is_default": 1]]],
+            "counts": ["all": names.count, "recent": 4, "together": 3], "total": names.count,
+            "items": (0..<names.count).map(item), "has_more": false, "next_cursor": NSNull()]
+        return try JSONDecoder().decode(NativeFriendDirectoryPage.self, from: JSONSerialization.data(withJSONObject: json))
+    }
+    func detail(peerID: Int64) async throws -> NativeFriendDirectoryDetail { throw NativeFriendDirectoryFailure.unavailablePeer }
+}
+
+@MainActor struct E3RealFriendsHost: View {
+    @State private var flow = NativeFriendDirectoryFlow(service: E3FriendService())
+    var body: some View {
+        NavigationStack { NativeFriendDirectoryView(flow: flow, conversation: { _ in AnyView(EmptyView()) }) }
+    }
+}
+
+@MainActor private final class E3FollowReader: ProfileFollowListReading {
+    private let base = SocialAccountFixtureReader(.content)
+    let scope = UUID()
+    var isCurrent: Bool { true }
+    var identity: SocialAccountIdentity { base.identity }
+    var isConfigured: Bool { true }
+    var isOfflineExample: Bool { true }
+    func publicProfile(memberID: Int) async throws -> SocialPublicProfile { try await base.publicProfile(memberID: memberID) }
+    func informationList() async throws -> [SocialInformation] { [] }
+    func information(id: Int) async throws -> SocialInformation { try await base.information(id: id) }
+    func invitationHistory(page: Int) async throws -> SocialInviteHistory { try await base.invitationHistory(page: page) }
+    func makePublicProfileReader(memberID: Int, isCurrent: @escaping () -> Bool) -> ProfilePublicInfoReader? { nil }
+    func page(kind: ProfileFollowListKind, cursor: Int) async throws -> ProfileFollowListPage {
+        let names = ["Mina Chen", "Jun Park", "林小满", "Aiko Tanaka", "周末骑行队长", "Sam Rivera"]
+        let rows: [[String: Any]] = names.enumerated().map { i, n in
+            ["id": 201 + i, "nickname": n, "avatar": NSNull(), "isFollow": kind == .following ? true : i % 2 == 0] }
+        let json: [String: Any] = ["owner_id": 81, "kind": kind.rawValue, "rows": rows, "has_more": false, "next_cursor": NSNull()]
+        return try JSONDecoder().decode(ProfileFollowListPage.self, from: JSONSerialization.data(withJSONObject: json))
+    }
+}
+
+@MainActor struct E3RealFollowHost: View {
+    @State private var flow = ProfileFollowListFlow(reader: E3FollowReader())
+    var body: some View {
+        NavigationStack { ProfileFollowListView(flow: flow, squareReader: SquareFixtureReader()) }
+    }
+}
+
+/// Real IM card label views inside the real ChatMessageBubble (voice / file / video / location).
+@MainActor struct E3RealIMCardsHost: View {
+    private func decode<T: Decodable>(_ json: String) -> T { try! JSONDecoder().decode(T.self, from: Data(json.utf8)) }
+    var body: some View {
+        let voice: IMVoiceReference = decode(#"{"uploadRequestID":"00000000-0000-4000-8000-000000000001","assetID":7,"durationMS":23000,"waveform":"AQIDBAUGBwgJCgsMDQ4PEA==","size":4000}"#)
+        let file: IMFileReference = decode(#"{"uploadRequestID":"00000000-0000-4000-8000-000000000002","attachmentID":"9","name":"Saturday-route.pdf","size":2411724,"mime":"application/pdf","ext":"pdf","sha256":"\#(String(repeating: "a", count: 64))"}"#)
+        let video: IMVideoReference = decode(#"{"uploadRequestID":"00000000-0000-4000-8000-000000000003","attachmentID":"11","sha256":"\#(String(repeating: "b", count: 64))","coverSHA256":"\#(String(repeating: "c", count: 64))","size":5000000,"coverSize":90000,"durationMS":12000,"width":1080,"height":1920}"#)
+        let place = try! IMStaticLocation(name: "East Gate, Riverside Park", address: "1 Riverside Road", latitude: 31.23, longitude: 121.47, datum: "WGS84")
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: Theme.Space.s2) {
+                    row(false, .first) { IMStaticLocationCardView(place: place) }
+                    row(false, .middle) { IMVoiceCardLabel(reference: voice) }
+                    row(false, .last) { IMFileCardLabel(reference: file) }
+                    row(true, .first) { IMVideoCardLabel(reference: video) }
+                    row(true, .last) { Text(verbatim: "See you at the gate") }
+                }.padding(.horizontal, Theme.Space.s4)
+            }.navigationTitle(Text(verbatim: "Weekend walks")).navigationBarTitleDisplayMode(.inline)
+        }
+    }
+    private func row<C: View>(_ own: Bool, _ pos: ChatGroupPosition, @ViewBuilder _ c: @escaping () -> C) -> some View {
+        HStack(alignment: .bottom, spacing: Theme.Space.s2) {
+            if own { Spacer(minLength: 40) }
+            ChatMessageBubble(isOwn: own, timestamp: pos.showsTail ? "19:2\(pos == .first ? 1 : 4)" : nil, position: pos) { EmptyView() } content: { c() }
+            if !own { Spacer(minLength: 40) }
+        }
     }
 }
 #endif
