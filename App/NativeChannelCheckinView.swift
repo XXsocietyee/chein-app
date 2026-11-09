@@ -46,7 +46,13 @@ import SwiftUI
                     Section {
                         QuestifyHeroValue(value: Text("d7.checkin.streak.value \(status.streak)"), caption: Text("d7.checkin.streak.caption"))
                             .monospacedDigit()
-                        if status.checked { Label("d7.checkin.checkedToday", systemImage: "checkmark.seal.fill").fixedSize(horizontal: false, vertical: true) }
+                        if status.checked {
+                            Label("d7.checkin.checkedToday", systemImage: "checkmark.seal.fill").fixedSize(horizontal: false, vertical: true)
+                                // Check-in moment: the seal bounces, success haptic, light confetti (all quiet under Reduce Motion).
+                                .symbolEffect(.bounce, options: .nonRepeating, value: status.checked)
+                                .sensoryFeedback(.success, trigger: status.checked) { _, new in new }
+                                .overlay { CYConfettiBurst(trigger: status.checked ? 1 : 0).frame(height: 160) }
+                        }
                         else { Label("d7.checkin.notCheckedToday", systemImage: "calendar").fixedSize(horizontal: false, vertical: true) }
                         LabeledContent("d7.checkin.date", value: status.checkinDate)
                         if let fact = status.fact {
