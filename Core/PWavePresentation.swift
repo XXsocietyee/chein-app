@@ -10,9 +10,15 @@ public enum PWaveFeature: String, Equatable, Sendable, CaseIterable {
     case inviteLanding = "P1"
     case playMode = "P4"
     case ticketSeats = "P5"
+    case affiliateCenter = "P2"
+    case themeCollection = "P3"
+    case cityPass = "P6"
+    case runMemory = "P8"
+    case memberBoard = "P9"
 
-    /// Chapter 24 display order. Later P items are outside this Core slice.
+    /// First batch from §24.1. P2, P3, P6, P8, and P9 keep the later order.
     public static let displayOrder: [PWaveFeature] = [.battleReport, .inviteLanding, .playMode, .ticketSeats]
+    public static let laterDisplayOrder: [PWaveFeature] = [.affiliateCenter, .themeCollection, .cityPass, .runMemory, .memberBoard]
 }
 
 public enum PWaveRefusal: Error, Equatable, Sendable {
@@ -29,6 +35,15 @@ public enum PWaveNumberFact: Equatable, Sendable {
     public var literal: Int? {
         if case .value(let number) = self { return number }
         return nil
+    }
+
+    /// Shown text. Unknown, null, a numeric string, and an unnamed object are an em dash, never 0.
+    public static let unknownDisplay = "—"
+    public var displayText: String {
+        switch self {
+        case .unknown: return Self.unknownDisplay
+        case .value(let number): return String(number)
+        }
     }
 
     public static func parse(_ value: PlayWireValue) -> PWaveNumberFact {
@@ -270,6 +285,103 @@ enum PWaveGate {
         return PWavePresentation(clientCapabilityPresent: clientCapabilityPresent, serverFactPresent: true,
                                  phase: phase, unsatisfiedServerCapabilities: unsatisfiedServerCapabilities,
                                  serverCapabilitiesDeclared: serverCapabilitiesDeclared)
+    }
+}
+
+/// §23.3: a missing or null `requiredCapabilities` is not "no capability required".
+/// P2, P3, P6, P8, and P9 stay hidden until that list is present and this build supports every entry.
+/// An empty list is declared and still unsatisfied, so it is not an empty success.
+enum PWaveServerCapability {
+    struct Outcome: Equatable, Sendable {
+        let satisfied: Bool
+        let declared: Bool?
+        let missing: [String]
+    }
+
+    static func presentation<Ready>(data: Data, status: Int, supported: Set<String>,
+                                    project: (PlayWireValue, PlayWireValue) -> PWaveServerFact<Ready>) -> PWavePresentation<Ready> {
+        let root = (try? JSONDecoder().decode(PlayWireValue.self, from: data)) ?? .null
+        switch PWaveEnvelope.classify(data: data, status: status) {
+        case .error(let error):
+            return PWaveGate.presentation(clientCapabilityPresent: true, fact: .error(error))
+        case .unknown:
+            let outcome = evaluate(root: root, supported: supported)
+            if outcome.satisfied {
+                return PWaveGate.presentation(clientCapabilityPresent: true, fact: .unknown,
+                                             serverCapabilitiesDeclared: outcome.declared)
+            }
+            return PWavePresentation(clientCapabilityPresent: false, serverFactPresent: true, phase: .unknown,
+                                    unsatisfiedServerCapabilities: outcome.missing,
+                                    serverCapabilitiesDeclared: outcome.declared)
+        case .payload(let payload):
+            let outcome = evaluate(root: root, supported: supported)
+            let fact = project(root, payload)
+            if outcome.satisfied {
+                return PWaveGate.presentation(clientCapabilityPresent: true, fact: fact,
+                                             unsatisfiedServerCapabilities: outcome.missing,
+                                             serverCapabilitiesDeclared: outcome.declared)
+            }
+            return conceal(fact, outcome: outcome)
+        }
+    }
+
+    static func conceal<Ready>(_ fact: PWaveServerFact<Ready>, outcome: Outcome) -> PWavePresentation<Ready> {
+        let phase: PWavePresentation<Ready>.Phase
+        switch fact {
+        case .empty: phase = .empty
+        case .error(let error): phase = .error(error)
+        case .unknown: phase = .unknown
+        case .ready(let value): phase = .ready(value)
+        }
+        return PWavePresentation(clientCapabilityPresent: false, serverFactPresent: true, phase: phase,
+                                unsatisfiedServerCapabilities: outcome.missing,
+                                serverCapabilitiesDeclared: outcome.declared)
+    }
+
+    static func evaluate(root: PlayWireValue, supported: Set<String>) -> Outcome {
+        guard let rootObject = root.object else {
+            return Outcome(satisfied: false, declared: false, missing: [])
+        }
+        var lists: [PlayWireValue] = []
+        if rootObject.keys.contains("requiredCapabilities") {
+            lists.append(rootObject["requiredCapabilities"] ?? .null)
+        }
+        if let dataObject = rootObject["data"]?.object, dataObject.keys.contains("requiredCapabilities") {
+            lists.append(dataObject["requiredCapabilities"] ?? .null)
+        }
+        if lists.isEmpty { return Outcome(satisfied: false, declared: false, missing: []) }
+        var missing: [String] = []
+        var declared = true
+        var satisfied = true
+        for value in lists {
+            switch parsed(value) {
+            case .absent, .malformed:
+                declared = false
+                satisfied = false
+            case .listed(let keys):
+                let gap = keys.filter { !supported.contains($0) }
+                missing.append(contentsOf: gap)
+                if keys.isEmpty || !gap.isEmpty { satisfied = false }
+            }
+        }
+        return Outcome(satisfied: satisfied, declared: declared, missing: missing)
+    }
+
+    private enum Parsed: Equatable {
+        case absent
+        case malformed
+        case listed([String])
+    }
+
+    private static func parsed(_ value: PlayWireValue) -> Parsed {
+        if case .null = value { return .absent }
+        guard case .array(let items) = value else { return .malformed }
+        var keys: [String] = []
+        for item in items {
+            guard case .string(let key) = item, !key.isEmpty else { return .malformed }
+            keys.append(key)
+        }
+        return .listed(keys)
     }
 }
 

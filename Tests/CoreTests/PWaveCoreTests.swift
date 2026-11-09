@@ -373,7 +373,7 @@ final class PWaveCoreTests: XCTestCase {
         }
         let sources = try files.contentsOfDirectory(at: root.appendingPathComponent("Core").resolvingSymlinksInPath(), includingPropertiesForKeys: nil)
             .filter { $0.lastPathComponent.hasPrefix("PWave") && $0.pathExtension == "swift" }
-        XCTAssertEqual(sources.count, 6)
+        XCTAssertEqual(sources.count, 11)
         let banned = ["URLSession", "168", "朋友送你一局", "跳过", "宝石", "Gem", "Wallet", "mock", "fixture", "synthetic", "elapsedSeconds"]
         for source in sources {
             let text = try String(contentsOf: source, encoding: .utf8)

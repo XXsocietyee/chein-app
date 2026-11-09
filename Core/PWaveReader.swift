@@ -118,6 +118,127 @@ public struct PWaveReader {
         throw PWaveRefusal.writesNotAvailable
     }
 
+    public func affiliateSummary(token: String, scope: PWaveSessionScope,
+                                 currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveAffiliateSummaryFact> {
+        try await performPresentation(feature: .affiliateCenter, token: token, scope: scope, currentScope: currentScope,
+                                      request: { try self.makeGET(self.url("api/marketing/affiliate/summary", query: [URLQueryItem(name: "limit", value: String(PWaveAffiliateCenter.limit))]), token: token) },
+                                      decode: { PWaveAffiliateCenter.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
+    }
+
+    public func issueAffiliateLink(targetType: Int, targetID: String, requestID: String, token: String) throws -> Never {
+        _ = (targetType, targetID, requestID, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func themeCatalog(_ path: PWaveCatalogPath, fields: [String: String], token: String?, scope: PWaveSessionScope,
+                             currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveThemeCollectionFact> {
+        try await performPresentation(feature: .themeCollection, token: token, scope: scope, currentScope: currentScope,
+                                      request: { try self.catalogRequest(path, fields: fields, token: token) },
+                                      decode: { PWaveThemeCollection.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
+    }
+
+    public func remindWhenAvailable(id: String, token: String) throws -> Never {
+        _ = (id, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func products(city: String? = nil, kind: String? = nil, token: String, scope: PWaveSessionScope,
+                         currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
+        try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
+                                      request: { try self.productList(city: city, kind: kind, token: token) },
+                                      decode: { PWaveCityPass.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities, frozenSnapshot: false) })
+    }
+
+    public func product(id: String, token: String, scope: PWaveSessionScope,
+                        currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
+        guard Self.acceptable(id), !id.contains("/"), !id.contains("..") else { throw PWaveRefusal.invalidRequest }
+        return try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
+                                             request: { try self.makeGET(self.url("api/marketing/product").appendingPathComponent(id), token: token) },
+                                             decode: { PWaveCityPass.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities, frozenSnapshot: false) })
+    }
+
+    public func productOrders(token: String, scope: PWaveSessionScope,
+                              currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveCityPassFact> {
+        try await performPresentation(feature: .cityPass, token: token, scope: scope, currentScope: currentScope,
+                                      request: { try self.makeGET(self.url("api/marketing/product/orders"), token: token) },
+                                      decode: { PWaveCityPass.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities, frozenSnapshot: true) })
+    }
+
+    public func quoteProduct(requestID: String, token: String) throws -> Never {
+        _ = (requestID, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func orderProduct(requestID: String, token: String) throws -> Never {
+        _ = (requestID, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func payProduct(orderNo: String, requestID: String, token: String) throws -> Never {
+        _ = (orderNo, requestID, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func activateProduct(orderNo: String, topicID: String, token: String) throws -> Never {
+        _ = (orderNo, topicID, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func claimProductGift(credential: String, requestID: String, token: String) throws -> Never {
+        _ = (credential, requestID, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func runMemory(activityID: String? = nil, topicID: String? = nil, runID: String? = nil, token: String,
+                          scope: PWaveSessionScope, currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveRunMemoryFact> {
+        try await performPresentation(feature: .runMemory, token: token, scope: scope, currentScope: currentScope,
+                                      request: { try self.scopedGET("api/play/player-journey/memory", activityID: activityID, topicID: topicID, runID: runID, token: token) },
+                                      decode: { PWaveRunMemory.decode(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
+    }
+
+    public func themeHistory(topicID: String, beforeSessionID: String? = nil, limit: Int? = nil, token: String,
+                             scope: PWaveSessionScope, currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveThemeHistoryFact> {
+        guard Self.acceptable(topicID) else { throw PWaveRefusal.invalidRequest }
+        if let beforeSessionID { guard Self.acceptable(beforeSessionID) else { throw PWaveRefusal.invalidRequest } }
+        if let limit { guard limit > 0 else { throw PWaveRefusal.invalidRequest } }
+        return try await performPresentation(feature: .runMemory, token: token, scope: scope, currentScope: currentScope,
+                                             request: { try self.historyRequest(topicID: topicID, beforeSessionID: beforeSessionID, limit: limit, token: token) },
+                                             decode: { PWaveRunMemory.decodeHistory(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
+    }
+
+    public func publishMemory(runID: String, requestID: String, token: String) throws -> Never {
+        _ = (runID, requestID, token, endpointClass)
+        throw PWaveRefusal.writesNotAvailable
+    }
+
+    public func questBoard(scopeID: String, limit: Int? = nil, token: String, scope: PWaveSessionScope,
+                           currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveQuestBoardFact> {
+        guard Self.acceptable(scopeID) else { throw PWaveRefusal.invalidRequest }
+        if let limit { guard limit > 0 else { throw PWaveRefusal.invalidRequest } }
+        return try await performPresentation(feature: .memberBoard, token: token, scope: scope, currentScope: currentScope,
+                                             request: { try self.questRequest(scopeID: scopeID, limit: limit, token: token) },
+                                             decode: { PWaveBoards.decodeQuest(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
+    }
+
+    public func teamRanking(ownerType: Int, ownerID: String, token: String, scope: PWaveSessionScope,
+                            currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveTeamBoardFact> {
+        guard ownerType == 1 || ownerType == 2, Self.acceptable(ownerID) else { throw PWaveRefusal.invalidRequest }
+        return try await performPresentation(feature: .memberBoard, token: token, scope: scope, currentScope: currentScope,
+                                             request: { try self.makeGET(self.url("api/orient/team/ranking", query: [
+                                                URLQueryItem(name: "ownerType", value: String(ownerType)),
+                                                URLQueryItem(name: "ownerId", value: ownerID)
+                                             ]), token: token) },
+                                             decode: { PWaveBoards.decodeTeams(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
+    }
+
+    public func teamDetail(teamID: String, token: String, scope: PWaveSessionScope,
+                           currentScope: @escaping () -> PWaveSessionScope?) async throws -> PWavePresentation<PWaveMemberRankFact> {
+        guard Self.acceptable(teamID) else { throw PWaveRefusal.invalidRequest }
+        return try await performPresentation(feature: .memberBoard, token: token, scope: scope, currentScope: currentScope,
+                                             request: { try self.makeGET(self.url("api/orient/team/detail", query: [URLQueryItem(name: "teamId", value: teamID)]), token: token) },
+                                             decode: { PWaveBoards.decodeMembers(data: $0, status: $1, supported: self.capabilities.supportedServerCapabilities) })
+    }
+
     private func perform<Ready>(feature: PWaveFeature, token: String, scope: PWaveSessionScope,
                                 currentScope: @escaping () -> PWaveSessionScope?,
                                 request: () throws -> URLRequest,
@@ -136,6 +257,26 @@ public struct PWaveReader {
                                     phase: .error(PWaveErrorFact(httpStatus: nil, businessCode: nil, message: nil, runErrorToken: nil)))
         case .received(let data, let status):
             return PWaveGate.presentation(clientCapabilityPresent: true, fact: decode(data, status))
+        }
+    }
+
+    private func performPresentation<Ready>(feature: PWaveFeature, token: String?, scope: PWaveSessionScope,
+                                           currentScope: @escaping () -> PWaveSessionScope?,
+                                           request: () throws -> URLRequest,
+                                           decode: (Data, Int) -> PWavePresentation<Ready>) async throws -> PWavePresentation<Ready> {
+        guard capabilities.allows(feature) else { return .loading(clientCapabilityPresent: false) }
+        guard currentScope() == scope else {
+            return PWavePresentation(clientCapabilityPresent: true, serverFactPresent: false, phase: nil)
+        }
+        if let token, !AuthRequestBuilder.isValidToken(token) { throw PWaveRefusal.invalidRequest }
+        switch try await send(try request(), scope: scope, currentScope: currentScope) {
+        case .discarded:
+            return PWavePresentation(clientCapabilityPresent: true, serverFactPresent: false, phase: nil)
+        case .failed:
+            return PWavePresentation(clientCapabilityPresent: true, serverFactPresent: true,
+                                    phase: .error(PWaveErrorFact(httpStatus: nil, businessCode: nil, message: nil, runErrorToken: nil)))
+        case .received(let data, let status):
+            return decode(data, status)
         }
     }
 
@@ -238,5 +379,75 @@ public struct PWaveReader {
 
     private static func acceptable(_ value: String) -> Bool {
         !value.isEmpty && value.utf8.count <= 256 && value.unicodeScalars.allSatisfy { $0.value >= 32 && $0.value != 127 }
+    }
+
+    private func url(_ path: String, query: [URLQueryItem] = []) throws -> URL {
+        let built = path.split(separator: "/").reduce(configuration.baseURL) { partial, part in
+            partial.appendingPathComponent(String(part))
+        }
+        guard !query.isEmpty else { return built }
+        var parts = URLComponents(url: built, resolvingAgainstBaseURL: false)
+        parts?.queryItems = query
+        guard let url = parts?.url else { throw PWaveRefusal.invalidRequest }
+        return url
+    }
+
+    private func catalogRequest(_ path: PWaveCatalogPath, fields: [String: String], token: String?) throws -> URLRequest {
+        guard fields.keys.allSatisfy({ PWaveThemeCollection.fields.contains($0) }) else { throw PWaveRefusal.invalidRequest }
+        guard fields.values.allSatisfy({ Self.acceptable($0) }) else { throw PWaveRefusal.invalidRequest }
+        switch path {
+        case .info: if fields["id"] == nil { throw PWaveRefusal.invalidRequest }
+        case .ids: if fields["ids"] == nil { throw PWaveRefusal.invalidRequest }
+        case .cityList, .list, .map, .filters: break
+        }
+        var request = URLRequest(url: try url(path.rawValue))
+        request.httpMethod = "POST"
+        request.cachePolicy = .reloadIgnoringLocalCacheData
+        request.timeoutInterval = 20
+        request.httpShouldHandleCookies = false
+        if let token {
+            guard AuthRequestBuilder.isValidToken(token) else { throw PWaveRefusal.invalidRequest }
+            request.setValue(token, forHTTPHeaderField: "Authorization")
+        }
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue("application/x-www-form-urlencoded; charset=utf-8", forHTTPHeaderField: "Content-Type")
+        let body = try fields.keys.sorted().map { key -> String in
+            try Self.formEscape(key) + "=" + Self.formEscape(fields[key] ?? "")
+        }.joined(separator: "&")
+        request.httpBody = Data(body.utf8)
+        return request
+    }
+
+    private func productList(city: String?, kind: String?, token: String) throws -> URLRequest {
+        if let city { guard Self.acceptable(city) else { throw PWaveRefusal.invalidRequest } }
+        if let kind { guard Self.acceptable(kind) else { throw PWaveRefusal.invalidRequest } }
+        var query = [URLQueryItem(name: "limit", value: String(PWaveCityPass.listLimit))]
+        if let city { query.append(URLQueryItem(name: "city", value: city)) }
+        if let kind { query.append(URLQueryItem(name: "kind", value: kind)) }
+        return try makeGET(url("api/marketing/product/list", query: query), token: token)
+    }
+
+    private func historyRequest(topicID: String, beforeSessionID: String?, limit: Int?, token: String) throws -> URLRequest {
+        var query = [URLQueryItem(name: "topicId", value: topicID)]
+        if let beforeSessionID { query.append(URLQueryItem(name: "beforeSessionId", value: beforeSessionID)) }
+        if let limit { query.append(URLQueryItem(name: "limit", value: String(limit))) }
+        return try makeGET(url("api/play/theme/history", query: query), token: token)
+    }
+
+    private func questRequest(scopeID: String, limit: Int?, token: String) throws -> URLRequest {
+        var query = [
+            URLQueryItem(name: "scope", value: "quest"),
+            URLQueryItem(name: "period", value: "all"),
+            URLQueryItem(name: "scopeId", value: scopeID)
+        ]
+        if let limit { query.append(URLQueryItem(name: "limit", value: String(limit))) }
+        return try makeGET(url("api/rank/list", query: query), token: token)
+    }
+
+    private static func formEscape(_ raw: String) throws -> String {
+        var allowed = CharacterSet.alphanumerics
+        allowed.insert(charactersIn: "-._~")
+        guard let encoded = raw.addingPercentEncoding(withAllowedCharacters: allowed) else { throw PWaveRefusal.invalidRequest }
+        return encoded
     }
 }

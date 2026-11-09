@@ -54,5 +54,15 @@ No App view, DesignSystem file, Theme file, or `RegionalLaunchConfiguration.comp
 ### Shared
 
 - Client capability key strings for P7, P1, and P5 are not in the zip. The grant is an explicit caller set and defaults to empty, so the shipped app shows nothing until a caller passes it. P4 additionally requires the server’s `requiredCapabilities` strings to be present and supported.
-- P2, P3, P6, P8, and P9 are outside this slice. P9 member rank is still unimplemented in the zip.
+- P2, P3, P6, P8, and P9 are the later slice below. P9 member rank stays hidden until the server sends the rank fields; the zip still says that rank is not implemented.
 - No production base URL is checked in. Pointing this reader at a live host is refused.
+
+## Later slice (P2, P3, P6, P8, P9)
+
+Same rules as the first slice. A caller grant only allows the read to be sent. The feature stays hidden until `requiredCapabilities` is a non-empty list this build supports. A missing key, null, or an empty list is not an empty success. `UNKNOWN`, null, a missing number, and a numeric string stay unknown and display as an em dash. A literal JSON 0 stays 0. Writes that would issue a link, remind, quote, order, pay, activate, claim, or publish are refused and send nothing.
+
+- P2 reads `GET /api/marketing/affiliate/summary?limit=20`. Credential bodies are not stored. `held.amountFen` null is not a balance. `payout.available` must be JSON true, and false does not open withdrawal. `amountUnavailableReason=MULTIPLE_CURRENCIES` does not become one total.
+- P3 posts ordinary form fields to the six public-catalog paths. It does not send a JSON body, pad sample chapters, turn a null group or school flag into “不接待”, or report an arrival reminder. `priceState=UNKNOWN` does not fall back to another price.
+- P6 reads the product list, one product, and orders. Purchase stays hidden: this client does not quote or decide sale from the tier. Catalog price is not the deal price. A fixed term is not described as renewing, and no trial is added. Order rows stay the frozen snapshot.
+- P8 reads the memory and theme-history session ids. Moment bodies are not copied. Other private photos stay hidden when the consent fact is missing or is `NO_PRIVATE_PHOTO_SHARE_CONSENT_FACT`.
+- P9 quest rank is shown only for `scope=quest`, `period=all`, and `scoreBasis=COMPLETED_NODES`. Between-teams rank needs `orient.team.board.enabled` true and is not a member rank. Member rank needs that switch, `memberRankBasis=COMPLETED_TASK_COUNT`, and each member’s `doneTaskCount`, `rank`, `ranked`, and `mine`. `doneTaskIds` are not a rank.
