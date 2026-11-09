@@ -4,6 +4,8 @@ import SwiftUI
 /// the "正在同步最新内容…" refresh line, and the empty-state "刷新试试" action.
 struct DiscoveryTopicCoverThumb: View {
     let urlString: String?
+    /// Cover fallback includes caption2 text, so the square grows with that style.
+    @ScaledMetric(relativeTo: .caption2) private var side: CGFloat = 72
     var body: some View {
         Group {
             if let url = TemplateBrowserPort.coverURL(urlString) {
@@ -18,7 +20,7 @@ struct DiscoveryTopicCoverThumb: View {
                 DiscoveryCoverUnavailable()
             }
         }
-        .frame(width: 72, height: 72)
+        .frame(width: side, height: side)
         .clipShape(RoundedRectangle(cornerRadius: 10))
         .accessibilityHidden(false)
     }
