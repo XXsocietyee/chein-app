@@ -16,12 +16,23 @@ struct WelcomeView: View {
         }
     }
     @State private var destination: Destination?
+    @Environment(\.locale) private var locale
+    private var isChinese: Bool { locale.identifier.hasPrefix("zh") }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                    WelcomeHero().padding(.top, CYSpacing.lg)
+                    // Wordmark carries the brand now (no nav title): one quiet line above the hero.
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                        Text(verbatim: isChinese ? "城瘾" : "chein")
+                            .font(.system(.title2, design: .rounded).weight(.heavy))
+                        if !isChinese { Text(verbatim: "城瘾").font(.system(.subheadline, design: .rounded).weight(.semibold)).foregroundStyle(CYColor.textSecondary) }
+                    }
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isHeader)
+                    WelcomeHero()
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Text("welcome.title")
                             .font(.system(.largeTitle, design: .rounded).weight(.heavy))
@@ -66,7 +77,6 @@ struct WelcomeView: View {
                 .frame(maxWidth: .infinity)
                 .background(CYColor.bgPage)
             }
-            .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 // Language, saved drafts and settings live in one quiet menu.

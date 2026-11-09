@@ -549,20 +549,13 @@ struct ProfileEditView: View {
             } else {
                 if model.coordinator.snapshot != nil {
                     // Mini-program pages/gerenziliao order: avatar, nickname, phone, city signature, works, contact QR, route preferences.
-                    Section {
-                        CYHeroHeader("profile.edit.title")
-                            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                            .listRowBackground(Color.clear)
-                    }
                     ProfileCurrentAvatarView(model: model, reader: savedMedia?.avatar)
                     ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)
+                    // Mini-program order: 昵称 → 手机号 → 城市签名, one elevated group.
                     Section {
-                        textFieldRow(.name, value: model.draft.name)
-                    } header: { Text("profile.edit.details") }
-                        .disabled(!model.canBeginTextEdit)
-                    if let phone = model.coordinator.phoneDisplay {
-                        Section {
+                        textFieldRow(.name, value: model.draft.name).disabled(!model.canBeginTextEdit)
+                        if let phone = model.coordinator.phoneDisplay {
                             LabeledContent("profile.phone.title") {
                                 switch phone {
                                 case .masked(let value):
@@ -572,12 +565,8 @@ struct ProfileEditView: View {
                                 }
                             }.privacySensitive().accessibilityIdentifier("profile.phone.value")
                         }
-                    }
-                    // Mini-program order: 昵称 → 手机号 → 城市签名 → 探索作品.
-                    Section {
-                        textFieldRow(.introduction, value: model.draft.introduction)
-                    }
-                    .disabled(!model.canBeginTextEdit)
+                        textFieldRow(.introduction, value: model.draft.introduction).disabled(!model.canBeginTextEdit)
+                    } header: { Text("profile.edit.details") }
                     Section("profile.case.title") {
                         textFieldRow(.caseIntroduction, value: model.draft.caseIntroduction ?? model.coordinator.snapshot?.caseIntroduction ?? "")
                             .disabled(!model.canBeginTextEdit)
@@ -617,12 +606,16 @@ struct ProfileEditView: View {
         editorForm
         .cyGroupedSurface()
         .themeDomain(.player)
-        .questifyBottomAction {
+        .safeAreaInset(edge: .bottom, spacing: 0) {
             if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
-                            CYPillButton("profile.edit.review") { Task { await model.prepare() } }
-                                .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
-                                          || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
-                                .accessibilityIdentifier("profile.edit.review")
+                CYPillButton("profile.edit.review") { Task { await model.prepare() } }
+                    .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
+                              || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
+                    .accessibilityIdentifier("profile.edit.review")
+                    .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
+                    .frame(maxWidth: .infinity)
+                    .background(.bar)
+                    .sensoryFeedback(.selection, trigger: model.confirmation?.id)
             }
         }
         .background(ProfileAvatarOwnerAnchor(model: model).frame(width: 0, height: 0))

@@ -31,7 +31,7 @@ import SwiftUI
             .padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm).padding(.bottom, CYSpacing.xxl)
         }
         .background(palette.bgPage)
-        .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar }
+        .safeAreaInset(edge: .bottom, spacing: 0) { bottomBar.dynamicTypeSize(...DynamicTypeSize.accessibility1) }
         .navigationTitle(Text("detail.title", tableName: table))
         .navigationBarTitleDisplayMode(.inline)
     }
@@ -41,7 +41,7 @@ import SwiftUI
             .overlay { E1CoverArt(seed: name, symbol: "shippingbox") }
             .overlay(alignment: .bottomLeading) {
                 Text(verbatim: name).font(.system(.largeTitle).weight(.bold)).foregroundStyle(.white)
-                    .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                    .lineLimit(4).minimumScaleFactor(0.6).accessibilityAddTraits(.isHeader)
                     .padding(CYSpacing.lg).padding(.top, 64).frame(maxWidth: .infinity, alignment: .leading)
                     .background(LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom))
             }
@@ -57,7 +57,10 @@ import SwiftUI
                     Text(verbatim: priceText).font(CYTypography.data2XL).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
                 }
                 if let days = content.extras?.validityDays {
-                    CYStatusChip(verbatim: copy.t("购买后 \(days) 天内有效", "Valid for \(days) days after purchase"), tone: .info, systemImage: "calendar.badge.clock")
+                    Label { Text(verbatim: copy.t("购买后 \(days) 天内有效", "Valid for \(days) days after purchase")) } icon: { Image(systemName: "calendar.badge.clock") }
+                        .font(CYTypography.caption).foregroundStyle(palette.info)
+                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
+                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.infoSoft))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

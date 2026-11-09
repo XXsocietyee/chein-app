@@ -170,6 +170,7 @@ struct RoamAnniversaryReadIntent {
     var body: some View {
         let retry = readIntent(state.retryIntent), more = readIntent(.more), refresh = readIntent(.refresh)
         List {
+            CYCoverHeaderSection("roam.tools.anniversary", symbol: "calendar", seed: "anniv")
             Section {
                 HStack(alignment: .firstTextBaseline) {
                     Text(verbatim: dateLabel).font(.largeTitle.bold()).monospacedDigit()
@@ -592,6 +593,7 @@ struct RoamAnniversaryReadIntent {
     var body: some View {
         List {
             if lifetime.canPresent(reader) {
+            CYCoverHeaderSection("roam.tools.recap", symbol: "chart.bar.fill", seed: "recap")
             Section {
                 HStack {
                     Button { lifetime.run(reader) { await $0.shiftMonth(by: -1) } } label: { Image(systemName: "chevron.left") }

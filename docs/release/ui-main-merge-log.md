@@ -31,3 +31,6 @@ Registry: union (e1, e2, e3 cases); project regenerated each time. design-batch 
 
 ## Cycle 2 (2026-11-09 ~12:15)
 Merged rc (no new), ui/e1, ui/e3, ui/e4 (ProfileParticipantsView: design side), ui/e5 ec87e4c6a (CreatorContentViews, FreeExploreBundleLaunchView: design side). Title sweep: `View.cyHeroScreen()` applied inside CYHeroHeader (inline + empty nav title); duplicate navigationTitle removed in 7 hero screens. design-batch int BUILD_EXIT=0, 14 shots.
+
+## Cycle 3 (2026-11-09 ~14:15) — compiled, BUILD_EXIT=0, 6 fixtures
+Merged: rc abc2fec0f, ui/e1, ui/e2, ui/e3, ui/e4, DES-e5 (b55631335 and later; note e5 lives on branch liboyang42-cpu/DES-e5, there is no ui/e5). Kit dedupes: CYCoverArt (CYSignature canonical, + cornerRadius; e3 variant -> CYIMCoverArt; e2 duplicate struct removed, CYProgressRing/other e2 kit types kept), e5 ring -> CYCountRing. Design side won on view conflicts (FreeExploreBundleLaunchView, ObjectBadgeViews, TicketWalletView, IMInboxViews, MessagingHistoryView, ObjectBadgeWallParityViews).

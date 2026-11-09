@@ -8,6 +8,7 @@ import SwiftUI
     @State private var inviteCode = ""
     var body: some View {
         List {
+            CYCoverHeaderSection("城市队伍参与", symbol: "person.3.fill", seed: "participation")
             if model.unavailable { Text("参与信息暂不可用，请保留原请求记录。") }
             if let state = model.state {
                 Text(verbatim: state.binding.title)

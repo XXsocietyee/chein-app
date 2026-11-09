@@ -8,61 +8,98 @@ import SwiftUI
         Group {
             JourneyRoleViewSection(model: model.roleContent)
             if model.visible, let problem = model.problem {
-                Section("journey.check.title") {
-                    Text(verbatim: problem.skill).font(.headline).accessibilityIdentifier("journey.check.stage")
-                    Text(verbatim: problem.tier)
-                    if problem.advantage { Label("journey.advantage", systemImage: "plus.circle") }
-                    if problem.disadvantage { Label("journey.disadvantage", systemImage: "minus.circle") }
-                    DiceD20CanvasView(
-                        values: model.receipt?.dice ?? [],
-                        kept: model.receipt?.kept,
-                        rollMode: problem.advantage ? "advantage" : (problem.disadvantage ? "disadvantage" : "normal"),
-                        rolling: model.acting && model.receipt == nil
-                    )
-                    modifiers(problem.mods)
-                    if let receipt = model.receipt {
-                        if let success = receipt.success { Text(success ? "journey.success" : "journey.failure").font(.headline) }
-                        LabeledContent("journey.dice") { Text(verbatim: receipt.dice.map(String.init).joined(separator: ", ")) }
-                        number("journey.kept", receipt.kept); number("journey.total", receipt.total); number("journey.dc", receipt.dc)
-                        if !receipt.nat.isEmpty { Text(verbatim: receipt.nat) }
-                        number("journey.hp", receipt.hp); number("journey.luck", receipt.luck)
-                        modifiers(receipt.mods)
-                        if receipt.exhausted { Text("journey.exhausted") }
-                        if receipt.settled {
-                            if !receipt.text.isEmpty { Text(verbatim: receipt.text) }
-                            if !receipt.failCostLabel.isEmpty { LabeledContent("journey.cost") { Text(verbatim: receipt.failCostLabel) } }
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        HStack(spacing: CYSpacing.sm) {
+                            Image(systemName: "dice.fill").font(.title3).foregroundStyle(CYColor.textSecondary)
+                            Text("journey.check.title").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        }.accessibilityHidden(true)
+                        Text(verbatim: problem.skill).font(CYTypography.display).foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("journey.check.stage")
+                        HStack(spacing: CYSpacing.sm) {
+                            CYStatusChip(verbatim: problem.tier)
+                            if problem.advantage { CYStatusChip("journey.advantage", tone: .success, systemImage: "plus.circle") }
+                            if problem.disadvantage { CYStatusChip("journey.disadvantage", tone: .warning, systemImage: "minus.circle") }
                         }
+                        DiceD20CanvasView(
+                            values: model.receipt?.dice ?? [],
+                            kept: model.receipt?.kept,
+                            rollMode: problem.advantage ? "advantage" : (problem.disadvantage ? "disadvantage" : "normal"),
+                            rolling: model.acting && model.receipt == nil
+                        ).frame(maxWidth: .infinity)
+                        modifiers(problem.mods)
+                        if let receipt = model.receipt {
+                            resultCard(receipt)
+                            modifiers(receipt.mods)
+                            if receipt.exhausted { Text("journey.exhausted").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                            if receipt.settled {
+                                if !receipt.text.isEmpty { Text(verbatim: receipt.text).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                                if !receipt.failCostLabel.isEmpty { LabeledContent("journey.cost") { Text(verbatim: receipt.failCostLabel) } }
+                            }
+                        }
+                        if let issue = model.issue { Text(verbatim: issue).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("journey.check.error") }
+                        if model.unknown {
+                            Text("journey.unknown")
+                            CYPillButton("journey.recover") { try? model.prepare(.settle, recoverUnknown: true) }
+                                .disabled(!model.canRecover).accessibilityIdentifier("journey.check.recover")
+                        } else if model.receipt == nil { action(.roll) }
+                        else if model.receipt?.settled == false {
+                            if model.receipt?.canReroll == true { action(.reroll, style: .secondary) }
+                            action(.settle)
+                        }
+                        if model.acting { ProgressView("journey.working") }
+                        if !model.available { Text("journey.disabled") }
+                        Button("journey.close") { model.close() }.font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                            .frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("journey.check.close")
                     }
-                    if let issue = model.issue { Text(verbatim: issue).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("journey.check.error") }
-                    if model.unknown {
-                        Text("journey.unknown")
-                        Button("journey.recover") { try? model.prepare(.settle, recoverUnknown: true) }
-                            .disabled(!model.canRecover).accessibilityIdentifier("journey.check.recover")
-                    } else if model.receipt == nil { action(.roll) }
-                    else if model.receipt?.settled == false {
-                        if model.receipt?.canReroll == true { action(.reroll) }
-                        action(.settle)
-                    }
-                    if model.acting { ProgressView("journey.working") }
-                    if !model.available { Text("journey.disabled") }
-                    Button("journey.close") { model.close() }.accessibilityIdentifier("journey.check.close")
+                    .padding(CYSpacing.xl)
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
+                    .sensoryFeedback(.impact(weight: .heavy), trigger: model.receipt?.dice ?? [])
+                    .sensoryFeedback(trigger: model.receipt?.success) { _, new in new == nil ? nil : (new == true ? SensoryFeedback.success : SensoryFeedback.warning) }
+                    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16)).listRowBackground(Color.clear)
                 }
             } else if model.problem != nil && !model.nodeDone {
                 Button("journey.check.title") { model.reopen() }.accessibilityIdentifier("journey.check.reopen")
             }
         }
     }
-    private func action(_ action: JourneyCheckAction) -> some View {
-        Button(LocalizedStringKey("journey." + action.rawValue)) { try? model.prepare(action) }
+    /// Big total against the pass line, with icon + words so colour is never the only signal.
+    private func resultCard(_ receipt: JourneyCheckReceipt) -> some View {
+        let tone = receipt.success == true ? CYColor.successText : receipt.success == false ? CYColor.warningText : CYColor.textSecondary
+        return VStack(spacing: CYSpacing.xs) {
+            if let success = receipt.success {
+                Label(success ? "journey.success" : "journey.failure", systemImage: success ? "checkmark.circle.fill" : "xmark.circle.fill")
+                    .font(CYTypography.cardTitle).foregroundStyle(tone)
+            }
+            Text(verbatim: receipt.total.map(String.init) ?? "—").font(.system(size: 56, weight: .bold, design: .rounded)).monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary)
+            HStack(spacing: CYSpacing.md) {
+                number("journey.kept", receipt.kept); number("journey.dc", receipt.dc)
+            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            if !receipt.nat.isEmpty { Text(verbatim: receipt.nat).font(CYTypography.meta) }
+            HStack(spacing: CYSpacing.md) { number("journey.hp", receipt.hp); number("journey.luck", receipt.luck) }
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+        }.frame(maxWidth: .infinity).padding(CYSpacing.lg)
+            .background(CYColor.bgPage, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(tone.opacity(0.5), lineWidth: 1))
+            .accessibilityElement(children: .contain)
+    }
+    private func action(_ action: JourneyCheckAction, style: CYPillStyle = .primary) -> some View {
+        CYPillButton(LocalizedStringKey("journey." + action.rawValue), style: style) { try? model.prepare(action) }
             .disabled(model.acting || !model.available).accessibilityIdentifier("journey.check." + action.rawValue)
     }
     @ViewBuilder private func number(_ key: LocalizedStringKey, _ value: Int?) -> some View {
-        if let value { LabeledContent(key) { Text(verbatim: String(value)).monospacedDigit() } }
+        if let value { HStack(spacing: 4) { Text(key); Text(verbatim: String(value)).monospacedDigit().fontWeight(.semibold) } }
     }
     private func modifiers(_ mods: [JourneyCheckMod]) -> some View {
         ForEach(Array(mods.enumerated()), id: \.offset) { _, mod in
-            HStack { Text(verbatim: mod.label); Spacer(); if let value = mod.value { Text(verbatim: String(value)) }; Text(mod.active ? "journey.active" : "journey.inactive") }
-                .accessibilityElement(children: .combine)
+            HStack(spacing: CYSpacing.sm) {
+                Image(systemName: mod.active ? "checkmark.circle.fill" : "circle").foregroundStyle(mod.active ? CYColor.successText : CYColor.textTertiary)
+                Text(verbatim: mod.label).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                Spacer()
+                if let value = mod.value { Text(verbatim: value >= 0 ? "+\(value)" : "\(value)").font(CYTypography.label).monospacedDigit() }
+                Text(mod.active ? "journey.active" : "journey.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }.accessibilityElement(children: .combine)
         }
     }
 }

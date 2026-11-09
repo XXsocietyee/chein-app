@@ -134,6 +134,7 @@ import SwiftUI
             Section {
                 CYHeroBanner(items: model.banners.map { banner in
                     CYHeroBannerItem(id: banner.id, imageURL: QuestifyCardArtwork.safeURL(banner.picUrl), accessibilityLabel: "homeFeed.openFeatured",
+                                     title: banner.contents.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : Text(verbatim: $0) },
                                      action: banner.destination.map { destination in {
                         guard model.canOpen(reader) else { return }
                         switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }

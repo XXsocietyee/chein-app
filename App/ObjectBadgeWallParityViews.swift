@@ -12,11 +12,14 @@ struct ObjectBadgeWallParityHeader: View {
         let summary = ObjectBadgeWallSummary(wall: wall)
         Section {
             if !wall.isPartial {
-                Text("badgeWall.summary \(summary.unlocked) \(summary.total) \(summary.locked)")
-                    .font(Theme.Font.sectionTitle).monospacedDigit()
-                    .foregroundStyle(Theme.Color.textPrimary(in: domain))
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("objects.badge.summary")
+                HStack(spacing: CYSpacing.lg) {
+                    CYCountRing(value: summary.unlocked, total: summary.total)
+                    Text("badgeWall.summary \(summary.unlocked) \(summary.total) \(summary.locked)")
+                        .font(Theme.Font.sectionTitle).monospacedDigit()
+                        .foregroundStyle(Theme.Color.textPrimary(in: domain))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("objects.badge.summary")
+                }
             }
             if let focus = ObjectBadgeWallFocus.resolve(code: focusBadgeCode, wall: wall) {
                 Label { focusText(focus) } icon: { Image(systemName: "scope").accessibilityHidden(true) }

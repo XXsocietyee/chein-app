@@ -281,11 +281,17 @@ import SwiftUI
         // Mini-program `pages/search2/result`: result tabs first. Segmented when the labels fit, a menu otherwise,
         // so counts never clip on small phones or at large text sizes.
         Section {
-            ViewThatFits(in: .horizontal) {
-                kindPicker(value).pickerStyle(.segmented).fixedSize()
-                kindPicker(value).pickerStyle(.menu)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: CYSpacing.sm) {
+                    kindPill(nil, title: Text("searchMap.all") + Text(verbatim: " \(value.rows.count)"))
+                    ForEach(searchKinds, id: \.self) { kind in
+                        kindPill(kind, title: Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
+                    }
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
+            .accessibilityIdentifier("searchMap.resultKinds")
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
@@ -327,6 +333,17 @@ import SwiftUI
                     .questifyCardListRow()
             }
         }
+    }
+    private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
+        let selected = selectedKind == kind
+        return Button { withAnimation(.snappy) { selectedKind = kind } } label: {
+            title.font(CYTypography.bodyMedium).lineLimit(1)
+                .foregroundStyle(selected ? CYColor.bgPage : CYColor.textPrimary)
+                .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
+                .background(Capsule(style: .continuous).fill(selected ? CYColor.textPrimary : CYColor.bgElevated))
+        }
+        .buttonStyle(.plain).sensoryFeedback(.selection, trigger: selectedKind)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func kindPicker(_ value: GlobalSearchResults) -> some View {
         Picker("searchMap.resultKinds", selection: $selectedKind) {

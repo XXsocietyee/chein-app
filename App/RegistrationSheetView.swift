@@ -323,21 +323,51 @@ struct RegistrationSheetView: View {
         if case .pending = flow.durableCreation { return false }
         return true
     }
+    /// One-line, human reason why the primary button cannot proceed yet (nil when it can).
+    private func blockReason(_ copy: CoreLoopCopy) -> String? {
+        guard let block = flow.confirmationBlock else { return nil }
+        switch block {
+        case .missingConsent: return copy.t("请先勾选上方的确认项", "Tick the confirmation above to continue")
+        case .invalidForm: return copy.t("请先补全参与人信息", "Complete the participant details to continue")
+        case .soldOut: return copy.t("该票种已售罄", "This ticket is sold out")
+        case .signupClosed: return copy.t("报名已截止", "Registration is closed")
+        case .quoteUnavailable: return copy.t("正在核对价格…", "Checking the price…")
+        case .intentAlreadySubmitted: return copy.t("已提交报名", "Already submitted")
+        default: return copy.t("暂时无法继续", "Not available right now")
+        }
+    }
+    @State private var blockedTaps = 0
     private var checkoutBar: some View {
         let copy = CoreLoopCopy(locale: locale)
-        return HStack(spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: 0) {
-                Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                    .lineLimit(1).minimumScaleFactor(0.6)
+        return VStack(spacing: CYSpacing.sm) {
+            HStack(spacing: CYSpacing.md) {
+                VStack(alignment: .leading, spacing: 0) {
+                    Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                        .lineLimit(1).minimumScaleFactor(0.6)
+                }
+                TimelineView(.periodic(from: .now, by: 1)) { _ in
+                    let blocked = flow.confirmationBlock != nil
+                    Button {
+                        focusedField = nil
+                        if blocked { blockedTaps += 1; return }
+                        if flow.prepareConfirmation() { showingConfirmation = true }
+                    } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
+                    .buttonStyle(.cyPrimary)
+                    // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
+                    .sensoryFeedback(.warning, trigger: blockedTaps)
+                    .accessibilityAddTraits(blocked ? .isButton : [])
+                    .accessibilityHint(blockReason(copy) ?? "")
+                    .accessibilityIdentifier("registration.form.review")
+                }
             }
             TimelineView(.periodic(from: .now, by: 1)) { _ in
-                Button {
-                    focusedField = nil
-                    if flow.prepareConfirmation() { showingConfirmation = true }
-                } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.cyPrimary).disabled(flow.confirmationBlock != nil)
-                .accessibilityIdentifier("registration.form.review")
+                if let reason = blockReason(copy) {
+                    Label { Text(verbatim: reason) } icon: { Image(systemName: "info.circle") }
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityIdentifier("registration.form.blockReason")
+                }
             }
         }
         .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
