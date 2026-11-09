@@ -121,6 +121,24 @@ final class ClubContractTests: XCTestCase {
             XCTAssertThrowsError(try decode(ClubMember.self, "{\"memberId\":9,\(fields)}"), fields)
         }
     }
+    func testPendingJoinRequestCountKeepsLiteralZeroAndUnknown() throws {
+        XCTAssertNil(try decode(ClubRecord.self, #"{"id":7}"#).pendingJoinRequestCount)
+        XCTAssertEqual(try decode(ClubRecord.self, #"{"id":7,"pendingJoinRequestCount":0}"#).pendingJoinRequestCount, 0)
+        XCTAssertEqual(try decode(ClubRecord.self, #"{"id":7,"pendingJoinRequestCount":0.0}"#).pendingJoinRequestCount, 0)
+        XCTAssertEqual(try decode(ClubRecord.self, #"{"id":7,"pendingJoinRequestCount":4}"#).pendingJoinRequestCount, 4)
+        for json in [
+            #"{"id":7,"pendingJoinRequestCount":null}"#,
+            #"{"id":7,"pendingJoinRequestCount":"0"}"#,
+            #"{"id":7,"pendingJoinRequestCount":"UNKNOWN"}"#,
+            #"{"id":7,"pendingJoinRequestCount":true}"#,
+            #"{"id":7,"pendingJoinRequestCount":1.5}"#,
+            #"{"id":7,"pendingJoinRequestCount":{}}"#,
+        ] {
+            let club = try decode(ClubRecord.self, json)
+            XCTAssertEqual(club.id, 7)
+            XCTAssertNil(club.pendingJoinRequestCount, json)
+        }
+    }
     func testEmptyMembersDoesNotContradictReportedCount() throws {
         let populated = try decode(ClubRecord.self, #"{"id":7,"memberCount":128}"#)
         let empty = try decode(ClubRecord.self, #"{"id":7,"memberCount":0}"#)
