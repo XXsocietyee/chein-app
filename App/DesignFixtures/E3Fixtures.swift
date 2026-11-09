@@ -400,6 +400,7 @@ struct E3PeopleFixture: View {
 #endif
 
 
+#if DEBUG
 // MARK: - Fifth pass: hosts that reach the REAL production views with stub data (DEBUG only)
 
 @MainActor private final class E3FriendService: NativeFriendDirectoryServing {
