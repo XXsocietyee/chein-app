@@ -162,10 +162,15 @@ public struct RoamPlayer: Decodable, Equatable, Identifiable {
     public let id: Int
     public let nickname: String
     public let approximateCoordinate: RoamCoordinate?
-    public let explorePct: Int
-    public let shops: Int
-    public let elapsedSec: Int
+    /// Nil when the server omitted the field. A present value is clamped; it is never invented as 0.
+    public let explorePct: Int?
+    public let shops: Int?
+    public let elapsedSec: Int?
     public var isDisplayable: Bool { id > 0 && approximateCoordinate != nil }
+    /// Display strings. Unknown stays "—". A literal zero stays "0" or "0%".
+    public static func exploreText(_ value: Int?) -> String { value.map { "\($0)%" } ?? "—" }
+    public static func shopsText(_ value: Int?) -> String { value.map(String.init) ?? "—" }
+    public static func walkingMinutesText(_ seconds: Int?) -> String { seconds.map { String($0 / 60) } ?? "—" }
     private static func reducePrecision(_ value: Double) -> Double {
         let scaled = value * 1000
         let nearest = scaled.rounded()
@@ -182,9 +187,9 @@ public struct RoamPlayer: Decodable, Equatable, Identifiable {
             approximateCoordinate = RoamCoordinate(latitude: Self.reducePrecision(coordinate.latitude),
                                                    longitude: Self.reducePrecision(coordinate.longitude))
         } else { approximateCoordinate = nil }
-        explorePct = min(99, max(0, try c.decodeIfPresent(Int.self, forKey: .explorePct) ?? 0))
-        shops = max(0, try c.decodeIfPresent(Int.self, forKey: .shops) ?? 0)
-        elapsedSec = max(0, try c.decodeIfPresent(Int.self, forKey: .elapsedSec) ?? 0)
+        explorePct = try c.decodeIfPresent(Int.self, forKey: .explorePct).map { min(99, max(0, $0)) }
+        shops = try c.decodeIfPresent(Int.self, forKey: .shops).map { max(0, $0) }
+        elapsedSec = try c.decodeIfPresent(Int.self, forKey: .elapsedSec).map { max(0, $0) }
     }
 }
 

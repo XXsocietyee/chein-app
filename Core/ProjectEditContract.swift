@@ -188,7 +188,9 @@ public enum ProjectEditContract {
             t.id = "topic-\(expectedTopicID)-ticket-index-\(index)"
             t.name = s(source, "name")
             if let rawPrice = source["price"], case .number(let price) = rawPrice { t.price = NSDecimalNumber(decimal: price).stringValue }
-            t.totalStock = String(source["totalInventory"]?.integer ?? 100); t.teamSize = String(source["teamSize"]?.integer ?? 0)
+            t.totalStock = String(source["totalInventory"]?.integer ?? 100)
+            // A missing team size is unknown. The editor default "0" must not replace it.
+            t.teamSize = source["teamSize"]?.integer.map(String.init) ?? ""
             t.startTime = s(source, "startTime"); t.endTime = s(source, "endTime"); t.meetingPoint = s(source, "meetingPoint")
             t.gatherLng = ProjectTicketMeetingPoint.coordinateText("", original: source["gatherLng"])
             t.gatherLat = ProjectTicketMeetingPoint.coordinateText("", original: source["gatherLat"]); t.description = s(source, "description")

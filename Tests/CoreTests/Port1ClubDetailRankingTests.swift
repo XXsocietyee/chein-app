@@ -28,7 +28,15 @@ final class Port1ClubDetailRankingTests: XCTestCase {
         XCTAssertEqual(P.durationText(minutes: 65), "1小时5分")
         XCTAssertEqual(P.durationText(minutes: 45), "45分")
         XCTAssertEqual(P.durationText(minutes: 0), "—"); XCTAssertEqual(P.durationText(minutes: nil), "—")
-        XCTAssertEqual(P.oneDecimal(15), "15.0"); XCTAssertEqual(P.oneDecimal(nil), "0.0")
+        XCTAssertEqual(P.oneDecimal(15), "15.0"); XCTAssertEqual(P.oneDecimal(nil), "—")
+    }
+    func testOneDecimalKeepsZeroAndDashesUnknown() {
+        XCTAssertEqual(P.oneDecimal(0), "0.0")
+        XCTAssertEqual(P.oneDecimal(-1.24), "-1.2")
+        XCTAssertEqual(P.oneDecimal(nil), "—")
+        XCTAssertEqual(P.oneDecimal(.nan), "—")
+        XCTAssertEqual(P.oneDecimal(.infinity), "—")
+        XCTAssertFalse(P.oneDecimal(nil).contains("0"))
     }
     func testEmptyKeyAndStrip() {
         XCTAssertEqual(P.emptyKey(sort: "mileage"), "mileage"); XCTAssertEqual(P.emptyKey(sort: "pace"), "composite")
