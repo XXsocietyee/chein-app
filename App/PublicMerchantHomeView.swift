@@ -49,12 +49,19 @@ import SwiftUI
         List {
             if target == nil { issue(.invalid) }
             else if !context.reader.isConfigured { issue(.notConfigured) }
-            else if loading || loadedKey != key { ProgressView("merchant.publicHome.loading").accessibilityIdentifier("merchant.publicHome.loading") }
+            else if loading || loadedKey != key {
+                CYSkeleton()
+                    .accessibilityIdentifier("merchant.publicHome.loading")
+                    .accessibilityLabel(Text("merchant.publicHome.loading"))
+            }
             else if let failure { issue(failure) }
             else if let home { profile(home) }
         }
         .navigationTitle("merchant.publicHome.title")
         .navigationBarTitleDisplayMode(.inline)
+        .cyDomainPageBackground()
+        .themeDomain(.merchant)
+        .tint(CYDomainPalette(.merchant).brand)
         .task(id: key) { await load() }
         .navigationDestination(item: $featuredSelection) { selection in
             if canOpen(selection), let destination = context.featured {
@@ -81,7 +88,8 @@ import SwiftUI
     @ViewBuilder private func issue(_ failure: PublicMerchantHomeFailure) -> some View {
         Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier(failure.localizationKey)
         if failure == .retryable {
-            Button("merchant.publicHome.retry") { Task { await load() } }.accessibilityIdentifier("merchant.publicHome.retry")
+            CYPillButton("merchant.publicHome.retry") { Task { await load() } }
+                .accessibilityIdentifier("merchant.publicHome.retry")
         }
     }
     @ViewBuilder private func profile(_ value: PublicMerchantHome) -> some View {
@@ -89,7 +97,7 @@ import SwiftUI
         Section {
             media(value.coverImage, label: "merchant.publicHome.cover")
             media(value.logo, label: "merchant.publicHome.logo")
-            Text(value.name?.isEmpty == false ? value.name! : String(localized: LocalizedStringResource("merchant.publicHome.merchant", locale: locale))).font(.title2.bold()).accessibilityAddTraits(.isHeader)
+            CYHeroHeader(verbatim: value.name?.isEmpty == false ? value.name! : String(localized: LocalizedStringResource("merchant.publicHome.merchant", locale: locale)))
             PublicMerchantHomeBusinessStatusLabel(state: value.businessState)
             field(value.slogan); field(value.cityRole)
             if let categories = value.sysCategoryList {
@@ -104,13 +112,18 @@ import SwiftUI
                 Button {
                     guard ownerSelection == nil, canOpenOwner(selection) else { return }
                     ownerSelection = selection
-                } label: { Label("social.profile", systemImage: "person.crop.rectangle") }
+                } label: {
+                    CYListRow("social.profile", card: true) { CYRowIcon(systemImage: "person.crop.rectangle") }
+                }
+                .buttonStyle(.plain)
                     .accessibilityIdentifier("merchant.publicHome.ownerProfile")
             }
         }
         featuredCard(value)
         if let review = value.reviewTarget, let destination = context.publicReviews {
-            NavigationLink { destination(review) } label: { Label("merchant.publicHome.reviews", systemImage: "star.bubble") }
+            NavigationLink { destination(review) } label: {
+                CYListRow("merchant.publicHome.reviews", card: true) { CYRowIcon(systemImage: "star.bubble") }
+            }.buttonStyle(.plain)
                 .accessibilityIdentifier("merchant.publicHome.reviews")
         }
         // Original receipts remain reachable even if the current NPC card was removed.
@@ -122,10 +135,12 @@ import SwiftUI
                     guard gameFactsSelection == nil, canOpenGameFacts(selection) else { return }
                     gameFactsSelection = selection
                 } label: {
-                    Label {
-                        Text(verbatim: locale.identifier.hasPrefix("zh") ? "店内内容与原回复" : "Store content and original reply")
-                    } icon: { Image(systemName: "doc.text.magnifyingglass") }
-                }.accessibilityIdentifier("merchant.publicHome.gameFacts")
+                    CYListRow(verbatim: locale.identifier.hasPrefix("zh") ? "店内内容与原回复" : "Store content and original reply", card: true) {
+                        CYRowIcon(systemImage: "doc.text.magnifyingglass")
+                    }
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("merchant.publicHome.gameFacts")
             }
         }
         if value.hasNPCIdentity, let npc = value.npc {
@@ -134,7 +149,11 @@ import SwiftUI
                 field(npc.name); field(npc.greeting)
                 if value.canOfferNPCChat(shopNpcChat: context.shopNpcChat), let raw = value.id,
                    let row = PublicMerchantRowID(raw), let destination = context.npcDestination {
-                    NavigationLink("merchant.publicHome.chat") { destination(row, npc) }.accessibilityIdentifier("merchant.publicHome.chat")
+                    NavigationLink { destination(row, npc) } label: {
+                        CYListRow("merchant.publicHome.chat", card: true) { CYRowIcon(systemImage: "bubble.left") }
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityIdentifier("merchant.publicHome.chat")
                 }
             }
         }
@@ -149,7 +168,9 @@ import SwiftUI
         if !value.tagItems.isEmpty { Section("merchant.publicHome.tags") { Text(value.tagItems.joined(separator: " · ")).fixedSize(horizontal: false, vertical: true) } }
         if value.hasCooperation {
             Section("merchant.publicHome.cooperation") {
-                if let capacity = value.capacity, capacity > 0 { LabeledContent("merchant.publicHome.capacity", value: String(capacity)) }
+                if let capacity = value.capacity, capacity > 0 {
+                    CYListRow("merchant.publicHome.capacity", trailing: .value(String(capacity)), card: true)
+                }
                 labeled(value.availableTime, label: "merchant.publicHome.availableTime")
                 labeled(value.suitActivityTypes, label: "merchant.publicHome.activityTypes")
                 labeled(value.demand, label: "merchant.publicHome.demand")
@@ -164,7 +185,7 @@ import SwiftUI
                    let selection = PublicMerchantFeaturedSelection(home: value, target: target,
                        homeScope: context.reader.scope, destinationScope: destination.scope, snapshotID: snapshotID),
                    canOpen(selection) {
-                    Button(LocalizedStringKey(route == .couponWallet ? "merchant.publicHome.featured.openWallet" : "merchant.publicHome.featured.openActivity")) {
+                    CYPillButton(LocalizedStringKey(route == .couponWallet ? "merchant.publicHome.featured.openWallet" : "merchant.publicHome.featured.openActivity")) {
                         guard canOpen(selection) else { return }
                         featuredSelection = selection
                     }.accessibilityIdentifier("merchant.publicHome.featured.open")
@@ -241,9 +262,15 @@ struct PublicMerchantHomeBusinessStatusLabel: View {
         }
     }
     var body: some View {
-        Label(LocalizedStringKey(localizationKey), systemImage: symbol)
-            .fixedSize(horizontal: false, vertical: true)
+        CYStatusChip(LocalizedStringKey(localizationKey), tone: tone, systemImage: symbol)
             .accessibilityIdentifier("merchant.publicHome.businessStatus")
+    }
+    private var tone: CYStatusTone {
+        switch state {
+        case .open: return .success
+        case .closed: return .neutral
+        case .unknown: return .warning
+        }
     }
 }
 

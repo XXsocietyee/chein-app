@@ -46,19 +46,25 @@ import SwiftUI
     let reader: any SocialAccountReading
     var body: some View {
         List {
-            if id <= 0 { Text("social.incompleteLink") }
+            if id <= 0 { CYEmptyState(systemImage: "link", "social.incompleteLink") }
             else {
                 SocialReadScreen(reader: reader, requestKey: "information-\(id)", load: { try await reader.information(id: id) }) { row in
-                    if row.isRemoved { Text("social.guide.removed") }
+                    if row.isRemoved { CYEmptyState(systemImage: "doc", "social.guide.removed") }
                     else {
-                        Text(verbatim: row.title).font(.title2.bold())
-                        if let created = SocialText.nonempty(row.createTime) { Text(verbatim: created).font(.caption).foregroundStyle(.secondary).accessibilityIdentifier("social.information.createTime") }
-                        if let summary = row.summary { Text(verbatim: summary).foregroundStyle(.secondary) }
+                        CYHeroHeader(verbatim: row.title)
+                        if let created = SocialText.nonempty(row.createTime) { Text(verbatim: created).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("social.information.createTime") }
+                        if let summary = row.summary { Text(verbatim: summary).foregroundStyle(CYColor.textSecondary) }
                         if let contents = row.contents { SocialArticleContentView(contents: contents) }
-                        else { Text("social.guide.noContent") }
+                        else { CYEmptyState(systemImage: "doc.text", "social.guide.noContent") }
                     }
                 }
             }
-        }.appNavigationTitle("guideXcx.detailTitle").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("social.information.detail")
+        }
+        .appNavigationTitle("guideXcx.detailTitle")
+        .navigationBarTitleDisplayMode(.inline)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .tint(CYDomainPalette(.player).brand)
+        .accessibilityIdentifier("social.information.detail")
     }
 }

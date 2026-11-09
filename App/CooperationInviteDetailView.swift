@@ -25,16 +25,12 @@ import UIKit
         self.key = key; self.reader = reader; self.peerReader = peerReader
         _phoneCopy = StateObject(wrappedValue: CooperationPhoneCopyOwner(reader: reader, key: key))
     }
-    private func statusTone(_ row: CooperationInvite) -> Color {
+    private func statusTone(_ row: CooperationInvite) -> CYStatusTone {
         switch row.status {
-        case 0: return CYColor.warningText
-        case 1: return CYColor.successText
-        default: return CYColor.textTertiary
+        case 0: return .warning
+        case 1: return .success
+        default: return .neutral
         }
-    }
-    private func statusTitle(_ row: CooperationInvite) -> some View {
-        Text(LocalizedStringKey(row.statusKey)).font(CYTypography.sheetTitle).foregroundStyle(statusTone(row))
-            .fixedSize(horizontal: false, vertical: true)
     }
     private func partnerLine(_ row: CooperationInvite) -> some View {
         HStack(spacing: CYSpacing.xs) {
@@ -51,12 +47,19 @@ import UIKit
             let row = detail.row
             let view = CooperationInvitePresentation(invite: row, direction: key.direction)
             Section {
-                // Mini `.hd`: the big line is the STATUS (tone-coloured), the counterparty sits quietly beside it.
+                // Mini `.hd`: status first, then the topic. The counterparty stays beside the status.
                 ViewThatFits(in: .horizontal) {
-                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) { statusTitle(row); Spacer(minLength: CYSpacing.sm); partnerLine(row) }
-                    VStack(alignment: .leading, spacing: CYSpacing.xs) { statusTitle(row); partnerLine(row) }
+                    HStack(alignment: .center, spacing: CYSpacing.md) {
+                        CYStatusChip(LocalizedStringKey(row.statusKey), tone: statusTone(row))
+                        Spacer(minLength: CYSpacing.sm)
+                        partnerLine(row)
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        CYStatusChip(LocalizedStringKey(row.statusKey), tone: statusTone(row))
+                        partnerLine(row)
+                    }
                 }
-                if let name = row.topicName { Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
+                if let name = row.topicName { CYHeroHeader(verbatim: name) }
                 if let topic = row.topicId {
                     CooperationTopicReference(id: topic)
                     CooperationProjectNavigationLink(topicID: topic, invite: key, destination: topicDestination, openedTopic: $openedTopic)
@@ -77,7 +80,7 @@ import UIKit
                 case .visible(let text):
                     Text(verbatim: text).textSelection(.enabled).accessibilityIdentifier("cooperation.detail.contact")
                     if let intent = phoneCopy.intent(detail: detail, reader: reader, key: key) {
-                        Button("cooperation.phone.copy") {
+                        CYPillButton("cooperation.phone.copy", style: .secondary) {
                             phoneCopy.copy(intent) { phone in
                                 UIPasteboard.general.setItems([["public.utf8-plain-text": phone]],
                                     options: [.localOnly: true, .expirationDate: Date().addingTimeInterval(120)])
@@ -128,7 +131,7 @@ import UIKit
                         .accessibilityIdentifier("cooperation.detail.handleReason")
                 }
                 if (row.message ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && (row.handleReason ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text("cooperation.detail.noMessages").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    CYEmptyState(systemImage: "bubble.left", "cooperation.detail.noMessages")
                 }
                 if view.input == .hidden && row.status == 1 && !row.legacyReadonly { Text("cooperation.detail.contactHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             }
@@ -142,6 +145,9 @@ import UIKit
         }
         .appNavigationTitle("cooperation.detail.title")
         .navigationBarTitleDisplayMode(.inline)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .tint(CYDomainPalette(.player).brand)
         .onAppear { phoneCopy.appear(active: scenePhase == .active) }
         .onDisappear { phoneCopy.disappear() }
         .onChange(of: scenePhase) { _, phase in phoneCopy.sceneChanged(active: phase == .active) }
