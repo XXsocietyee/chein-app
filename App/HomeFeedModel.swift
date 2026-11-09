@@ -12,6 +12,21 @@ import SwiftUI
     @Published private(set) var loading = false
     @Published private(set) var loadingPage = false
     @Published private(set) var pageFailed = false
+
+    var streamReadiness: HomeFeedSurfaceState {
+        HomeFeedSurfaceState.slot(failed: pageFailed, loaded: pageLoaded, loading: loading || loadingPage, isEmpty: pagination.items.isEmpty)
+    }
+    func sectionReadiness(_ section: HomeFeedSection) -> HomeFeedSurfaceState {
+        if failedSections.contains(section) { return .error }
+        guard let items = sections[section] else { return .loading }
+        return items.isEmpty ? .empty : .ready
+    }
+    var bannerReadiness: HomeFeedSurfaceState {
+        HomeFeedSurfaceState.slot(failed: bannerFailed, loaded: bannersLoaded, loading: false, isEmpty: banners.isEmpty)
+    }
+    var categoryReadiness: HomeFeedSurfaceState {
+        HomeFeedSurfaceState.slot(failed: categoryFailed, loaded: categoriesLoaded, loading: false, isEmpty: categories.isEmpty)
+    }
     private var generation = UUID()
     private var pageGeneration = UUID()
     struct Binding: Equatable {

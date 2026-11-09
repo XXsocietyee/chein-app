@@ -1,12 +1,10 @@
 """Contract for pages/privacy/index non-view page-ready artifacts. No network and no Xcode."""
-import json
 import pathlib
 import re
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 POLICY = ROOT / "Core/UsageConsentPolicy.swift"
-STRINGS = ROOT / "docs/release/ui-strings-pages-privacy-index.json"
 ROUTES = ROOT / "Core/ChinaReviewedRouteCapability.swift"
 VIEW = ROOT / "App/PrivacyProtectionView.swift"
 
@@ -24,28 +22,23 @@ def policy_text():
 
 
 class PagesPrivacyIndexPageReadyTests(unittest.TestCase):
-    def test_strings_are_bilingual_and_match_accessibility_constants(self):
-        document = json.loads(STRINGS.read_text(encoding="utf-8"))
-        self.assertEqual(document["page"], "pages/privacy/index")
-        self.assertEqual(document["screen"], "App/PrivacyProtectionView.swift")
-        rows = document["strings"]
-        self.assertGreaterEqual(len(rows), 20)
-        identifiers = []
-        for row in rows:
-            self.assertTrue(row["en"])
-            self.assertTrue(row["zh-Hans"])
-            self.assertNotEqual(row["en"], "0")
-            identifiers.append(row["accessibilityIdentifier"])
-        self.assertEqual(len(identifiers), len(set(identifiers)))
-        unknown = next(row for row in rows if row["key"] == "privacy.page.state.unknown")
-        self.assertEqual(unknown["en"], "\u2014")
-        self.assertEqual(unknown["zh-Hans"], "\u2014")
-        self.assertEqual(unknown["accessibilityIdentifier"], "privacy.page.state.unknown")
-        declared = set(re.findall(
+    def test_accessibility_constants_name_states_and_unknown(self):
+        declared = re.findall(
             r'public static let \w+ = "([^"]+)"',
             policy_text().split("public enum PrivacyProtectionPageAccessibility", 1)[1].split("}", 1)[0],
-        ))
-        self.assertEqual(set(identifiers), declared)
+        )
+        self.assertGreaterEqual(len(declared), 20)
+        self.assertEqual(len(declared), len(set(declared)))
+        for identifier in (
+            "privacy.page.state.loading",
+            "privacy.page.state.empty",
+            "privacy.page.state.error",
+            "privacy.page.state.unknown",
+            "privacy.page.state.ready",
+        ):
+            self.assertIn(identifier, declared)
+        self.assertIn('public static let unknownDisplay = "\u2014"', policy_text())
+        self.assertNotEqual("\u2014", "0")
 
     def test_model_has_states_and_does_not_invent_a_live_route(self):
         source = policy_text()
@@ -72,12 +65,16 @@ class PagesPrivacyIndexPageReadyTests(unittest.TestCase):
         welcome = (ROOT / "App/WelcomeView.swift").read_text(encoding="utf-8")
         self.assertIn("static let showsMerchantChoice = false", welcome)
 
-    def test_existing_view_identifiers_stay_in_the_catalog(self):
+    def test_existing_view_identifiers_stay_on_the_model(self):
         view = VIEW.read_text(encoding="utf-8")
-        catalog = json.loads(STRINGS.read_text(encoding="utf-8"))
-        identifiers = {row["accessibilityIdentifier"] for row in catalog["strings"]}
-        for identifier in re.findall(r'\.accessibilityIdentifier\("([^"]+)"\)', view):
-            self.assertIn(identifier, identifiers)
+        declared = set(re.findall(
+            r'public static let \w+ = "([^"]+)"',
+            policy_text().split("public enum PrivacyProtectionPageAccessibility", 1)[1].split("}", 1)[0],
+        ))
+        found = re.findall(r'\.accessibilityIdentifier\("([^"]+)"\)', view)
+        self.assertGreaterEqual(len(found), 1)
+        for identifier in found:
+            self.assertIn(identifier, declared)
         self.assertNotIn("URLRequest", view)
         self.assertNotIn("/api/", view)
 

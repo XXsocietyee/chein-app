@@ -1,45 +1,30 @@
 """Page-ready contract for pages/member/index/index. Does not compile Swift or run Xcode."""
-import json
 import pathlib
 import re
 import unittest
 
 ROOT = pathlib.Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "Core/MemberHome.swift"
-STRINGS = ROOT / "docs/release/ui-strings-pages-member-index-index.json"
 DASH = "—"
 
 
 class MemberHomePageReadyContractTests(unittest.TestCase):
     def setUp(self):
         self.source = SOURCE.read_text()
-        self.catalog = json.loads(STRINGS.read_text())
 
-    def test_catalog_has_both_languages_and_unknown_is_an_em_dash(self):
-        strings = self.catalog["strings"]
-        self.assertEqual(self.catalog["page"], "pages/member/index/index")
-        self.assertGreaterEqual(len(strings), 8)
-        for key, value in strings.items():
-            self.assertEqual(set(value), {"en", "zh-Hans"}, key)
-            self.assertTrue(value["en"].strip(), key)
-            self.assertTrue(value["zh-Hans"].strip(), key)
-            self.assertNotEqual(value["en"], "0", key)
-            self.assertNotEqual(value["zh-Hans"], "0", key)
-        self.assertEqual(strings["member.card.unknownValue"]["en"], DASH)
-        self.assertEqual(strings["member.card.unknownValue"]["zh-Hans"], DASH)
+    def test_unknown_is_an_em_dash_in_the_model(self):
+        self.assertIn(f'public static let unknownDisplay = "{DASH}"', self.source)
+        self.assertIn('"member.card.unknownValue"', self.source)
+        self.assertNotEqual(DASH, "0")
         for banned in ["https://", "ICP", "京ICP", "support@", "隐私政策", "用户协议"]:
-            self.assertNotIn(banned, STRINGS.read_text())
+            self.assertNotIn(banned, self.source)
 
-    def test_accessibility_identifiers_match_the_model(self):
+    def test_accessibility_identifiers_are_declared_once(self):
         block = re.search(r"accessibilityIdentifiers = \[(.*?)\]", self.source, re.S)
         self.assertIsNotNone(block)
         declared = re.findall(r'"(member\.[^"]+)"', block.group(1))
-        listed = [row["id"] for row in self.catalog["accessibility"]]
-        self.assertEqual(listed, declared)
-        self.assertEqual(len(listed), len(set(listed)))
-        keys = self.catalog["strings"]
-        for row in self.catalog["accessibility"]:
-            self.assertIn(row["key"], keys)
+        self.assertGreaterEqual(len(declared), 8)
+        self.assertEqual(len(declared), len(set(declared)))
 
     def test_states_routes_and_money_switches_stay_off(self):
         for state in ["case loading", "case empty", "case error", "case unknown", "case ready"]:

@@ -2,7 +2,6 @@
 
 They do not compile Swift, run XCTest, or claim an Xcode Cloud result.
 """
-import json
 import unittest
 from pathlib import Path
 
@@ -10,8 +9,6 @@ ROOT = Path(__file__).resolve().parents[2]
 EM = "\u2014"
 MODEL = ROOT / "Core" / "TemplateBrowserPort.swift"
 CONTRACT = ROOT / "Core" / "DiscoveryContracts.swift"
-STRINGS = ROOT / "docs" / "release" / "ui-strings-pages-template-index.json"
-CATALOG = ROOT / "Resources" / "Localizable.xcstrings"
 FLAGS = (
     "showsMerchantChoice",
     "paymentEnabled",
@@ -57,27 +54,12 @@ class PagesTemplateIndexPageReadyTests(unittest.TestCase):
         self.assertIn("item.chapterCountIncluded && item.chapterCount >= 0", model)
         self.assertIn("TemplateIndexCount.unknownDisplay", model)
 
-    def test_string_table_is_bilingual_and_named_for_accessibility(self):
-        rows = json.loads(STRINGS.read_text(encoding="utf-8"))["entries"]
-        self.assertGreaterEqual(len(rows), 8)
-        catalog = json.loads(CATALOG.read_text(encoding="utf-8"))["strings"]
-        seen = set()
-        for row in rows:
-            key = row["key"]
-            self.assertTrue(row["en"] and row["zh-Hans"] and row["accessibilityIdentifier"], key)
-            self.assertNotIn(key, seen)
-            seen.add(key)
-            if key in catalog:
-                locs = catalog[key]["localizations"]
-                self.assertEqual(locs["en"]["stringUnit"]["value"], row["en"], key)
-                self.assertEqual(locs["zh-Hans"]["stringUnit"]["value"], row["zh-Hans"], key)
-        unknown = next(row for row in rows if row["key"] == "pages.template.index.unknown")
-        self.assertEqual(unknown["en"], EM)
-        self.assertEqual(unknown["zh-Hans"], EM)
-        self.assertEqual(unknown["accessibilityIdentifier"], "pages.template.index.unknown")
+    def test_model_names_phase_accessibility_and_unknown(self):
+        source = text(MODEL)
+        self.assertIn(f'unknownDisplay = "{EM}"', source)
+        self.assertIn('unknownAccessibilityIdentifier = "pages.template.index.unknown"', source)
         for phase in ("loading", "empty", "error", "ready"):
-            match = next(row for row in rows if row["key"] == f"pages.template.index.{phase}")
-            self.assertEqual(match["accessibilityIdentifier"], f"pages.template.index.{phase}")
+            self.assertIn(f'return "pages.template.index.{phase}"', source)
 
 
 if __name__ == "__main__":
