@@ -391,4 +391,83 @@ final class OfficialEventTests: XCTestCase {
         XCTAssertEqual(OfficialEventBrowseQuery(bucket: .live, keyword: "unknown").visible(rows).map(\.id), [1])
     }
 
+    func testActivityListPageStatesKeepUnknownCountsAsEmDash() throws {
+        let query = OfficialEventBrowseQuery.sourceList(bucket: .live, keyword: "")
+        let loading = OfficialActivityListCoordinator.project(query: query, list: nil, canPublish: nil)
+        XCTAssertEqual(loading.phase, .loading)
+        XCTAssertNil(loading.summaryCount)
+        XCTAssertEqual(loading.summaryCountText, OfficialActivityListPage.unknownMark)
+        XCTAssertEqual(OfficialActivityListPage.unknownMark, "—")
+        XCTAssertNotEqual(loading.summaryCountText, "0")
+        XCTAssertFalse(loading.showsPublishedLink)
+        XCTAssertTrue(loading.visible.isEmpty)
+
+        let cancelled = OfficialActivityListCoordinator.project(query: query, list: .failure(CancellationError()), canPublish: true)
+        XCTAssertEqual(cancelled.phase, .loading)
+        XCTAssertEqual(cancelled.summaryCountText, "—")
+        XCTAssertTrue(cancelled.showsPublishedLink)
+
+        let failed = OfficialActivityListCoordinator.project(query: query, list: .failure(APIError.httpStatus(503)), canPublish: false)
+        XCTAssertEqual(failed.phase, .error)
+        XCTAssertNil(failed.summaryCount)
+        XCTAssertEqual(failed.summaryCountText, "—")
+        XCTAssertFalse(failed.showsPublishedLink)
+        let forbidden = OfficialActivityListCoordinator.project(query: query, list: .failure(OfficialReadFailure.forbidden), canPublish: nil)
+        XCTAssertEqual(forbidden.phase, .error)
+        XCTAssertEqual(forbidden.summaryCountText, "—")
+
+        let unknown = OfficialActivityListCoordinator.project(query: query, list: .failure(APIError.malformedResponse), canPublish: true)
+        XCTAssertEqual(unknown.phase, .unknown)
+        XCTAssertNil(unknown.summaryCount)
+        XCTAssertEqual(unknown.summaryCountText, "—")
+        XCTAssertTrue(unknown.visible.isEmpty)
+        XCTAssertNotEqual(unknown.summaryCountText, "0")
+        XCTAssertTrue(unknown.showsPublishedLink)
+
+        let empty = OfficialActivityListCoordinator.project(query: query, list: .success([]), canPublish: nil)
+        XCTAssertEqual(empty.phase, .empty)
+        XCTAssertEqual(empty.summaryCount, 0)
+        XCTAssertEqual(empty.summaryCountText, "0")
+        XCTAssertFalse(empty.showsPublishedLink)
+
+        let rows = try decode([OfficialEvent].self, #"[{"id":71,"title":"Synthetic city lights","status":3,"participants":0},{"id":72,"title":"Synthetic next","status":99},{"id":73,"title":"Synthetic past","status":5,"participants":4},{"id":0,"title":"Dropped"},{"id":74,"title":"Upcoming","status":1,"collective":{"enabled":true,"pct":0}},{"id":75,"title":"Lit","status":3,"collective":{"enabled":true}},{"id":76,"title":"Off","status":3,"collective":{"enabled":false,"pct":40}}]"#)
+        let ready = OfficialActivityListCoordinator.project(query: query, list: .success(rows), canPublish: true)
+        XCTAssertEqual(ready.phase, .ready)
+        XCTAssertEqual(ready.visible.map(\.id), [71, 72, 75, 76])
+        XCTAssertEqual(ready.summaryCount, 4)
+        XCTAssertEqual(ready.summaryCountText, "4")
+        XCTAssertTrue(ready.showsPublishedLink)
+        XCTAssertEqual(ready.cards.map(\.participantsText), ["0", "—", "—", "—"])
+        XCTAssertEqual(ready.cards[1].statusKey, "official.status.unknown")
+        XCTAssertNil(ready.cards[0].collectivePercentText)
+        XCTAssertEqual(ready.cards[2].collectivePercentText, "—")
+        XCTAssertNil(ready.cards[3].collectivePercentText)
+
+        let upcoming = OfficialActivityListCoordinator.project(query: .sourceList(bucket: .upcoming, keyword: ""), list: .success(rows), canPublish: false)
+        XCTAssertEqual(upcoming.phase, .ready)
+        XCTAssertEqual(upcoming.visible.map(\.id), [74])
+        XCTAssertEqual(upcoming.cards[0].collectivePercentText, "0")
+        XCTAssertEqual(upcoming.cards[0].participantsText, "—")
+        XCTAssertFalse(upcoming.showsPublishedLink)
+
+        let ended = OfficialActivityListCoordinator.project(query: .sourceList(bucket: .ended, keyword: ""), list: .success(rows), canPublish: true)
+        XCTAssertEqual(ended.visible.map(\.id), [73])
+        XCTAssertEqual(ended.cards[0].participantsText, "4")
+
+        let mine = OfficialActivityListCoordinator.project(query: .sourceList(bucket: .mine, keyword: "missing"), list: .success(rows), canPublish: true)
+        XCTAssertFalse(mine.query.isSearching)
+        XCTAssertEqual(mine.phase, .ready)
+        XCTAssertEqual(mine.summaryCount, 6)
+        XCTAssertEqual(mine.visible.map(\.id), [71, 72, 73, 74, 75, 76])
+
+        let searched = OfficialActivityListCoordinator.project(query: .sourceList(bucket: .live, keyword: "absent"), list: .success(rows), canPublish: nil)
+        XCTAssertEqual(searched.phase, .empty)
+        XCTAssertEqual(searched.summaryCountText, "0")
+        XCTAssertEqual(searched.query.emptyTitleKey, "official.empty.search")
+
+        let negative = try decode(OfficialEvent.self, #"{"id":8,"title":"Synthetic","status":3,"participants":-2}"#)
+        XCTAssertNil(negative.participants)
+        XCTAssertEqual(OfficialActivityListCard(negative).participantsText, "—")
+    }
+
 }

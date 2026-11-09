@@ -330,6 +330,84 @@ public struct OfficialEventBrowseQuery: Equatable {
         OfficialEventFilter.visible(rows, bucket: bucket, keyword: keyword)
     }
 }
+
+/// pages/activity/list/index projection of the existing list and can-publish reads.
+/// It does not fetch, add a route, or mark a route live. A nil publish capability stays hidden.
+public enum OfficialActivityListPhase: Equatable {
+    case loading, empty, error, unknown, ready
+}
+
+/// One visible list row. A missing count is an em dash. A literal zero stays "0".
+public struct OfficialActivityListCard: Equatable {
+    public let id: Int
+    public let statusKey: String
+    public let participantsText: String
+    /// Nil when the server did not enable collective progress. "—" when enabled and percent is absent.
+    public let collectivePercentText: String?
+    public init(_ event: OfficialEvent) {
+        id = event.id
+        statusKey = event.statusKey
+        participantsText = event.participants.map { String($0) } ?? OfficialActivityListPage.unknownMark
+        if event.collectivePercentShown {
+            collectivePercentText = event.collective?.percent.map { String($0) } ?? OfficialActivityListPage.unknownMark
+        } else {
+            collectivePercentText = nil
+        }
+    }
+}
+
+public struct OfficialActivityListPage: Equatable {
+    /// Missing numeric facts. Never a stand-in zero.
+    public static let unknownMark = "—"
+    public let phase: OfficialActivityListPhase
+    public let query: OfficialEventBrowseQuery
+    public let visible: [OfficialEvent]
+    public let cards: [OfficialActivityListCard]
+    /// Nil while loading, failed, or unclassified. Zero only for a known empty list.
+    public let summaryCount: Int?
+    /// True only when the existing can-publish read returned true.
+    public let showsPublishedLink: Bool
+    public var summaryCountText: String {
+        guard let summaryCount else { return Self.unknownMark }
+        return String(summaryCount)
+    }
+
+    fileprivate init(phase: OfficialActivityListPhase, query: OfficialEventBrowseQuery, visible: [OfficialEvent],
+                     cards: [OfficialActivityListCard], summaryCount: Int?, showsPublishedLink: Bool) {
+        self.phase = phase
+        self.query = query
+        self.visible = visible
+        self.cards = cards
+        self.summaryCount = summaryCount
+        self.showsPublishedLink = showsPublishedLink
+    }
+}
+
+public enum OfficialActivityListCoordinator {
+    /// `list == nil` is still loading. Cancellation stays loading. A malformed payload is
+    /// unknown, not an empty list. Any other failure is an error. Counts stay an em dash
+    /// until a real list arrives.
+    public static func project(query: OfficialEventBrowseQuery, list: Result<[OfficialEvent], Error>?, canPublish: Bool?) -> OfficialActivityListPage {
+        let showsPublishedLink = canPublish == true
+        guard let list else { return unsettled(.loading, query: query, showsPublishedLink: showsPublishedLink) }
+        switch list {
+        case .failure(let error):
+            if error is CancellationError { return unsettled(.loading, query: query, showsPublishedLink: showsPublishedLink) }
+            if case APIError.malformedResponse = error { return unsettled(.unknown, query: query, showsPublishedLink: showsPublishedLink) }
+            return unsettled(.error, query: query, showsPublishedLink: showsPublishedLink)
+        case .success(let rows):
+            let visible = query.visible(rows)
+            let cards = visible.map { OfficialActivityListCard($0) }
+            return OfficialActivityListPage(phase: visible.isEmpty ? .empty : .ready, query: query, visible: visible,
+                                            cards: cards, summaryCount: visible.count, showsPublishedLink: showsPublishedLink)
+        }
+    }
+
+    private static func unsettled(_ phase: OfficialActivityListPhase, query: OfficialEventBrowseQuery, showsPublishedLink: Bool) -> OfficialActivityListPage {
+        OfficialActivityListPage(phase: phase, query: query, visible: [], cards: [], summaryCount: nil, showsPublishedLink: showsPublishedLink)
+    }
+}
+
 public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
     public let id: Int
     public let title: String
@@ -342,6 +420,8 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
     public let targetType: String?
     public let responsibilitySummary: String?
     public let capacity: Int?
+    /// JSON integers stay, including 0. Missing, null, numeric strings, and UNKNOWN are an em dash.
+    public let capacityFact: OfficialInboxQuantity
     public let controlState: String?
     /// Source service window (windowStart/windowEnd); absent fields read as unbounded.
     public let windowFacts: OfficialInboxWindowFacts?
@@ -349,6 +429,7 @@ public struct OfficialPartyInvite: Decodable, Equatable, Identifiable {
         let c = try decoder.container(keyedBy: OfficialKey.self)
         role = c.text("role"); targetType = c.text("targetType"); responsibilitySummary = c.text("responsibilitySummary")
         capacity = c.integer("capacity").flatMap { $0 > 0 ? $0 : nil }
+        capacityFact = (try? c.decode(OfficialInboxQuantity.self, forKey: OfficialKey("capacity"))) ?? .unknown
         controlState = c.text("controlState")
         windowFacts = try? OfficialInboxWindowFacts(from: decoder)
         id = c.integer("partyId") ?? c.integer("id") ?? 0

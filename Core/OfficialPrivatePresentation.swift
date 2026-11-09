@@ -146,6 +146,63 @@ public struct OfficialInboxWindowFacts: Decodable, Equatable {
     public var window: OfficialServiceWindow { OfficialServiceWindow(start: windowStart, end: windowEnd) }
 }
 
+/// A party-inbox number. A JSON integer, including 0, stays that integer.
+/// Null, a missing value, a numeric string, `UNKNOWN`, a bool, and a fraction are unknown.
+public enum OfficialInboxQuantity: Decodable, Equatable, Sendable {
+    case known(Int)
+    case unknown
+    public static let unknownMark = "—"
+    public var displayText: String {
+        switch self {
+        case .known(let value): return String(value)
+        case .unknown: return Self.unknownMark
+        }
+    }
+    public init(from decoder: Decoder) throws {
+        let c = try decoder.singleValueContainer()
+        if c.decodeNil() { self = .unknown; return }
+        if let value = try? c.decode(Int.self) { self = .known(value); return }
+        if let value = try? c.decode(Double.self), let number = Self.exact(value) { self = .known(number); return }
+        self = .unknown
+    }
+    private static func exact(_ value: Double) -> Int? {
+        let limit = 9_007_199_254_740_991.0
+        guard value.isFinite, value >= -limit, value <= limit else { return nil }
+        return Int(exactly: value)
+    }
+}
+
+/// Read phase for the existing party-inbox contract. A path this repo does not mark
+/// live stays hidden (`nil`). Unknown is not an empty list and is never stored as 0.
+public enum OfficialInboxPageState: Equatable, Sendable {
+    case loading
+    case empty
+    case error
+    case unknown
+    case ready(rowCount: Int)
+}
+
+public enum OfficialInboxPageModel {
+    /// Already wired by `OfficialEventService.partyInbox`. Not a new route.
+    public static let partyInboxPath = "api/official/v2/party-inbox"
+    public static func state(path: String = partyInboxPath, loading: Bool, failed: Bool, rows: [OfficialPartyInvite]?) -> OfficialInboxPageState? {
+        guard ChinaReviewedRouteCapability.mark(for: path) == .liveInProduction else { return nil }
+        if loading { return .loading }
+        if failed { return .error }
+        guard let rows else { return .unknown }
+        if rows.isEmpty { return .empty }
+        return .ready(rowCount: rows.count)
+    }
+    /// Empty is a known zero. Loading, error, and unknown stay an em dash.
+    public static func rowCountText(_ state: OfficialInboxPageState) -> String {
+        switch state {
+        case .ready(let count): return count > 0 ? String(count) : OfficialInboxQuantity.unknownMark
+        case .empty: return "0"
+        case .loading, .error, .unknown: return OfficialInboxQuantity.unknownMark
+        }
+    }
+}
+
 /// Source official-mine publisher view (activityStatusText(status, 'owner')).
 public enum OfficialPublishedPresentation {
     public static func ownerStatusKey(_ status: Int?) -> String {
@@ -233,5 +290,211 @@ public struct OfficialPublishedBroadcastFacts: Decodable, Equatable {
     /// Exact source zh-Hans badge (BC_ST).
     public var sourceStatusText: String {
         switch status { case .draft: return "草稿"; case .pending: return "待发"; case .sent: return "已发"; case .withdrawn: return "已撤"; case .unknown: return "状态待确认" }
+    }
+}
+
+/// A count the server actually sent. Unknown, null, and a non-numeric value stay an em dash.
+public enum OfficialMineCount: Equatable {
+    case unknown
+    case value(Int)
+    public static let unknownMark = "—"
+    /// Nil, a negative, or an unreadable number is unknown. A server 0 stays 0.
+    public static func server(_ number: Int?) -> OfficialMineCount {
+        guard let number, number >= 0 else { return .unknown }
+        return .value(number)
+    }
+    public var displayText: String {
+        switch self {
+        case .unknown: return Self.unknownMark
+        case .value(let number):
+            guard number >= 0 else { return Self.unknownMark }
+            return String(number)
+        }
+    }
+}
+
+public enum OfficialMinePageIssue: Equatable {
+    case notConfigured, unauthorized, noPublisherPermission, forbidden, unavailable
+    case unreadable, rejected(Int), httpStatus(Int), businessCode(Int), cancelled, failed
+    /// The body was not a countable list. Callers show an em dash, never 0.
+    public var isUnreadable: Bool {
+        if case .unreadable = self { return true }
+        return false
+    }
+    public init(_ error: Error) {
+        if error is CancellationError { self = .cancelled; return }
+        if let api = error as? APIError {
+            switch api {
+            case .notConfigured, .invalidConfiguration: self = .notConfigured
+            case .invalidRequest, .malformedResponse: self = .unreadable
+            case .unauthorized: self = .unauthorized
+            case .httpStatus(let code): self = .httpStatus(code)
+            case .businessCode(let code): self = .businessCode(code)
+            }
+            return
+        }
+        if let read = error as? OfficialReadFailure {
+            switch read {
+            case .noPublisherPermission: self = .noPublisherPermission
+            case .unavailable: self = .unavailable
+            case .forbidden: self = .forbidden
+            case .rejected(let code): self = .rejected(code)
+            }
+            return
+        }
+        self = .failed
+    }
+}
+
+public enum OfficialMineAccessibility {
+    public static let content = "official.published.content"
+    public static let loading = "official.published.loading"
+    public static let empty = "official.published.empty"
+    public static let emptyEvents = "official.published.empty.events"
+    public static let emptyBroadcasts = "official.published.empty.broadcasts"
+    public static let error = "official.published.error"
+    public static let unknown = "official.published.unknown"
+    public static let entry = "official.publishedLink"
+    public static func event(_ id: Int) -> String { "official.published.event.\(id)" }
+    public static func eventStatus(_ id: Int) -> String { "official.published.eventStatus.\(id)" }
+    public static func broadcast(_ id: Int) -> String { "official.broadcast.\(id)" }
+}
+
+public struct OfficialMineEventRow: Equatable {
+    public let id: Int
+    public let title: String?
+    public let statusKey: String
+    public let cityText: String
+    public let categoryKey: String?
+    public let accessibilityIdentifier: String
+    public let statusAccessibilityIdentifier: String
+    public init(_ event: OfficialEvent) {
+        id = event.id
+        title = OfficialPublishedPresentation.nonBlank(event.title)
+        statusKey = OfficialPublishedPresentation.ownerStatusKey(event.status)
+        cityText = OfficialPublishedPresentation.nonBlank(event.city) ?? OfficialMineCount.unknownMark
+        categoryKey = OfficialPublishedPresentation.nonBlank(event.category) == nil ? nil : event.categoryKey
+        accessibilityIdentifier = OfficialMineAccessibility.event(event.id)
+        statusAccessibilityIdentifier = OfficialMineAccessibility.eventStatus(event.id)
+    }
+}
+
+public struct OfficialMineBroadcastRow: Equatable {
+    public let id: Int
+    public let title: String?
+    public let reach: OfficialMineCount
+    public let facts: OfficialPublishedBroadcastFacts?
+    public let statusKey: String?
+    public let accessibilityIdentifier: String
+    public init(_ broadcast: OfficialBroadcast) {
+        id = broadcast.id
+        title = OfficialPublishedPresentation.nonBlank(broadcast.title)
+        reach = OfficialMineCount.server(broadcast.reach)
+        facts = broadcast.facts
+        statusKey = broadcast.facts.map { OfficialMinePageModel.broadcastStatusKey($0.status) }
+        accessibilityIdentifier = OfficialMineAccessibility.broadcast(broadcast.id)
+    }
+}
+
+/// Read model for pages/activity/official-mine/index. It projects the existing
+/// my-published payload. It does not open a route. Publish stays hidden unless
+/// the existing can-publish read grants it.
+public struct OfficialMinePageModel: Equatable {
+    public enum Phase: Equatable {
+        case loading
+        case empty
+        case error(OfficialMinePageIssue)
+        case unknown
+        case ready
+    }
+    public let phase: Phase
+    public let eventCount: OfficialMineCount
+    public let broadcastCount: OfficialMineCount
+    public let events: [OfficialMineEventRow]
+    public let broadcasts: [OfficialMineBroadcastRow]
+    /// True only when an existing can-publish read returned true for a loaded page.
+    public let showsPublishActions: Bool
+    public var eventCountText: String { eventCount.displayText }
+    public var broadcastCountText: String { broadcastCount.displayText }
+    public var accessibilityIdentifier: String {
+        switch phase {
+        case .loading: return OfficialMineAccessibility.loading
+        case .empty: return OfficialMineAccessibility.empty
+        case .error: return OfficialMineAccessibility.error
+        case .unknown: return OfficialMineAccessibility.unknown
+        case .ready: return OfficialMineAccessibility.content
+        }
+    }
+    public static func broadcastStatusKey(_ status: OfficialPublishedBroadcastFacts.Status) -> String {
+        switch status {
+        case .draft: return "official.w206.broadcast.status.draft"
+        case .pending: return "official.w206.broadcast.status.pending"
+        case .sent: return "official.w206.broadcast.status.sent"
+        case .withdrawn: return "official.w206.broadcast.status.withdrawn"
+        case .unknown: return "official.w206.broadcast.status.unknown"
+        }
+    }
+    public static let loading = OfficialMinePageModel(
+        phase: .loading, eventCount: .unknown, broadcastCount: .unknown,
+        events: [], broadcasts: [], showsPublishActions: false)
+    public static let unknown = OfficialMinePageModel(
+        phase: .unknown, eventCount: .unknown, broadcastCount: .unknown,
+        events: [], broadcasts: [], showsPublishActions: false)
+    public static func failure(_ issue: OfficialMinePageIssue) -> OfficialMinePageModel {
+        OfficialMinePageModel(phase: .error(issue), eventCount: .unknown, broadcastCount: .unknown,
+                              events: [], broadcasts: [], showsPublishActions: false)
+    }
+    public static func loaded(_ published: OfficialPublished, publisherCapabilityGranted: Bool = false) -> OfficialMinePageModel {
+        let events = OfficialEventFilter.visible(published.events, bucket: .mine).map(OfficialMineEventRow.init)
+        let broadcasts = published.broadcasts.filter { $0.id > 0 }.map(OfficialMineBroadcastRow.init)
+        let phase: Phase = events.isEmpty && broadcasts.isEmpty ? .empty : .ready
+        let granted = publisherCapabilityGranted && (phase == .empty || phase == .ready)
+        return OfficialMinePageModel(phase: phase, eventCount: .value(events.count), broadcastCount: .value(broadcasts.count),
+                                     events: events, broadcasts: broadcasts, showsPublishActions: granted)
+    }
+    public static func from(result: Result<OfficialPublished, Error>, publisherCapabilityGranted: Bool = false) -> OfficialMinePageModel {
+        switch result {
+        case .success(let value): return loaded(value, publisherCapabilityGranted: publisherCapabilityGranted)
+        case .failure(let error):
+            let issue = OfficialMinePageIssue(error)
+            return issue.isUnreadable ? .unknown : failure(issue)
+        }
+    }
+}
+
+/// Loads the existing private my-published read. A missing publisher grant stays hidden.
+/// This type does not add a route or a money-moving capability.
+@MainActor public final class OfficialMinePageCoordinator {
+    public private(set) var model: OfficialMinePageModel
+    private var generation: UInt64 = 0
+    public init() { model = .loading }
+    public func reload(using reader: any OfficialEventReading) async {
+        generation &+= 1
+        let ticket = generation
+        model = .loading
+        guard reader.isConfigured else {
+            guard generation == ticket else { return }
+            model = .failure(.notConfigured)
+            return
+        }
+        guard reader.isAuthenticated else {
+            guard generation == ticket else { return }
+            model = .failure(.unauthorized)
+            return
+        }
+        do {
+            let published = try await reader.myPublished()
+            guard generation == ticket, !Task.isCancelled else { return }
+            let granted: Bool
+            do { granted = try await reader.canPublish() }
+            catch { granted = false }
+            guard generation == ticket, !Task.isCancelled else { return }
+            model = .loaded(published, publisherCapabilityGranted: granted)
+        } catch is CancellationError {
+            return
+        } catch {
+            guard generation == ticket, !Task.isCancelled else { return }
+            model = .from(result: .failure(error))
+        }
     }
 }
