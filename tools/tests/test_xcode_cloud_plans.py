@@ -1,6 +1,7 @@
 """Xcode Cloud shard and unsigned-build contracts. Does not run Xcode or swift test."""
 import importlib.util
 import json
+import os
 import pathlib
 import re
 import shutil
@@ -141,6 +142,55 @@ class XcodeCloudPlanTests(unittest.TestCase):
             self.assertNotIn('.p8', text)
         self.assertFalse(list(ROOT.glob('.github/workflows/*xcode*')))
         self.assertNotIn('xcode-27', (ROOT / '.github/workflows/native-ios.yml').read_text())
+        self.assertNotRegex(post_clone, r'(?m)^(?!#).*\bxcodebuild\b')
+        self.assertNotIn('export XCODE_XCCONFIG_FILE', post_clone)
+        self.assertNotIn('launchctl', post_clone)
+
+    def test_post_clone_writes_simulator_arch_xcconfig_without_applying_it(self):
+        relatives = (
+            'Questify.xcodeproj/project.pbxproj',
+            'Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj',
+            'Config/Base.xcconfig',
+            'Config/AppUnitTests.xcconfig',
+        )
+        originals = {relative: (ROOT / relative).read_bytes() for relative in relatives}
+        with tempfile.TemporaryDirectory() as directory:
+            checkout = pathlib.Path(directory)
+            for relative, raw in originals.items():
+                path = checkout / relative
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_bytes(raw)
+            (checkout / 'tools').mkdir()
+            shutil.copyfile(ROOT / 'tools/xcode_cloud_prepare.py', checkout / 'tools/xcode_cloud_prepare.py')
+            script_dir = checkout / 'ci_scripts'
+            script_dir.mkdir()
+            shutil.copyfile(ROOT / 'ci_scripts/ci_post_clone.sh', script_dir / 'ci_post_clone.sh')
+            env = dict(os.environ)
+            env['CI_PRIMARY_REPOSITORY_PATH'] = str(checkout)
+            subprocess.run(['sh', str(script_dir / 'ci_post_clone.sh')], check=True, cwd=checkout, env=env)
+            written = (script_dir / 'ci-simulator-arch.xcconfig').read_text()
+            settings = [line for line in written.splitlines() if line and not line.startswith('//')]
+            self.assertEqual(settings, [
+                'ARCHS = arm64',
+                'EXCLUDED_ARCHS[sdk=iphonesimulator*] = x86_64',
+                'ONLY_ACTIVE_ARCH = YES',
+            ])
+            subprocess.run(['sh', str(script_dir / 'ci_post_clone.sh')], check=True, cwd=checkout, env=env)
+            self.assertEqual((script_dir / 'ci-simulator-arch.xcconfig').read_text(), written)
+            for relative in relatives:
+                text = (checkout / relative).read_text()
+                self.assertNotIn('ci-simulator-arch.xcconfig', text)
+                self.assertNotIn('EXCLUDED_ARCHS', text)
+                self.assertNotIn('XCODE_XCCONFIG_FILE', text)
+            gltf = (checkout / 'Vendor/GLTFKit2/GLTFKit2.xcodeproj/project.pbxproj').read_text()
+            self.assertNotIn('ARCHS = arm64', gltf)
+            self.assertEqual(gltf.count('IPHONEOS_DEPLOYMENT_TARGET = 17.0;'), 2)
+            base = (checkout / 'Config/Base.xcconfig').read_text()
+            self.assertNotIn('ARCHS = arm64', base)
+            self.assertNotIn('ONLY_ACTIVE_ARCH', base)
+        for relative, raw in originals.items():
+            self.assertEqual((ROOT / relative).read_bytes(), raw)
+        self.assertFalse((ROOT / 'ci_scripts/ci-simulator-arch.xcconfig').exists())
 
 
 if __name__ == '__main__':
