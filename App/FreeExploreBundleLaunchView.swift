@@ -10,15 +10,11 @@ import SwiftUI
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
     var body: some View {
         Form {
-<<<<<<< HEAD
             CYCoverHeaderSection(text("title"), symbol: "shippingbox.fill", seed: "bundle")
-            if !model.current { text("stale") }
-=======
             if !model.current {
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
                     .frame(maxWidth: .infinity).listRowBackground(Color.clear)
             }
->>>>>>> origin/ui/main
             else {
                 if model.busy { ProgressView { text("loading") } }
                 if model.failure != nil {
