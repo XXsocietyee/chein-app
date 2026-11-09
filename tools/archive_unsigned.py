@@ -49,7 +49,7 @@ LOCATION_FORBIDDEN = (
 )
 REQUIRED_REASON_APIS = {
     "NSPrivacyAccessedAPICategoryUserDefaults": ["CA92.1"],
-    "NSPrivacyAccessedAPICategoryFileTimestamp": ["C617.1"],
+    "NSPrivacyAccessedAPICategoryFileTimestamp": ["C617.1", "3B52.1"],
     "NSPrivacyAccessedAPICategorySystemBootTime": ["35F9.1"],
 }
 VERSION_KEYS = ("MARKETING_VERSION", "CURRENT_PROJECT_VERSION")
