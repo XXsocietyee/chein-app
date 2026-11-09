@@ -50,12 +50,21 @@ struct UsageConsentGateView: View {
     )
     @State private var checked = false
     @State private var showsCheckRequired = false
+    @State private var agreeTaps = 0
     @State private var document: AuthEntryLegalSheet?
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                    Image(systemName: checked ? "checkmark.shield.fill" : "shield.lefthalf.filled")
+                        .font(.system(size: 30, weight: .semibold))
+                        .foregroundStyle(checked ? CYColor.successText : CYColor.textPrimary)
+                        .frame(width: 64, height: 64)
+                        .background(CYColor.bgElevated, in: Circle())
+                        .contentTransition(.symbolEffect(.replace))
+                        .symbolEffect(.bounce, options: .nonRepeating, value: checked)
+                        .accessibilityHidden(true)
                     Text("authEntry.gate.title", tableName: "AuthEntry")
                         .font(.system(.largeTitle, design: .rounded).weight(.heavy))
                         .foregroundStyle(CYColor.textPrimary)
@@ -103,6 +112,7 @@ struct UsageConsentGateView: View {
                     Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact) }
                         .toggleStyle(.switch)
                         .tint(CYColor.accent)
+                        .sensoryFeedback(.selection, trigger: checked)
                         .accessibilityIdentifier("authEntry.gate.checkbox")
                     if showsCheckRequired && !checked {
                         Label { Text("authEntry.gate.checkRequired", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }
@@ -115,10 +125,12 @@ struct UsageConsentGateView: View {
                     // One primary action; declining is a quiet text button (guest browsing continues).
                     Button {
                         guard checked else { showsCheckRequired = true; return }
+                        agreeTaps += 1
                         onAgree()
                     } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
                         .buttonStyle(.cyPrimary)
                         .disabled(!checked)
+                        .sensoryFeedback(.success, trigger: agreeTaps)
                         .accessibilityIdentifier("authEntry.gate.agree")
                     Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
                         .font(CYTypography.bodyCompact)
