@@ -228,9 +228,9 @@ public struct ClubChannelMessagingView: View {
         }
         .sheet(isPresented: $showRulesSheet) {
             CYConfirmSheet(
-                title: copy("俱乐部频道公约与安全守则", "Club Channel Rules & Safety EULA"),
+                title: appLocalized("club.channel.rules.title", locale: locale),
                 message: rulesFullText,
-                confirmTitle: copy("我已阅读并同意频道公约", "Accept Channel Rules & EULA"),
+                confirmTitle: appLocalized("club.channel.rules.accept", locale: locale),
                 confirmIdentifier: "club.channel.rulesGate.accept"
             ) {
                 moderationCoordinator.acceptChannelRules(locale: locale)
@@ -283,10 +283,7 @@ public struct ClubChannelMessagingView: View {
     }
 
     private var rulesFullText: String {
-        copy(
-            "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。",
-            "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
-        )
+        appLocalized("club.channel.rules.body", locale: locale)
     }
 
     /// One compact row; the full EULA text opens in a sheet. Accepting stays mandatory before posting.
@@ -303,7 +300,7 @@ public struct ClubChannelMessagingView: View {
 
     @ViewBuilder private func rulesRowContent(horizontal: Bool) -> some View {
         let label = Label {
-            Text(copy("发言前请先阅读频道公约", "Review the channel rules to post"))
+            Text(appLocalized("club.channel.rules.prompt", locale: locale))
                 .font(CYTypography.caption)
                 .foregroundStyle(CYColor.textSecondary)
                 .lineLimit(horizontal ? 1 : nil)
@@ -314,7 +311,7 @@ public struct ClubChannelMessagingView: View {
         let button = Button {
             showRulesSheet = true
         } label: {
-            Text(copy("查看公约", "Review rules")).lineLimit(1)
+            Text(appLocalized("club.channel.rules.review", locale: locale)).lineLimit(1)
         }
         .buttonStyle(.cyDomainPrimary(fullWidth: !horizontal))
         .accessibilityIdentifier("club.channel.rulesGate.review")
@@ -340,7 +337,7 @@ public struct ClubChannelMessagingView: View {
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.borderless)
-                .accessibilityLabel(copy("返回频道列表", "Back to channel list"))
+                .accessibilityLabel(appLocalized("club.channel.backToList", locale: locale))
                 .accessibilityIdentifier("club.channel.backToList")
             }
 
@@ -357,12 +354,12 @@ public struct ClubChannelMessagingView: View {
                             .truncationMode(.tail)
                     }
                     if channel.isReadOnlyAnnouncement {
-                        Text(copy("公告 · 只读", "Announcement · read only"))
+                        Text(appLocalized("club.channel.announcementReadOnly", locale: locale))
                             .font(CYTypography.caption)
                             .foregroundStyle(CYColor.textTertiary)
                             .lineLimit(2)
                     } else if channel.isMuted {
-                        Text(copy("已开启免打扰", "Muted"))
+                        Text(appLocalized("im.inbox.mutedLabel", locale: locale))
                             .font(CYTypography.caption)
                             .foregroundStyle(CYColor.textTertiary)
                             .lineLimit(1)
@@ -385,7 +382,7 @@ public struct ClubChannelMessagingView: View {
                         if ok { refreshDirectoryProjection() }
                     }
                 } label: {
-                    Label(selectedChannel?.isMuted == true ? copy("取消频道免打扰", "Unmute channel") : copy("频道免打扰", "Mute channel"),
+                    Label(selectedChannel?.isMuted == true ? appLocalized("club.channel.unmute", locale: locale) : appLocalized("club.channel.mute", locale: locale),
                           systemImage: selectedChannel?.isMuted == true ? "bell.slash.fill" : "bell")
                 }
                 .accessibilityIdentifier("club.channel.muteButton")
@@ -393,7 +390,7 @@ public struct ClubChannelMessagingView: View {
                 Button {
                     showMemberRosterSheet = true
                 } label: {
-                    Label(copy("频道成员与身份组 · \(effectiveMemberRoster.count)", "Members & roles · \(effectiveMemberRoster.count)"),
+                    Label(appLocalized("club.channel.membersCount \(effectiveMemberRoster.count)", locale: locale),
                           systemImage: "person.2")
                 }
                 .accessibilityIdentifier("club.channel.memberRosterButton")
@@ -683,15 +680,15 @@ public struct ClubChannelMessagingView: View {
                 HStack(spacing: 8) {
                     // Visual placeholder: attachments are not wired yet, so both entries are disabled.
                     Menu {
-                        Button { } label: { Label(copy("图片", "Photo"), systemImage: "photo") }.disabled(true)
-                        Button { } label: { Label(copy("链接", "Link"), systemImage: "link") }.disabled(true)
+                        Button { } label: { Label(appLocalized("d7.channelChat.photo", locale: locale), systemImage: "photo") }.disabled(true)
+                        Button { } label: { Label(appLocalized("club.channel.attachment.link", locale: locale), systemImage: "link") }.disabled(true)
                     } label: {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
                             .foregroundStyle(CYColor.textSecondary)
                             .frame(minWidth: 44, minHeight: 44)
                     }
-                    .accessibilityLabel(copy("添加附件", "Add attachment"))
+                    .accessibilityLabel(appLocalized("club.channel.attachment.add", locale: locale))
                     .accessibilityIdentifier("club.channel.composer.attachments")
                     TextField(copy("在 #\(selectedChannel?.name ?? "频道") 发送消息…", "Message #\(selectedChannel?.name ?? "channel")…"), text: $composerText)
                         .padding(.horizontal, 16).frame(minHeight: 44)

@@ -76,7 +76,7 @@ struct CYErrorState: View {
     private let retryTitle: LocalizedStringKey
     private let onRetry: () -> Void
 
-    init(_ message: LocalizedStringKey = "Couldn't load this. Check your connection.", retryTitle: LocalizedStringKey = "Retry", onRetry: @escaping () -> Void) {
+    init(_ message: LocalizedStringKey = "Couldn't load this. Check your connection.", retryTitle: LocalizedStringKey = "action.retry", onRetry: @escaping () -> Void) {
         self.message = message
         self.retryTitle = retryTitle
         self.onRetry = onRetry

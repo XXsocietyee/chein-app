@@ -131,7 +131,6 @@ private struct ProfileOrderRow: View {
     let historyState: OrderLifecycleState
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var typeSize
-    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
         // Source row order: 订单号 + state → mode tag → name → time → place → 实付款 → 查看详情.
         VStack(alignment: .leading, spacing: CYSpacing.md) {
@@ -205,7 +204,7 @@ private struct ProfileOrderRow: View {
             }
             if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             // Visual label only: the whole card is the NavigationLink, so there is a single control.
-            OrderPillLabel(title: Text(verbatim: c.t("查看详情", "View details")))
+            OrderPillLabel(title: Text(verbatim: appLocalized("profile.orders.viewDetails", locale: locale)))
         }
     }
     /// The symbol and label carry the state together, never colour alone.
