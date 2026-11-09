@@ -144,18 +144,17 @@ private struct ProfileOrderRow: View {
         .orderCardSurface()
     }
     private var header: some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
-                                                  : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.sm))
-        return layout {
+        // Number on its own line (never truncated next to a wide chip); the status chip sits on the line below.
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
             if let number = order.registrationNo, !number.isEmpty {
                 Text("profile.orders.number \(number)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    .lineLimit(typeSize.isAccessibilitySize ? 3 : 1).minimumScaleFactor(0.8)
+                    .lineLimit(3).fixedSize(horizontal: false, vertical: true)
             }
-            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
                             systemImage: Self.symbol(historyState),
                             emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     private var content: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {

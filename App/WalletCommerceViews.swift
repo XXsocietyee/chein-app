@@ -78,6 +78,10 @@ extension WalletScreen where Value == WithdrawalBalance {
 }
 /// Additive destination only. Host must keep existing entry gates and reset .id(reader.scope)
 /// whenever deployment/account/epoch changes; no new root navigation entry is installed here.
+/// Withdraw / payout entries are shown only while the payout capability is on. It is off until the backend
+/// grants it, so players never meet a Withdraw button that leads nowhere. Unknown amounts still render as an em dash.
+enum WalletPayoutCapability { static let isOn = false }
+
 @MainActor struct WalletCommerceHomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var earnings = WalletScreen<WithdrawalBalance>()
@@ -159,9 +163,9 @@ extension WalletScreen where Value == WithdrawalBalance {
     }
     private var quickItems: [WalletQuickAction] {
         var out: [WalletQuickAction] = []
-        if visibility.withdrawalRecords, showsWithdrawalSupport {
+        if WalletPayoutCapability.isOn, visibility.withdrawalRecords, showsWithdrawalSupport {
             out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportLandingView(reader: reader)) })
-        } else if visibility.withdrawalRecords {
+        } else if WalletPayoutCapability.isOn, visibility.withdrawalRecords {
             out.append(.init(title: "wallet.withdrawals", icon: "arrow.up.right", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
         }
         if visibility.income { out.append(.init(title: "wallet.income", icon: "list.bullet.indent", id: "wallet.income.open") { AnyView(incomeDestination) }) }
@@ -280,7 +284,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                     }
                 }
                 if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
-                if visibility.withdrawalRecords {
+                if WalletPayoutCapability.isOn, visibility.withdrawalRecords {
                     walletRow("wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { WithdrawalHistoryView(reader: reader) }
                 }
                 if visibility.assets {
@@ -350,7 +354,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                 } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin, unavailable: funds.unavailable) { Task { await load() } } }
             }
             Section {
-                NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                if WalletPayoutCapability.isOn { NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) } }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
                     .accessibilityIdentifier("wallet.assets.balanceLedger")
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }

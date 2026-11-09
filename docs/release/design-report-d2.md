@@ -60,3 +60,11 @@ New DEBUG fixtures (`D2Fixture`, registered): `d2-search-results` (+ `--design-s
 - Play fixture shows its own "Switch synthetic account" host button; the city/NPC/me shots are unconfigured-session states (balance and profile show em dash).
 - Order cards: order number can truncate next to a wide status chip ("A2026092701F…"); not fixed.
 - zh shots taken for home, search results, me, inbox, city; zh strings for new keys still wait on the integrator's xcstrings merge.
+
+## Round 4: player-first fixes (EN shots `design-report-d2-shots/r4/`, contact-070208.png)
+1. Me/Account: merchant overview/projects/workbench/mode switch/application rows hidden unless `themeDomain != .player` (code kept).
+2. Search: placeholder (field and home pill) and the shops chip/rows/"shops" menu entry hidden for players; new key `searchMap.placeholder.player` in `ui-strings-d2.json` (English until merged).
+3. Wallet: Withdraw/withdrawals/withdrawal-support entries gated by `WalletPayoutCapability.isOn` (false until a backend grant exists); unknown amounts stay an em dash.
+4. My orders: order number on its own line, status chip below it (no truncation).
+5. Home XL: search pill is one line with tail truncation; "More ways to play" one line, scales down.
+6. EntryFlowTests: welcome.merchant removed from the loop and asserted absent.

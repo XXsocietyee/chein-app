@@ -1,4 +1,5 @@
 {
   "homeFeed.moreWaysToPlay": {"en": "More ways to play", "zh-Hans": "更多玩法"},
-  "searchMap.moreWays": {"en": "More ways to find", "zh-Hans": "更多查找方式"}
+  "searchMap.moreWays": {"en": "More ways to find", "zh-Hans": "更多查找方式"},
+  "searchMap.placeholder.player": {"en": "Search topics, activities and clubs", "zh-Hans": "搜索路线、活动和俱乐部"}
 }

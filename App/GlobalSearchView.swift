@@ -2,6 +2,10 @@ import SwiftUI
 
 @MainActor struct GlobalSearchView<Destination: View>: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.themeDomain) private var themeDomain
+    /// Player-first: shops/merchants are not a player search target (no chip, no wording, no rows).
+    private var hidesMerchants: Bool { themeDomain == .player }
+    private var searchKinds: [GlobalSearchKind] { GlobalSearchKind.allCases.filter { !(hidesMerchants && $0 == .merchant) } }
     let reader: any SearchMapReading
     var historyNamespace: String? = nil
     var publicMerchant = PublicMerchantHomeContext()
@@ -48,7 +52,7 @@ import SwiftUI
                 // Mini-program `search2` head: one pill field with 筛选 trailing inside it.
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                    TextField("searchMap.placeholder", text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
+                    TextField(hidesMerchants ? String(localized: "searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs") : String(localized: "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
                     Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle") }
@@ -253,8 +257,10 @@ import SwiftUI
                     Button { mapRoute = .layers } label: { Label("searchMap.publicLayers", systemImage: "square.3.layers.3d") }
                         .accessibilityIdentifier("mapPublic.entry")
                 }
-                Button { mapRoute = .shops } label: { Label("merchant.discover.title", systemImage: "storefront") }
-                    .accessibilityIdentifier("merchant.discover.entry")
+                if !hidesMerchants {
+                    Button { mapRoute = .shops } label: { Label("merchant.discover.title", systemImage: "storefront") }
+                        .accessibilityIdentifier("merchant.discover.entry")
+                }
             } label: {
                 HStack(spacing: 6) {
                     Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find"))
@@ -309,7 +315,7 @@ import SwiftUI
                 }
             }
         }
-        let visible = value.rows.filter { selectedKind == nil || $0.kind == selectedKind }
+        let visible = value.rows.filter { !(hidesMerchants && $0.kind == .merchant) && (selectedKind == nil || $0.kind == selectedKind) }
         Section {
             if value.showsEmptyState(for: selectedKind, isLoading: loading) {
                 CYEmptyStateView(systemImage: "magnifyingglass", title: "searchMap.empty")
@@ -325,7 +331,7 @@ import SwiftUI
     private func kindPicker(_ value: GlobalSearchResults) -> some View {
         Picker("searchMap.resultKinds", selection: $selectedKind) {
             Text("searchMap.all").tag(GlobalSearchKind?.none)
-            ForEach(GlobalSearchKind.allCases, id: \.self) { kind in
+            ForEach(searchKinds, id: \.self) { kind in
                 (Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
                     .tag(Optional(kind))
                     .accessibilityIdentifier("searchMap.kind.\(kind.rawValue)")
