@@ -132,6 +132,169 @@ final class ObjectCardTests: XCTestCase {
         let reader = ObjectCardSessionReader(service: nil, currentSession: { try? .init(accountID: 1, epoch: 1, token: "synthetic") })
         do { _ = try await reader.list(category: .all); XCTFail("not gated") } catch { XCTAssertEqual(error as? APIError, .notConfigured) }
     }
+    func testListedTotalFactIsEmDashOrLiteralZero() throws {
+        let knownZero = try JSONDecoder().decode(ObjectCardListedData.self, from: Data(#"{"list":[],"total":0}"#.utf8))
+        XCTAssertEqual(knownZero.total, .known(0))
+        XCTAssertEqual(knownZero.total.text, "0")
+        XCTAssertEqual(ObjectCardTotalFact.unknownText, "\u{2014}")
+        XCTAssertNotEqual(ObjectCardTotalFact.unknownText, "0")
+        XCTAssertNotEqual(ObjectCardTotalFact.unknownText, "-")
+        let withheld = [
+            ObjectCardSyntheticFixtures.unknownTotalJSON,
+            #"{"list":[],"total":null}"#,
+            #"{"list":[]}"#,
+            #"{"list":[],"total":"0"}"#,
+            #"{"list":[],"total":"12"}"#,
+            #"{"list":[],"total":true}"#,
+            #"{"list":[],"total":{}}"#,
+            #"{"list":[],"total":[]}"#,
+        ]
+        for json in withheld {
+            let value = try JSONDecoder().decode(ObjectCardListedData.self, from: Data(json.utf8))
+            XCTAssertEqual(value.total, .unknown)
+            XCTAssertEqual(value.total.text, "—")
+            XCTAssertNotEqual(value.total.text, "0")
+        }
+        for json in [#"{"list":[],"total":-1}"#, #"{"list":[],"total":1.5}"#] {
+            XCTAssertThrowsError(try JSONDecoder().decode(ObjectCardListedData.self, from: Data(json.utf8)))
+            XCTAssertThrowsError(try JSONDecoder().decode(ObjectCardCollection.self, from: Data(json.utf8)))
+        }
+        XCTAssertThrowsError(try JSONDecoder().decode(ObjectCardCollection.self, from: Data(#"{"list":[],"total":null}"#.utf8)))
+    }
+    func testListContractKeepsKnownZeroAndRejectsAWithheldTotal() async throws {
+        let zeroTransport = ObjectCardTestTransport(json: #"{"code":200,"data":{"list":[],"total":0}}"#)
+        let zero = try await service(zeroTransport).list(category: .all, token: "synthetic-token")
+        XCTAssertEqual(zero.total, 0)
+        XCTAssertTrue(zero.cards.isEmpty)
+        let bodies = [
+            ObjectCardSyntheticFixtures.unknownTotalJSON,
+            #"{"list":[{"id":903,"title":"Withheld total"}],"total":"12"}"#,
+            #"{"list":[],"total":true}"#,
+            #"{"list":[]}"#,
+            #"{"list":[],"total":{}}"#,
+        ]
+        for body in bodies {
+            let transport = ObjectCardTestTransport(json: "{\"code\":200,\"data\":\(body)}")
+            do {
+                _ = try await service(transport).list(category: .all, token: "synthetic-token")
+                XCTFail("withheld total published a collection")
+            } catch is ObjectCardTotalUnknown {
+            } catch {
+                XCTFail("unexpected \(error)")
+            }
+            let request = try XCTUnwrap(await transport.requests.first)
+            XCTAssertEqual(request.url?.path, "/api/object-card/list")
+            XCTAssertEqual(request.httpMethod, "POST")
+            let raw = String(data: request.httpBody ?? Data(), encoding: .utf8) ?? ""
+            XCTAssertFalse(raw.contains("rename"))
+        }
+        for total in ["-1", "1.5"] {
+            let transport = ObjectCardTestTransport(json: "{\"code\":200,\"data\":{\"list\":[],\"total\":\(total)}}")
+            do {
+                _ = try await service(transport).list(category: .all, token: "synthetic-token")
+                XCTFail("malformed total accepted")
+            } catch {
+                XCTAssertEqual(error as? APIError, .malformedResponse)
+            }
+        }
+    }
+    @MainActor func testAlbumPhasesCoverLoadingEmptyErrorAndUnknown() async throws {
+        let fresh = ObjectCardCollectionModel()
+        XCTAssertEqual(fresh.phase, .unknown)
+        XCTAssertEqual(fresh.totalText, "—")
+        XCTAssertNil(fresh.collection)
+
+        let model = ObjectCardCollectionModel()
+        let hanging = ObjectCardScriptedReader(next: .success(try ObjectCardSyntheticFixtures.collection()))
+        hanging.hold = true
+        let task = Task { await model.load(category: .all, reader: hanging) }
+        for _ in 0..<200 where !hanging.parked { await Task.yield() }
+        XCTAssertTrue(hanging.parked)
+        XCTAssertEqual(model.phase, .loading)
+        XCTAssertEqual(model.totalText, "—")
+        hanging.release()
+        await task.value
+        XCTAssertEqual(model.phase, .ready)
+        XCTAssertEqual(model.totalText, "52")
+        XCTAssertEqual(model.collection?.total, 52)
+
+        let reader = ObjectCardFixtureReader()
+        await model.load(category: .clothing, reader: reader)
+        XCTAssertEqual(model.phase, .empty)
+        XCTAssertEqual(model.totalText, "0")
+        XCTAssertEqual(model.collection?.total, 0)
+        XCTAssertEqual(model.collection?.cards.isEmpty, true as Bool?)
+
+        reader.failNext = true
+        await model.load(category: .clothing, reader: reader)
+        XCTAssertEqual(model.phase, .error)
+        XCTAssertEqual(model.totalText, "0")
+        XCTAssertEqual(model.collection?.total, 0)
+
+        let denied = ObjectCardCollectionModel()
+        reader.failNext = true
+        await denied.load(category: .all, reader: reader)
+        XCTAssertEqual(denied.phase, .error)
+        XCTAssertEqual(denied.totalText, "—")
+        XCTAssertNil(denied.collection)
+
+        let listed = try JSONDecoder().decode(ObjectCardListedData.self, from: Data(ObjectCardSyntheticFixtures.unknownTotalJSON.utf8))
+        let unknownReader = ObjectCardScriptedReader(next: .failure(ObjectCardTotalUnknown(cards: listed.cards)))
+        await model.load(category: .books, reader: unknownReader)
+        XCTAssertEqual(model.phase, .unknown)
+        XCTAssertFalse(model.failed)
+        XCTAssertNil(model.collection)
+        XCTAssertEqual(model.totalText, "—")
+        XCTAssertNotEqual(model.totalText, "0")
+        XCTAssertEqual(model.withheldCards.map(\.id), ["903"])
+    }
+    @MainActor func testSessionListWiringKeepsUnknownOffTheCountedCollection() async throws {
+        let withheld = ObjectCardTestTransport(json: "{\"code\":200,\"data\":\(ObjectCardSyntheticFixtures.unknownTotalJSON)}")
+        let session = try ObjectCardSession(accountID: 4, epoch: 1, token: "synthetic-token")
+        let reader = ObjectCardSessionReader(service: try service(withheld), currentSession: { session })
+        let model = ObjectCardCollectionModel()
+        await model.load(category: .all, reader: reader)
+        XCTAssertEqual(model.phase, .unknown)
+        XCTAssertNil(model.collection)
+        XCTAssertEqual(model.totalText, "—")
+        XCTAssertEqual(model.withheldCards.map(\.id), ["903"])
+        XCTAssertFalse(model.failed)
+        let request = try XCTUnwrap(await withheld.requests.first)
+        XCTAssertEqual(request.url?.path, "/api/object-card/list")
+
+        let zero = ObjectCardTestTransport(json: #"{"code":200,"data":{"list":[],"total":0}}"#)
+        let zeroReader = ObjectCardSessionReader(service: try service(zero), currentSession: { session })
+        await model.load(category: .all, reader: zeroReader)
+        XCTAssertEqual(model.phase, .empty)
+        XCTAssertEqual(model.totalText, "0")
+        XCTAssertEqual(model.collection?.total, 0)
+        XCTAssertTrue(model.withheldCards.isEmpty)
+    }
+}
+
+@MainActor private final class ObjectCardScriptedReader: ObjectCardReading {
+    var scope = UUID()
+    var isConfigured = true
+    var isAuthenticated = true
+    var next: Result<ObjectCardCollection, Error>
+    var hold = false
+    private(set) var parked = false
+    private var waiter: CheckedContinuation<Void, Never>?
+    init(next: Result<ObjectCardCollection, Error>) { self.next = next }
+    func list(category: ObjectCardCategory) async throws -> ObjectCardCollection {
+        _ = category
+        if hold {
+            await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+                waiter = continuation
+                parked = true
+            }
+        }
+        return try next.get()
+    }
+    func release() {
+        waiter?.resume()
+        waiter = nil
+    }
 }
 
 @MainActor final class ProfileObjectCardsAssociationTests: XCTestCase {
