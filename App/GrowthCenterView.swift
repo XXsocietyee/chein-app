@@ -40,7 +40,7 @@ extension EnvironmentValues {
                 if !newlyLitBadges.isEmpty {
                     Section {
                         HStack(alignment: .top) {
-                            Image(systemName: "sparkles").accessibilityHidden(true)
+                            Image(systemName: "sparkles").symbolEffect(.bounce, value: newlyLitBadges.count).accessibilityHidden(true)
                             GrowthNewlyLitBadges(names: newlyLitBadges)
                         }
                         // The whole status is one announcement, never the SF Symbol's
@@ -79,6 +79,7 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("growth.refresh")
             }
         }
+        .sensoryFeedback(.success, trigger: newlyLitBadges)
         .modifier(GrowthCenterReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
         .onAppear { badgeVisible = true; badgeExploreConsumed = false; badgePresentationID = UUID(); latestReaderID = ObjectIdentifier(reader) }
         .onDisappear { badgeVisible = false; badgePresentationID = UUID() }
@@ -96,7 +97,13 @@ extension EnvironmentValues {
                     Text("growth.currentPoints").font(.subheadline).foregroundStyle(.secondary)
                     GrowthCenterInteger(value: board.me.score).font(.system(size: scoreSize, weight: .heavy, design: .rounded)).monospacedDigit()
                         .lineLimit(1).minimumScaleFactor(0.5)
-                }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
+                }.frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.lg)
+                    .background(
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
+                            .fill(LinearGradient(colors: [CYColor.bgElevated, CYColor.bgPage], startPoint: .topLeading, endPoint: .bottomTrailing))
+                            .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.08), lineWidth: 1))
+                    )
+                    .listRowBackground(Color.clear)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("growth.currentPoints"))
                     .accessibilityValue(pointsValue(board.me.score))
