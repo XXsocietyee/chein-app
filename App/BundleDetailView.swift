@@ -57,7 +57,10 @@ import SwiftUI
                     Text(verbatim: priceText).font(CYTypography.data2XL).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.7).lineLimit(1)
                 }
                 if let days = content.extras?.validityDays {
-                    CYStatusChip(verbatim: copy.t("购买后 \(days) 天内有效", "Valid for \(days) days after purchase"), tone: .info, systemImage: "calendar.badge.clock")
+                    Label { Text(verbatim: copy.t("购买后 \(days) 天内有效", "Valid for \(days) days after purchase")) } icon: { Image(systemName: "calendar.badge.clock") }
+                        .font(CYTypography.caption).foregroundStyle(palette.info)
+                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
+                        .background(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.infoSoft))
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
