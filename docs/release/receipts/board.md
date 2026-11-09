@@ -19,3 +19,5 @@
 - wire30 sent back. PR 1018. Customer detail turns every non-count field into an em dash.
 - wire37 [x] cc152d791. PR 1020. Game node reads MerchantGameNodePage.project. Not merged.
 - wire36 sent back. PR 1019. Perks adds a new List. MerchantOperationsViews has no perks screen.
+- wire40 [x] 2d3997af6. PR 1021. Ledger order reads MerchantLedgerOrderPage.phase. Not merged.
+- wire31 [x] d136c4bad. PR 1022. Customer roster reads MerchantCustomerRosterPage.project. Not merged.
