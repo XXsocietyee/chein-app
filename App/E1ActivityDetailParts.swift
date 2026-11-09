@@ -47,7 +47,13 @@ struct E1ActivityInfoCard: View {
 
     private var whenText: String? {
         let s = QuestifyCardText.date(detail.summary.startDate, locale: locale, displayTimeZone: timeZone)
-        let e = QuestifyCardText.date(detail.summary.endDate, locale: locale, displayTimeZone: timeZone)
+        var e = QuestifyCardText.date(detail.summary.endDate, locale: locale, displayTimeZone: timeZone)
+        // Same calendar day: the end shows the time only.
+        if let sd = HomeFeedDate.parse(detail.summary.startDate), let ed = HomeFeedDate.parse(detail.summary.endDate),
+           Calendar.current.isDate(sd, inSameDayAs: ed) {
+            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = timeZone
+            e = ed.formatted(style)
+        }
         switch (s, e) {
         case let (s?, e?): return s == e ? s : s + " – " + e
         case let (s?, nil): return s
