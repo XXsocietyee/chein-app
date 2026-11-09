@@ -99,6 +99,8 @@ struct MerchantProjectsView<Reader: MerchantReading>: View {
                 MerchantFailureView(errorKey: error, identifier: "merchant.projects", retry: { Task { await reload() } })
             } else { ProgressView("merchant.loading") }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .appNavigationTitle("merchant.projects")
         .task(id: reader.sessionRevision) { await reload(discardOldValue: true) }
         .onChange(of: context) { _, _ in presentation.invalidate(); tab = .topic }
@@ -205,7 +207,7 @@ private struct MerchantProjectSummary: View {
                     if project.viewCount > 0 { MerchantCountRow("merchant.project.views", value: project.viewCount) }
                 }
             }
-        }.appNavigationTitle("merchant.project.summary")
+        }.scrollContentBackground(.hidden).background(CYColor.bgPage).appNavigationTitle("merchant.project.summary")
     }
 }
 

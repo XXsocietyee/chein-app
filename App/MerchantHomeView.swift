@@ -175,6 +175,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     @State private var quickRoute: MerchantWorkbenchBusinessRoute?
     @State private var showsScan = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var quickShortcuts: [MerchantWorkbenchBusinessShortcut] {
         guard let businessReader, let businessJournal else { return [] }
@@ -192,7 +193,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             Section {
                 VStack(spacing: CYSpacing.md) {
                     Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
-                        .font(CYTypography.sectionTitle)
+                        .font(CYTypography.pageTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -205,26 +206,28 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                 Text("merchant.revenue")
                                     .font(CYTypography.meta)
                                     .foregroundStyle(CYColor.textSecondary)
+                                // Unknown revenue is an em dash (MerchantMoney.display), never a fake zero.
                                 Text(MerchantMoney.display(value.revenue))
-                                    .font(CYTypography.data2XL)
+                                    .font(CYTypography.display)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textPrimary)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.5)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, CYSpacing.xxl)
+                            .padding(.vertical, CYSpacing.lg)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("merchant.dashboard.revenue")
                         }
                     }
                 }
                 .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+                .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.xs, bottom: CYSpacing.md, trailing: CYSpacing.xs))
             }
             if showsScanAction || !quickShortcuts.isEmpty {
                 Section {
-                    HStack(alignment: .top, spacing: Theme.Space.s2) {
+                    // At accessibility sizes the four circles wrap to two columns instead of clipping.
+                    (dynamicTypeSize.isAccessibilitySize ? AnyLayout(GridFlowLayout()) : AnyLayout(HStackLayout(alignment: .top, spacing: Theme.Space.s2))) {
                         if showsScanAction {
                             MerchantQuickCircleAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder") { showsScan = true }
                                 .accessibilityIdentifier("merchant.workbench.scan")
@@ -391,6 +394,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(CYSpacing.xxl)
         .navigationDestination(item: $quickRoute) { route in
             if let businessReader, let businessJournal,
@@ -541,8 +545,9 @@ private struct MerchantQuickCircleAction: View {
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(CYColor.textPrimary)
                     .frame(width: diameter, height: diameter)
-                    .background(CYColor.bgSurface, in: Circle())
-                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+                    .background(CYColor.bgElevated, in: Circle())
+                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
                     .font(CYTypography.caption)
                     .foregroundStyle(CYColor.textSecondary)
@@ -674,3 +679,25 @@ struct MerchantWorkbenchBusinessRoute: Hashable {
     static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.reader?.retire() }
 }
 
+
+/// Two-column flow for the quick circles when text is at an accessibility size.
+private struct GridFlowLayout: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 320, cell = width / 2
+        let heights = subviews.map { $0.sizeThatFits(.init(width: cell, height: nil)).height }
+        var total: CGFloat = 0
+        for row in stride(from: 0, to: heights.count, by: 2) { total += heights[row..<min(row + 2, heights.count)].max() ?? 0 }
+        return CGSize(width: width, height: total)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let cell = bounds.width / 2; var y = bounds.minY
+        for row in stride(from: 0, to: subviews.count, by: 2) {
+            let slice = subviews[row..<min(row + 2, subviews.count)]
+            let height = slice.map { $0.sizeThatFits(.init(width: cell, height: nil)).height }.max() ?? 0
+            for (i, v) in slice.enumerated() {
+                v.place(at: CGPoint(x: bounds.minX + CGFloat(i) * cell, y: y), anchor: .topLeading, proposal: .init(width: cell, height: height))
+            }
+            y += height
+        }
+    }
+}

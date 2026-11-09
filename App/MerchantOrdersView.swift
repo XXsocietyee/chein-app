@@ -50,6 +50,8 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
                 MerchantFailureView(errorKey: error, identifier: "merchant.orders", retry: { Task { await reload() } })
             } else { ProgressView("merchant.loading") }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .appNavigationTitle("merchant.orders")
         .toolbar {
             if reader.isSignedIn && reader.isConfigured && model.errorKey != "merchant.access.denied" {
@@ -120,19 +122,23 @@ struct MerchantOrdersView<Reader: MerchantReading>: View {
 private struct MerchantOrderRow: View {
     @Environment(\.locale) private var locale
     let order: MerchantOrder
+    private var orderNumber: some View {
+        Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale)).font(.headline)
+    }
+    private var amount: some View { Text(MerchantMoney.display(order.payAmount)).font(.headline).monospacedDigit() }
+    @ViewBuilder private var orderTime: some View {
+        if let time = order.createTime, !time.isEmpty { Text(time).font(.caption) }
+    }
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1_5) {
-            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
-                Text(order.orderSn.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.orders",locale:locale))
-                    .font(.headline)
-                Spacer(minLength: 0)
-                Text(MerchantMoney.display(order.payAmount)).font(.headline).monospacedDigit()
-                    .layoutPriority(1)
+            // At accessibility sizes the pairs stack instead of squeezing the order number and the time.
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) { orderNumber; Spacer(minLength: 0); amount }
+                VStack(alignment: .leading, spacing: Theme.Space.s1) { orderNumber; amount }
             }
-            HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
-                MerchantOrderStatusLabel(value: order.status)
-                Spacer(minLength: 0)
-                if let time = order.createTime, !time.isEmpty { Text(time).font(.caption) }
+            ViewThatFits(in: .horizontal) {
+                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) { MerchantOrderStatusLabel(value: order.status); Spacer(minLength: 0); orderTime }
+                VStack(alignment: .leading, spacing: Theme.Space.s1) { MerchantOrderStatusLabel(value: order.status); orderTime }
             }
             .font(.subheadline).foregroundStyle(.secondary)
             if let raw = order.aftersaleStatus, raw >= 2 {
@@ -161,7 +167,7 @@ private struct MerchantOrderSummary: View {
                 }
                 if let value = order.createTime, !value.isEmpty { LabeledContent("merchant.order.created", value: value) }
             }
-        }.appNavigationTitle("merchant.order.summary")
+        }.scrollContentBackground(.hidden).background(CYColor.bgPage).appNavigationTitle("merchant.order.summary")
     }
 }
 

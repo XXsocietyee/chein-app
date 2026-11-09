@@ -21,7 +21,14 @@ enum DesignFixtureRegistry {
         case "d4-growth": return AnyView(D4MeFixture(screen: .growth))
         case "d4-leaderboard": return AnyView(D4MeFixture(screen: .leaderboard))
         case "d4-badges": return AnyView(D4MeFixture(screen: .badges))
-        // D1..D5: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
+        // D5 merchant console (synthetic data, light, real views under .roleTheme(.merchant))
+        case "merchant-home": return merchantConsoleFixture(.home)
+        case "merchant-home-unknown": return merchantConsoleFixture(.homeUnknown)
+        case "merchant-orders": return merchantConsoleFixture(.orders)
+        case "merchant-projects": return merchantConsoleFixture(.projects)
+        case "merchant-customers": return merchantConsoleFixture(.customers)
+        case "merchant-finance": return merchantConsoleFixture(.finance)
+        case "merchant-coupons": return merchantCouponFixture()
         default: return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
