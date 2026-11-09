@@ -374,7 +374,7 @@ private struct MessagingBubble: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: Theme.Space.s2) {
             if !isOwn {
-                CYCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                CYIMCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
                     .frame(width: avatarSize, height: avatarSize)
                     .clipShape(Circle())
             }

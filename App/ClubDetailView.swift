@@ -342,7 +342,7 @@ private struct ClubDetailCover: View {
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         ZStack {
-            CYCoverArt(seed: seed, symbolSize: 48)
+            CYIMCoverArt(seed: seed, symbolSize: 48)
             if let url = QuestifyCardArtwork.safeURL(source) {
                 AsyncImage(url: url, transaction: Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)) { phase in
                     if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) }

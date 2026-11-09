@@ -83,7 +83,7 @@ struct ClubRow: View {
         .accessibilityElement(children: .combine)
     }
     private var glyph: some View {
-        CYCoverArt(seed: club.name + String(club.id))
+        CYIMCoverArt(seed: club.name + String(club.id))
     }
     @ViewBuilder private var logo: some View {
         let shape = RoundedRectangle(cornerRadius: 16, style: .continuous)

@@ -12,6 +12,7 @@ struct CYCoverArt: View {
     var symbol: String? = nil
     var showsDebugLabel = true
     var showsGlyph = true
+    var cornerRadius: CGFloat? = nil
 
     private static let symbols = ["fork.knife", "map", "ticket", "camera", "leaf", "cup.and.saucer", "figure.walk", "building.columns", "moon.stars", "music.note"]
 
@@ -22,7 +23,11 @@ struct CYCoverArt: View {
         return value
     }
 
-    var body: some View {
+    @ViewBuilder var body: some View {
+        if let cornerRadius { art.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)) } else { art }
+    }
+
+    private var art: some View {
         let h = Self.stableHash(seed)
         let hue = Double(h % 360) / 360.0
         let hue2 = (hue + 0.14).truncatingRemainder(dividingBy: 1)
