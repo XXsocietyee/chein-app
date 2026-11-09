@@ -71,6 +71,7 @@ import SwiftUI
     @StateObject private var seriesLeadPicker = ClubSeriesLeadReadModel()
     @StateObject private var notificationAudience = ClubNotificationAudienceReadModel()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var audienceVisible = false
     @State private var scheduleSession: ClubSeriesScheduleSession?
     @State private var draft: ClubGovernanceFormDraft
@@ -298,9 +299,9 @@ import SwiftUI
         .interactiveDismissDisabled(dirty || busy || locked)
         .sheet(isPresented: $showDiscard) {
             CYConfirmSheet(
-                title: String(localized: "club.gov.discardTitle"),
-                message: locked ? String(localized: "club.gov.unknown") : String(localized: "club.gov.discardBody"),
-                confirmTitle: String(localized: "club.gov.discard"),
+                title: appLocalized("club.gov.discardTitle", locale: locale),
+                message: locked ? appLocalized("club.gov.unknown", locale: locale) : appLocalized("club.gov.discardBody", locale: locale),
+                confirmTitle: appLocalized("club.gov.discard", locale: locale),
                 isDestructive: true
             ) { showDiscard = false; retirePresentation(); coordinator.cancelReview(); dismiss() }
         }
