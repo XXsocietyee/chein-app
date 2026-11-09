@@ -228,7 +228,7 @@ struct RoamStampCard: View {
                 if offline {
                     ZStack {
                         RoundedRectangle(cornerRadius: 12).fill(kit ? palette.bgRaised : Color.accentColor.opacity(0.13))
-                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(kit ? palette.textSecondary : .tint)
+                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(kit ? palette.textSecondary : Color.accentColor)
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))
                 } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
