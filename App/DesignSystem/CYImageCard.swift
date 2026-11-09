@@ -10,12 +10,14 @@ struct CYImageCard: View {
     private var meta: Text?
     private let imageURL: URL?
     private let aspectRatio: CGFloat
+    private let seed: String
 
     @Environment(\.cyPalette) private var palette
 
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
         self.title = Text(title)
+        self.seed = String(describing: title)
         self.meta = meta.map { Text($0) }
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
         self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
@@ -24,6 +26,7 @@ struct CYImageCard: View {
     /// Server-supplied title (shown verbatim) and a pre-composed meta `Text`, for real data rows.
     init(title: Text, meta: Text?, imageURL: URL? = nil, style: Style = .hero) {
         self.style = style
+        self.seed = String(describing: title)
         self.title = title
         self.meta = meta
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
@@ -35,6 +38,7 @@ struct CYImageCard: View {
     init(verbatim title: String, fallback: LocalizedStringKey, meta: String? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
         self.title = title.isEmpty ? Text(fallback) : Text(verbatim: title)
+        self.seed = title.isEmpty ? String(describing: fallback) : title
         let trimmed = meta?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         self.meta = trimmed.isEmpty ? nil : Text(verbatim: meta ?? "")
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
@@ -84,10 +88,8 @@ struct CYImageCard: View {
             placeholder
         }
     }
-    private var placeholder: some View {
-        LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
-            .overlay(Image(systemName: "photo").font(.largeTitle).foregroundStyle(palette.textPlaceholder))
-    }
+    /// Generated art (never a grey box): deterministic per title, tiny DEBUG label in debug builds.
+    private var placeholder: some View { CYCoverArt(seed: seed) }
 }
 
 private struct CYImageCardPreviewBody: View {

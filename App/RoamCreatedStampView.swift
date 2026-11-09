@@ -105,6 +105,7 @@ struct RoamCreatedStampReadOwner: Hashable {
         case .found:
             if let stamp = lookup.stamp, album.reader.isConfigured {
                 RoamStampCard(stamp: stamp, offline: album.reader.isOfflineExample)
+                    .cyStampSlam(trigger: true)
                     .accessibilityIdentifier("roam.createdStamp.match")
             }
             Button("action.retry", systemImage: "arrow.clockwise") { refresh() }
