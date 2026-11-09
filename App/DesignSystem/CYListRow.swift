@@ -108,6 +108,9 @@ extension CYListRow where Leading == EmptyView {
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, trailing: CYListRowTrailing = .chevron, card: Bool = false) {
         self.init(title, meta: meta, trailing: trailing, card: card) { EmptyView() }
     }
+    init(verbatim title: String, meta: String? = nil, trailing: CYListRowTrailing = .chevron, card: Bool = false) {
+        self.init(verbatim: title, meta: meta, trailing: trailing, card: card) { EmptyView() }
+    }
 }
 
 /// Rounded-square SF Symbol tile for the leading slot of `CYListRow`.

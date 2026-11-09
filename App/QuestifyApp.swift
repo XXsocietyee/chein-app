@@ -259,17 +259,11 @@ struct SessionRootView: View {
     @State private var showsScannerFixture = false
     #endif
 
-    var body: some View {
-        Group {
-            if session.account != nil || browsingAsGuest {
-                if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {
-                    SessionMerchantRootContainerView(session: session, coordinator: merchantRootCoordinator, access: access, onReturnToConsumer: { destination in
-                        merchantRootCoordinator.switchToConsumerMode()
-                        if let destination { selectedTab = destination }
-                    })
-                } else {
-                TabView(selection:$selectedTab) {
+    @ViewBuilder private var homeTab: some View {
                     SessionHomeFeedView(onSignIn:{ selectedTab = .mine }).tabItem { rootTabLabel(.home) }.tag(RootTab.home)
+    }
+
+    @ViewBuilder private var roamTab: some View {
                     RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ selectedTab = .mine },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
                         switch target {
                         case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
@@ -290,26 +284,61 @@ struct SessionRootView: View {
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
+    }
+
+    @ViewBuilder private var publishTab: some View {
                     NavigationStack {
                         DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
                             publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) })
                     }
                         .id(session.templateAuthoringViewIdentity)
                         .tabItem { rootTabLabel(.publish) }.tag(RootTab.publish)
+    }
+
+    @ViewBuilder private var clubTab: some View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .tabItem { rootTabLabel(.club) }.tag(RootTab.club)
+    }
+
+    @ViewBuilder private var mineTab: some View {
                     Group {
                         if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
+    }
+
+    @ViewBuilder private var playerTabs: some View {
+                TabView(selection:$selectedTab) {
+                    homeTab
+                    roamTab
+                    publishTab
+                    clubTab
+                    mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .roleTheme(.player)
+    }
+
+    var body: some View {
+        let base = Group {
+            if session.account != nil || browsingAsGuest {
+                if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {
+                    SessionMerchantRootContainerView(session: session, coordinator: merchantRootCoordinator, access: access, onReturnToConsumer: { destination in
+                        merchantRootCoordinator.switchToConsumerMode()
+                        if let destination { selectedTab = destination }
+                    })
+                } else {
+                playerTabs
                 }
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).cyScreenStyle().roleTheme(.player) }
         }
+        return chain6(chain5(chain4(chain3(chain2(chain1(chain0(base)))))))
+    }
+
+    private func chain0<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
         .onChange(of: session.account?.id) { _, accountID in
             merchantRootCoordinator.handleSessionChange(accountID: accountID, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision)
@@ -324,6 +353,10 @@ struct SessionRootView: View {
         .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
         .environment(\.cityMerchantOperationsFactory, { session.makeCityMerchantOperationsController() })
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
+    }
+
+    private func chain1<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
         .environment(\.merchantGameNodeDestination, { $1.view(service: $0) })
         .environment(\.merchantCityTemplateHandoffFactory, {
@@ -338,6 +371,10 @@ struct SessionRootView: View {
         .environment(\.nativeAttributeAuthorProjectFactory, session.nativeAttributeAuthorProjectFactory)
         .environment(\.projectCategoryReader, session)
             .environment(\.projectNodePlaceReader, session.searchMapReader)
+    }
+
+    private func chain2<V: View>(_ v: V) -> some View {
+        v
         .environment(\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)
         .environment(\.projectNodeTemplateCreationFactory, {
             .init(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
@@ -349,14 +386,59 @@ struct SessionRootView: View {
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
         .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
-        .environment(\.bankWithdrawalDestination, session.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true ? { AnyView(SessionBankWithdrawalView()) } : nil)
+    }
+
+    private func chain3<V: View>(_ v: V) -> some View {
+        chain3_7(chain3_6(chain3_5(chain3_4(chain3_3(chain3_2(chain3_1(chain3_0(v))))))))
+    }
+
+    private func chain3_0<V: View>(_ v: V) -> some View {
+        let destination: (@MainActor () -> AnyView)?
+        if session.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true {
+            destination = { AnyView(SessionBankWithdrawalView()) }
+        } else {
+            destination = nil
+        }
+        return v.environment(\.bankWithdrawalDestination, destination)
+    }
+
+    private func chain3_1<V: View>(_ v: V) -> some View {
+        v
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
+    }
+
+    private func chain3_2<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantPersonalIncomeDestination, { AnyView(SessionMerchantPersonalIncomeView(session: session, source: $0)) })
+    }
+
+    private func chain3_3<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
+    }
+
+    private func chain3_4<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantAcceptedProjectDestination, { AnyView(SessionMerchantAcceptedProjectView(session: session, source: $0)) })
+    }
+
+    private func chain3_5<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantOfficialRecruitmentDestination, { AnyView(SessionMerchantOfficialRecruitmentView(session: session, source: $0)) })
+    }
+
+    private func chain3_6<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantCoopCenterDestination, { session.merchantCoopCenterDestination(initialTab: $0, focusTopicID: $1) })
+    }
+
+    private func chain3_7<V: View>(_ v: V) -> some View {
+        v
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
+    }
+
+    private func chain4<V: View>(_ v: V) -> some View {
+        v
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
@@ -365,6 +447,10 @@ struct SessionRootView: View {
         .onAppear { session.setPrivateHomePresentationActive(true) }
         .onAppear { session.setOwnerDraftPresentationActive(true) }
         .onAppear { session.setWorkshopOwnedPresentationActive(true) }
+    }
+
+    private func chain5<V: View>(_ v: V) -> some View {
+        v
         .onDisappear { session.setPrivateHomePresentationActive(false) }
         .onDisappear { session.setOwnerDraftPresentationActive(false) }
         .onDisappear { session.setWorkshopOwnedPresentationActive(false) }
@@ -375,6 +461,10 @@ struct SessionRootView: View {
         }
         .sheet(isPresented:$showsAreaPicker) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
         .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, onDecline: { browsingAsGuest = true })
+    }
+
+    private func chain6<V: View>(_ v: V) -> some View {
+        v
         .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
         .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
@@ -385,6 +475,7 @@ struct SessionRootView: View {
         }
         #endif
     }
+
 
     private func rootTabLabel(_ tab: RootTab) -> some View {
         Label(LocalizedStringKey(tab.titleKey), systemImage: tab.systemImage)
