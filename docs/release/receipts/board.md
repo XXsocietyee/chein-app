@@ -21,3 +21,4 @@
 - wire36 sent back. PR 1019. Perks adds a new List. MerchantOperationsViews has no perks screen.
 - wire40 [x] 2d3997af6. PR 1021. Ledger order reads MerchantLedgerOrderPage.phase. Not merged.
 - wire31 [x] d136c4bad. PR 1022. Customer roster reads MerchantCustomerRosterPage.project. Not merged.
+- wire35 [x] d2862daa9. PR 1023. Brand center reads MerchantBrandCenterPage.reading. Not merged.
