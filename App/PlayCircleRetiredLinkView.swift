@@ -1,19 +1,22 @@
 import SwiftUI
 
-/// The missing-parameter state of the retired circle page (探索链接不完整 / 返回首页).
+/// Unavailable landing for retired `pages/play/circle/index`: incomplete link, one home action.
+/// The same keys and identifiers stay. This view does not open the live play page.
 @MainActor struct PlayCircleRetiredLinkView: View {
     let goHome: () -> Void
     var body: some View {
-        ContentUnavailableView {
-            Label("playx.circleLink.title", systemImage: "link.badge.plus")
-                .accessibilityIdentifier("playx.circleLink.missing")
-        } description: {
-            Text("playx.circleLink.subtitle")
-        } actions: {
-            Button("playx.circleLink.home", action: goHome)
-                .buttonStyle(.questifyPrimary)
-                .accessibilityIdentifier("playx.circleLink.home")
-        }
+        CYEmptyState(
+            systemImage: "link.badge.plus",
+            "playx.circleLink.title",
+            detail: "playx.circleLink.subtitle",
+            messageIdentifier: "playx.circleLink.missing",
+            actionTitle: "playx.circleLink.home",
+            actionIdentifier: "playx.circleLink.home",
+            actionStyle: .primary,
+            action: goHome
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+        .background(CYColor.bgPage)
     }
 }
 

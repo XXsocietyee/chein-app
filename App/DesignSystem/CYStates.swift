@@ -1,18 +1,35 @@
 import SwiftUI
 
 /// Icon + one line + one action. Domain-aware sibling of `CYEmptyStateView`/`CYErrorStateView`
-/// (those keep their legacy callers). Action is a tertiary-weight pill to respect "one primary per screen".
+/// (those keep their legacy callers). The action stays secondary unless the caller makes it the screen's one primary.
 struct CYEmptyState: View {
     private let systemImage: String
     private let message: LocalizedStringKey
+    private let detail: LocalizedStringKey?
+    private let messageIdentifier: String?
     private let actionTitle: LocalizedStringKey?
+    private let actionIdentifier: String?
+    private let actionStyle: CYPillStyle
     private let action: (() -> Void)?
     @Environment(\.cyPalette) private var palette
 
-    init(systemImage: String = "tray", _ message: LocalizedStringKey, actionTitle: LocalizedStringKey? = nil, action: (() -> Void)? = nil) {
+    init(
+        systemImage: String = "tray",
+        _ message: LocalizedStringKey,
+        detail: LocalizedStringKey? = nil,
+        messageIdentifier: String? = nil,
+        actionTitle: LocalizedStringKey? = nil,
+        actionIdentifier: String? = nil,
+        actionStyle: CYPillStyle = .secondary,
+        action: (() -> Void)? = nil
+    ) {
         self.systemImage = systemImage
         self.message = message
+        self.detail = detail
+        self.messageIdentifier = messageIdentifier
         self.actionTitle = actionTitle
+        self.actionIdentifier = actionIdentifier
+        self.actionStyle = actionStyle
         self.action = action
     }
 
@@ -26,13 +43,28 @@ struct CYEmptyState: View {
                 .font(CYTypography.body)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
+                .cyIdentifier(messageIdentifier)
+            if let detail {
+                Text(detail)
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
             if let actionTitle, let action {
-                CYPillButton(actionTitle, style: .secondary, fullWidth: false, action: action)
+                CYPillButton(actionTitle, style: actionStyle, fullWidth: false, action: action)
+                    .cyIdentifier(actionIdentifier)
             }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, CYSpacing.xxl)
         .padding(.horizontal, CYSpacing.xxl)
+    }
+}
+
+private extension View {
+    @ViewBuilder func cyIdentifier(_ identifier: String?) -> some View {
+        if let identifier { accessibilityIdentifier(identifier) }
+        else { self }
     }
 }
 
