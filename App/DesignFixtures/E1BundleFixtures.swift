@@ -1,6 +1,8 @@
 #if DEBUG
 import SwiftUI
+#if canImport(QuestifyCore)
 import QuestifyCore
+#endif
 
 /// Synthetic bundle shelf / detail (DEBUG only). Labelled offline example data; never a production path.
 @MainActor private final class E1ShelfClient: BundleShelfClient {
