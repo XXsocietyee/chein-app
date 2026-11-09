@@ -259,17 +259,11 @@ struct SessionRootView: View {
     @State private var showsScannerFixture = false
     #endif
 
-    var body: some View {
-        Group {
-            if session.account != nil || browsingAsGuest {
-                if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {
-                    SessionMerchantRootContainerView(session: session, coordinator: merchantRootCoordinator, access: access, onReturnToConsumer: { destination in
-                        merchantRootCoordinator.switchToConsumerMode()
-                        if let destination { selectedTab = destination }
-                    })
-                } else {
-                TabView(selection:$selectedTab) {
+    @ViewBuilder private var homeTab: some View {
                     SessionHomeFeedView(onSignIn:{ selectedTab = .mine }).tabItem { rootTabLabel(.home) }.tag(RootTab.home)
+    }
+
+    @ViewBuilder private var roamTab: some View {
                     RoamBrowserView(reader:session.roamReader,nearbyEventsReader:session.roamNearbyEventsReader,nearbyPlayersReader:session.roamNearbyPlayersReader,onChooseArea:{ showsAreaPicker=true },onOpenAccount:{ selectedTab = .mine },experienceReader:session.roamExperienceReader, albumMetadataReader:session.roamAlbumMetadataReader, tileMemoryReader:session.roamTileMemoryReader, sessionFactReader:session.roamSessionFactReader, cityDestination: { AnyView(SessionCityPlayerView()) }, nearbyTeamsDestination: { AnyView(SessionRoamNearbyTeamsView()) }, stampDestination: { AnyView(SessionRoamStampCameraView()) }, liveDestination: { AnyView(RoamLiveSessionView(controller: session.makeRoamLiveSessionController(), localHistoryReader: session.roamExperienceReader, albumMetadataReader: session.roamAlbumMetadataReader)) }, posterDestination: { AnyView(SessionRoamPosterView(node: $0)) }, eventDestination: { target in
                         switch target {
                         case .activity(let id): return AnyView(ActivityDetailView(id: id, reader: session, playReaderForActivity: { session.playReader(for: .activity($0)) }, registrationEnabled: true))
@@ -290,23 +284,53 @@ struct SessionRootView: View {
                         .environment(\.roamReceivedStampReader, session.roamReceivedStampReader)
                         .environment(\.roamPassportHistoryReader, session.roamPassportHistoryReader)
                         .tabItem { rootTabLabel(.roam) }.tag(RootTab.roam)
+    }
+
+    @ViewBuilder private var publishTab: some View {
                     NavigationStack {
                         DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
                             publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) })
                     }
                         .id(session.templateAuthoringViewIdentity)
                         .tabItem { rootTabLabel(.publish) }.tag(RootTab.publish)
+    }
+
+    @ViewBuilder private var clubTab: some View {
                     NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .tabItem { rootTabLabel(.club) }.tag(RootTab.club)
+    }
+
+    @ViewBuilder private var mineTab: some View {
                     Group {
                         if let account=session.account { AccountView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
+    }
+
+    @ViewBuilder private var playerTabs: some View {
+                TabView(selection:$selectedTab) {
+                    homeTab
+                    roamTab
+                    publishTab
+                    clubTab
+                    mineTab
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .roleTheme(.player)
+    }
+
+    var body: some View {
+        Group {
+            if session.account != nil || browsingAsGuest {
+                if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {
+                    SessionMerchantRootContainerView(session: session, coordinator: merchantRootCoordinator, access: access, onReturnToConsumer: { destination in
+                        merchantRootCoordinator.switchToConsumerMode()
+                        if let destination { selectedTab = destination }
+                    })
+                } else {
+                playerTabs
                 }
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).cyScreenStyle().roleTheme(.player) }
         }
