@@ -80,3 +80,11 @@ Not made real. The "+" menu stays Photo/Link **disabled**: `ChannelDiscordMessag
 - Governance section titles "客户与项目 / 成员与权限" are inline (zh/EN via ChannelCopy), not yet in `ui-strings-d4.json`.
 - Growth: mini shows "总榜第 N 名" under the avatar and a hero subtitle; native shows the existing rank/percentage rows (no avatar data in the fixture).
 - CYConfirmSheet is a shared kit file; the detent/ScaledMetric change affects all callers (compact only when no consequences).
+
+## Round 4 (leftovers + EN/XL sweep)
+Shots via design-batch.sh (one build, 28 shots EN default + accessibility-extra-large for 14 fixtures; contact sheet + `compare-operations-r4.png`, `compare-governance-r4.png`, `compare-final-r4.png`, per-page `r4/shots-<page>.png` in `/Users/fanning/chengyin-refs/design-reports/d4/`; raw `batch-<fixture>-<en|xl>.png`).
+- Governance workspace rows now carry a one-line sub-line under the title (mini-program settings sheet); inline zh/EN via ChannelCopy, no counts (no data). Sub-lines only on the workspace list; other callers of `link()` unchanged.
+- Operations hero: with no cover the half-black photo card is replaced by a compact identity card (mark, name, city, role chip); stacks vertically at accessibility sizes. Cover present keeps the image card.
+- Club directory card: host strip + pill stack at accessibility sizes (Join was truncated).
+- Mini-program refs: compare images use the existing mini ref/zh captures from round 3 (left panels); EN/XL are new. Not re-paired.
+- Still open at XL: leaderboard "Sample me" row wraps and enrollment "Groups" row wraps awkwardly; "Club management" nav title truncates (system large title); directory search pill overlaps the next card at the scroll end; XL hero icon sits slightly left of the text column. Join/confirm and channel pages looked fine at XL. Governance/join strings still inline (not in ui-strings-d4.json).

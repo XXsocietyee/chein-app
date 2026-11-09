@@ -1134,8 +1134,39 @@ struct ClubGovernanceReadView: View {
         customerTopic = target
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
-        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: Self.symbol(target)) }
+        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(LocalizedStringKey("club.gov." + target.rawValue))
+                    if operation == .access, let line = Self.subline(target, locale: locale) {
+                        Text(verbatim: line).font(.footnote).foregroundStyle(CYColor.textSecondary)
+                    }
+                }
+            } icon: { Image(systemName: Self.symbol(target)) }
+        }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
+    }
+    /// Mini-program settings-sheet rows carry a one-line description under the title (workspace list only).
+    static func subline(_ read: ClubGovernanceRead, locale: Locale) -> String? {
+        let pair: (String, String)
+        switch read {
+        case .customers: pair = ("报名过的客户", "People who have signed up")
+        case .stats: pair = ("参与与转化数据", "Participation and conversion")
+        case .settlement: pair = ("收入与结算记录", "Income and settlement records")
+        case .eventTopics: pair = ("新建与管理系列场次", "Create and manage recurring sessions")
+        case .series: pair = ("已发布的系列场次", "Published recurring sessions")
+        case .topics: pair = ("俱乐部运营的主题", "Themes this club runs")
+        case .editions: pair = ("按期次查看与自报", "View and self-report by edition")
+        case .leaderboard: pair = ("成员贡献榜", "Top member contributors")
+        case .posts: pair = ("俱乐部动态内容", "Club posts")
+        case .roles: pair = ("分配与撤销角色", "Assign and revoke roles")
+        case .bans: pair = ("被禁言的成员", "Muted members")
+        case .cases: pair = ("举报与申诉", "Reports and appeals")
+        case .audienceCounts: pair = ("可触达人数", "Audience reach")
+        case .dissolutionBlockers: pair = ("解散前需处理的事项", "Items to clear before dissolving")
+        default: return nil
+        }
+        return ChannelCopy.text(pair.0, pair.1, locale: locale)
     }
     /// One meaningful icon per workspace entry instead of the same chevron on every row.
     static func symbol(_ read: ClubGovernanceRead) -> String {
