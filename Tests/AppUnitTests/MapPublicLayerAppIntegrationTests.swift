@@ -7,11 +7,15 @@ final class MapPublicLayerAppIntegrationTests: XCTestCase {
     private let areaA = RoamSearchArea(coordinate: RoamCoordinate(latitude: 31.23, longitude: 121.47)!, label: "人民广场")
     private let areaB = RoamSearchArea(coordinate: RoamCoordinate(latitude: 31.30, longitude: 121.50)!, label: "五角场")
 
-    private func deployment(_ grants: Set<ReviewedAppDeployment.ReadGrant> = [.manualMap, .publicMapLayers]) throws -> ReviewedAppDeployment {
+    private func deployment(
+        _ grants: Set<ReviewedAppDeployment.ReadGrant> = [.manualMap, .publicMapLayers],
+        baseURL: String = MapPublicLayerAppIntegrationTests.base,
+        approvedBaseURLs: [RegionalMarket: Set<String>]? = nil
+    ) throws -> ReviewedAppDeployment {
         try .init(
             market: .china,
-            baseURL: Self.base,
-            approvedBaseURLs: [.china: [Self.base]],
+            baseURL: baseURL,
+            approvedBaseURLs: approvedBaseURLs ?? [.china: [baseURL]],
             verifiedCapabilities: [.domesticChinaPhone],
             bundleIdentifier: "test.map-public-layers",
             realm: "fixture",
@@ -23,7 +27,9 @@ final class MapPublicLayerAppIntegrationTests: XCTestCase {
     private func makeSession(
         _ wire: PublicLayerWire,
         approvals: PublicLayerApprovals,
-        grants: Set<ReviewedAppDeployment.ReadGrant> = [.manualMap, .publicMapLayers]
+        grants: Set<ReviewedAppDeployment.ReadGrant> = [.manualMap, .publicMapLayers],
+        baseURL: String = MapPublicLayerAppIntegrationTests.base,
+        approvedBaseURLs: [RegionalMarket: Set<String>]? = nil
     ) throws -> AppSession {
         let suite = "map-public-layers-" + UUID().uuidString
         let vault = Vault()
@@ -31,7 +37,7 @@ final class MapPublicLayerAppIntegrationTests: XCTestCase {
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
 
         let root = AppCompositionRoot(
-            deployment: .reviewed(try deployment(grants)),
+            deployment: .reviewed(try deployment(grants, baseURL: baseURL, approvedBaseURLs: approvedBaseURLs)),
             storage: .init(defaults: defaults, tokenStore: { _ in vault }),
             makeTransport: { wire },
             manualMapReadApproval: { approvals.manualApproval($0) },
@@ -50,6 +56,31 @@ final class MapPublicLayerAppIntegrationTests: XCTestCase {
         session.authChannels.cancel()
         await session.authChannels.loginWithPhone(phone: phone, code: "123456")
         XCTAssertNotNil(session.account)
+    }
+
+    func testHiddenPublicLayerRouteIsNotAttached() throws {
+        let shipped = AppSession()
+        XCTAssertNil(shipped.regionalConfiguration)
+        XCTAssertNil(shipped.searchMapReader.publicLayerCoordinator)
+        XCTAssertNil(shipped.makeBankWithdrawalContext())
+
+        let wire = PublicLayerWire()
+        let approvals = PublicLayerApprovals()
+        let china = try makeSession(
+            wire, approvals: approvals,
+            baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            approvedBaseURLs: ReviewedMarketLaunch.approvedBaseURLs
+        )
+        XCTAssertFalse(china.regionalConfiguration?.showsRoute("/api/map/public-layers") == true)
+        XCTAssertNil(china.searchMapReader.publicLayerCoordinator)
+        XCTAssertFalse(china.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true)
+        XCTAssertFalse(china.regionalConfiguration?.showsRoute("/api/cart/list") == true)
+        XCTAssertFalse(china.regionalConfiguration?.showsRoute("/api/registration/pay") == true)
+        XCTAssertNil(china.makeBankWithdrawalContext())
+        XCTAssertNil(ReviewedMarketLaunch.approvedBaseURLs[.unitedStates])
+
+        let fixture = try makeSession(PublicLayerWire(), approvals: PublicLayerApprovals())
+        XCTAssertNotNil(fixture.searchMapReader.publicLayerCoordinator)
     }
 
     func testDefaultClosedWithoutPublicLayerApprovalOrSignedInSession() async throws {

@@ -90,6 +90,17 @@ public enum ChinaReviewedRouteCapability {
         !admitsChinaProductionCall(path)
     }
 
+    /// Whether a feature that calls `path` is offered on this host.
+    /// A nil base cannot call the route, so the feature stays hidden.
+    /// The China production host offers a route only when `admitsChinaProductionCall` is true.
+    /// Password login, bank withdrawal, and virtual goods stay hidden there.
+    /// Any other host is a fixture. This does not invent a United States API URL.
+    public static func offersFeature(_ path: String, baseURL: URL?) -> Bool {
+        guard let baseURL else { return false }
+        if targetsChinaProduction(baseURL) { return admitsChinaProductionCall(path) }
+        return true
+    }
+
     public static func literalKey(_ path: String) -> String {
         var raw = path
         if let query = raw.firstIndex(of: "?") { raw = String(raw[..<query]) }
