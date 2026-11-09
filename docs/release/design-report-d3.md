@@ -1,0 +1,43 @@
+# Design report D3: orders, tickets, wallet, coupons (player, dark)
+
+Shots (dark, accessibility-XL, zh-Hans) in /Users/fanning/chengyin-refs/design-reports/d3/:
+order detail shot-221525, orders list shot-223522, ticket detail shot-223917, coupons shot-224016, wallet fixture shot-224114.
+Compare images: compare-orders-list / compare-tickets / compare-coupons / compare-order-detail (reference left, ours right; ticket and order-detail references are the closest available, not exact).
+
+Fixtures (DEBUG, App/DesignFixtures/OrdersWalletFixtures.swift, via registry): orders-list, orders-empty, order-detail (scenario via existing --uitesting-order-lifecycle-scenario), ticket-list, ticket-detail, coupons, wallet.
+
+## Done
+Shared card/pill/chip/amount-hero/value-row pieces in App/OrderCardComponents.swift; orders list rows (status chip, cover tile, one white "view details" pill), pill filters (white selected), order detail amount hero + label/value groups, ticket list/detail cards, coupon rows and pills. Strings in docs/release/ui-strings-d3.json. No logic changes; identifiers kept.
+
+## Demoted
+Secondary order actions: grey buttons to quiet text rows (same buttons). Ticket order link / team entry: quiet link rows. Nothing removed.
+
+## Checklist
+1 order kept; 2 one primary per screen/card; 3 <=3 other controls; 4 dark; 5 no violet; 6 kit tokens (CY*), but OrderCardComponents is D3-local, not folded into ui/kit components; 7 loading skeleton/empty/error kept from existing screens; 8 XL: orders/coupons/ticket pass (filter rows scroll horizontally); 9 zh verified, EN not re-shot; 10 builds 0 errors.
+
+## Open issues
+- Wallet home hero (CYBalanceHero) NOT done: WalletCommerceViews only has a small edit; the "wallet" fixture is the existing nav-list host, not the home screen.
+- Cover image is a placeholder tile (ProfileOrder has no URL).
+- Orders-list fixture host shows a pre-existing debug inset that overlaps content at XL (fixture artifact, not product UI).
+- Order-detail timeline/refund sections and ticket detail lower sections were not screenshotted; EN and light not shot.
+
+## Round 2 (coordinator review)
+- Order detail: separator inset unified, title one step smaller (amount is focal), primary action pinned at the bottom (first reviewable action; secondary actions stay as quiet outlined rows in the Actions section). Below-fold view: shot-230421 (fixture order-detail-full, scaled), compare-order-detail-fold.png.
+- Wallet home (WalletCommerceHomeView): CYBalanceHero balance, 4 circular quick actions (Assets, Income, Points, Withdrawal records), funds stages, then CYListRow cards with leading icon (Analysis, Invites, Mall, Withdrawal support = demoted from the main list). Gates and destinations unchanged. shot-225943, compare-wallet.png (vs pm05-earnings).
+- Fixture host: Sign out moved into an overflow menu; fixture label is a small footer. These exist only in the DEBUG fixture (the real home has no sign-out).
+- Open: row meta lines omitted (no existing localisation keys; xcstrings not editable); the hero shows "128.5 —" because currency is unknown in the synthetic data (existing formatter behaviour); EN/light still not shot.
+
+## Round 2 (coordinator review)
+Shots now at DEFAULT text size, EN and zh-Hans, in /Users/fanning/chengyin-refs/design-reports/d3/: wallet shot-232400 (EN) / shot-233512 (zh), orders list shot-235021 (EN) / shot-235203 (zh), order detail below the fold shot-233235 (EN) / shot-231321 (zh). Compare: compare-orders-list.png (zh, reference left), compare-orders-list-en.png. Accessibility-XL extra shot: shot-233656 / compare-orders-list-xl.png.
+- Fixture overlay: `designClean` host variant removes the debug counters/Revoke/Switch overlay and shows a small "Synthetic fixture · debug only" banner at the top; wallet fixture has the same banner. UI-test hosts unchanged.
+- Orders card now shows order number, status chip, cover tile, title, date range, location, tabular amount (em dash if unknown) and one white "View details" pill; design fixture rows carry a synthetic number/address/amount.
+- Wallet hub: CYBalanceHero (label, big amount, em dash if unknown), four circular quick actions (Assets, Income details, Points history, Withdrawal history), grouped CYListRow rows (Analysis, invites, Points shop, Withdraw) with leading icon and chevron. Existing destinations only; no gates changed. Fixture adds a synthetic `/api/user/info` balance only when `--design-fixture` is present.
+- Demoted: "Withdrawal parity" and "Sign out" moved into the fixture's overflow (ellipsis) menu; Sign out is no longer in the wallet chrome.
+- Order detail: primary action pinned at the bottom, secondary actions quiet, amount hero kept as focal point, one divider inset. Shot below the fold with `--design-fixture order-detail-bottom` (debug auto-scroll); the top (amount hero) was not re-shot this round.
+- Open: cover is a placeholder tile (ProfileOrder has no image URL); wallet row spacing is a little loose; light theme not applicable (player is dark).
+
+## Round 3 (coordinator review vs mini-program 账户收益)
+- Wallet hub now mirrors the earnings page: centered, larger tabular hero (grey label above, currency symbol before the amount; only a truly unknown currency shows a small grey dash in the symbol slot). Four circular actions: 提现 (white primary, withdrawal support), 收益明细, 积分明细, 更多 (opens a sheet with 分析, invites, 积分商城, 提现记录, 我的资产; nothing removed). New sections: 本月收入明细 (month + 全部 › link, this month's income rows or the empty card 这个月还没有收入) and 我的资产 (icon rows, trailing amounts, em dash while unknown). Strings inline via ChannelCopy (xcstrings not editable). Shot shot-001201 (default size, zh, with --wallet-ledger-empty), compare-wallet.png (reference left).
+- Fixed: month/asset loads were skipped when the first load ran before scenePhase became active; the scenePhase reload now also reloads the month.
+- Orders list rows: design fixture rows all carry the same time range and address (rows 1/3 were missing meta lines); fixture-only change.
+- Open: fixture stages are amountsKnown=false so asset rows show em dash; EN not re-shot.

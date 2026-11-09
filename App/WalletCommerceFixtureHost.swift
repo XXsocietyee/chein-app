@@ -47,6 +47,9 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
                 return (Data(#"{"code":200,"data":[]}"#.utf8), 200)
             }
         }
+        if request.url?.path == "/api/user/info", arguments.contains("--design-fixture") {
+            return (Data(#"{"code":200,"data":{"balance":"128.50","currency":"CNY"}}"#.utf8), 200)
+        }
         guard request.url?.path == "/api/wallet/stages" else { return try await fallback.send(request) }
         reads += 1
         if arguments.contains("--wallet-assets-denied") { throw APIError.notConfigured }
@@ -68,8 +71,25 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
 @MainActor struct WalletCommerceFixtureHost: View {
     static var selected: Bool { ProcessInfo.processInfo.arguments.contains("--wallet-commerce-fixture") }
     @StateObject private var state: WalletFixtureState
-    init() { _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"))) }
+    var designHome = false
+    @State private var showParity = false
+    init(designHome: Bool = false) { self.designHome = designHome; _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"))) }
     var body: some View {
+        if designHome {
+            NavigationStack {
+                WalletCommerceHomeView(reader: state.reader, visibility: Self.fullVisibility, onCooperationFinance: {})
+                    .safeAreaInset(edge: .top) {
+                        Text(verbatim: "Synthetic fixture · debug only").font(.caption2).foregroundStyle(.secondary).padding(.vertical, 2)
+                    }
+                    .toolbar { ToolbarItem(placement: .primaryAction) { Menu { Button("Withdrawal parity") { showParity = true }; Button("Sign out") { state.scope = nil } } label: { Image(systemName: "ellipsis.circle") } } }
+                .navigationDestination(isPresented: $showParity) { WithdrawalParityFixtureHost() }
+            }.id(state.scope)
+        } else { listBody }
+    }
+    private static var fullVisibility: WalletCommerceVisibility {
+        var v = WalletCommerceVisibility(); v.income = true; v.assets = true; v.points = true; v.mall = true; v.withdrawalRecords = true; return v
+    }
+    private var listBody: some View {
         NavigationStack {
             List {
                 Text("Synthetic offline wallet fixture")

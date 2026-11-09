@@ -1,0 +1,6 @@
+{
+  "note": "D3 strings. Inline today via CoreLoopCopy.t(zh, en); move to xcstrings at integration.",
+  "strings": [
+    { "where": "ProfileOrderRow CTA label", "en": "View details", "zh-Hans": "查看详情" }
+  ]
+}

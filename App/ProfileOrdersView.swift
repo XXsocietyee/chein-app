@@ -56,10 +56,17 @@ struct ProfileOrdersView: View {
                             ForEach(visible) { order in
                                 NavigationLink { ProfileOrderDetailView(id: order.id, reader: reader, lifecycleCoordinator: lifecycleCoordinator, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, ticketReader: ticketReader, orderSupport: orderSupport, lookedUpOrderID: lookedUpOrderID, onOpenedOrder: { [owner = filterOwner] in lookupOpenedOrder($0, expectedOwner: owner) }) } label: {
                                     ProfileOrderRow(order: order, historyState: order.historyState(now: clock.date))
-                                }.accessibilityIdentifier("profile.order.\(order.id)")
+                                }
+                                .buttonStyle(QuestifyCardButtonStyle())
+                                .questifyHidesLinkIndicator()
+                                .accessibilityIdentifier("profile.order.\(order.id)")
+                                .padding(.horizontal, CYSpacing.pageHorizontal)
+                                .questifyCardListRow()
                             }
                         }
                     }
+                    .listStyle(.plain)
+                    .scrollContentBackground(.hidden)
                 }
             }
         }
@@ -122,45 +129,84 @@ struct ProfileOrdersView: View {
 private struct ProfileOrderRow: View {
     let order: ProfileOrder
     let historyState: OrderLifecycleState
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
-        // Source row order: 订单号 + state → mode tag → name → time → place → 实付款.
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(alignment: .firstTextBaseline) {
-                if let number = order.registrationNo, !number.isEmpty {
-                    Text("profile.orders.number \(number)").font(.caption).foregroundStyle(.secondary)
+        // Source row order: 订单号 + state → mode tag → name → time → place → 实付款 → 查看详情.
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            header
+            Divider().overlay(CYColor.borderSubtle)
+            content
+            Divider().overlay(CYColor.borderSubtle)
+            footer
+        }
+        .orderCardSurface()
+    }
+    private var header: some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                                                  : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.sm))
+        return layout {
+            if let number = order.registrationNo, !number.isEmpty {
+                Text("profile.orders.number \(number)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .lineLimit(typeSize.isAccessibilitySize ? 3 : 1).minimumScaleFactor(0.8)
+            }
+            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
+            OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
+                            systemImage: Self.symbol(historyState),
+                            emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress)
+        }
+    }
+    private var content: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            if !typeSize.isAccessibilitySize {
+                OrderCoverTile(systemImage: order.sourceMode == .freeExplore ? "figure.walk" : "map")
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
+                switch order.sourceMode {
+                case .cityOrienteering?:
+                    Text("profile.orders.mode.city").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.infoText)
+                case .freeExplore?:
+                    Text("profile.orders.mode.free").font(CYTypography.caption.weight(.bold)).foregroundStyle(CYColor.successText)
+                case nil: EmptyView()
                 }
-                Spacer(minLength: 8)
-                QuestifyStatusBadge(title: LocalizedStringKey("orderLifecycle.state." + historyState.rawValue),
-                                    systemImage: Self.symbol(historyState),
-                                    emphasized: historyState == .pendingPayment || historyState == .notStarted || historyState == .inProgress,
-                                    stateKey: historyState.rawValue)
+                Group {
+                    if let title = order.title, !title.isEmpty { Text(verbatim: title) }
+                    else { Text("profile.orders.untitled") }
+                }
+                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                // Source row shows the owner's MM.dd HH:mm range; otherwise keep the literal date.
+                if let range = ProfileOrderTimeRangeText.text(start: order.startDate, end: order.endDate) {
+                    meta(Text(verbatim: range).monospacedDigit(), "clock").accessibilityIdentifier("profile.orderRow.timeRange")
+                } else if let date = order.participateDate ?? order.startDate, !date.isEmpty {
+                    meta(Text(verbatim: date), "calendar")
+                }
+                if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
+                    meta(Text(verbatim: location), "mappin.and.ellipse")
+                }
             }
-            switch order.sourceMode {
-            case .cityOrienteering?:
-                Text("profile.orders.mode.city").bold().font(.caption)
-            case .freeExplore?:
-                Text("profile.orders.mode.free").bold().font(.caption)
-            case nil: EmptyView()
-            }
-            if let title = order.title, !title.isEmpty { Text(verbatim: title).font(.headline) }
-            else { Text("profile.orders.untitled").font(.headline) }
-            // Source row shows the owner's MM.dd HH:mm range; otherwise keep the literal date.
-            if let range = ProfileOrderTimeRangeText.text(start: order.startDate, end: order.endDate) {
-                Label { Text(verbatim: range).monospacedDigit() } icon: { Image(systemName: "calendar") }.font(.subheadline)
-                    .accessibilityIdentifier("profile.orderRow.timeRange")
-            } else if let date = order.participateDate ?? order.startDate, !date.isEmpty {
-                Label { Text(verbatim: date) } icon: { Image(systemName: "calendar") }.font(.subheadline)
-            }
-            if let location = order.addressName?.trimmingCharacters(in: .whitespaces), !location.isEmpty, location.lowercased() != "null" {
-                Label { Text(verbatim: location) } icon: { Image(systemName: "mappin.and.ellipse") }.font(.subheadline)
-            }
+        }
+    }
+    private func meta(_ text: Text, _ symbol: String) -> some View {
+        Label { text.fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: symbol).frame(width: 16).accessibilityHidden(true) }
+            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+    }
+    private var footer: some View {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+                                                  : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
+        return layout {
             // Source 实付款 ¥x; an unknown amount shows "—", never a currency caveat.
-            HStack(alignment: .firstTextBaseline, spacing: 4) {
-                Text("profile.orders.paid").font(.subheadline)
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                Text("profile.orders.paid").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 Text(verbatim: order.actualPaidAmount.map { "¥" + OwnedOrderMoneyText.string($0) } ?? "—")
-                    .font(.subheadline.weight(.semibold)).monospacedDigit()
+                    .font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(1).minimumScaleFactor(0.6)
             }
-        }.padding(.vertical, 6)
+            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
+            // Visual label only: the whole card is the NavigationLink, so there is a single control.
+            OrderPillLabel(title: Text(verbatim: c.t("查看详情", "View details")))
+        }
     }
     /// The symbol and label carry the state together, never colour alone.
     private static func symbol(_ state: OrderLifecycleState) -> String {
