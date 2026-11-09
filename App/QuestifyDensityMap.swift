@@ -67,11 +67,14 @@ struct QuestifyDensityMap: View {
         VStack(spacing: 8) {
             // Reachable before the Map's accessibility subtree, including when
             // tiles/projection are unavailable or every marker is clustered.
-            QuestifyMapAlternativeList(pins: pins, selectedID: selectedID,
-                interactionID: AnyHashable(ListScope(area: area, interactionID: interactionID)),
-                pinHint: pinHint, onSelect: onSelect.map { callback in
-                    { id in closeExpansion(); callback(id) }
-                })
+            // Full-bleed hosts fold this list toggle into their overflow menu (list display) and sheet rows.
+            if !fillsHeight {
+                QuestifyMapAlternativeList(pins: pins, selectedID: selectedID,
+                    interactionID: AnyHashable(ListScope(area: area, interactionID: interactionID)),
+                    pinHint: pinHint, onSelect: onSelect.map { callback in
+                        { id in closeExpansion(); callback(id) }
+                    })
+            }
             GeometryReader { geometry in
                 MapReader { proxy in
                     let groups = groups(proxy: proxy, size: geometry.size, revision: cameraRevision)

@@ -30,7 +30,6 @@ struct RoamMapView: View {
                 guard matches.count == 1, let item = matches.first else { return }
                 onSelect(item)
             }, fillsHeight: fillsHeight)
-            .padding(.top, fillsHeight ? 64 : 0)
             .accessibilityIdentifier("roam.map")
     }
 }

@@ -58,6 +58,19 @@ struct RoamBrowserView: View {
     @State private var generation = 0
     @State private var retainedRead = RoamRetainedRead()
     @State private var toolbarRoute: RoamBrowserToolbarRoute?
+    @State private var peekCount: Int?
+    /// Map-first layout: map fills the screen, the segmented tabs / search / lists live in the bottom sheet.
+    /// DEBUG screenshots can start expanded with `--design-detent medium|large`; Release always starts collapsed.
+    private static var initialDetent: CYPanelDetent {
+        #if DEBUG
+        let a = ProcessInfo.processInfo.arguments
+        if let i = a.firstIndex(of: "--design-detent"), a.indices.contains(i + 1) {
+            switch a[i + 1] { case "medium": return .medium; case "large": return .large; default: break }
+        }
+        #endif
+        return .compact
+    }
+    private var mapMode: Bool { showsMap && cameraScope != nil }
 
     private var effectiveReader: any RoamReading {
         if layer == .events, let nearbyEventsReader { return nearbyEventsReader }
@@ -137,27 +150,29 @@ struct RoamBrowserView: View {
     var body: some View {
         let reader = effectiveReader
         NavigationStack {
-            VStack(spacing: 0) {
-                RoamHomeTabPicker(selection: $homeTab).padding(.horizontal).padding(.top, 6)
-                if homeTab == .passport {
-                    RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
-                        stampDestination: stampDestination, liveDestination: liveDestination,
-                        toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination,
-                        anniversaryRouteDestination: anniversaryRouteDestination,
-                        privateToolsReader: privateToolsReader)
+            Group {
+                if mapMode {
+                    results
                 } else {
-                    ZStack {
-                        if !reader.isConfigured {
-                            statusWithStartHeader(.notConfigured)
-                        } else if reader.identity == nil {
-                            statusWithStartHeader(.unauthorized)
-                        } else if reader.searchArea == nil {
-                            statusWithStartHeader(.areaRequired)
+                    VStack(spacing: 0) {
+                        RoamHomeTabPicker(selection: $homeTab).padding(.horizontal).padding(.top, 6)
+                        if homeTab == .passport {
+                            passportView
                         } else {
-                            results
+                            ZStack {
+                                if !reader.isConfigured {
+                                    statusWithStartHeader(.notConfigured)
+                                } else if reader.identity == nil {
+                                    statusWithStartHeader(.unauthorized)
+                                } else if reader.searchArea == nil {
+                                    statusWithStartHeader(.areaRequired)
+                                } else {
+                                    results
+                                }
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                         }
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             }
             .sheet(item: $entryCard) { selection in
@@ -187,7 +202,8 @@ struct RoamBrowserView: View {
             }
             .appNavigationTitle("roam.title")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $query, prompt: "roam.search")
+            .toolbar(mapMode ? .hidden : .automatic, for: .navigationBar)
+            .modifier(RoamSearchableUnlessMap(enabled: !mapMode, text: $query))
             .task(id: requestKey) {
                 guard !Task.isCancelled else { return }
                 readOwner.activate(); await load()
@@ -209,42 +225,8 @@ struct RoamBrowserView: View {
                 RoamItemDetailView(item: item, reader: reader, mediaScope: mediaScope, makeExternalMaps: makeExternalMaps, stampDestination: stampDestination, posterDestination: posterDestination, eventDestination: eventDetailDestination(for: item), playerProfileDestination: playerProfileDestination, couponWalletDestination: couponWalletDestination)
             }
             .toolbar {
-                if let onChooseArea {
-                    ToolbarItem(placement:.topBarLeading) {
-                        Button("roam.area.title",systemImage:"mappin.and.ellipse",action:onChooseArea)
-                            .accessibilityIdentifier("roam.chooseArea")
-                    }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { showsMap.toggle() } label: {
-                        Label(LocalizedStringKey(showsMap ? "roam.listOnly" : "roam.showMap"), systemImage: showsMap ? "list.bullet" : "map")
-                    }
-                    .accessibilityIdentifier("roam.display.toggle")
-                }
-                // More than two actions go in one menu; every destination stays reachable.
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        if let onOpenAccount {
-                            Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
-                                .accessibilityIdentifier("roam.account.open")
-                        }
-                        if experienceReader != nil {
-                            Button { toolbarRoute = .experience } label: {
-                                Label("roam.experience.title", systemImage: "book.closed")
-                            }.accessibilityIdentifier("roam.experience.open")
-                        }
-                        if cityDestination != nil {
-                            Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
-                        }
-                        if nearbyTeamsDestination != nil {
-                            Button { toolbarRoute = .nearbyTeams } label: { Label("nearby.title", systemImage: "person.3") }
-                        }
-                        Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
-                            .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)
-                            .accessibilityIdentifier("roam.refresh")
-                    } label: {
-                        Label("roam.toolbar.more", systemImage: "ellipsis.circle")
-                    }
+                    overflowMenu { Label("roam.toolbar.more", systemImage: "ellipsis.circle") }
                 }
             }
             .navigationDestination(item: $toolbarRoute) { route in
@@ -256,6 +238,89 @@ struct RoamBrowserView: View {
                 case .city: cityDestination?()
                 case .nearbyTeams: nearbyTeamsDestination?()
                 }
+            }
+        }
+    }
+    private var passportView: some View {
+        RoamHomePassportView(reader: experienceReader, albumMetadataReader: albumMetadataReader,
+            stampDestination: stampDestination, liveDestination: liveDestination,
+            toolsReader: passportToolsReader ?? toolsReader, discoverDestination: nearbyTeamsDestination,
+            anniversaryRouteDestination: anniversaryRouteDestination,
+            privateToolsReader: privateToolsReader)
+    }
+    /// The ONE overflow menu: area, list/map display, account, passport tools, city, nearby teams, refresh.
+    private func overflowMenu<L: View>(@ViewBuilder label: () -> L) -> some View {
+        let reader = effectiveReader
+        return Menu {
+            if let onChooseArea {
+                Button("roam.area.title", systemImage: "mappin.and.ellipse", action: onChooseArea)
+                    .accessibilityIdentifier("roam.chooseArea")
+            }
+            Button { showsMap.toggle() } label: {
+                Label(LocalizedStringKey(showsMap ? "roam.listOnly" : "roam.showMap"), systemImage: showsMap ? "list.bullet" : "map")
+            }.accessibilityIdentifier("roam.display.toggle")
+            if let onOpenAccount {
+                Button("account.title", systemImage: "person.crop.circle", action: onOpenAccount)
+                    .accessibilityIdentifier("roam.account.open")
+            }
+            if experienceReader != nil {
+                Button { toolbarRoute = .experience } label: {
+                    Label("roam.experience.title", systemImage: "book.closed")
+                }.accessibilityIdentifier("roam.experience.open")
+            }
+            if cityDestination != nil {
+                Button { toolbarRoute = .city } label: { Label("city.read.title", systemImage: "building.2") }
+            }
+            if nearbyTeamsDestination != nil {
+                Button { toolbarRoute = .nearbyTeams } label: { Label("nearby.title", systemImage: "person.3") }
+            }
+            Button { startLoad() } label: { Label("action.retry", systemImage: "arrow.clockwise") }
+                .disabled(loading || !reader.isConfigured || reader.identity == nil || reader.searchArea == nil)
+                .accessibilityIdentifier("roam.refresh")
+        } label: { label() }
+        .accessibilityLabel(Text("roam.toolbar.more"))
+        .accessibilityIdentifier("roam.more")
+    }
+    private var searchField: some View {
+        HStack(spacing: CYSpacing.sm) {
+            Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            TextField("roam.search", text: $query).textFieldStyle(.plain).submitLabel(.search)
+                .autocorrectionDisabled().textInputAutocapitalization(.never)
+                .accessibilityIdentifier("roam.search")
+            if !query.isEmpty {
+                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.textTertiary) }
+                    .buttonStyle(.plain).accessibilityLabel(Text("roam.search.clear"))
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+        .background(Color.white.opacity(0.09), in: Capsule(style: .continuous))
+        .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.sm)
+    }
+    /// Collapsed sheet line: "Nearby activities N" (em dash while the count is unknown).
+    private func peekLine(count: Int?) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            Text(entryReader != nil ? "roam.w208.entry.title" : "roam.browse.header")
+                .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+            Spacer(minLength: 0)
+            Group { if let count { Text(count, format: .number) } else { Text(verbatim: "—") } }
+                .font(CYTypography.bodyMedium.monospacedDigit()).foregroundStyle(CYColor.textSecondary)
+            Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary)
+        }
+        .padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roam.sheet.peek")
+    }
+    @ViewBuilder private var mapPanel: some View {
+        let renderedKey = presentationKey
+        let renderedItems = visibleItems
+        VStack(spacing: 0) {
+            RoamHomeTabPicker(selection: $homeTab).padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.sm)
+            if homeTab == .passport {
+                passportView
+            } else {
+                searchField
+                resultsList(renderedKey: renderedKey, renderedItems: renderedItems)
             }
         }
     }
@@ -277,7 +342,7 @@ struct RoamBrowserView: View {
         }
         if let entryReader {
             RoamEntryPeekView(reader: entryReader, teams: entryTeams, onSignIn: onOpenAccount, onOpenMap: nearbyTeamsDestination,
-                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onOpen: { _ in })
+                onChooseArea: onChooseArea, onBeginRead: { entryCard = nil }, onOpenSelection: { entryCard = $0 }, onCount: { peekCount = $0 }, onOpen: { _ in })
         }
     }
     private func startDestination() -> AnyView {
@@ -340,29 +405,52 @@ struct RoamBrowserView: View {
         // Map-first: full-bleed map, glass area pill, the white GO circle, and the existing list
         // (intro cards, controls, rows) in a three-detent panel. List-only keeps the plain list.
         return Group {
-            if showsMap, let scope = cameraScope {
-                CYMapScaffold(detent: .medium, map: {
+            if mapMode, let scope = cameraScope {
+                let count = entryReader != nil ? peekCount : (loadedKey == requestKey && !loading && issue == nil ? renderedItems.count : nil)
+                CYMapScaffold(detent: Self.initialDetent, peek: AnyView(peekLine(count: count)), map: {
                     // Keeps its camera state through loading, errors and empty filters; pins follow visibleItems.
-                    RoamMapView(area: scope.area, items: renderedItems, selectedID: selected?.id,
-                        interactionID: AnyHashable(renderedKey), fillsHeight: true, onSelect: { item in
-                        select(item, key: renderedKey, snapshot: renderedItems)
-                    }).id(scope)
+                    #if DEBUG
+                    if reader.isOfflineExample { CYMapStreetGrid() } else { roamMap(scope: scope, key: renderedKey, items: renderedItems) }
+                    #else
+                    roamMap(scope: scope, key: renderedKey, items: renderedItems)
+                    #endif
                 }, controls: {
-                    if !scope.area.label.isEmpty {
-                        CYGlassCapsule { Label { Text(verbatim: scope.area.label) } icon: { Image(systemName: "mappin.and.ellipse") }
-                            .font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1) }
-                            .accessibilityIdentifier("roam.map.areaPill")
+                    // Title top-left; the ONE overflow menu top-right (area, list, account, passport tools, refresh).
+                    HStack(alignment: .center) {
+                        Text("roam.title").font(.system(.largeTitle).weight(.heavy)).foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.5), radius: 6).accessibilityAddTraits(.isHeader)
+                        Spacer(minLength: 0)
+                        overflowMenu { CYGlassLabel(systemImage: "ellipsis") }
                     }
                 }, floating: {
-                    NavigationLink { startDestination() } label: { CYGoLabel() }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text("GO"))
-                        .accessibilityIdentifier("roam.go")
-                }, panel: { resultsList(renderedKey: renderedKey, renderedItems: renderedItems) })
+                    // Mini-program layout: rules (info) · GO · open map. Three floating controls, no more.
+                    HStack(spacing: CYSpacing.xxl) {
+                        NavigationLink { RoamPreflightRulesView() } label: { CYGlassLabel(systemImage: "info") }
+                            .buttonStyle(.plain).accessibilityLabel(Text("roam.preflightRules.availability"))
+                            .accessibilityIdentifier("roam.rules")
+                        NavigationLink { startDestination() } label: { CYGoLabel() }
+                            .buttonStyle(.plain)
+                            .accessibilityLabel(Text("GO"))
+                            .accessibilityIdentifier("roam.go")
+                        if let nearbyTeamsDestination {
+                            NavigationLink { nearbyTeamsDestination() } label: { CYGlassLabel(systemImage: "map") }
+                                .buttonStyle(.plain).accessibilityLabel(Text("nearby.title"))
+                                .accessibilityIdentifier("roam.openMap")
+                        } else {
+                            CYGlassLabel(systemImage: "map").opacity(0).accessibilityHidden(true)
+                        }
+                    }
+                }, panel: { mapPanel })
             } else {
                 resultsList(renderedKey: renderedKey, renderedItems: renderedItems)
             }
         }
+    }
+    private func roamMap(scope: RoamMapCameraScope, key: PresentationKey, items: [RoamMapItem]) -> some View {
+        RoamMapView(area: scope.area, items: items, selectedID: selected?.id,
+            interactionID: AnyHashable(key), fillsHeight: true, onSelect: { item in
+            select(item, key: key, snapshot: items)
+        }).id(scope)
     }
     private func resultsList(renderedKey: PresentationKey, renderedItems: [RoamMapItem]) -> some View {
         List {
@@ -416,9 +504,11 @@ struct RoamBrowserView: View {
                     .accessibilityIdentifier("roam.row.\(item.id)")
             }
         }
+        .modifier(RoamMapListStyle(plain: mapMode))
+        .listRowBackground(Color.clear)
         .scrollContentBackground(.hidden)
-        .background(showsMap && cameraScope != nil ? Color.clear : CYColor.bgPage)
-        .contentMargins(.bottom, showsMap ? 88 : 0, for: .scrollContent)
+        .background(mapMode ? cyMapPanelColor : CYColor.bgPage)
+        .contentMargins(.bottom, mapMode ? 24 : 0, for: .scrollContent)
         .refreshable { await load() }
         .accessibilityIdentifier("roam.content")
     }
@@ -506,4 +596,20 @@ struct RoamItemRow: View {
 private enum RoamBrowserToolbarRoute: Hashable, Identifiable {
     case experience, city, nearbyTeams
     var id: Self { self }
+}
+
+/// System `.searchable` only outside the map layout; on the map the sheet pins its own search field.
+private struct RoamSearchableUnlessMap: ViewModifier {
+    let enabled: Bool
+    @Binding var text: String
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled { content.searchable(text: $text, prompt: "roam.search") } else { content }
+    }
+}
+
+private struct RoamMapListStyle: ViewModifier {
+    let plain: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if plain { content.listStyle(.plain) } else { content }
+    }
 }

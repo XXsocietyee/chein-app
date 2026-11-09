@@ -6,8 +6,8 @@ struct CYImageCard: View {
     /// `.hero` is full-width and tall (16:10); `.shelf` is a compact 3:2 card, 280pt wide, for horizontal shelves.
     enum Style { case hero, shelf }
     private let style: Style
-    private let title: LocalizedStringKey
-    private let meta: LocalizedStringKey?
+    private let title: Text
+    private let meta: Text?
     private let imageURL: URL?
     private let aspectRatio: CGFloat
 
@@ -15,10 +15,19 @@ struct CYImageCard: View {
 
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
+        self.title = Text(title)
+        self.meta = meta.map { Text($0) }
+        self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
+        self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
+    }
+
+    /// Server-supplied title (shown verbatim) and a pre-composed meta `Text`, for real data rows.
+    init(title: Text, meta: Text?, imageURL: URL? = nil, style: Style = .hero) {
+        self.style = style
         self.title = title
         self.meta = meta
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
-        self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
+        self.aspectRatio = style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0
     }
 
     var body: some View {
@@ -27,11 +36,11 @@ struct CYImageCard: View {
             .overlay { cover }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    Text(title)
+                    title
                         .font(CYTypography.sectionTitle)
                         .lineLimit(2)
                     if let meta {
-                        Text(meta).font(CYTypography.meta).opacity(0.85).lineLimit(1)
+                        meta.font(CYTypography.meta).opacity(0.85).lineLimit(1)
                     }
                 }
                 .foregroundStyle(.white)

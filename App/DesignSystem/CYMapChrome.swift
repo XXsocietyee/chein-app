@@ -4,13 +4,28 @@ import SwiftUI
 // glass controls, the white GO circle, a persistent detent sheet and a static placeholder map
 // used by debug fixtures and empty states. Real screens keep MapKit underneath.
 
+/// Artwork of a round glass control (also used as a NavigationLink / Menu label).
+struct CYGlassLabel: View {
+    let systemImage: String
+    @ScaledMetric(relativeTo: .body) private var scaled: CGFloat = 48
+    private var size: CGFloat { min(scaled, 60) }
+    var body: some View {
+        Image(systemName: systemImage)
+            .font(.system(.body).weight(.semibold))
+            .foregroundStyle(.white)
+            .frame(width: size, height: size)
+            .background(Color.black.opacity(0.62), in: Circle())
+            .background(.ultraThinMaterial, in: Circle())
+            .overlay(Circle().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+            .contentShape(Circle())
+    }
+}
+
 /// Round 44pt (scaled) glass control floating over a map. Max three per screen (owner rule).
 struct CYGlassButton: View {
     private let systemImage: String
     private let label: LocalizedStringKey
     private let action: () -> Void
-    @ScaledMetric(relativeTo: .body) private var scaled: CGFloat = 48
-    private var size: CGFloat { min(scaled, 60) }
 
     init(systemImage: String, label: LocalizedStringKey, action: @escaping () -> Void) {
         self.systemImage = systemImage
@@ -19,15 +34,7 @@ struct CYGlassButton: View {
     }
 
     var body: some View {
-        Button(action: action) {
-            Image(systemName: systemImage)
-                .font(.system(.body).weight(.semibold))
-                .foregroundStyle(.white)
-                .frame(width: size, height: size)
-                .background(.ultraThinMaterial, in: Circle())
-                .overlay(Circle().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
-                .contentShape(Circle())
-        }
+        Button(action: action) { CYGlassLabel(systemImage: systemImage) }
         .buttonStyle(.plain)
         .accessibilityLabel(Text(label))
     }
@@ -115,6 +122,43 @@ struct CYMapPlaceholder: View {
     }
 }
 
+#if DEBUG
+/// DEBUG-only street-grid stand-in for a tile-less simulator map, so layout can be judged. Never in Release.
+struct CYMapStreetGrid: View {
+    var body: some View {
+        ZStack {
+            Color(red: 0.13, green: 0.14, blue: 0.155)
+            Canvas { ctx, size in
+                let block = Color(red: 0.16, green: 0.175, blue: 0.19)
+                let street = Color(red: 0.30, green: 0.32, blue: 0.35)
+                let avenue = Color(red: 0.42, green: 0.40, blue: 0.30)
+                ctx.fill(Path(CGRect(x: size.width * 0.52, y: size.height * 0.12, width: size.width * 0.34, height: size.height * 0.16)), with: .color(Color(red: 0.12, green: 0.24, blue: 0.17)))
+                ctx.fill(Path(CGRect(x: 0, y: size.height * 0.5, width: size.width * 0.26, height: size.height * 0.2)), with: .color(block))
+                let step: CGFloat = 64
+                var x: CGFloat = -10
+                var i = 0
+                while x < size.width + step {
+                    var p = Path(); p.move(to: CGPoint(x: x, y: 0)); p.addLine(to: CGPoint(x: x + 14, y: size.height))
+                    ctx.stroke(p, with: .color(i % 4 == 0 ? avenue : street), lineWidth: i % 4 == 0 ? 7 : 3); x += step; i += 1
+                }
+                var y: CGFloat = 20
+                i = 0
+                while y < size.height + step {
+                    var p = Path(); p.move(to: CGPoint(x: 0, y: y)); p.addLine(to: CGPoint(x: size.width, y: y - 18))
+                    ctx.stroke(p, with: .color(i % 3 == 0 ? avenue : street), lineWidth: i % 3 == 0 ? 7 : 3); y += step * 0.9; i += 1
+                }
+                var diag = Path(); diag.move(to: CGPoint(x: 0, y: size.height * 0.9)); diag.addLine(to: CGPoint(x: size.width, y: size.height * 0.25))
+                ctx.stroke(diag, with: .color(avenue), lineWidth: 9)
+            }
+            VStack { Text(verbatim: "DEBUG placeholder map (simulator has no tiles)")
+                .font(.system(size: 10, design: .monospaced)).foregroundStyle(Color.white.opacity(0.4)).padding(.top, 150); Spacer() }
+        }
+        .ignoresSafeArea()
+        .accessibilityHidden(true)
+    }
+}
+#endif
+
 /// Pin used by placeholder maps: white label callout like the mini-program search map.
 struct CYMapCallout: View {
     let text: String
@@ -169,7 +213,11 @@ extension View {
 
 // MARK: - Map scaffold (real screens)
 
+/// Fill of the map panel; content inside the panel stays clear so header and list share one surface.
+let cyMapPanelColor = Color.black
+
 /// Panel height as a fraction of the available height. The grabber drags between them.
+/// With a `peek` line the compact detent is only the grabber + that one line.
 enum CYPanelDetent: CaseIterable { case compact, medium, large
     var fraction: CGFloat { switch self { case .compact: 0.30; case .medium: 0.58; case .large: 0.94 } }
 }
@@ -178,40 +226,73 @@ enum CYPanelDetent: CaseIterable { case compact, medium, large
 /// screen's list. `floating` sits just above the panel (the white GO circle / the one primary action).
 /// Used by real screens whose existing sheets (details, entries) must keep working, so the panel is
 /// in-view and never a second system sheet. The list inside keeps scrolling; only the grabber drags.
+///
+/// `peek`: when given, the compact detent is a small bar (grabber + this one line) and the panel
+/// content stays mounted but hidden there; `floating` is only shown at the compact detent.
 struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: View {
     private let map: Map, controls: Controls, floating: Floating, panel: Panel
+    private let peek: AnyView?
     private let allowed: [CYPanelDetent]
     @State private var detent: CYPanelDetent
     @GestureState private var drag: CGFloat = 0
     @Environment(\.dynamicTypeSize) private var type
+    @ScaledMetric(relativeTo: .body) private var peekLine: CGFloat = 52
 
-    init(detent: CYPanelDetent = .medium, allowed: [CYPanelDetent] = CYPanelDetent.allCases,
+    init(detent: CYPanelDetent = .medium, allowed: [CYPanelDetent] = CYPanelDetent.allCases, peek: AnyView? = nil,
          @ViewBuilder map: () -> Map, @ViewBuilder controls: () -> Controls,
          @ViewBuilder floating: () -> Floating, @ViewBuilder panel: () -> Panel) {
         self.map = map(); self.controls = controls(); self.floating = floating(); self.panel = panel()
         self.allowed = allowed
+        self.peek = peek
         _detent = State(initialValue: detent)
     }
-    private var effective: CYPanelDetent { type.isAccessibilitySize && detent == .compact ? .medium : detent }
+    private var effective: CYPanelDetent { peek == nil && type.isAccessibilitySize && detent == .compact ? .medium : detent }
+    private func height(_ d: CYPanelDetent, total: CGFloat) -> CGFloat {
+        if d == .compact, peek != nil { return min(28 + min(peekLine, 120), total * 0.3) }
+        return total * d.fraction
+    }
+    private var pool: [CYPanelDetent] { allowed.isEmpty ? CYPanelDetent.allCases : allowed }
+    private var isPeeking: Bool { peek != nil && effective == .compact }
 
     var body: some View {
         GeometryReader { geo in
-            let base = geo.size.height * effective.fraction
-            let height = min(max(base - drag, geo.size.height * 0.22), geo.size.height * 0.96)
+            let base = height(effective, total: geo.size.height)
+            let low = peek == nil ? geo.size.height * 0.22 : height(.compact, total: geo.size.height)
+            let panelHeight = min(max(base - drag, low), geo.size.height * 0.96)
             ZStack(alignment: .bottom) {
-                map.frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+                map.frame(maxWidth: .infinity, maxHeight: .infinity).clipped().ignoresSafeArea()
                 VStack(alignment: .leading, spacing: 0) {
                     controls.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm)
                     Spacer(minLength: 0)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-                floating.padding(.bottom, height + CYSpacing.md)
+                floating.padding(.bottom, panelHeight + CYSpacing.lg)
+                    .opacity(peek != nil && !isPeeking ? 0 : 1)
+                    .allowsHitTesting(!(peek != nil && !isPeeking))
+                    .accessibilityHidden(peek != nil && !isPeeking)
+                    .animation(.snappy, value: isPeeking)
                 VStack(spacing: 0) {
                     grabber(total: geo.size.height)
-                    panel.frame(maxWidth: .infinity, maxHeight: .infinity)
+                    ZStack(alignment: .top) {
+                        panel.frame(maxWidth: .infinity, maxHeight: .infinity).frame(height: isPeeking ? geo.size.height * 0.58 : nil)
+                            .opacity(isPeeking ? 0 : 1)
+                            .allowsHitTesting(!isPeeking)
+                            .accessibilityHidden(isPeeking)
+                        if isPeeking, let peek {
+                            peek.contentShape(Rectangle())
+                                .onTapGesture { withAnimation(.snappy) { detent = .medium } }
+                                .accessibilityAddTraits(.isButton)
+                                .accessibilityHint(Text("map.panel.size"))
+                        }
+                    }
+                    .clipped()
                 }
-                .frame(height: height)
-                .background(Color(red: 0.06, green: 0.06, blue: 0.066), in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous))
-                .shadow(color: .black.opacity(0.4), radius: 18, y: -4)
+                .frame(height: panelHeight, alignment: .top)
+                .background(alignment: .top) {
+                    UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous)
+                        .fill(cyMapPanelColor)
+                        .shadow(color: .black.opacity(0.4), radius: 18, y: -4)
+                        .ignoresSafeArea(edges: .bottom)
+                }
             }
         }
     }
@@ -223,14 +304,12 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
             .gesture(DragGesture(minimumDistance: 4)
                 .updating($drag) { value, state, _ in state = value.translation.height }
                 .onEnded { value in
-                    let target = (total * effective.fraction - value.translation.height) / max(total, 1)
-                    let pool = allowed.isEmpty ? CYPanelDetent.allCases : allowed
-                    withAnimation(.snappy) { detent = pool.min { abs($0.fraction - target) < abs($1.fraction - target) } ?? .medium }
+                    let target = height(effective, total: total) - value.translation.height
+                    withAnimation(.snappy) { detent = pool.min { abs(height($0, total: total) - target) < abs(height($1, total: total) - target) } ?? .medium }
                 })
             .accessibilityElement()
             .accessibilityLabel(Text("map.panel.size"))
             .accessibilityAdjustableAction { direction in
-                let pool = allowed.isEmpty ? CYPanelDetent.allCases : allowed
                 guard let i = pool.firstIndex(of: detent) else { return }
                 let next = direction == .increment ? min(i + 1, pool.count - 1) : max(i - 1, 0)
                 withAnimation(.snappy) { detent = pool[next] }
