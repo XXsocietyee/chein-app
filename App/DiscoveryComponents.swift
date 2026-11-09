@@ -184,3 +184,22 @@ extension DiscoveryVerification {
         }
     }
 }
+
+/// Kit styling for system List sections on the detail pages: surface row background, hairline separators, kit header.
+struct DiscoveryCardRow: ViewModifier {
+    @Environment(\.cyPalette) private var palette
+    func body(content: Content) -> some View {
+        content.listRowBackground(palette.bgSurface).listRowSeparatorTint(palette.borderSubtle)
+            .foregroundStyle(palette.textPrimary)
+    }
+}
+extension View {
+    func discoveryCardRow() -> some View { modifier(DiscoveryCardRow()) }
+}
+struct DiscoverySectionHeader: View {
+    let title: LocalizedStringKey
+    init(_ title: LocalizedStringKey) { self.title = title }
+    var body: some View {
+        CYSectionHeader(title).textCase(nil).padding(.top, CYSpacing.sm)
+    }
+}

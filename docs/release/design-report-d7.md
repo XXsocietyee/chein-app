@@ -30,3 +30,10 @@ Shots in /Users/fanning/chengyin-refs/design-reports/d7/ named `r2-<page>-en.png
 - Projects list with real rows, skeleton and empty state not captured (fixture has no data source); locked/quota sheet fixtures not shot; zh-Hans for the new forms not shot.
 - Not restyled: topic preview detail body, template detail sections (system List rows), other forms (cover, template selection, time range sheet).
 - No side-by-side composite image tool available (no PIL/ImageMagick); the pair is the reference PNG above vs r2-projects-en.png, compared by eye.
+
+## Round 3 (real views; shots in chengyin-refs/design-reports/d7/, contact-055403.png, batch-r3-*.png)
+- zh-Hans shots: quick, activity, template detail, topic preview (batch-r3-*-zh). EN topic preview, EN+zh My projects.
+- XL bottom bar: `ActivityPublishingWizardNavigation` is now one compact row at every size (Dynamic Type capped at xxxLarge on the bar only); form above still scrolls. batch-r3-activity-xl.png. The form body itself still scales to AX XL, wizard step labels still truncate there.
+- Template detail sections + topic preview body: kit section headers (`DiscoverySectionHeader`), surface rows (`discoveryCardRow`), CYTypography/palette tokens, warning token instead of `.orange`, rating as data numeral. New fixture `topic-preview`.
+- My projects real states: DEBUG-only `designPreview` on `PublishingProjectsView` + fixtures `publish-projects-rows|empty|loading` (rows titled "Sample ... (debug fixture)"). Rows, empty, skeleton verified in EN, rows in zh-Hans.
+- Left: template detail zh shows English because the synthetic fixture content is English; other forms (cover, template selection, time range sheet) not restyled; no tests run; mini-program side-by-side compare not rebuilt this round.

@@ -8,6 +8,10 @@ import SwiftUI
     let account: PublishingSession?
     var openResource: (PublishedResource) -> Void
     var readOnly = false
+    #if DEBUG
+    /// Design fixture only (DEBUG): "rows" | "empty" | "loading" bypasses the service read with synthetic projects.
+    var designPreview: String? = nil
+    #endif
     @State private var type = "all"
     @State private var state = "all"
     @State private var owner = "all"
@@ -164,6 +168,12 @@ import SwiftUI
     func openProject(_ resource: PublishedResource) { guard !readOnly else { return }; openResource(resource) }
     private func load() async {
         generation += 1; let stamp = generation; if let review { service?.cancel(review) }; review = nil; busy = true; failed = false; rows = []
+        #if DEBUG
+        if let designPreview {
+            if designPreview == "rows" { rows = PublishDesignFixtures.sampleProjects; total = rows.count }
+            busy = designPreview == "loading"; return
+        }
+        #endif
         guard let service, let account else { busy = false; failed = true; return }
         do { requests = try service.stateRequests(session: account); requestAccount = account; let page = try PublishingContracts.decodeProjects(await service.read(query, session: account)); guard stamp == generation else { return }; rows = page.rows; total = page.total; unknown = page.unknownRows.count; busy = false }
         catch { guard stamp == generation else { return }; busy = false; failed = true }

@@ -80,7 +80,7 @@ struct DiscoveryTemplateDetailView: View {
                     } else {
                         textSection("discovery.materials", text: item.requiredMaterials)
                         if let verification = item.verification {
-                            Section("discovery.verification") { Text(verification.label) }
+                            Section { Text(verification.label).font(CYTypography.body) } header: { DiscoverySectionHeader("discovery.verification") }.discoveryCardRow()
                         }
                     }
                 }
@@ -107,7 +107,8 @@ struct DiscoveryTemplateDetailView: View {
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section(title) { Text(text).textSelection(.enabled) }
+            Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled) } header: { DiscoverySectionHeader(title) }
+                .discoveryCardRow()
         }
     }
     private func reload() async {
@@ -164,6 +165,7 @@ struct DiscoveryTemplateDetailView: View {
 /// Uses only the server's public template projection. Included games are inert previews.
 @MainActor
 struct DiscoveryTopicTemplatePreview: View {
+    @Environment(\.cyPalette) private var palette
     @State private var detail: PublicTopicTemplateCoordinator
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
     var body: some View {
@@ -180,18 +182,18 @@ struct DiscoveryTopicTemplatePreview: View {
                     Section {
                         if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
                         DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic")
-                            .font(.system(.largeTitle, design: .default).weight(.heavy)).accessibilityAddTraits(.isHeader)
+                            .font(.system(.largeTitle, design: .default).weight(.heavy)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
                         optionalText(item.subtitle)
                         TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
                         if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
                         if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds") { TopicXcxDurationText(seconds: seconds) } }
                         // Topic templates have no venue (mini-program topic-detail shows no address) and no version label.
-                    }
-                    if let text = item.description, !text.isEmpty { Section("discovery.introduction") { Text(text) } }
-                    if let text = item.playerPromise, !text.isEmpty { Section("discovery.playerPromise") { Text(text) } }
+                    }.discoveryCardRow()
+                    if let text = item.description, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.introduction") }.discoveryCardRow() }
+                    if let text = item.playerPromise, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.playerPromise") }.discoveryCardRow() }
                     ForEach(item.chapters) { chapter in
                         Section {
-                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(.headline)
+                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(CYTypography.cardTitle)
                             optionalText(chapter.description)
                             if let count = chapter.nodeCount { LabeledContent("discovery.publicStations", value: String(count)) }
                             if !chapter.routeShape.isEmpty {
@@ -202,7 +204,7 @@ struct DiscoveryTopicTemplatePreview: View {
                             // The public endpoint intentionally withholds node IDs.
                             ForEach(Array(chapter.nodes.enumerated()), id: \.offset) { _, node in
                                 VStack(alignment: .leading, spacing: 6) {
-                                    DiscoveryTitle(text: node.name ?? "", fallback: "discovery.publicStation").font(.subheadline.bold())
+                                    DiscoveryTitle(text: node.name ?? "", fallback: "discovery.publicStation").font(CYTypography.label)
                                     optionalText(node.hookTeaser)
                                     optionalText(node.addressName)
                                     optionalText(node.interactionType)
@@ -210,29 +212,29 @@ struct DiscoveryTopicTemplatePreview: View {
                             }
                             if let status = chapter.recruitStatus {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text("discovery.publicRecruitment").font(.headline)
+                                    Text("discovery.publicRecruitment").font(CYTypography.cardTitle)
                                     optionalText(status.state)
                                     if let count = status.remainingMerchantCount {
                                         LabeledContent("discovery.publicRemaining", value: String(count))
                                     }
                                 }.accessibilityIdentifier("discovery.publicRecruitment")
                             }
-                        }
+                        }.discoveryCardRow()
                     }
                     if !item.games.isEmpty {
-                        Section("discovery.publicGames") {
+                        Section {
                             ForEach(item.games) { game in
                                 VStack(alignment: .leading, spacing: 6) {
-                                    DiscoveryTitle(text: game.title ?? "", fallback: "discovery.untitledPlay").font(.headline)
+                                    DiscoveryTitle(text: game.title ?? "", fallback: "discovery.untitledPlay").font(CYTypography.cardTitle)
                                     optionalText(game.players)
                                     optionalText(game.difficulty)
                                     optionalText(game.interactionType)
                                 }
                             }
-                        }
+                        } header: { DiscoverySectionHeader("discovery.publicGames") }.discoveryCardRow()
                     }
                     if item.chapters.isEmpty && item.games.isEmpty {
-                        Section { Text("discovery.publicEmpty") }
+                        Section { Text("discovery.publicEmpty").font(CYTypography.body).foregroundStyle(palette.textSecondary) }.discoveryCardRow()
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -247,7 +249,7 @@ struct DiscoveryTopicTemplatePreview: View {
         .onDisappear { detail.clear() }
     }
     @ViewBuilder private func optionalText(_ value: String?) -> some View {
-        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).textSelection(.enabled) }
+        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).font(CYTypography.meta).foregroundStyle(palette.textSecondary).textSelection(.enabled) }
     }
 }
 

@@ -72,14 +72,11 @@ import SwiftUI
     let onBack: () -> Void
     let onNext: () -> Void
     let onReview: () -> Void
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(spacing: CYSpacing.sm) { primary(current); secondary(current) }
-        } else {
-            HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
-        }
+        // Pinned bar chrome: one compact row at every size (type capped), the form above keeps scrolling.
+        HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
     }
     @ViewBuilder private func secondary(_ current: Int) -> some View {
         if current == 0 {
