@@ -158,7 +158,7 @@ struct CYDomainCardModifier: ViewModifier {
         let shape = RoundedRectangle(cornerRadius: radius, style: .continuous)
         content
             .padding(padding)
-            .background(shape.fill(palette.cardFill))
+            .background(shape.fill(palette.cardFill).shadow(color: palette.cardShadowColor, radius: 2, x: 0, y: 1))
             .overlay(
                 shape.strokeBorder(
                     LinearGradient(
@@ -169,7 +169,6 @@ struct CYDomainCardModifier: ViewModifier {
                     lineWidth: 0.5
                 )
             )
-            .shadow(color: palette.cardShadowColor, radius: 2, x: 0, y: 1)
     }
 }
 
