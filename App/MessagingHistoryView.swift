@@ -378,7 +378,7 @@ private struct MessagingBubble: View {
                     .frame(width: avatarSize, height: avatarSize)
                     .clipShape(Circle())
             }
-            ChatMessageBubble(isOwn: isOwn, timestamp: ChatDisplay.stamp(message.createdAt)) {
+            ChatMessageBubble(isOwn: isOwn, timestamp: ChatDisplay.stamp(message.createdAt) == "—" ? nil : ChatDisplay.stamp(message.createdAt)) {
                 if isGroup && !isOwn {
                     MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
                 }

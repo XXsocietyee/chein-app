@@ -87,7 +87,7 @@ struct IMInboxRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             CYCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
-                .frame(width: avatarSize, height: avatarSize)
+                .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
                 .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
@@ -95,6 +95,7 @@ struct IMInboxRow: View {
                 layout {
                     MessagingConversationName(conversation: conversation)
                         .font(.body.weight(.semibold)).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+                        .layoutPriority(2)
                     HStack(spacing: 6) {
                         if conversation.kind == .merchant {
                             CYStatusChip("im.inbox.officialTag", tone: .neutral)
