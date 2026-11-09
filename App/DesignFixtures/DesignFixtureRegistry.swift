@@ -1,5 +1,6 @@
 #if DEBUG
 import SwiftUI
+import AuthenticationServices
 
 /// Debug-only registry behind the launch argument `--design-fixture <name>`.
 /// Screen workers: add ONE `case` per fixture in `make(_:)` that returns your `App/DesignFixtures/<Screen>Fixture.swift` view.
@@ -95,7 +96,15 @@ enum DesignFixtureRegistry {
 enum E4Fixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
-        case "e4-auth-phone": return wrap(E4AuthPhoneFixture())
+        case "e4-auth-phone": return wrap(E4AuthPhoneFixture(stage: .codeSent))
+        case "e4-auth-phone-error": return wrap(E4AuthPhoneFixture(stage: .wrongCode))
+        case "e4-login": return wrap(E4LoginFixture(error: nil, working: false))
+        case "e4-login-error": return wrap(E4LoginFixture(error: "auth.loginRejected", working: false))
+        case "e4-settings": return wrap(E4SettingsFixture(query: ""))
+        case "e4-settings-search": return wrap(E4SettingsFixture(query: Locale.current.language.languageCode?.identifier == "zh" ? "隐私" : "privacy"))
+        case "e4-deregister": return wrap(E4ComplianceFixture(kind: .deregisterReview))
+        case "e4-deregister-blocked": return wrap(E4ComplianceFixture(kind: .deregisterBlocked))
+        case "e4-marketing": return wrap(E4ComplianceFixture(kind: .marketing))
         case "e4-tickets": return wrap(TicketWalletFixtureHostView())
         case "e4-profile-edit": return wrap(ProfileEditFixtureHost(scenario: "success"))
         case "e4-profile-edit-error": return wrap(ProfileEditFixtureHost(scenario: "rejected"))
@@ -131,12 +140,108 @@ enum E4Fixtures {
 #endif
 
 #if DEBUG
-/// Real AuthChannelView on a synthetic AppSession (no network; labelled DEBUG).
+/// Real PhoneSignInForm with stub values (no network, no coordinator). Labelled DEBUG.
+/// The Apple button is shown here only to judge the layout; production gates it on a verified Apple configuration.
 struct E4AuthPhoneFixture: View {
+    enum Stage { case codeSent, wrongCode }
+    let stage: Stage
+    @State private var phone = "13812345678"
+    @State private var code: String
+    init(stage: Stage) {
+        self.stage = stage
+        _code = State(initialValue: stage == .codeSent ? "482" : "482913")
+    }
+    var body: some View {
+        NavigationStack {
+            PhoneSignInForm(phone: $phone, code: $code, smsSent: true,
+                            issueKey: stage == .wrongCode ? "auth.channels.rejected" : nil,
+                            cooldown: stage == .codeSent ? 42 : 0, canStart: false, hasSentBefore: true, showsApple: true,
+                            onAgreement: {}, onPrivacy: {}) {
+                SignInWithAppleButton(.signIn, onRequest: { _ in }, onCompletion: { _ in })
+                    .signInWithAppleButtonStyle(.white).frame(minHeight: 50)
+                    .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
+            }
+            .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") {} } }
+        }
+    }
+}
+
+/// Real LoginView with stub username, error and working state injected through its DEBUG override.
+struct E4LoginFixture: View {
+    let error: String?
+    let working: Bool
     @StateObject private var session = AppSession()
     var body: some View {
-        AuthChannelView(coordinator: session.authChannels, sessionSnapshot: session.authChannelSnapshot, domesticPhoneVisible: true,
-                        onOpenAgreement: {}, onOpenPrivacy: {})
+        var view = LoginView(intent: .player)
+        view.designOverride = .init(showsPassword: true, username: "mia.chen", errorKey: error, working: working)
+        return view.environmentObject(session)
+    }
+}
+
+/// Real SettingsView, signed in as a stub member (account card) and optionally with a search query.
+struct E4SettingsFixture: View {
+    let query: String
+    @StateObject private var session = AppSession()
+    var body: some View {
+        var view = SettingsView()
+        view.designOverride = .init(nickname: "Mia Chen", level: 7, query: query)
+        return view.environmentObject(session).environmentObject(NativeOriginalUnreadBadgeState())
+    }
+}
+
+@MainActor private struct E4StubTransport: HTTPTransport {
+    func send(_ request: URLRequest) async throws -> (Data, Int) { throw APIError.httpStatus(503) }
+}
+
+/// Account deregistration and marketing consent: the REAL AccountComplianceSheet on a real (inert) coordinator,
+/// with the view model's state stubbed by this host. No session, no network, nothing is written.
+struct E4ComplianceFixture: View {
+    enum Kind { case deregisterReview, deregisterBlocked, marketing }
+    let kind: Kind
+    @State private var model: ComplianceViewModel?
+    private static let impactJSON = #"""
+    {"schemaVersion":1,"actorId":1,"revision":"3f1c9a7be25d48a09c6d1e77b0a4f5c2d8e9a1b3c4d5e6f708192a3b4c5d6e7f",
+     "items":[
+      {"key":"POINTS","value":"1280","source":"wallet","effect":"Your points are removed and cannot be restored."},
+      {"key":"ACTIVE_ORDERS","value":"0","source":"orders","effect":"No open orders, so nothing is held back."},
+      {"key":"COLLECTIBLES","value":"14","source":"stamps","effect":"Stamps and badges are removed from the account."},
+      {"key":"CLUB_MEMBERSHIPS","value":"3","source":"clubs","effect":"You leave all three clubs. Chats you wrote stay, without your name."}],
+     "unknownCoverage":[]}
+    """#
+    @MainActor private func makeModel() -> ComplianceViewModel {
+        let config = try! APIConfiguration(baseURL: URL(string: "https://fixture.example")!)
+        let transport = E4StubTransport()
+        let journal = ComplianceFileJournal(url: FileManager.default.temporaryDirectory.appendingPathComponent("e4-compliance-fixture.json"))
+        let service = AccountComplianceService(configuration: config, transport: transport, journal: journal, current: { nil }, token: { nil })
+        let coordinator = AccountComplianceCoordinator(service: service, auth: AuthChannelService(configuration: config, transport: transport),
+                                                       effects: DormantComplianceRoamEffects(), current: { nil }, invalidateSession: { _ in })
+        let m = ComplianceViewModel(coordinator, isDeregistration: kind != .marketing, isMarketing: kind == .marketing)
+        var state = ComplianceState()
+        switch kind {
+        case .deregisterReview:
+            state.step = .review
+            state.localCancellationConsent = .none
+            state.status = try? JSONDecoder().decode(ComplianceDeregistration.self, from: Data(("{\"status\":\"ELIGIBLE\",\"impact\":" + Self.impactJSON + "}").utf8))
+        case .deregisterBlocked:
+            state.step = .blocked
+            state.localCancellationConsent = .none
+            state.status = try? JSONDecoder().decode(ComplianceDeregistration.self, from: Data(#"{"status":"BLOCKED","blockers":["You still own one club. Hand it over or close it first.","A refund of 38.00 is still pending."]}"#.utf8))
+        case .marketing:
+            state.marketingLoaded = true; state.marketingCurrentConfirmed = true
+            let rows = #"[{"merchantRowId":2,"merchantOwnerMemberId":3,"merchantName":"Old Town Tea House","inAppOptedIn":true,"couponOptedIn":false},{"merchantRowId":5,"merchantOwnerMemberId":9,"merchantName":"Riverside Bookshop","inAppOptedIn":false,"couponOptedIn":true}]"#
+            state.marketing = (try? JSONDecoder().decode([ComplianceMarketingConsent].self, from: Data(rows.utf8))) ?? []
+        }
+        m.state = state
+        return m
+    }
+    var body: some View {
+        NavigationStack {
+            if let model {
+                AccountComplianceSheet(designModel: model, destination: kind == .marketing ? .marketing : .cancellation, market: .china,
+                                       legalReader: SettingsFixtureLegalReader(scenario: "content"))
+            }
+        }
+        .onAppear { if model == nil { model = makeModel() } }
     }
 }
 #endif

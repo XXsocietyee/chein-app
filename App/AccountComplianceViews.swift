@@ -54,24 +54,41 @@ import SwiftUI
     @State private var selected: ComplianceDestination?
     @State private var npcChatData: NPCChatDataPresentation?
     var body: some View {
-        Section("compliance.title") {
-            ForEach(ComplianceDestination.allCases) { destination in
+        Section {
+            ForEach(ComplianceDestination.allCases.filter { $0 != .cancellation }) { destination in
                 if destination == .marketing {
                     NavigationLink {
                         AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination,
                             market: market, legalReader: legalReader, showsCloseButton: false)
-                    } label: { Text(LocalizedStringKey(destination.title)) }
+                    } label: { Label(LocalizedStringKey(destination.title), systemImage: "megaphone.fill").environment(\.settingsTileTint, SettingsTint.orange) }
                     .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
                 } else {
-                    Button(LocalizedStringKey(destination.title)) { selected = destination }
-                        .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
+                    Button { selected = destination } label: {
+                        HStack { Label(LocalizedStringKey(destination.title), systemImage: "location.fill").environment(\.settingsTileTint, SettingsTint.green)
+                            Spacer(minLength: 0); Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary) }
+                    }
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityIdentifier("compliance.open.\(destination.rawValue)")
                 }
             }
             if showsNPCChatDataEntry {
-            Button("npcData.title") { npcChatData = .init(coordinator: makeCoordinator().makeNPCChatDataCoordinator()) }
+                Button { npcChatData = .init(coordinator: makeCoordinator().makeNPCChatDataCoordinator()) } label: {
+                    Label("npcData.title", systemImage: "text.bubble.fill").environment(\.settingsTileTint, SettingsTint.indigo)
+                }
+                .foregroundStyle(CYColor.textPrimary)
                 .accessibilityIdentifier("npcData.open")
             }
-        }
+        } header: { Text("compliance.title") } footer: { Text("settings.privacy.footer") }
+        // Destructive row: its own section, red, with the consequence stated underneath.
+        Section {
+            Button(role: .destructive) { selected = .cancellation } label: {
+                Label { Text(LocalizedStringKey(ComplianceDestination.cancellation.title)).foregroundStyle(CYColor.dangerText) }
+                    icon: { Image(systemName: "person.crop.circle.badge.minus") }
+                    .environment(\.settingsTileTint, SettingsTint.red)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .accessibilityIdentifier("compliance.open.\(ComplianceDestination.cancellation.rawValue)")
+        } footer: { Text("settings.danger.footer") }
         .sheet(item: $selected) { destination in
             NavigationStack {
                 AccountComplianceSheet(coordinator: makeCoordinator(), destination: destination, market: market, legalReader: legalReader)
@@ -105,10 +122,19 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         _model = StateObject(wrappedValue: ComplianceViewModel(coordinator, isDeregistration: destination == .cancellation, isMarketing: destination == .marketing)); self.destination = destination; self.market = market; self.legalReader = legalReader
         self.showsCloseButton = showsCloseButton
     }
+#if DEBUG
+    /// Design fixtures only: mounts this real view on a view model whose state was stubbed by the host.
+    private(set) var designMode = false
+    init(designModel: ComplianceViewModel, destination: ComplianceDestination, market: RegionalMarket?, legalReader: any SettingsLegalReading,
+         document: SettingsLegalDocument? = nil) {
+        _model = StateObject(wrappedValue: designModel); self.destination = destination; self.market = market; self.legalReader = legalReader
+        showsCloseButton = false; designMode = true; _document = State(initialValue: document)
+    }
+#endif
     var body: some View {
         Form {
             Section {
-                CYHeroHeader(LocalizedStringKey(destination.title))
+                ComplianceHeader(destination: destination, step: model.state.step)
                     .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                     .listRowBackground(Color.clear)
             }
@@ -176,6 +202,13 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                 Task { await model.coordinator.cancel(explicitlyConfirmed: true, intent: intent) }
             }
         }
+    }
+    private var designModeAllowsToggles: Bool {
+#if DEBUG
+        return designMode
+#else
+        return false
+#endif
     }
     private func loadCancellation(_ intent: AccountDeregistrationIntent) async {
         guard model.coordinator.isCurrentDeregistrationIntent(intent) else { return }
@@ -283,8 +316,11 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         case .review:
             Section {
                 Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
-                    .font(.body.weight(.semibold)).accessibilityIdentifier("compliance.reviewWarning")
-                Text("c08.display.42", tableName: "AccountDeregistrationPresentation")
+                    .font(.subheadline.weight(.semibold)).accessibilityIdentifier("compliance.reviewWarning")
+                    .padding(CYSpacing.md)
+                    .background(CYColor.warningText.opacity(0.12), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
+                Text("c08.display.42", tableName: "AccountDeregistrationPresentation").font(.footnote).foregroundStyle(CYColor.textSecondary)
                 if let impact = model.state.status?.impact, impact.confirmable {
                     AccountDeregistrationImpactConfirmation(revision: impact.revision) {
                         guard let intent = model.cancellationIntent() else { return }; code = ""; phone = ""
@@ -335,7 +371,6 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     }
     private var marketing: some View {
         Section {
-            Text("compliance.marketingExplanation")
             if model.state.marketingLoaded && model.state.marketing.isEmpty {
                 Text("compliance.marketing.empty", tableName: "MarketingConsentOriginalPresentation").accessibilityIdentifier("compliance.marketing.empty")
             }
@@ -355,17 +390,34 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     .font(.headline).accessibilityAddTraits(.isHeader)
             }
             ForEach(model.state.marketing) { row in
-                VStack(alignment: .leading) {
-                    Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
+                VStack(alignment: .leading, spacing: 0) {
+                    HStack(spacing: CYSpacing.md) {
+                        Text(verbatim: String((row.merchantName ?? "?").prefix(1)))
+                            .font(.system(.headline, design: .rounded, weight: .bold)).foregroundStyle(.white)
+                            .frame(width: 36, height: 36)
+                            .background(SettingsTint.orange.gradient, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .accessibilityHidden(true)
+                        Text(row.merchantName ?? appLocalized("compliance.merchant", locale: locale))
+                            .font(.headline).accessibilityAddTraits(.isHeader)
+                    }
+                    .padding(.bottom, CYSpacing.sm)
                     ForEach(ComplianceMarketingChannel.allCases, id: \.rawValue) { channel in
-                        Toggle(LocalizedStringKey("compliance.channel." + channel.rawValue), isOn: Binding(get: { row.value(channel) }, set: { value in
+                        Divider().padding(.vertical, CYSpacing.xs)
+                        Toggle(isOn: Binding(get: { row.value(channel) }, set: { value in
                             guard scenePhase == .active, model.marketingRead() != nil else { return }
                             marketingChange = model.coordinator.reviewMarketing(row, channel: channel, optedIn: value)
-                        }))
-                            .disabled(model.coordinator.reviewMarketing(row, channel: channel, optedIn: !row.value(channel)) == nil)
-                            .accessibilityIdentifier("compliance.marketing.\(row.id).\(channel.rawValue)")
+                        })) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(LocalizedStringKey("compliance.channel." + channel.rawValue)).font(.body.weight(.medium))
+                                Text(LocalizedStringKey("compliance.channel." + channel.rawValue + ".detail")).font(.footnote).foregroundStyle(CYColor.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
+                        .disabled(!designModeAllowsToggles && model.coordinator.reviewMarketing(row, channel: channel, optedIn: !row.value(channel)) == nil)
+                        .accessibilityIdentifier("compliance.marketing.\(row.id).\(channel.rawValue)")
                     }
                 }
+                .padding(.vertical, CYSpacing.xs)
             }
             Button("compliance.refresh") {
                 guard scenePhase == .active, let intent = model.marketingRead() else { return }
@@ -451,5 +503,56 @@ extension EnvironmentValues {
                     session: context.1, onConfirmed: { _ in })
             } else { Text("compliance.legalMissing") }
         }.id(session.sessionRevision)
+    }
+}
+
+
+/// Header for the privacy screens: tinted icon tile, large title, one calm sentence. Deregistration adds a
+/// three-step strip (read the notice, verify, confirm) so the person always knows how far along they are.
+struct ComplianceHeader: View {
+    let destination: ComplianceDestination
+    let step: ComplianceStep
+    private var symbol: String {
+        switch destination { case .cancellation: return "person.crop.circle.badge.minus"; case .marketing: return "megaphone.fill"; case .roam: return "location.fill" }
+    }
+    private var tint: Color {
+        switch destination { case .cancellation: return CYColor.warningText; case .marketing: return SettingsTint.orange; case .roam: return SettingsTint.green }
+    }
+    private var intro: LocalizedStringKey {
+        switch destination {
+        case .cancellation: return "compliance.cancellation.intro"
+        case .marketing: return "compliance.marketingExplanation"
+        case .roam: return "compliance.roamExplanation"
+        }
+    }
+    private var stage: Int {
+        switch step { case .idle, .notice, .blocked: return 0; case .verify, .verificationUnavailable: return 1; default: return 2 }
+    }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Image(systemName: symbol).font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
+                .frame(width: 52, height: 52)
+                .background(tint.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                .accessibilityHidden(true)
+            Text(LocalizedStringKey(destination.title))
+                .font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+            Text(intro).font(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            if destination == .cancellation, ![.completed, .pending, .freshLogin, .unknown].contains(step) {
+                HStack(spacing: CYSpacing.sm) {
+                    ForEach(0..<3, id: \.self) { i in
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Capsule().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.14)).frame(height: 4)
+                            Text(LocalizedStringKey("compliance.step.\(i + 1)")).font(.caption.weight(i == stage ? .semibold : .regular))
+                                .foregroundStyle(i == stage ? CYColor.textPrimary : CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.7)
+                        }
+                    }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("compliance.step.\(stage + 1)"))
+                .padding(.top, CYSpacing.xs)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

@@ -93,7 +93,15 @@ import SwiftUI
             case .ready: EmptyView()
             }
             }
-            .padding(.vertical, CYSpacing.xs)
+            .padding(CYSpacing.lg)
+            .background {
+                ZStack {
+                    CYCoverArt(seed: "member-" + account.nickname, symbol: "person", showsDebugLabel: false, showsGlyph: false).opacity(0.38)
+                    LinearGradient(colors: [.clear, CYColor.bgElevated.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.1), lineWidth: 1))
+            }
         }
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
