@@ -148,12 +148,21 @@ struct ClubOpsCustomerRowView: View {
     }
 }
 
+enum ClubCustomerDetailPage {
+    enum Number { case hidden, unknown, known(Int) }
+    static func project(_ number: Int?, capabilityPresent: Bool = true) -> Number {
+        if !capabilityPresent { return .hidden }
+        return number.map(Number.known) ?? .unknown
+    }
+}
+
 struct ClubOpsCustomerMetricTile: View {
-    let value: Int
+    let value: Int?
+    var capabilityPresent = true
     let label: LocalizedStringKey
     var body: some View {
         VStack(spacing: CYSpacing.xs) {
-            Text(value, format: .number).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            switch ClubCustomerDetailPage.project(value, capabilityPresent: capabilityPresent) { case .hidden: EmptyView(); case .unknown: Text(verbatim: "—").font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary); case .known(let number): Text(number, format: .number).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
             Text(label, tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity)
@@ -169,7 +178,7 @@ struct ClubOpsCustomerRecordRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             VStack(spacing: 0) {
-                if let day = record.day { Text(day, format: .number).font(.title3.bold()) }
+                switch ClubCustomerDetailPage.project(record.day) { case .hidden: EmptyView(); case .unknown: Text(verbatim: "—").font(.title3.bold()); case .known(let day): Text(day, format: .number).font(.title3.bold()) }
                 if let month = record.month { Text("clubOps.customer.month \(month)", tableName: "ClubOpsCustomer").font(.caption2).foregroundStyle(.secondary) }
             }.frame(minWidth: 36)
             VStack(alignment: .leading, spacing: 2) {
