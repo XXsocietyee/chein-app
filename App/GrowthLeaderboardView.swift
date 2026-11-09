@@ -15,7 +15,6 @@ import SwiftUI
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope, query: query) }
     var body: some View {
         List {
-            Section { CYHeroHeader("growth.board.title") }.listRowBackground(Color.clear)
             if reader.isOfflineExample { Text("growth.offlineExample").font(CYTypography.caption).foregroundStyle(palette.textSecondary) }
             Section {
                 Picker("growth.board.metric", selection: $query.metric) {
