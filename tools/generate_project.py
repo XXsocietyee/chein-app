@@ -137,17 +137,25 @@ def serialize(value, level=0):
     return str(value) if isinstance(value,int) else json.dumps(value,ensure_ascii=False)
 folder=ROOT/'Questify.xcodeproj';folder.mkdir(exist_ok=True)
 (folder/'project.pbxproj').write_text('// !$*UTF8*$!\n'+serialize({'archiveVersion':1,'classes':{},'objectVersion':56,'objects':objects,'rootObject':project})+'\n')
+def stable_uuid(name):
+    digest=hashlib.sha256(name.encode()).hexdigest()
+    return f'{digest[0:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}'.upper()
 scheme=ET.Element('Scheme',LastUpgradeVersion='1500',version='1.3')
 entry={'BuildableIdentifier':'primary','BlueprintIdentifier':target,'BuildableName':'Questify.app','BlueprintName':'Questify','ReferencedContainer':'container:Questify.xcodeproj'}
-b=ET.SubElement(scheme,'BuildAction',parallelizeBuildables='YES',buildImplicitDependencies='YES')
-e=ET.SubElement(ET.SubElement(b,'BuildActionEntries'),'BuildActionEntry',buildForTesting='YES',buildForRunning='YES',buildForProfiling='YES',buildForArchiving='YES',buildForAnalyzing='YES')
-ET.SubElement(e,'BuildableReference',**entry)
 ui_entry={'BuildableIdentifier':'primary','BlueprintIdentifier':ui_target,'BuildableName':'QuestifyUITests.xctest','BlueprintName':'QuestifyUITests','ReferencedContainer':'container:Questify.xcodeproj'}
-ui_build=ET.SubElement(b.find('BuildActionEntries'),'BuildActionEntry',buildForTesting='YES',buildForRunning='NO',buildForProfiling='NO',buildForArchiving='NO',buildForAnalyzing='NO')
-ET.SubElement(ui_build,'BuildableReference',**ui_entry)
+unit_entry={'BuildableIdentifier':'primary','BlueprintIdentifier':unit_target,'BuildableName':'QuestifyAppUnitTests.xctest','BlueprintName':'QuestifyAppUnitTests','ReferencedContainer':'container:Questify.xcodeproj'}
+b=ET.SubElement(scheme,'BuildAction',parallelizeBuildables='YES',buildImplicitDependencies='YES')
+entries=ET.SubElement(b,'BuildActionEntries')
+e=ET.SubElement(entries,'BuildActionEntry',buildForTesting='YES',buildForRunning='YES',buildForProfiling='YES',buildForArchiving='YES',buildForAnalyzing='YES')
+ET.SubElement(e,'BuildableReference',**entry)
+# Test-only. A plain Build action does not build these bundles.
+for reference in (ui_entry, unit_entry):
+    test_build=ET.SubElement(entries,'BuildActionEntry',buildForTesting='YES',buildForRunning='NO',buildForProfiling='NO',buildForArchiving='NO',buildForAnalyzing='NO')
+    ET.SubElement(test_build,'BuildableReference',**reference)
+# Xcode Cloud Test iOS uses this scheme. One shared plan runs every app-unit
+# class (the four shard plans still partition that set) and keeps UI tests.
 test_action=ET.SubElement(scheme,'TestAction',buildConfiguration='Debug',selectedDebuggerIdentifier='Xcode.DebuggerFoundation.Debugger.LLDB',selectedLauncherIdentifier='Xcode.IDEFoundation.Launcher.LLDB',shouldUseLaunchSchemeArgsEnv='YES')
-testable=ET.SubElement(ET.SubElement(test_action,'Testables'),'TestableReference',skipped='NO',parallelizable='NO')
-ET.SubElement(testable,'BuildableReference',**ui_entry)
+ET.SubElement(ET.SubElement(test_action,'TestPlans'),'TestPlanReference',reference='container:Questify.xcodeproj/xcshareddata/xctestplans/QuestifyAppUnitTests-Shards.xctestplan',default='YES')
 l=ET.SubElement(scheme,'LaunchAction',buildConfiguration='Debug',selectedDebuggerIdentifier='Xcode.DebuggerFoundation.Debugger.LLDB',selectedLauncherIdentifier='Xcode.IDEFoundation.Launcher.LLDB',launchStyle='0',useCustomWorkingDirectory='NO',ignoresPersistentStateOnLaunch='NO',debugDocumentVersioning='YES',debugServiceExtension='internal',allowLocationSimulation='YES')
 ET.SubElement(ET.SubElement(l,'BuildableProductRunnable',runnableDebuggingMode='0'),'BuildableReference',**entry)
 ET.SubElement(scheme,'AnalyzeAction',buildConfiguration='Debug')
@@ -155,11 +163,21 @@ ET.SubElement(scheme,'ArchiveAction',buildConfiguration='Release',revealArchiveI
 scheme_dir=folder/'xcshareddata/xcschemes';scheme_dir.mkdir(parents=True,exist_ok=True)
 ET.indent(scheme)
 ET.ElementTree(scheme).write(scheme_dir/'Questify.xcscheme',encoding='utf-8',xml_declaration=True)
+questify_plan_dir=folder/'xcshareddata/xctestplans';questify_plan_dir.mkdir(parents=True,exist_ok=True)
+questify_shards_plan={
+    'configurations':[{'id':stable_uuid('xctestplan-config:QuestifyAppUnitTests-Shards'),'name':'Test Scheme Action','options':{}}],
+    'defaultOptions':{'targetForVariableExpansion':{'containerPath':'container:Questify.xcodeproj','identifier':target,'name':'Questify'}},
+    'testTargets':[
+        {'parallelizable':False,'skippedTests':[],'target':{'containerPath':'container:Questify.xcodeproj','identifier':unit_target,'name':'QuestifyAppUnitTests'}},
+        {'parallelizable':False,'skippedTests':[],'target':{'containerPath':'container:Questify.xcodeproj','identifier':ui_target,'name':'QuestifyUITests'}},
+    ],
+    'version':1,
+}
+(questify_plan_dir/'QuestifyAppUnitTests-Shards.xctestplan').write_text(json.dumps(questify_shards_plan,indent=2)+'\n')
 print(f'Generated Questify.xcodeproj: {len(sources)} native sources, {len(resources)} catalogs')
 
-# Dedicated shared scheme prevents app-unit tests being repeated in every UI shard.
+# Dedicated shared scheme still runs the whole app-unit target and skips nothing.
 unit_scheme=ET.Element('Scheme',LastUpgradeVersion='1500',version='1.3')
-unit_entry={'BuildableIdentifier':'primary','BlueprintIdentifier':unit_target,'BuildableName':'QuestifyAppUnitTests.xctest','BlueprintName':'QuestifyAppUnitTests','ReferencedContainer':'container:Questify.xcodeproj'}
 unit_build=ET.SubElement(unit_scheme,'BuildAction',parallelizeBuildables='YES',buildImplicitDependencies='YES')
 unit_entries=ET.SubElement(unit_build,'BuildActionEntries')
 for reference in [entry,unit_entry]:
@@ -173,9 +191,9 @@ ET.indent(unit_scheme)
 ET.ElementTree(unit_scheme).write(scheme_dir/'QuestifyAppUnitTests.xcscheme',encoding='utf-8',xml_declaration=True)
 print(f'Included {len(unit_files)} app-unit sources in the separate QuestifyAppUnitTests scheme')
 
-# Xcode Cloud runs one Test action per scheme in parallel. The unfiltered
-# QuestifyAppUnitTests scheme above stays complete. These extra plans only
-# partition that same target; every discovered class stays in exactly one shard.
+# The unfiltered QuestifyAppUnitTests scheme above stays complete. These extra
+# plans only partition that same target; every discovered class stays in exactly
+# one shard. The Questify scheme plan does not skip any of them.
 APP_UNIT_CLASS=re.compile(r'(?m)^(?:@\w+(?:\([^)\n]*\))?\s+)*(?:(?:public|internal|fileprivate|private|final|open|nonisolated)\s+)*class\s+([A-Za-z_][A-Za-z0-9_]*)\b[^{;\n]*\bXCTestCase\b')
 APP_UNIT_SHARDS=4
 def app_unit_classes():
@@ -187,9 +205,6 @@ def app_unit_classes():
     return found
 def shard_of(name):
     return int(hashlib.sha256(name.encode()).hexdigest(),16)%APP_UNIT_SHARDS
-def stable_uuid(name):
-    digest=hashlib.sha256(name.encode()).hexdigest()
-    return f'{digest[0:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}'.upper()
 classes=app_unit_classes()
 # Synthetic generator fixtures have no XCTestCase classes. The real tree still
 # refuses duplicate names and an empty shard once any class is present.

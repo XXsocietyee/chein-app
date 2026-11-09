@@ -1,6 +1,7 @@
 """Source/project/CI contracts only; these checks do not execute authored XCTest."""
 import contextlib
 import io
+import json
 import pathlib
 import re
 import runpy
@@ -92,7 +93,7 @@ class AppUnitTargetTests(unittest.TestCase):
         self.assertNotIn('#include', config)
         self.assertNotIn('INFOPLIST_FILE = Config/Info.plist', config)
 
-    def test_shared_scheme_matches_target_and_isolated_from_ui_scheme(self):
+    def test_shared_scheme_matches_target_and_questify_runs_every_class(self):
         action = self.scheme.find('TestAction')
         self.assertEqual(action.get('buildConfiguration'), 'Debug')
         testable, = action.findall('Testables/TestableReference')
@@ -104,7 +105,20 @@ class AppUnitTargetTests(unittest.TestCase):
         self.assertEqual({b.find('BuildableReference').get('BlueprintName') for b in builds}, {'Questify', TARGET})
         self.assertTrue(all(b.get('buildForTesting') == 'YES' for b in builds))
         ui = ET.parse(self.root / 'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme')
-        self.assertEqual([r.get('BlueprintName') for r in ui.findall('TestAction/Testables/TestableReference/BuildableReference')], ['QuestifyUITests'])
+        self.assertFalse(ui.findall('TestAction/Testables'))
+        plan_ref, = ui.findall('TestAction/TestPlans/TestPlanReference')
+        self.assertEqual(plan_ref.get('default'), 'YES')
+        self.assertEqual(plan_ref.get('reference'), 'container:Questify.xcodeproj/xcshareddata/xctestplans/QuestifyAppUnitTests-Shards.xctestplan')
+        ui_builds = ui.findall('BuildAction/BuildActionEntries/BuildActionEntry')
+        self.assertEqual({b.find('BuildableReference').get('BlueprintName') for b in ui_builds}, {'Questify', 'QuestifyUITests', TARGET})
+        plan = json.loads((self.root / 'Questify.xcodeproj/xcshareddata/xctestplans/QuestifyAppUnitTests-Shards.xctestplan').read_text())
+        by_name = {item['target']['name']: item for item in plan['testTargets']}
+        self.assertEqual(set(by_name), {'QuestifyAppUnitTests', 'QuestifyUITests'})
+        self.assertEqual(by_name['QuestifyAppUnitTests']['skippedTests'], [])
+        self.assertEqual(by_name['QuestifyUITests']['skippedTests'], [])
+        self.assertFalse(by_name['QuestifyAppUnitTests']['parallelizable'])
+        self.assertFalse(by_name['QuestifyUITests']['parallelizable'])
+        self.assertEqual(by_name['QuestifyAppUnitTests']['target']['identifier'], self.generated['unit_target'])
 
     def test_ci_runs_whole_target_once_in_bounded_separate_job(self):
         workflow = (ROOT / '.github/workflows/native-ios.yml').read_text()

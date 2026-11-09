@@ -1,0 +1,37 @@
+{
+  "configurations": [
+    {
+      "id": "9788E9E7-B818-0DDD-D159-EE46EBC007CF",
+      "name": "Test Scheme Action",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {
+    "targetForVariableExpansion": {
+      "containerPath": "container:Questify.xcodeproj",
+      "identifier": "34A04005BCAF206EEC990BD9",
+      "name": "Questify"
+    }
+  },
+  "testTargets": [
+    {
+      "parallelizable": false,
+      "skippedTests": [],
+      "target": {
+        "containerPath": "container:Questify.xcodeproj",
+        "identifier": "3CB7792B4452616AACDE17BC",
+        "name": "QuestifyAppUnitTests"
+      }
+    },
+    {
+      "parallelizable": false,
+      "skippedTests": [],
+      "target": {
+        "containerPath": "container:Questify.xcodeproj",
+        "identifier": "4EA0BBFB4641B4E941FBF077",
+        "name": "QuestifyUITests"
+      }
+    }
+  ],
+  "version": 1
+}

@@ -44,6 +44,7 @@ class XcodeCloudPlanTests(unittest.TestCase):
                 'Questify.xcodeproj/project.pbxproj',
                 'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme',
                 'Questify.xcodeproj/xcshareddata/xcschemes/QuestifyAppUnitTests.xcscheme',
+                'Questify.xcodeproj/xcshareddata/xctestplans/QuestifyAppUnitTests-Shards.xctestplan',
             ):
                 self.assertEqual((ROOT / relative).read_bytes(), (scratch / relative).read_bytes(), relative)
             for label in SHARDS:
@@ -78,7 +79,15 @@ class XcodeCloudPlanTests(unittest.TestCase):
         self.assertFalse(full.findall('.//SelectedTests'))
         self.assertFalse(full.findall('.//TestPlans'))
         shared = ET.parse(ROOT / 'Questify.xcodeproj/xcshareddata/xcschemes/Questify.xcscheme')
-        self.assertEqual(shared.getroot().tag, 'Scheme')
+        self.assertFalse(shared.findall('TestAction/Testables'))
+        plan_ref, = shared.findall('TestAction/TestPlans/TestPlanReference')
+        self.assertEqual(plan_ref.get('default'), 'YES')
+        self.assertEqual(plan_ref.get('reference'), 'container:Questify.xcodeproj/xcshareddata/xctestplans/QuestifyAppUnitTests-Shards.xctestplan')
+        shared_plan = json.loads((ROOT / 'Questify.xcodeproj/xcshareddata/xctestplans/QuestifyAppUnitTests-Shards.xctestplan').read_text())
+        shared_targets = {item['target']['name']: item for item in shared_plan['testTargets']}
+        self.assertEqual(shared_targets['QuestifyAppUnitTests']['skippedTests'], [])
+        self.assertEqual(shared_targets['QuestifyUITests']['skippedTests'], [])
+        self.assertEqual(set(shared_targets), {'QuestifyAppUnitTests', 'QuestifyUITests'})
 
     def test_prepare_disables_signing_without_touching_the_deployment_target_or_this_checkout(self):
         spec = importlib.util.spec_from_file_location('xcode_cloud_prepare', ROOT / 'tools/xcode_cloud_prepare.py')
