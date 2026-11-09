@@ -517,7 +517,7 @@ private extension ContentContractV1 {
         var publicView: [String: PlayWireValue] = ["enabled": .bool(true), "suspects": .array(suspects)]
         if let screens = fields["introScreens"] { publicView["introScreens"] = screens }
         if let board = fields["corkboardImage"] { publicView["corkboardImage"] = board }
-        let allowed = fields["earlyAccuse"]?["allowed"]?.bool == true
+        let allowed = fields["earlyAccuse"]?["allowed"].bool == true
         publicView["earlyAccuse"] = .object(["allowed": .bool(allowed)])
         return .object(publicView)
     }
