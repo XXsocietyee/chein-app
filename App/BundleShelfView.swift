@@ -22,8 +22,7 @@ import SwiftUI
                     if model.items.isEmpty { CYEmptyState(systemImage: "shippingbox", "shelf.empty", tableName: table) }
                     ForEach(model.items, id: \.topicId) { item in
                         Button { onSelect?(item) } label: {
-                            CYImageCard(title: Text(verbatim: item.topicName ?? "—"), meta: meta(item),
-                                        imageURL: item.coverUrl.flatMap(URL.init(string:)), style: .hero)
+                            BundleShelfRow(item: item)
                         }
                         .buttonStyle(.plain)
                         .disabled(onSelect == nil)
@@ -42,14 +41,50 @@ import SwiftUI
         .task { if model.state == .idle { await model.refresh() } }
         .refreshable { await model.refresh() }
     }
+}
 
-    /// Price and validity only when the server sent them; an absent value is omitted, never shown as 0.
-    private func meta(_ item: BundleShelfItem) -> Text? {
-        var parts: [Text] = []
-        if let price = item.fromPrice { parts.append(Text(verbatim: price.text)) }
-        if let days = item.validityDays { parts.append(text("detail.validityDays") + Text(verbatim: " " + String(days))) }
-        guard var first = parts.first else { return nil }
-        for part in parts.dropFirst() { first = first + Text(verbatim: " · ") + part }
-        return first
+/// Shelf row: cover thumbnail, name, "from" price, validity chip, chevron. Absent price/validity are left out, never 0.
+private struct BundleShelfRow: View {
+    let item: BundleShelfItem
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.cyPalette) private var palette
+    private var copy: CoreLoopCopy { CoreLoopCopy(locale: locale) }
+    private var name: String { (item.topicName ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.topicName! }
+    var body: some View {
+        Group {
+            if dynamicTypeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    cover.aspectRatio(16.0 / 9.0, contentMode: .fit).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    text
+                }
+            } else {
+                HStack(spacing: CYSpacing.md) {
+                    cover.frame(width: 96, height: 96).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    text
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                }
+            }
+        }
+        .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.md)
+        .accessibilityElement(children: .combine)
+    }
+    private var cover: some View {
+        Color.clear.overlay { E1CoverArt(seed: name, symbol: "shippingbox", imageURL: item.coverUrl, debugLabel: false) }
+    }
+    private var text: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).lineLimit(2)
+            if let price = E1Money.yuan(text: item.fromPrice?.text) {
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                    Text(verbatim: copy.t("起", "from")).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    Text(verbatim: price).font(CYTypography.dataXL.weight(.semibold)).foregroundStyle(palette.textPrimary).minimumScaleFactor(0.8).lineLimit(1)
+                }
+            }
+            if let days = item.validityDays {
+                CYStatusChip(verbatim: copy.t("\(days) 天有效", "Valid \(days) days"), tone: .info, systemImage: "calendar.badge.clock")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
