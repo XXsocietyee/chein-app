@@ -65,6 +65,7 @@
         "BackendSyncAndContractGateSectionViewTests",
         "BackgroundTaskAndScenePhaseLifecycleSectionViewTests",
         "Batches24To27ThreeDocsFullClosureAppUnitTests",
+        "CYCachedAsyncImageTests",
         "ChannelAdmissionGovernanceEntryTests",
         "ChannelDirectoryTransportInjectionTests",
         "CityAcquisitionNormalEntryTests",

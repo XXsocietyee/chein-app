@@ -43139,7 +43139,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift KitGalleryFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift OnboardingFixtures.swift OrdersWalletFixtures.swift";
 			};
 			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
 		};

@@ -42,9 +42,11 @@ def validate_literal_text_tables(source, root, objects, project_obj):
     they remain in the original default-table scan. A table must be a unique
     catalog in the app's actual resource build phase, not just a file reference.
     """
-    pattern=re.compile(r'(?<![\w.])Text\s*\(\s*"([A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+)"\s*,\s*tableName\s*:\s*"([A-Za-z0-9_]+)"\s*\)')
-    matches=list(pattern.finditer(source))
-    if not matches: return source
+    patterns=[
+        re.compile(r'(?<![\w.])Text\s*\(\s*"([A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+)"\s*,\s*tableName\s*:\s*"([A-Za-z0-9_]+)"\s*\)'),
+        re.compile(r'(?<![\w.])LocalizedStringKey\s*\(\s*"([A-Za-z0-9]+(?:\.[A-Za-z0-9]+)+)"\s*\)\s*,\s*tableName\s*:\s*"([A-Za-z0-9_]+)"'),
+    ]
+    if not any(pattern.search(source) for pattern in patterns): return source
     applications=[objects[t] for t in project_obj['targets']
                   if objects[t].get('productType')=='com.apple.product-type.application']
     assert len(applications)==1, 'Explicit Text table requires one known application target'
@@ -72,7 +74,9 @@ def validate_literal_text_tables(source, root, objects, project_obj):
         # elsewhere still has to pass the original Localizable-key assertion.
         start,end=match.span(1)
         return match.group(0)[:start-match.start()]+match.group(0)[end-match.start():]
-    return pattern.sub(checked,source)
+    for pattern in patterns:
+        source=pattern.sub(checked,source)
+    return source
 
 def validate_literal_resource_tables(source, root, objects, project_obj):
     """Prove only a literal, locale-bound Foundation String resource lookup.
