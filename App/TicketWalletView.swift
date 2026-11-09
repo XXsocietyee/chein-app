@@ -165,7 +165,7 @@ private struct TicketWalletRow: View {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             TicketWalletStatusBadge(status: ticket.status)
             HStack(alignment: .top, spacing: CYSpacing.md) {
-                if !typeSize.isAccessibilitySize { OrderCoverTile(systemImage: "ticket") }
+                if !typeSize.isAccessibilitySize { OrderCoverTile(systemImage: "ticket", seed: ticket.title ?? "") }
                 VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                         .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)

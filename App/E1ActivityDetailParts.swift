@@ -49,9 +49,12 @@ struct E1ActivityInfoCard: View {
         let s = QuestifyCardText.date(detail.summary.startDate, locale: locale, displayTimeZone: timeZone)
         var e = QuestifyCardText.date(detail.summary.endDate, locale: locale, displayTimeZone: timeZone)
         // Same calendar day: the end shows the time only.
-        if let sd = HomeFeedDate.parse(detail.summary.startDate), let ed = HomeFeedDate.parse(detail.summary.endDate),
-           Calendar.current.isDate(sd, inSameDayAs: ed) {
-            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = timeZone
+        let utc = TimeZone(secondsFromGMT: 0)!
+        func parse(_ raw: String?) -> Date? { HomeFeedDate.parse(raw) ?? HomeFeedDate.parse(raw, sourceTimeZone: utc) }
+        let zone = HomeFeedDate.parse(detail.summary.endDate) == nil ? utc : timeZone
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = zone
+        if let sd = parse(detail.summary.startDate), let ed = parse(detail.summary.endDate), cal.isDate(sd, inSameDayAs: ed) {
+            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = zone
             e = ed.formatted(style)
         }
         switch (s, e) {

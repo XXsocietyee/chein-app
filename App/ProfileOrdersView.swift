@@ -159,7 +159,7 @@ private struct ProfileOrderRow: View {
     private var content: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             if !typeSize.isAccessibilitySize {
-                OrderCoverTile(systemImage: order.sourceMode == .freeExplore ? "figure.walk" : "map")
+                OrderCoverTile(systemImage: order.sourceMode == .freeExplore ? "figure.walk" : "map", seed: order.title ?? "")
             }
             VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
                 switch order.sourceMode {

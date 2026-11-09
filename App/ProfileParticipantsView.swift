@@ -59,18 +59,25 @@ struct ProfileParticipantsView: View {
                 List {
                     Section {
                         ForEach(participants) { participant in
-                            let rowLabel = Group {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(CYTypography.bodyMedium).bold().foregroundStyle(CYColor.textPrimary) }
-                                    else { Text(verbatim: participant.fullName).font(CYTypography.bodyMedium).bold().foregroundStyle(CYColor.textPrimary) }
+                            let rowLabel = HStack(spacing: CYSpacing.md) {
+                                Text(verbatim: String(participant.fullName.trimmingCharacters(in: .whitespaces).prefix(1)).uppercased())
+                                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                    .frame(width: 44, height: 44)
+                                    .background(Circle().fill(CYColor.bgRaised))
+                                    .overlay { if participant.fullName.trimmingCharacters(in: .whitespaces).isEmpty { Image(systemName: "person.fill").foregroundStyle(CYColor.textTertiary) } }
+                                    .accessibilityHidden(true)
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                                    else { Text(verbatim: participant.fullName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                                     if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
                                     // Mini-program pages/address row caption: 用于报名联系和到场核验.
                                     Text("profile.participants.rowPurpose").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 }
                                 .fixedSize(horizontal: false, vertical: true)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.vertical, 4)
+                                if onSelect != nil { Image(systemName: "circle").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true) }
                             }
+                            .padding(.vertical, 4)
                             Group {
                                 if let onSelect {
                                     Button { onSelect(participant.id) } label: { rowLabel }.buttonStyle(.plain)
