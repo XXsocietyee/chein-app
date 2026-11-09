@@ -65,12 +65,13 @@ public final class ResponseLimitedHTTPTransport: HTTPTransport, @unchecked Senda
         request.cachePolicy = .reloadIgnoringLocalCacheData
         request.setValue(nil, forHTTPHeaderField: "Cookie")
         request.setValue(nil, forHTTPHeaderField: "Cookie2")
-        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request)
+        let outgoing = ChinaReviewedRouteAdaptation.adapt(request) ?? request
+        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(outgoing)
 
         let exchange = ResponseLimitedHTTPExchange(maximumResponseBytes: maximumResponseBytes)
         return try await withTaskCancellationHandler(operation: {
             try Task.checkCancellation()
-            let result = try await exchange.send(request, makeTask: makeTask)
+            let result = try await exchange.send(outgoing, makeTask: makeTask)
             // Completion and cancellation can race. Do not hand a cancelled caller a
             // receipt it could mistake for permission to clear its pending marker.
             guard !Task.isCancelled else {

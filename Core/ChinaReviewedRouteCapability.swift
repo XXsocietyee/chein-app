@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 #if canImport(FoundationNetworking)
 import FoundationNetworking
 #endif
@@ -1794,6 +1795,126 @@ public enum ChinaReviewedRouteCapability {
     ]
 }
 
+/// CB93. A closed set of missing iOS literals whose production equivalents are already
+/// admitted by `ChinaReviewedRouteCapability`. This is not a route table: a path is used
+/// only when `admitsChinaProductionCall` is true. Password login, bank withdrawal, and
+/// virtual goods are not in the set. An empty URL is not the China host, so it adapts nothing.
+public enum ChinaReviewedRouteAdaptation {
+    /// `NativeChannelManagementService` treats guild kind 1 as CLUB.
+    public static let clubGuildKind = 1
+
+    public struct Route: Equatable, Sendable {
+        public let missing: String
+        public let production: String
+        public init(missing: String, production: String) {
+            self.missing = missing
+            self.production = production
+        }
+    }
+
+    public static let routes: [Route] = [
+        .init(missing: "/api/topic/detail", production: "/api/topic/info-to-user"),
+        .init(missing: "/api/club/settlements", production: "/api/club/settlement/summary"),
+        .init(missing: "/api/club/update", production: "/api/club/update-mine"),
+        .init(missing: "/api/join-request/submit", production: "/api/club/join"),
+        .init(missing: "/api/space/leave", production: "/api/club/quit"),
+    ]
+
+    public static func productionPath(forMissing path: String) -> String? {
+        let key = ChinaReviewedRouteCapability.literalKey(path)
+        guard let row = routes.first(where: { $0.missing == key }) else { return nil }
+        guard ChinaReviewedRouteCapability.hidingCapability(for: row.production) == nil else { return nil }
+        guard ChinaReviewedRouteCapability.admitsChinaProductionCall(row.production) else { return nil }
+        return row.production
+    }
+
+    /// The reviewed China host only. An empty or non-China URL returns false.
+    public static func admits(missing path: String, baseURL: URL) -> Bool {
+        guard ChinaReviewedRouteCapability.targetsChinaProduction(baseURL) else { return false }
+        return productionPath(forMissing: path) != nil
+    }
+
+    /// Rewrites a China-host request when the body is already the production contract.
+    /// Join and leave stay on `ChannelAdmissionGovernanceClient` because their bodies differ.
+    /// Other hosts, including every test double, are unchanged.
+    public static func adapt(_ request: URLRequest) -> URLRequest? {
+        guard let url = request.url, ChinaReviewedRouteCapability.targetsChinaProduction(url),
+              request.httpMethod == "POST", let relative = relativeAPIPath(url) else { return nil }
+        let key = ChinaReviewedRouteCapability.literalKey(relative)
+        switch key {
+        case "/api/topic/detail":
+            guard formIdentifier(request.httpBody) != nil, productionPath(forMissing: key) != nil else { return nil }
+            return retarget(request, production: "/api/topic/info-to-user")
+        case "/api/club/settlements":
+            guard settlementClubID(request.httpBody) != nil, productionPath(forMissing: key) != nil else { return nil }
+            return retarget(request, production: "/api/club/settlement/summary")
+        case "/api/club/update":
+            guard isClubUpdateBody(request.httpBody), productionPath(forMissing: key) != nil else { return nil }
+            return retarget(request, production: "/api/club/update-mine")
+        default:
+            return nil
+        }
+    }
+
+    private static let clubUpdateKeys: Set<String> = [
+        "id", "name", "city", "description", "keywords", "style", "clubType",
+        "activityPrefs", "logo", "cover", "joinPolicy", "operationConfigUpdated",
+        "prioritySignupEnabled", "memberReservedQuota"
+    ]
+
+    private static func formIdentifier(_ body: Data?) -> String? {
+        guard let body, let text = String(data: body, encoding: .utf8), !text.contains("&"),
+              text.hasPrefix("id=") else { return nil }
+        let value = String(text.dropFirst(3))
+        guard let number = Int(value), number > 0, value == String(number) else { return nil }
+        return value
+    }
+
+    private static func settlementClubID(_ body: Data?) -> Int? {
+        guard let object = jsonObject(body), object.count == 1 else { return nil }
+        return positiveInteger(object["clubId"])
+    }
+
+    private static func isClubUpdateBody(_ body: Data?) -> Bool {
+        guard let object = jsonObject(body), Set(object.keys).isSubset(of: clubUpdateKeys),
+              positiveInteger(object["id"]) != nil else { return false }
+        return true
+    }
+
+    private static func jsonObject(_ body: Data?) -> [String: Any]? {
+        guard let body, let object = try? JSONSerialization.jsonObject(with: body) as? [String: Any] else { return nil }
+        return object
+    }
+
+    private static func positiveInteger(_ value: Any?) -> Int? {
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+        let int = number.intValue
+        guard int > 0, number.doubleValue == Double(int) else { return nil }
+        return int
+    }
+
+    private static func retarget(_ request: URLRequest, production: String) -> URLRequest? {
+        guard let base = URL(string: ReviewedMarketLaunch.chinaProductionBaseURL),
+              ChinaReviewedRouteCapability.admitsChinaProductionCall(production) else { return nil }
+        var copy = request
+        copy.url = base.appendingPathComponent(String(production.dropFirst()))
+        guard let url = copy.url, ChinaReviewedRouteCapability.admitsChinaProductionCall(url) else { return nil }
+        return copy
+    }
+
+    private static func relativeAPIPath(_ url: URL) -> String? {
+        guard let base = URL(string: ReviewedMarketLaunch.chinaProductionBaseURL) else { return nil }
+        let basePath = trimmed(base.path)
+        let path = url.path
+        guard path == basePath || path.hasPrefix(basePath + "/") else { return nil }
+        return String(path.dropFirst(basePath.count)).trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+    }
+
+    private static func trimmed(_ path: String) -> String {
+        path.count > 1 && path.hasSuffix("/") ? String(path.dropLast()) : path
+    }
+}
+
 public struct ChinaReviewedProductionTransport: HTTPTransport {
     private let underlying: any HTTPTransport
 
@@ -1802,7 +1923,8 @@ public struct ChinaReviewedProductionTransport: HTTPTransport {
     }
 
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
-        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request)
-        return try await underlying.send(request)
+        let outgoing = ChinaReviewedRouteAdaptation.adapt(request) ?? request
+        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(outgoing)
+        return try await underlying.send(outgoing)
     }
 }
