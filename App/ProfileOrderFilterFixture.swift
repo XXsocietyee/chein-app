@@ -28,11 +28,15 @@ import SwiftUI
 
 @MainActor struct ProfileOrderFilterFixtureHost: View {
     @StateObject private var reader: ProfileOrderFilterFixtureReader
-    init(empty: Bool = false) { _reader = StateObject(wrappedValue: ProfileOrderFilterFixtureReader(empty: empty)) }
+    var designClean = false
+    init(empty: Bool = false, designClean: Bool = false) { self.designClean = designClean; _reader = StateObject(wrappedValue: ProfileOrderFilterFixtureReader(empty: empty)) }
     var body: some View {
         NavigationStack { ProfileOrdersView(reader: reader).id(reader.identity) }
+            .safeAreaInset(edge: .top, spacing: 0) {
+                if designClean { Text(verbatim: "Synthetic fixture · debug only").font(.caption2).foregroundStyle(.secondary).frame(maxWidth: .infinity).padding(.vertical, 2) }
+            }
             .safeAreaInset(edge: .bottom) {
-                VStack {
+                if !designClean { VStack {
                     Text(verbatim: "Synthetic local filters; production order reads remain blocked.")
                     HStack {
                         Text(verbatim: String(reader.listReads)).accessibilityIdentifier("profile.orderFilter.fixture.listReads")
@@ -41,7 +45,7 @@ import SwiftUI
                             .accessibilityValue(reader.isConfigured ? "configured" : "revoked")
                         Button("Switch account") { reader.identity = .init(accountID: 7002, epoch: 2) }.accessibilityIdentifier("profile.orderFilter.fixture.switch")
                     }
-                }.font(.caption)
+                }.font(.caption) }
             }
     }
 }

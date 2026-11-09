@@ -20,3 +20,9 @@ Secondary order actions: grey buttons to quiet text rows (same buttons). Ticket 
 - Cover image is a placeholder tile (ProfileOrder has no URL).
 - Orders-list fixture host shows a pre-existing debug inset that overlaps content at XL (fixture artifact, not product UI).
 - Order-detail timeline/refund sections and ticket detail lower sections were not screenshotted; EN and light not shot.
+
+## Round 2 (coordinator review)
+- Order detail: separator inset unified, title one step smaller (amount is focal), primary action pinned at the bottom (first reviewable action; secondary actions stay as quiet outlined rows in the Actions section). Below-fold view: shot-230421 (fixture order-detail-full, scaled), compare-order-detail-fold.png.
+- Wallet home (WalletCommerceHomeView): CYBalanceHero balance, 4 circular quick actions (Assets, Income, Points, Withdrawal records), funds stages, then CYListRow cards with leading icon (Analysis, Invites, Mall, Withdrawal support = demoted from the main list). Gates and destinations unchanged. shot-225943, compare-wallet.png (vs pm05-earnings).
+- Fixture host: Sign out moved into an overflow menu; fixture label is a small footer. These exist only in the DEBUG fixture (the real home has no sign-out).
+- Open: row meta lines omitted (no existing localisation keys; xcstrings not editable); the hero shows "128.5 —" because currency is unknown in the synthetic data (existing formatter behaviour); EN/light still not shot.

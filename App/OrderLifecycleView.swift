@@ -60,6 +60,7 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .safeAreaInset(edge: .bottom) { pinnedPrimary }
         .listRowBackground(CYColor.bgElevated)
         .appNavigationTitle("orderLifecycle.title")
         .navigationBarTitleDisplayMode(.inline)
@@ -86,6 +87,18 @@ import SwiftUI
         }
         .accessibilityIdentifier("orderLifecycle.detail")
     }
+    /// The first reviewable action is the screen's one primary CTA, pinned above the home indicator.
+    @ViewBuilder private var pinnedPrimary: some View {
+        if let detail = coordinator.detail, detail.id == id,
+           let action = OrderLifecycleAction.allCases.first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: detail) }) {
+            Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
+                .buttonStyle(CYOrderActionButtonStyle(primary: true))
+                .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
+                .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
+                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
+                .background(CYColor.bgPage)
+        }
+    }
     private func summary(_ detail: OrderLifecycleDetail) -> some View {
         let state = detail.summary()
         let fulfillment = FourShopCompensationPolicy.evaluateSoldContractFulfillment(
@@ -101,7 +114,7 @@ import SwiftUI
                     if let title = detail.title, !title.isEmpty { Text(verbatim: title) }
                     else { Text("orderLifecycle.untitled") }
                 }
-                .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 Group {
                     if let reason = state.serverReason { Text(verbatim: reason) }
@@ -116,6 +129,7 @@ import SwiftUI
                 // Revolut hero: unknown amount is an em dash, never 0.
                 OrderAmountHero(label: "orderLifecycle.amount", amount: detail.payableAmount)
             }.padding(.vertical, CYSpacing.sm)
+                .alignmentGuide(.listRowSeparatorLeading) { $0[.leading] }
             OrderLifecycleField(label: "orderLifecycle.number", value: detail.registrationNumber)
             OrderLifecycleField(label: "orderLifecycle.ticket", value: detail.ticketName)
         }
@@ -185,9 +199,9 @@ import SwiftUI
         Section("orderLifecycle.actions") {
             let reviewable = OrderLifecycleAction.allCases.filter { OrderLifecycleCoordinator.isReviewable($0, detail: detail) }
             ForEach(OrderLifecycleAction.allCases, id: \.self) { action in
-                if OrderLifecycleCoordinator.isReviewable(action, detail: detail) {
+                if OrderLifecycleCoordinator.isReviewable(action, detail: detail), action != reviewable.first {
                     Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
-                        .buttonStyle(CYOrderActionButtonStyle(primary: action == reviewable.first))
+                        .buttonStyle(CYOrderActionButtonStyle(primary: false))
                         .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)

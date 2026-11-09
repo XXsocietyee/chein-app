@@ -95,15 +95,14 @@ extension WalletScreen where Value == WithdrawalBalance {
     var body: some View {
         List {
             if visibility.income {
-                Section("withdrawal.support.balance") {
+                Section {
                     if earnings.loading {
                         ProgressView("wallet.loading").accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
-                        Text(verbatim: format.amount(value.balance, currency: value.currency))
-                            .font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
-                            .lineLimit(1).minimumScaleFactor(0.5).privacySensitive()
-                            .padding(.vertical, CYSpacing.sm)
+                        CYBalanceHero(label: appLocalized("withdrawal.support.balance", locale: locale),
+                                      amount: format.amount(value.balance, currency: value.currency))
+                            .privacySensitive()
                             .accessibilityIdentifier("wallet.earnings.balance")
                         if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
@@ -111,42 +110,33 @@ extension WalletScreen where Value == WithdrawalBalance {
                             unavailable: earnings.unavailable) { Task { await loadEarnings() } }
                     }
                 }.accessibilityIdentifier("wallet.earnings.overview")
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
             }
+            quickActions
             if visibility.assets {
                 Section("wallet.fundStages") {
                     WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
                 }.accessibilityIdentifier("wallet.earnings.stages.home")
             }
-            // Detail rows grouped as one inset section, then withdrawal rows, as the mini-program 账户收益 page lists them.
+            // More: everything not in the quick-action row, as grouped list rows (all destinations unchanged).
             Section {
-            if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
-            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
-            if visibility.income {
-                NavigationLink { WalletIncomeAnalysisView(reader: reader) } label: {
-                    Label { Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis") } icon: { Image(systemName: "chart.bar.xaxis") }
-                }.accessibilityIdentifier("wallet.analysis.open")
-            }
-            if visibility.income, let invitationHistory {
-                NavigationLink {
-                    SocialInviteHistoryView(reader: invitationHistory.reader,
-                        squareReader: invitationHistory.squareReader, actions: invitationHistory.actions)
-                        .id(invitationHistory.reader.identity)
-                } label: {
-                    Label("social.invites.title", systemImage: "person.2.badge.plus")
-                }.accessibilityIdentifier("wallet.inviteHistory")
-            }
-            if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
-            if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
-            }
-            if visibility.withdrawalRecords {
-                Section {
-                    if showsWithdrawalSupport {
-                        NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
-                    }
-                    NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
+                if visibility.income {
+                    walletRow(LocalizedStringKey(String(localized: "wallet.analysis.title", table: "WalletIncomeAnalysis")), icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }
                 }
-            }
-        }.appNavigationTitle("wallet.title")
+                if visibility.income, let invitationHistory {
+                    walletRow("social.invites.title", icon: "person.2.badge.plus", id: "wallet.inviteHistory") {
+                        SocialInviteHistoryView(reader: invitationHistory.reader,
+                            squareReader: invitationHistory.squareReader, actions: invitationHistory.actions)
+                            .id(invitationHistory.reader.identity)
+                    }
+                }
+                if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
+                if visibility.withdrawalRecords, showsWithdrawalSupport {
+                    walletRow("withdrawal.support.title", icon: "lifepreserver", id: "wallet.withdrawalSupport.open") { WithdrawalSupportLandingView(reader: reader) }
+                }
+            }.listRowBackground(Color.clear).listRowSeparator(.hidden)
+        }.listStyle(.plain).scrollContentBackground(.hidden)
+            .appNavigationTitle("wallet.title")
             .task(id: reader.scope) {
                 isVisible = true
                 earnings.clear()
@@ -165,6 +155,31 @@ extension WalletScreen where Value == WithdrawalBalance {
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
                 }
             }
+    }
+    /// Up to four circular quick actions, all existing destinations.
+    @ViewBuilder private var quickActions: some View {
+        let items = quickItems
+        if !items.isEmpty {
+            Section {
+                HStack(alignment: .top, spacing: CYSpacing.md) { ForEach(items) { $0 } }
+                    .frame(maxWidth: .infinity)
+            }.listRowBackground(Color.clear).listRowSeparator(.hidden)
+        }
+    }
+    private var quickItems: [WalletQuickAction] {
+        var out: [WalletQuickAction] = []
+        if visibility.assets { out.append(.init(title: "wallet.assets", icon: "wallet.pass", id: "wallet.assets.open") { AnyView(WalletAssetsView(reader: reader)) }) }
+        if visibility.income { out.append(.init(title: "wallet.income", icon: "arrow.down.left", id: "wallet.income.open") { AnyView(WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance)) }) }
+        if visibility.points { out.append(.init(title: "wallet.points", icon: "star.circle", id: "wallet.points.open") { AnyView(WalletLedgerView(reader: reader, kind: .points)) }) }
+        if visibility.withdrawalRecords { out.append(.init(title: "wallet.withdrawals", icon: "arrow.up.right", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) }) }
+        return out
+    }
+    private func walletRow<D: View>(_ title: LocalizedStringKey, icon: String, id: String, @ViewBuilder destination: () -> D) -> some View {
+        NavigationLink { destination() } label: {
+            CYListRow(title, card: true) { CYRowIcon(systemImage: icon) }
+        }
+        .buttonStyle(.plain).questifyHidesLinkIndicator()
+        .accessibilityIdentifier(id)
     }
     private func loadEarnings() async {
         guard visibility.income, isVisible, scenePhase == .active else { return }
@@ -715,5 +730,25 @@ enum WalletLoadAnnouncement {
     }
     static func text(locale: Locale) -> String {
         ChannelCopy.text("钱包数据已更新", "Wallet figures updated", locale: locale)
+    }
+}
+
+/// Circular quick action: SF Symbol on a raised disc with a short label underneath.
+private struct WalletQuickAction: View, Identifiable {
+    let title: LocalizedStringKey
+    let icon: String
+    let id: String
+    let destination: () -> AnyView
+    var body: some View {
+        NavigationLink { destination() } label: {
+            VStack(spacing: CYSpacing.xs) {
+                Image(systemName: icon).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    .frame(width: 56, height: 56).background(CYColor.bgElevated, in: Circle()).accessibilityHidden(true)
+                Text(title).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
+                    .multilineTextAlignment(.center)
+            }.frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.plain).questifyHidesLinkIndicator()
+        .accessibilityIdentifier(id)
     }
 }
