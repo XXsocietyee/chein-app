@@ -12,14 +12,11 @@ extension PlayKitScreen {
             let multi = raw["multi"].bool == true
             if multi { Text("playkit.qa.multiHint").font(.footnote) }
             ForEach(projection.options) { option in
-                Button { toggle(option.id, multi: multi) } label: {
-                    HStack { Image(systemName: selected.contains(option.id) ? "checkmark.circle.fill" : "circle"); Text(verbatim: option.label); Spacer() }
-                }.buttonStyle(.bordered).disabled(!enabled)
-                    .accessibilityAddTraits(selected.contains(option.id) ? .isSelected : [])
+                CYChoiceRow(label: option.label, selected: selected.contains(option.id), multi: multi, enabled: enabled) { toggle(option.id, multi: multi) }
             }
             submitButton("SUBMIT_QA", payload: multi ? ["optionIds": .array(selected.sorted().map(PlayWireValue.string))] : ["optionId": .string(selected.first ?? "")], valid: !selected.isEmpty)
         } else {
-            TextField("playkit.qa.answer", text: textBinding(), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
+            TextField("playkit.qa.answer", text: textBinding(), axis: .vertical).cyField().disabled(!enabled)
             submitButton("SUBMIT_QA", payload: ["input": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         }
         if let answer = raw["answerId"].text, !answer.isEmpty, projection.complete {
@@ -28,11 +25,10 @@ extension PlayKitScreen {
         attempts
     }
     @ViewBuilder var branchForm: some View {
-        if let title = raw["currentStep"]["title"].text { Text(verbatim: title).font(.title2.bold()) }
-        if let body = raw["currentStep"]["body"].text { Text(verbatim: body) }
+        if let title = raw["currentStep"]["title"].text { Text(verbatim: title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader) }
+        if let body = raw["currentStep"]["body"].text { Text(verbatim: body).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
         ForEach(projection.options) { option in
-            Button { prepare("CHOOSE", ["optionId": .string(option.id)]) } label: { Text(verbatim: option.label).frame(maxWidth: .infinity, alignment: .leading) }
-                .buttonStyle(.bordered).disabled(!enabled)
+            CYChoiceRow(label: option.label, selected: false, enabled: enabled) { prepare("CHOOSE", ["optionId": .string(option.id)]) }
         }
         if projection.complete { Text("playkit.branch.ended") }
     }
@@ -79,7 +75,7 @@ extension PlayKitScreen {
                 }.disabled(!enabled)
                     .accessibilityLabel(Text(verbatim: option.label))
                     .accessibilityValue(Text(selected.contains(option.id) ? "playkit.pricePair.currentChoice" : "playkit.select"))
-            }.padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 16))
+            }.padding(CYSpacing.lg).background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         }
         if let result, !result.passed {
             Text(result.finished ? "playkit.pricePair.ended" : "playkit.pricePair.retry")
@@ -121,9 +117,7 @@ extension PlayKitScreen {
             LabeledContent("playkit.predict.mine") { Text(verbatim: projection.options.first { $0.id == mine }?.label ?? mine) }
         } else {
             ForEach(projection.options) { option in
-                Button { toggle(option.id, multi: false) } label: {
-                    HStack { Image(systemName: selected.contains(option.id) ? "checkmark.circle.fill" : "circle"); Text(verbatim: option.label) }
-                }.buttonStyle(.bordered).disabled(!enabled)
+                CYChoiceRow(label: option.label, selected: selected.contains(option.id), enabled: enabled) { toggle(option.id, multi: false) }
             }
             submitButton("SUBMIT_PREDICT", payload: ["optionKey": .string(selected.first ?? "")], valid: !selected.isEmpty)
         }

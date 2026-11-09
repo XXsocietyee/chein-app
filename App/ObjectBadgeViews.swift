@@ -220,9 +220,9 @@ struct ObjectBadgeWallBadgeLabel: View {
         .onAppear { if valid, !badge.isLocked { celebrate = true } }
         .accessibilityIdentifier("objects.badge.detail")
     }
-    /// Large foil medal with a requirement ring around it: full when earned, an empty track while locked (no per-badge progress is available).
+    /// Large foil medal. No ring or percentage: the API has no per-badge progress, so the page only says collected or locked.
     private var stage: some View {
-        CYProgressRing(progress: badge.isLocked ? nil : 1, lineWidth: 6, tint: tint.opacity(0.9), track: CYColor.bgRaised) {
+        ZStack {
             CYFoilMedal(unlocked: !badge.isLocked, size: 168, tint: tint) {
                 if media == nil || badge.image.isEmpty {
                     ZStack {
@@ -259,20 +259,9 @@ struct ObjectBadgeWallBadgeLabel: View {
             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
     }
     private func collectionCard(_ summary: ObjectBadgeWallSummary) -> some View {
-        HStack(spacing: CYSpacing.lg) {
-            CYProgressRing(progress: Double(summary.unlocked) / Double(summary.total), lineWidth: 7, tint: tint) {
-                Text(verbatim: "\(summary.unlocked)").font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-            }.frame(width: 76, height: 76)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: ChannelCopy.text("已收集 \(summary.unlocked) / \(summary.total)", "\(summary.unlocked) of \(summary.total) collected", locale: locale))
-                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(verbatim: ChannelCopy.text("还有 \(summary.locked) 枚等你点亮", "\(summary.locked) still to unlock", locale: locale))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-            }
-            Spacer(minLength: 0)
-        }.padding(CYSpacing.lg)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .accessibilityElement(children: .combine)
+        CYInfoCard(title: Text(verbatim: ChannelCopy.text("我的收藏", "My collection", locale: locale)), symbol: "square.grid.2x2.fill") {
+            CYCollectedLockedSummary(collected: summary.unlocked, locked: summary.locked)
+        }
     }
 }
 

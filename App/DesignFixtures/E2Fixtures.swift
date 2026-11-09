@@ -7,6 +7,8 @@ enum E2FixtureKind: String {
     case timedStopwatch = "timed-stopwatch", timedReaction = "timed-reaction", dice, journey
     case npcChat = "npc-chat", badgeLocked = "badge-locked", timedResult = "timed-result"
     case chapters, chaptersEmpty = "chapters-empty", stampCamera = "stamp-camera", badgeDetail = "badge-detail"
+    case cityRules = "city-rules", cityParticipation = "city-participation", cityParticipationConfirm = "city-participation-confirm", cityParticipationJoin = "city-participation-join"
+    case cityNeutral = "city-neutral", cityOnsite = "city-onsite", cityArrival = "city-arrival", cityMap = "city-map", bundle, journalDiagnostic = "journal-diagnostic", passportAnniversary = "passport-anniversary", passportRecap = "passport-recap"
 }
 
 struct E2Fixture: View {
@@ -49,6 +51,18 @@ struct E2Fixture: View {
         case .stampCamera: NavigationStack { RoamStampCameraView() }
         case .badgeDetail: E2BadgeDetailHost(locked: false)
         case .badgeLocked: E2BadgeDetailHost(locked: true)
+        case .cityRules: E2RulesHost()
+        case .cityParticipation: E2ParticipationHost(stage: 0)
+        case .cityParticipationConfirm: E2ParticipationHost(stage: 1)
+        case .cityParticipationJoin: E2ParticipationHost(stage: 2)
+        case .cityNeutral: E2NeutralHost()
+        case .cityOnsite: E2OnsiteHost()
+        case .cityArrival: E2ArrivalHost()
+        case .cityMap: E2OrderedMapHost()
+        case .bundle: E2BundleHost()
+        case .journalDiagnostic: NavigationStack { List { GameJournalCompositionAndPlaySummarySectionView() }.cyGroupedSurface().navigationTitle("游戏手账").navigationBarTitleDisplayMode(.inline) }
+        case .passportAnniversary: NavigationStack { RoamAnniversaryView(reader: RoamPassportToolsFixtureReader()) }
+        case .passportRecap: NavigationStack { RoamMonthlyRecapView(reader: RoamPassportToolsFixtureReader()) }
         case .timedResult:
             ScrollView {
                 VStack(spacing: CYSpacing.lg) {
