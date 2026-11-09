@@ -22,45 +22,58 @@ struct RoamHomeTabPicker: View {
     let nearby: (() -> AnyView)?
     let myTeams: (() -> AnyView)?
     var officialRoutes: (() -> AnyView)? = nil
-    @State private var goes = false
-    @ScaledMetric(relativeTo: .body) private var tile: CGFloat = 44
-    var body: some View {
-        // Mini `intro-card` carousel (snap per card) followed by the single primary GO action.
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: CYSpacing.md) {
-                    card("roam.w208.intro.start", "roam.w208.intro.start.sub", "point.topleft.down.to.point.bottomright.curvepath", identifier: "roam.home.intro.start", destination: start)
-                    if let nearby { card("roam.w208.intro.map", "roam.w208.intro.map.sub", "map", identifier: "roam.home.intro.map", destination: nearby) }
-                    if let myTeams { card("roam.w208.intro.teams", "roam.w208.intro.teams.sub", "person.3", identifier: "roam.home.intro.teams", destination: myTeams) }
-                    if let officialRoutes { card("officialRoute.intro", "officialRoute.intro.sub", "signpost.right.and.left", identifier: "roam.home.intro.officialRoutes", destination: officialRoutes) }
-                }.scrollTargetLayout().padding(.vertical, CYSpacing.xs)
-            }.scrollTargetBehavior(.viewAligned)
-            // Mini GO button: one prominent start action. It opens the same destination as the first card.
-            Button { goes = true } label: { Text("roam.w208.intro.start") }
-                .buttonStyle(.cyPrimary)
-                .accessibilityIdentifier("roam.home.go")
-        }
-        .navigationDestination(isPresented: $goes) { start() }
+    private struct Spec: Identifiable {
+        let id: String
+        let title: LocalizedStringKey, sub: LocalizedStringKey
+        let symbol: String
+        let spine: Color
+        let destination: () -> AnyView
     }
-    private func card(_ title: LocalizedStringKey, _ sub: LocalizedStringKey, _ symbol: String, identifier: String, destination: @escaping () -> AnyView) -> some View {
-        NavigationLink { destination() } label: {
-            HStack(spacing: CYSpacing.md) {
-                // Mini `intro-card__ic`: raised rounded tile holding the glyph.
-                Image(systemName: symbol).font(.title3).foregroundStyle(CYColor.accentText)
-                    .frame(width: tile, height: tile)
-                    .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    Text(title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    Text(sub).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+    private var specs: [Spec] {
+        var list = [Spec(id: "roam.home.intro.start", title: "roam.w208.intro.start", sub: "roam.w208.intro.start.sub",
+                         symbol: "point.topleft.down.to.point.bottomright.curvepath", spine: Color(red: 0.36, green: 0.75, blue: 0.42), destination: start)]
+        if let nearby { list.append(Spec(id: "roam.home.intro.map", title: "roam.w208.intro.map", sub: "roam.w208.intro.map.sub",
+                                         symbol: "map", spine: Color(red: 0.36, green: 0.55, blue: 0.88), destination: nearby)) }
+        if let myTeams { list.append(Spec(id: "roam.home.intro.teams", title: "roam.w208.intro.teams", sub: "roam.w208.intro.teams.sub",
+                                          symbol: "person.3", spine: Color(red: 0.93, green: 0.58, blue: 0.27), destination: myTeams)) }
+        if let officialRoutes { list.append(Spec(id: "roam.home.intro.officialRoutes", title: "officialRoute.intro", sub: "officialRoute.intro.sub",
+                                                 symbol: "signpost.right.and.left", spine: Color(red: 0.25, green: 0.70, blue: 0.72), destination: officialRoutes)) }
+        return list
+    }
+    /// Mini-program ticket cards: coloured spine with symbol and `NO.0n`, white body with title and subtitle.
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Array(specs.enumerated()), id: \.element.id) { index, spec in card(spec, number: index + 1) }
+            }.padding(.vertical, 4)
+        }
+    }
+    private func card(_ spec: Spec, number: Int) -> some View {
+        NavigationLink { spec.destination() } label: {
+            HStack(spacing: 0) {
+                VStack(alignment: .leading) {
+                    Image(systemName: spec.symbol).font(.title3.weight(.semibold)).accessibilityHidden(true)
+                    Spacer(minLength: 8)
+                    Text(verbatim: "NO.0\(number)").font(.system(.caption2, design: .monospaced).weight(.semibold))
                 }
+                .foregroundStyle(.black.opacity(0.78))
+                .padding(12).frame(width: 84, alignment: .leading)
+                .frame(maxHeight: .infinity, alignment: .topLeading)
+                .background(spec.spine)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(spec.title).font(.headline).foregroundStyle(.black)
+                    Text(spec.sub).font(.caption).foregroundStyle(.black.opacity(0.6))
+                }
+                .padding(14).frame(minWidth: 150, maxWidth: .infinity, alignment: .leading)
             }
-            .padding(CYSpacing.md).frame(minWidth: 240, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            .frame(minWidth: 260, minHeight: 92)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .shadow(color: .black.opacity(0.25), radius: 10, y: 4)
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(identifier)
+        .accessibilityIdentifier(spec.id)
     }
 }
 
@@ -72,7 +85,6 @@ struct RoamHomeTabPicker: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Label(LocalizedStringKey(banner.titleKey), systemImage: banner == .needsCheck ? "exclamationmark.circle" : "arrow.uturn.backward.circle")
-                .font(CYTypography.label).foregroundStyle(banner == .needsCheck ? CYColor.warningText : CYColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
             if banner == .needsCheck {
                 NavigationLink { destination() } label: { Text("roam.w208.recovery.check") }

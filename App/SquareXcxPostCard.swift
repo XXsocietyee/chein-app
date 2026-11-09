@@ -32,22 +32,29 @@ struct SquareXcxPostCard: View {
             counters
         }.padding(.vertical, 4)
     }
+    /// One line: avatar, name (single line) and time; at most ONE chip under it (notice > author badge > level).
+    /// The remaining badges stay in the accessibility label and in the post detail.
     private var head: some View {
-        HStack(alignment: .top, spacing: 10) {
+        HStack(alignment: .center, spacing: 10) {
             Image(systemName: "person.crop.circle.fill").font(.largeTitle).foregroundStyle(.secondary).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 6) {
-                    if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).font(.headline) }
-                    else { Text("square.xcx.defaultName").font(.headline) }
+                    if let name = post.nickname?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name).font(.headline).lineLimit(1) }
+                    else { Text("square.xcx.defaultName").font(.headline).lineLimit(1) }
                     if post.verified { Image(systemName: "checkmark.seal.fill").foregroundStyle(.tint).accessibilityLabel(Text("square.verified")) }
-                    if post.memberLevel > 0 { Text("square.xcx.level \(post.memberLevel)").font(.caption2.bold()) }
-                    if let badge = post.authorBadge { Text(verbatim: badge).font(.caption2) }
-                    if let badge = post.noticeBadge { Text(verbatim: badge).font(.caption2.bold()) }
+                    Spacer(minLength: 4)
+                    SquareXcxRelativeTime(createTime: post.createTime, now: now).font(.caption).foregroundStyle(.secondary).lineLimit(1).fixedSize()
                 }
-                HStack(spacing: 4) {
-                    if let club = post.clubName { Text(verbatim: club); Text(verbatim: "·") }
-                    SquareXcxRelativeTime(createTime: post.createTime, now: now)
-                }.font(.caption).foregroundStyle(.secondary)
+                HStack(spacing: 6) {
+                    if let club = post.clubName { Text(verbatim: club).font(.caption).foregroundStyle(.secondary).lineLimit(1) }
+                    if let badge = post.noticeBadge ?? post.authorBadge {
+                        Text(verbatim: badge).font(.caption2.bold()).lineLimit(1)
+                            .padding(.horizontal, 8).padding(.vertical, 2).background(.secondary.opacity(0.2), in: Capsule())
+                    } else if post.memberLevel > 0 {
+                        Text("square.xcx.level \(post.memberLevel)").font(.caption2.bold()).lineLimit(1)
+                            .padding(.horizontal, 8).padding(.vertical, 2).background(.secondary.opacity(0.2), in: Capsule())
+                    }
+                }
             }
         }
     }
@@ -70,12 +77,12 @@ struct SquareXcxPostCard: View {
             .accessibilityElement(children: .contain).accessibilityIdentifier("square.card.play")
     }
     private var counters: some View {
-        HStack(spacing: 18) {
+        HStack(spacing: 24) {
             Label { Text(verbatim: String(max(0, post.likeCount))) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
                 .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))"))
             Label { Text(verbatim: String(max(0, post.commentCount))) } icon: { Image(systemName: "bubble.right") }
                 .accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))"))
-        }.font(.caption).foregroundStyle(.secondary)
+        }.font(.caption.monospacedDigit()).foregroundStyle(.secondary)
     }
 }
 

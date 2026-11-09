@@ -23,6 +23,7 @@ import SwiftUI
     @State private var history: [String] = []
     @State private var historyFailure = false
     @State private var preparedOwner: ReadOwner?
+    @State private var mapRoute: MapRoute?
     private let historyStore = SearchMapLocalHistory()
 
     private struct ReadOwner: Equatable {
@@ -44,26 +45,33 @@ import SwiftUI
     var body: some View {
         List {
             Section {
+                // Mini-program `search2` head: one pill field with 筛选 trailing inside it.
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                     TextField("searchMap.placeholder", text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
-                    // Mini-program ghost 「筛选」 button: icon plus text beside the field; icon-only at accessibility sizes.
                     Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle") }
-                        .labelStyle(.titleAndIcon).font(CYTypography.label)
-                        .buttonStyle(.borderless).tint(CYColor.accentText)
+                        .labelStyle(.iconOnly).buttonStyle(.borderless)
                         .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("searchMap.filters")
                 }
+                .padding(.leading, CYSpacing.md).padding(.trailing, 4)
+                .background(CYColor.bgElevated, in: Capsule())
+                .overlay { Capsule().strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
+                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                 if historyFailure { Text("searchMap.historyUnavailable").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                 if reader.isOfflineExample { Label("searchMap.offline", systemImage: "wifi.slash").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             }
-            Section {
-                Button("searchMap.search") { Task { await search() } }
-                    .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity, minHeight: 44).disabled(!reader.isConfigured || !filter.canSearch)
-                    .accessibilityIdentifier("searchMap.submit")
+            .listRowBackground(Color.clear)
+            // The single primary action appears once there is a keyword; the keyboard Search key always submits.
+            if filter.canSearch {
+                Section {
+                    Button("searchMap.search") { Task { await search() } }
+                        .buttonStyle(.questifyPrimary).frame(maxWidth: .infinity, minHeight: 44).disabled(!reader.isConfigured)
+                        .accessibilityIdentifier("searchMap.submit")
+                }
+                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
             }
-            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
             if !reader.isConfigured {
                 Section { SearchMapIssue(key: "searchMap.notConfigured").questifyCardListRow() }
             } else {
@@ -78,7 +86,17 @@ import SwiftUI
             mapSection
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .appNavigationTitle("searchMap.title")
+        .navigationDestination(item: $mapRoute) { route in
+            switch route {
+            case .city: SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination)
+            case .nearby: SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination)
+            case .layers: if let publicLayers { MapPublicLayerCallerView(caller: publicLayers) }
+            case .shops: MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
+            }
+        }
         .sheet(isPresented: $showsFilters) {
             let presentationID = filterPresentationID
             let context = categoryRecovery.context(for: categoryOwner)
@@ -155,21 +173,25 @@ import SwiftUI
             }
         }
         if !recommendedKeywords.isEmpty {
-            Section("searchMap.recommended") {
+            Section {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: CYSpacing.sm) {
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
-                            Text(verbatim: keyword).font(CYTypography.label).lineLimit(1).frame(maxWidth: .infinity, minHeight: 44)
-                        }.buttonStyle(.bordered).buttonBorderShape(.capsule).tint(CYColor.textSecondary).disabled(!reader.isConfigured)
+                            Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .overlay { RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
+                                .contentShape(Rectangle())
+                        }.buttonStyle(.plain).disabled(!reader.isConfigured)
                             .accessibilityIdentifier("searchMap.recommended.\(index)")
                     }
                 }
                 .padding(.vertical, 4)
-            }
+            } header: { sectionTitle("searchMap.recommended") }
+            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
         // 类别 hides once the directory is known to be empty; loading and failure still show.
         if categoryLoading || categoryFailed || !categories.isEmpty {
-            Section("searchMap.categories") {
+            Section {
                 if categoryLoading {
                     CYSkeleton().padding(.vertical, CYSpacing.sm).accessibilityIdentifier("globalSearch.category.loading")
                 } else if categoryFailed {
@@ -186,30 +208,59 @@ import SwiftUI
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                                 var next = filter; next.categoryID = category.id; applyFilter(next)
                             } label: {
-                                Text(verbatim: category.name).font(CYTypography.label.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 44)
-                            }.buttonStyle(.bordered).buttonBorderShape(.roundedRectangle(radius: CYRadius.sm)).tint(CYColor.textPrimary)
-                            .accessibilityIdentifier("searchMap.category.\(category.id)")
+                                Text(verbatim: category.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                                    .multilineTextAlignment(.leading)
+                                    .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading).padding(.horizontal, CYSpacing.md)
+                                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                                    .contentShape(Rectangle())
+                            }.buttonStyle(.plain).accessibilityIdentifier("searchMap.category.\(category.id)")
                         }
                     }
                     .padding(.vertical, 4)
                 }
-            }
+            } header: { sectionTitle("searchMap.categories") }
+            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
     }
-    /// Mini-program `search-actions__map` (在地图上找活动与主题节点), plus the native map and shop entries.
+    private enum MapRoute: Hashable, Identifiable { case city, nearby, layers, shops
+        var id: Self { self }
+    }
+    /// Mini-program `search-actions__map` (在地图上找活动与主题节点) as one pill; the native nearby, layers and
+    /// shop entries are demoted into a single menu row and stay reachable.
     private var mapSection: some View {
         Section {
-            NavigationLink { SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.citySearch", systemImage: "mappin.and.ellipse") }
-            NavigationLink { SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination) } label: { Label("searchMap.nearby", systemImage: "location") }
-            if let publicLayers {
-                NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: { Label("searchMap.publicLayers", systemImage: "square.3.layers.3d") }
-                    .accessibilityIdentifier("mapPublic.entry")
+            Button { mapRoute = .city } label: {
+                Label("searchMap.citySearch", systemImage: "location.north.line")
+                    .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                    .frame(maxWidth: .infinity, minHeight: 52)
+                    .background(CYColor.bgElevated, in: Capsule())
+                    .contentShape(Capsule())
             }
-            NavigationLink {
-                MerchantDiscoverView(reader: reader, publicMerchant: publicMerchant)
-            } label: { Label("merchant.discover.title", systemImage: "storefront") }
-                .accessibilityIdentifier("merchant.discover.entry")
+            .buttonStyle(.plain)
+            .accessibilityIdentifier("searchMap.citySearch")
+            Menu {
+                Button { mapRoute = .nearby } label: { Label("searchMap.nearby", systemImage: "location") }
+                if publicLayers != nil {
+                    Button { mapRoute = .layers } label: { Label("searchMap.publicLayers", systemImage: "square.3.layers.3d") }
+                        .accessibilityIdentifier("mapPublic.entry")
+                }
+                Button { mapRoute = .shops } label: { Label("merchant.discover.title", systemImage: "storefront") }
+                    .accessibilityIdentifier("merchant.discover.entry")
+            } label: {
+                HStack(spacing: 6) {
+                    Text(LocalizedStringResource("searchMap.moreWays", defaultValue: "More ways to find"))
+                    Image(systemName: "chevron.down").font(.caption2.weight(.bold))
+                }
+                .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+            }
+            .accessibilityIdentifier("searchMap.more")
         }
+        .listRowBackground(Color.clear)
+    }
+    private func sectionTitle(_ key: LocalizedStringKey) -> some View {
+        Text(key).font(.title3.weight(.bold)).foregroundStyle(CYColor.textPrimary).textCase(nil)
+            .padding(.horizontal, CYSpacing.xs).accessibilityAddTraits(.isHeader)
     }
     @ViewBuilder private func results(_ value: GlobalSearchResults, retainedKinds: [GlobalSearchKind]) -> some View {
         // Mini-program `pages/search2/result`: result tabs first. Segmented when the labels fit, a menu otherwise,

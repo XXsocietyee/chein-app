@@ -65912,6 +65912,22 @@
         }
       }
     },
+    "homeFeed.moreWaysToPlay": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More ways to play"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多玩法"
+          }
+        }
+      }
+    },
     "homeFeed.noLocation": {
       "localizations": {
         "en": {
@@ -191731,6 +191747,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "步行"
+          }
+        }
+      }
+    },
+    "searchMap.moreWays": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More ways to find"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多查找方式"
           }
         }
       }

@@ -7,8 +7,13 @@ import SwiftUI
     let scope = UUID()
     let scenario: String
     private var failedOnce = false
-    init(scenario: String = "content") { self.scenario = scenario }
-    func banners() async throws -> [DiscoveryBanner] { [] }
+    let showsBanners: Bool
+    init(scenario: String = "content", showsBanners: Bool = false) { self.scenario = scenario; self.showsBanners = showsBanners }
+    /// Design fixture only: three synthetic banners without a cover (the kit pager draws brand gradients).
+    func banners() async throws -> [DiscoveryBanner] {
+        guard showsBanners else { return [] }
+        return try (1...3).map { try JSONDecoder().decode(DiscoveryBanner.self, from: Data(#"{"id":\#($0),"picUrl":null,"linkType":0,"dataId":null,"contents":null}"#.utf8)) }
+    }
     func categories() async throws -> [DiscoveryCategory] {
         try JSONDecoder().decode([DiscoveryCategory].self, from: Data(#"[{"id":2,"categoryName":"Sample category"}]"#.utf8))
     }
@@ -31,14 +36,20 @@ import SwiftUI
 @MainActor struct HomeFeedFixtureHostView: View {
     @State private var reader: HomeFeedFixtureReader
     @State private var path: [HomeFeedDestination] = []
-    init() {
+    private let hero: Bool
+    init(forceHero: Bool = false) {
+        hero = forceHero || ProcessInfo.processInfo.arguments.contains("--design-hero")
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-home-feed-scenario")
-        _reader = State(initialValue: HomeFeedFixtureReader(scenario: index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "content"))
+        _reader = State(initialValue: HomeFeedFixtureReader(scenario: index.flatMap { args.indices.contains($0 + 1) ? args[$0 + 1] : nil } ?? "content", showsBanners: forceHero))
     }
     var body: some View {
         NavigationStack(path: $path) {
-            HomeFeedView(reader: reader) { path.append($0) }
+            HomeFeedView(reader: reader, viewerNickname: hero ? "Mia" : nil,
+                         selectedCity: hero ? "Shanghai" : nil,
+                         showsHeroBanners: hero,
+                         onActionBanner: hero ? { _ in } : nil,
+                         onOpenUnifiedSearch: hero ? { _ in } : nil) { path.append($0) }
                 .navigationDestination(for: HomeFeedDestination.self) { destination in
                     switch destination {
                     case .activity(let id): Text(verbatim: "Synthetic activity destination \(id)").accessibilityIdentifier("homeFeed.destination.activity")

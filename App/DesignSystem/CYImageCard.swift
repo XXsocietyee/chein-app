@@ -7,7 +7,7 @@ struct CYImageCard: View {
     enum Style { case hero, shelf }
     private let style: Style
     private let title: LocalizedStringKey
-    private let meta: LocalizedStringKey?
+    private var meta: Text?
     private let imageURL: URL?
     private let aspectRatio: CGFloat
 
@@ -16,9 +16,15 @@ struct CYImageCard: View {
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
         self.title = title
-        self.meta = meta
+        self.meta = meta.map { Text($0) }
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
         self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
+    }
+
+    /// Pre-formatted (already localized) meta line, shown verbatim.
+    init(_ title: LocalizedStringKey, metaText: String, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
+        self.init(title, imageURL: imageURL, aspectRatio: aspectRatio, style: style)
+        self.meta = Text(verbatim: metaText)
     }
 
     var body: some View {
@@ -31,7 +37,7 @@ struct CYImageCard: View {
                         .font(CYTypography.sectionTitle)
                         .lineLimit(2)
                     if let meta {
-                        Text(meta).font(CYTypography.meta).opacity(0.85).lineLimit(1)
+                        meta.font(CYTypography.meta).monospacedDigit().opacity(0.85).lineLimit(2)
                     }
                 }
                 .foregroundStyle(.white)
