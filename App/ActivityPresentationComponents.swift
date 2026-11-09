@@ -19,20 +19,23 @@ struct ActivityListCard: View {
     @Environment(\.locale) private var locale
     @Environment(\.timeZone) private var timeZone
 
-    var body: some View {
-        VStack(alignment:.leading,spacing:10) {
-            if let url=QuestifyCardArtwork.safeURL(item.imageURL) {
-                QuestifyCardArtwork(url:url,height:dynamicTypeSize.isAccessibilitySize ? 132 : 164)
-            }
-            ActivityName(name:item.name)
-                .font(.title3.weight(.semibold))
-            QuestifyCardSummary(meta: QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, locale: locale, displayTimeZone: timeZone),
-                                                                place: ActivityPresentation.place(item)),
-                                price: QuestifyCardText.amount(item.minimumAmount, locale: locale))
+    private var meta: Text? {
+        let line = QuestifyCardText.metaLine(date: QuestifyCardText.date(item.startDate, locale: locale, displayTimeZone: timeZone),
+                                             place: ActivityPresentation.place(item))
+        let price = QuestifyCardText.amount(item.minimumAmount, locale: locale)
+        switch (line, price) {
+        case let (line?, price?): return Text(verbatim: line + " · ") + Text("playx.finishRoute.priceFrom \(price)")
+        case let (line?, nil): return Text(verbatim: line)
+        case let (nil, price?): return Text("playx.finishRoute.priceFrom \(price)")
+        default: return nil
         }
-        .foregroundStyle(.primary)
-        .fixedSize(horizontal:false,vertical:true)
-        .questifyCardSurface()
+    }
+
+    var body: some View {
+        // Image-led card like the routes shelf; without a cover the kit placeholder tile is shown.
+        CYImageCard(title: ActivityPresentation.nonempty(item.name).map { Text(verbatim: $0) } ?? Text("activity.untitled"),
+                    meta: meta, imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: .hero)
+            .foregroundStyle(.primary)
     }
 }
 
