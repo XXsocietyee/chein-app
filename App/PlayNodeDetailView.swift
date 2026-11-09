@@ -18,7 +18,7 @@ struct PlayNodeDetailView: View {
             if model.reader.identity == nil {
                 PlayIssueView(issue: .init(APIError.unauthorized))
             } else if model.isLoading {
-                ProgressView("play.loading")
+                CYSkeleton().padding(CYSpacing.pageHorizontal).accessibilityLabel(Text("play.loading"))
             } else if let issue = model.visibleIssue {
                 VStack {
                     if let receipt = model.visibleReceipt { PlayReceiptView(receipt: receipt).padding() }
@@ -29,7 +29,7 @@ struct PlayNodeDetailView: View {
                       let node = snapshot.visibleNodes.first(where: { $0.id == nodeID }) {
                 detail(node, snapshot: snapshot)
             } else {
-                ContentUnavailableView("play.node.unavailable", systemImage: "lock", description: Text("play.node.unavailable.detail"))
+                CYEmptyState(systemImage: "lock", "play.node.unavailable", detail: "play.node.unavailable.detail")
             }
         }
         .privacySensitive()
@@ -55,13 +55,15 @@ struct PlayNodeDetailView: View {
         let offeredAnswer = reviewOwner.capture(nodeID: nodeID)
         return Form {
             Section {
-                if let name = node.name, !name.isEmpty { Text(verbatim: name).font(.title2.bold()) }
-                else { Text("play.node.untitled").font(.title2.bold()) }
+                if let name = node.name, !name.isEmpty { Text(verbatim: name).font(.system(.title, design: .default).weight(.heavy)).foregroundStyle(CYColor.textPrimary) }
+                else { Text("play.node.untitled").font(.system(.title, design: .default).weight(.heavy)).foregroundStyle(CYColor.textPrimary) }
                 if let address = node.address, !address.isEmpty {
                     Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") }
                 }
-                Text(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"))
-                    .font(.headline).accessibilityIdentifier("play.node.status")
+                CYStatusChip(LocalizedStringKey(snapshot.isDone(node) ? "play.node.completed" : snapshot.isLocked(node) ? "play.node.locked" : "play.node.open"),
+                             tone: snapshot.isDone(node) ? .success : snapshot.isLocked(node) ? .neutral : .info,
+                             systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? "lock.fill" : "play.circle")
+                    .accessibilityIdentifier("play.node.status")
                 if let reason = snapshot.lockReason(node), !reason.isEmpty { Text(verbatim: reason) }
                 if let note = snapshot.result.timeNote, snapshot.availability != .active, !note.isEmpty { Text(verbatim: note) }
                 if let hours = node.businessTime, !hours.isEmpty { LabeledContent("play.businessTime") { Text(verbatim: hours) } }
@@ -90,7 +92,7 @@ struct PlayNodeDetailView: View {
                                     answer = key
                                 } label: {
                                     HStack(alignment: .top) {
-                                        Image(systemName: selectedAnswer == key ? "largecircle.fill.circle" : "circle")
+                                        Image(systemName: selectedAnswer == key ? "largecircle.fill.circle" : "circle").foregroundStyle(selectedAnswer == key ? CYColor.textPrimary : CYColor.textTertiary)
                                         Text(verbatim: key + ". " + (options[key] ?? ""))
                                     }.frame(maxWidth: .infinity, alignment: .leading)
                                 }
@@ -120,22 +122,21 @@ struct PlayNodeDetailView: View {
                 if model.isSubmitting {
                     ProgressView("play.answer.submitting").accessibilityIdentifier("play.answer.submitting")
                 } else if model.needsProgressCheck {
-                    Text("play.answer.checkProgress").foregroundStyle(.secondary)
-                    Button("play.answer.refreshProgress") { Task { await model.load(keepingReceipt: true) } }
+                    Text("play.answer.checkProgress").foregroundStyle(CYColor.textSecondary)
+                    CYPillButton("play.answer.refreshProgress", style: .secondary) { Task { await model.load(keepingReceipt: true) } }
+                        .listRowBackground(Color.clear)
                         .disabled(model.isLoading || model.isSubmitting)
                         .accessibilityIdentifier("play.answer.refreshProgress")
                 } else if availability.canAnswer {
                     if model.reader.supportsAnswerSubmission {
-                        Text("play.answer.instructions").font(.footnote).foregroundStyle(.secondary)
-                        Button {
+                        Text("play.answer.instructions").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        CYPillButton(verbatim: reviewLocalized("review")) {
                             do {
                                 try reviewOwner.prepare(answer: answer, offered: offeredAnswer)
                                 answerReviewIssue = nil
                             } catch { answerReviewIssue = PlayLoadIssue(error) }
-                        } label: {
-                            if model.isSubmitting { ProgressView("play.answer.submitting") }
-                            else { Text(verbatim: reviewLocalized("review")) }
                         }
+                        .listRowBackground(Color.clear)
                         .disabled(answer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || model.isSubmitting || !model.reader.canSubmitAnswer)
                         .accessibilityIdentifier("play.answer.submit")
                     } else { Text("play.answer.readOnly").foregroundStyle(.secondary) }

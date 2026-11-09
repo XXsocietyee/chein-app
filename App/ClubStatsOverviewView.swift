@@ -124,6 +124,7 @@ import SwiftUI
                 Task { await model.load(permit, access: governance.access) }
             }.disabled(model.loading || permit == nil).accessibilityIdentifier("club.statsOverview.reload")
         }
+        .cyGroupedSurface()
         .navigationTitle("club.statsOverview.title")
         .task(id: expected) {
             guard let permit = model.activate(expected) else { return }

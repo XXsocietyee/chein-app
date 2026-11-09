@@ -108,7 +108,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                     } header: { passportText("records") }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(passportText("title"))
         .task {
             guard scenePhase == .active, owner == RoamPassportHistoryOwner(reader), !Task.isCancelled else { return }
@@ -181,7 +181,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
             else if !reader.isConfigured || reader.identity == nil { Text(LocalizedStringKey(reader.identity == nil ? "roam.signInRequired" : "roam.notConfigured")) }
             else if scenePhase == .active && model.isVisible {
                 if model.isMissing {
-                    ContentUnavailableView("roam.experience.recordMissing", systemImage: "questionmark.folder")
+                    CYEmptyState(systemImage: "questionmark.folder", "roam.experience.recordMissing")
                         .accessibilityIdentifier("roam.serverHistory.detail.missing")
                 } else if let error = model.error { RoamExperienceIssue(error: error) { Task { await model.read(retry) } } }
                 if let fact = model.fact {
@@ -206,7 +206,7 @@ private func passportText(_ key: String) -> Text { Text(LocalizedStringKey("roam
                 if model.busy { ProgressView("roam.loading") }
                 else { Button("action.retry") { Task { await model.read(retry) } }.accessibilityIdentifier("roam.serverHistory.detail.retry") }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(passportText("recordTitle"))
         .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.close") { dismiss() } } }
         .task {

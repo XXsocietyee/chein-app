@@ -42,7 +42,6 @@ import SwiftUI
         .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
-        .navigationTitle(text("title"))
         .navigationBarTitleDisplayMode(.inline)
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))

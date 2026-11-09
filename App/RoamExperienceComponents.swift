@@ -205,7 +205,7 @@ struct RoamExperienceNotice: View {
     var body: some View {
         if offline {
             Label("roam.experience.offline", systemImage: "testtube.2")
-                .font(.caption).foregroundStyle(.secondary)
+                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                 .accessibilityIdentifier("roam.experience.notice")
         }
     }
@@ -226,9 +226,9 @@ struct RoamExperienceIssue: View {
             items.append(RoamHostedAccessibilityItem(identifier: "roam.experience.retry", action: retry))
         }
         return VStack(alignment: .leading, spacing: 12) {
-            Label(key, systemImage: "exclamationmark.circle")
+            Label(key, systemImage: "exclamationmark.circle").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
             if canRetry, let retry {
-                Button("action.retry", action: retry)
+                CYPillButton("action.retry", style: .secondary, fullWidth: false, action: retry)
                     .accessibilityIdentifier("roam.experience.retry")
             }
         }.accessibilityElement(children: .contain)
@@ -240,9 +240,8 @@ struct RoamExperienceCard<Content: View>: View {
     let content: Content
     init(@ViewBuilder content: () -> Content) { self.content = content() }
     var body: some View {
-        content.padding(20).frame(maxWidth: .infinity, alignment: .leading)
-            .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 24, style: .continuous))
-            .overlay { RoundedRectangle(cornerRadius: 24).stroke(.primary.opacity(0.1), lineWidth: 1) }
+        content.frame(maxWidth: .infinity, alignment: .leading)
+            .cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
     }
 }
 struct RoamRouteSketchView: View {

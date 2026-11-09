@@ -15,7 +15,7 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             if let question {
-                Text("playkit.compare.instructions").font(.subheadline)
+                Text("playkit.compare.instructions").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
                 if let remaining = question.remainingAttempts {
                     LabeledContent("playkit.compare.remaining") { Text(verbatim: String(remaining)).monospacedDigit() }
                 } else { Text("playkit.compare.unlimited").font(.footnote) }
@@ -45,7 +45,7 @@ import SwiftUI
                             requestReview("SUBMIT_COMPARE", payload, {})
                             issue = nil
                         } catch { issue = error as? PlayExperienceError ?? .invalidAction }
-                    }.buttonStyle(.questifyPrimary)
+                    }.buttonStyle(.cyPrimary(fullWidth: true))
                         .disabled(!enabled || selection.revision != revision)
                         .accessibilityIdentifier("playkit.submit.compare")
                 }
@@ -69,21 +69,22 @@ import SwiftUI
     }
     private func side(_ side: PlayCompareQuestion.Side, question: PlayCompareQuestion) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(verbatim: side.label).font(.title3.bold()).accessibilityAddTraits(.isHeader)
+            Text(verbatim: side.label).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
             ForEach(side.items) { item in
                 Button {
                     selection.toggle(item.id, question: question, revision: currentRevision()); onDirty()
                 } label: {
                     HStack(alignment: .top, spacing: 12) {
                         Image(systemName: selection.marked.contains(item.id) ? "checkmark.circle.fill" : "circle")
+                            .foregroundStyle(selection.marked.contains(item.id) ? CYColor.textPrimary : CYColor.textTertiary)
                             .accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: 5) {
-                            Text(verbatim: item.time).font(.caption.bold()).monospacedDigit()
-                            Text(verbatim: item.text).fixedSize(horizontal: false, vertical: true)
+                            Text(verbatim: item.time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+                            Text(verbatim: item.text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                         }
                         Spacer(minLength: 0)
                     }.padding(12).frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+                        .cyDomainCard(radius: CYRadius.sm, padding: 0)
                         .contentShape(Rectangle())
                 }.buttonStyle(.plain).disabled(!enabled || selection.revision != revision || question.finished)
                     .accessibilityLabel(Text(verbatim: side.label + ", " + item.time + ", " + item.text))

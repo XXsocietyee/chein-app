@@ -76,22 +76,23 @@ struct RoamCreatedStampReadOwner: Hashable {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 if !target.isCurrent(reader: album.reader) || lookup.phase == .unavailable {
-                    ContentUnavailableView("roam.createdStamp.changed", systemImage: "person.crop.circle.badge.exclamationmark")
+                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.createdStamp.changed")
                         .accessibilityIdentifier("roam.createdStamp.changed")
                 } else {
                     RoamExperienceNotice(offline: album.reader.isOfflineExample)
-                    Text("roam.createdStamp.confirmed").font(.headline)
-                    LabeledContent("roam.createdStamp.id", value: String(target.stampID))
-                    Text("roam.createdStamp.readNotice").font(.footnote).foregroundStyle(.secondary)
+                    CYHeroHeader("roam.createdStamp.confirmed", subtitle: "roam.createdStamp.readNotice")
+                    LabeledContent("roam.createdStamp.id", value: String(target.stampID)).monospacedDigit()
                     result
                     NavigationLink {
                         RoamStampAlbumView(reader: album.reader, stampDestination: album.camera)
-                    } label: { Label("roam.createdStamp.browse", systemImage: "rectangle.stack") }
+                    } label: { CYPillButton("roam.createdStamp.browse", style: .primary, systemImage: "rectangle.stack") {}.allowsHitTesting(false) }
+                        .buttonStyle(.plain)
                         .disabled(!album.reader.isConfigured)
                         .accessibilityIdentifier("roam.createdStamp.browse")
                 }
-            }.padding()
+            }.padding(CYSpacing.pageHorizontal)
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .navigationTitle("roam.createdStamp.title")
         .onAppear { presentation.appear() }
         .onDisappear { presentation.disappear() }
@@ -101,24 +102,24 @@ struct RoamCreatedStampReadOwner: Hashable {
         let refresh = presentation.readAction(refresh: true), next = presentation.readAction()
         switch lookup.phase {
         case .idle, .loading:
-            ProgressView("roam.loading")
+            CYSkeleton().accessibilityLabel(Text("roam.loading"))
         case .found:
             if let stamp = lookup.stamp, album.reader.isConfigured {
                 RoamStampCard(stamp: stamp, offline: album.reader.isOfflineExample)
                     .cyStampSlam(trigger: true)
                     .accessibilityIdentifier("roam.createdStamp.match")
             }
-            Button("action.retry", systemImage: "arrow.clockwise") { refresh() }
+            CYPillButton("action.retry", style: .tertiary, systemImage: "arrow.clockwise") { refresh() }
         case .more:
-            Text("roam.createdStamp.moreHint")
-            Button("roam.experience.loadMore") { next() }
+            Text("roam.createdStamp.moreHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            CYPillButton("roam.experience.loadMore", style: .secondary) { next() }
                 .accessibilityIdentifier("roam.createdStamp.more")
         case .hidden:
             Label("roam.createdStamp.hidden", systemImage: "eye.slash")
-            Button("action.retry", systemImage: "arrow.clockwise") { refresh() }
+            CYPillButton("action.retry", style: .tertiary, systemImage: "arrow.clockwise") { refresh() }
         case .missing:
             Text("roam.createdStamp.missing")
-            Button("action.retry", systemImage: "arrow.clockwise") { refresh() }
+            CYPillButton("action.retry", style: .tertiary, systemImage: "arrow.clockwise") { refresh() }
         case .failed:
             if let error = lookup.error { RoamExperienceIssue(error: error) { next() } }
         case .unavailable:

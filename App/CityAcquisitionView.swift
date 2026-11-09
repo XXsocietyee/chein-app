@@ -104,7 +104,7 @@ import SwiftUI
                     Text("cityAcquire.confirm.hint", tableName: table)
                     Button(role: .destructive) { confirm(captured) } label: { Text("cityAcquire.confirm.pay", tableName: table) }.modifier(CityAcquisitionPrimaryAction(destructive: true)).disabled(!interactive || !controller.canWrite || !captured.unexpired)
                     Button { controller.cancelConfirmation() } label: { Text("cityAcquire.confirm.cancel", tableName: table) }
-                }.modifier(CityAcquisitionPageStyle()).navigationTitle(Text("cityAcquire.confirm.title", tableName: table))
+                }.cyGroupedSurface().modifier(CityAcquisitionPageStyle()).navigationTitle(Text("cityAcquire.confirm.title", tableName: table))
             }
         }
         .task(id: readID) { guard visible, scenePhase == .active, !Task.isCancelled else { return }; await controller.open(activity: controller.activityID) }

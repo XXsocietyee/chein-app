@@ -82,8 +82,18 @@ import SwiftUI
                 Text(LocalizedStringKey(result)).accessibilityIdentifier("playkit.type.result")
             }
         }
-        Text(verbatim: clockLabel).font(.system(.largeTitle, design: .rounded).monospacedDigit())
-            .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
+        ZStack {
+            Circle().stroke(CYColor.bgRaised, lineWidth: 10)
+            Circle().trim(from: 0, to: clockProgress).stroke(CYColor.textPrimary, style: StrokeStyle(lineWidth: 10, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text(verbatim: clockLabel).font(.system(size: 56, weight: .bold, design: .rounded)).monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.5).lineLimit(1).padding(CYSpacing.xl)
+        }
+        .frame(maxWidth: 260).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
+        .sensoryFeedback(.success, trigger: timing.phase == .measured)
+        .accessibilityElement(children: .ignore)
+        .accessibilityValue(Text(verbatim: clockLabel))
+        .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
         if timing.phase == .idle || timing.phase == .interrupted {
             CYPillButton("playkit.challenge.start") { start() }
                 .disabled(!enabled || !validConfiguration).accessibilityIdentifier("playkit.challenge.start")
@@ -103,6 +113,11 @@ import SwiftUI
         if kind == .reaction { return true }
         if kind == .typeIn { return seconds.isFinite && seconds >= 0 && seconds <= 3600 && !(segment["target"].text ?? "").isEmpty }
         return seconds.isFinite && seconds > 0 && seconds <= 3600
+    }
+    /// Countdown ring drains; the other clocks show a full ring (no fake progress for an open-ended timer).
+    private var clockProgress: CGFloat {
+        guard kind == .countdown || kind == .typeIn, seconds > 0 else { return 1 }
+        return CGFloat(max(0, min(1, 1 - Double(elapsed) / (seconds * 1000))))
     }
     private var clockLabel: String {
         if kind == .stopwatch && timing.phase == .running && elapsed >= 1000 { return "—.—" }

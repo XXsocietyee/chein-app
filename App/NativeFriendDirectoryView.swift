@@ -74,7 +74,7 @@ import SwiftUI
                         HStack(spacing: Theme.Space.s3) {
                             Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary).accessibilityHidden(true)
                             Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
-                            if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(.yellow).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
+                            if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(CYColor.warningText).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
                             Spacer()
                             Image(systemName: "chevron.right").font(Theme.Font.label.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
                         }
@@ -90,6 +90,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
+        .cyGroupedSurface()
         .navigationTitle(localized("friendDirectory.title"))
         .accessibilityIdentifier("friendDirectory.home")
         .task { await flow.load() }
@@ -281,6 +282,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
+        .cyGroupedSurface()
         .navigationTitle(localized("friendDirectory.detail"))
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friendDirectory.detail")

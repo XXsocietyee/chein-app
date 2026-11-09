@@ -137,6 +137,7 @@ struct IMConversationRowButtonToken: Equatable {
                     }
                 } else { Text("messaging.signInHint") }
             }
+            .cyGroupedSurface()
             .navigationTitle(Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title")))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

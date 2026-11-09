@@ -18,21 +18,25 @@ import SwiftUI
     @State private var work: Task<Void, Never>?
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            CityPlayerValueCopy.text("title").font(.headline)
-            CityPlayerValueCopy.text("entryNotice").font(.footnote)
-            CityPlayerValueCopy.text("currentPageOnly").font(.footnote)
+            CityPlayerValueCopy.text("title").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            CityPlayerValueCopy.text("entryNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            CityPlayerValueCopy.text("currentPageOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             if !model.configured { CityPlayerValueCopy.text("disabled") }
             else {
-                if model.busy { ProgressView() }
+                if model.busy { CYSkeleton() }
                 if let issue = model.issue { CityPlayerValueCopy.text("issue." + issue) }
                 ForEach(model.services) { reference in
                     Button { run { await model.select(reference) } } label: {
                         Text(verbatim: model.read.points.first { $0.pointId == reference.pointId }?.title ?? reference.pointId)
-                    }.disabled(model.busy).accessibilityIdentifier("cityValue.select.\(reference.pointId)")
+                            .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                            .cyDomainCard(radius: CYRadius.sm, padding: CYSpacing.md)
+                    }.buttonStyle(.plain).disabled(model.busy).accessibilityIdentifier("cityValue.select.\(reference.pointId)")
                 }
                 if model.services.isEmpty && !model.busy && model.issue == nil { CityPlayerValueCopy.text("noServices") }
                 if model.canBegin {
-                    Button { bindTarget = model.selected?.poiId; bindReview = true } label: { CityPlayerValueCopy.text("bind") }.accessibilityIdentifier("cityValue.bind")
+                    Button { bindTarget = model.selected?.poiId; bindReview = true } label: { CityPlayerValueCopy.text("bind").frame(maxWidth: .infinity) }
+                        .buttonStyle(.cyPrimary(fullWidth: true)).accessibilityIdentifier("cityValue.bind")
                 }
                 if let visit = model.visit {
                     LabeledContent { CityPlayerValueCopy.text(visit.meaningfulAction == "OBSERVED" ? "observed" : "notObserved") } label: { CityPlayerValueCopy.text("meaningful") }
@@ -63,7 +67,7 @@ import SwiftUI
                 }
                 Button { run { await model.load() } } label: { CityPlayerValueCopy.text("refresh") }.disabled(model.busy)
             }
-        }.padding().background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+        }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
             .accessibilityIdentifier("cityValue.player")
             .confirmationDialog(CityPlayerValueCopy.string("bindReview"), isPresented: $bindReview, titleVisibility: .visible) {
                 Button(CityPlayerValueCopy.string("confirmBind")) { guard model.selected?.poiId == bindTarget else { return }; run { await model.begin() } }

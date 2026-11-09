@@ -327,6 +327,7 @@ struct ClubCommunityFeedView: View {
             }
             if model.context.coordinator?.permitsInjectedWrites != true { Text("club.community.offline").foregroundStyle(.secondary) }
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("club.community.posts"))
         .background(alignment: .topLeading) { ClubPostDiscussionFixtureTraceView() }
         .navigationDestination(item: $destination) { target in
@@ -565,6 +566,7 @@ struct ClubCommunityPostDetailView: View {
                 .accessibilityIdentifier("club.community.detail.refresh")
             }
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("club.community.detail"))
         .navigationDestination(isPresented: $showingHistory) {
             ClubCommunityHistoryView(context: model.context, identity: identity, postID: post.id)
@@ -624,6 +626,7 @@ struct ClubCommunityComposer: View {
                 }.disabled(model.busy || uploading || imageBridge.isBusy || content.count > 300 || (content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && images.isEmpty))
                     .accessibilityIdentifier("club.community.reviewDraft")
             }
+            .cyGroupedSurface()
             .navigationTitle(Text(post == nil ? "club.community.create" : "club.community.edit"))
             .toolbar {
                 if let post {
@@ -731,6 +734,7 @@ struct ClubCommunityCommentsView: View {
                 .disabled(content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || !identity.isSignedIn || model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
             Button("club.community.refresh") { Task { await model.load(operation) } }
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("club.community.comments"))
         .task(id: identity) {
             model.invalidate(); content = ""; evidence = nil

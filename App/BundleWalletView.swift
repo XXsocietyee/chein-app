@@ -19,7 +19,7 @@ import SwiftUI
                         LabeledContent { Text(verbatim: String(balance.unitsTotal)) } label: { text("wallet.unitsTotal") }
                         ForEach(balance.orderedCountKeys, id: \.self) { key in
                             LabeledContent {
-                                Text(verbatim: String(balance.counts[key] ?? 0))
+                                Text(verbatim: balance.counts[key].map { String($0) } ?? "—").monospacedDigit()
                             } label: {
                                 if let known = BundleOrderStatusPresentation.unitStatusKey(key) { text(known) }
                                 else { Text(verbatim: key) }

@@ -41,8 +41,8 @@ import UIKit
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
                 if visible, let chapter {
-                    if let title = chapter.title { Text(verbatim: title).font(.largeTitle.bold()).accessibilityAddTraits(.isHeader) }
-                    if segments.isEmpty { ContentUnavailableView("chapterStory.empty", systemImage: "book.closed") }
+                    if let title = chapter.title { CYHeroHeader(verbatim: title) }
+                    if segments.isEmpty { CYEmptyState(systemImage: "book.closed", "chapterStory.empty") }
                     ForEach(segments) { segment in
                         segmentBody(segment).frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("chapterStory.segment." + segment.id)
@@ -57,13 +57,14 @@ import UIKit
                     }
                     audioSelection
                     if audioURL != nil { PlatformAudioHost(rawURL: audioURL, scope: mediaScope, makeModel: makeAudio) }
-                    Text("chapterStory.end").font(.footnote).foregroundStyle(.secondary)
-                    Button("chapterStory.return") { leave() }.buttonStyle(.questifyPrimary)
+                    Text("chapterStory.end").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    CYPillButton("chapterStory.return") { leave() }
                 } else {
-                    ContentUnavailableView("chapterStory.unavailable", systemImage: "lock", description: Text("chapterStory.unavailable.detail"))
+                    CYEmptyState(systemImage: "lock", "chapterStory.unavailable", detail: "chapterStory.unavailable.detail")
                 }
-            }.padding().frame(maxWidth: 720).frame(maxWidth: .infinity)
+            }.padding(CYSpacing.pageHorizontal).frame(maxWidth: 720).frame(maxWidth: .infinity)
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .scrollDismissesKeyboard(.interactively)
         .navigationTitle("chapterStory.title").navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(!dirtyNodes.isEmpty)
@@ -87,14 +88,14 @@ import UIKit
     }
     @ViewBuilder private func segmentBody(_ segment: ChapterStorySegment) -> some View {
         switch segment.content {
-        case .text(let text): Text(verbatim: text).font(.body).lineSpacing(8).textSelection(.enabled)
+        case .text(let text): Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineSpacing(8).textSelection(.enabled)
         case .image(let url): ChapterStoryArtwork(url: url, reader: imageReader)
         case .audio(let url): Button("chapterStory.listen", systemImage: "speaker.wave.2") { audioURL = url }
         case .voice(let speaker, let text):
             VStack(alignment: .leading, spacing: 8) {
-                if !speaker.isEmpty { Text(verbatim: speaker).font(.caption.weight(.semibold)) }
-                Text(verbatim: text).font(.body).italic()
-            }.padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
+                if !speaker.isEmpty { Text(verbatim: speaker).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
+                Text(verbatim: text).font(CYTypography.body).italic().foregroundStyle(CYColor.textPrimary)
+            }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         case .reveal(let speaker, let lines):
             DisclosureGroup {
                 ForEach(Array(lines.enumerated()), id: \.offset) { _, line in Text(verbatim: line).padding(.vertical, 4) }
@@ -112,9 +113,9 @@ import UIKit
             }
         case .thought(let name, let description):
             VStack(alignment: .leading, spacing: 8) {
-                Label { Text(verbatim: name).font(.headline) } icon: { Image(systemName: "lightbulb") }
-                if let description { Text(verbatim: description) }
-            }.padding().background(.quaternary, in: RoundedRectangle(cornerRadius: 16))
+                Label { Text(verbatim: name).font(CYTypography.cardTitle) } icon: { Image(systemName: "lightbulb") }
+                if let description { Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+            }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         case .game(let id):
             if let journey = journeyModel?(id) {
                 JourneyRoleViewInlineHost(model: journey.roleContent, sessionIdentity: model.identity,
@@ -177,7 +178,7 @@ import UIKit
                         .id("\(state.sessionID):\(kind.rawValue)")
                 } else {
                     if state.inline && !state.isMultiplayer && state.config["leaderboard"]["enabled"].bool != true {
-                        ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash")
+                        CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable")
                     }
                     NavigationLink { fallback() } label: { Label("chapterStory.play", systemImage: "play.circle") }
                 }

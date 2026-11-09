@@ -283,6 +283,7 @@ extension EnvironmentValues {
                 Button("club.terminal.refresh") { Task { await flow.load() } }.disabled(flow.loading || shownSettlement != nil)
             }
         }
+        .cyGroupedSurface()
         .navigationTitle("club.terminal.title").privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { flow.close(); dismiss() } } }
         .task { await flow.load() }

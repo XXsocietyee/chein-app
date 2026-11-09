@@ -13,14 +13,14 @@ import SwiftUI
         List {
             switch model.state {
             case .idle, .loading:
-                Section { ProgressView { text("bundle.voucher.loading") } }
+                Section { CYLoadingStateView(rows: 2).accessibilityLabel(text("bundle.voucher.loading")) }.listRowBackground(Color.clear)
             case .unavailable:
-                Section { text("bundle.voucher.unavailable").accessibilityIdentifier("bundleVoucher.unavailable") }
+                Section { CYEmptyState(systemImage: "qrcode", "bundle.voucher.unavailable", tableName: table, messageIdentifier: "bundleVoucher.unavailable") }.listRowBackground(Color.clear)
             case .failed:
                 Section {
-                    text("bundle.voucher.error").accessibilityIdentifier("bundleVoucher.error")
-                    Button { Task { await model.reload() } } label: { text("bundle.voucher.retry") }
-                }
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "bundle.voucher.error", tableName: table,
+                                 messageIdentifier: "bundleVoucher.error", actionTitle: "action.retry") { Task { await model.reload() } }
+                }.listRowBackground(Color.clear)
             case .loaded(let voucher):
                 content(voucher)
             }
@@ -37,7 +37,7 @@ import SwiftUI
                 text("bundle.voucher.hidden")
             } else if let code = voucher.mainCode, !code.isEmpty {
                 Text(verbatim: code)
-                    .font(.title3.monospaced())
+                    .font(CYTypography.dataXL.monospaced()).monospacedDigit()
                     .privacySensitive()
                     .accessibilityIdentifier("bundleVoucher.mainCode")
                 if let validTo = voucher.mainValidTo { LabeledContent { Text(verbatim: validTo) } label: { text("bundle.voucher.validTo") } }
@@ -50,7 +50,7 @@ import SwiftUI
             ForEach(voucher.subs, id: \.unitID) { sub in
                 VStack(alignment: .leading, spacing: 4) {
                     if !hidden { Text(verbatim: sub.unitCode).font(.body.monospaced()).privacySensitive() }
-                    Text(verbatim: sub.status).font(.footnote)
+                    CYStatusChip(verbatim: sub.status)
                     if let validTo = sub.validTo { Text(verbatim: validTo).font(.caption) }
                 }
             }

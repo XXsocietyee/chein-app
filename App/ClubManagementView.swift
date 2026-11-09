@@ -107,6 +107,7 @@ struct ClubManagementView: View {
                     .accessibilityIdentifier("club.management.refresh")
             }
         }
+        .cyGroupedSurface()
         .appNavigationTitle("club.management.title")
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {
@@ -163,6 +164,7 @@ struct ClubManagementView: View {
                 .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
                 .accessibilityIdentifier("club.management.detail.refresh")
         }
+        .cyGroupedSurface()
         .appNavigationTitle(key: {
             switch selected { case .request: return "club.management.request"; case .member: return "club.management.member" }
         }())
@@ -262,6 +264,7 @@ struct ClubManagementView: View {
                     .disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))
                     .accessibilityIdentifier("club.management.confirm")
                 }
+                .cyGroupedSurface()
                 .appNavigationTitle(key: "club.management." + pending.action.rawValue)
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("club.management.cancel") {

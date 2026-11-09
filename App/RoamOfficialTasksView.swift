@@ -9,9 +9,9 @@ import SwiftUI
             #if DEBUG
             if ProcessInfo.processInfo.arguments.contains("--uitesting-roam-experience") {
                 RoamOfficialTasksFixtureDestination(roamReader: roamReader)
-            } else { ContentUnavailableView("roam.tasks.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+            } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
             #else
-            ContentUnavailableView("roam.tasks.changed", systemImage: "person.crop.circle.badge.exclamationmark")
+            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed")
             #endif
         } else { SessionRoamOfficialTasksDestination(roamReader: roamReader) }
     }
@@ -23,7 +23,7 @@ import SwiftUI
         if ObjectIdentifier(roamReader) == ObjectIdentifier(session.roamExperienceReader), roamReader.identity != nil {
             RoamOfficialTasksView(roamReader: roamReader, reader: session.officialEventReader)
                 .id(session.sessionRevision)
-        } else { ContentUnavailableView("roam.tasks.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+        } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
     }
 }
 /// Foreground visit admission only; the original Core model owns the two-list snapshot.
@@ -155,7 +155,7 @@ import SwiftUI
                 ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading")
             }
             } else { ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading") }
-        }.navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
+        }.cyGroupedSurface().navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
             .onAppear { viewModel.appear(foreground: scenePhase == .active) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in
@@ -166,7 +166,7 @@ import SwiftUI
             .navigationDestination(item: $target) { selection in
                 if model.mayRemainOpen(selection) {
                     OfficialEventDetailView(id: selection.eventID, reader: reader)
-                } else { ContentUnavailableView("roam.tasks.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+                } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.tasks.changed") }
             }
             .accessibilityIdentifier("roam.tasks.browser")
             .privacySensitive()

@@ -20,11 +20,16 @@ import SwiftUI
             case .empty:
                 CYEmptyStateView(systemImage: "point.topleft.down.to.point.bottomright.curvepath", title: "officialRoute.list.empty")
             case .ready(let routes):
-                List(routes) { route in
-                    NavigationLink { OfficialRouteDetailView(reader: reader, routeID: route.id) } label: { row(route) }
-                        .frame(minHeight: 44)
-                        .accessibilityLabel(Text("officialRoute.list.open \(route.name)"))
-                }.listStyle(.insetGrouped)
+                ScrollView {
+                    LazyVStack(spacing: CYSpacing.lg) {
+                        ForEach(routes) { route in
+                            NavigationLink { OfficialRouteDetailView(reader: reader, routeID: route.id) } label: { row(route) }
+                                .buttonStyle(.plain)
+                                .accessibilityLabel(Text("officialRoute.list.open \(route.name)"))
+                        }
+                    }
+                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+                }
             }
         }
         .navigationTitle(Text("officialRoute.title"))
@@ -33,16 +38,7 @@ import SwiftUI
         .refreshable { await load() }
         .accessibilityIdentifier("officialRoute.list")
     }
-    private func row(_ route: OfficialRoute) -> some View {
-        HStack(spacing: 12) {
-            OfficialRouteImage(urlString: route.previewImage, size: 64)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: route.name).font(.headline)
-                let meta = OfficialRouteFormat.meta(route, chinese: officialRouteIsChinese)
-                if !meta.isEmpty { Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary) }
-            }
-        }
-    }
+    private func row(_ route: OfficialRoute) -> some View { OfficialRouteCard(route: route, chinese: officialRouteIsChinese) }
     private func load() async {
         state = .loading
         do {
@@ -79,47 +75,10 @@ import SwiftUI
         .accessibilityIdentifier("officialRoute.detail")
     }
     private var navTitle: Text {
-        if case .ready(let d) = state { return Text(verbatim: d.route.name) }
         return Text("officialRoute.detail.title")
     }
     private func content(_ detail: OfficialRouteDetail) -> some View {
-        List {
-            Section {
-                if !detail.route.previewImage.isEmpty { OfficialRouteImage(urlString: detail.route.previewImage, size: nil) }
-                let meta = OfficialRouteFormat.meta(detail.route, chinese: officialRouteIsChinese)
-                if !meta.isEmpty { Text(verbatim: meta).font(.subheadline).foregroundStyle(.secondary) }
-            }
-            Section {
-                if detail.nodes.isEmpty {
-                    Text("officialRoute.detail.noNodes").foregroundStyle(.secondary)
-                } else {
-                    ForEach(detail.nodes) { node in nodeRow(node) }
-                }
-            } header: { Text("officialRoute.detail.nodes \(detail.nodes.count)") }
-        }.listStyle(.insetGrouped)
-    }
-    @ViewBuilder private func nodeRow(_ node: OfficialRouteNode) -> some View {
-        let body = HStack(alignment: .top, spacing: 12) {
-            Text(verbatim: "\(node.order)").font(.headline.monospacedDigit()).frame(minWidth: 28, minHeight: 28)
-                .background(.tint.opacity(0.15), in: Circle()).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: node.name).font(.body.weight(.semibold))
-                if !node.address.isEmpty { Text(verbatim: node.address).font(.footnote).foregroundStyle(.secondary) }
-                if node.stayMinutes > 0 {
-                    Text("officialRoute.detail.stay \(OfficialRouteFormat.duration(node.stayMinutes, chinese: officialRouteIsChinese))")
-                        .font(.footnote).foregroundStyle(.secondary)
-                }
-            }
-            Spacer(minLength: 0)
-            if !node.imageURL.isEmpty { OfficialRouteImage(urlString: node.imageURL, size: 48) }
-        }.frame(minHeight: 44)
-        if let lat = node.latitude, let lng = node.longitude, let url = Self.mapURL(lat: lat, lng: lng, name: node.name) {
-            Link(destination: url) { body }
-                .accessibilityLabel(Text("officialRoute.detail.nodeLocation \(node.order) \(node.name)"))
-        } else {
-            body.accessibilityElement(children: .combine)
-                .accessibilityLabel(Text("officialRoute.detail.node \(node.order) \(node.name)"))
-        }
+        OfficialRouteDetailContent(detail: detail, chinese: officialRouteIsChinese)
     }
     static func mapURL(lat: Double, lng: Double, name: String) -> URL? {
         var c = URLComponents(string: "https://maps.apple.com/")
@@ -135,14 +94,3 @@ import SwiftUI
     }
 }
 
-private struct OfficialRouteImage: View {
-    let urlString: String
-    let size: CGFloat?
-    var body: some View {
-        if let url = URL(string: urlString), url.scheme == "https" {
-            AsyncImage(url: url) { image in image.resizable().scaledToFill() } placeholder: { Color.secondary.opacity(0.12) }
-                .frame(width: size, height: size ?? 180).frame(maxWidth: size == nil ? .infinity : nil)
-                .clipShape(RoundedRectangle(cornerRadius: 10)).accessibilityHidden(true)
-        }
-    }
-}

@@ -253,7 +253,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                         .accessibilityIdentifier("roam.receivedMetadata.refresh")
                 }
             } else { receivedStampText("changed") }
-        }
+        }.cyGroupedSurface()
         .navigationDestination(
             isPresented: Binding(
                 get: { selectedStamp != nil },
@@ -300,7 +300,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     }.accessibilityIdentifier("roam.receivedMetadata.hide")
                 } footer: { Text("roam.stamp.hide.footer") }
             } else { receivedStampText("changed") }
-        }.navigationTitle(receivedStampText("detail"))
+        }.cyGroupedSurface().navigationTitle(receivedStampText("detail"))
             .privacySensitive().accessibilityIdentifier("roam.receivedMetadata.detail")
     }
 }

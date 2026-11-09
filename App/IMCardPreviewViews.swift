@@ -18,7 +18,7 @@ import MapKit
         Group {
             if let detail, loadedScope == reader.scope {
                 VStack(alignment: .leading, spacing: 4) {
-                    if isSignup { Text("im.card.signupFlag").font(.caption.weight(.semibold)).foregroundStyle(Color.accentColor) }
+                    if isSignup { Text("im.card.signupFlag").font(.caption.weight(.semibold)).foregroundStyle(CYColor.textPrimary) }
                     Text(verbatim: detail.name).font(.headline)
                     if let summary = summary(detail) { summary.font(.subheadline).foregroundStyle(.secondary) }
                 }

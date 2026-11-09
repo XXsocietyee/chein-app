@@ -97,7 +97,7 @@ struct RoamItemDetailView: View {
                 if selection.mayRemainOpen(in: eventScope), let eventDestination {
                     eventDestination(selection.destination)
                 } else {
-                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                    CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed")
                         .accessibilityIdentifier("roamEvent.stale")
                 }
             }
@@ -106,7 +106,7 @@ struct RoamItemDetailView: View {
                     // Reuse the existing full-topic factory, not the map-node ID.
                     eventDestination(.topic(selection.destination.topicID))
                 } else {
-                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                    CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed")
                         .accessibilityIdentifier("roamRouteTopic.stale")
                 }
             }
@@ -114,7 +114,7 @@ struct RoamItemDetailView: View {
                 if selection.mayRemainOpen(in: eventScope), let playerProfileDestination {
                     playerProfileDestination(selection.memberID)
                 } else {
-                    ContentUnavailableView("roamEvent.changed", systemImage: "person.crop.circle.badge.exclamationmark")
+                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roamEvent.changed")
                         .accessibilityIdentifier("roamPlayerProfile.stale")
                 }
             }
@@ -122,7 +122,7 @@ struct RoamItemDetailView: View {
                 if selection.mayRemainOpen(in: eventScope, snapshotID: merchantReadSnapshot), let eventDestination {
                     eventDestination(.activity(selection.target.activityID))
                 } else {
-                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                    CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed")
                         .accessibilityIdentifier("roamFeaturedActivity.stale")
                 }
             }
@@ -130,7 +130,7 @@ struct RoamItemDetailView: View {
                 if selection.mayRemainOpen(in: eventScope, snapshotID: merchantReadSnapshot), let couponWalletDestination {
                     couponWalletDestination()
                 } else {
-                    ContentUnavailableView("roamEvent.changed", systemImage: "ticket")
+                    CYEmptyState(systemImage: "ticket", "roamEvent.changed")
                         .accessibilityIdentifier("roamFeaturedCouponWallet.stale")
                 }
             }
@@ -177,7 +177,7 @@ struct RoamItemDetailView: View {
             case .event(let event): eventContent(event)
             case .player(let player): playerContent(player)
             }
-        }
+        }.cyGroupedSurface()
     }
     @ViewBuilder private func placeContent(_ place: RoamPlace) -> some View {
         if eventScope != nil, currentPlace == place {

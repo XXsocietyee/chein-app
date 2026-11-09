@@ -253,7 +253,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                         .accessibilityIdentifier("objects.badge.turntableHint")
                 }
                 if !parameters.subtitle.isEmpty {
-                    CYListRow(verbatim: parameters.subtitle, trailing: .none, card: true)
+                    CYListRow(verbatim: parameters.subtitle, trailing: .none, card: true) { EmptyView() }
                 }
                 HStack(spacing: CYSpacing.sm) {
                     CYStatusChip(LocalizedStringKey("objects.rarity." + String(parameters.rarity)), tone: .info)

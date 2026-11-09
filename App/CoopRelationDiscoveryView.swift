@@ -123,6 +123,7 @@ extension EnvironmentValues {
                 }
             } else { ProgressView("cooperation.loading") }
         }
+        .cyGroupedSurface()
         .navigationTitle("coopflow.discovery")
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

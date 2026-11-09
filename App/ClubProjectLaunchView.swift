@@ -87,6 +87,7 @@ import SwiftUI
                     .accessibilityIdentifier("club.projectLaunch.reload")
             }
         }
+        .cyGroupedSurface()
         .navigationTitle("club.projectLaunch.title")
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.leave(); dismiss() }.accessibilityIdentifier("club.projectLaunch.cancel") } }
         .task(id: scope) {

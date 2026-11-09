@@ -91,7 +91,7 @@ import SwiftUI
                     Label { text("confirmed") } icon: { Image(systemName: "checkmark.circle") }.font(CYTypography.body)
                 }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(text("title"))
         .privacySensitive()
         .task { await model.load() }

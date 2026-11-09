@@ -77,6 +77,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                         }
                     } header: { ClubName(value: directory.club.name) }
                 }
+                .cyGroupedSurface()
             }
         }.appNavigationTitle("club.members")
         .sheet(item: $memberReport) { target in

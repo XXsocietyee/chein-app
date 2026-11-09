@@ -29,6 +29,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                         .accessibilityIdentifier("club.directory.\(club.id)")
                     }
                 }
+                .cyGroupedSurface()
                 .listStyle(.plain).scrollContentBackground(.hidden).listRowSpacing(4)
             }
         }
@@ -88,6 +89,7 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
                         .accessibilityIdentifier("club.owned.\(club.id)")
                     }
                 }
+                .cyGroupedSurface()
                 .listStyle(.plain).scrollContentBackground(.hidden).listRowSpacing(4)
             }
         }.cyDomainPageBackground().appNavigationTitle("club.owned")

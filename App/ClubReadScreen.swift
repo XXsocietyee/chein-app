@@ -44,9 +44,12 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
                         if isLoading { ProgressView().padding(8).background(.regularMaterial, in: Capsule()) }
                     }
             } else {
-                ProgressView("club.loading").accessibilityIdentifier(accessibilityPrefix + ".loading")
+                CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityElement(children: .ignore).accessibilityLabel(Text("club.loading"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
             }
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .refreshable { await reload() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -74,7 +77,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             if issue.needsSignIn, let onSignIn {
                 Button("club.signIn", action: onSignIn).accessibilityIdentifier(accessibilityPrefix + ".signIn")
             } else if issue.canRetry {
-                Button("action.retry") { Task { await reload() } }.accessibilityIdentifier(accessibilityPrefix + ".retry")
+                CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false) { Task { await reload() } }.accessibilityIdentifier(accessibilityPrefix + ".retry")
             }
         }
     }

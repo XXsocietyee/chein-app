@@ -197,7 +197,7 @@ struct RoamBrowserView: View {
                 if recoveryEntry.matches(target, reader: experienceReader, hasDestination: liveDestination != nil), let liveDestination {
                     liveDestination()
                 } else {
-                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                    CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed")
                 }
             }
             .appNavigationTitle("roam.title")

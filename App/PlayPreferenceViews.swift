@@ -79,7 +79,7 @@ import SwiftUI
             }
             if model.phase == "completed" { Button("playx.preference.done") { dismiss() } }
             if model.phase == "failed" || model.phase == "idle" { Button("playx.refresh") { Task { await model.load() } } }
-        }.privacySensitive().navigationTitle("playx.preference.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.preference.view")
+        }.cyGroupedSurface().privacySensitive().navigationTitle("playx.preference.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.preference.view")
             .task { await model.load() }
             .confirmationDialog("playx.review", isPresented: $confirm, titleVisibility: .visible) {
                 Button("playx.submit") { if let review { Task { await model.submit(review); self.review = nil; useExisting = false } } }
@@ -184,6 +184,6 @@ import SwiftUI
                 Section("playx.os.week") { ForEach(Array(summary.actions7Days.enumerated()), id: \.offset) { _, action in Text(verbatim: action) } }
                 Section("playx.os.month") { ForEach(Array(summary.actions30Days.enumerated()), id: \.offset) { _, action in Text(verbatim: action) } }
             }
-        }
+        }.cyGroupedSurface()
     }
 }
