@@ -171,10 +171,9 @@ struct ClubOperationsWorkspaceView: View {
             if let errorKey { Text(LocalizedStringKey(errorKey)).accessibilityIdentifier("club.ops.error") }
             if let serverMessage { Text(verbatim: serverMessage).textSelection(.enabled) }
             if let snapshot, !(target == .create && isCreateOutcomeUnknown) { content(snapshot) }
-            if let count = Self.unknownCreateCurrentCount(target: target, state: state,
-                identity: identity, access: access, coordinator: coordinator,
-                loading: loading, active: scenePhase == .active) {
-                ClubCreateCurrentRecordSection(count: count)
+            if target == .create, case .outcomeUnknown = state, !loading, scenePhase == .active, let identity, access.identity == identity, access.isConfigured, case .outcomeUnknown = coordinator.state(target: .create), case .received = coordinator.readback(target: .create) {
+                let page = ClubCreatePageModel.interpret(signedIn: true, configured: true, loading: false, gate: ClubCreationGate(access: access), snapshot: nil, readback: coordinator.readback(target: .create), onPlayerFirstEntry: false)
+                ClubCreateCurrentRecordSection(countText: page.recordCountText)
             }
             status
         }
@@ -309,7 +308,7 @@ struct ClubOperationsWorkspaceView: View {
                 )
                 Text(value.accountRole != "club" ? "club.ops.leaderRequired.apply" : "club.ops.clubLimit")
                 if value.accountRole != "club", let hostApplication {
-                    ClubCreateHostApplicationLink(identity: identity, governance: hostApplication)
+                    if ClubCreatePageModel.interpret(signedIn: identity != nil, configured: access.isConfigured, loading: false, gate: ClubCreationGate(access: access), snapshot: value, readback: .received(value), onPlayerFirstEntry: false).showsHostApplication { ClubCreateHostApplicationLink(identity: identity, governance: hostApplication) }
                 }
             }.listRowBackground(Color.clear)
         } else {

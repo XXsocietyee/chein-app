@@ -2,12 +2,12 @@ import SwiftUI
 
 /// A fresh read projection only; never a creation receipt or available quota.
 struct ClubCreateCurrentRecordSection: View {
-    let count: Int
+    let countText: String
     @Environment(\.locale) private var locale
     var body: some View {
         Section {
             LabeledContent(locale.language.languageCode?.identifier == "zh" ? "当前读取的俱乐部记录数" : "Club records in this read") {
-                Text(verbatim: String(count))
+                Text(verbatim: countText)
             }
             Text(locale.language.languageCode?.identifier == "zh"
                 ? "这只是当前记录，不是可用名额，也不能确认原创建请求。原请求仍待确认，请勿再次提交。"
