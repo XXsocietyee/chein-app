@@ -744,7 +744,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let api = deployment.regional.apiConfiguration, let account = current.accountID,
                   let role = current.role, let token = current.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { return false }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { return false }
             return context == RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session) && approval.matches(context)
         }
         static func accepts(_ request: URLRequest, baseURL: URL) -> Bool {
@@ -771,7 +771,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let api = deployment.regional.apiConfiguration, let account = current.accountID,
                   let role = current.role, let token = current.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { return false }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { return false }
             let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             return actual == context && approval.matches(actual)
         }
@@ -797,7 +797,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let api = deployment.regional.apiConfiguration, let account = current.accountID,
                   let role = current.role, let token = current.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { return false }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { return false }
             let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             return actual == context && approval.matches(actual)
         }
@@ -828,7 +828,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let api = deployment.regional.apiConfiguration, let account = current.accountID,
                   let role = current.role, let token = current.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { return false }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { return false }
             let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             return actual == context && approval.matches(actual)
         }
@@ -858,7 +858,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let api = deployment.regional.apiConfiguration, let account = current.accountID,
                   let role = current.role, let token = current.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { return false }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { return false }
             let actual = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             return actual == context && approval.matches(actual)
         }
@@ -891,7 +891,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let api = deployment.regional.apiConfiguration,
                   let account = current.accountID, let role = current.role, let token = current.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: current.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { return false }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { return false }
             let actual = RuntimeDependencyContext(market: deployment.regional.market,
                 baseURL: api.baseURL, role: role, session: session)
             return actual == context && configuration.matches(actual)
@@ -1694,7 +1694,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         scope:(viewer:SessionIdentity,acceptance:MerchantDeskAnchorAcceptance,current:()->Bool))async throws->(Data,Int) {
         guard let deployment,let api=deployment.regional.apiConfiguration,current()==scope.viewer,scope.current(),
               scope.viewer.isSignedInContentViewer,let account=scope.viewer.accountID,let token=scope.viewer.token,let role=scope.viewer.role,
-              let session=try? PlayExperienceSession(accountID:account,epoch:scope.viewer.epoch,namespace:deployment.storageScope.service,token:token) else{throw APIError.notConfigured}
+              let session=try? PlayExperienceSession(accountID:account,epoch:scope.viewer.epoch,namespace:deployment.storageScope.service,token:token, role: role) else{throw APIError.notConfigured}
         let actual=RuntimeDependencyContext(market:deployment.regional.market,baseURL:api.baseURL,role:role,session:session)
         guard actual==scope.acceptance.context,scope.acceptance.permits(request,transport:self) else{throw APIError.notConfigured}
         try Task.checkCancellation();let result=try await underlying.send(request)
@@ -1842,7 +1842,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         guard let deployment, let api = deployment.regional.apiConfiguration, let captured = current(),
               captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role,
               let token = captured.token, let session = try? PlayExperienceSession(accountID: account,
-                epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
         let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
         guard let read = couponReadApproval(context), read.matches(context),
               let write = couponWriteApproval(context), let merchantID = authorization.permission.merchantID,
@@ -1936,7 +1936,7 @@ extension KeychainTokenStore: AppTokenStorage {}
     func sendWorkshopPaidInstall(_ request: URLRequest, authorization: WorkshopPaidInstallDispatchAuthorization) async throws -> (Data, Int) {
         guard let deployment, let api = deployment.regional.apiConfiguration, let captured = current(), captured.isSignedInContentViewer,
               let account = captured.accountID, let role = captured.role, let token = captured.token,
-              let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+              let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
               WorkshopPaidInstallRequest.accepts(request, baseURL: api.baseURL) == .submit else { throw APIError.notConfigured }
         let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
         guard let approval = workshopPaidInstallApproval(context), approval.matches(context) else { throw APIError.notConfigured }
@@ -1961,7 +1961,7 @@ extension KeychainTokenStore: AppTokenStorage {}
               session.namespace == deployment.storageScope.service,
               request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
               let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                  namespace: deployment.storageScope.service, token: token),
+                  namespace: deployment.storageScope.service, token: token, role: role),
               let path = PublisherIdentityRegistrationWire.path(request, configuration: api) else { throw APIError.notConfigured }
         let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
         func permitted() -> Bool {
@@ -1985,7 +1985,7 @@ extension KeychainTokenStore: AppTokenStorage {}
               session.namespace == deployment.storageScope.service,
               request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
               let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                  namespace: deployment.storageScope.service, token: token),
+                  namespace: deployment.storageScope.service, token: token, role: role),
               ActivityCoverWire.accepts(request, configuration: api) else { throw APIError.notConfigured }
         let context = RuntimeDependencyContext(market: .china, baseURL: api.baseURL, role: role, session: runtime)
         func permitted() -> Bool {
@@ -2007,7 +2007,7 @@ extension KeychainTokenStore: AppTokenStorage {}
               session.namespace == deployment.storageScope.service,
               request.value(forHTTPHeaderField: "Authorization").map({ Data($0.utf8) }) == Data(token.utf8),
               let runtime = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                  namespace: deployment.storageScope.service, token: token),
+                  namespace: deployment.storageScope.service, token: token, role: role),
               let path = ActivityEditingWire.path(request, activityID: activityID, configuration: api) else { throw APIError.notConfigured }
         if path == ActivityEditingService.updatePath {
             guard let body = request.httpBody, let fields = try? JSONDecoder().decode([String: ProjectEditJSON].self, from: body),
@@ -2612,7 +2612,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         let clubRoleContext: RuntimeDependencyContext? = {
             guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role,
                   let token = captured.token, let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { return nil }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { return nil }
             return .init(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
         }()
         let roleAssignmentRoute = ClubRoleAssignmentRoute(request: request, baseURL: api.baseURL)
@@ -2640,7 +2640,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = merchantGamePlayerReadGrant(context), approval.matches(context),
                   approval.allows(configuration: api, namespace: session.namespace, accountID: account, path: route.path) else {
@@ -2704,7 +2704,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ProjectStoryAudioCompositionRoute.accepts(request, baseURL: api.baseURL) {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
                   let revision = projectEditConfigurationRevision(),
                   let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
@@ -2717,7 +2717,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if let field = ProjectTopicImageCompositionRoute.field(request, baseURL: api.baseURL) {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
                   let revision = projectEditConfigurationRevision(),
                   let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
@@ -2730,7 +2730,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if ProjectStoryImageCompositionRoute.accepts(request, baseURL: api.baseURL) {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
                   let revision = projectEditConfigurationRevision(),
                   let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
@@ -2743,7 +2743,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if let route = ownedCover {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
                   let revision = ownedTopicCoverConfigurationRevision(),
                   let editor = try? ProjectEditSession(accountID: account, epoch: captured.epoch, storageNamespace: deployment.storageScope.service, viewerRevision: captured.viewerRevision, configurationRevision: revision) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
@@ -2756,7 +2756,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if let route = ProjectAuthorInputReadRoute(request: request, baseURL: api.baseURL) {
             guard deployment.regional.market == .china, captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token),
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role),
                   let revision = projectEditConfigurationRevision() else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             let exact = try route.businessRoute
@@ -2769,7 +2769,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = permitted
         } else if let route = ProjectEditCompositionRoute(request: request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let configurationRevision = projectEditConfigurationRevision() else { throw APIError.notConfigured }
             let exact = try BusinessRuntimeRoute.post(route.path)
@@ -2781,7 +2781,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             readApprovalStillValid = permitted
         } else if let route = ApprovedReleaseCompositionRoute(request: request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let configurationRevision = approvedReleaseConfigurationRevision() else { throw APIError.notConfigured }
             let exact = try BusinessRuntimeRoute.post(route.path)
@@ -2801,7 +2801,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = couponReadApproval(context), approval.matches(context),
                   let capability = approval.commandProtocol, capability.matches(context, merchantID: approval.merchantID),
@@ -2815,7 +2815,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = couponReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [couponReadApproval] in
@@ -2826,7 +2826,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = profileOwnedCouponReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2839,7 +2839,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamAlbumMetadataReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2852,7 +2852,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamTileMemoryReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2865,7 +2865,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selection = profileFavoriteTopicSelection, selection.isCurrent,
                   selection.topicID == favoriteTopic.topicID, selection.viewerRevision == captured.viewerRevision,
@@ -2881,7 +2881,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let target = profilePublicInfoTarget, target.isCurrent,
                   target.memberID == publicInfo.memberID, target.viewerRevision == captured.viewerRevision,
@@ -2897,7 +2897,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = profileGuideReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2916,7 +2916,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = profileFavoritesReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2929,7 +2929,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selection = profileFavoriteSelection, selection.isCurrent,
                   selection.route.generation == .legacySquare, selection.route.id == favoriteDetail.postID,
@@ -2947,7 +2947,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamSessionFactReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2960,7 +2960,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer, let snapshot = nearbyEventsArea,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamNearbyEventsReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2974,7 +2974,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer, let snapshot = nearbyPlayersArea,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamNearbyPlayersReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -2988,7 +2988,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer, let snapshot = entryNearbyArea,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamEntryNearbyReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -3002,7 +3002,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamReceivedStampReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -3015,7 +3015,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamPassportHistoryReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -3028,7 +3028,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             if let selected = roamPassportToolsReadAccess(context), selected.matches(context),
                selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -3051,7 +3051,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = roamPrivateToolsReadAccess(context), selected.matches(context), !selected.allowsWrites,
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -3064,7 +3064,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let selected = profileInviteHistoryReadAccess(context), selected.matches(context),
                   selected.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -3077,7 +3077,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = ownMediaReadApproval(context), approval.matches(context),
                   !ownMediaStatus || approval.allowsStatus else { throw APIError.notConfigured }
@@ -3089,7 +3089,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = memberRoleInfoReadApproval(context), approval.matches(context),
                   approval.endpoints.allows(configuration: api, namespace: session.namespace,
@@ -3102,7 +3102,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = profileWeeklyPointsReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [profileWeeklyPointsReadApproval] in
@@ -3113,7 +3113,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = walletHistoryReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [walletHistoryReadApproval] in
@@ -3124,7 +3124,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = templateShelfReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [templateShelfReadApproval] in
@@ -3135,7 +3135,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = cityPlayerReadApproval(context), approval.matches(context), cityRead.regionID == approval.regionID else { throw APIError.notConfigured }
             readApprovalStillValid = { [cityPlayerReadApproval] in
@@ -3146,7 +3146,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = teamReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [teamReadApproval] in
@@ -3159,7 +3159,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = clubOrdinaryAdmissionApproval(context), approval.matches(context),
                   ClubOrdinaryAdmissionRoute.accepts(request, baseURL: api.baseURL),
@@ -3173,7 +3173,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = clubPostOriginalApproval(context), approval.matches(context),
                   approval.allows(original) else { throw APIError.notConfigured }
@@ -3186,7 +3186,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = clubCommentOriginalApproval(context), approval.matches(context),
                   approval.allows(original) else { throw APIError.notConfigured }
@@ -3231,7 +3231,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, account > 0, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let issued = clubPublicRosterApproval(context),
                   issued.identity == ClubReadIdentity(accountID: account, epoch: captured.epoch),
@@ -3243,7 +3243,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = clubCommunityReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [clubCommunityReadApproval] in
@@ -3255,7 +3255,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let clubID = clubPostImageUploadClubID, clubID > 0,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token),
+                    namespace: deployment.storageScope.service, token: token, role: role),
                   let uploadContext = try? ClubPostImageUploadContext(
                     accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, clubID: clubID
                   ) else { throw APIError.notConfigured }
@@ -3270,7 +3270,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = messagingHistoryReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [messagingHistoryReadApproval] in
@@ -3284,7 +3284,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = ownedOrderReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [ownedOrderReadApproval] in
@@ -3297,7 +3297,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
                 role: role, session: session)
             guard let issued = playReadConfiguration(context),
@@ -3313,7 +3313,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
                 role: role, session: session)
             guard let issued = playReadConfiguration(context),
@@ -3335,7 +3335,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
                 role: role, session: session)
             guard let approval = manualMapReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
@@ -3350,7 +3350,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   let role = captured.role, !role.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
                   let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
                 role: role, session: session)
             guard let approval = mapPublicLayerReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
@@ -3362,7 +3362,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
                 role: role, session: session)
             guard let approval = workshopOwnedReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
@@ -3418,7 +3418,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             }
         } else if let route = WorkshopPaidInstallRequest.accepts(request, baseURL: api.baseURL), route != .submit {
             guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             guard let approval = workshopPaidInstallApproval(context), approval.matches(context) else { throw APIError.notConfigured }
             readApprovalStillValid = { [workshopPaidInstallApproval] in
@@ -3429,7 +3429,7 @@ extension KeychainTokenStore: AppTokenStorage {}
             guard captured.isSignedInContentViewer,
                   let account = captured.accountID, let role = captured.role, let token = captured.token,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
                 role: role, session: session)
             guard let approval = workshopPurchasedReadApproval(context), approval.matches(context) else { throw APIError.notConfigured }
@@ -3440,7 +3440,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if let route = OwnerDraftReadRoute(url: url, baseURL: api.baseURL) {
             guard let account = captured.accountID, let token = captured.token, let role = captured.role,
                   let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch,
-                    namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                    namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL,
                 role: role, session: session)
             readApprovalStillValid = { [ownerDraftReadApproval] in ownerDraftReadApproval(context)?.matches(context) == true }
@@ -3465,7 +3465,7 @@ extension KeychainTokenStore: AppTokenStorage {}
                   route.accepts(request), captured.isPublicTemplateViewer else { throw APIError.notConfigured }
         } else if let exit = ChapterWriteExit.match(request, baseURL: api.baseURL) {
             guard captured.isSignedInContentViewer, let account = captured.accountID, let role = captured.role, let token = captured.token,
-                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token) else { throw APIError.notConfigured }
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { throw APIError.notConfigured }
             let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
             let allowed: Bool
             switch exit {
@@ -3766,7 +3766,7 @@ extension CompositionHTTPTransport {
               let captured = current(), captured.isSignedInContentViewer,
               let accountID = captured.accountID, let role = captured.role, let token = captured.token,
               let session = try? PlayExperienceSession(accountID: accountID, epoch: captured.epoch,
-                  namespace: deployment.storageScope.service, token: token),
+                  namespace: deployment.storageScope.service, token: token, role: role),
               let url = request.url, url.fragment == nil,
               url.scheme?.lowercased() == configuredAPI.baseURL.scheme?.lowercased(),
               url.host?.lowercased() == configuredHost,
