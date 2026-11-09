@@ -28,5 +28,29 @@ Routes list 8, route detail 8, activity list 8.5, activity detail 8, registratio
 - AX XL: bundle validity chip truncates ("Valid for 30 days…") and the Buy pill is very tall; acceptable but not perfect.
 - Chinese copy for new strings is inline via CoreLoopCopy (no xcstrings edits).
 
-## Left (family)
-Orders create/pay summary/detail/cancel/refund restyle, tickets and wallet, participant/address forms, shop/workshop pages, search lists, bundle wallet/voucher/orders fixtures.
+## Third pass (orders, tickets, forms, search)
+Contact sheets: /Users/fanning/chengyin-refs/design-reports/e1/contact-141057.png (16 shots EN/zh/XL) and the follow-up rework batch (search rows, review sheet, registration XL). Earlier first-pass sheet contact-134958.png had a persisted-language mix (shots 1-8 were zh); the rework batch passes `-AppleLanguages '(en)'` explicitly.
+
+### Benchmarks (Mobbin, new this pass)
+- Order history list: Talabat https://mobbin.com/screens/dc389c20-f77b-4bb3-9dd8-ae52517fe5b2 (status chip + date on card top, order id, "View details" link + one pill), Swiggy https://mobbin.com/screens/06534016-d854-4961-bd02-10cab55d92f7 (segmented filter, state colour + icon), Wolt https://mobbin.com/screens/1571d997-30f5-4d0f-b371-91e0fb45358f (logo tile, status line with time, total) -> orders list keeps pill filters, art cover tile (generated art in fixtures), status chip, tabular total.
+- Order detail / tracking: Talabat tracking sheet https://mobbin.com/screens/06aced2d-ab5a-4169-b943-823630279351 (vertical timeline, filled dot for done), Swiggy https://mobbin.com/screens/4f00d41c-8ce4-46aa-b7af-42184c6847a7 (item rows, bill total), ZARA https://mobbin.com/screens/d1df2138-5ed6-4503-a009-0471cc8bc2b9 (number, date, quiet sections) -> order summary gets an art tile beside the title; existing timeline kept.
+- Ticket wallet / QR: Phantom https://mobbin.com/screens/4b9db92f-4966-4eb3-b58f-6f95d2e5fbf0 (dark QR card, one primary), Fuse https://mobbin.com/screens/6d23b320-a44f-4212-8e76-a82214143156 (white code tile on rounded card), Gojek ticket (first pass) -> ticket card: art band with title on scrim, info rows, dashed perforation with side notches, stub with "Show at the venue" (white tile + qrcode symbol, no fake code), checked-in / cancelled / expired stub states.
+- Checkout summary: Wolt https://mobbin.com/screens/7e971f96-7130-4cb4-8cf9-3f607d5b5ee3 and Swiggy https://mobbin.com/screens/515414a4-8186-4bc0-863c-e5a0bbb7b8f4 (pinned total + pay button, reason/policy text), Talabat https://mobbin.com/screens/0bb94259-0bac-45cd-b573-854318be9d66 -> registration bar: Total + full-strength primary, one-line reason under it while blocked.
+- Address / participant form: Wealthfront https://mobbin.com/screens/44c10c97-3721-40e0-8dfd-9bc49ce5c955 (labelled fields, pinned Save), Talabat https://mobbin.com/screens/c1f994cb-c09b-4397-b911-0cdbaaabc809 (grouped fields, label small above value), Swiggy https://mobbin.com/screens/6e85373c-2a46-4195-99ca-77057bb0bd4a -> participant form: icon labels above fields; list rows with initial avatar, name, phone, purpose line; pinned add button.
+
+### Done
+- Fixes first: registration CTA is no longer a grey slab while consent is missing: it keeps the white primary look, taps give a warning haptic and do nothing, and a one-line reason (consent / participant details / sold out / closed / checking price) sits under it; VoiceOver hint carries the reason. AX bundle validity is now a wrapping label (no truncation), buy bar and registration bar cap at Accessibility 1 so they no longer eat the screen, bundle hero title wraps with scale-down.
+- Orders: art cover tile (OrderCoverTile now uses E1CoverArt: generated art in fixtures, neutral gradient in production), order detail summary with art tile, calmer cancel/refund/pay confirm sheet (icon, question title, refund caution, full-width destructive pill; detents unchanged), fixture `--design-auto-review` opens it.
+- Tickets: new App/E1TicketCard.swift (perforated ticket, show-at-venue stub), ticket list rows use art tiles.
+- Forms: participant rows (avatar, name, phone, purpose), labelled form fields; pinned CTA and bottom inset were already in place.
+- Search: result kind tabs are now scrolling pills with counts (selection haptic), result rows are compact art-thumbnail rows with type chip, title, detail, tags and chevron.
+
+### Self-score (6 ADA lenses)
+Orders list 8, order detail 8, cancel/refund sheet 8, ticket detail 8.5, ticket wallet list 8, participant list/form 8, registration 8, global search results 8, bundle detail at XL 8. None under 8 after rework; the 8.0 pages are 8 rather than 9 because there are no real photos in fixtures and the one memorable moment is limited to the checked-in seal bounce.
+
+### Not done (honest list)
+- Shop pages: ShopNPCView is the d2 NPC chat (d2-npc). WorkshopCommerceView needs a live WorkshopCommerceController and has no offline fixture; not restyled, no screenshot possible without logic changes.
+- Map search list: owned by d6 (d6-search); not touched.
+- Price breakdown on order detail: the order read model has only one payable amount, so no itemised rows were invented.
+- QR: the stub shows a QR symbol, never a code; real verification stays with venue staff (the model has no code field).
+- Debug fixture overlay ("Synthetic fixture · debug only") overlaps the title of orders-list at XL (fixture artifact only).
