@@ -50,7 +50,7 @@ struct E3Avatar: View {
     var systemImage = "person.fill"
     var size: CGFloat = 44
     var body: some View {
-        CYCoverArt(seed: seed, systemImage: systemImage, symbolSize: size * 0.42)
+        CYIMCoverArt(seed: seed, systemImage: systemImage, symbolSize: size * 0.42)
             .frame(width: size, height: size).clipShape(Circle())
             .overlay(Circle().strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
     }
@@ -257,7 +257,7 @@ struct E3VideoCard: View {
     let duration: String
     var body: some View {
         ZStack {
-            CYCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
+            CYIMCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
             LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
             Image(systemName: "play.fill").font(.title3).foregroundStyle(.white)
                 .frame(width: 52, height: 52).background(.black.opacity(0.45), in: Circle())
@@ -336,7 +336,7 @@ struct E3PostCard: View {
                 }
                 Spacer(minLength: 0)
             }.padding(CYSpacing.md)
-            CYCoverArt(seed: coverSeed, systemImage: coverSymbol, symbolSize: 54)
+            CYIMCoverArt(seed: coverSeed, systemImage: coverSymbol, symbolSize: 54)
                 .aspectRatio(4.0 / 3.0, contentMode: .fit).frame(maxWidth: .infinity).clipped()
             Text(verbatim: text).font(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
                 .padding(.horizontal, CYSpacing.md).padding(.top, CYSpacing.md)
@@ -416,7 +416,7 @@ struct E3ClubDetailFixture: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     ZStack(alignment: .bottomLeading) {
-                        CYCoverArt(seed: "E3 Night Walkers", systemImage: "moon.stars.fill", symbolSize: 72)
+                        CYIMCoverArt(seed: "E3 Night Walkers", systemImage: "moon.stars.fill", symbolSize: 72)
                             .frame(height: 300).frame(maxWidth: .infinity).clipped()
                         LinearGradient(stops: [.init(color: .clear, location: 0.35), .init(color: .black, location: 1)], startPoint: .top, endPoint: .bottom)
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -477,7 +477,7 @@ struct E3ClubApplyFixture: View {
         let cats = [t("夜行", "Night"), t("摄影", "Photo"), t("美食", "Food"), t("运动", "Sport"), t("桌游", "Games")]
         E3Page(title: t("创建俱乐部", "Create a club")) {
             ZStack(alignment: .bottomTrailing) {
-                CYCoverArt(seed: name.isEmpty ? "new club" : name, systemImage: "sparkles", symbolSize: 56)
+                CYIMCoverArt(seed: name.isEmpty ? "new club" : name, systemImage: "sparkles", symbolSize: 56)
                     .frame(height: 180).frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
                 Label(t("更换封面", "Change cover"), systemImage: "photo").font(.footnote.weight(.semibold)).foregroundStyle(.white)
                     .padding(.horizontal, 12).frame(minHeight: 36).background(.black.opacity(0.5), in: Capsule()).padding(CYSpacing.md)
@@ -524,7 +524,7 @@ struct E3ClubCalendarFixture: View {
             ForEach([(t("周三夜行：老城灯影", "Wednesday walk: old-town lights"), "19:30", t("钟楼广场", "Clock Tower Square"), "night"),
                      (t("街头摄影交流", "Street photo meetup"), "21:00", t("河畔咖啡", "Riverside Café"), "photo")], id: \.0) { e in
                 HStack(spacing: CYSpacing.md) {
-                    CYCoverArt(seed: e.3, systemImage: "figure.walk", symbolSize: 22).frame(width: 64, height: 64).clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    CYIMCoverArt(seed: e.3, systemImage: "figure.walk", symbolSize: 22).frame(width: 64, height: 64).clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                     VStack(alignment: .leading, spacing: 3) {
                         Text(verbatim: e.0).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(2)
                         Text(verbatim: e.1 + " · " + e.2).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).lineLimit(2)
@@ -629,7 +629,7 @@ struct E3InviteFixture: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     ZStack(alignment: .bottomLeading) {
-                        CYCoverArt(seed: "coop invite", systemImage: "handshake.fill", symbolSize: 52).frame(height: 170)
+                        CYIMCoverArt(seed: "coop invite", systemImage: "handshake.fill", symbolSize: 52).frame(height: 170)
                         LinearGradient(colors: [.clear, .black.opacity(0.8)], startPoint: .top, endPoint: .bottom)
                         VStack(alignment: .leading, spacing: 6) {
                             CYStatusChip(verbatim: accepted ? t("已接受", "Accepted") : t("待回复", "Awaiting reply"), tone: accepted ? .success : .warning, systemImage: accepted ? "checkmark.circle" : "clock")

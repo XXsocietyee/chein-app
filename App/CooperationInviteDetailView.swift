@@ -62,7 +62,7 @@ import UIKit
                 if let name = row.topicName {
                     // Hero: generated cover under the topic name so the invite reads as a card, not a form row.
                     ZStack(alignment: .bottomLeading) {
-                        CYCoverArt(seed: name, systemImage: "handshake.fill", symbolSize: 44)
+                        CYIMCoverArt(seed: name, systemImage: "handshake.fill", symbolSize: 44)
                         LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom)
                         Text(verbatim: name).font(.title2.weight(.bold)).foregroundStyle(.white)
                             .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)

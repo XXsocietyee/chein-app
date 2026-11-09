@@ -199,7 +199,7 @@ struct MessagingHistoryView: View {
             ToolbarItem(placement: .principal) {
                 if conversation != nil {
                     HStack(spacing: CYSpacing.sm) {
-                        CYCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                        CYIMCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
                             .frame(width: 28, height: 28).clipShape(Circle())
                         MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
                     }
