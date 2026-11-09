@@ -213,3 +213,104 @@ public enum InvoiceLaunchTitlesPage {
         return InvoiceLaunchWire.masked(raw) ? raw : unknownDisplay
     }
 }
+
+/// Read model for subpackageMember/invoice-title-edit/index.
+/// Uses the existing title list and the existing save journal. It does not open a route.
+/// A missing id or a missing tax mask is an em dash. A raw tax number, phone, or email is never stored.
+public enum InvoiceLaunchTitleEditorEmptyReason: Equatable, Sendable {
+    case login
+    case unavailable
+}
+
+public struct InvoiceLaunchTitleEditorForm: Equatable, Sendable {
+    public static let unknownText = "—"
+    /// Blank create draft from the mini-program `draft()`: company, empty name, default off.
+    /// That false is the blank form, not a missing server number turned into 0.
+    public static let create = InvoiceLaunchTitleEditorForm(
+        idText: unknownText, titleType: "COMPANY", titleName: "",
+        taxNoMaskedText: unknownText, isDefault: false, taxEntry: "")
+    public let idText: String
+    public let titleType: String
+    public let titleName: String
+    /// Mask from the title contract, or an em dash when the contract omits it.
+    public let taxNoMaskedText: String
+    public let isDefault: Bool
+    /// Always empty. The contract does not return `taxNo`; the person must type it again.
+    public let taxEntry: String
+
+    init(idText: String, titleType: String, titleName: String, taxNoMaskedText: String,
+         isDefault: Bool, taxEntry: String) {
+        self.idText = idText
+        self.titleType = titleType
+        self.titleName = titleName
+        self.taxNoMaskedText = taxNoMaskedText
+        self.isDefault = isDefault
+        self.taxEntry = taxEntry
+    }
+
+    init(_ title: InvoiceLaunchTitle) {
+        idText = title.id > 0 ? String(title.id) : Self.unknownText
+        titleType = title.titleType
+        titleName = title.titleName
+        taxNoMaskedText = Self.maskText(title.taxNoMasked)
+        isDefault = title.isDefault
+        taxEntry = ""
+    }
+
+    static func maskText(_ value: String?) -> String {
+        guard let value, !value.isEmpty, InvoiceLaunchWire.masked(value) else { return unknownText }
+        return value
+    }
+}
+
+public enum InvoiceLaunchTitleEditorScreen: Equatable, Sendable {
+    case loading
+    case empty(InvoiceLaunchTitleEditorEmptyReason)
+    case error
+    case unknown(InvoiceLaunchTitleEditorForm, requestID: String?)
+    case ready(InvoiceLaunchTitleEditorForm)
+}
+
+public enum InvoiceLaunchTitleEditorSource: Equatable {
+    case loading
+    case login
+    case unavailable
+    case failed
+    case titles([InvoiceLaunchTitle])
+}
+
+public enum InvoiceLaunchTitleEditorRead {
+    /// Positive decimal id with no leading zero. `0`, blanks, and padded numbers are not an edit target.
+    public static func editingID(_ raw: String?) -> Int64? {
+        guard let raw, !raw.isEmpty, raw.utf8.allSatisfy({ (48...57).contains($0) }),
+              let id = Int64(raw), id > 0, String(id) == raw else { return nil }
+        return id
+    }
+
+    public static func screen(source: InvoiceLaunchTitleEditorSource, editingID: Int64?,
+                               pending: InvoiceLaunchPending?) -> InvoiceLaunchTitleEditorScreen {
+        switch source {
+        case .login: return .empty(.login)
+        case .unavailable: return .empty(.unavailable)
+        case .loading:
+            return identified(editingID) == nil ? present(.create, pending: pending) : .loading
+        case .failed:
+            return identified(editingID) == nil ? present(.create, pending: pending) : .error
+        case .titles(let rows):
+            guard let id = identified(editingID) else { return present(.create, pending: pending) }
+            guard let title = rows.first(where: { $0.id == id }) else { return .error }
+            return present(InvoiceLaunchTitleEditorForm(title), pending: pending)
+        }
+    }
+
+    private static func identified(_ raw: Int64?) -> Int64? {
+        guard let raw, raw > 0 else { return nil }
+        return raw
+    }
+
+    private static func present(_ form: InvoiceLaunchTitleEditorForm,
+                                 pending: InvoiceLaunchPending?) -> InvoiceLaunchTitleEditorScreen {
+        guard pending?.kind == .saveTitle else { return .ready(form) }
+        return .unknown(form, requestID: pending?.titleRequestID)
+    }
+}
