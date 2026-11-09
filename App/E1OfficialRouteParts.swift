@@ -91,7 +91,7 @@ struct OfficialRouteDetailContent: View {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     CYStatusChip(verbatim: t("官方路线", "Official route"), tone: .info, systemImage: "checkmark.seal")
                     Text(verbatim: route.name).font(.system(.largeTitle).weight(.bold)).foregroundStyle(.white)
-                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                        .lineLimit(2).minimumScaleFactor(0.8).accessibilityAddTraits(.isHeader)
                     if !route.city.isEmpty {
                         Label { Text(verbatim: route.city) } icon: { Image(systemName: "mappin.and.ellipse") }
                             .font(CYTypography.meta).foregroundStyle(.white.opacity(0.85))
