@@ -186,6 +186,7 @@ struct RoamBrowserView: View {
                 }
             }
             .appNavigationTitle("roam.title")
+            .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $query, prompt: "roam.search")
             .task(id: requestKey) {
                 guard !Task.isCancelled else { return }
@@ -336,35 +337,50 @@ struct RoamBrowserView: View {
     private var results: some View {
         let renderedKey = presentationKey
         let renderedItems = visibleItems
-        return List {
+        // Map-first: full-bleed map, glass area pill, the white GO circle, and the existing list
+        // (intro cards, controls, rows) in a three-detent panel. List-only keeps the plain list.
+        return Group {
+            if showsMap, let scope = cameraScope {
+                CYMapScaffold(detent: .medium, map: {
+                    // Keeps its camera state through loading, errors and empty filters; pins follow visibleItems.
+                    RoamMapView(area: scope.area, items: renderedItems, selectedID: selected?.id,
+                        interactionID: AnyHashable(renderedKey), fillsHeight: true, onSelect: { item in
+                        select(item, key: renderedKey, snapshot: renderedItems)
+                    }).id(scope)
+                }, controls: {
+                    if !scope.area.label.isEmpty {
+                        CYGlassCapsule { Label { Text(verbatim: scope.area.label) } icon: { Image(systemName: "mappin.and.ellipse") }
+                            .font(.subheadline.weight(.semibold)).foregroundStyle(.white).lineLimit(1) }
+                            .accessibilityIdentifier("roam.map.areaPill")
+                    }
+                }, floating: {
+                    NavigationLink { startDestination() } label: { CYGoLabel() }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel(Text("GO"))
+                        .accessibilityIdentifier("roam.go")
+                }, panel: { resultsList(renderedKey: renderedKey, renderedItems: renderedItems) })
+            } else {
+                resultsList(renderedKey: renderedKey, renderedItems: renderedItems)
+            }
+        }
+    }
+    private func resultsList(renderedKey: PresentationKey, renderedItems: [RoamMapItem]) -> some View {
+        List {
             // Mini-program order: intro tickets and 附近活动 first, then the nearby map browser.
             if hasStartHeader { Section { startHeader } }
             Section { controls } header: { Text("roam.browse.header") }
-            // Keep this row alive through same-scope loading, errors and empty filters.
-            // Only camera state survives; visibleItems removes old pins immediately.
-            if showsMap, let scope = cameraScope {
-                RoamMapView(area: scope.area, items: renderedItems, selectedID: selected?.id,
-                    interactionID: AnyHashable(renderedKey), onSelect: { item in
-                    select(item, key: renderedKey, snapshot: renderedItems)
-                })
-                    .frame(minHeight: 280)
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
-                    .listRowBackground(Color.clear)
-                    .id(scope)
-            }
             if loading || loadedKey != requestKey {
                 CYSkeleton().accessibilityIdentifier("roam.loading")
             } else if let issue {
                 RoamStatusView(issue: issue) { startLoad() }
             } else if visibleItems.isEmpty {
-                ContentUnavailableView {
-                    Label("roam.empty", systemImage: "map")
-                } description: {
+                VStack(spacing: CYSpacing.sm) {
+                    CYEmptyState(systemImage: "map", "roam.empty", actionTitle: "action.retry") { startLoad() }
                     Text(LocalizedStringKey(query.isEmpty && placeFilter == .all && eventFilter == .all ? "roam.emptyHint" : "roam.filteredEmptyHint"))
-                } actions: {
-                    Button("action.retry") { startLoad() }
+                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center).padding(.horizontal, CYSpacing.xxl)
                 }
+                .frame(maxWidth: .infinity)
                 .accessibilityIdentifier("roam.empty")
             } else if showsMap && !visibleItems.contains(where: { $0.coordinate != nil }) {
                 Label("roam.noCoordinates", systemImage: "mappin.slash")
@@ -401,7 +417,8 @@ struct RoamBrowserView: View {
             }
         }
         .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
+        .background(showsMap && cameraScope != nil ? Color.clear : CYColor.bgPage)
+        .contentMargins(.bottom, showsMap ? 88 : 0, for: .scrollContent)
         .refreshable { await load() }
         .accessibilityIdentifier("roam.content")
     }

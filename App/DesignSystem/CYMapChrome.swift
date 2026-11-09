@@ -46,30 +46,34 @@ struct CYGlassCapsule<Content: View>: View {
     }
 }
 
+/// The white GO circle artwork (also used as a NavigationLink label).
+struct CYGoLabel: View {
+    private let title: LocalizedStringKey
+    @ScaledMetric(relativeTo: .largeTitle) private var scaled: CGFloat = 96
+    private var size: CGFloat { min(scaled, 112) }
+    init(_ title: LocalizedStringKey = "GO") { self.title = title }
+    var body: some View {
+        Text(title)
+            .font(.system(.title, design: .default).weight(.heavy).italic())
+            .minimumScaleFactor(0.6).lineLimit(1)
+            .foregroundStyle(.black)
+            .frame(width: size, height: size)
+            .background(Color.white, in: Circle())
+            .shadow(color: .black.opacity(0.35), radius: 16, y: 6)
+            .contentShape(Circle())
+    }
+}
+
 /// The mini-program's white GO circle: the single primary action of a map screen.
 struct CYGoButton: View {
     private let title: LocalizedStringKey
     private let action: () -> Void
-    @ScaledMetric(relativeTo: .largeTitle) private var scaled: CGFloat = 96
-    private var size: CGFloat { min(scaled, 112) }
-
     init(_ title: LocalizedStringKey = "GO", action: @escaping () -> Void) {
         self.title = title
         self.action = action
     }
-
     var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(.system(.title, design: .default).weight(.heavy).italic())
-                .minimumScaleFactor(0.6).lineLimit(1)
-                .foregroundStyle(.black)
-                .frame(width: size, height: size)
-                .background(Color.white, in: Circle())
-                .shadow(color: .black.opacity(0.35), radius: 16, y: 6)
-                .contentShape(Circle())
-        }
-        .buttonStyle(.plain)
+        Button(action: action) { CYGoLabel(title) }.buttonStyle(.plain)
     }
 }
 
@@ -160,5 +164,76 @@ extension View {
         @ViewBuilder content: @escaping () -> Sheet
     ) -> some View {
         modifier(CYMapSheetModifier(isPresented: isPresented, detents: detents, sheet: content))
+    }
+}
+
+// MARK: - Map scaffold (real screens)
+
+/// Panel height as a fraction of the available height. The grabber drags between them.
+enum CYPanelDetent: CaseIterable { case compact, medium, large
+    var fraction: CGFloat { switch self { case .compact: 0.30; case .medium: 0.58; case .large: 0.94 } }
+}
+
+/// Full-bleed map (any view) + glass controls on top + a bottom panel with three detents holding the
+/// screen's list. `floating` sits just above the panel (the white GO circle / the one primary action).
+/// Used by real screens whose existing sheets (details, entries) must keep working, so the panel is
+/// in-view and never a second system sheet. The list inside keeps scrolling; only the grabber drags.
+struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: View {
+    private let map: Map, controls: Controls, floating: Floating, panel: Panel
+    private let allowed: [CYPanelDetent]
+    @State private var detent: CYPanelDetent
+    @GestureState private var drag: CGFloat = 0
+    @Environment(\.dynamicTypeSize) private var type
+
+    init(detent: CYPanelDetent = .medium, allowed: [CYPanelDetent] = CYPanelDetent.allCases,
+         @ViewBuilder map: () -> Map, @ViewBuilder controls: () -> Controls,
+         @ViewBuilder floating: () -> Floating, @ViewBuilder panel: () -> Panel) {
+        self.map = map(); self.controls = controls(); self.floating = floating(); self.panel = panel()
+        self.allowed = allowed
+        _detent = State(initialValue: detent)
+    }
+    private var effective: CYPanelDetent { type.isAccessibilitySize && detent == .compact ? .medium : detent }
+
+    var body: some View {
+        GeometryReader { geo in
+            let base = geo.size.height * effective.fraction
+            let height = min(max(base - drag, geo.size.height * 0.22), geo.size.height * 0.96)
+            ZStack(alignment: .bottom) {
+                map.frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
+                VStack(alignment: .leading, spacing: 0) {
+                    controls.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm)
+                    Spacer(minLength: 0)
+                }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                floating.padding(.bottom, height + CYSpacing.md)
+                VStack(spacing: 0) {
+                    grabber(total: geo.size.height)
+                    panel.frame(maxWidth: .infinity, maxHeight: .infinity)
+                }
+                .frame(height: height)
+                .background(Color(red: 0.06, green: 0.06, blue: 0.066), in: UnevenRoundedRectangle(topLeadingRadius: 28, topTrailingRadius: 28, style: .continuous))
+                .shadow(color: .black.opacity(0.4), radius: 18, y: -4)
+            }
+        }
+    }
+
+    private func grabber(total: CGFloat) -> some View {
+        Capsule().fill(Color.white.opacity(0.28)).frame(width: 40, height: 5)
+            .frame(maxWidth: .infinity, minHeight: 28)
+            .contentShape(Rectangle())
+            .gesture(DragGesture(minimumDistance: 4)
+                .updating($drag) { value, state, _ in state = value.translation.height }
+                .onEnded { value in
+                    let target = (total * effective.fraction - value.translation.height) / max(total, 1)
+                    let pool = allowed.isEmpty ? CYPanelDetent.allCases : allowed
+                    withAnimation(.snappy) { detent = pool.min { abs($0.fraction - target) < abs($1.fraction - target) } ?? .medium }
+                })
+            .accessibilityElement()
+            .accessibilityLabel(Text("map.panel.size"))
+            .accessibilityAdjustableAction { direction in
+                let pool = allowed.isEmpty ? CYPanelDetent.allCases : allowed
+                guard let i = pool.firstIndex(of: detent) else { return }
+                let next = direction == .increment ? min(i + 1, pool.count - 1) : max(i - 1, 0)
+                withAnimation(.snappy) { detent = pool[next] }
+            }
     }
 }

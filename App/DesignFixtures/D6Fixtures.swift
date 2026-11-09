@@ -165,4 +165,15 @@ struct D6MapFixture: View {
         }
     }
 }
+/// DEBUG-only, labelled host: the real `RoamLiveSessionView` driven by the synthetic `RoamLiveFixture`.
+struct D6RealLiveHost: View {
+    @State private var fixture: RoamLiveFixture?
+    var body: some View {
+        NavigationStack {
+            if let fixture { RoamLiveSessionView(controller: fixture.controller, offlineExample: true) }
+        }
+        .task { if fixture == nil { fixture = await MainActor.run { RoamLiveFixture() } } }
+        .themeDomain(.player).preferredColorScheme(.dark)
+    }
+}
 #endif

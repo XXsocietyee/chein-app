@@ -16,6 +16,8 @@ enum DesignFixtureRegistry {
         case "d6-roam": return AnyView(D6MapFixture(kind: .roam))
         case "d6-search": return AnyView(D6MapFixture(kind: .search))
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
+        // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
+        case "d6-real-live": return AnyView(D6RealLiveHost())
         // D1..D5: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
         default: return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }

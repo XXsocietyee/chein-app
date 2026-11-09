@@ -22,21 +22,28 @@ struct SearchMapCanvas: View {
     var body: some View {
         Group {
             if offline {
-                VStack(spacing: 12) {
-                    Image(systemName: "map").font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                    Text("searchMap.offlineMap").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("searchMap.map")
-                    ForEach(pins) { pin in
-                        Button { onSelect?(pin.id) } label: {
-                            HStack(spacing: 12) {
-                                QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)
-                                Text(verbatim: pin.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                            }
-                        }.buttonStyle(.plain).frame(minHeight: 44)
-                            .accessibilityLabel(Text(verbatim: pin.title))
-                            .accessibilityIdentifier("searchMap.pin.\(pin.id)")
-                            .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
-                    }
-                }.padding().frame(maxWidth: .infinity).background(offlineGround)
+                // Static dark map ground (kit map chrome); pins stay real buttons with their ids and traits.
+                ZStack {
+                    CYMapPlaceholder(fog: false)
+                    VStack(spacing: 12) {
+                        Label { Text("searchMap.offlineMap").accessibilityIdentifier("searchMap.map") } icon: { Image(systemName: "map") }
+                            .font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.8))
+                        ForEach(pins) { pin in
+                            Button { onSelect?(pin.id) } label: {
+                                HStack(spacing: 12) {
+                                    QuestifyMapPinSymbol(symbol: pin.symbol, selected: pin.id == selectedID)
+                                    Text(verbatim: pin.title).font(CYTypography.bodyMedium).foregroundStyle(.white).fixedSize(horizontal: false, vertical: true)
+                                        .multilineTextAlignment(.leading)
+                                }
+                                .padding(.trailing, CYSpacing.md)
+                                .background(.ultraThinMaterial, in: Capsule(style: .continuous))
+                            }.buttonStyle(.plain).frame(minHeight: 44)
+                                .accessibilityLabel(Text(verbatim: pin.title))
+                                .accessibilityIdentifier("searchMap.pin.\(pin.id)")
+                                .accessibilityAddTraits(pin.id == selectedID ? .isSelected : [])
+                        }
+                    }.padding()
+                }.frame(maxWidth: .infinity)
             } else {
                 QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID,
                     polyline: polyline, onViewportChange: onViewportChange, onSelect: onSelect)

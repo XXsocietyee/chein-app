@@ -51,17 +51,18 @@ import SwiftUI
                     CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                         .accessibilityIdentifier("playMode.loading")
                 } else {
-                    ContentUnavailableView {
-                        Label(model.available ? "playx.error.title" : "playx.disabled.title", systemImage: model.available ? "exclamationmark.triangle" : "gamecontroller")
-                    } description: {
-                        if !model.available { Text("playx.disabled").accessibilityIdentifier("playx.disabled") }
-                        else if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                    } actions: {
+                    VStack(spacing: CYSpacing.md) {
                         if model.available {
-                            Button("playx.refresh") { Task { await model.load() } }
-                                .disabled(model.phase == .submitting)
+                            CYEmptyState(systemImage: "exclamationmark.triangle", "playx.error.title", actionTitle: "playx.refresh") {
+                                if model.phase != .submitting { Task { await model.load() } }
+                            }
+                            if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
+                        } else {
+                            CYEmptyState(systemImage: "gamecontroller", "playx.disabled.title")
+                            Text("playx.disabled").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("playx.disabled")
                         }
-                    }
+                    }.frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
             } else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
         }
@@ -110,7 +111,7 @@ import SwiftUI
         guard let held = model.heldRouteActionIdentity else { return nil }
         return RouteActionPageReadRequest(sessionID: held.routeSessionID, actionID: held.actionID)
     }
-    private var orientationContent: some View {
+    private var orientationList: some View {
         List {
             // Game header: topic and progress, the run clock, and the run / map controls in one card
             // (mini-program top bar + bottom run stack).
@@ -123,7 +124,7 @@ import SwiftUI
                 if model.phase == .loading { CYSkeleton().accessibilityIdentifier("playx.loading") }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 PlayResyncAction(model: model)
-                if model.snapshot != nil { runControls }
+                if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(CYColor.warningText) }
             }
             if let openingModel { PlayOpeningCompletionSection(model: openingModel) }
             if let entryCode { PlayEntryCodeSection(context: entryCode) }
@@ -259,18 +260,43 @@ import SwiftUI
         }
         .accessibilityIdentifier("playx.overview")
     }
-    /// Elapsed clock with start / pause, route map and end, as round game controls.
-    @ViewBuilder private var runControls: some View {
-        let seconds = model.clock.elapsedSeconds
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(alignment: .firstTextBaseline) {
-                Text("playx.run.elapsed").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                Spacer(minLength: 8)
-                Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
-                    .font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-                    .accessibilityIdentifier("playx.run.clock")
+    /// Map-first play screen: static map ground, glass clock / route map / end on top, the one primary
+    /// (pause / resume) above the panel, and the unchanged task list in a three-detent panel.
+    private var orientationContent: some View {
+        CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: { runHeader }, floating: { runPrimary },
+                      panel: { orientationList })
+    }
+    /// Elapsed clock plus route map and end as glass controls (max three with the toolbar refresh).
+    @ViewBuilder private var runHeader: some View {
+        if model.snapshot != nil {
+            let seconds = model.clock.elapsedSeconds
+            HStack(spacing: CYSpacing.sm) {
+                CYGlassCapsule {
+                    HStack(spacing: CYSpacing.sm) {
+                        Image(systemName: "timer").accessibilityHidden(true)
+                        Text(verbatim: String(format: "%02ld:%02ld", seconds / 60, seconds % 60))
+                            .font(CYTypography.dataXL).monospacedDigit().lineLimit(1).minimumScaleFactor(0.5)
+                            .accessibilityIdentifier("playx.run.clock")
+                    }.foregroundStyle(.white)
+                }
+                Spacer(minLength: CYSpacing.sm)
+                if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,
+                   PlayRouteMapPresentation(snapshot: snapshot) != nil {
+                    CYGlassButton(systemImage: "map", label: "playRoute.open") { showRouteMap = true }
+                        .accessibilityIdentifier("playRoute.open")
+                }
+                if model.clock.phase != .ended {
+                    CYGlassButton(systemImage: "flag.checkered", label: "playx.run.end") { confirmEnd = true }
+                        .disabled(!model.canManageRun)
+                        .accessibilityIdentifier("playx.run.end")
+                }
             }
-            HStack(spacing: 10) {
+        }
+    }
+    @ViewBuilder private var runPrimary: some View {
+        if model.snapshot != nil {
+            let seconds = model.clock.elapsedSeconds
+            Group {
                 if model.clock.phase == .running {
                     Button { Task { await model.pauseRun(now: ProcessInfo.processInfo.systemUptime, savedAt: Self.milliseconds) } } label: {
                         Label("playx.run.pause", systemImage: "pause.fill").frame(maxWidth: .infinity)
@@ -284,22 +310,9 @@ import SwiftUI
                     .buttonStyle(.cyPrimary).disabled(!model.canManageRun)
                     .accessibilityIdentifier("playx.run.resume")
                 }
-                if !model.unresolved, model.interactionContext != nil, let snapshot = model.snapshot,
-                   PlayRouteMapPresentation(snapshot: snapshot) != nil {
-                    Button { showRouteMap = true } label: { Label("playRoute.open", systemImage: "map") }
-                        .buttonStyle(.cySecondary(fullWidth: false))
-                        .accessibilityIdentifier("playRoute.open")
-                }
-                if model.clock.phase != .ended {
-                    Button(role: .destructive) { confirmEnd = true } label: { Label("playx.run.end", systemImage: "flag.checkered") }
-                        .buttonStyle(.cyDestructive).disabled(!model.canManageRun)
-                        .accessibilityIdentifier("playx.run.end")
-                }
             }
-            .controlSize(.large)
-            if model.remoteRunSaveFailed { Label("playx.run.saveFailed", systemImage: "exclamationmark.triangle.fill").font(CYTypography.caption).foregroundStyle(CYColor.warningText) }
+            .controlSize(.large).frame(maxWidth: 280).padding(.horizontal, CYSpacing.lg)
         }
-        .padding(.vertical, 4)
     }
     @ViewBuilder private func freeStoreDestination(_ id: Int) -> some View {
         if model.gameplayMode == .freeExploration {

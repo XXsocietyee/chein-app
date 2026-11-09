@@ -12,6 +12,8 @@ struct QuestifyDensityMap: View {
     var onViewportChange: ((SearchMapViewport?) -> Void)? = nil
     var onSelect: ((String) -> Void)? = nil
     var mapHeight: CGFloat = 300
+    /// Full-bleed host (CYMapScaffold): the map takes all remaining height instead of `mapHeight`.
+    var fillsHeight = false
     var pinIdentifierPrefix = "searchMap.pin."
     var pinHint: (String) -> Text = { _ in Text("") }
     @State private var position: MapCameraPosition
@@ -30,7 +32,8 @@ struct QuestifyDensityMap: View {
          interactionID: AnyHashable? = nil,
          pinIdentifierPrefix: String = "searchMap.pin.", pinHint: @escaping (String) -> Text = { _ in Text("") },
          onViewportChange: ((SearchMapViewport?) -> Void)? = nil,
-         onSelect: ((String) -> Void)? = nil) {
+         onSelect: ((String) -> Void)? = nil, fillsHeight: Bool = false) {
+        self.fillsHeight = fillsHeight
         self.area = area; self.pins = pins; self.selectedID = selectedID
         self.polyline = polyline; self.onSelect = onSelect; self.onViewportChange = onViewportChange
         self.mapHeight = mapHeight; self.interactionID = interactionID
@@ -128,7 +131,7 @@ struct QuestifyDensityMap: View {
                             longitudeSpan: update.region.span.longitudeDelta, datum: .wgs84))
                     }
                 }
-            }.frame(height: mapHeight)
+            }.frame(minHeight: mapHeight).frame(maxHeight: fillsHeight ? .infinity : mapHeight)
             if selectedID != nil { focusControl }
             // Always provide explicit member choice, including coincident coordinates
             // where repeated zooming cannot separate markers. No first-member action.
