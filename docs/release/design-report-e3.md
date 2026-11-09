@@ -64,3 +64,7 @@ Real production club detail, apply/create, calendar, stories, notices and friend
 Self-score (delight/interaction/inclusivity/visuals/innovation/social, avg): club detail 8, apply 8, calendar 8, feed 8, chat rich 8, chat (real, bubbles) 8, invite 8 (real hero 7), notices 8, people 8. Production club detail / calendar / notices / friends: 6, under 8, reason above.
 Pillow compare: no mini-program reference screenshots exist for these pages.
 Contact sheets: /Users/fanning/chengyin-refs/design-reports/e3/contact-125959.png (first batch), contact-131157.png (XL after stacking fixes); final batch b2 (EN + XL) listed in the final message.
+
+## Final batch result (contact-133847.png, contact-131157.png, contact-125959.png)
+- Verified in shots (zh-Hans is the simulator default language, so all non-"-en" shots are zh-Hans): club detail, apply, calendar, feed, rich chat, invite, notices, people, real chat (grouped bubbles, accent sent fill, avatar only on last of run, one time stamp per run), and AX-XL for notices / people / invite / rich chat / club detail (rows stack; follow button drops under the name).
+- NOT verified: English shots. The `-AppleLanguages "(en)"` launch args failed to launch the app in design-batch.sh (springboard shots), so EN is parse/logic-checked only (strings use Locale.pick). Fixed after the last shot and only parse-checked: file card stacks at accessibility sizes (it wrapped per character at AX-XL).
