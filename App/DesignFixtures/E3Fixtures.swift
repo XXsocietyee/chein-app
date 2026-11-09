@@ -11,6 +11,7 @@ enum E3Fixtures {
         case "e3-inbox-empty": return wrap(MessagingFixtureHostView(scenario: .empty))
         case "e3-inbox-error": return wrap(MessagingFixtureHostView(scenario: .error))
         case "e3-chat": return wrap(MessageActionFixtureHost())
+        case "e3-poll-detail": return wrap(GroupPollDirectFixtureRoot())
         case "e3-poll": return wrap(GroupPollFixtureRoot(scenario: "success"))
         case "e3-social": return wrap(SocialAccountFixtureHostView())
         case "e3-coop": return wrap(CooperationFixtureHostView())

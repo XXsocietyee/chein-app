@@ -83,6 +83,7 @@ struct IMInboxRow: View {
     let conversation: MessagingConversation
     @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 56
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             CYCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
@@ -90,24 +91,27 @@ struct IMInboxRow: View {
                 .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 6))
+                layout {
                     MessagingConversationName(conversation: conversation)
-                        .font(.body.weight(.semibold)).lineLimit(1)
-                    if conversation.kind == .merchant {
-                        CYStatusChip("im.inbox.officialTag", tone: .neutral)
-                            .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
+                        .font(.body.weight(.semibold)).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+                    HStack(spacing: 6) {
+                        if conversation.kind == .merchant {
+                            CYStatusChip("im.inbox.officialTag", tone: .neutral)
+                                .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
+                        }
+                        if conversation.muted == true {
+                            Image(systemName: "bell.slash").font(.caption).foregroundStyle(.secondary)
+                                .accessibilityLabel(Text("im.inbox.mutedLabel"))
+                        }
+                        if !typeSize.isAccessibilitySize { Spacer(minLength: 4) }
+                        IMInboxTimeLabel(raw: conversation.lastMessageAt)
+                            .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                            .layoutPriority(1)
                     }
-                    if conversation.muted == true {
-                        Image(systemName: "bell.slash").font(.caption).foregroundStyle(.secondary)
-                            .accessibilityLabel(Text("im.inbox.mutedLabel"))
-                    }
-                    Spacer(minLength: 4)
-                    IMInboxTimeLabel(raw: conversation.lastMessageAt)
-                        .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
-                        .layoutPriority(1)
                 }
                 HStack(alignment: .center, spacing: 6) {
-                    MessagingPreview(conversation: conversation).font(.subheadline).lineLimit(1)
+                    MessagingPreview(conversation: conversation).font(.subheadline).lineLimit(typeSize.isAccessibilitySize ? 3 : 1)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true)
                 }
