@@ -7,3 +7,5 @@
 - wire24 [x] ef96b6633. PR 1006. Aftercare list reads MerchantAftercareListPage.read. Not merged.
 - wire28 [x] 854005d19. PR 1008. Coop center reads MerchantCoopCenterPage.project. Not merged.
 - wire16 sent back. PR 1005. A nil notify capability currently defaults to canRead true.
+- wire27 [x] 4f8d35149. PR 1009. City-node hub reads MerchantCityNodeHubPage.project. Not merged.
+- wire20 [x] 00435acf7. PR 1010. Crop page reads CropPageModel.facts. Not merged.
