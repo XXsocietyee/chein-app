@@ -27,3 +27,4 @@
 - wire42 [x] 1df583e72. PR 1026. Marketing board reads MerchantMarketingBoardPage.project. Not merged.
 - wire33 [x] c2a4966f1. PR 1027. Coop setting reads MerchantCoopSettingPage.project. Not merged.
 - wire39 [x] 2e531ba1a. PR 1028. Settlement batch reads MerchantSettlementBatchPage.make. Not merged.
+- wire41 sent back. PR 1029. Insight countText drops a numeric string, so a literal string 0 becomes an em dash.
