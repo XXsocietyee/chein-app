@@ -1346,16 +1346,18 @@ struct ClubGovernanceReadView: View {
             }
             Section("club.topic.upcoming") {
                 let sessions = value["activityList"].array ?? []
+                let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
                 if sessions.isEmpty { Text("club.topic.noSessions").foregroundStyle(.secondary) }
                 ForEach(Array(sessions.enumerated()), id: \.offset) { _, row in
                     if let id = row["id"].int {
                         let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
-                        NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator) } label: {
-                            if let name = row["name"].string { Text(verbatim: ClubGroupCodePort.sessionLabel(id: id, name: name, startDate: row["startDate"].string, startTime: row["startTime"].string)) } else { Text("club.gov.eventID \(id)") }
+                        let issued = groupCodePage.hidden ? nil : groupCodePage.sessions?.first(where: { $0.id == id })
+                        NavigationLink { ClubGovernanceEventView(scope: target, identity: identity, access: access, coordinator: coordinator, groupCodePage: groupCodePage) } label: {
+                            if let name = row["name"].string { Text(verbatim: ClubGroupCodePort.sessionLabel(id: id, name: name, startDate: row["startDate"].string, startTime: row["startTime"].string) + (issued.map { " · " + $0.headcount.displayText } ?? "")) } else { Text("club.gov.eventID \(id)") }
                         }
                         // Mini-program club/group-code: pick the session, then issue. One tap here; the reviewed
                         // command still checks check-in permission and the provider gate before any request.
-                        if scope.clubID != nil { edit(.issueGroupCode, scope: target) }
+                        if let issued { edit(.issueGroupCode, scope: target).accessibilityValue(Text(verbatim: issued.headcount.displayText)) }
                         if let startDate = row["startDate"].string, ClubOpsTimeRequest.date(startDate) != nil {
                             NavigationLink("context.ops.title") {
                                 ClubOpsTimeView(activityID: id, original: startDate, owner: opsTimeFactory?(id)) { Task { await load() } }
@@ -1566,6 +1568,7 @@ struct ClubGovernanceEventView: View {
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
+    var groupCodePage: ClubGroupCodePage? = nil
     var body: some View {
         List {
             NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
@@ -1576,7 +1579,7 @@ struct ClubGovernanceEventView: View {
                 let target = operation == .roles ? ClubGovernanceScope(clubID: scope.clubID, activityID: scope.activityID) : scope
                 NavigationLink { ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator) } label: { Text(LocalizedStringKey("club.gov." + operation.rawValue)) }
             }
-            if scope.topicID != nil {
+            if groupCodePage.map({ !$0.hidden && $0.sessions?.contains(where: { $0.id == scope.activityID }) == true }) ?? (scope.topicID != nil) {
                 NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.action.issueGroupCode", systemImage: "qrcode") }
             }
         }.scrollContentBackground(.hidden).cyDomainPageBackground().navigationTitle("club.gov.events")
