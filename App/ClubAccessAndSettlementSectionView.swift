@@ -187,14 +187,14 @@ public struct ClubAccessAndSettlementSectionView: View {
                             .foregroundStyle(.secondary)
                     }
                     .padding(8)
-                    .background(Color.secondary.opacity(0.06))
+                    .background(CYColor.bgRaised)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
             .accessibilityIdentifier("clubAccessSettlement.rowList")
         }
         .padding(12)
-        .background(Color.secondary.opacity(0.08))
+        .background(CYColor.bgRaised)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("clubAccessSettlement.section")

@@ -252,6 +252,7 @@ struct IMExpandedSubmission: Equatable {
                 .presentationDragIndicator(.visible)
             }
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("im.full.title")).privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear { model.observe() }
@@ -392,7 +393,7 @@ struct IMMutationSummary: View {
                 Button { onDestination(action.destination) } label: {
                     if action.label.hasPrefix("im.full.") { Text(LocalizedStringKey(action.label)) } else { Text(verbatim: action.label) }
                 }
-                .foregroundStyle(action.isReject ? CYColor.dangerText : Color.accentColor)
+                .foregroundStyle(action.isReject ? CYColor.dangerText : CYColor.textPrimary)
             }
         }.accessibilityIdentifier("im.full.cardActions")
     }
@@ -439,6 +440,7 @@ struct IMMutationSummary: View {
                 ContentUnavailableView("d7.newChat.unavailable", systemImage: "bubble.left.and.bubble.right")
             }
         }.disabled(identity != model.owner.identity || !model.owner.writer.isConfigured)
+        .cyGroupedSurface()
         .navigationTitle(Text("d7.newChat.title")).privacySensitive().accessibilityIdentifier("im.full.start")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
@@ -529,6 +531,7 @@ struct IMUploadSubmission: Equatable {
                 ContentUnavailableView("d7.imPhoto.unavailable", systemImage: "photo")
             }
         }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
+        .cyGroupedSurface()
         .navigationTitle(Text("d7.imPhoto.title")).privacySensitive().accessibilityIdentifier("im.full.imageCompose")
         .onAppear { model.observe() }
         .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }

@@ -83,34 +83,36 @@ struct IMInboxRow: View {
     let conversation: MessagingConversation
     @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 56
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Image(systemName: symbol)
-                .font(.title2)
-                .foregroundStyle(palette.textSecondary)
-                .frame(width: avatarSize, height: avatarSize)
-                .background(Circle().fill(palette.bgRaised))
+            CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+                .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
                 .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                if typeSize.isAccessibilitySize {
                     MessagingConversationName(conversation: conversation)
-                        .font(.body.weight(.semibold)).lineLimit(1)
-                    if conversation.kind == .merchant {
-                        CYStatusChip("im.inbox.officialTag", tone: .neutral)
-                            .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
+                        .font(.body.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
+                    HStack(spacing: 6) {
+                        officialChip; muteMark
+                        IMInboxTimeLabel(raw: conversation.lastMessageAt)
+                            .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
                     }
-                    if conversation.muted == true {
-                        Image(systemName: "bell.slash").font(.caption).foregroundStyle(.secondary)
-                            .accessibilityLabel(Text("im.inbox.mutedLabel"))
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        MessagingConversationName(conversation: conversation)
+                            .font(.body.weight(.semibold)).lineLimit(1)
+                        officialChip.fixedSize()
+                        muteMark
+                        Spacer(minLength: 4)
+                        IMInboxTimeLabel(raw: conversation.lastMessageAt)
+                            .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                            .fixedSize().layoutPriority(1)
                     }
-                    Spacer(minLength: 4)
-                    IMInboxTimeLabel(raw: conversation.lastMessageAt)
-                        .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
-                        .layoutPriority(1)
                 }
                 HStack(alignment: .center, spacing: 6) {
-                    MessagingPreview(conversation: conversation).font(.subheadline).lineLimit(1)
+                    MessagingPreview(conversation: conversation).font(.subheadline).lineLimit(typeSize.isAccessibilitySize ? 3 : 1)
                     Spacer(minLength: 4)
                     IMUnreadBadge(count: conversation.unread, muted: conversation.muted == true)
                 }
@@ -118,6 +120,18 @@ struct IMInboxRow: View {
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
+    }
+    @ViewBuilder private var officialChip: some View {
+        if conversation.kind == .merchant {
+            CYStatusChip("im.inbox.officialTag", tone: .neutral)
+                .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
+        }
+    }
+    @ViewBuilder private var muteMark: some View {
+        if conversation.muted == true {
+            Image(systemName: "bell.slash").font(.caption).foregroundStyle(.secondary)
+                .accessibilityLabel(Text("im.inbox.mutedLabel"))
+        }
     }
     private var symbol: String {
         switch conversation.kind {
@@ -147,5 +161,32 @@ struct IMInboxRow: View {
             guard !Task.isCancelled, reader.identity == identity else { return }
             total = value; loadedFor = identity
         } catch { if reader.identity == identity { total = nil } }
+    }
+}
+
+/// Deterministic generated cover art for entities that have no photo (club, conversation, group).
+/// Same seed => same colours, so a row never flickers between renders. Decorative: hidden from VoiceOver.
+struct CYIMCoverArt: View {
+    let seed: String
+    var systemImage: String = "person.3.fill"
+    var symbolSize: CGFloat = 36
+
+    private var hue: Double {
+        var h: UInt64 = 1469598103934665603
+        for b in seed.utf8 { h = (h ^ UInt64(b)) &* 1099511628211 }
+        return Double(h % 360) / 360
+    }
+
+    var body: some View {
+        ZStack {
+            LinearGradient(colors: [Color(hue: hue, saturation: 0.55, brightness: 0.62),
+                                    Color(hue: (hue + 0.12).truncatingRemainder(dividingBy: 1), saturation: 0.65, brightness: 0.30)],
+                           startPoint: .topLeading, endPoint: .bottomTrailing)
+            RadialGradient(colors: [Color.white.opacity(0.22), .clear], center: .topTrailing, startRadius: 4, endRadius: 160)
+            Image(systemName: systemImage)
+                .font(.system(size: symbolSize, weight: .semibold))
+                .foregroundStyle(Color.white.opacity(0.85))
+        }
+        .accessibilityHidden(true)
     }
 }

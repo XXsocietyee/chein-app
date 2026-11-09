@@ -120,6 +120,7 @@ import SwiftUI
             case .merchants:
                 return AnyView(SessionClubMerchantProfileHost(session: self) {
                     List { ClubMerchantDiscoveryView(club: club, clubReader: self, reader: self.cooperationFlowReader) }
+                        .cyGroupedSurface()
                         .navigationTitle("club.merchantDiscovery.title")
                 })
             case .sentInvitations:

@@ -186,6 +186,8 @@ localizable_ui=re.sub(r'(?:confirmIdentifier|icon|submitID):\s*"(?:\\.|[^"\\])*"
 localizable_ui=re.sub(r'(?<![\w.])id:\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 localizable_ui=re.sub(r'(?:systemImage|systemName|symbol):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
+# SF Symbol names in this status-chip ternary, not localization keys.
+localizable_ui=localizable_ui.replace('systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? "lock.fill" : "play.circle"', '')
 # These four values are explicit nonlocalized identifiers at these exact calls.
 # Do not exclude the same strings when used by Text or localization lookup.
 localizable_ui=localizable_ui.replace('.accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")', '')

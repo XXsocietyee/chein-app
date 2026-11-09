@@ -32,16 +32,19 @@ private struct CreatorContentIssueView: View {
     let issue: CreatorContentIssue
     let retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(spacing: CYSpacing.md) {
+            Image(systemName: issue == .login ? "person.crop.circle" : "exclamationmark.circle")
+                .font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
             Group {
                 if case .server(let text) = issue { Text(verbatim: text) }
                 else { Text(LocalizedStringKey(issue.localizationKey)) }
-            }.accessibilityIdentifier("creatorContent.issue")
+            }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                .accessibilityIdentifier("creatorContent.issue")
             if issue != .login && issue != .notConfigured {
-                Button("creatorContent.retry", action: retry).frame(minHeight: 44)
+                CYPillButton("creatorContent.retry", style: .secondary, fullWidth: false, action: retry)
                     .accessibilityIdentifier("creatorContent.retry")
             }
-        }
+        }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.lg)
     }
 }
 /// Host must observe account/market revisions and reset this destination with .id(reader.scope).
@@ -67,7 +70,7 @@ private struct CreatorContentIssueView: View {
     }
     var body: some View {
         List {
-            if reader.isOfflineExample { Text("creatorContent.offlineExample") }
+            if reader.isOfflineExample { CYStatusChip("creatorContent.offlineExample", tone: .warning, systemImage: "testtube.2") }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
             else {
@@ -87,7 +90,7 @@ private struct CreatorContentIssueView: View {
                         card(project).questifyCardListRow().allowsHitTesting(false)
                     }
                 }
-                else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
+                else if model.state.isLoading || model.state.loadedScope != key.scope { CYLoadingStateView(rows: 3).accessibilityLabel(Text("creatorContent.loading")) }
                 else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                 else if let page = model.state.visibleValue(scope: key.scope) {
                     if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
@@ -164,17 +167,17 @@ private struct CreatorContentIssueView: View {
     private var key: CreatorContentLoadKey { .init(reader) }
     var body: some View {
         List {
-            if reader.isOfflineExample { Text("creatorContent.offlineExample") }
+            if reader.isOfflineExample { CYStatusChip("creatorContent.offlineExample", tone: .warning, systemImage: "testtube.2") }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
-            else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
+            else if model.state.isLoading || model.state.loadedScope != key.scope { CYLoadingStateView(rows: 3).accessibilityLabel(Text("creatorContent.loading")) }
             else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
             else if let center = model.state.visibleValue(scope: key.scope) {
                 Section {
                     Text(LocalizedStringKey("creatorContent.status." + center.status.rawValue))
-                        .font(.title2.bold()).accessibilityIdentifier("creatorContent.status")
-                    if let name = center.creatorName { Text(verbatim: name) }
-                    if let bio = center.bio { Text(verbatim: bio) }
+                        .font(CYTypography.sectionTitle).accessibilityIdentifier("creatorContent.status")
+                    if let name = center.creatorName { Text(verbatim: name).font(CYTypography.cardTitle) }
+                    if let bio = center.bio { Text(verbatim: bio).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
                     if center.status == .rejected {
                         if let reason = center.rejectReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(verbatim: reason) }
                         else { Text("creatorContent.noReason") }
@@ -193,21 +196,21 @@ private struct CreatorContentIssueView: View {
                     Section("creatorContent.income") {
                         if center.recentIncome.isEmpty { Text("creatorContent.noIncome") }
                         ForEach(Array(center.recentIncome.enumerated()), id: \.offset) { _, row in
-                            VStack(alignment: .leading) {
-                                Text(verbatim: row.amount ?? "—")
-                                if let source = row.source { Text(verbatim: source) }
-                                if let date = row.date { Text(verbatim: date) }
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text(verbatim: row.amount ?? "—").font(CYTypography.numericBody).monospacedDigit()
+                                if let source = row.source { Text(verbatim: source).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                                if let date = row.date { Text(verbatim: date).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
                             }
                         }
                     }
                 }
-                Text("creatorContent.centerReadOnly").font(.caption)
+                Text("creatorContent.centerReadOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
         }
         .appNavigationTitle("creatorContent.center")
         .modifier(CreatorContentReadLifecycle(key: key, refresh: refresh, cancel: model.cancel))
     }
-    private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent(title, value: count.map(String.init) ?? "—") }
+    private func metric(_ title: LocalizedStringKey, _ count: Int?) -> some View { LabeledContent { Text(verbatim: count.map(String.init) ?? "—").font(CYTypography.numericBody).monospacedDigit() } label: { Text(title) } }
     private func issue(_ value: CreatorContentIssue) -> some View { CreatorContentIssueView(issue: value) { Task { await refresh() } } }
     private func refresh() async {
         guard reader.isAuthenticated, reader.isConfigured else { model.clear(); return }

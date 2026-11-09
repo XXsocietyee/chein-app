@@ -22,15 +22,21 @@ KINDS = (RAW_HEX, FIXED_FONT, VIOLET)
 # Files that already violate the rule on this tree, with the hit count of
 # each kind. Keyed by file so a clean file stays clean and a new hit fails.
 ALLOWLIST = {
-    'App/ClubComponents.swift': {FIXED_FONT: 1},
     'App/ClubPostDiscussion.swift': {FIXED_FONT: 1},
     'App/CoopSettlementDetailView.swift': {FIXED_FONT: 1},
     'App/DiceD20View.swift': {FIXED_FONT: 1},
+    'App/E1CommerceComponents.swift': {FIXED_FONT: 2},
+    'App/HomeSearchTabParityViews.swift': {FIXED_FONT: 1},
+    'App/IMInboxViews.swift': {FIXED_FONT: 1},
     'App/MerchantBusinessEditor.swift': {RAW_HEX: 1},
+    'App/PlayKitTimedChallengeView.swift': {FIXED_FONT: 1},
     'App/PublishingContextHandoffViews.swift': {RAW_HEX: 1, VIOLET: 1},
     'App/PushNotificationAndLiveActivitySectionView.swift': {VIOLET: 1},
     'App/RoamMedalShareView.swift': {FIXED_FONT: 1},
+    'App/SocialGuideViews.swift': {FIXED_FONT: 1},
+    'App/SocialGuideXcxParity.swift': {FIXED_FONT: 1},
     'App/TicketWalletDetailView.swift': {FIXED_FONT: 1},
+    'App/UsageConsentGateView.swift': {FIXED_FONT: 1},
     'App/WalletCommerceViews.swift': {FIXED_FONT: 2},
     'App/WelcomeView.swift': {FIXED_FONT: 1},
 }

@@ -18,7 +18,7 @@ import SwiftUI
                 }
             } else if model.isCurrent, let card {
                 if card.attributes.isEmpty {
-                    ContentUnavailableView("characterCard.empty", systemImage: "person.text.rectangle")
+                    CYEmptyState(systemImage: "person.text.rectangle", "characterCard.empty")
                 } else {
                     CharacterSheetDetailView(card: card, attributeLevels: card.attributeLevels)
                         .refreshable { await model.load() }

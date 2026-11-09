@@ -77,7 +77,6 @@ import SwiftUI
             if let subscriptions = model.subscriptions { entitlementSections(subscriptions) }
             if let rounds = model.rounds { predictionSections(rounds) }
         }
-        .navigationTitle(LocalizedStringKey(selected.titleKey))
         .cyDomainPageBackground()
         .themeDomain(.merchant)
         .tint(CYDomainPalette(.merchant).brand)
@@ -321,7 +320,6 @@ private struct MerchantPredictionReviewView: View {
                 }
                     .disabled(!acknowledged || model.busy || model.review?.id != accepted.id).accessibilityIdentifier("merchantMarketing.confirmSettlement")
             }
-            .navigationTitle("merchantMarketing.review")
             .toolbar { Button("merchantMarketing.cancel") { model.cancelReview(id: accepted.id) }.disabled(model.busy) }
             .interactiveDismissDisabled(model.busy)
         }

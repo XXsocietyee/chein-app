@@ -35,6 +35,7 @@ import SwiftUI
                     .accessibilityIdentifier("ncm47.revisions.retry")
             }
         }.nativeChannelScreen().listStyle(.insetGrouped)
+        .cyGroupedSurface()
         .navigationTitle(Text("revisions.title", tableName: "NativeChannelMessage"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .task(id: phase) {

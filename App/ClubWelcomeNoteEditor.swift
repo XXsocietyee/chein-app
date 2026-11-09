@@ -104,6 +104,7 @@ import SwiftUI
         .background {
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
         }
+        .cyGroupedSurface()
         .navigationTitle(locale.pick("入会欢迎语", "Welcome message"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(locale.pick("关闭", "Close")) { retire(); dismiss() } } }
         .confirmationDialog(locale.pick("确认保存欢迎语？", "Save welcome message?"), isPresented: $confirming, titleVisibility: .visible) {
@@ -177,6 +178,7 @@ import SwiftUI
         .background {
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
         }
+        .cyGroupedSurface()
         .navigationTitle(locale.pick("欢迎语原请求", "Welcome message requests"))
         .task { guard visit.isCurrent else { return }; active = true; await load() }
         .onDisappear { retire() }

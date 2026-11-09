@@ -67,6 +67,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
             } else { NativeChannelManagementUnavailableView() }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(ncmPermissionText("permissions"))
         .task(id: channelID) { await model.loadPermissions(channelID); selectOriginal() }
         .onChange(of: target) { _, _ in selectOriginal() }

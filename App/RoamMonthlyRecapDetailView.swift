@@ -33,7 +33,7 @@ import SwiftUI
                                 .background { RoamHostedAccessibilityAnchor(identifier: "roam.tools.recap.detail.openRoute") }
                                 .accessibilityIdentifier("roam.tools.recap.detail.openRoute")
                         }
-                    }
+                    }.cyGroupedSurface()
                 } else { unavailable }
             }
             .font(Theme.Font.body)

@@ -66,6 +66,7 @@ import SwiftUI
                 }
             }
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("publicTopics.title", tableName: "ClubPublicTopics"))
         .refreshable { await refresh() }
         .toolbar {

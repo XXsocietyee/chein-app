@@ -52,6 +52,7 @@ struct MemberReportProgressTimeView: View {
             } else { memberReportProgressText("report.error.disabled") }
             Button { load(rendered) } label: { memberReportProgressText("report.refresh") }.disabled(rendered == nil || flow?.busy == true)
         }
+        .cyGroupedSurface()
         .navigationTitle(memberReportProgressText("report.history.title")).privacySensitive()
         .accessibilityIdentifier("report.progress.history")
         .navigationDestination(item: $selection) { MemberReportProgressDetailView(selection: $0, session: session) }

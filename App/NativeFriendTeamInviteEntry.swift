@@ -90,6 +90,7 @@ extension EnvironmentValues {
                     }
                     if flow.canMore { Button { Task { await flow.loadMine(more: true) } } label: { Text("d7.friendInvite.loadMore") }.disabled(flow.busy) }
                 }
+                .cyGroupedSurface()
                 .listStyle(.insetGrouped)
                 .refreshable { if !flow.busy { await flow.refresh() } }
                 .id(ObjectIdentifier(flow)).task { await flow.activate() }

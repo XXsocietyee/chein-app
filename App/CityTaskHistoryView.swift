@@ -20,29 +20,34 @@ struct CityTaskHistoryEntry: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
-                Text("cityHistory.boundary", tableName: table).font(.footnote)
-                Text(LocalizedStringKey(controller.messageKey), tableName: table)
-                if controller.busy { ProgressView() }
-                Button { read(.refresh) } label: { Text("cityHistory.refresh", tableName: table) }.disabled(controller.busy || !controller.current)
+                CYHeroHeader("cityHistory.title", tableName: table)
+                Text("cityHistory.boundary", tableName: table).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(LocalizedStringKey(controller.messageKey), tableName: table).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                if controller.busy { CYSkeleton() }
+                CYPillButton("cityHistory.refresh", style: .secondary, tableName: table) { read(.refresh) }.disabled(controller.busy || !controller.current)
                 if interactive, let detail = controller.detail {
                     detailContent(detail)
                 } else if interactive {
                     ForEach(controller.items) { item in
                         Button { read(.select(item)) } label: {
-                            VStack(alignment: .leading, spacing: 4) {
-                                if let title = item.title { Text(verbatim: title).font(.headline) } else { Text("cityHistory.titleUnavailable", tableName: table) }
-                                Text(verbatim: item.boardId + " · " + item.seasonId)
-                                Text(verbatim: item.acceptedAt)
-                                Text(status(item.status), tableName: table)
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(alignment: .firstTextBaseline) {
+                                    if let title = item.title { Text(verbatim: title).font(CYTypography.cardTitle) } else { Text("cityHistory.titleUnavailable", tableName: table).font(CYTypography.cardTitle) }
+                                    Spacer(minLength: 8)
+                                    CYStatusChip(status(item.status), tone: item.status == "PASSED" ? .success : item.status == "EXHAUSTED" ? .danger : .info)
+                                }
+                                Text(verbatim: item.boardId + " · " + item.seasonId).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                Text(verbatim: item.acceptedAt).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
                             }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                        }.disabled(controller.busy || !controller.current).accessibilityIdentifier("city.history.item.\(item.id)")
+                                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                        }.buttonStyle(.plain).disabled(controller.busy || !controller.current).accessibilityIdentifier("city.history.item.\(item.id)")
                     }
                     if controller.nextBeforeID != nil {
                         Button { read(.more) } label: { Text("cityHistory.more", tableName: table) }.disabled(controller.busy || !controller.current)
                     }
                 }
             }.padding()
-        }.navigationTitle(Text("cityHistory.title", tableName: table))
+        }
         .accessibilityIdentifier("city.history.screen")
         .task(id: readID) { guard visible, scenePhase == .active, !Task.isCancelled else { return }; await controller.load() }
         .onAppear { visible = true; readID = UUID() }
@@ -74,7 +79,7 @@ struct CityTaskHistoryEntry: View {
                 field("cityHistory.recordedAt", attempt.createdAt)
                 field("cityHistory.evidenceCheckedAt", attempt.evidenceCheckedAt)
                 Button { read(.receipt(attempt.requestId)) } label: { Text("cityHistory.answerReceipt", tableName: table) }.disabled(controller.busy || !controller.current)
-            }.padding().background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+            }.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         }
         if let result = detail.result {
             Text("cityHistory.originalResult", tableName: table).font(.headline)

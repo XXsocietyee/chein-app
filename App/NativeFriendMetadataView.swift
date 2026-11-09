@@ -139,6 +139,7 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
+        .cyGroupedSurface()
         .navigationTitle(localized(flow.peerID == 0 ? "friendMeta.recoveryEntry" : "friendMeta.title"))
         .accessibilityIdentifier("friendMeta.editor").privacySensitive()
         .onAppear { visible = true; if scenePhase == .active { visit = UUID(); performPresented { await flow.load() } } }

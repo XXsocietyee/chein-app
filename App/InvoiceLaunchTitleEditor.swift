@@ -39,18 +39,21 @@ import SwiftUI
                 }
                 Toggle(isOn: $isDefault) { invoiceText("defaultTitle") }
             }.disabled(!model.allows(.saveTitle))
-            if invalid { invoiceText("notSaved") }
+            if invalid { invoiceText("notSaved").font(.footnote).foregroundStyle(.red) }
+        }
+        .safeAreaInset(edge: .bottom) {
             if model.allows(.saveTitle) {
-                Button {
+                CYPillButton("save", style: .primary, tableName: "InvoiceLaunchUI") {
                     do {
                         let draft = try InvoiceLaunchTitleRules.draft(id: title?.id, type: type,
                             name: name, tax: tax, isDefault: isDefault)
                         invalid = false
                         Task { if await model.save(draft) { tax = ""; dismiss() } }
                     } catch { invalid = true }
-                } label: { invoiceText("save") }
+                }
                 .disabled(!InvoiceLaunchTitleRules.canSubmit(type: type, name: name, tax: tax))
                 .accessibilityIdentifier("invoice.title.save")
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
             }
         }
         .navigationTitle(invoiceText(title == nil ? "addTitle" : "editTitle"))

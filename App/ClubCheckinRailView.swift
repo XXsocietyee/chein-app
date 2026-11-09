@@ -9,7 +9,7 @@ struct ClubCheckinRailView: View {
                 ForEach(rail.stops) { stop in
                     VStack(spacing: 4) {
                         Image(systemName: stop.reached ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(stop.reached ? Color.accentColor : Color.secondary)
+                            .foregroundStyle(stop.reached ? CYColor.textPrimary : CYColor.textTertiary)
                         Text(LocalizedStringKey("club.checkin.rail." + stop.step.rawValue))
                             .font(.caption.weight(stop.current ? .semibold : .regular))
                             .foregroundStyle(stop.reached ? .primary : .secondary)

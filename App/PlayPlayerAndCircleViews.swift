@@ -106,7 +106,7 @@ import SwiftUI
                 PlayPlayerActionReviewCard(owner: actionReview, offered: offered).id(offered.id)
             }
             if actionReview.working { ProgressView("playerEvidence.working") }
-        }.privacySensitive().navigationTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
+        }.cyGroupedSurface().privacySensitive().navigationTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
             .task {
                 guard !Task.isCancelled else { return }
                 submissionReadback?.dismiss()

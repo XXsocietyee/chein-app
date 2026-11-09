@@ -135,7 +135,15 @@ struct CooperationInviteCardDetails: View {
                     .accessibilityLabel(Text(LocalizedStringKey(view.direction == .received ? "cooperation.detail.receivingClub" : "cooperation.detail.sendingClub")) + Text(verbatim: " " + party))
             }
             CooperationInviteTermsText(terms: view.terms).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
-            if case .owed = view.deposit { CYMiniDueStrip { CooperationInviteDepositText(deposit: view.deposit) } }
+            if case .owed = view.deposit {
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    Image(systemName: "exclamationmark.circle.fill").foregroundStyle(CYColor.warningText).accessibilityHidden(true)
+                    CooperationInviteDepositText(deposit: view.deposit).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.warningSoft))
+            }
             if view.direction == .sent && invite.status == 2 { Text("cooperation.list.sent.declinedHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             if invite.status == 0 && view.direction == .received && !invite.legacyReadonly && !view.decisionReady {
                 Label("cooperation.list.incomplete", systemImage: "exclamationmark.triangle").font(CYTypography.meta).foregroundStyle(CYColor.warningText)

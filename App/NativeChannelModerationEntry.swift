@@ -127,6 +127,7 @@ import SwiftUI
             }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle("d7.channelModeration.title")
         .task { await open() }
         .task {

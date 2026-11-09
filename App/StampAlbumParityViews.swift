@@ -4,7 +4,11 @@ import SwiftUI
 struct StampAlbumTotalHeader: View {
     let total: Int
     var body: some View {
-        Text("stampAlbum.total \(total)").font(.largeTitle.bold()).monospacedDigit()
+        Text("stampAlbum.total \(total)").font(.system(.title, design: .rounded).weight(.heavy)).monospacedDigit()
+            .foregroundStyle(.white)
+            .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
+            .padding(CYSpacing.lg)
+            .background { CYCoverArt(seed: "stamp-album", symbol: "seal.fill") }
             .accessibilityIdentifier("roam.experience.album.total")
     }
 }

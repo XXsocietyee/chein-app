@@ -82,7 +82,7 @@ import SwiftUI
                     }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(Text("cityNeutral.title", tableName: table))
         .accessibilityIdentifier("cityNeutral.screen")
         .task { await controller.load() }
@@ -109,7 +109,7 @@ import SwiftUI
                     Text("cityNeutral.confirmHint", tableName: table)
                     Button { Task { await controller.confirm(captured) } } label: { Text("cityNeutral.confirmNow", tableName: table) }.disabled(!controller.canWrite)
                     Button { controller.cancelConfirmation() } label: { Text("cityNeutral.cancel", tableName: table) }
-                }.navigationTitle(Text("cityNeutral.confirmTitle", tableName: table))
+                }.cyGroupedSurface().navigationTitle(Text("cityNeutral.confirmTitle", tableName: table))
             }
         }
     }

@@ -83,6 +83,7 @@ import SwiftUI
         }
         .font(Theme.Font.body)
         .nativeChannelScreen()
+        .cyGroupedSurface()
         .navigationTitle("d7.checkin.title").privacySensitive()
         .task(id: available) { if available { await flow.activate(current: current) } else { stop() } }
         .onChange(of: current()) { _, valid in if !valid { stop() } }
