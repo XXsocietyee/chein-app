@@ -305,7 +305,11 @@ import SwiftUI
                 }
                 .padding(.horizontal, CYSpacing.lg)
             }
-        } header: { sectionTitle(LocalizedStringKey("searchMap.routes.recent")) }
+        } header: {
+            Text(LocalizedStringResource("searchMap.routes.recent", defaultValue: "Recent routes"))
+                .font(.title3.weight(.bold)).foregroundStyle(CYColor.textPrimary).textCase(nil)
+                .padding(.horizontal, CYSpacing.xs).accessibilityAddTraits(.isHeader)
+        }
         .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
     }
     /// Mini-program `search-actions__map` (在地图上找活动与主题节点) as one pill; the native nearby, layers and

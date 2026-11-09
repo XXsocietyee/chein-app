@@ -205,7 +205,7 @@ struct CYStateLayout: View {
 }
 
 extension View {
-    @ViewBuilder func ifLet<T>(_ value: T?, _ transform: (Self, T) -> some View) -> some View {
+    @ViewBuilder func ifLet<T, Content: View>(_ value: T?, _ transform: (Self, T) -> Content) -> some View {
         if let value { transform(self, value) } else { self }
     }
 }
@@ -300,6 +300,7 @@ struct CYPermissionPriming: View {
     let onNotNow: () -> Void
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         let t = CYKitCopy(locale: locale)
@@ -307,7 +308,7 @@ struct CYPermissionPriming: View {
             ScrollView {
                 VStack(spacing: CYSpacing.lg) {
                     Spacer(minLength: CYSpacing.xxl)
-                    CYStateArt(kind: kind.artKind, size: 168)
+                    CYStateArt(kind: kind.artKind, size: typeSize.isAccessibilitySize ? 88 : 168)
                     Text(verbatim: kind.title(t))
                         .font(CYTypography.pageTitle)
                         .foregroundStyle(palette.textPrimary)
@@ -331,7 +332,9 @@ struct CYPermissionPriming: View {
                     .accessibilityIdentifier("permission.priming.notNow")
             }
             .padding(.horizontal, CYSpacing.lg)
+            .padding(.top, CYSpacing.sm)
             .padding(.bottom, CYSpacing.md)
+            .background(palette.bgPage)
         }
         .cyDomainPageBackground()
     }
