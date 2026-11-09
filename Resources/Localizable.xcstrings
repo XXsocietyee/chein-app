@@ -11855,6 +11855,22 @@
         }
       }
     },
+    "club.detail.levelFact": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Level"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等级"
+          }
+        }
+      }
+    },
     "club.detail.members.locked": {
       "extractionState": "manual",
       "localizations": {
@@ -170337,6 +170353,70 @@
           "stringUnit": {
             "state": "translated",
             "value": "快速配置"
+          }
+        }
+      }
+    },
+    "publishModes.quick.aiNote": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI only drafts. You confirm the places and everything you publish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AI 只协助起草，地点与发布内容终由你确认"
+          }
+        }
+      }
+    },
+    "publishModes.quick.heroTitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hi, what kind of route do you want to make?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "嗨，想做一条什么样的路线？"
+          }
+        }
+      }
+    },
+    "publishModes.quick.kicker.city": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "City orientation · gathered route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市定向 · 集合式路线"
+          }
+        }
+      }
+    },
+    "publishModes.quick.kicker.free": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Free explore · chapter-linked route"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自由探索 · 章节承接路线"
           }
         }
       }

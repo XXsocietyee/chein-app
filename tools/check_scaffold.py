@@ -191,6 +191,9 @@ localizable_ui=localizable_ui.replace('OfficialReadScreen(reader: reader, isPriv
 localizable_ui=localizable_ui.replace('MerchantTemplateStoryTimelineContent(timeline: timeline, prefix: "merchant.storyTimeline.review")', 'MerchantTemplateStoryTimelineContent(timeline: timeline)')
 # Exact computed accessibility IDs only; identical literals in Text still require translations.
 localizable_ui=localizable_ui.replace('var accessibilityID: String { switch self { case .history: return "roam.live.pausedHistory.open"; case .settings: return "roam.live.pausedSettings.open"; case .album: return "roam.live.pausedAlbum.open" } }', '')
+localizable_ui=localizable_ui.replace('confirmIdentifier: "club.action.confirm"', '')
+localizable_ui=localizable_ui.replace('scrollProxy.scrollTo("merchant.workbench.moreSection", anchor: .top)', '')
+localizable_ui=localizable_ui.replace('.id("merchant.workbench.moreSection")', '')
 localizable_ui=validate_bound_participant_issue_tables(localizable_ui,ROOT,objects,project_obj)
 localizable_ui=validate_literal_text_tables(localizable_ui,ROOT,objects,project_obj)
 localizable_ui=validate_literal_resource_tables(localizable_ui,ROOT,objects,project_obj)
