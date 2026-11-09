@@ -27,6 +27,7 @@ import SwiftUI
     @State private var submittedKeyword = ""
     @State private var localSelectedCity: String? = nil
     @State private var localIsNationwide: Bool = false
+    private var hasHeroHeader: Bool { showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil }
     private var query: HomeFeedQuery { HomeFeedQuery(kind: kind, keyword: submittedKeyword, categoryID: categoryID) }
     var body: some View {
         let binding = model.bind(reader, available: unavailableMessageKey == nil)
@@ -39,7 +40,7 @@ import SwiftUI
                 ProgressView("homeFeed.loading")
             } else {
                 List {
-                    if showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil {
+                    if hasHeroHeader {
                         HomeHeroHeaderSectionView(
                             nickname: viewerNickname,
                             selectedCity: localSelectedCity ?? selectedCity,
@@ -120,6 +121,8 @@ import SwiftUI
             }
         }
         .appNavigationTitle("homeFeed.title")
+        // The greeting block is the title (mini-program home): no second large nav title above it.
+        .toolbar(hasHeroHeader ? .hidden : .automatic, for: .navigationBar)
         .task(id: binding) { await model.resume(reader: reader, query: query, available: unavailableMessageKey == nil, expectedBinding: binding) }
         .onDisappear { model.suspend() }
     }
@@ -127,43 +130,19 @@ import SwiftUI
         let permit = model.permit(reader)
         if model.bannerFailed { retry("homeFeed.bannersError", id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
         if !model.banners.isEmpty {
-            // Mirrors the mini-program hero swiper: full-width covers, paged, no captions.
+            // Mirrors the mini-program hero swiper: full-width rounded covers, paged, dots, no captions.
             Section {
-                TabView {
-                    ForEach(Array(model.banners.enumerated()), id: \.offset) { _, banner in
-                        if let destination = banner.destination {
-                            Button {
-                                guard model.canOpen(reader) else { return }
-                                switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
-                            } label: {
-                                bannerArtwork(banner)
-                            }
-                            .buttonStyle(QuestifyCardButtonStyle())
-                            .accessibilityLabel(Text("homeFeed.openFeatured"))
-                        } else {
-                            bannerArtwork(banner)
-                        }
-                    }
-                }
-                .tabViewStyle(.page(indexDisplayMode: model.banners.count > 1 ? .always : .never))
-                .frame(height: 196)
+                CYHeroBanner(items: model.banners.map { banner in
+                    CYHeroBannerItem(id: banner.id, imageURL: QuestifyCardArtwork.safeURL(banner.picUrl), accessibilityLabel: "homeFeed.openFeatured",
+                                     action: banner.destination.map { destination in {
+                        guard model.canOpen(reader) else { return }
+                        switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
+                    } })
+                })
+                .padding(.horizontal, CYSpacing.lg)
                 .questifyCardListRow()
             }
         }
-    }
-    private func bannerArtwork(_ banner: DiscoveryBanner) -> some View {
-        Group {
-            if let url = QuestifyCardArtwork.safeURL(banner.picUrl) {
-                QuestifyCardArtwork(url: url, height: 196)
-            } else {
-                // A clean placeholder with no text when the banner has no usable cover.
-                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
-                    .fill(CYColor.bgRaised)
-                    .frame(height: 196)
-                    .accessibilityHidden(true)
-            }
-        }
-        .padding(.bottom, model.banners.count > 1 ? 24 : 0)
     }
     /// Mini-program `sec-reco` / `sec-nearby` / `sec-upcoming`: a titled horizontal rail each, with its own
     /// loading, failure and empty state. 即将上线 disappears once it has loaded with nothing in it.
@@ -253,9 +232,10 @@ struct HomeFeedShelfCard: View {
     @Environment(\.timeZone) private var timeZone
     var body: some View {
         let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
-        let line = [QuestifyCardText.metaLine(date: date, place: item.place), QuestifyCardText.amount(item.amount, locale: locale).map { String(localized: "playx.finishRoute.priceFrom \($0)") }]
-            .compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
-        CYImageCard(LocalizedStringKey(item.name), meta: LocalizedStringKey(line.isEmpty ? "—" : line),
+        // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
+        let price = QuestifyCardText.amount(item.amount, locale: locale).map { String(localized: "playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
+        let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
+        CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)
     }
 }
