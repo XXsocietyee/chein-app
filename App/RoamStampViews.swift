@@ -131,6 +131,7 @@ struct RoamAlbumReadOwner: Hashable {
 @MainActor private struct RoamStampAlbumContent: View {
     let album: RoamStampAlbumView
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @StateObject private var presentation: RoamAlbumReadPresentation
     init(album: RoamStampAlbumView) {
         self.album = album
@@ -172,10 +173,12 @@ struct RoamAlbumReadOwner: Hashable {
                             .accessibilityIdentifier("roam.experience.album.openCamera")
                     }
                 }
-                ForEach(pager.stamps) { stamp in
-                    NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages) } label: {
-                        RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
-                    }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
+                LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
+                    ForEach(pager.stamps) { stamp in
+                        NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages) } label: {
+                            RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
+                        }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
+                    }
                 }
                 if let error = pager.error, StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) == .retryContinuation {
                     StampAlbumContinuationRetry(retry: read)
@@ -213,6 +216,27 @@ struct RoamStampCard: View {
     var kit = false
     @Environment(\.cyPalette) private var palette
     var body: some View {
+        if kit { compact } else { full }
+    }
+    /// Collection cell: same footprint and elevation as the badge-wall tile (art on top, name, meta).
+    private var compact: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Group {
+                if offline { CYCoverArt(seed: String(stamp.id), symbol: "building.2.crop.circle.fill", cornerRadius: CYRadius.md).frame(height: 112) }
+                else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl).frame(maxHeight: 112).clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)) }
+                else { Label("roam.experience.imageUnavailable", systemImage: "photo").font(CYTypography.meta) }
+            }.accessibilityLabel(Text("roam.experience.sampleArt"))
+            if let caption = stamp.caption, !caption.isEmpty {
+                Text(verbatim: caption).font(CYTypography.bodyCompact.weight(.semibold)).foregroundStyle(CYColor.textPrimary).lineLimit(2).multilineTextAlignment(.leading)
+            }
+            Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
+            if let date = stamp.createTime { Text(verbatim: String(date.prefix(10))).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.md)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+    private var full: some View {
         RoamExperienceCard {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {

@@ -184,3 +184,11 @@ extension View {
             .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
     }
 }
+
+/// One grid for every collection (stamp album, badge wall, passport): adaptive 160pt cells, 12pt gutters, a single column at accessibility sizes.
+enum CYCollectionGrid {
+    static func columns(accessibility: Bool) -> [GridItem] {
+        accessibility ? [GridItem(.flexible(), alignment: .topLeading)] : [GridItem(.adaptive(minimum: 160), spacing: CYSpacing.md, alignment: .topLeading)]
+    }
+    static let spacing = CYSpacing.md
+}

@@ -95,7 +95,7 @@ private struct E2ChaptersHost: View {
                 ForEach(topics) { ticket in
                     RoamEnrolledChapterRow(ticket: ticket, showsActionNotice: ticket.action != .detail).questifyCardListRow()
                 }
-            }.cyGroupedSurface().navigationTitle("roam.chapters.title")
+            }.cyGroupedSurface().navigationTitle("roam.chapters.title").navigationBarTitleDisplayMode(.inline)
         }
     }
 }

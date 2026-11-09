@@ -44,7 +44,7 @@ import SwiftUI
                         .padding(.horizontal, CYSpacing.xs)
                 }
                 if let order = model.order, let bundle = order.bundle {
-                    CYInfoCard(title: text("unit"), symbol: "book.pages.fill") {
+                    CYInfoCard {
                         choice(text("unit"), selected: unitID.map { $0.text }) {
                             Picker(selection: $unitID) {
                                 text("choose").tag(Optional<FreeExploreLaunchID>.none)

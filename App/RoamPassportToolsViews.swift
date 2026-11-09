@@ -114,7 +114,7 @@ struct RoamPassportToolsPageOwner: Hashable {
         let owner = RoamPassportToolsPageOwner(reader)
         let _ = RoamHostedScopeTracker.shared.observePassport(reader)
         RoamAnniversaryContent(reader: reader, routeDestination: routeDestination, pageOwner: owner)
-            .appNavigationTitle("roam.tools.anniversary")
+            .appNavigationTitle("roam.tools.anniversary").navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -462,7 +462,7 @@ struct RoamAnniversaryReadIntent {
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
             .themeDomain(domain)
-            .appNavigationTitle("roam.tools.recap")
+            .appNavigationTitle("roam.tools.recap").navigationBarTitleDisplayMode(.inline)
     }
 }
 

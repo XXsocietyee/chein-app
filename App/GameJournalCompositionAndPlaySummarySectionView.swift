@@ -160,12 +160,9 @@ public struct GameJournalCompositionAndPlaySummarySectionView: View {
                         .foregroundStyle(snapshot.standaloneLoadUserStampsIntact ? CYColor.successText : CYColor.warningText)
                 }
                 .accessibilityIdentifier("gameJournalComposition.standaloneNonRegression")
-                VStack(spacing: 0) {
+                VStack(spacing: CYSpacing.md) {
                     ForEach(snapshot.rows) { row in
-                        CYListRow(verbatim: row.title, meta: row.detail, trailing: .none) { CYRowIcon(systemImage: icon(row.kind)) }
-                            .overlay(alignment: .topTrailing) {
-                                CYStatusChip(verbatim: "\(row.itemCount) 项", tone: tone(row.status))
-                            }
+                        CYListRow(verbatim: row.title, meta: "\(row.itemCount) 项 · " + row.detail, trailing: .none) { CYRowIcon(systemImage: icon(row.kind)) }
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("gameJournalComposition.row.\(row.id)")
                     }

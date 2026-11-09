@@ -90,7 +90,7 @@ struct CityPlayerView: View {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         CYHeroHeader(verbatim: snapshot.board.title)
                             .padding(CYSpacing.lg).padding(.top, CYSpacing.xl)
-                            .background { CYCoverArt(seed: snapshot.board.regionId, symbol: "building.2.fill") }
+                            .background { CYCoverArt(seed: snapshot.board.regionId, symbol: "building.2.fill", cornerRadius: CYRadius.lg) }
                         ViewThatFits(in: .horizontal) {
                             HStack(spacing: CYSpacing.sm) {
                             CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.lifecycle == "OPEN" ? .success : .neutral,
