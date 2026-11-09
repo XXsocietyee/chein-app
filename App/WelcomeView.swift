@@ -16,12 +16,20 @@ struct WelcomeView: View {
         }
     }
     @State private var destination: Destination?
+    @Environment(\.locale) private var locale
+    private var wordmark: String { locale.identifier.hasPrefix("zh") ? "城瘾" : "CHENGYIN" }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                    WelcomeHero().padding(.top, CYSpacing.lg)
+                    // Wordmark carries the brand now (no nav title): one quiet line above the hero.
+                    Text(verbatim: wordmark)
+                        .font(.system(.title3, design: .rounded).weight(.heavy))
+                        .tracking(1.5)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    WelcomeHero()
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Text("welcome.title")
                             .font(.system(.largeTitle, design: .rounded).weight(.heavy))
@@ -66,7 +74,6 @@ struct WelcomeView: View {
                 .frame(maxWidth: .infinity)
                 .background(CYColor.bgPage)
             }
-            .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 // Language, saved drafts and settings live in one quiet menu.

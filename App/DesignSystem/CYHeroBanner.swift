@@ -5,6 +5,9 @@ struct CYHeroBannerItem: Identifiable {
     let id: Int
     var imageURL: URL?
     var accessibilityLabel: LocalizedStringKey?
+    /// Optional copy drawn over the art with a scrim. Without it the slide is art only.
+    var title: Text? = nil
+    var subtitle: Text? = nil
     var action: (() -> Void)?
 }
 
@@ -22,31 +25,41 @@ struct CYHeroBanner: View {
         [Color(red: 0.08, green: 0.36, blue: 0.24), Color(red: 0.04, green: 0.12, blue: 0.14)],
     ]
 
+    private static let cardFraction: CGFloat = 0.88
+
     var body: some View {
         if !items.isEmpty {
             VStack(spacing: CYSpacing.sm) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: CYSpacing.md) {
-                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            card(item, index: index).id(index)
-                        }
-                    }
-                    .scrollTargetLayout()
-                }
-                .contentMargins(.horizontal, CYSpacing.lg, for: .scrollContent)
-                .scrollClipDisabled()
-                .scrollTargetBehavior(.viewAligned)
-                .scrollPosition(id: $page)
-                .sensoryFeedback(.selection, trigger: page)
+                // The clear box fixes the height (card width x 9/16) so the pager never collapses inside a List row.
+                Color.clear
+                    .frame(maxWidth: .infinity)
+                    .aspectRatio(items.count > 1 ? 16.0 / 9.0 / Self.cardFraction : 16.0 / 9.0, contentMode: .fit)
+                    .overlay { pager }
                 if items.count > 1 { dots }
             }
         }
     }
 
+    private var pager: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: CYSpacing.md) {
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    card(item, index: index).id(index)
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .contentMargins(.horizontal, CYSpacing.lg, for: .scrollContent)
+        .scrollClipDisabled()
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $page)
+        .sensoryFeedback(.selection, trigger: page)
+    }
+
     private func card(_ item: CYHeroBannerItem, index: Int) -> some View {
         slide(item, index: index)
-            .containerRelativeFrame(.horizontal) { width, _ in items.count > 1 ? width * 0.9 : width }
-            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .containerRelativeFrame(.horizontal) { width, _ in items.count > 1 ? width * Self.cardFraction : width }
+            .frame(maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 6)
             .scrollTransition(axis: .horizontal) { content, phase in
@@ -57,7 +70,7 @@ struct CYHeroBanner: View {
     }
 
     @ViewBuilder private func slide(_ item: CYHeroBannerItem, index: Int) -> some View {
-        let art = cover(item, index: index)
+        let art = cover(item, index: index).overlay(alignment: .bottomLeading) { caption(item) }
         if let action = item.action {
             Button(action: action) { art }
                 .buttonStyle(.plain)
@@ -81,6 +94,20 @@ struct CYHeroBanner: View {
         .scaleEffect(reduceMotion ? 1 : 1.18)
         .scrollTransition(axis: .horizontal) { content, phase in
             content.offset(x: reduceMotion ? 0 : phase.value * -44)
+        }
+    }
+
+    @ViewBuilder private func caption(_ item: CYHeroBannerItem) -> some View {
+        if let title = item.title {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                title.font(.system(.title2, design: .rounded).weight(.heavy)).lineLimit(2)
+                if let subtitle = item.subtitle { subtitle.font(CYTypography.bodyCompact).opacity(0.9).lineLimit(2) }
+            }
+            .foregroundStyle(.white)
+            .padding(CYSpacing.lg)
+            .padding(.top, CYSpacing.jumbo)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom))
         }
     }
 
