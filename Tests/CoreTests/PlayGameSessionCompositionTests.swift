@@ -271,6 +271,48 @@ import FoundationNetworking
         )
     }
 
+    func testEmptyAPIURLFailsBeforeAnyRequest() throws {
+        let wire = CompositionWire()
+        let service = try makeService(wire)
+        let configured = try makeRegional()
+        let storageScope = try makeStorageScope(regional: configured)
+        let session = try makeSession(namespace: storageScope.service)
+        let box = SessionBox(session)
+        for raw in ["", " ", "\n", "\t"] {
+            let empty = try RegionalConfiguration(
+                market: .china,
+                baseURL: raw,
+                approvedBaseURLs: Self.approvedTestEndpoints,
+                verifiedCapabilities: [.domesticChinaPhone]
+            )
+            XCTAssertNil(empty.apiConfiguration)
+            XCTAssertNil(
+                PlayGameSessionJournalFactory.makeCoordinator(
+                    scope: .activity(41),
+                    service: service,
+                    regionalConfiguration: empty,
+                    storageScope: storageScope,
+                    currentSession: { box.session },
+                    anchors: Anchors(),
+                    ciphertexts: Blobs()
+                )
+            )
+            XCTAssertThrowsError(
+                try PlayGameSessionJournalFactory.makeJournal(
+                    session: session,
+                    scope: .activity(41),
+                    regionalConfiguration: empty,
+                    storageScope: storageScope,
+                    anchors: Anchors(),
+                    ciphertexts: Blobs()
+                )
+            ) { error in
+                XCTAssertEqual(error as? PlayGameSessionCompositionError, .sessionScopeMismatch)
+            }
+        }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
     func testConfiguredDurableStoreWiresCoordinatorAndPersistsPendingCommandAcrossRebuild() async throws {
         let anchors = Anchors()
         let blobs = Blobs()

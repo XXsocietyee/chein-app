@@ -175,32 +175,45 @@ public struct ProjectInitialAttributes {
         var index = 0
         mutating func space() { while index < bytes.count && [9,10,13,32].contains(bytes[index]) { index += 1 } }
         mutating func string() throws -> String {
+            guard index < bytes.count else { throw ProjectEditError.invalidDraft }
             let start = index; index += 1
             while index < bytes.count {
                 let next = bytes[index]; index += 1
-                if next == 92 { index += 1 }
-                else if next == 34 { return try JSONDecoder().decode(String.self, from: Data(bytes[start..<index])) }
+                if next == 92 {
+                    guard index < bytes.count else { throw ProjectEditError.invalidDraft }
+                    index += 1
+                } else if next == 34 { return try JSONDecoder().decode(String.self, from: Data(bytes[start..<index])) }
             }
             throw ProjectEditError.invalidDraft
         }
         // Grammar, size, nesting and duplicate keys were already checked by envelope.
-        mutating func value(path: [String]) throws {
+        // A truncated token still throws instead of trapping on the next byte.
+        mutating func value(path: [String], depth: Int = 0) throws {
+            guard depth <= 128 else { throw ProjectEditError.invalidDraft }
             space(); guard index < bytes.count else { throw ProjectEditError.invalidDraft }
             switch bytes[index] {
             case 123:
                 index += 1; space()
+                guard index < bytes.count else { throw ProjectEditError.invalidDraft }
                 if bytes[index] == 125 { index += 1; return }
                 while true {
-                    space(); let key = try string(); space(); index += 1
-                    try value(path: path + [key]); space()
-                    if bytes[index] == 125 { index += 1; return }; index += 1
+                    space(); let key = try string(); space()
+                    guard index < bytes.count else { throw ProjectEditError.invalidDraft }
+                    index += 1
+                    try value(path: path + [key], depth: depth + 1); space()
+                    guard index < bytes.count else { throw ProjectEditError.invalidDraft }
+                    if bytes[index] == 125 { index += 1; return }
+                    index += 1
                 }
             case 91:
                 index += 1; space()
+                guard index < bytes.count else { throw ProjectEditError.invalidDraft }
                 if bytes[index] == 93 { index += 1; return }
                 while true {
-                    try value(path: path + ["[]"]); space()
-                    if bytes[index] == 93 { index += 1; return }; index += 1
+                    try value(path: path + ["[]"], depth: depth + 1); space()
+                    guard index < bytes.count else { throw ProjectEditError.invalidDraft }
+                    if bytes[index] == 93 { index += 1; return }
+                    index += 1
                 }
             case 34: _ = try string()
             default:

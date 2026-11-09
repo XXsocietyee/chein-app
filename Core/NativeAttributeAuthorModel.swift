@@ -131,32 +131,46 @@ enum NativeAttributeAuthorWire {
         var numbers: [[String]: String] = [:]
         mutating func space() { while index < bytes.count && [9,10,13,32].contains(bytes[index]) { index += 1 } }
         mutating func string() throws -> String {
+            guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON string") }
             let start = index; index += 1
             while index < bytes.count {
                 let c = bytes[index]; index += 1
-                if c == 92 { index += 1 }
-                else if c == 34 { return try JSONDecoder().decode(String.self, from: Data(bytes[start..<index])) }
+                if c == 92 {
+                    guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON string") }
+                    index += 1
+                } else if c == 34 { return try JSONDecoder().decode(String.self, from: Data(bytes[start..<index])) }
             }
             throw NativeAttributeAuthorError.invalid("JSON string")
         }
-        mutating func value(path: [String], location: [String] = []) throws {
+        mutating func value(path: [String], location: [String] = [], depth: Int = 0) throws {
+            guard depth <= 128 else { throw NativeAttributeAuthorError.invalid("JSON depth") }
             space(); guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON token") }
             let start = index
             defer { ranges[location] = start..<index }
             switch bytes[index] {
             case 123:
-                index += 1; space(); if bytes[index] == 125 { index += 1; return }
+                index += 1; space()
+                guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON token") }
+                if bytes[index] == 125 { index += 1; return }
                 while true {
-                    space(); let key = try string(); space(); index += 1
-                    try value(path: path + [key], location: location + [key]); space()
-                    if bytes[index] == 125 { index += 1; return }; index += 1
+                    space(); let key = try string(); space()
+                    guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON token") }
+                    index += 1
+                    try value(path: path + [key], location: location + [key], depth: depth + 1); space()
+                    guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON token") }
+                    if bytes[index] == 125 { index += 1; return }
+                    index += 1
                 }
             case 91:
-                index += 1; space(); if bytes[index] == 93 { index += 1; return }
+                index += 1; space()
+                guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON token") }
+                if bytes[index] == 93 { index += 1; return }
                 var element = 0
                 while true {
-                    try value(path: path + ["[]"], location: location + [String(element)]); element += 1; space()
-                    if bytes[index] == 93 { index += 1; return }; index += 1
+                    try value(path: path + ["[]"], location: location + [String(element)], depth: depth + 1); element += 1; space()
+                    guard index < bytes.count else { throw NativeAttributeAuthorError.invalid("JSON token") }
+                    if bytes[index] == 93 { index += 1; return }
+                    index += 1
                 }
             case 34: _ = try string()
             default:

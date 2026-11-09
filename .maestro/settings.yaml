@@ -1,0 +1,59 @@
+appId: invalid.example.questify.ios
+---
+# Settings through the wired DEBUG fixture d4-settings
+# (DesignFixtureRegistry.make -> D4MeFixture(screen: .settings) -> SettingsView).
+# That host builds a fresh AppSession and does not call bootstrap, so the
+# signed-out row is the stable marker. Rows are asserted and not opened.
+# No typed text, payment, or host URL. DEBUG builds only.
+- launchApp:
+    clearState: true
+    clearKeychain: true
+    stopApp: true
+    arguments:
+      "--design-fixture": "d4-settings"
+- extendedWaitUntil:
+    visible:
+      id: "settingsNative.profileSignedOut"
+    timeout: 20000
+- scrollUntilVisible:
+    element:
+      id: "settings.playGuide"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "settings.playGuide"
+- scrollUntilVisible:
+    element:
+      id: "region.market.value"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "region.market.value"
+- scrollUntilVisible:
+    element:
+      id: "settings.supportSafety"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "settings.supportSafety"
+- scrollUntilVisible:
+    element:
+      id: "settingsNative.openSound"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "settingsNative.openSound"
+- scrollUntilVisible:
+    element:
+      id: "settingsNative.openLegal.privacy_policy"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "settingsNative.openLegal.privacy_policy"
+- scrollUntilVisible:
+    element:
+      id: "settingsNative.openAbout"
+    direction: DOWN
+    timeout: 15000
+- assertVisible:
+    id: "settingsNative.openAbout"
