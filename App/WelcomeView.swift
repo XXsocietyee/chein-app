@@ -129,7 +129,7 @@ private struct RoleButtonStyle: ButtonStyle {
 
 /// Animated layered cards: three generated place covers fan out of a stack, then drift gently; a stamp seal
 /// lands on the top card. Decorative (hidden from VoiceOver). Reduce Motion shows the final arrangement, still.
-private struct WelcomeHero: View {
+struct WelcomeHero: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var fanned = false
     @State private var drifting = false

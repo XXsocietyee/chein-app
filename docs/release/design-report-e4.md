@@ -60,3 +60,9 @@ Shots: /Users/fanning/chengyin-refs/design-reports/e4/ (batch-auth-{en,zh}, batc
 
 ## Self-score (delight / interaction / inclusivity / visuals / innovation / social)
 Phone sign-in 8/8/8/8/6/8 -> 8. Login 7/8/8/7/5/8 -> 7 (sparse, no Apple in fixture). Ticket wallet 8/8/8/9/8/8 -> 8. Profile edit 7/8/8/8/6/8 -> 8 (avatar card still shows system empty copy). Settings 7/8/7/8/5/8 -> 7. About 7/7/6/8/5/8 -> 7 (XL hyphenation). Under 8: login, settings, about, plus all not-restyled pages (deregister, marketing, member, creator, complaint).
+
+## Fixture-data follow-up (coordinator note)
+- DEBUG-labelled ledger data added to the wallet fixture transport (`designLedger`, only under `--design-fixture`): balance, points and income rows across Sep-Nov 2026 with amounts, after-balances and currency.
+- Wallet balance and points ledgers: large 44pt rounded balance hero (unknown stays an em dash), rows grouped by month, signed amounts. Shots: batch-balance-{en,zh,xl}, batch-points-{en,zh}, batch-income-en, batch-assets-en.
+- Profile edit pinned Save + one grouped card: done in the earlier commit (batch-profile-*). About brand mark renders (batch-about-{en,zh}).
+- Self-score: wallet balance 8, points 8, income 7 (rows grouped by day, no hero), About 8.
