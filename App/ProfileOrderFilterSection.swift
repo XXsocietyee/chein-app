@@ -12,8 +12,10 @@ struct ProfileOrderFilterSection: View {
                     ForEach(ProfileOrderHistoryFilter.allCases) { filter in
                         ProfileOrderFilterChip(filter: filter, isSelected: selection == filter) { selection = filter }
                     }
-                }.padding(.vertical, 4)
+                }.padding(.vertical, CYSpacing.xs)
             }
+            .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
+            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
             .accessibilityElement(children: .contain)
             .accessibilityLabel(Text("profile.orderFilter.title"))
             .accessibilityIdentifier("profile.orderFilter.picker")
@@ -35,15 +37,7 @@ private struct ProfileOrderFilterChip: View {
     let isSelected: Bool
     let choose: () -> Void
     var body: some View {
-        Button(action: choose) {
-            Text(LocalizedStringKey(filter.chipTitleKey)).font(.subheadline)
-                .padding(.horizontal, 12).frame(minHeight: CYSpacing.minTouchTarget)
-                .background(Capsule().fill(isSelected ? CYColor.accent : CYColor.bgSurfaceSubtle))
-                .foregroundStyle(isSelected ? CYColor.textOnAccent : CYColor.textPrimary)
-                .contentShape(Capsule())
-        }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityIdentifier("profile.orderFilter.chip.\(filter.rawValue)")
+        OrderFilterPill(title: LocalizedStringKey(filter.chipTitleKey), isSelected: isSelected, choose: choose)
+            .accessibilityIdentifier("profile.orderFilter.chip.\(filter.rawValue)")
     }
 }

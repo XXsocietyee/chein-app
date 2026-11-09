@@ -81,6 +81,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
         .listSectionSpacing(20)
         .appNavigationTitle("ticketWallet.detail")
         .navigationBarTitleDisplayMode(.inline)
@@ -230,6 +231,7 @@ struct TicketWalletPlayProvider {
 private struct TicketWalletDetailHeader: View {
     let ticket: TicketWalletTicket
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
         let expiry = TicketExpiryAndOrderStatusRules.passExpiryText(validUntil: ticket.endDate)
@@ -239,8 +241,8 @@ private struct TicketWalletDetailHeader: View {
             verificationStatus: ticket.verificationStatus,
             productType: ticket.productType
         )
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(alignment: .top, spacing: 12) {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            HStack(alignment: .center, spacing: CYSpacing.md) {
                 TicketWalletStatusBadge(status: ticket.status)
                 if !expiry.isEmpty {
                     Text(verbatim: c.tr(expiry))
@@ -248,17 +250,26 @@ private struct TicketWalletDetailHeader: View {
                         .foregroundStyle(CYColor.warningText)
                 }
                 Spacer(minLength: 0)
-                Image(systemName: "ticket")
-                    .font(CYTypography.sheetTitle).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
             }
             TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                .font(CYTypography.sheetTitle).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("ticketWallet.detail.title")
-            if let date = ticket.participateDate, !date.isEmpty {
-                QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
+            // Reference 042: one large poster tile under the heavy title. No ticket image URL exists in the model.
+            if !dynamicTypeSize.isAccessibilitySize {
+                CYColor.bgRaised
+                    .aspectRatio(4 / 3, contentMode: .fit)
+                    .overlay { Image(systemName: "ticket").font(.system(size: 44)).foregroundStyle(CYColor.textTertiary) }
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .accessibilityHidden(true)
             }
-            if let place = ticket.addressName, !place.isEmpty {
-                QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                if let date = ticket.participateDate, !date.isEmpty {
+                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
+                }
+                if let place = ticket.addressName, !place.isEmpty {
+                    QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+                }
             }
             if let notice = fulfillment.fulfillmentNotice {
                 Text(verbatim: c.tr(notice))
@@ -266,7 +277,7 @@ private struct TicketWalletDetailHeader: View {
                     .foregroundStyle(CYColor.textSecondary)
             }
         }
-        .questifyCardSurface()
+        .orderCardSurface()
     }
 }
 

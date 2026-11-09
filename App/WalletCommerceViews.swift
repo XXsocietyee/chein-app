@@ -82,9 +82,12 @@ extension WalletScreen where Value == WithdrawalBalance {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var earnings = WalletScreen<WithdrawalBalance>()
     @StateObject private var funds = WalletScreen<WalletFundsStages>()
+    @StateObject private var monthModel = WalletPagerScreen()
     @State private var isVisible = false
+    @State private var showsMore = false
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
+    private func t(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
     let reader: WalletCommerceReader
     let visibility: WalletCommerceVisibility
     let onCooperationFinance: () -> Void
@@ -95,87 +98,210 @@ extension WalletScreen where Value == WithdrawalBalance {
     var body: some View {
         List {
             if visibility.income {
-                Section("withdrawal.support.balance") {
+                Section {
                     if earnings.loading {
                         ProgressView("wallet.loading").accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
-                        // Revolut-style balance hero: one large tabular figure, calm surface.
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text("withdrawal.support.balance")
-                                .font(CYTypography.caption.weight(.semibold))
-                                .foregroundStyle(CYColor.textSecondary)
-                                .accessibilityHidden(true)
-                            Text(verbatim: format.amount(value.balance, currency: value.currency))
-                                .font(CYTypography.data2XL)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .minimumScaleFactor(0.6)
-                                .lineLimit(1)
-                                .privacySensitive()
-                                .accessibilityIdentifier("wallet.earnings.balance")
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, CYSpacing.sm)
+                        WalletEarningsHero(label: appLocalized("withdrawal.support.balance", locale: locale),
+                                           number: WalletNumberLocalization.text(value.balance.text, locale: locale),
+                                           symbol: WalletCurrencySymbol.symbol(value.currency))
+                            .privacySensitive()
+                            .accessibilityIdentifier("wallet.earnings.balance")
                         if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
                         WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
                             unavailable: earnings.unavailable) { Task { await loadEarnings() } }
                     }
                 }.accessibilityIdentifier("wallet.earnings.overview")
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
             }
-            if visibility.assets {
-                Section("wallet.fundStages") {
-                    WalletFundsStagesInline(reader: reader, funds: funds) { Task { await loadFunds() } }
-                }.accessibilityIdentifier("wallet.earnings.stages.home")
-            }
-            // Detail rows grouped as one inset section, then withdrawal rows, as the mini-program 账户收益 page lists them.
-            Section {
-            if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
-            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
-            if visibility.income {
-                NavigationLink { WalletIncomeAnalysisView(reader: reader) } label: {
-                    Label { Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis") } icon: { Image(systemName: "chart.bar.xaxis") }
-                }.accessibilityIdentifier("wallet.analysis.open")
-            }
-            if visibility.income, let invitationHistory {
-                NavigationLink {
-                    SocialInviteHistoryView(reader: invitationHistory.reader,
-                        squareReader: invitationHistory.squareReader, actions: invitationHistory.actions)
-                        .id(invitationHistory.reader.identity)
-                } label: {
-                    Label("social.invites.title", systemImage: "person.2.badge.plus")
-                }.accessibilityIdentifier("wallet.inviteHistory")
-            }
-            if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
-            if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
-            }
-            if visibility.withdrawalRecords {
-                Section {
-                    if showsWithdrawalSupport {
-                        NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
-                    }
-                    NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
-                }
-            }
-        }.appNavigationTitle("wallet.title")
+            quickActions
+            if visibility.income { monthIncomeSection }
+            if visibility.assets { assetsSection }
+        }.listStyle(.plain).scrollContentBackground(.hidden)
+            .appNavigationTitle("wallet.title")
             .task(id: reader.scope) {
                 isVisible = true
                 earnings.clear()
                 funds.clear()
+                monthModel.reset()
                 await loadEarnings()
                 await loadFunds()
+                await loadMonth()
             }
-            .onDisappear { isVisible = false; earnings.clear(); funds.clear() }
+            .sheet(isPresented: $showsMore) { moreSheet }
+            .onDisappear { isVisible = false; earnings.clear(); funds.clear(); monthModel.cancel() }
             .onChange(of: scenePhase) { _, phase in
                 if phase != .active { earnings.clear(); funds.clear() }
-                else if isVisible { Task { await loadEarnings(); await loadFunds() } }
+                else if isVisible { Task { await loadEarnings(); await loadFunds(); await loadMonth() } }
             }
-            .refreshable { await loadEarnings(); await loadFunds() }
+            .refreshable { await loadEarnings(); await loadFunds(); monthModel.reset(); await loadMonth() }
             .onChange(of: earnings.loading) { _, isLoading in
                 if WalletLoadAnnouncement.shouldAnnounce(wasLoading: true, isLoading: isLoading, hasValue: earnings.value != nil) {
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
                 }
             }
+    }
+    /// Four circular quick actions: the first available one is the single white primary (withdraw), the last opens More.
+    @ViewBuilder private var quickActions: some View {
+        let items = quickItems
+        if !items.isEmpty {
+            Section {
+                HStack(alignment: .top, spacing: CYSpacing.md) {
+                    ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                        item.primary(index == 0)
+                    }
+                    WalletQuickAction(title: t("更多", "More"), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
+                }.frame(maxWidth: .infinity)
+            }.listRowBackground(Color.clear).listRowSeparator(.hidden)
+        }
+    }
+    private var quickItems: [WalletQuickAction] {
+        var out: [WalletQuickAction] = []
+        if visibility.withdrawalRecords, showsWithdrawalSupport {
+            out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportLandingView(reader: reader)) })
+        } else if visibility.withdrawalRecords {
+            out.append(.init(title: "wallet.withdrawals", icon: "arrow.up.right", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
+        }
+        if visibility.income { out.append(.init(title: "wallet.income", icon: "list.bullet.indent", id: "wallet.income.open") { AnyView(incomeDestination) }) }
+        if visibility.points { out.append(.init(title: "wallet.points", icon: "star.circle", id: "wallet.points.open") { AnyView(WalletLedgerView(reader: reader, kind: .points)) }) }
+        return out
+    }
+    private var incomeDestination: WalletIncomeView {
+        WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance)
+    }
+    private var calendar: Calendar { WalletIncomeDay.serverCalendar }
+    private var monthPrefix: String {
+        let c = calendar.dateComponents([.year, .month], from: Date())
+        return String(format: "%04d-%02d", c.year ?? 0, c.month ?? 0)
+    }
+    private var monthTitle: String {
+        let month = calendar.component(.month, from: Date())
+        if locale.language.languageCode?.identifier == "zh" { return "\(month)月" }
+        return calendar.shortMonthSymbols[month - 1]
+    }
+    private var monthRows: [WalletLedgerRow] {
+        monthModel.pager.rows.filter { $0.incomeDirection == .income && ($0.createTime ?? "").hasPrefix(monthPrefix) }
+    }
+    /// 本月收入明细: this month's income rows, or the empty card. "All" opens the full income detail.
+    private var monthIncomeSection: some View {
+        Section {
+            if monthModel.pager.hasLoadedPage, monthModel.pager.loadedScope == reader.scope {
+                if monthRows.isEmpty {
+                    Text(verbatim: t("这个月还没有收入", "No income this month"))
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: 96)
+                        .orderCardSurface()
+                        .accessibilityIdentifier("wallet.month.empty")
+                } else {
+                    VStack(spacing: 0) {
+                        ForEach(Array(monthRows.prefix(3).enumerated()), id: \.element.id) { index, row in
+                            if index > 0 { Divider().overlay(CYColor.borderSubtle) }
+                            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
+                                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                    Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
+                                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                                    if let day = WalletIncomeDay.make(row.createTime) {
+                                        WalletIncomeDayText(day: day).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    }
+                                }
+                                Spacer(minLength: CYSpacing.sm)
+                                Text(verbatim: format.signed(row, points: false, income: true) + " " + (row.currency.flatMap { WalletCurrencySymbol.symbol($0) } ?? ""))
+                                    .font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary).privacySensitive()
+                            }.padding(.vertical, CYSpacing.sm)
+                        }
+                    }.orderCardSurface().accessibilityIdentifier("wallet.month.rows")
+                }
+            } else if monthModel.pager.isLoading {
+                CYSkeleton().frame(height: 96)
+            } else {
+                Text(verbatim: "—").foregroundStyle(CYColor.textSecondary).frame(maxWidth: .infinity, minHeight: 96).orderCardSurface()
+            }
+        } header: {
+            HStack(alignment: .firstTextBaseline) {
+                Text(verbatim: t("本月收入明细", "Income this month")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                Spacer()
+                NavigationLink { incomeDestination } label: {
+                    HStack(spacing: CYSpacing.xxs) {
+                        Text(verbatim: monthTitle + " " + t("全部", "All"))
+                        Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
+                    }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
+            }.textCase(nil)
+        }.listRowBackground(Color.clear).listRowSeparator(.hidden)
+    }
+    /// 我的资产: icon rows with trailing amounts (— while unknown), all opening the existing assets screen.
+    private var assetsSection: some View {
+        Section {
+            let stages = funds.loadedScope == reader.scope ? funds.value : nil
+            let known = stages?.amountsKnown == true
+            NavigationLink { WalletAssetsView(reader: reader) } label: {
+                VStack(spacing: 0) {
+                    assetRow("creditcard", t("可提现", "Withdrawable"), known ? stages.map { assetAmount($0.withdrawable, $0.currency) } : nil)
+                    Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
+                    assetRow("clock.arrow.circlepath", t("待结算", "Pending settlement"), known ? stages.map { assetAmount($0.pendingSettlement, $0.currency) } : nil)
+                    Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
+                    assetRow("exclamationmark.bubble", t("争议中", "Disputed"), known ? stages.map { assetAmount($0.disputed, $0.currency) } : nil)
+                }.orderCardSurface(padding: CYSpacing.md)
+            }.buttonStyle(.plain).questifyHidesLinkIndicator().accessibilityIdentifier("wallet.assets.open")
+        } header: {
+            Text(verbatim: t("我的资产", "My assets")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader).textCase(nil)
+        }.accessibilityIdentifier("wallet.earnings.stages.home")
+            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+    }
+    private func assetAmount(_ amount: WalletAmount, _ currency: String?) -> String {
+        guard let symbol = WalletCurrencySymbol.symbol(currency) else { return format.amount(amount, currency: currency) }
+        return symbol + WalletNumberLocalization.text(amount.text, locale: locale)
+    }
+    private func assetRow(_ icon: String, _ title: String, _ value: String?) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            CYRowIcon(systemImage: icon)
+            Text(verbatim: title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Spacer(minLength: CYSpacing.sm)
+            Text(verbatim: value ?? "—").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
+                .lineLimit(1).minimumScaleFactor(0.7).privacySensitive()
+        }.padding(.vertical, CYSpacing.sm).frame(minHeight: CYSpacing.minTouchTarget)
+    }
+    /// 更多: the navigation rows that are not quick actions (destinations and gates unchanged).
+    private var moreSheet: some View {
+        NavigationStack {
+            List {
+                if visibility.income {
+                    walletRow(LocalizedStringKey(String(localized: "wallet.analysis.title", table: "WalletIncomeAnalysis")), icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }
+                }
+                if visibility.income, let invitationHistory {
+                    walletRow("social.invites.title", icon: "person.2.badge.plus", id: "wallet.inviteHistory") {
+                        SocialInviteHistoryView(reader: invitationHistory.reader,
+                            squareReader: invitationHistory.squareReader, actions: invitationHistory.actions)
+                            .id(invitationHistory.reader.identity)
+                    }
+                }
+                if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
+                if visibility.withdrawalRecords {
+                    walletRow("wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { WithdrawalHistoryView(reader: reader) }
+                }
+                if visibility.assets {
+                    walletRow("wallet.assets", icon: "wallet.pass", id: "wallet.assets.more") { WalletAssetsView(reader: reader) }
+                }
+            }.listStyle(.plain).scrollContentBackground(.hidden).listRowBackground(Color.clear)
+                .appNavigationTitle(key: "wallet.title")
+                .cyDomainPageBackground()
+        }.presentationDetents([.medium, .large])
+    }
+    private func walletRow<D: View>(_ title: LocalizedStringKey, icon: String, id: String, @ViewBuilder destination: () -> D) -> some View {
+        NavigationLink { destination() } label: {
+            CYListRow(title, card: true) { CYRowIcon(systemImage: icon) }
+        }
+        .buttonStyle(.plain).questifyHidesLinkIndicator()
+        .listRowBackground(Color.clear).listRowSeparator(.hidden)
+        .accessibilityIdentifier(id)
+    }
+    private func loadMonth() async {
+        guard visibility.income, isVisible, scenePhase == .active else { return }
+        await monthModel.load(reader, kind: .income(.all))
     }
     private func loadEarnings() async {
         guard visibility.income, isVisible, scenePhase == .active else { return }
@@ -370,7 +496,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                             .font(.caption2.bold())
                             .padding(.horizontal, 5)
                             .padding(.vertical, 2)
-                            .background(CYColor.accentSoft, in: Capsule())
+                            .background(Color.accentColor.opacity(0.15), in: Capsule())
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
@@ -387,10 +513,10 @@ extension WalletScreen where Value == WithdrawalBalance {
                     if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                     else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
-                .font(CYTypography.numericBody)
-                .foregroundStyle(direction.rawValue == "income" ? CYColor.successText : CYColor.textPrimary)
+                .font(.body.weight(.semibold).monospacedDigit())
+                .foregroundStyle(direction.rawValue == "income" ? Color.green : Color.primary)
                 if !points, let balance = row.afterBalance {
-                    Text(verbatim: format.amount(balance, currency: row.currency)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: format.amount(balance, currency: row.currency)).font(.caption).foregroundStyle(.secondary)
                 }
             }
         }
@@ -726,5 +852,82 @@ enum WalletLoadAnnouncement {
     }
     static func text(locale: Locale) -> String {
         ChannelCopy.text("钱包数据已更新", "Wallet figures updated", locale: locale)
+    }
+}
+
+/// Circular quick action: SF Symbol on a disc with a short label underneath.
+/// The primary action is the white disc (one per screen); the rest are dark discs.
+private struct WalletQuickAction: View {
+    let title: LocalizedStringKey
+    let icon: String
+    let id: String
+    var isPrimary = false
+    var destination: (() -> AnyView)?
+    var action: (() -> Void)?
+    init(title: LocalizedStringKey, icon: String, id: String, destination: @escaping () -> AnyView) {
+        self.title = title; self.icon = icon; self.id = id; self.destination = destination
+    }
+    init(title: String, icon: String, id: String, action: @escaping () -> Void) {
+        self.title = LocalizedStringKey(title); self.icon = icon; self.id = id; self.action = action
+    }
+    func primary(_ on: Bool) -> Self { var copy = self; copy.isPrimary = on; return copy }
+    private var label: some View {
+        VStack(spacing: CYSpacing.xs) {
+            Image(systemName: icon).font(.title3.weight(.semibold))
+                .foregroundStyle(isPrimary ? CYColor.textOnAccent : CYColor.textPrimary)
+                .frame(width: 56, height: 56)
+                .background(isPrimary ? CYColor.accent : CYColor.bgElevated, in: Circle()).accessibilityHidden(true)
+            Text(title).font(CYTypography.caption).foregroundStyle(CYColor.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
+                .multilineTextAlignment(.center)
+        }.frame(maxWidth: .infinity)
+    }
+    var body: some View {
+        Group {
+            if let destination { NavigationLink { destination() } label: { label }.questifyHidesLinkIndicator() }
+            else { Button { action?() } label: { label } }
+        }
+        .buttonStyle(.plain)
+        .accessibilityIdentifier(id)
+    }
+}
+extension WalletQuickAction: Identifiable {}
+
+enum WalletCurrencySymbol {
+    /// nil only when the currency is truly unknown (nil/blank); a known code without a glyph shows the code.
+    static func symbol(_ currency: String?) -> String? {
+        guard let code = currency?.trimmingCharacters(in: .whitespacesAndNewlines).uppercased(), !code.isEmpty else { return nil }
+        switch code {
+        case "CNY", "RMB": return "¥"
+        case "USD": return "$"
+        case "EUR": return "€"
+        case "GBP": return "£"
+        default: return code
+        }
+    }
+}
+
+/// Centered earnings hero: grey label above a large tabular amount. An unknown currency shows a small grey dash in the symbol slot.
+private struct WalletEarningsHero: View {
+    let label: String
+    let number: String
+    let symbol: String?
+    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 56
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            Text(label).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+            HStack(alignment: .firstTextBaseline, spacing: 2) {
+                if let symbol {
+                    Text(symbol).font(.system(size: size * 0.7, weight: .bold, design: .rounded))
+                } else {
+                    Text("—").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).padding(.trailing, CYSpacing.xs)
+                        .accessibilityLabel(Text(verbatim: ""))
+                }
+                Text(number).font(.system(size: size, weight: .bold, design: .rounded)).monospacedDigit()
+            }
+            .foregroundStyle(CYColor.textPrimary).lineLimit(1).minimumScaleFactor(0.5)
+        }
+        .padding(.vertical, CYSpacing.lg)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
     }
 }

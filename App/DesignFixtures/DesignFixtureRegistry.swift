@@ -16,7 +16,9 @@ enum DesignFixtureRegistry {
         case "d2-square": return AnyView(D2Fixture(screen: .square))
         case "d2-roam": return AnyView(D2Fixture(screen: .roam))
         // D1..D5: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
-        default: return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
+        default:
+            if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }
+            return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
 }

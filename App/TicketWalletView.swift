@@ -24,7 +24,7 @@ import SwiftUI
                     TicketWalletIssueView(issue: .login)
                     if let onSignIn { Button("ticketWallet.signIn", action: onSignIn) }
                 } else if !reader.isConfigured { TicketWalletIssueView(issue: .notConfigured) }
-                else if model.isLoading || model.loadedOwner != key { ProgressView("ticketWallet.loading") }
+                else if model.isLoading || model.loadedOwner != key { CYSkeleton().listRowBackground(Color.clear).accessibilityLabel(Text("ticketWallet.loading")) }
                 else if let issue = model.issue(owner: key) {
                     // Source failure title 票夹没能打开 precedes the specific reason.
                     Text("ticketWallet.parity.error.title").font(.headline)
@@ -91,6 +91,7 @@ import SwiftUI
                 }
             }
             .listStyle(.insetGrouped)
+            .scrollContentBackground(.hidden)
             .listSectionSpacing(20)
             .appNavigationTitle("ticketWallet.title")
             .toolbar {
@@ -159,17 +160,23 @@ import SwiftUI
 private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
     var showsPendingOrderAction = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             TicketWalletStatusBadge(status: ticket.status)
-            TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                .font(.title3.weight(.semibold)).foregroundStyle(.primary)
-                .fixedSize(horizontal: false, vertical: true)
-            if let date = ticket.participateDate, !date.isEmpty {
-                QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
-            }
-            if let place = ticket.addressName, !place.isEmpty {
-                QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                if !typeSize.isAccessibilitySize { OrderCoverTile(systemImage: "ticket") }
+                VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
+                    TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
+                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    if let date = ticket.participateDate, !date.isEmpty {
+                        QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
+                    }
+                    if let place = ticket.addressName, !place.isEmpty {
+                        QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+                    }
+                }
             }
             if ticket.needsScheduleSync {
                 Label {
@@ -178,7 +185,7 @@ private struct TicketWalletRow: View {
                 .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
             }
-            // The whole card is the control; this strip only names what a tap does.
+            // The whole card is the control; this pill only names what a tap does.
             if let hint = ticket.statusHintKey, ticket.action == .detail {
                 TicketWalletCardAction(title: LocalizedStringKey(hint), systemImage: "play.fill")
                     .accessibilityIdentifier("ticketWallet.statusHint.\(ticket.id)")
@@ -187,22 +194,17 @@ private struct TicketWalletRow: View {
                 TicketWalletCardAction(title: Text("ticketPendingOrder.open", tableName: "TicketPendingOrder"), systemImage: "list.bullet.rectangle")
             }
         }
-        .questifyCardSurface()
+        .orderCardSurface()
     }
 }
 
-/// Full-width action strip at the foot of a ticket card. Not a separate button: the card handles the tap.
+/// Full-width white pill at the foot of a ticket card. Not a separate button: the card handles the tap.
 private struct TicketWalletCardAction: View {
     let title: Text
     let systemImage: String
     init(title: LocalizedStringKey, systemImage: String) { self.title = Text(title); self.systemImage = systemImage }
     init(title: Text, systemImage: String) { self.title = title; self.systemImage = systemImage }
     var body: some View {
-        Label { title.lineLimit(1).minimumScaleFactor(0.8) } icon: { Image(systemName: systemImage).accessibilityHidden(true) }
-            .font(.subheadline.weight(.semibold))
-            .foregroundStyle(QuestifyPalette.accent)
-            .frame(maxWidth: .infinity, minHeight: 44)
-            .background(QuestifyPalette.accent.opacity(0.12), in: Capsule())
-            .padding(.top, 4)
+        OrderPillLabel(title: title, systemImage: systemImage, fullWidth: true)
     }
 }
