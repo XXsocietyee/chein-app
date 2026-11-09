@@ -33,8 +33,10 @@ import SwiftUI
     @ViewBuilder private var content: some View {
         if let snapshot = model.snapshot {
             List {
+                CYCoverHeaderSection("城市地图更新", symbol: "map.fill", seed: "ordered")
                 Section {
                     Text(snapshot.board.title).font(.headline)
+
                     Text("当前读取结果，不提供导航或游戏操作。")
                     Text("坐标系：\(snapshot.datum)")
                 }

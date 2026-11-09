@@ -8,6 +8,7 @@ import SwiftUI
     var onChanged: (() async -> Void)? = nil
     var body: some View {
         List {
+            CYCoverHeaderSection(LocalizedStringKey(model.query.titleKey), symbol: "book.closed.fill", seed: model.query.key)
             if model.busy { CYSkeleton().accessibilityLabel(Text("journey.working")) }
             if let issue = model.issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("journey.record.error") }
             if !model.pending.isEmpty { Text("journey.record.unknown").accessibilityIdentifier("journey.record.pending") }
@@ -89,11 +90,17 @@ import SwiftUI
         }
     }
     private func progress(found: Int, total: Int) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: "\(found) / \(total)").font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
-                .foregroundStyle(CYColor.textPrimary)
-            Text("journey.record.discoveries").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+        HStack(spacing: CYSpacing.lg) {
+            CYProgressRing(progress: total > 0 ? Double(found) / Double(total) : nil, lineWidth: 9) {
+                Text(verbatim: "\(found)").font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+            }.frame(width: 88, height: 88)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: "\(found) / \(total)").font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
+                    .minimumScaleFactor(0.6).lineLimit(1)
+                Text("journey.record.discoveries").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            }
         }.accessibilityElement(children: .combine)
+            .sensoryFeedback(.success, trigger: total > 0 && found == total)
     }
     private func lines(_ key: LocalizedStringKey, _ values: [String]) -> some View {
         Section(key) { if values.isEmpty { Text("journey.record.empty") }; ForEach(Array(values.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } }

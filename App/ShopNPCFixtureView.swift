@@ -14,7 +14,7 @@ import SwiftUI
         let id = try fixtureRequestID(request.body)
         return .init(status: 200, body: try JSONSerialization.data(withJSONObject: ["code": 200,
             "data": ["requestId": id, "outcomeStatus": "SUCCEEDED", "safetyDecision": "PASS", "retryable": false,
-                     "safeText": "Fixture reply / 测试回答"], "asr": "Fixture question / 测试问题"]))
+                     "safeText": ProcessInfo.processInfo.arguments.contains("--e2-npc-chat") ? "Ah, a fellow wanderer! The tea house has stood here since 1920. Look for the third red lantern near the courtyard: the stamp is tucked behind it. 欢迎来到老茶馆，印章就在第三盏红灯笼后面。" : "Fixture reply / 测试回答"], "asr": "Fixture question / 测试问题"]))
     }
 
     // Synthetic 9b success replies echo the exact text/multipart request ID.
@@ -29,14 +29,23 @@ import SwiftUI
 /// In-memory fixtures only. Never connected to application credentials, recording, or network.
 @MainActor struct ShopNPCFixtureView: View {
     private let coordinator: ShopNPCCoordinator
-    init(enabled: Bool = false) {
+    private let seed: [String]
+    init(enabled: Bool = false, seed: [String] = []) {
+        self.seed = seed
         var grants = ShopNPCGrants()
         if enabled { grants.server = true; grants.provider = true; grants.legal = true; grants.access = true }
         coordinator = .init(scope: .init(sessionID: "fixture-session", accountID: "fixture-user", roleID: "player", accessRevision: 1, nodeID: ShopNPCNodeID(7)!), grants: grants, client: .init(transport: ShopNPCFixtureHTTP()))
     }
     var body: some View {
         NavigationStack {
-            ShopNPCView(coordinator: coordinator, name: "Fixture NPC", greeting: nil)
+            ShopNPCView(coordinator: coordinator, name: seed.isEmpty ? "Fixture NPC" : "Old Chen", greeting: seed.isEmpty ? nil : "Welcome, traveller! Ask me anything about this place.")
+                .task {
+                    for text in seed where coordinator.messages.count < seed.count * 2 {
+                        guard (try? coordinator.reviewText(text)) != nil, let id = coordinator.pending?.id,
+                              let intent = try? coordinator.prepareTransmission(reviewID: id) else { return }
+                        await coordinator.transmit(reviewID: id, intent: intent)
+                    }
+                }
                 .toolbar {
                     if ProcessInfo.processInfo.arguments.contains("--reference-npc-scope-control") {
                         Button("Invalidate fixture scope") { coordinator.invalidate() }
