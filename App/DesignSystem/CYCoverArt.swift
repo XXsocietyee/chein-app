@@ -65,7 +65,7 @@ struct CYFoilMedal<Face: View>: View {
             }
             Circle().fill(CYColor.bgElevated)
                 .frame(width: size, height: size)
-            face().frame(width: size * 0.78, height: size * 0.78).clipShape(Circle())
+            face().frame(width: size * 0.88, height: size * 0.88).clipShape(Circle())
                 .saturation(unlocked ? 1 : 0).opacity(unlocked ? 1 : 0.45)
             if unlocked {
                 Circle().strokeBorder(AngularGradient(colors: [.white, tint, Color(hue: 0.08, saturation: 0.8, brightness: 0.6), .white, tint, .white],
