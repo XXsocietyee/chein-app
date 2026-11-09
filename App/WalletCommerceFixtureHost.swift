@@ -72,10 +72,27 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
     static var selected: Bool { ProcessInfo.processInfo.arguments.contains("--wallet-commerce-fixture") }
     @StateObject private var state: WalletFixtureState
     var designHome = false
+    /// e4 design shots: mount one real wallet page (income, points, assets, analysis, bank, withdrawals, tasks, cart, products).
+    var designPage: String? = nil
     @State private var showParity = false
-    init(designHome: Bool = false) { self.designHome = designHome; _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"))) }
+    init(designHome: Bool = false, designPage: String? = nil) { self.designHome = designHome; self.designPage = designPage; _state = StateObject(wrappedValue: WalletFixtureState(failed: ProcessInfo.processInfo.arguments.contains("--wallet-failure"))) }
     var body: some View {
-        if designHome {
+        if let page = designPage {
+            NavigationStack {
+                switch page {
+                case "income": WalletIncomeView(reader: state.reader, onCooperationFinance: {})
+                case "points": WalletLedgerView(reader: state.reader, kind: .points)
+                case "balance": WalletLedgerView(reader: state.reader, kind: .balance)
+                case "assets": WalletAssetsView(reader: state.reader)
+                case "analysis": WalletIncomeAnalysisView(reader: state.reader)
+                case "bank": BankWithdrawalView(reader: state.reader)
+                case "withdrawals": WalletWithdrawalsView(reader: state.reader)
+                case "tasks": WalletPointsTasksView(reader: state.reader)
+                case "products": WalletProductsView(reader: state.reader)
+                default: WalletCartView(reader: state.reader)
+                }
+            }.id(state.scope)
+        } else if designHome {
             NavigationStack {
                 WalletCommerceHomeView(reader: state.reader, visibility: Self.fullVisibility, onCooperationFinance: {})
                     .safeAreaInset(edge: .top) {
