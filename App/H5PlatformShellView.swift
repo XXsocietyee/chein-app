@@ -39,19 +39,25 @@ struct H5PlatformShellView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            HStack {
-                Button(action: onClose) {
-                    Label("action.close", systemImage: "xmark").labelStyle(.iconOnly)
-                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-                        .contentShape(Rectangle())
+            ZStack {
+                Text("h5.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(1)
+                    .padding(.horizontal, CYSpacing.minTouchTarget + CYSpacing.sm)
+                HStack {
+                    Button(action: onClose) {
+                        Label("action.close", systemImage: "xmark").labelStyle(.iconOnly)
+                            .font(.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                            .contentShape(Rectangle())
+                    }
+                    .accessibilityIdentifier("h5.close")
+                    Spacer()
                 }
-                .accessibilityIdentifier("h5.close")
-                Spacer()
-            }.padding()
+            }.padding(.horizontal, CYSpacing.sm)
+            Divider().overlay(CYColor.borderSubtle)
             if let shellURL, let request {
                 H5ShellContainer(request: request, shellURL: shellURL)
             } else {
-                Text("h5.launchTicket").frame(maxWidth: .infinity, maxHeight: .infinity)
+                CYEmptyState(systemImage: "hourglass", "h5.launchTicket").frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .task(id: requestID) { await readReceipt() }
@@ -102,6 +108,6 @@ private struct H5ShellContainer: UIViewRepresentable {
 private struct H5ShellContainer: View {
     let request: URLRequest
     let shellURL: URL
-    var body: some View { Text("h5.launchTicket") }
+    var body: some View { CYEmptyState(systemImage: "hourglass", "h5.launchTicket") }
 }
 #endif

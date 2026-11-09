@@ -15,20 +15,15 @@ import SwiftUI
             Section {
                 SocialReadScreen(reader: reader, requestKey: "information-list", load: { try await reader.informationList() }) { rows in
                     if rows.isEmpty {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("guideXcx.docsEmpty").font(.headline)
-                            Text("guideXcx.docsEmptyDetail").font(.footnote).foregroundStyle(.secondary)
-                        }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.docsEmpty")
+                        CYEmptyState(systemImage: "doc.text", "guideXcx.docsEmpty", detail: "guideXcx.docsEmptyDetail", messageIdentifier: "social.guide.docsEmpty")
+                            .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                     }
                     ForEach(rows) { row in
                         NavigationLink {
                             if let informationDestination { informationDestination(row) }
                             else { AnyView(SocialInformationView(id: row.id, reader: reader)) }
                         } label: {
-                            VStack(alignment: .leading, spacing: 5) {
-                                Text(verbatim: row.title)
-                                if let summary = row.summary { Text(verbatim: summary).font(.footnote).foregroundStyle(.secondary) }
-                            }
+                            CYListRow(verbatim: row.title, meta: row.summary, trailing: .none) { CYRowIcon(systemImage: "doc.text") }
                         }.accessibilityIdentifier("social.information.\(row.id)")
                     }
                 }
@@ -51,9 +46,9 @@ import SwiftUI
                 SocialReadScreen(reader: reader, requestKey: "information-\(id)", load: { try await reader.information(id: id) }) { row in
                     if row.isRemoved { CYEmptyState(systemImage: "doc", "social.guide.removed") }
                     else {
-                        CYHeroHeader(verbatim: row.title)
-                        if let created = SocialText.nonempty(row.createTime) { Text(verbatim: created).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("social.information.createTime") }
-                        if let summary = row.summary { Text(verbatim: summary).foregroundStyle(CYColor.textSecondary) }
+                        CYHeroHeader(verbatim: row.title).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        if let created = SocialText.nonempty(row.createTime) { Text(verbatim: created).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("social.information.createTime").listRowBackground(Color.clear) }
+                        if let summary = row.summary { Text(verbatim: summary).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).listRowBackground(Color.clear) }
                         if let contents = row.contents { SocialArticleContentView(contents: contents) }
                         else { CYEmptyState(systemImage: "doc.text", "social.guide.noContent") }
                     }

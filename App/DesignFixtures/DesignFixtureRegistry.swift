@@ -77,6 +77,7 @@ enum DesignFixtureRegistry {
         default:
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }
+            if let e5 = MainActor.assumeIsolated({ E5Fixtures.make(name) }) { return e5 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }
