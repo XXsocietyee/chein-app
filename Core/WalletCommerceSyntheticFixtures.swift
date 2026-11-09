@@ -5,18 +5,26 @@ import FoundationNetworking
 
 #if DEBUG
 /// Offline only; all IDs and financial values are invented test data. Never a live factory.
+public enum WalletIncomeDetailFixtureData {
+    public static let incomeList = #"{"rows":[{"id":4,"changeBalance":"8.50","changeType":1,"eventType":4,"changeReason":"Synthetic withdrawal rejection return"}],"total":1}"#
+    public static let emptyList = #"{"rows":[],"total":0}"#
+    public static let unknownAmount = #"{"rows":[{"id":1,"changeType":1,"eventType":1,"changeReason":"Synthetic missing amount"}],"total":1}"#
+    public static let knownZero = #"{"rows":[{"id":2,"changeBalance":"0","changeType":1,"currency":"CNY","eventType":1,"changeReason":"Synthetic known zero"}],"total":1}"#
+    public static let errorEnvelope = #"{"code":503}"#
+}
+
 public struct WalletCommerceSyntheticTransport: HTTPTransport {
     public let fail: Bool
     public init(fail: Bool = false) { self.fail = fail }
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
-        if fail { return (Data(#"{"code":503}"#.utf8), 503) }
+        if fail { return (Data(WalletIncomeDetailFixtureData.errorEnvelope.utf8), 503) }
         let payload: String
         switch request.url?.path {
         case "/api/wallet/stages": payload = #"{"pendingSettlement":"12.30","disputed":2,"withdrawable":0,"complaintPeriod":[{"availableDate":"2026-10-08","amount":"4.50"}],"amountsKnown":false}"#
         case "/api/balance/list": payload = #"[{"id":1,"changeBalance":"5.00","changeType":2,"changeReason":"Synthetic debit"},{"id":2,"changeType":1,"changeReason":"Synthetic missing amount"}]"#
         case "/api/points/list": payload = #"[{"id":3,"changePoints":-7,"afterPoints":40,"changeReason":"Synthetic points"}]"#
         case "/api/user/points/list": payload = #"{"rows":[{"id":3,"changePoints":-7,"afterPoints":40,"changeReason":"Synthetic points"}],"total":1}"#
-        case "/api/user/balance/list": payload = #"{"rows":[{"id":4,"changeBalance":"8.50","changeType":1,"eventType":4,"changeReason":"Synthetic withdrawal rejection return"}],"total":1}"#
+        case "/api/user/balance/list": payload = WalletIncomeDetailFixtureData.incomeList
         case "/api/product/list": payload = #"{"rows":[{"id":10,"productName":"Synthetic postcard","price":8,"stock":null}],"total":1}"#
         case "/api/product/info": payload = #"{"id":10,"productName":"Synthetic postcard","price":8,"stock":null,"skuList":[{"id":11,"skuName":"Synthetic variant","price":8,"stock":null}]}"#
         case "/api/cart/list": payload = #"{"rows":[{"id":20,"productId":10,"skuId":11,"quantity":1,"productName":"Synthetic postcard","price":8}],"total":1}"#
