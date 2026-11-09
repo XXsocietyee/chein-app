@@ -37,3 +37,26 @@ Shots: `design-report-d2-shots/{home,search,square,roam}-{zh-dark,en-dark,zh-dar
 - Home XL: search placeholder truncates to "…" in the hero pill (pre-existing placeholder length, two lines max).
 - Gap between the "More ways" row and the banner is generous; the mini-program has the banner as a full-bleed backdrop behind the greeting (not replicated).
 - Roam intro cards are white ticket cards on dark by reference; square/roam fixtures show unrelated sections below the fold unchanged.
+
+## Round 3: player-first sweep (EN shots, real views)
+Base: `ui/d2` merged with `ui/d1`, `ui/d3`, `ui/d4`, `ui/d6` (all built clean on the kit). **`rc/20261108` does not build** (see Blockers), so shots come from this merged tree; the same views live on rc. One build, one batch: `design-batch.sh d2` (contact sheet in `/Users/fanning/chengyin-refs/design-reports/d2/contact-*.png`, single shots `batch-*.png`).
+New DEBUG fixtures (`D2Fixture`, registered): `d2-search-results` (+ `--design-search-keyword <text>` DEBUG hook in `GlobalSearchView`), `d2-play`, `d2-city`, `d2-npc`, `d2-inbox`, `d2-me`; shots use `--uitesting-reset-language` so EN really is EN.
+| Page | Fixture / real view | Reference | Result |
+|---|---|---|---|
+| Home EN + XL | `d2-home` (HomeFeedView) | player-e2e 022 | one title, banner, price "From ¥12.5"; XL stacks chips, search hint wraps to 2 lines |
+| Search results | `d2-search-results` (GlobalSearchView) | 014/082 | pill field, kind tabs, shelf cards; offline label shows (fixture) |
+| Play (started) | `d2-play` (PlayExperienceView, D6 skin) | none (derived from roam chrome) | map ground, clock + 2 glass buttons, one Continue pill, task panel |
+| Roam | `d2-roam`, `d6-real-live` | roam-intro-nrc | D6 map + GO + peek sheet |
+| City / NPC | `d2-city` (CityPlayerView), `d2-npc` (ShopNPCView) | none | city nav title made inline so the city name is the only title; NPC is unchanged |
+| Notices | `d2-inbox` (MessagingHomeView) | 021/062 | segmented All/Channels/Direct, avatar rows, unread badge |
+| Me / profile | `d2-me` (AccountView) | 059 | grouped dark sections; identity card; wallet/orders entries |
+| Wallet, orders EN | `wallet`, `orders-list` (D3) | D3 compares | EN reviewed |
+| Onboarding | `welcome` (WelcomeView) | none | merchant role button hidden (`WelcomeView.showsMerchantChoice = false`); only "Register as a player" + browse |
+
+## Round 3 blockers and notes
+- `rc/20261108` fails to compile with this toolchain: `Core/UGGameplay.swift:368,544`, `Core/ContentContractV1.swift:520` (optional chaining on non-optional `PlayWireValue`, missing `return`), `Resources/BackendErrorCatalog.xcstrings` (no `version` key), kit files (`CYCachedAsyncImage:101`, `CYHeroHeader:48`, `CYScreenStyle:28,150`, `CYListRow` verbatim init used by `MerchantMarketingView:159`) and `QuestifyApp.swift` `SessionRootView.body` ("failed to produce diagnostic"). Not fixed here (Core / Resources / QuestifyApp are off-limits); the integrator must fix before the RC builds. rc also lost the d1/d2 fixture registry cases (restored here).
+- `WelcomeView.showsMerchantChoice = false` removes `welcome.merchant`; `Tests/AppUITests/EntryFlowTests.swift` lines 14 and 42 still expect it (tests not edited).
+- Me tab still lists the merchant section (merchant overview/projects/application) for players; not hidden (routing/gating decision).
+- Play fixture shows its own "Switch synthetic account" host button; the city/NPC/me shots are unconfigured-session states (balance and profile show em dash).
+- Order cards: order number can truncate next to a wide status chip ("A2026092701F…"); not fixed.
+- zh shots taken for home, search results, me, inbox, city; zh strings for new keys still wait on the integrator's xcstrings merge.
