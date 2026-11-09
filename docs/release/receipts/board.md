@@ -17,3 +17,5 @@
 - wire19 [x] f1868e9dc. PR 1015. Nearby page total reads NearbyMerchantPage.resolve. Distance line restored. Not merged.
 - wire23 [x] 3236cb774. PR 1017. Aftercare detail reads the refund amount. A missing amount is an em dash. Not merged.
 - wire30 sent back. PR 1018. Customer detail turns every non-count field into an em dash.
+- wire37 [x] cc152d791. PR 1020. Game node reads MerchantGameNodePage.project. Not merged.
+- wire36 sent back. PR 1019. Perks adds a new List. MerchantOperationsViews has no perks screen.
