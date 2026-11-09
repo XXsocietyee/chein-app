@@ -68,3 +68,21 @@ Contact sheets: /Users/fanning/chengyin-refs/design-reports/e3/contact-125959.pn
 ## Final batch result (contact-133847.png, contact-131157.png, contact-125959.png)
 - Verified in shots (zh-Hans is the simulator default language, so all non-"-en" shots are zh-Hans): club detail, apply, calendar, feed, rich chat, invite, notices, people, real chat (grouped bubbles, accent sent fill, avatar only on last of run, one time stamp per run), and AX-XL for notices / people / invite / rich chat / club detail (rows stack; follow button drops under the name).
 - NOT verified: English shots. The `-AppleLanguages "(en)"` launch args failed to launch the app in design-batch.sh (springboard shots), so EN is parse/logic-checked only (strings use Locale.pick). Fixed after the last shot and only parse-checked: file card stacks at accessibility sizes (it wrapped per character at AX-XL).
+
+
+# FOURTH PASS (production views)
+
+Merged origin/ui/main (already up to date). Kit (E3Avatar, E3AvatarStack, E3FollowButton, E3PersonRow, E3NoticeRow, E3Location/Voice/File/VideoCard, E3MonthGrid, E3PostCard, e3Card, E3PressStyle) moved out of the DEBUG fixtures into App/ClubComponents.swift (production, no project-file change needed).
+## Now in REAL views
+- ClubDetailView: full-bleed cover hero with scrim, join-policy chip and name over it (grows with Dynamic Type), member meta line.
+- ClubEventCalendarView: filled selected-day circle, event dot, thumbnail event rows with chevron.
+- ClubStoryViews: photo-led covers (generated art fallback), stop-number chip over cover.
+- IM rich cards (NativeChannelMessageBubbleView, MessagingMessageDetailView, IMStaticLocationCardView): voice / file / video / location are cards (IMVoiceCardLabel etc. in IMExpandedViews.swift), same NavigationLink routes and privacy gate (map only on tap).
+- ProfileFollowListView, NativeFriendDirectoryView: avatar rows (48pt), name + meta, trailing state icon; plain list.
+- Notices: system tab uses the already restyled IMInboxRow (bell avatar).
+## Fixtures
+e3-club-detail now renders the REAL ClubDetailView (D4ClubFixture); new e3-club-events, e3-club-overview (real tabs), e3-club-story (real ClubStoryFixtureHost). Old synthetic design kept as e3-club-detail-spec.
+## Batch (contact-142424.png): EN worked after escaping parens as \(en\) in the list (design-batch.sh uses eval, so bare "(en)" is a syntax error; this is why EN shots failed).
+Verified: club detail EN/zh/XL, overview, chat, inbox, social, story. Hero fixed AFTER shot for XL (chip overlapped cover icon): not re-shot.
+## Not done / honest scores
+Club apply/create and notices have no real-view change beyond tokens; follow list, friend directory, calendar month grid, IM rich cards have no fixture reaching the real view (need hosts in non-UI files) so unverified by shot. Scores: club detail 8, story 7, calendar 7 (events fixture empty), IM cards 7, follow/friends 7, apply 6, notices 7. Under 8 as listed.

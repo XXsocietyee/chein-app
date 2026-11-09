@@ -154,7 +154,7 @@ import SwiftUI
                     .buttonStyle(.borderless).disabled(month.shifted(by: -1) == nil)
                     .accessibilityLabel("club.calendar.previous").accessibilityIdentifier("club.calendar.previous")
                 Spacer()
-                Text(verbatim: month.key).font(.headline).accessibilityIdentifier("club.calendar.month")
+                Text(verbatim: month.key).font(.title3.weight(.semibold)).accessibilityIdentifier("club.calendar.month")
                 Spacer()
                 Button { shift(1) } label: { Image(systemName: "chevron.forward") }
                     .buttonStyle(.borderless).disabled(month.shifted(by: 1) == nil)
@@ -176,13 +176,14 @@ import SwiftUI
                     ForEach(cells) { cell in
                         Button { selectedDay = cell.day } label: {
                             VStack(spacing: 3) {
-                                Text(cell.day.day, format: .number).fontWeight(selectedDay == cell.day ? .bold : .regular)
-                                if !cell.events.isEmpty { Text(cell.events.count, format: .number).font(.caption2).foregroundStyle(.tint) }
-                                else { Text(" ").font(.caption2) }
+                                Text(cell.day.day, format: .number).fontWeight(selectedDay == cell.day ? .semibold : .regular).monospacedDigit()
+                                    .foregroundStyle(selectedDay == cell.day ? CYColor.textInverse : (cell.inMonth ? CYColor.textPrimary : CYColor.textTertiary))
+                                    .frame(width: 36, height: 36)
+                                    .background(selectedDay == cell.day ? AnyShapeStyle(CYColor.textPrimary) : AnyShapeStyle(Color.clear), in: Circle())
+                                Circle().fill(cell.events.isEmpty ? Color.clear : CYChat.sent).frame(width: 5, height: 5)
                             }
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .foregroundStyle(cell.inMonth ? Color.primary : Color.secondary)
-                            .background(selectedDay == cell.day ? CYColor.bgRaised : Color.clear, in: RoundedRectangle(cornerRadius: 8))
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.borderless)
                         .accessibilityLabel(Text("club.calendar.day \(cell.day.id) \(cell.events.count)"))
@@ -191,7 +192,7 @@ import SwiftUI
                     }
                 }
                 if let selectedDay {
-                    Text(verbatim: selectedDay.id).font(.headline)
+                    Text(verbatim: selectedDay.id).font(.title3.weight(.semibold)).padding(.top, CYSpacing.sm)
                     let events = snapshot.events.filter { $0.startDay == selectedDay }
                     if events.isEmpty { Text("club.calendar.noDayEvents") }
                     ForEach(events) { event in eventRow(event, showDate: false) }
@@ -216,13 +217,19 @@ import SwiftUI
         reportButton(event.id)
     }
     private func eventLabel(_ event: ClubCalendarEvent, showDate: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            if let name = event.name { Text(verbatim: name) } else { Text("club.calendar.untitled") }
-            if showDate {
-                if let day = event.startDay { Text(verbatim: day.id).font(.caption).foregroundStyle(.secondary) }
-                else { Text("club.calendar.dateUnknown").font(.caption).foregroundStyle(.secondary) }
+        HStack(spacing: CYSpacing.md) {
+            CYCoverArt(seed: event.name ?? String(event.id), systemImage: "calendar", symbolSize: 22)
+                .frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                if let name = event.name { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) } else { Text("club.calendar.untitled").font(CYTypography.bodyMedium) }
+                if showDate {
+                    if let day = event.startDay { Text(verbatim: day.id).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    else { Text("club.calendar.dateUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                }
             }
-        }.padding(.vertical, 4)
+            Spacer(minLength: 0)
+            if governance.topicDestination != nil { Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true) }
+        }.padding(.vertical, 4).frame(minHeight: 56)
     }
     private func reportSource(_ topicID: Int) -> ClubActivityReportSource? {
         guard reportPresentation.canOpen(reportHost), destination == nil, let reportClub, let reportReader,
