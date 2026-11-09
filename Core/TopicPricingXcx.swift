@@ -76,4 +76,137 @@ public enum TopicPricingXcx {
         guard !partnerType.isEmpty else { return nil }
         return .partnerTerms(topicID: topicID, partnerType: partnerType, partnerID: row.partnerID)
     }
+
+    /// Unknown money. A missing, blank, or non-numeric amount is this dash, never `0`.
+    public static let unknownMoney = "—"
+    /// This page is not on the player-first welcome. `WelcomeView.showsMerchantChoice` stays false.
+    public static let includedInPlayerFirstEntry = false
+    /// Existing preview contract. Not a new route.
+    public static let previewRoute = "/api/topic/pricing/preview"
+    /// Existing confirm contract. The host grant stays off; this does not enable it.
+    public static let confirmRoute = "/api/topic/pricing/confirm"
+
+    /// Two-decimal money, or an em dash. A literal zero stays `"0.00"`.
+    public static func moneyText(_ raw: String?) -> String {
+        let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, !trimmed.isEmpty, let formatted = twoDecimals(trimmed) else { return unknownMoney }
+        return formatted
+    }
+
+    /// Two-decimal money, or an em dash. A literal zero stays `"0.00"`.
+    public static func moneyText(decimal value: Decimal?) -> String {
+        guard let value else { return unknownMoney }
+        return moneyText(NSDecimalNumber(decimal: value).stringValue)
+    }
+
+    /// The page stays hidden when the existing preview route is not offered, and on the player-first entry.
+    /// A nil base offers nothing. This does not mark a route live.
+    public static func showsPage(baseURL: URL?, playerFirstEntry: Bool) -> Bool {
+        guard includedInPlayerFirstEntry == false, playerFirstEntry == false else { return false }
+        return ChinaReviewedRouteCapability.offersFeature(previewRoute, baseURL: baseURL)
+    }
+
+    /// Confirm stays hidden unless the page is shown and an existing pricing grant is already present.
+    /// Passing `pricingGrantPresent: false` does not create that grant. Payment, payout, and withdrawal stay off.
+    public static func showsConfirm(baseURL: URL?, playerFirstEntry: Bool, pricingGrantPresent: Bool) -> Bool {
+        guard showsPage(baseURL: baseURL, playerFirstEntry: playerFirstEntry), pricingGrantPresent else { return false }
+        return ChinaReviewedRouteCapability.offersFeature(confirmRoute, baseURL: baseURL)
+    }
+
+    /// Owner of a topic already in pricing (lifecycle 2), and only when the page itself is shown.
+    /// A missing lifecycle is not zero and does not open the page.
+    public static func showsEntry(owner: Bool, lifecycle: Int?, baseURL: URL?, playerFirstEntry: Bool) -> Bool {
+        showsPage(baseURL: baseURL, playerFirstEntry: playerFirstEntry) && owner && lifecycle == 2
+    }
+
+    /// One read of the existing preview contract. `missingTopic` is the source empty state.
+    public enum Read: Equatable {
+        case idle
+        case loading
+        case missingTopic
+        case failed
+        case payload(ProjectEditJSON)
+    }
+
+    public enum Screen: Equatable, Sendable {
+        case loading
+        /// Source `cy-empty` for a link with no topic id. Not an error and not a zero price.
+        case empty
+        case error(Failure)
+        /// No request is in flight, the link is valid, and neither a preview nor a failure arrived.
+        case unknown
+        case ready(Ready)
+
+        public enum Failure: Equatable, Sendable {
+            case load
+            case incomplete
+        }
+
+        public struct Ready: Equatable, Sendable {
+            public let floorText: String
+            public let finalPriceText: String
+            public let refreshing: Bool
+            public let refreshFailed: Bool
+            public let reference: Reference
+            public let confirm: Authority
+            public let canSubmit: Bool
+            public let lineupEmpty: Bool
+
+            public enum Reference: Equatable, Sendable {
+                case insufficient
+                case average(money: String, samples: Int)
+            }
+
+            /// `unknown` is a missing `canConfirm`. It is not `blocked` and it is not a zero.
+            public enum Authority: Equatable, Sendable {
+                case unknown
+                case allowed
+                case blocked
+            }
+        }
+    }
+
+    /// Classify the existing preview. A payload that cannot be priced is an error, not a floor of 0.
+    /// A later failure keeps the previous floor instead of replacing it with 0.
+    public static func screen(read: Read, kept: PublisherPricingPreview?, subtype: PublisherPriceSubtype, teamSize: Int?, price: Decimal?) -> Screen {
+        switch read {
+        case .missingTopic:
+            return .empty
+        case .loading:
+            guard let kept else { return .loading }
+            return ready(kept, subtype: subtype, teamSize: teamSize, price: price, refreshing: true, refreshFailed: false)
+        case .failed:
+            guard let kept else { return .error(.load) }
+            return ready(kept, subtype: subtype, teamSize: teamSize, price: price, refreshing: false, refreshFailed: true)
+        case .payload(let data):
+            if let preview = try? PublisherPricingPreview(data) {
+                return ready(preview, subtype: subtype, teamSize: teamSize, price: price, refreshing: false, refreshFailed: false)
+            }
+            guard let kept else { return .error(.incomplete) }
+            return ready(kept, subtype: subtype, teamSize: teamSize, price: price, refreshing: false, refreshFailed: true)
+        case .idle:
+            guard let kept else { return .unknown }
+            return ready(kept, subtype: subtype, teamSize: teamSize, price: price, refreshing: false, refreshFailed: false)
+        }
+    }
+
+    private static func ready(_ preview: PublisherPricingPreview, subtype: PublisherPriceSubtype, teamSize: Int?, price: Decimal?, refreshing: Bool, refreshFailed: Bool) -> Screen {
+        let offered = price ?? Decimal(initialPrice(floor: preview.minimum))
+        let authority: Screen.Ready.Authority
+        switch preview.canConfirm {
+        case nil: authority = .unknown
+        case true?: authority = .allowed
+        case false?: authority = .blocked
+        }
+        let reference: Screen.Ready.Reference
+        if let value = preview.reference, let samples = preview.sampleSize, samples > 0 {
+            reference = .average(money: moneyText(decimal: value), samples: samples)
+        } else {
+            reference = .insufficient
+        }
+        let submit = blocker(guided: subtype == .guided, teamSize: teamSize, canConfirm: preview.canConfirm, price: offered, floor: preview.minimum) == nil
+        return .ready(.init(floorText: moneyText(decimal: preview.minimum), finalPriceText: moneyText(decimal: offered),
+                             refreshing: refreshing, refreshFailed: refreshFailed, reference: reference, confirm: authority,
+                             canSubmit: submit, lineupEmpty: preview.lineup.isEmpty))
+    }
 }
