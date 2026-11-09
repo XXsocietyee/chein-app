@@ -47,7 +47,10 @@ struct E5bBadgeWallFixture: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    Text(verbatim: tt("3 of 6 collected", "已收集 3 / 6")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    HStack(spacing: CYSpacing.lg) {
+                        CYProgressRing(value: 3, total: 6)
+                        Text(verbatim: tt("3 of 6 collected", "已收集 3 / 6")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    }
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                         ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
                             ObjectBadgeWallBadgeLabel(badge: badge, layout: .wall)
