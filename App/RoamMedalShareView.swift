@@ -30,15 +30,15 @@ import UIKit
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                Text("roam.medalShare.privacy").font(.subheadline).foregroundStyle(.secondary)
+                Text("roam.medalShare.privacy").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 if ownerMatches && !sourceChanged {
-                    Text(verbatim: selection.card.name).font(.title2).bold().textSelection(.enabled)
+                    CYHeroHeader(verbatim: selection.card.name)
                     if let image {
                         Image(uiImage: image).resizable().scaledToFit()
                             .accessibilityLabel(Text("roam.medalShare.preview"))
                             .accessibilityIdentifier("roam.medalShare.preview")
                         saveControls(image)
-                        Button {
+                        CYPillButton("roam.share.system", style: .secondary, systemImage: "square.and.arrow.up") {
                             guard systemShare == nil, !photoSave.inFlight else { return }
                             guard sourceIsCurrent, self.image === image,
                                   let request = RoamHistorySystemShareRequest(image: image,
@@ -47,23 +47,21 @@ import UIKit
                                 invalidate(); sourceChanged = true; return
                             }
                             systemShare = request
-                        } label: {
-                            Label("roam.share.system", systemImage: "square.and.arrow.up")
-                        }.buttonStyle(.bordered)
+                        }
                             .disabled(photoSave.inFlight || systemShare != nil || photoSave.state.phase == .sourceChanged)
                             .accessibilityIdentifier("roam.medalShare.system")
                     } else {
                         if renderFailed { Text("roam.share.renderFailed") }
-                        Button("roam.medalShare.prepare", systemImage: "medal") { prepare() }
-                            .buttonStyle(.questifyPrimary)
+                        CYPillButton("roam.medalShare.prepare", systemImage: "medal") { prepare() }
                             .accessibilityIdentifier("roam.medalShare.prepare")
                     }
                 } else {
                     Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary)
                         .accessibilityIdentifier("roam.medalShare.sourceChanged")
                 }
-            }.padding()
-        }.navigationTitle("roam.medalShare.title")
+            }.padding(CYSpacing.pageHorizontal)
+        }.background(CYColor.bgPage.ignoresSafeArea())
+            .navigationTitle("roam.medalShare.title")
             .toolbar { ToolbarItem(placement: .confirmationAction) {
                 Button("action.done") { presentation.retire(); visible = false; invalidate(); dismiss() }.accessibilityIdentifier("roam.medalShare.done")
             } }

@@ -70,7 +70,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                             .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
                             .accessibilityIdentifier("playkit.review.confirm")
                     }
-                }.navigationTitle("playkit.submitQuestion")
+                }.cyGroupedSurface().navigationTitle("playkit.submitQuestion")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil; reviewedCompletion = nil } } }
             }.privacySensitive()
@@ -111,7 +111,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             if let issue { PlayExperienceIssueView(issue: issue) }
             if let modelIssue = model.issue { PlayExperienceIssueView(issue: modelIssue) }
             if !model.isCurrent { Text("playkit.sessionChanged") }
-            else if segment.object == nil { ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash") }
+            else if segment.object == nil { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }
             else { content; authoritativeResult }
             recovery
         }

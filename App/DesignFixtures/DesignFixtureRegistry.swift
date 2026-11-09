@@ -63,6 +63,13 @@ enum DesignFixtureRegistry {
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
         case "d6-real-live": return AnyView(D6RealLiveHost())
+        // E2 play / city / stamps / badges (E2Fixtures + aliases of D4 stamp and badge hosts)
+        case let n where n.hasPrefix("e2-") && E2FixtureKind(rawValue: String(n.dropFirst(3))) != nil:
+            return AnyView(E2Fixture(kind: E2FixtureKind(rawValue: String(n.dropFirst(3)))!))
+        case "e2-stamp-album": return AnyView(D4MeFixture(screen: .stamps))
+        case "e2-badges": return AnyView(D4MeFixture(screen: .badges))
+        case "e2-city": return AnyView(D2Fixture(screen: .city))
+        case "e2-npc": return AnyView(D2Fixture(screen: .npc))
         // D7 creator / publish (PublishDesignFixtures)
         case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
         case let n where n.hasPrefix("e1-") && E1Fixture.make(n) != nil: return E1Fixture.make(n)!

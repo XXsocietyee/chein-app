@@ -81,7 +81,7 @@ import SwiftUI
                 }
                 if model.state == .confirmed { text("confirmed") }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(text("title"))
         .privacySensitive()
         .task { await model.load() }
@@ -103,7 +103,7 @@ import SwiftUI
                     Button { Task { await model.confirm(review) } } label: { text("confirm") }
                         .disabled(!model.canReserve)
                     Button(role: .cancel) { model.cancelReview() } label: { text("cancel") }
-                }.navigationTitle(text("review"))
+                }.cyGroupedSurface().navigationTitle(text("review"))
             }
         }
         // A reopened destination must receive a fresh model from its authorized host.

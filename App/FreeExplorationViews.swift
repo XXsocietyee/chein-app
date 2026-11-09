@@ -10,49 +10,49 @@ import SwiftUI
     var body: some View {
         if let presentation = FreeExplorationPresentation(snapshot: snapshot) {
             VStack(alignment: .leading, spacing: 20) {
-                Text("playFree.title").font(.caption.bold()).accessibilityIdentifier("playFree.pass")
-                if let title = snapshot.result.topicName { Text(verbatim: title).font(.title.bold()) }
-                if let description = snapshot.result.topicDescription { Text(verbatim: description) }
-                Text("playFree.choiceHint")
+                Text("playFree.title").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("playFree.pass")
+                if let title = snapshot.result.topicName { CYHeroHeader(verbatim: title, subtitle: snapshot.result.topicDescription) }
+                else if let description = snapshot.result.topicDescription { Text(verbatim: description).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
+                Text("playFree.choiceHint").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
                 if let done = presentation.redeemed, let total = presentation.total {
                     // Mini-program 已核销环: one ring that fills as stores are redeemed.
                     HStack(spacing: 14) {
                         Gauge(value: Double(done), in: 0...Double(max(total, 1))) { EmptyView() } currentValueLabel: {
                             Text(verbatim: "\(done)/\(total)").monospacedDigit()
                         }
-                        .gaugeStyle(.accessoryCircularCapacity).tint(.accentColor)
+                        .gaugeStyle(.accessoryCircularCapacity).tint(CYColor.textPrimary)
                         .accessibilityHidden(true)
                         Text("playFree.redeemed.count \(done) \(total)").monospacedDigit()
-                            .font(.subheadline.weight(.medium))
+                            .font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
                     }
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("playFree.redeemed.count")
                 }
                 if let expiry = snapshot.result.expiresAt { LabeledContent("play.expiresAt") { Text(verbatim: expiry) } }
-                if let note = snapshot.result.timeNote { Text(verbatim: note).font(.footnote) }
+                if let note = snapshot.result.timeNote { Text(verbatim: note).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                 if snapshot.availability == .registrationRequired { Text("playFree.registrationRequired") }
                 else if !packOpen && !presentation.stores.isEmpty {
                     Button { packOpen = true } label: {
                         VStack(spacing: 18) {
-                            Image(systemName: "rectangle.stack.fill").font(.largeTitle)
-                            Text("playFree.pack.open").font(.title2.bold())
-                        }.frame(maxWidth: .infinity, minHeight: 200).padding()
-                            .background(Color.accentColor.opacity(0.12), in: RoundedRectangle(cornerRadius: 24))
+                            Image(systemName: "rectangle.stack.fill").font(.largeTitle).foregroundStyle(CYColor.textSecondary)
+                            Text("playFree.pack.open").font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                        }.frame(maxWidth: .infinity, minHeight: 200)
+                            .cyDomainCard(radius: CYRadius.xl, padding: CYSpacing.xl)
                     }.buttonStyle(.plain).accessibilityIdentifier("playFree.pack.open")
                 } else {
-                    Text("playFree.stores").font(.headline)
-                    if presentation.stores.isEmpty { Text("playFree.stores.empty") }
+                    CYSectionHeader("playFree.stores")
+                    if presentation.stores.isEmpty { CYEmptyState(systemImage: "storefront", "playFree.stores.empty") }
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: typeSize.isAccessibilitySize ? 1 : 2), spacing: 12) {
                         ForEach(presentation.stores) { node in
                             Button { onSelect(node.id) } label: {
                                 VStack(alignment: .leading, spacing: 12) {
-                                    Image(systemName: "storefront.fill").font(.largeTitle).accessibilityHidden(true)
-                                    FreeExplorationStoreName(name: node.name).font(.headline)
-                                    if let title = node.gameTitle, !title.isEmpty { Text(verbatim: title).font(.subheadline) }
-                                    if let open = node.openStatus, !open.isEmpty { Text(verbatim: open).font(.caption) }
-                                    Text(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey)).font(.caption.bold())
-                                }.frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading).padding()
-                                    .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 18))
+                                    Image(systemName: "storefront.fill").font(.title).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                                    FreeExplorationStoreName(name: node.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                    if let title = node.gameTitle, !title.isEmpty { Text(verbatim: title).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                                    if let open = node.openStatus, !open.isEmpty { Text(verbatim: open).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
+                                    CYStatusChip(LocalizedStringKey(FreeExplorationPresentation.state(of: node, in: snapshot).titleKey), tone: .neutral)
+                                }.frame(maxWidth: .infinity, minHeight: 150, alignment: .topLeading)
+                                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                             }.buttonStyle(.plain).accessibilityIdentifier("playFree.store.\(node.id)")
                         }
                     }
@@ -80,9 +80,9 @@ struct FreeExplorationStoreName: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
-                if model.phase == .loading { ProgressView("playx.loading") }
+                if model.phase == .loading { CYSkeleton().accessibilityLabel(Text("playx.loading")) }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                if !model.available { Text("playx.disabled") }
+                if !model.available { CYEmptyState(systemImage: "nosign", "playx.disabled") }
                 if model.hasCurrentMediaSnapshot, let snapshot = model.snapshot {
                     FreeExplorationCardBrowser(snapshot: snapshot, packOpen: $packOpen) { id in
                         guard model.hasCurrentMediaSnapshot, model.snapshot == snapshot, model.gameplayMode == .freeExploration else { return }
@@ -94,11 +94,11 @@ struct FreeExplorationStoreName: View {
                     }
                     if model.unresolved { Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playFree.proof.pending")).font(.footnote) }
                     if FreeExplorationPresentation(snapshot: snapshot)?.isFullyRedeemed == true {
-                        Text("playFree.redeemed.title").font(.headline)
+                        CYSectionHeader("playFree.redeemed.title")
                         ForEach(snapshot.visibleNodes.filter(snapshot.isDone)) { node in
                             Label { FreeExplorationStoreName(name: node.name) } icon: { Image(systemName: "checkmark.seal") }
                         }
-                        Button("playFree.ending.read") { Task { await model.loadFreeExplorationEnding() } }
+                        CYPillButton("playFree.ending.read") { Task { await model.loadFreeExplorationEnding() } }
                         if let ending = model.ending {
                             if !ending.opener.isEmpty { Text(verbatim: ending.opener) }
                             ForEach(Array(ending.fragments.enumerated()), id: \.offset) { _, fragment in
@@ -110,8 +110,9 @@ struct FreeExplorationStoreName: View {
                         }
                     }
                 }
-            }.padding()
+            }.padding(CYSpacing.pageHorizontal)
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .refreshable { if model.available && model.phase != .submitting { await model.load() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -177,8 +178,8 @@ struct FreeExplorationStoreName: View {
                 if model.unresolved { Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playFree.proof.pending")) }
                 if let issue { PlayExperienceIssueView(issue: issue) }
             } else if model.phase == .loading || model.phase == .submitting { ProgressView("playx.loading") }
-            else { ContentUnavailableView("playFree.store.unavailable", systemImage: "storefront") }
-        }
+            else { CYEmptyState(systemImage: "storefront", "playFree.store.unavailable") }
+        }.cyGroupedSurface()
         .refreshable { if model.phase != .loading && model.phase != .submitting { await model.load() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -262,6 +263,6 @@ struct FreeExplorationVisitSteps: View {
                 Button("play.refresh") { Task { await model.load(keepingReceipt: true) } }
             } else if model.isLoading { ProgressView("play.loading") }
             else { Text("playFree.store.unavailable") }
-        }.privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.read.store")
+        }.cyGroupedSurface().privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.read.store")
     }
 }

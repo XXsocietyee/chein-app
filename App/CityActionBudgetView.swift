@@ -53,7 +53,7 @@ import SwiftUI
                         Button("准备掷骰") { model.prepare() }
                             .disabled(model.busy || model.state?.status != "AVAILABLE" || model.state?.writeApproved != true || scenePhase != .active)
                     }
-                }
+                }.cyGroupedSurface()
             } else {
                 VStack {
                     ContentUnavailableView("行动额度暂不可用", systemImage: "dice", description: Text("保留原请求，不会自动重新提交。"))
