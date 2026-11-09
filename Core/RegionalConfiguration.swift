@@ -109,6 +109,17 @@ public struct RegionalConfiguration {
     public func isFeatureShown(_ capability: RegionalCapability) -> Bool {
         availability(of: capability) == .available
     }
+
+    /// A control for `path` is shown only when this deployment can call it.
+    /// A route the China host refuses stays hidden even if its capability was verified.
+    /// Password login, bank withdrawal, and virtual goods stay hidden.
+    public func showsRoute(_ path: String) -> Bool {
+        guard ChinaReviewedRouteCapability.offersFeature(path, baseURL: apiConfiguration?.baseURL) else { return false }
+        if let capability = ChinaReviewedRouteCapability.hidingCapability(for: path) {
+            return isFeatureShown(capability)
+        }
+        return true
+    }
 }
 
 /// Explicit reviewed hosts. The shipped composition selects China only through

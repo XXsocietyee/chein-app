@@ -51,6 +51,53 @@ final class ChinaReviewedRouteCapabilityTests: XCTestCase {
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/pay/create"))
     }
 
+    func testHiddenRoutesAreNotOfferedOnChinaOrWithoutAHost() throws {
+        let china = try XCTUnwrap(URL(string: ReviewedMarketLaunch.chinaProductionBaseURL))
+        let fixture = try XCTUnwrap(URL(string: "https://example.test/native"))
+        let hidden = [
+            "/api/map/public-layers", "/api/play/help", "/api/login",
+            "/api/withdrawal/create", "/api/fund/preflight/bank-withdrawal",
+            "/api/cart/list", "/api/product/info", "/api/registration/pay", "/api/registration/pay/app",
+            "/api/pay/create", "/api/approved-topic-release/v1/prepare"
+        ]
+        for path in hidden {
+            XCTAssertFalse(ChinaReviewedRouteCapability.offersFeature(path, baseURL: nil), path)
+            XCTAssertFalse(ChinaReviewedRouteCapability.offersFeature(path, baseURL: china), path)
+            XCTAssertTrue(ChinaReviewedRouteCapability.offersFeature(path, baseURL: fixture), path)
+        }
+        XCTAssertTrue(ChinaReviewedRouteCapability.offersFeature("/api/activity/list", baseURL: china))
+        XCTAssertTrue(ChinaReviewedRouteCapability.offersFeature("/api/withdrawal/list", baseURL: china))
+        XCTAssertTrue(ChinaReviewedRouteCapability.offersFeature("/api/login/phone", baseURL: china))
+        XCTAssertNil(ReviewedMarketLaunch.approvedBaseURLs[.unitedStates])
+
+        let paid = try RegionalConfiguration(
+            market: .china,
+            baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            approvedBaseURLs: ReviewedMarketLaunch.approvedBaseURLs,
+            verifiedCapabilities: [.domesticChinaPhone, .digitalContentPayment, .merchantPayout, .usernamePassword]
+        )
+        XCTAssertFalse(paid.showsRoute("/api/map/public-layers"))
+        XCTAssertFalse(paid.showsRoute("/api/login"))
+        XCTAssertFalse(paid.showsRoute("/api/withdrawal/create"))
+        XCTAssertFalse(paid.showsRoute("/api/cart/list"))
+        XCTAssertFalse(paid.showsRoute("/api/registration/pay"))
+        XCTAssertFalse(paid.showsRoute("/api/play/help"))
+        XCTAssertTrue(paid.showsRoute("/api/activity/list"))
+        XCTAssertTrue(paid.showsRoute("/api/withdrawal/list"))
+        XCTAssertTrue(paid.showsRoute("/api/login/phone"))
+        let offline = try RegionalConfiguration(market: .china)
+        XCTAssertFalse(offline.showsRoute("/api/activity/list"))
+        let other = try RegionalConfiguration(
+            market: .china,
+            baseURL: "https://example.test/native",
+            approvedBaseURLs: [.china: ["https://example.test/native"]]
+        )
+        XCTAssertTrue(other.showsRoute("/api/map/public-layers"))
+        XCTAssertFalse(other.showsRoute("/api/cart/list"))
+        XCTAssertFalse(other.showsRoute("/api/withdrawal/create"))
+        XCTAssertFalse(other.showsRoute("/api/login"))
+    }
+
     func testMissingAndNewBackendRoutesStayDark() {
         XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: "/api/play/help"), .missing)
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/play/help"))

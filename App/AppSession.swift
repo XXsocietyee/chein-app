@@ -1127,12 +1127,18 @@ final class AppSession: ObservableObject {
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
     }, manualAreaSelection: searchMapSelection)
+    /// The explorer section is built only when this is non-nil. A hidden route stays nil
+    /// so the section is not mounted as a notConfigured control.
+    private var searchMapPublicLayerCoordinator: MapPublicLayerCoordinator? {
+        guard mapPublicLayerService != nil, regionalConfiguration?.showsRoute("/api/map/public-layers") == true else { return nil }
+        return mapPublicLayerCoordinator
+    }
     lazy var searchMapReader = SearchMapSessionReader(service: searchMapService, currentContext: { [weak self] in
         self?.currentSearchMapContext ?? SearchMapContext(guestEpoch: 0)
     }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
-    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: mapPublicLayerCoordinator, topicReader: topicReader)
+    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: searchMapPublicLayerCoordinator, topicReader: topicReader)
     private let registrationApproval: RegistrationProductionApproval?
     private let registrationStorefront: () -> String?
     private var registrationJournal: any OperationPendingJournal { composition.storage.operationJournal() }
@@ -4502,7 +4508,8 @@ final class AppSession: ObservableObject {
     func makeBankWithdrawalContext() -> BankWithdrawalRuntimeContext? {
         guard let factory = businessRuntimeFactory, factory.permits(.bankPrepare), factory.permits(.bankConsentRead),
               let provider = runtimeDependencies.bankDocument, let scope = walletCommerceScope,
-              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+              let configuration = regionalConfiguration?.apiConfiguration,
+              ChinaReviewedRouteCapability.offersFeature("/api/withdrawal/create", baseURL: configuration.baseURL) else { return nil }
         let captured = factory.captured
         let routes = BankWithdrawalRuntimeRoutes(factory: factory)
         let consent = BankWithdrawalConsentReader(configuration: configuration, transport: factory.client([.bankConsentRead]),
@@ -7309,7 +7316,7 @@ final class AppSession: ObservableObject {
 #endif
             authChannelService=regional.canUseDomesticChinaPhone ? AuthChannelService(configuration:configuration,transport:transport,allowLoginRoleFallback:composition.reviewed?.allowLoginRoleFallbackOnRolelessUserInfo ?? false) : nil
             searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap, .publicMapLayers]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
-            mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
+            mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false && regional.showsRoute("/api/map/public-layers") ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
             activityService=ActivityService(configuration:configuration,transport:transport)
             registrationBackend=RegistrationService(configuration:configuration,transport:transport)
             homeFeedService=composition.reviewed?.reads.contains(.homeAndSearch) == true ? HomeFeedService(configuration:configuration,transport:transport) : nil

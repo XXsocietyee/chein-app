@@ -349,7 +349,7 @@ struct SessionRootView: View {
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
         .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
-        .environment(\.bankWithdrawalDestination, { AnyView(SessionBankWithdrawalView()) })
+        .environment(\.bankWithdrawalDestination, session.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true ? { AnyView(SessionBankWithdrawalView()) } : nil)
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
         .environment(\.merchantPersonalIncomeDestination, { AnyView(SessionMerchantPersonalIncomeView(session: session, source: $0)) })
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
