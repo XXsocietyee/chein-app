@@ -541,7 +541,7 @@ public enum UGAccusation {
         }
         let screens = (object["introScreens"]?.array ?? []).compactMap(canonical)
         let board = corkboard(object["corkboardImage"] ?? .null)
-        let earlyAllowed = object["earlyAccuse"]?["allowed"]?.bool
+        let earlyAllowed = object["earlyAccuse"]?["allowed"].bool
         return .ready(UGAccusationPublic(enabled: enabled, suspects: cards, introScreens: screens,
                                          corkboardURL: board?.url, corkboardAlt: board?.alt, earlyAllowed: earlyAllowed))
     }
