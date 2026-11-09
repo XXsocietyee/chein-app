@@ -1138,7 +1138,7 @@ struct ClubGovernanceReadView: View {
             Label {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(LocalizedStringKey("club.gov." + target.rawValue))
-                    if operation == .access, let line = Self.subline(target) {
+                    if operation == .access, let line = Self.subline(target, locale: locale) {
                         Text(verbatim: line).font(.footnote).foregroundStyle(CYColor.textSecondary)
                     }
                 }
@@ -1147,13 +1147,26 @@ struct ClubGovernanceReadView: View {
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
     }
     /// Mini-program settings-sheet rows carry a one-line description under the title (workspace list only).
-    static func subline(_ read: ClubGovernanceRead) -> String? {
+    static func subline(_ read: ClubGovernanceRead, locale: Locale) -> String? {
+        let pair: (String, String)
         switch read {
-        case .customers, .stats, .settlement, .eventTopics, .series, .topics, .editions, .leaderboard,
-             .posts, .roles, .bans, .cases, .audienceCounts, .dissolutionBlockers:
-            return String(localized: String.LocalizationValue("club.gov.sub." + read.rawValue))
+        case .customers: pair = ("报名过的客户", "People who have signed up")
+        case .stats: pair = ("参与与转化数据", "Participation and conversion")
+        case .settlement: pair = ("收入与结算记录", "Income and settlement records")
+        case .eventTopics: pair = ("新建与管理系列场次", "Create and manage recurring sessions")
+        case .series: pair = ("已发布的系列场次", "Published recurring sessions")
+        case .topics: pair = ("俱乐部运营的主题", "Themes this club runs")
+        case .editions: pair = ("按期次查看与自报", "View and self-report by edition")
+        case .leaderboard: pair = ("成员贡献榜", "Top member contributors")
+        case .posts: pair = ("俱乐部动态内容", "Club posts")
+        case .roles: pair = ("分配与撤销角色", "Assign and revoke roles")
+        case .bans: pair = ("被禁言的成员", "Muted members")
+        case .cases: pair = ("举报与申诉", "Reports and appeals")
+        case .audienceCounts: pair = ("可触达人数", "Audience reach")
+        case .dissolutionBlockers: pair = ("解散前需处理的事项", "Items to clear before dissolving")
         default: return nil
         }
+        return ChannelCopy.text(pair.0, pair.1, locale: locale)
     }
     /// One meaningful icon per workspace entry instead of the same chevron on every row.
     static func symbol(_ read: ClubGovernanceRead) -> String {
@@ -1230,7 +1243,7 @@ struct ClubGovernanceReadView: View {
                 }
             }
             // Mini-program club settings sheet order: 客户与项目, then 成员与权限.
-            Section("club.gov.section.customers") {
+            Section(ChannelCopy.text("客户与项目", "Customers & projects", locale: locale)) {
                 if snapshot.permissions?.allows("club:member:list:read", scope: scope) == true { enrollmentLink() }
                 ForEach([ClubGovernanceRead.customers, .stats, .settlement, .eventTopics, .series, .topics, .editions, .leaderboard, .posts], id: \.rawValue) { read in
                     if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
@@ -1241,7 +1254,7 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-            Section("club.gov.section.members") {
+            Section(ChannelCopy.text("成员与权限", "Members & permissions", locale: locale)) {
                 ForEach([ClubGovernanceRead.roles, .bans, .cases, .audienceCounts, .dissolutionBlockers], id: \.rawValue) { read in
                     if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                 }
@@ -1259,25 +1272,25 @@ struct ClubGovernanceReadView: View {
         } else if operation == .hostStatus {
             // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
             if value["accountRole"] == .string("merchant") {
-                Section {
-                    CYEmptyState(systemImage: "storefront", "club.host.merchant.title")
-                    Text("club.gov.hostMerchantBlocked")
-                }.listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label("club.host.merchant.title", systemImage: "storefront")
+                } description: { Text("club.gov.hostMerchantBlocked") }
+                    .listRowBackground(Color.clear)
             } else if value["accountRole"] == .string("club") {
-                Section {
-                    CYHeroHeader("club.host.done.title")
-                    CYStatusChip("club.host.done.active", tone: .success, systemImage: "checkmark")
+                Section("club.host.done.title") {
+                    LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(CYColor.successText) }
                     LabeledContent("club.host.done.limitLabel") { Text("club.host.done.limitValue") }
                 }
             } else {
                 Section {
-                    CYHeroHeader("club.host.intro.title")
-                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    Text("club.host.intro.title").font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, Theme.Space.s2)
                     Label("club.host.intro.instant", systemImage: "checkmark.circle")
                     Label("club.host.intro.limit", systemImage: "person.3")
                 }
                 Section {
-                    edit(.hostApply).buttonStyle(CYPillButtonStyle()).frame(maxWidth: .infinity)
+                    edit(.hostApply).buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
                 }.listRowBackground(Color.clear)
             }
         } else if operation == .roster {
