@@ -115,3 +115,157 @@ public enum DeregistrationStatusRules {
         }
     }
 }
+
+/// Read-only projection of the cancellation screen. It does not send a request and does not
+/// add `GET api/user/deregister/result`. That path is absent from the reviewed route catalog,
+/// so the screen keeps using the status read the service already performs.
+public enum DeregisterIndexReadPhase: Equatable {
+    case loading
+    case empty
+    case error(key: String)
+    case unknown
+    case ready
+}
+
+public struct DeregisterIndexImpactLine: Equatable {
+    public let key: String
+    public let valueText: String
+    public init(key: String, valueText: String) {
+        self.key = key
+        self.valueText = valueText
+    }
+}
+
+public struct DeregisterIndexPageModel: Equatable {
+    /// Missing and UNKNOWN quantities use this mark. They are never shown as 0.
+    public static let unknownMark = "—"
+    public static let knownStatuses: Set<String> = ["NORMAL", "PENDING", "ELIGIBLE", "BLOCKED", "CANCELLED", "FAILED", "COMPLETED", "WAITING"]
+    public let phase: DeregisterIndexReadPhase
+    public let statusText: String
+    public let executeAfterText: String
+    public let impactLines: [DeregisterIndexImpactLine]
+    public let emptyKey: String
+    public let loadingKey: String
+    public let unknownKey: String
+    public let errorKey: String?
+
+    public init(state: ComplianceState) {
+        emptyKey = "deregisterIndex.empty"
+        loadingKey = "compliance.loading"
+        unknownKey = "compliance.unknown"
+        let trimmedError = state.error?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let reportedError = (trimmedError?.isEmpty == false) ? trimmedError : nil
+        if state.busy {
+            phase = .loading
+            errorKey = nil
+        } else if let reportedError {
+            phase = .error(key: reportedError)
+            errorKey = reportedError
+        } else if state.step == .unknown || Self.unknownStatus(state.status?.status) {
+            phase = .unknown
+            errorKey = nil
+        } else if state.status == nil && state.step == .idle {
+            phase = .empty
+            errorKey = nil
+        } else {
+            phase = .ready
+            errorKey = nil
+        }
+        statusText = Self.statusText(state.status?.status)
+        executeAfterText = Self.executeAfterText(state.status?.executeAfter)
+        impactLines = state.status?.impact?.items.map {
+            DeregisterIndexImpactLine(key: $0.key, valueText: Self.tokenText($0.value))
+        } ?? []
+    }
+
+    /// True only when the reviewed catalog already admits the result route. It does not today.
+    public var offersResultRoute: Bool {
+        let path = "/api/user/deregister/result"
+        return ChinaReviewedRouteCapability.mark(for: path) == .liveInProduction
+            && ChinaReviewedRouteCapability.admitsChinaProductionCall(path)
+    }
+
+    public static func unknownStatus(_ raw: String?) -> Bool {
+        guard let text = raw?.trimmingCharacters(in: .whitespacesAndNewlines) else { return false }
+        return text.isEmpty || text.uppercased() == "UNKNOWN"
+    }
+
+    public static func tokenText(_ raw: String?) -> String {
+        guard let text = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return unknownMark }
+        if text.uppercased() == "UNKNOWN" { return unknownMark }
+        return text
+    }
+
+    /// A canonical non-negative integer stays as written, including "0".
+    /// UNKNOWN, blank, padded zeros, and non-integers stay an em dash.
+    public static func countText(_ raw: String?) -> String {
+        guard let text = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty else { return unknownMark }
+        if text.uppercased() == "UNKNOWN" { return unknownMark }
+        if text == "0" { return "0" }
+        guard let first = text.utf8.first, first != 48, text.utf8.allSatisfy({ (48...57).contains($0) }) else { return unknownMark }
+        return text
+    }
+
+    public static func statusText(_ raw: String?) -> String {
+        guard let text = raw?.trimmingCharacters(in: .whitespacesAndNewlines), knownStatuses.contains(text) else { return unknownMark }
+        return text
+    }
+
+    public static func executeAfterText(_ raw: String?) -> String {
+        guard let text = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty, text.uppercased() != "UNKNOWN" else { return unknownMark }
+        guard DeregistrationStatusRules.timestamp(text) != nil else { return unknownMark }
+        return text
+    }
+}
+
+extension AccountComplianceCoordinator {
+    public var deregisterIndexPage: DeregisterIndexPageModel { DeregisterIndexPageModel(state: state) }
+}
+
+#if DEBUG
+public enum DeregisterIndexFixtureData {
+    public static let revision = String(repeating: "ab", count: 32)
+    public static let unknownStatus: String = {
+        let impact = #"{"schemaVersion":1,"actorId":7,"revision":""# + revision
+            + #"","items":[{"key":"POINTS","value":"UNKNOWN","source":"ledger","effect":"held"},{"key":"ACTIVE_ORDERS","value":"0","source":"orders","effect":"held"}],"unknownCoverage":["POINTS"]}"#
+        return #"{"status":"UNKNOWN","blockers":[],"impact":"# + impact + "}"
+    }()
+    public static let normalStatus = #"{"status":"NORMAL","blockers":[]}"#
+    public static let pendingStatus = #"{"status":"PENDING","blockers":[],"executeAfter":"2027-01-15T16:00:00+08:00"}"#
+    public static let blockedCountStatus: String = {
+        let impact = #"{"schemaVersion":1,"actorId":7,"revision":""# + revision
+            + #"","items":[{"key":"BALANCE","value":"00","source":"wallet","effect":"held"},{"key":"POINTS","value":"12","source":"ledger","effect":"held"}],"unknownCoverage":[]}"#
+        return #"{"status":"BLOCKED","blockers":["open order"],"impact":"# + impact + "}"
+    }()
+
+    public static func deregistration(_ json: String) throws -> ComplianceDeregistration {
+        try JSONDecoder().decode(ComplianceDeregistration.self, from: Data(json.utf8))
+    }
+
+    public static func page(step: ComplianceStep = .notice, busy: Bool = false, error: String? = nil, statusJSON: String? = nil) throws -> DeregisterIndexPageModel {
+        var state = ComplianceState()
+        state.step = step
+        state.busy = busy
+        state.error = error
+        if let statusJSON { state.status = try deregistration(statusJSON) }
+        return DeregisterIndexPageModel(state: state)
+    }
+
+    public static func loadingPage() -> DeregisterIndexPageModel {
+        var state = ComplianceState()
+        state.busy = true
+        return DeregisterIndexPageModel(state: state)
+    }
+
+    public static func emptyPage() -> DeregisterIndexPageModel {
+        DeregisterIndexPageModel(state: ComplianceState())
+    }
+
+    public static func errorPage(key: String = "compliance.failed") -> DeregisterIndexPageModel {
+        var state = ComplianceState()
+        state.step = .notice
+        state.error = key
+        return DeregisterIndexPageModel(state: state)
+    }
+}
+#endif

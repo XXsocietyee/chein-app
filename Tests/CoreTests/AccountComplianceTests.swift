@@ -144,4 +144,26 @@ extension AccountComplianceTests {
         XCTAssertEqual(result.status, "NORMAL"); XCTAssertNil(try journal.pending(scope: context.session!.journalScope, operation: "deregister"))
         XCTAssertEqual(fake.requests.map { $0.url!.path }, ["/api/user/deregister/apply", "/api/user/deregister/status", "/api/user/deregister/cancel", "/api/user/deregister/status"])
     }
+
+#if DEBUG
+    func testDeregisterIndexPageReadsExistingStatusAndKeepsUnknownAsEmDash() async throws {
+        let context = ComplianceTestContext()
+        let fake = ComplianceHTTPFake([#"{"code":200,"data":"# + DeregisterIndexFixtureData.unknownStatus + "}"])
+        let (service, _, _) = try build(fake, context: context)
+        let coordinator = AccountComplianceCoordinator(service: service, auth: ComplianceAuthFake(), effects: ComplianceEffectsFake(), current: { context.session }, invalidateSession: { _ in XCTFail() })
+        XCTAssertEqual(coordinator.deregisterIndexPage.phase, .empty)
+        XCTAssertEqual(coordinator.deregisterIndexPage.statusText, "—")
+        await coordinator.load()
+        let page = coordinator.deregisterIndexPage
+        XCTAssertEqual(page.phase, .unknown)
+        XCTAssertEqual(page.statusText, "—")
+        XCTAssertEqual(page.unknownKey, "compliance.unknown")
+        XCTAssertEqual(page.impactLines.first { $0.key == "POINTS" }?.valueText, "—")
+        XCTAssertEqual(page.impactLines.first { $0.key == "ACTIVE_ORDERS" }?.valueText, "0")
+        XCTAssertNotEqual(page.impactLines.first { $0.key == "POINTS" }?.valueText, "0")
+        XCTAssertEqual(fake.requests.map { $0.url?.path }, ["/api/user/deregister/status"])
+        XCTAssertFalse(page.offersResultRoute)
+        XCTAssertFalse(fake.requests.contains { $0.url?.path?.contains("result") == true })
+    }
+#endif
 }

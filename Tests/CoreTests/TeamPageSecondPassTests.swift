@@ -35,6 +35,21 @@ import XCTest
         XCTAssertEqual(TeamPagePresentation.blockingState(kind: .detail, messageKey: data.messageKey, hasDetail: false, failure: data.readFailure)?.kind, .unavailable)
     }
 
+    func testLoadedDetailPhaseUsesServerCountsAndFailureIsNotZero() async throws {
+        let ready = try coordinator(.content)
+        await ready.loadDetail(.id(4101))
+        XCTAssertFalse(ready.loading)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: ready.loading, detail: ready.detail, readFailed: ready.readFailure != nil), .ready)
+        let detail = try XCTUnwrap(ready.detail)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: detail.team.joinedCount, maximum: detail.team.maxMembers), "2 / 4")
+
+        let failed = try coordinator(.failure)
+        await failed.loadDetail(.id(4101))
+        XCTAssertNil(failed.detail)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: failed.loading, detail: failed.detail, readFailed: failed.readFailure != nil), .error)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: nil, maximum: nil), "—")
+    }
+
     func testSuccessfulReadClearsFailureKind() async throws {
         let retry = try coordinator(.retry)
         await retry.loadDetail(.id(4101)); XCTAssertEqual(retry.readFailure, .data)
@@ -56,6 +71,27 @@ import XCTest
         for state in [TeamCoordinator.WriteState.unknown, .idle, .simulated, .acknowledged, .blocked] {
             XCTAssertFalse(TeamPagePresentation.showsJoinRetry(state, page: .invitation))
         }
+    }
+
+    func testJoinIndexFixtureKeepsOmittedCountsUnknown() throws {
+        XCTAssertEqual(TeamJoinIndexFixtureData.page, "pages/team/join/index")
+        let unknown = try TeamJoinIndexFixtureData.detail(TeamJoinIndexFixtureData.unknownCountJSON)
+        XCTAssertNil(unknown.team.joinedCount)
+        XCTAssertNil(unknown.team.maxMembers)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(unknown.team), "—")
+        XCTAssertNotEqual(TeamPagePresentation.memberCountText(unknown.team), "0")
+        let zero = try TeamJoinIndexFixtureData.detail(TeamJoinIndexFixtureData.emptyRosterJSON)
+        XCTAssertEqual(zero.team.joinedCount, 0)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(zero.team), "0 / 4")
+        XCTAssertTrue(TeamPagePresentation.rosterIsEmpty(zero))
+        let ready = try TeamJoinIndexFixtureData.detail(TeamJoinIndexFixtureData.readyJSON)
+        XCTAssertEqual(ready.team.inviteCode, TeamJoinIndexFixtureData.inviteCode)
+        XCTAssertFalse(TeamPagePresentation.rosterIsEmpty(ready))
+        XCTAssertEqual(TeamPagePresentation.memberCountText(ready.team), "2 / 4")
+        let status = try TeamJoinIndexFixtureData.detail(TeamJoinIndexFixtureData.unknownStatusJSON)
+        XCTAssertEqual(status.team.status, .unknown)
+        XCTAssertEqual(status.team.joinMode, .unknown)
+        XCTAssertNotEqual(status.team.status.rawValue, 0)
     }
 
     func testMiniProgramJoinPathAndLegacyTeamID() {

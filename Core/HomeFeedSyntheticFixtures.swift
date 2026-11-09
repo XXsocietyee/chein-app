@@ -9,4 +9,13 @@ public enum HomeFeedSyntheticFixtures {
     public static func topic() throws -> HomeFeedItem { .topic(try JSONDecoder().decode(TopicSummary.self, from: Data(topicJSON.utf8))) }
 }
 
+/// DEBUG fixture bytes for the home discovery feed. No network and no invented price.
+public enum HomeFeedFixtureData {
+    public static let activity = Data(HomeFeedSyntheticFixtures.activityJSON.utf8)
+    public static let topic = Data(HomeFeedSyntheticFixtures.topicJSON.utf8)
+    public static let emptyActivityPage = Data(#"{"code":200,"data":{"rows":[]}}"#.utf8)
+    /// id and name only. A missing price, date, or place must not decode as zero.
+    public static let missingFactsActivity = Data(#"{"id":8,"name":"Sample walk without facts"}"#.utf8)
+}
+
 #endif
