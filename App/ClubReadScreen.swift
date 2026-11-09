@@ -44,9 +44,12 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
                         if isLoading { ProgressView().padding(8).background(.regularMaterial, in: Capsule()) }
                     }
             } else {
-                ProgressView("club.loading").accessibilityIdentifier(accessibilityPrefix + ".loading")
+                CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityElement(children: .ignore).accessibilityLabel(Text("club.loading"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
             }
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .refreshable { await reload() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

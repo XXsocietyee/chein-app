@@ -57,10 +57,11 @@ struct SocialReadPresentationKey: Hashable {
             if reader.isOfflineExample { Text("social.offline").font(.caption).foregroundStyle(.secondary) }
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key || busy { ProgressView("social.loading") }
+            else if loadedKey != key || busy { CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top).accessibilityElement(children: .ignore).accessibilityLabel(Text("social.loading")) }
             else if let error { SocialIssueView(error: error) { loads.start { await reload() } } }
             else if let value { content(value) }
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .task(id: key) { await loads.run { await reload() } }
         .onDisappear { loads.cancel(); generation += 1; busy = false }
     }

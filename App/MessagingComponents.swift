@@ -207,7 +207,9 @@ struct MessagingReadScreen<Value, Content: View>: View {
             } else if reader.identity == nil {
                 MessagingIssueView(issue: .init(APIError.unauthorized), identifier: accessibilityPrefix + ".signedOut", retry: {})
             } else if model.isLoading {
-                ProgressView("messaging.loading").accessibilityIdentifier(accessibilityPrefix + ".loading")
+                CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top)
+                    .accessibilityElement(children: .ignore).accessibilityLabel(Text("messaging.loading"))
+                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
             } else if let issue = model.issue {
                 MessagingIssueView(issue: issue, identifier: accessibilityPrefix + ".error") {
                     queue(model.prepareRefresh(appearance: appearance, input: input))
@@ -218,6 +220,7 @@ struct MessagingReadScreen<Value, Content: View>: View {
                 ProgressView("messaging.loading")
             }
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .privacySensitive()
         .refreshable {
             guard let token = model.prepareRefresh(appearance: appearance, input: input) else { return }

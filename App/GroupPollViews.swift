@@ -172,7 +172,7 @@ import SwiftUI
     @ViewBuilder private func result(_ poll: GroupPoll) -> some View {
         Section {
             Text(verbatim: poll.question).font(.title3.weight(.semibold)).accessibilityIdentifier("poll.result.question")
-            Label(LocalizedStringKey(poll.status == "CLOSED" ? "poll.closed" : (poll.isOpen() ? "poll.open" : "poll.deadlinePassed")), systemImage: poll.isOpen() ? "chart.bar.xaxis" : "checkmark.seal")
+            CYStatusChip(LocalizedStringKey(poll.status == "CLOSED" ? "poll.closed" : (poll.isOpen() ? "poll.open" : "poll.deadlinePassed")), tone: poll.isOpen() ? .success : .neutral, systemImage: poll.isOpen() ? "chart.bar.xaxis" : "checkmark.seal")
             if let deadline = poll.deadlineAt?.value { LabeledContent("poll.deadline") { Text(deadline, format: .dateTime) } }
         }
         Section("poll.options") {
@@ -181,11 +181,11 @@ import SwiftUI
                     HStack(alignment: .firstTextBaseline) {
                         Text(verbatim: option.content).frame(maxWidth: .infinity, alignment: .leading)
                             .accessibilityIdentifier("poll.result.option.\(option.id)")
-                        if poll.myOptionId == option.id { Label("poll.yourVote", systemImage: "checkmark.circle.fill").font(.caption) }
+                        if poll.myOptionId == option.id { CYStatusChip("poll.yourVote", tone: .info, systemImage: "checkmark.circle.fill") }
                         if poll.hasResults, let count = option.voteCount { Text(verbatim: String(count)).monospacedDigit() }
                     }
                     if poll.hasResults, let count = option.voteCount, let total = poll.totalVoters {
-                        ProgressView(value: Double(count), total: Double(max(total, 1))).accessibilityLabel(Text(verbatim: option.content))
+                        ProgressView(value: Double(count), total: Double(max(total, 1))).tint(CYColor.textPrimary).accessibilityLabel(Text(verbatim: option.content))
                             .accessibilityValue(Text(verbatim: "\(count) / \(total)"))
                     }
                     if owner.canVote {
@@ -203,6 +203,7 @@ import SwiftUI
         if owner.canVote {
             Section {
                 Button("poll.reviewVote") { if let selectedOption { owner.reviewVote(optionID: selectedOption, sourceIsCurrent: { entryCurrent }) } }
+                    .nativeChannelPrimaryAction()
                     .disabled(selectedOption == nil).accessibilityIdentifier("poll.reviewVote")
             }
         }
