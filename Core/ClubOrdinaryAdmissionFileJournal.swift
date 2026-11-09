@@ -97,7 +97,7 @@ import Glibc
               flock(fd, LOCK_EX | LOCK_NB) == 0 else { throw APIError.notConfigured }
         return try operation()
     }
-    private func ensureDirectory(_ url: URL) throws {
+    private func ensureDirectory(_ url: URL, retries: Int = 0) throws {
         var info = stat()
         if lstat(url.path, &info) == 0 {
             guard (info.st_mode & mode_t(S_IFMT)) == mode_t(S_IFDIR) else { throw APIError.notConfigured }
@@ -111,8 +111,8 @@ import Glibc
         guard parent.path != url.path else { throw APIError.notConfigured }
         try ensureDirectory(parent)
         if mkdir(url.path, mode_t(0o700)) != 0 {
-            guard errno == EEXIST else { throw APIError.notConfigured }
-            try ensureDirectory(url)
+            guard errno == EEXIST, retries < 8 else { throw APIError.notConfigured }
+            try ensureDirectory(url, retries: retries + 1)
         }
         try syncDirectory(parent)
     }

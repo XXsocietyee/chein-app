@@ -327,28 +327,41 @@ public struct ProjectNodeRouteMapping {
             let start = cursor; guard cursor < bytes.count, bytes[cursor] == 34 else { throw Reason.unsupported }; cursor += 1
             while cursor < bytes.count {
                 let byte = bytes[cursor]; cursor += 1
-                if byte == 92 { cursor += 1 }
-                else if byte == 34 { return start..<cursor }
+                if byte == 92 {
+                    guard cursor < bytes.count else { throw Reason.unsupported }
+                    cursor += 1
+                } else if byte == 34 { return start..<cursor }
             }
             throw Reason.unsupported
         }
-        mutating func value(path: [String]) throws {
+        mutating func value(path: [String], depth: Int = 0) throws {
+            guard depth <= 128 else { throw Reason.unsupported }
             spaces(); let start = cursor; guard cursor < bytes.count else { throw Reason.unsupported }
             switch bytes[cursor] {
             case 123:
                 cursor += 1; spaces()
+                guard cursor < bytes.count else { throw Reason.unsupported }
                 if bytes[cursor] != 125 {
                     while true {
                         spaces(); let keyRange = try string(), key = try JSONDecoder().decode(String.self, from: Data(bytes[keyRange]))
-                        spaces(); cursor += 1; try value(path: path + [key]); spaces()
-                        if bytes[cursor] == 125 { break }; cursor += 1
+                        spaces(); guard cursor < bytes.count else { throw Reason.unsupported }
+                        cursor += 1; try value(path: path + [key], depth: depth + 1); spaces()
+                        guard cursor < bytes.count else { throw Reason.unsupported }
+                        if bytes[cursor] == 125 { break }
+                        cursor += 1
                     }
                 }
                 cursor += 1
             case 91:
                 cursor += 1; spaces(); var index = 0
+                guard cursor < bytes.count else { throw Reason.unsupported }
                 if bytes[cursor] != 93 {
-                    while true { try value(path: path + [String(index)]); index += 1; spaces(); if bytes[cursor] == 93 { break }; cursor += 1 }
+                    while true {
+                        try value(path: path + [String(index)], depth: depth + 1); index += 1; spaces()
+                        guard cursor < bytes.count else { throw Reason.unsupported }
+                        if bytes[cursor] == 93 { break }
+                        cursor += 1
+                    }
                 }
                 cursor += 1
             case 34: _ = try string()
