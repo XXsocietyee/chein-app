@@ -393,8 +393,13 @@ struct SessionRootView: View {
     }
 
     private func chain3_0<V: View>(_ v: V) -> some View {
-        v
-        .environment(\.bankWithdrawalDestination, session.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true ? { AnyView(SessionBankWithdrawalView()) } : nil)
+        let destination: (@MainActor () -> AnyView)?
+        if session.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true {
+            destination = { AnyView(SessionBankWithdrawalView()) }
+        } else {
+            destination = nil
+        }
+        return v.environment(\.bankWithdrawalDestination, destination)
     }
 
     private func chain3_1<V: View>(_ v: V) -> some View {
