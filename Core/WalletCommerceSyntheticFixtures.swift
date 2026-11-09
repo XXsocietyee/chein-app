@@ -68,4 +68,46 @@ public struct WalletCommerceSyntheticTransport: HTTPTransport {
         return (Data(("{\"code\":200,\"data\":" + payload + "}").utf8), 200)
     }
 }
+
+/// Synthetic pages for the existing income list. Not a host, a route, or a payout.
+public enum AssetCenterAnalysisFixtureData {
+    public static let incomeListPath = AssetCenterAnalysisPageModel.incomeListPath
+    public static let loading = AssetCenterAnalysisPageModel(.loading)
+    public static let failed = AssetCenterAnalysisPageModel(.error)
+    public static let emptyPage = page(rows: [], total: 0)
+    public static let unknownAmountPage = page(rows: [row(id: 4, amount: nil, currency: "CNY")], total: 1)
+    public static let knownZeroPage = page(rows: [row(id: 5, amount: "0", currency: "CNY")], total: 1)
+    public static let readyPage = page(rows: [row(id: 6, amount: "8.50", currency: "CNY")], total: 1)
+    public static let mixedCurrencyPage = page(rows: [
+        row(id: 7, amount: "1.00", currency: "CNY"),
+        row(id: 8, amount: "2.00", currency: "USD")
+    ], total: 2)
+    public static let malformedAmountPage = page(rows: [row(id: 9, amount: "UNKNOWN", currency: "CNY")], total: 1)
+    public static let errorBody = Data("{\"code\":503}".utf8)
+
+    public static func row(id: Int, amount: String?, currency: String?, direction: Int = 1, event: Int = 1) -> String {
+        var fields = ["\"id\":\(id)", "\"changeType\":\(direction)", "\"eventType\":\(event)", "\"createTime\":\"2026-11-01 00:00:00\""]
+        if let amount { fields.append("\"changeBalance\":\"\(amount)\"") }
+        if let currency { fields.append("\"currency\":\"\(currency)\"") }
+        return "{" + fields.joined(separator: ",") + "}"
+    }
+
+    public static func page(rows: [String], total: Int?) -> Data {
+        let totalJSON = total.map(String.init) ?? "null"
+        let body = "{\"code\":200,\"data\":{\"rows\":[" + rows.joined(separator: ",") + "],\"total\":" + totalJSON + "}}"
+        return Data(body.utf8)
+    }
+
+    public static func decodeRows(_ data: Data) throws -> [WalletLedgerRow] {
+        struct Envelope: Decodable {
+            struct Body: Decodable { let rows: [WalletLedgerRow] }
+            let data: Body
+        }
+        return try JSONDecoder().decode(Envelope.self, from: data).data.rows
+    }
+
+    public static func model(page: Data) throws -> AssetCenterAnalysisPageModel {
+        AssetCenterAnalysisPageModel(rows: try decodeRows(page))
+    }
+}
 #endif
