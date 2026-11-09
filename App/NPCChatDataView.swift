@@ -161,7 +161,7 @@ struct NPCChatDataPresentation: Identifiable {
                             .accessibilityIdentifier("npcData.reload")
                     }
                 }
-            }
+            }.cyGroupedSurface()
             .searchable(text: $query, prompt: "npcData.search")
             .navigationTitle("npcData.title")
             .navigationBarTitleDisplayMode(.inline)
@@ -244,7 +244,7 @@ struct NPCChatDataPresentation: Identifiable {
                 }
                 Section { Text("npcData.historicalBoundary").font(.footnote).foregroundStyle(.secondary) }
             } else { Text("npcData.contentCleared").accessibilityIdentifier("npcData.contentCleared") }
-        }
+        }.cyGroupedSurface()
         .navigationTitle("npcData.recordTitle").navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
     }

@@ -384,7 +384,7 @@ private struct MessagingBubble: View {
             if !isOwn {
                 // Avatar sits beside the last bubble of a run; earlier ones keep the column empty.
                 if position.showsTail {
-                    CYCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                    CYIMCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
                         .frame(width: avatarSize, height: avatarSize)
                         .clipShape(Circle())
                 } else { Color.clear.frame(width: avatarSize, height: 1) }

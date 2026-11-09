@@ -19,9 +19,9 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: 6) { questions }
                 }
             }
-            Text("npcQuick.composeOnly").font(.caption).foregroundStyle(.secondary)
+            Text("npcQuick.composeOnly").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
             if case .gameNode = context {
-                Text("npcQuick.publicRulesBoundary").font(.caption).foregroundStyle(.secondary)
+                Text("npcQuick.publicRulesBoundary").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
             }
         }
         .accessibilityIdentifier("npcQuick.bar")
@@ -39,7 +39,7 @@ import SwiftUI
     private var questions: some View {
         ForEach(context.questions) { question in
             Button(LocalizedStringKey(question.titleKey)) { select(question) }
-                .buttonStyle(.bordered).frame(minHeight: 44)
+                .buttonStyle(.cySecondary(fullWidth: false))
                 .disabled(!enabled)
                 .accessibilityHint("npcQuick.accessibilityHint")
                 .accessibilityIdentifier("npcQuick." + question.rawValue)

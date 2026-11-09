@@ -69,7 +69,7 @@ enum CityArrivalCopy {
                     if let proof = receipt.evidence { Button { Task { await controller.readProof(proof.id) } } label: { CityArrivalCopy.text("readEvidence") }.disabled(controller.busy || !controller.current) }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(CityArrivalCopy.text("title"))
         .task { await controller.load() }
         .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
@@ -83,7 +83,7 @@ enum CityArrivalCopy {
                     CityArrivalCopy.text("noAutomaticEffects")
                     Button { Task { await controller.confirm(captured) } } label: { CityArrivalCopy.text("confirmNow") }.disabled(!controller.canWrite)
                     Button { controller.cancelConfirmation() } label: { CityArrivalCopy.text("cancel") }
-                }.navigationTitle(CityArrivalCopy.text("confirmTitle"))
+                }.cyGroupedSurface().navigationTitle(CityArrivalCopy.text("confirmTitle"))
             }
         }
     }

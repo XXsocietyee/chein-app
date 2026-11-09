@@ -51,7 +51,7 @@ import SwiftUI
                 }
             }
             Button("重新读取参与信息") { Task { await model.open() } }.disabled(model.busy)
-        }
+        }.cyGroupedSurface()
         .navigationTitle("城市队伍参与")
         .accessibilityIdentifier("city.participation.form")
         .task { if scenePhase == .active { await model.open() } }

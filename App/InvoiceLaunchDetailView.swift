@@ -10,11 +10,13 @@ import SwiftUI
             InvoiceLaunchStateSection(model: model, retry: { await model.loadDetail(applicationID) })
             if let row = model.detail, row.id == applicationID {
                 Section {
-                    HStack(alignment: .firstTextBaseline) {
-                        invoiceText(row.status.noticeKey).font(.title2).bold()
-                        Spacer()
-                        invoiceText(row.status.labelKey).font(.footnote).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYStatusChip(verbatim: invoiceString(row.status.labelKey), tone: row.status.chipTone, systemImage: row.status.chipSymbol)
+                        invoiceText(row.status.noticeKey).font(CYTypography.sectionTitle)
+                        Text(verbatim: invoiceAmount(row.totalAmount, locale: locale)).font(CYTypography.dataXL).monospacedDigit()
                     }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.vertical, CYSpacing.xs)
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("invoice.detail.notice")
                     if row.status == .rejected, let reason = row.rejectReason, !reason.isEmpty {

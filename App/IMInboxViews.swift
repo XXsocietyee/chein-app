@@ -86,7 +86,7 @@ struct IMInboxRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            CYCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+            CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
                 .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
                 .clipShape(Circle())
                 .accessibilityHidden(true)
@@ -166,7 +166,7 @@ struct IMInboxRow: View {
 
 /// Deterministic generated cover art for entities that have no photo (club, conversation, group).
 /// Same seed => same colours, so a row never flickers between renders. Decorative: hidden from VoiceOver.
-struct CYCoverArt: View {
+struct CYIMCoverArt: View {
     let seed: String
     var systemImage: String = "person.3.fill"
     var symbolSize: CGFloat = 36

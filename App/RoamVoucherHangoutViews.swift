@@ -23,7 +23,7 @@ import SwiftUI
                 }
                 Text("verificationCode.city.authority").font(.footnote).foregroundStyle(.secondary)
             }
-        }.navigationTitle("roam.experience.voucher")
+        }.cyGroupedSurface().navigationTitle("roam.experience.voucher")
             .accessibilityIdentifier("roam.experience.voucher")
     }
 }

@@ -47,7 +47,7 @@ enum RoamPreflightRule: String, CaseIterable, Identifiable {
                         .accessibilityIdentifier("roam.preflightRules.section." + rule.id)
                 }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle("roam.live.rules")
         .accessibilityIdentifier("roam.preflightRules.screen")
     }

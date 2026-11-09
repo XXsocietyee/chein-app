@@ -102,6 +102,7 @@ struct WelcomeView: View {
 /// Full-width pill: filled for the primary role, outlined for the secondary.
 private struct RoleButtonStyle: ButtonStyle {
     let primary: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
         let shape = RoundedRectangle(cornerRadius: CYRadius.pill, style: .continuous)
         configuration.label
@@ -112,6 +113,9 @@ private struct RoleButtonStyle: ButtonStyle {
             .overlay(shape.strokeBorder(primary ? Color.clear : CYColor.borderStrong, lineWidth: 1.5))
             .shadow(color: .black.opacity(primary ? 0.3 : 0), radius: 10, y: 4)
             .contentShape(shape)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
+            .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
+            .sensoryFeedback(.impact(weight: .medium), trigger: configuration.isPressed) { old, new in !old && new }
     }
 }
 
@@ -123,27 +127,60 @@ private struct RoleButtonStyle: ButtonStyle {
 #Preview("Dark") { WelcomeView().environmentObject(AppSession()).preferredColorScheme(.dark) }
 
 
-/// Decorative collage of three tilted place cards (placeholder tiles; real imagery replaces the symbols later).
+/// Animated layered cards: three generated place covers fan out of a stack, then drift gently; a stamp seal
+/// lands on the top card. Decorative (hidden from VoiceOver). Reduce Motion shows the final arrangement, still.
 private struct WelcomeHero: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var fanned = false
+    @State private var drifting = false
+
+    private struct Card { let seed: String; let symbol: String; let angle: Double; let x: CGFloat; let y: CGFloat; let size: CGFloat }
+    private let cards = [
+        Card(seed: "welcome-night-market", symbol: "fork.knife", angle: -12, x: -92, y: 34, size: 138),
+        Card(seed: "welcome-stamp-trail", symbol: "ticket", angle: 11, x: 96, y: 48, size: 126),
+        Card(seed: "welcome-fog-map", symbol: "map", angle: -2, x: 0, y: -4, size: 172),
+    ]
+
     var body: some View {
         ZStack {
-            tile("fork.knife", angle: -9, x: -86, y: 16, size: 140)
-            tile("ticket", angle: 8, x: 92, y: 30, size: 128)
-            tile("map", angle: -2, x: 0, y: -8, size: 164, lift: true)
+            ForEach(Array(cards.enumerated()), id: \.offset) { index, card in
+                tile(card, index: index)
+            }
+            Image(systemName: "checkmark.seal.fill")
+                .font(.system(size: 46, weight: .semibold))
+                .foregroundStyle(Color(red: 1.0, green: 0.80, blue: 0.30), .white)
+                .background(Circle().fill(Color.black.opacity(0.35)).blur(radius: 8))
+                .symbolEffect(.bounce, options: .nonRepeating, value: fanned)
+                .rotationEffect(.degrees(fanned || reduceMotion ? 14 : -30))
+                .scaleEffect(fanned || reduceMotion ? 1 : 0.2)
+                .opacity(fanned || reduceMotion ? 1 : 0)
+                .offset(x: 62, y: -70)
+                .animation(reduceMotion ? nil : .spring(response: 0.5, dampingFraction: 0.55).delay(0.75), value: fanned)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 224)
+        .frame(height: 280)
         .accessibilityHidden(true)
+        .onAppear {
+            guard !reduceMotion else { fanned = true; return }
+            fanned = true
+            drifting = true
+        }
     }
 
-    private func tile(_ symbol: String, angle: Double, x: CGFloat, y: CGFloat, size: CGFloat, lift: Bool = false) -> some View {
-        RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
-            .fill(lift ? AnyShapeStyle(Color.white.opacity(0.16)) : AnyShapeStyle(CYColor.bgElevated))
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous).strokeBorder(Color.white.opacity(lift ? 0.35 : 0.18), lineWidth: 1))
-            .overlay(Image(systemName: symbol).font(.system(size: size * 0.34, weight: .semibold)).foregroundStyle(CYColor.textPrimary.opacity(0.9)))
-            .frame(width: size, height: size * 1.2)
-            .rotationEffect(.degrees(angle))
-            .offset(x: x, y: y)
-            .shadow(color: .black.opacity(0.5), radius: 14, y: 8)
+    private func tile(_ card: Card, index: Int) -> some View {
+        let shape = RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
+        let settled = fanned || reduceMotion
+        return CYCoverArt(seed: card.seed, symbol: card.symbol, showsDebugLabel: false)
+            .frame(width: card.size, height: card.size * 1.25)
+            .clipShape(shape)
+            .overlay(shape.strokeBorder(Color.white.opacity(0.28), lineWidth: 1))
+            .shadow(color: .black.opacity(0.55), radius: 16, y: 10)
+            .rotationEffect(.degrees(settled ? card.angle : 0))
+            .offset(x: settled ? card.x : 0, y: settled ? card.y : 24)
+            .scaleEffect(settled ? 1 : 0.82)
+            .opacity(settled ? 1 : 0)
+            .animation(reduceMotion ? nil : .spring(response: 0.7, dampingFraction: 0.72).delay(0.12 * Double(index)), value: fanned)
+            .offset(y: drifting && !reduceMotion ? (index.isMultiple(of: 2) ? -5 : 5) : 0)
+            .animation(reduceMotion ? nil : .easeInOut(duration: 2.8 + Double(index) * 0.5).repeatForever(autoreverses: true), value: drifting)
     }
 }

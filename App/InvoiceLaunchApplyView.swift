@@ -58,19 +58,22 @@ struct InvoiceLaunchApplyIntent {
                     }
                 } header: { invoiceText("orders") }
                 LabeledContent { Text(selected.count, format: .number) } label: { invoiceText("selectedCount") }
-                if model.allows(.apply) {
-                    Button {
-                        guard let titleID, canSubmit else { return }
-                        let intent = InvoiceLaunchApplyIntent(titleID: titleID, selected: selected,
-                            identityRevision: model.identityRevision)
-                        Task {
-                            if await intent.submit(currentRevision: model.identityRevision, operation: { title, orders in
-                                await model.apply(titleID: title, orderIDs: orders)
-                            }) { dismiss() }
-                        }
-                    } label: { invoiceText("submit") }.disabled(!canSubmit)
-                        .accessibilityIdentifier("invoice.submit")
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if model.overview != nil, model.allows(.apply) {
+                CYPillButton("submit", style: .primary, tableName: "InvoiceLaunchUI") {
+                    guard let titleID, canSubmit else { return }
+                    let intent = InvoiceLaunchApplyIntent(titleID: titleID, selected: selected,
+                        identityRevision: model.identityRevision)
+                    Task {
+                        if await intent.submit(currentRevision: model.identityRevision, operation: { title, orders in
+                            await model.apply(titleID: title, orderIDs: orders)
+                        }) { dismiss() }
+                    }
                 }
+                .disabled(!canSubmit).accessibilityIdentifier("invoice.submit")
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
             }
         }
         .navigationTitle(invoiceText("apply")).listStyle(.insetGrouped)

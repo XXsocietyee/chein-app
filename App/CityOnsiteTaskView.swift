@@ -111,7 +111,7 @@ import SwiftUI
                     if let result = receipt.result { Button { readResult(result.resultId) } label: { Text("cityOnsite.readResult", tableName: table) }.disabled(controller.busy || !interactive) }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(Text("cityOnsite.title", tableName: table))
         .accessibilityIdentifier("cityOnsite.screen")
         .task(id: readRequest) {
@@ -141,7 +141,7 @@ import SwiftUI
                     Text("cityOnsite.confirmHint", tableName: table)
                     Button { guard interactive else { return }; Task { await controller.confirm(captured) } } label: { Text("cityOnsite.confirmNow", tableName: table) }.disabled(!interactive || !controller.canWrite)
                     Button { controller.cancelConfirmation() } label: { Text("cityOnsite.cancel", tableName: table) }
-                }.navigationTitle(Text("cityOnsite.confirmTitle", tableName: table))
+                }.cyGroupedSurface().navigationTitle(Text("cityOnsite.confirmTitle", tableName: table))
             }
         }
     }

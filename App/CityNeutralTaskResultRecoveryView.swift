@@ -28,7 +28,7 @@ import SwiftUI
                     }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle(Text("cityNeutralResult.title", tableName: table))
         .accessibilityIdentifier("cityNeutral.result.screen")
         .task { await controller.load() }

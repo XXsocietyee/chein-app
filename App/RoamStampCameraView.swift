@@ -107,7 +107,6 @@ import UIKit
                 .accessibilityFocused($focusedControl, equals: .capture)
             }
         }
-        .navigationTitle("media.stamp.title")
             .themeDomain(.player)
             .navigationDestination(item: $createdStampTarget) { target in
                 if let album, target.isCurrent(reader: album.reader) {

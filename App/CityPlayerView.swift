@@ -76,29 +76,26 @@ struct CityPlayerView: View {
                 // Personal history uses its own original region approval, even without a published map.
                 if let owner = historyFactory?(), owner.isCurrent {
                     NavigationLink { CityTaskHistoryRuntimeHostView(owner: owner, revision: historyRevision) } label: {
-                        Label { Text("cityHistory.entry", tableName: "CityTaskHistory") } icon: { Image(systemName: "clock.arrow.circlepath") }
-                            .frame(minHeight: 44)
-                    }.accessibilityIdentifier("city.history.entry")
+                        CityEntryRow(icon: "clock.arrow.circlepath", title: Text("cityHistory.entry", tableName: "CityTaskHistory"))
+                    }.buttonStyle(.plain).accessibilityIdentifier("city.history.entry")
                 }
                 switch reader.state {
                 case .unavailable:
-                    ContentUnavailableView("city.read.unavailable", systemImage: "building.2", description: Text("city.read.unavailable.hint"))
-                case .loading: ProgressView("city.read.loading")
+                    CYEmptyState(systemImage: "building.2", "city.read.unavailable", detail: "city.read.unavailable.hint")
+                case .loading: CYSkeleton().accessibilityLabel(Text("city.read.loading"))
                 case .notPublished:
-                    ContentUnavailableView("city.read.notPublished", systemImage: "building.2")
+                    CYEmptyState(systemImage: "building.2", "city.read.notPublished")
                 case .available(let snapshot):
                     // Board header: title, then season state and my membership as status chips.
-                    VStack(alignment: .leading, spacing: 10) {
-                        Text(verbatim: snapshot.board.title).font(.largeTitle.bold()).fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: 8) {
-                            Label(lifecycle(snapshot.board.lifecycle), systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
-                                .font(.subheadline.weight(.semibold))
-                                .padding(.horizontal, 10).padding(.vertical, 5)
-                                .background(snapshot.board.lifecycle == "OPEN" ? CYColor.successSoft : CYColor.borderSubtle, in: Capsule())
-                            Label(membership(snapshot.membership), systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
-                                .font(.subheadline)
-                                .padding(.horizontal, 10).padding(.vertical, 5)
-                                .background(Color.accentColor.opacity(snapshot.membership == .joined ? 0.18 : 0.08), in: Capsule())
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        CYHeroHeader(verbatim: snapshot.board.title)
+                            .padding(CYSpacing.lg).padding(.top, CYSpacing.xl)
+                            .background { CYCoverArt(seed: snapshot.board.regionId, symbol: "building.2.fill") }
+                        HStack(spacing: CYSpacing.sm) {
+                            CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.lifecycle == "OPEN" ? .success : .neutral,
+                                         systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
+                            CYStatusChip(membership(snapshot.membership), tone: snapshot.membership == .joined ? .info : .neutral,
+                                         systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
                         }
                     }
                     .accessibilityElement(children: .combine)
@@ -108,18 +105,16 @@ struct CityPlayerView: View {
                         rulesSheet = CityPlayerRulesPresentation(readID: selected.readID, read: snapshot,
                             flow: rulesFactory?(snapshot) ?? CityPlayerRulesFlow(client: nil))
                     } label: {
-                        Label { Text("cityRules.entry", tableName: "CityPlayerRules") } icon: { Image(systemName: "doc.text") }
-                            .frame(minHeight: 44)
-                    }
+                        CityEntryRow(icon: "doc.text", title: Text("cityRules.entry", tableName: "CityPlayerRules"))
+                    }.buttonStyle(.plain)
                     .disabled(!visible || scenePhase != .active)
                     .accessibilityIdentifier("cityRules.entry")
                     if let owner = arrivalFactory?(snapshot.board), owner.isCurrent {
                         NavigationLink {
                             CityArrivalEvidenceRuntimeHostView(owner: owner, revision: arrivalRevision)
                         } label: {
-                            Label { Text("cityArrival.playerEntry", tableName: "CityArrivalEvidence") } icon: { Image(systemName: "checkmark.shield") }
-                                .frame(minHeight: 44)
-                        }.accessibilityIdentifier("cityArrival.player.entry")
+                            CityEntryRow(icon: "checkmark.shield", title: Text("cityArrival.playerEntry", tableName: "CityArrivalEvidence"))
+                        }.buttonStyle(.plain).accessibilityIdentifier("cityArrival.player.entry")
                     }
                     if let owner = onsiteFactory?(snapshot.board), owner.isCurrent {
                         NavigationLink {
@@ -130,23 +125,22 @@ struct CityPlayerView: View {
                                 }
                             }, owner: owner, revision: onsiteRevision)
                         } label: {
-                            Label { Text("cityOnsite.entry", tableName: "CityOnsiteTask") } icon: { Image(systemName: "questionmark.circle") }
-                                .frame(minHeight: 44)
-                        }.accessibilityIdentifier("city.onsite.entry")
+                            CityEntryRow(icon: "questionmark.circle", title: Text("cityOnsite.entry", tableName: "CityOnsiteTask"))
+                        }.buttonStyle(.plain).accessibilityIdentifier("city.onsite.entry")
                     }
                     if let owner = neutralFactory?(snapshot.board), owner.isCurrent {
                         NavigationLink {
                             CityNeutralTaskRuntimeHostView(owner: owner, revision: neutralRevision)
                         } label: {
-                            Label { Text("cityNeutral.entry", tableName: "CityNeutralTask") } icon: { Image(systemName: "questionmark.circle") }
-                        }.frame(minHeight: 44).accessibilityIdentifier("city.neutral.entry")
+                            CityEntryRow(icon: "questionmark.circle", title: Text("cityNeutral.entry", tableName: "CityNeutralTask"))
+                        }.buttonStyle(.plain).accessibilityIdentifier("city.neutral.entry")
                     }
                     if let context = reader.pointMapContext {
                         // Keyed to this exact read so a reload never reuses old game state.
                         CityGameSlot(snapshot: context.snapshot, factory: gameFactory).id(context.readID)
                     }
                     if let context = reader.pointMapContext {
-                        if context.points.isEmpty { Text("city.read.points.empty") }
+                        if context.points.isEmpty { CYEmptyState(systemImage: "mappin.slash", "city.read.points.empty") }
                         else { pointContent(context) }
                     } else { Text("city.read.points.unavailable").foregroundStyle(.secondary) }
                 }
@@ -230,21 +224,23 @@ struct CityPlayerView: View {
                     selection = nil
                 }.frame(minHeight: 44).accessibilityIdentifier("city.read.point.clear")
             }.padding().frame(maxWidth: .infinity, alignment: .leading)
-                .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+                .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("city.read.point.card.\(point.pointId)")
+                .sensoryFeedback(.selection, trigger: renderedSelection.id)
         }
-        Text("city.read.points.list").font(.headline)
+        CYSectionHeader("city.read.points.list")
         ForEach(context.points) { point in
             Button { select(point.pointId, rendered: context) } label: {
                 HStack(alignment: .top, spacing: 12) {
                     QuestifyMapPinSymbol(symbol: symbol(point), selected: selected?.pointId == point.pointId)
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: point.title).fixedSize(horizontal: false, vertical: true)
-                        Text(ownStatus(point)).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: point.title).font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
+                        Text(ownStatus(point)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
                     }
                     Spacer(minLength: 0)
                 }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                    .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
             }.buttonStyle(.plain)
                 .accessibilityLabel(Text(verbatim: point.title) + Text(verbatim: ", ") + Text(ownStatus(point)))
                 .accessibilityHint(Text("city.read.point.selectHint"))
@@ -265,5 +261,23 @@ struct CityPlayerView: View {
     }
     private func lifecycle(_ value: String) -> LocalizedStringKey {
         switch value { case "OPEN": return "city.read.open"; case "FROZEN": return "city.read.frozen"; default: return "city.read.closed" }
+    }
+}
+
+/// Tappable entry row used by the city pages: icon tile, title, chevron on a domain card.
+struct CityEntryRow: View {
+    let icon: String
+    let title: Text
+    @Environment(\.cyPalette) private var palette
+    var body: some View {
+        HStack(spacing: CYSpacing.md) {
+            CYRowIcon(systemImage: icon)
+            title.font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                .frame(maxWidth: .infinity, alignment: .leading).fixedSize(horizontal: false, vertical: true)
+            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+        .contentShape(Rectangle())
     }
 }

@@ -23,15 +23,14 @@ import SwiftUI
                         Label("roam.history.denied", systemImage: "lock").accessibilityIdentifier("roam.experience.history.denied")
                     } else { RoamExperienceIssue(error: error, retry: load) }
                 }
-                else if !loaded { ProgressView("roamSub.w208.history.loading") }
+                else if !loaded { CYSkeleton().accessibilityLabel(Text("roamSub.w208.history.loading")) }
                 else if records.isEmpty {
                     if toolsReader != nil { RoamHistoryToolsRow(reader: toolsReader, privateTools: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) }
                     if let keys = localWalk.noticeKeys(reader: reader) {
-                        ContentUnavailableView(LocalizedStringKey(keys.title), systemImage: "pause.circle",
-                            description: Text(LocalizedStringKey(keys.hint)))
+                        CYEmptyState(systemImage: "pause.circle", LocalizedStringKey(keys.title), detail: LocalizedStringKey(keys.hint))
                             .accessibilityIdentifier("roam.experience.history.unfinished")
                     } else {
-                        ContentUnavailableView("roam.experience.historyEmpty", systemImage: "figure.walk", description: Text("roam.experience.historyEmptyHint"))
+                        CYEmptyState(systemImage: "figure.walk", "roam.experience.historyEmpty", detail: "roam.experience.historyEmptyHint")
                             .accessibilityElement(children: .contain)
                             .accessibilityIdentifier("roam.experience.history.empty")
                     }
@@ -45,7 +44,7 @@ import SwiftUI
                         Button("roam.experience.live", systemImage: "figure.walk") {
                             liveEntry.activate(reader: reader, hasDestination: liveDestination != nil, presentationID: presentationID)
                         }
-                        .buttonStyle(.questifyPrimary)
+                        .buttonStyle(.cyPrimary(fullWidth: true))
                         .accessibilityIdentifier("roam.experience.history.live.open")
                     }
                 } else {
@@ -58,9 +57,9 @@ import SwiftUI
                                     Text(distance, format: .number.precision(.fractionLength(1)))
                                 } else { Text(verbatim: "—") }
                             }
-                            .font(.system(.largeTitle, weight: .heavy).italic()).monospacedDigit()
+                            .font(.system(.largeTitle, design: .rounded).weight(.heavy)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                             .lineLimit(1).minimumScaleFactor(0.5)
-                            Text("roam.history.km").font(.headline).foregroundStyle(.secondary)
+                            Text("roam.history.km").font(CYTypography.cardTitle).foregroundStyle(CYColor.textSecondary)
                         }
                         .accessibilityElement(children: .combine)
                         // 次漫游 · 公里 · 家店 on one line under the total, as in the mini-program.
@@ -81,8 +80,8 @@ import SwiftUI
                             .accessibilityIdentifier("roam.experience.history.record")
                     }
                 }
-            }.padding()
-        }.navigationTitle("roam.experience.history")
+            }.padding(CYSpacing.pageHorizontal)
+        }.background(CYColor.bgPage.ignoresSafeArea()).navigationTitle("roam.experience.history")
             .task(id: RoamHistoryLiveOwner(reader: reader)) { load() }
             .onAppear { liveEntry.appear() }
             .onDisappear { liveEntry.disappear() }
@@ -305,7 +304,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("roam.share.open")
                 } else if currentLoaded {
-                    ContentUnavailableView("roam.experience.recordMissing", systemImage: "questionmark.folder", description: Text("roam.experience.recordMissingHint"))
+                    CYEmptyState(systemImage: "questionmark.folder", "roam.experience.recordMissing", detail: "roam.experience.recordMissingHint")
                         .accessibilityIdentifier("roam.experience.history.missing")
                 } else { ProgressView("roam.loading") }
             }.padding()

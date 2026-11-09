@@ -128,7 +128,6 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             case .marketing: marketing
             }
         }
-        .navigationTitle(Text(LocalizedStringKey(destination.title)))
         .themeDomain(.player)
         .toolbar {
             if showsCloseButton {

@@ -36,10 +36,9 @@ import SwiftUI
                     ObjectBadgeRoutePreview(parameters: parameters, expectedScope: entry.id, currentScope: { session.nativeEntry?.id ?? UUID() })
                 case .teamInvitation(let route):
                     if session.account == nil {
-                        VStack(spacing: 16) {
-                            Text("nativeNav.team.signInDetail")
-                            Button("team.signIn") { showsLogin = true }
-                        }.padding()
+                        CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "nativeNav.team.signInDetail",
+                                     actionTitle: "team.signIn", actionStyle: .primary) { showsLogin = true }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
                     } else {
                         SessionTeamDetailView(lookup: .invitation(route.code)).id(session.teamViewIdentity)
                     }
@@ -82,14 +81,18 @@ import SwiftUI
         case .topicDetail(let topicID):
             SessionTopicDetailView(id: topicID, session: session)
         case .home:
-            VStack(spacing: 16) {
+            VStack(spacing: CYSpacing.lg) {
+                Image(systemName: "house").font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
                 if let failure {
-                    if ["door.disabled", "door.unavailable"].contains(failure) { Text(LocalizedStringKey(failure)) }
-                    else { Text(verbatim: failure) }
+                    Group {
+                        if ["door.disabled", "door.unavailable"].contains(failure) { Text(LocalizedStringKey(failure)) }
+                        else { Text(verbatim: failure) }
+                    }.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
                 }
-                Button("homeFeed.title") { session.dismissNativeEntry(); goHome() }
-            }.padding()
-        case nil: ProgressView("door.resolving")
+                CYPillButton("homeFeed.title", style: .primary, fullWidth: false) { session.dismissNativeEntry(); goHome() }
+            }.padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity)
+        case nil:
+            ProgressView("door.resolving").frame(maxWidth: .infinity, maxHeight: .infinity)
         }
     }
 }

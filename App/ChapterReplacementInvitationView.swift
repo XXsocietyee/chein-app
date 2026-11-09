@@ -146,7 +146,7 @@ struct ChapterReplacementInvitationView: View {
                 }
             }
             statusSection
-        }
+        }.cyGroupedSurface()
         .appNavigationTitle("chapterReplacement.title")
         .task { await model.load() }
     }

@@ -9,6 +9,13 @@ import SwiftUI
     var body: some View {
         if !targets.isEmpty && !continued {
             VStack(alignment: .leading, spacing: 12) {
+                // Unlock moment: medal lands with a spring, light confetti, success haptic (Reduce Motion: still).
+                if let first = targets.first {
+                    CYBadgeMedal(seed: first.name ?? first.code, size: 96)
+                        .frame(maxWidth: .infinity)
+                        .overlay { CYConfettiBurst(fireOnAppear: true).frame(height: 160) }
+                        .cyStampSlam(trigger: true)
+                }
                 Text("playBadge.receipt").font(.headline)
                 Text("playBadge.readbackHint").font(.footnote).foregroundStyle(.secondary)
                 ForEach(targets) { target in
@@ -57,7 +64,7 @@ import SwiftUI
                     }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .privacySensitive().navigationTitle("playBadge.collection").navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("playBadge.collection")
         .toolbar {
