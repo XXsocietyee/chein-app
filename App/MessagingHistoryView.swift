@@ -604,6 +604,7 @@ private struct ChatHistoryStatus: View {
     private var statusForm: some View {
         NavigationStack {
             Form { statusContent }
+                .cyGroupedSurface()
                 .navigationTitle(Text("im.safety.title"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

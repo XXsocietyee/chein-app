@@ -90,6 +90,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
+        .cyGroupedSurface()
         .navigationTitle(localized("friendDirectory.title"))
         .accessibilityIdentifier("friendDirectory.home")
         .task { await flow.load() }
@@ -281,6 +282,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
+        .cyGroupedSurface()
         .navigationTitle(localized("friendDirectory.detail"))
         .navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("friendDirectory.detail")

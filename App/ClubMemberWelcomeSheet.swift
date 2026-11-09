@@ -69,6 +69,7 @@ import SwiftUI
             .background {
                 if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
             }
+            .cyGroupedSurface()
             .navigationTitle(Text("welcome.title", tableName: "ClubMemberWelcome"))
             .safeAreaInset(edge: .top) { if !value.club.name.isEmpty { Text(verbatim: value.club.name).font(.headline).padding(.horizontal) } }
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(action: close) { Text("welcome.close", tableName: "ClubMemberWelcome") } } }

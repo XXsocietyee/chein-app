@@ -258,6 +258,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            .cyGroupedSurface()
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .background {

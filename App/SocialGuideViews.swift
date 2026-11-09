@@ -60,6 +60,7 @@ import SwiftUI
                 }
             }
         }
+        .cyGroupedSurface()
         .appNavigationTitle("guideXcx.detailTitle")
         .navigationBarTitleDisplayMode(.inline)
         .cyDomainPageBackground()

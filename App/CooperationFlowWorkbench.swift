@@ -110,6 +110,7 @@ struct CoopFlowSafetyNotice: View {
                 Section { CoopFlowSafetyNotice() }
             } else { ProgressView("cooperation.loading") }
         }
+        .cyGroupedSurface()
         .navigationTitle(LocalizedStringKey(title))
         .background {
             if resource == .pool {

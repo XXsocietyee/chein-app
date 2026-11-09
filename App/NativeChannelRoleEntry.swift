@@ -193,6 +193,7 @@ import SwiftUI
             }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle("d7.channelRoles.title")
         .task { await open() }
         .task { while !Task.isCancelled { if let flow,!flow.isCurrent { close() };do { try await Task.sleep(nanoseconds:500_000_000) } catch { return } } }

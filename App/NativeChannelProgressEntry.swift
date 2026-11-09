@@ -173,6 +173,7 @@ struct NativeChannelProgressEntryIdentity: Hashable {
                     }
                 }
             }
+            .cyGroupedSurface()
             .navigationTitle(Text("title", tableName: "NativeChannelProgress"))
             .toolbar { ToolbarItem(placement: .topBarLeading) { Button { close() } label: { Text("done", tableName: "NativeChannelProgress") } } }
             .refreshable { await model.loadDirectory() }

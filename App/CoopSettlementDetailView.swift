@@ -86,6 +86,7 @@ import SwiftUI
             } else if let issue, !loading { failure(issue) }
             else { ProgressView("cooperation.loading").accessibilityIdentifier("cooperation.settlement.loading") }
         }
+        .cyGroupedSurface()
         .cyMiniListScreen()
         .appNavigationTitle("cooperation.settlement.title")
         .task(id: ReadTask(reader: ObjectIdentifier(reader), account: reader.session?.accountID, epoch: reader.session?.epoch, source: source.rawValue, recordID: id, refresh: refresh)) { await load() }

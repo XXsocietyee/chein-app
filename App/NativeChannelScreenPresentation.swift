@@ -6,6 +6,7 @@ private struct NativeChannelScreenPresentation: ViewModifier {
         content
             .font(Theme.Font.body)
             .environment(\.defaultMinListRowHeight, 44)
+            .cyGroupedSurface()
             .navigationBarTitleDisplayMode(.inline)
     }
 }

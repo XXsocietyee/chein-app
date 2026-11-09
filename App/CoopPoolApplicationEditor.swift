@@ -198,6 +198,7 @@ import SwiftUI
             } else { Text("coopflow.poolMessage.unavailable") }
             CoopFlowSafetyNotice()
         }
+        .cyGroupedSurface()
         .navigationTitle("coopflow.apply")
         .toolbar { ToolbarItem(placement: .cancellationAction) {
             Button("action.cancel") {

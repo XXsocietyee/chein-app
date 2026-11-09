@@ -115,6 +115,7 @@ import SwiftUI
         }
         .refreshable { selections=[:];await flow.refresh() }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle("d7.channelOnboarding.title").privacySensitive().task{await flow.activate()}.onDisappear{selections=[:];flow.deactivate()}
     }
     private func choose(_ prompt:NativeOnboardingSnapshot.Prompt,_ option:String,_ selected:Bool){

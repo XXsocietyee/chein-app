@@ -89,6 +89,7 @@ import SwiftUI
             }
             Button("club.gov.refresh") { Task { await reload() } }.disabled(!loadKey.active || model.loading)
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("sessions.title", tableName: "ClubCalendarSessions"))
         .task(id: loadKey) {
             model.invalidate(); model.bind(key)

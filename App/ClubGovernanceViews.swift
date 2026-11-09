@@ -625,6 +625,7 @@ struct ClubGovernanceReadView: View {
             if !loading { Button("club.gov.refresh") { Task { await load() } }.accessibilityIdentifier("club.gov.refresh") }
         }
         .scrollContentBackground(.hidden).cyDomainPageBackground()
+        .cyGroupedSurface()
         .navigationTitle(title)
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
         .background {
@@ -1660,6 +1661,7 @@ struct ClubGovernanceEventView: View {
             Button("club.gov.refresh") { Task { await reload() } }.disabled(loading).accessibilityIdentifier("club.story.refresh")
         }
         .scrollContentBackground(.hidden).cyDomainPageBackground()
+        .cyGroupedSurface()
         .navigationTitle("club.gov.story").accessibilityIdentifier("club.gov.story")
         .navigationDestination(item: $selectedTemplate) { selection in
             Group {

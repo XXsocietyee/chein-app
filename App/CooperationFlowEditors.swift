@@ -284,6 +284,7 @@ struct CoopFlowOfferEditor: View {
                 }.scrollDismissesKeyboard(.interactively)
             } else { Text("coopflow.invite.sessionChanged") }
         }
+        .cyGroupedSurface()
         .navigationTitle("coopflow.invite.title")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

@@ -109,6 +109,7 @@ import SwiftUI
             Button("club.gov.refresh") { refresh() }.disabled(model.loading)
                 .accessibilityIdentifier("club.calendar.refresh")
         }
+        .cyGroupedSurface()
         .navigationTitle("club.calendar.title")
         .background {
             if let item = reportPresentation.presented {

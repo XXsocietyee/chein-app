@@ -1204,6 +1204,7 @@ public struct ClubChannelMemberRosterSheet: View {
                     }
                 }
             }
+            .cyGroupedSurface()
             .navigationTitle(copy("\(clubName) · 成员与身份组", "\(clubName) · Members & Roles"))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

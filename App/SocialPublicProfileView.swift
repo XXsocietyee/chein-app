@@ -219,6 +219,7 @@ import SwiftUI
                 }
             }
         }
+        .cyGroupedSurface()
         }.appNavigationTitle("social.profile").navigationBarTitleDisplayMode(.inline)
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,

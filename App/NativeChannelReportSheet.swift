@@ -55,6 +55,7 @@ import SwiftUI
                 }
             }
             .nativeChannelFlowPage()
+            .cyGroupedSurface()
             .navigationTitle(Text("d7.channelReport.title"))
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         }

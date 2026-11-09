@@ -149,6 +149,7 @@ import SwiftUI
         }
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
+        .cyGroupedSurface()
         .navigationTitle(localized("friend.title"))
         .accessibilityIdentifier("friend.home")
         .task { await flow.load() }
@@ -199,6 +200,7 @@ import SwiftUI
                     }
                 }
                 .formStyle(.grouped)
+                .cyGroupedSurface()
                 .navigationTitle(localized("friend.new"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
@@ -233,6 +235,7 @@ import SwiftUI
                     }
                     .formStyle(.grouped)
                     .font(Theme.Font.body)
+                    .cyGroupedSurface()
                     .navigationTitle(localized("friend.confirm." + review.command.action.rawValue))
                     .navigationBarTitleDisplayMode(.inline)
                     .accessibilityIdentifier("friend.confirmation")
