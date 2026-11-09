@@ -86,3 +86,4 @@ e3-club-detail now renders the REAL ClubDetailView (D4ClubFixture); new e3-club-
 Verified: club detail EN/zh/XL, overview, chat, inbox, social, story. Hero fixed AFTER shot for XL (chip overlapped cover icon): not re-shot.
 ## Not done / honest scores
 Club apply/create and notices have no real-view change beyond tokens; follow list, friend directory, calendar month grid, IM rich cards have no fixture reaching the real view (need hosts in non-UI files) so unverified by shot. Scores: club detail 8, story 7, calendar 7 (events fixture empty), IM cards 7, follow/friends 7, apply 6, notices 7. Under 8 as listed.
+Re-shot after hero fix (contact-144713.png, EN + XL zh): builds, hero grows with type; at XL the chip still sits over the decorative cover icon (cosmetic).
