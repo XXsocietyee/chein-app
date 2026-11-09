@@ -62,6 +62,11 @@ public struct ProfileService {
         let result: ParticipantRows = try await execute(bodyless("api/user/address/list", token: token))
         return result.rows
     }
+    /// Same bodyless POST as `participants`. Also keeps the table `total` already on that payload.
+    /// Does not add a route or change `participants()`.
+    public func participantListFacts(token: String) async throws -> ProfileParticipantListFacts {
+        try await execute(bodyless("api/user/address/list", token: token))
+    }
     public func participant(id: Int, token: String) async throws -> ProfileParticipant {
         guard id > 0 else { throw APIError.invalidRequest }
         let result: ProfileParticipant = try await execute(form("api/user/address/info", fields: ["id": String(id)], token: token))
