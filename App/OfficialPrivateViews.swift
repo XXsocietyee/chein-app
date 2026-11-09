@@ -43,7 +43,7 @@ import SwiftUI
                             Text(verbatim: c.t(note.zh, note.en)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
                         }
                         if let cap = row.capacity {
-                            Text(verbatim: c.t("承接名额 \(cap)", "Capacity \(cap)")).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
+                            Text(verbatim: appLocalized("official.inbox.capacity \(cap)", locale: locale)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
                         }
                         if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(CYTypography.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {

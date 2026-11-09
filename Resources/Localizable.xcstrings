@@ -392,6 +392,23 @@
         }
       }
     },
+    "Couldn't load this. Check your connection.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Couldn't load this. Check your connection."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法加载这个内容。请检查网络连接。"
+          }
+        }
+      }
+    },
     "Create a new club draft and take the original topic offline. The initiator retains content ownership; the club organizes only.": {
       "extractionState": "manual",
       "localizations": {
@@ -10394,6 +10411,210 @@
         }
       }
     },
+    "club.channel.announcementReadOnly": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Announcement · read only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "公告 · 只读"
+          }
+        }
+      }
+    },
+    "club.channel.attachment.add": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add attachment"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "添加附件"
+          }
+        }
+      }
+    },
+    "club.channel.attachment.link": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "链接"
+          }
+        }
+      }
+    },
+    "club.channel.backToList": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back to channel list"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "返回频道列表"
+          }
+        }
+      }
+    },
+    "club.channel.membersCount %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Members & roles · %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道成员与身份组 · %lld"
+          }
+        }
+      }
+    },
+    "club.channel.mute": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "频道免打扰"
+          }
+        }
+      }
+    },
+    "club.channel.rules.accept": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept Channel Rules & EULA"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我已阅读并同意频道公约"
+          }
+        }
+      }
+    },
+    "club.channel.rules.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。"
+          }
+        }
+      }
+    },
+    "club.channel.rules.prompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review the channel rules to post"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发言前请先阅读频道公约"
+          }
+        }
+      }
+    },
+    "club.channel.rules.review": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Review rules"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看公约"
+          }
+        }
+      }
+    },
+    "club.channel.rules.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Club Channel Rules & Safety EULA"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "俱乐部频道公约与安全守则"
+          }
+        }
+      }
+    },
+    "club.channel.unmute": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unmute channel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消频道免打扰"
+          }
+        }
+      }
+    },
     "club.chat.disabled": {
       "extractionState": "manual",
       "localizations": {
@@ -19818,6 +20039,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "主理人"
+          }
+        }
+      }
+    },
+    "club.leave.confirmTitle %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave “%@”?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出「%@」？"
+          }
+        }
+      }
+    },
+    "club.leave.memberEventsEnd": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Member-only event spots end immediately; payments already made are not refunded automatically"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "会员专属活动的报名资格立即失效，已付款项不随退出自动退回"
+          }
+        }
+      }
+    },
+    "club.leave.notKept": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This can’t be undone; your membership and join date won’t be kept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作不可撤销，当前的成员身份与加入时间不会保留"
+          }
+        }
+      }
+    },
+    "club.leave.removedFromGroup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’ll be removed from the group and lose member-only content"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你会被移出团群，看不到成员专属内容"
           }
         }
       }
@@ -101702,6 +101991,23 @@
         }
       }
     },
+    "merchant.publicHome.gameFacts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Store content and original reply"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "店内内容与原回复"
+          }
+        }
+      }
+    },
     "merchant.publicHome.invalid": {
       "localizations": {
         "en": {
@@ -124294,6 +124600,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "承接邀约"
+          }
+        }
+      }
+    },
+    "official.inbox.capacity %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Capacity %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "承接名额 %lld"
           }
         }
       }
@@ -159912,6 +160235,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "核销时间"
+          }
+        }
+      }
+    },
+    "profile.orders.viewDetails": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看详情"
           }
         }
       }
@@ -228454,6 +228794,74 @@
         }
       }
     },
+    "wallet.assets.availableBalanceLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AVAILABLE BALANCE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可提现/可用余额"
+          }
+        }
+      }
+    },
+    "wallet.assets.disputedLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Disputed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "争议中"
+          }
+        }
+      }
+    },
+    "wallet.assets.myAssets": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My assets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的资产"
+          }
+        }
+      }
+    },
+    "wallet.assets.withdrawableLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Withdrawable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可提现"
+          }
+        }
+      }
+    },
     "wallet.available": {
       "localizations": {
         "en": {
@@ -228963,6 +229371,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "积分不足"
+          }
+        }
+      }
+    },
+    "wallet.ledger.referenceID": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reference ID"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "流水编号"
+          }
+        }
+      }
+    },
+    "wallet.ledger.timestamp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Timestamp"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录时间"
           }
         }
       }
@@ -237088,6 +237530,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "预览本地成长修改"
+          }
+        }
+      }
+    },
+    "wallet.monthIncome.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Income this month"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月收入明细"
+          }
+        }
+      }
+    },
+    "wallet.more": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "More"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多"
           }
         }
       }
