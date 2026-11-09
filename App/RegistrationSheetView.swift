@@ -372,6 +372,7 @@ struct RegistrationSheetView: View {
         }
         .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
         .background(.bar)
+        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
     }
     private var participantSection: some View {
         Section {

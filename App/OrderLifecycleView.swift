@@ -72,7 +72,16 @@ import SwiftUI
                     .accessibilityIdentifier("orderLifecycle.refresh")
             }
         }
-        .task(id: coordinator.scope) { await model.load(id: id) }
+        .task(id: coordinator.scope) {
+            await model.load(id: id)
+            #if DEBUG
+            // Design fixtures only: `--design-auto-review` opens the first reviewable action so the confirm sheet can be shot.
+            if ProcessInfo.processInfo.arguments.contains("--design-auto-review"), let d = coordinator.detail,
+               let a = OrderLifecycleAction.allCases.first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: d) }) {
+                try? await Task.sleep(nanoseconds: 800_000_000); model.prepare(a, orderID: id)
+            }
+            #endif
+        }
         .refreshable { await model.load(id: id) }
         .onDisappear { model.dismiss() }
         .onChange(of: phase) { _, value in
@@ -303,7 +312,7 @@ struct OrderLifecycleField: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("orderLifecycle.review.close", action: close).accessibilityIdentifier("orderLifecycle.review.close") } }
             .accessibilityIdentifier("orderLifecycle.review.sheet")
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
     }
 }
