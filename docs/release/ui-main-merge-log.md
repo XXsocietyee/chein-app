@@ -15,3 +15,5 @@ CYCachedAsyncImage:101, CYConfirmSheet (cancelIdentifier/titleIdentifier missing
 
 Build 2-4 (after GO): cherry-picked e3 5a0e12706 (duplicate score) and e1 f01d48935 (RoamStamp tint); added CYListRow verbatim init without leading (MerchantMarketingView:159, rc error); dropped `?` on earlyAccuse allowed (ContentContractV1:520).
 Remaining: App/QuestifyApp.swift:262 `var body` "failed to produce diagnostic" (file identical to rc cfbc9aa75, so likely an rc error hidden inside the body); no other error lines in the log.
+
+Build 5 (design-batch int): BUILD_EXIT=0, six fixtures shot. QuestifyApp fix: `bankWithdrawalDestination` ternary `{closure} : nil` against `(@MainActor () -> AnyView)?` made the body diagnostic fail; now typed explicitly. QuestifyApp body is also split (per-tab properties, chain helpers).
