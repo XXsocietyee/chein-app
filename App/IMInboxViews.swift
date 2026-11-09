@@ -87,27 +87,28 @@ struct IMInboxRow: View {
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
-                .frame(width: avatarSize, height: avatarSize)
+                .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
                 .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 2)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 6))
-                layout {
+                if typeSize.isAccessibilitySize {
                     MessagingConversationName(conversation: conversation)
-                        .font(.body.weight(.semibold)).lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+                        .font(.body.weight(.semibold)).fixedSize(horizontal: false, vertical: true)
                     HStack(spacing: 6) {
-                        if conversation.kind == .merchant {
-                            CYStatusChip("im.inbox.officialTag", tone: .neutral)
-                                .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
-                        }
-                        if conversation.muted == true {
-                            Image(systemName: "bell.slash").font(.caption).foregroundStyle(.secondary)
-                                .accessibilityLabel(Text("im.inbox.mutedLabel"))
-                        }
-                        if !typeSize.isAccessibilitySize { Spacer(minLength: 4) }
+                        officialChip; muteMark
                         IMInboxTimeLabel(raw: conversation.lastMessageAt)
                             .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
-                            .layoutPriority(1)
+                    }
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: 6) {
+                        MessagingConversationName(conversation: conversation)
+                            .font(.body.weight(.semibold)).lineLimit(1)
+                        officialChip.fixedSize()
+                        muteMark
+                        Spacer(minLength: 4)
+                        IMInboxTimeLabel(raw: conversation.lastMessageAt)
+                            .font(.footnote).monospacedDigit().foregroundStyle(.secondary)
+                            .fixedSize().layoutPriority(1)
                     }
                 }
                 HStack(alignment: .center, spacing: 6) {
@@ -119,6 +120,18 @@ struct IMInboxRow: View {
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
+    }
+    @ViewBuilder private var officialChip: some View {
+        if conversation.kind == .merchant {
+            CYStatusChip("im.inbox.officialTag", tone: .neutral)
+                .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
+        }
+    }
+    @ViewBuilder private var muteMark: some View {
+        if conversation.muted == true {
+            Image(systemName: "bell.slash").font(.caption).foregroundStyle(.secondary)
+                .accessibilityLabel(Text("im.inbox.mutedLabel"))
+        }
     }
     private var symbol: String {
         switch conversation.kind {
