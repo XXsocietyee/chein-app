@@ -85,11 +85,8 @@ struct IMInboxRow: View {
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 56
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            Image(systemName: symbol)
-                .font(.title2)
-                .foregroundStyle(palette.textSecondary)
+            CYCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
                 .frame(width: avatarSize, height: avatarSize)
-                .background(Circle().fill(palette.bgRaised))
                 .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
