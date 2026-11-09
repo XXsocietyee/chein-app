@@ -28,7 +28,7 @@ struct CityGamePanel: View {
     let read: CityReadSnapshot
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            CYSectionHeader("cityGame.title")
+            Text("cityGame.title", tableName: "CityGame").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
             phaseText.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("cityGame.phase")
             if model.phase == .loading || model.phase == .quoting || model.phase == .sending { CYSkeleton() }
             if let notice = model.notice { noticeText(notice).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("cityGame.notice") }
