@@ -290,9 +290,16 @@ import Foundation
     public func confirmUnknownWrite() async {
         guard writeState == .unknown, let entry = pending, !receiptReading else { return }
         receiptReading = true; let scope = service.scope
+        defer { receiptReading = false }
         writeMessage = .key("merchantGameNode.write.checking")
-        let result = await service.readReceipt(activityID: activityID, requestID: entry.index.requestID)
-        receiptReading = false
+        let result: MerchantGameNodeReceiptResult
+        do { result = try await service.readReceipt(activityID: activityID, requestID: entry.index.requestID) }
+        catch {
+            guard scope == service.scope, pending?.index == entry.index else { return }
+            writeState = .unknown
+            writeMessage = .key((error as? APIError) == .notConfigured ? "merchantGameNode.write.notConfirmed" : "merchantGameNode.error.network")
+            return
+        }
         guard scope == service.scope, pending?.index == entry.index else { return }
         switch result {
         case .matched(let receipt) where receipt.matches(entry.index, outcome: "APPLIED"):

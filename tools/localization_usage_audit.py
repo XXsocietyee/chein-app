@@ -121,6 +121,7 @@ def lex(path, src):
             lit.label = pending_label
             lit.argidx = stack[-1]['idx'] if stack else -1
             lit.call_labels = [st['labels'] for st in stack]
+            lit.opens = tuple(st['open'] for st in stack)
             if stack: stack[-1]['lits'].append(lit)
             lits.append(lit)
             for t2, ip2, l2 in nested:
@@ -141,7 +142,7 @@ def lex(path, src):
             callee = last_ident if code_hist and re.fullmatch(r'[A-Za-z_]\w*', code_hist[-1] or '') else ''
             if code_hist and code_hist[-1] in ('?','!'): callee = ''
             prevw = code_hist[-1] if code_hist else ''
-            stack.append(dict(callee=callee if re.fullmatch(r'[A-Za-z_]\w*', prevw) else '', idx=0, label='', lits=[], labels=set()))
+            stack.append(dict(callee=callee if re.fullmatch(r'[A-Za-z_]\w*', prevw) else '', idx=0, label='', lits=[], labels=set(), open=i))
             pending_label = ''; code_hist.append('('); i += 1; continue
         if c == ')':
             if stack:

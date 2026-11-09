@@ -305,11 +305,22 @@ import FoundationNetworking
         if authoritativeMerchantID() != nil, decoded.status == "WAITING", !(decoded.executeAfter ?? "").isEmpty { decoded.legacyPendingOverride = true }
         return decoded
     }
+    /// Installs the file-journal handoff mark. In-memory journals keep the default no-op.
+    private func bindDeregistrationApplyMemory(_ client: AccountDeregistrationOriginalClient, session: ComplianceSession) {
+        let scope = session.journalScope
+        client.rememberedApply = { [journal] requestID in
+            (try? journal.deregistrationApplyWasDispatched(scope: scope, requestID: requestID)) == true
+        }
+        client.rememberApply = { [journal] requestID in
+            try journal.noteDeregistrationApplyDispatched(scope: scope, requestID: requestID)
+        }
+    }
     /// Exact GET only, including after cold launch/new authentication. UNKNOWN never becomes a resend.
     public func recoverOriginalApplication(session: ComplianceSession, whileCurrent: () -> Bool = { true }) async throws -> AccountDeregistrationOriginalReceipt? {
         guard !busy, whileCurrent() else { throw ComplianceFailure.busy }
         guard let intent = try unresolved("deregister", session: session), intent.deregistrationOriginalVersion == 1 else { return nil }
         guard let client = deregistrationOriginal(), client.matches(session) else { throw ComplianceFailure.unavailable }
+        bindDeregistrationApplyMemory(client, session: session)
         busy = true; defer { busy = false }
         let receipt = try await client.result(intent, session: session)
         try check(session)
@@ -350,13 +361,20 @@ import FoundationNetworking
             let intent = CompliancePendingOperation(scope: session.journalScope, operation: "deregister", requestID: requestID, epoch: session.epoch,
                 deregistrationRealm: client.context.baseURL.absoluteString, deregistrationOriginalVersion: 1, deregistrationImpactRevision: impact.revision)
             guard AccountDeregistrationOriginalClient.validUUID(requestID) else { throw ComplianceFailure.invalidInput }
+            bindDeregistrationApplyMemory(client, session: session)
             busy = true; defer { busy = false }
             let prior = try await client.result(intent, session: session)
             try check(session)
             guard whileCurrent(), client.matches(session), !prior.settled else { throw ComplianceFailure.unresolved }
             try journal.begin(intent)
             guard try unresolved("deregister", session: session) == intent, whileCurrent(), client.matches(session) else { throw ComplianceFailure.unresolved }
-            try await client.apply(code: code, intent: intent, session: session)
+            do { try await client.apply(code: code, intent: intent, session: session) }
+            catch {
+                // A refusal before the body is sent is not a lost response. Keep the journal when
+                // the transport already received the body so recovery reads the receipt instead of posting again.
+                if !client.didHandApplyToTransport(intent.requestID) { try? journal.resolve(scope: session.journalScope, operation: "deregister") }
+                throw error
+            }
             try check(session); guard whileCurrent(), client.matches(session) else { throw ComplianceFailure.staleSession }
             let receipt = try await client.result(intent, session: session)
             try check(session)

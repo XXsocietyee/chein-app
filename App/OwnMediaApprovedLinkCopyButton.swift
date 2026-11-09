@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import Observation
 
 @MainActor @Observable final class OwnMediaApprovedLinkCopyModel {
@@ -16,9 +15,7 @@ import Observation
     @ObservationIgnored private var task: Task<Void, Never>?
     private var phase: Phase = .idle
     init(asset: OwnMediaAsset, access: OwnMediaApprovedLinkAccess?, currentAsset: @escaping () -> OwnMediaAsset?,
-         copyText: @escaping (String) throws -> Void = { value in
-             UIPasteboard.general.setItems([["public.utf8-plain-text": value]], options: [.localOnly: true])
-         }) {
+         copyText: @escaping (String) throws -> Void = { LocalPasteboard.copy($0) }) {
         self.asset = asset; self.access = access; self.currentAsset = currentAsset; self.copyText = copyText
         source = access?.sourceRevision(asset)
     }

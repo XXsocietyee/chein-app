@@ -143,6 +143,54 @@ final class BNDContractsDecodingTests: XCTestCase {
         XCTAssertThrowsError(try decode(BundleOrderReceipt.self, #"{"requestId":"r","receipt":"AMBIGUOUS"}"#))
     }
 
+    func testTimestampFailsClosedAndKeepsAnUnparsedRaw() throws {
+        let fraction = try decode(BundleTimestamp.self, "1.5")
+        XCTAssertEqual(fraction.raw, "1.5")
+        XCTAssertEqual(fraction.epochMs, 1)
+        let zero = try decode(BundleTimestamp.self, "0")
+        XCTAssertEqual(zero.raw, "0")
+        XCTAssertNil(zero.epochMs)
+        let garbage = try decode(BundleTimestamp.self, "\"not-a-date\"")
+        XCTAssertEqual(garbage.raw, "not-a-date")
+        XCTAssertNil(garbage.epochMs)
+        XCTAssertThrowsError(try decode(BundleTimestamp.self, "true"))
+        XCTAssertThrowsError(try decode(BundleTimestamp.self, "{}"))
+    }
+
+    func testStatusCatalogsKeepUnknownReservationAndCancelText() throws {
+        XCTAssertEqual(BundleStatusCatalog.knownReservationStatuses, Set([
+            "BOOKED", "CANCELLED", "WAIVED", "LATE_CANCELLED", "NO_SHOW", "FULFILLED", "MERCHANT_EXITED"
+        ]))
+        XCTAssertEqual(BundleStatusCatalog.knownCancelOutcomes, Set(["CANCELLED", "WAIVED", "LATE_CANCELLED"]))
+        XCTAssertFalse(BundleStatusCatalog.knownReservationStatuses.contains("FUTURE_STATUS"))
+        XCTAssertFalse(BundleStatusCatalog.knownCancelOutcomes.contains("FUTURE_STATUS"))
+        let view = try decode(BundleOrderView.self, BNDFixtures.orderView().replacingOccurrences(of: "\"status\":\"BOOKED\"", with: "\"status\":\"FUTURE_STATUS\""))
+        XCTAssertEqual(view.bundle?.reservations.first?.status, "FUTURE_STATUS")
+        let quoteJSON = BNDFixtures.cancelQuoteWaived
+            .replacingOccurrences(of: "\"outcome\":\"WAIVED\"", with: "\"outcome\":\"FUTURE_STATUS\"")
+            .replacingOccurrences(of: "\"expectedOutcome\":\"WAIVED:2026-11\"", with: "\"expectedOutcome\":\"KEEP-ME\"")
+        let quote = try decode(BundleCancelQuote.self, quoteJSON)
+        XCTAssertEqual(quote.outcome, "FUTURE_STATUS")
+        XCTAssertEqual(quote.expectedOutcome, "KEEP-ME")
+        XCTAssertFalse(BundleStatusCatalog.knownCancelOutcomes.contains(quote.outcome))
+    }
+
+    func testFulfilledMerchantsAndAFoundReceiptDoNotProveAbsence() throws {
+        let json = BNDFixtures.orderView().replacingOccurrences(
+            of: "\"policy\":",
+            with: "\"fulfilledMerchants\":[{\"merchantId\":3,\"registrationId\":9001,\"holderMemberId\":5}],\"policy\":")
+        let view = try decode(BundleOrderView.self, json)
+        let merchant = try XCTUnwrap(view.bundle?.fulfilledMerchants?.first)
+        XCTAssertEqual(merchant.merchantId, try id(3))
+        XCTAssertEqual(merchant.registrationId, try id(9001))
+        XCTAssertEqual(merchant.holderMemberId, try id(5))
+        let absent = try decode(BundleOrderView.self, BNDFixtures.orderView())
+        XCTAssertNil(absent.bundle?.fulfilledMerchants)
+        let found = try decode(BundleOrderReceipt.self, BNDFixtures.receiptFound())
+        XCTAssertEqual(found.receipt, .found)
+        XCTAssertFalse(found.provesNoWrite)
+    }
+
     func testDecodesExitOptions() throws {
         let options = try decode(BundleExitOptions.self, BNDFixtures.exitOptions)
         XCTAssertTrue(options.merchantExited); XCTAssertFalse(options.refundSubmissionAvailable)

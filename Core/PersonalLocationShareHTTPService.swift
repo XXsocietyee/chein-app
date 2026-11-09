@@ -20,6 +20,7 @@ import FoundationNetworking
         session = URLSession(configuration: config, delegate: NoRedirect(), delegateQueue: nil)
     }
     public func data(for request: URLRequest) async throws -> (Data, HTTPURLResponse) {
+        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request)
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw PersonalLocationShareFailure.invalidContract }
         return (data, http)

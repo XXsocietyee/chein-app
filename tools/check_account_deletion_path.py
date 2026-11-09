@@ -18,34 +18,128 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 # Search needle only. This script never requests the path.
 APPLY_PATH = "api/user/deregister/apply"
+CHINA_HOST = "https://www.chengyinhub.com/prod-api/"
+XCCONFIG_HOST = "https:/$()/www.chengyinhub.com/prod-api/"
+CHINA_REALM = "cn-prod"
+NIL_COMPOSITION = "makeComposition(reviewed: nil, build: .current)"
 
 
 def read(relative):
     return (ROOT / relative).read_text()
 
 
-def composition_body(source):
-    match = re.search(
-        r"@MainActor static var composition: AppCompositionRoot \{\n(?P<body>.*?)\n    \}",
-        source,
-        re.S,
-    )
-    if match is None:
+def brace_body(source, signature, opener="{"):
+    start = source.find(signature)
+    if start < 0:
         return None
-    return match.group("body")
+    brace = source.find(opener, start)
+    if brace < 0:
+        return None
+    brace = brace + opener.rfind("{")
+    depth = 0
+    for index in range(brace, len(source)):
+        char = source[index]
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return source[brace + 1:index]
+    return None
+
+
+def last_assignment(text, key):
+    found = None
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or stripped.startswith("//"):
+            continue
+        name, sep, value = stripped.partition("=")
+        if sep and name.strip() == key:
+            found = value.strip()
+    return found
+
+
+def check_shipped_composition(failures):
+    """Accept shippedComposition only while an empty URL or realm stays unconfigured.
+
+    The composition property itself must not select a reviewed deployment. China is
+    admitted only by admitsShippedChina: market China, the reviewed host, and a
+    bundle plus realm that can form a storage scope.
+    """
+    launch = read("App/RegionalLaunchConfiguration.swift")
+    body = brace_body(launch, "@MainActor static var composition: AppCompositionRoot")
+    if body is None:
+        failures.append("composition property not found")
+        body = ""
+    elif body.count("shippedComposition(build: .current)") != 1:
+        failures.append("composition property does not call shippedComposition(build: .current) once")
+    if "makeComposition(" in body or "reviewedComposition" in body or "reviewedMarketComposition" in body or "productionGatesEnabled" in body:
+        failures.append("composition property selects a reviewed deployment")
+    if "https://" in body or CHINA_HOST in launch:
+        failures.append("launch configuration names a host literal")
+
+    shipped = brace_body(launch, "@MainActor static func shippedComposition(", ") -> AppCompositionRoot {")
+    if shipped is None:
+        failures.append("shippedComposition not found")
+        shipped = ""
+    else:
+        guard = (
+            "        let base = build.baseURL ?? \"\"\n"
+            "        let bundle = build.bundleIdentifier ?? \"\"\n"
+            "        let realm = build.realm ?? \"\"\n"
+            "        guard let market, ReviewedMarketLaunch.admitsShippedChina(\n"
+            "            market: market, baseURL: base, bundleIdentifier: bundle, realm: realm\n"
+            "        ) else {\n"
+            "            return makeComposition(reviewed: nil, build: .current)\n"
+            "        }"
+        )
+        if guard not in shipped:
+            failures.append("empty URL or realm no longer uses makeComposition(reviewed: nil, build: .current)")
+        if shipped.count(NIL_COMPOSITION) != 1:
+            failures.append("shippedComposition does not keep exactly one unconfigured composition")
+        reviewed_at = shipped.find("reviewedComposition(")
+        nil_at = shipped.find(NIL_COMPOSITION)
+        if reviewed_at < 0 or nil_at < 0 or nil_at > reviewed_at:
+            failures.append("unconfigured composition is not the failure path before a reviewed composition")
+        if "reviewedMarketComposition" in shipped or "productionGatesEnabled" in shipped or "https://" in shipped:
+            failures.append("shippedComposition selects a market composition or names a host")
+
+    admits = brace_body(read("Core/RegionalConfiguration.swift"), "public static func admitsShippedChina(")
+    if admits is None:
+        failures.append("admitsShippedChina not found")
+    elif (
+        "guard market == .china, base == chinaProductionBaseURL else { return false }" not in admits
+        or "return (try? storageScope(market: market, baseURL: base, bundleIdentifier: bundle, realm: realm)) != nil" not in admits
+    ):
+        failures.append("China host is not limited to market China with a bundle and realm")
+    regional = read("Core/RegionalConfiguration.swift")
+    if f'public static let chinaProductionBaseURL = "{CHINA_HOST}"' not in regional:
+        failures.append("China host string changed")
+
+    china = read("Config/China.Production.xcconfig")
+    if last_assignment(china, "QUESTIFY_API_BASE_URL") != XCCONFIG_HOST:
+        failures.append("China production xcconfig host is not the reviewed host")
+    if last_assignment(china, "QUESTIFY_SESSION_REALM") != CHINA_REALM:
+        failures.append("China production realm is not cn-prod")
+    base = read("Config/Base.xcconfig")
+    united = read("Config/UnitedStates.Production.xcconfig")
+    if last_assignment(base, "QUESTIFY_API_BASE_URL") != "" or last_assignment(base, "QUESTIFY_SESSION_REALM") != "":
+        failures.append("default build URL or realm is no longer empty")
+    if "chengyinhub.com" in base or CHINA_HOST in base:
+        failures.append("default build names the China host")
+    if last_assignment(united, "QUESTIFY_API_BASE_URL") != "" or last_assignment(united, "QUESTIFY_SESSION_REALM") != "":
+        failures.append("United States production URL or realm is no longer empty")
+    if "chengyinhub.com" in united:
+        failures.append("United States production names a reviewed host")
+    project = read("Questify.xcodeproj/project.pbxproj")
+    if "Config/Base.xcconfig" not in project or "China.Production.xcconfig" in project:
+        failures.append("default project does not stay on the empty Base.xcconfig")
 
 
 def check():
     failures = []
-    launch = read("App/RegionalLaunchConfiguration.swift")
-    body = composition_body(launch)
-    if body is None:
-        failures.append("composition property not found")
-        body = ""
-    elif body.count("makeComposition(reviewed: nil, build: .current)") != 1:
-        failures.append("shipped composition is not makeComposition(reviewed: nil, build: .current)")
-    if "reviewedComposition" in body or "reviewedMarketComposition" in body or "productionGatesEnabled" in body:
-        failures.append("composition property selects a reviewed deployment")
+    check_shipped_composition(failures)
 
     root = read("App/AppCompositionRoot.swift")
     gate = re.search(
@@ -126,7 +220,9 @@ def main(argv):
         print("deleted an account: no")
         return 1
     print("account-deletion path: present")
-    print("shipped composition: makeComposition(reviewed: nil, build: .current)")
+    print("shipped composition: shippedComposition(build: .current)")
+    print("empty URL or realm: makeComposition(reviewed: nil, build: .current)")
+    print("china host: admitted only for market China with a bundle and realm")
     print("apply route: gated (China production gates only)")
     print("settings row: blocked when the coordinator is nil")
     print("deleted an account: no")

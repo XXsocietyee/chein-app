@@ -46,11 +46,14 @@ struct SearchMapCard: View {
 }
 /// Match the source's local secure-storage history rather than writing queries to ordinary defaults.
 /// A nil namespace (fixtures/unconfigured) is memory-only and never touches Keychain.
+/// Queries and inserts set `kSecAttrSynchronizable` to false. New items stay
+/// `AfterFirstUnlockThisDeviceOnly`; this file does not migrate an existing row.
 @MainActor final class SearchMapLocalHistory {
     private(set) var failed = false
     private func query(_ namespace: String) -> [String: Any] {
         [kSecClass as String: kSecClassGenericPassword,
-         kSecAttrService as String: namespace + ".search.history", kSecAttrAccount as String: "recent"]
+         kSecAttrService as String: namespace + ".search.history", kSecAttrAccount as String: "recent",
+         kSecAttrSynchronizable as String: false]
     }
     func read(namespace: String?) -> [String] {
         failed = false

@@ -34,6 +34,7 @@ public final class URLSessionTransport: HTTPTransport {
         session.dataTask(with: request, completionHandler: completion)
     }
     public func send(_ request: URLRequest) async throws -> (Data, Int) {
+        try ChinaReviewedRouteCapability.refuseUnwiredChinaProduction(request)
         let (data, response) = try await session.data(for: request)
         guard let http = response as? HTTPURLResponse else { throw APIError.malformedResponse }
         return (data, http.statusCode)
