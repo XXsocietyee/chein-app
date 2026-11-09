@@ -25,3 +25,12 @@ Auth/login/role entry, deregister/GDPR, marketing consent, tickets wallet, membe
 
 ## Self-score (six lenses, 1-10)
 Growth center 7, leaderboard 6, wallet ledger 6, settings 6, favorites 6, rest not reworked (under 8: all of them, see Findings).
+
+## Review round 2 (coordinator fix list)
+- Edit profile: single title, 112pt avatar with pencil badge. Verified zh and XL.
+- Crash (home screen shot): was the favorites fixture, fixed earlier.
+- About: brand wordmark "Chengyin 城瘾" (no Questify), icon tile hero (brand mark loaded by UIImage so loose bundle PNG shows). Mark fix not re-shot.
+- Settings: iOS-Settings style neutral 30pt rounded-square icon tiles on all rows (one accent, no rainbow). Verified.
+- Ledger rows (points/balance/income): leading in/out icon tile, coloured amounts. Verified. Finance hero with balance not added: fixtures carry no balance data.
+- Duplicate public-profile shots dropped from the batch list.
+- Not done: Save button pinned at bottom of edit profile, grouped single card for fields, Mobbin settings/wallet benchmarks applied beyond those cited.

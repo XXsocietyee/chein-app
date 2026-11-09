@@ -80,6 +80,8 @@ enum DesignFixtureRegistry {
 enum E4Fixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
+        case "e4-auth-phone": return wrap(E4AuthPhoneFixture())
+        case "e4-tickets": return wrap(TicketWalletFixtureHostView())
         case "e4-profile-edit": return wrap(ProfileEditFixtureHost(scenario: "success"))
         case "e4-profile-edit-error": return wrap(ProfileEditFixtureHost(scenario: "rejected"))
         case "e4-settings-support": return wrap(SettingsFixtureHostView())
@@ -109,6 +111,17 @@ enum E4Fixtures {
 
     @MainActor private static func wrap<V: View>(_ view: V) -> AnyView {
         AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player).preferredColorScheme(.dark))
+    }
+}
+#endif
+
+#if DEBUG
+/// Real AuthChannelView on a synthetic AppSession (no network; labelled DEBUG).
+struct E4AuthPhoneFixture: View {
+    @StateObject private var session = AppSession()
+    var body: some View {
+        AuthChannelView(coordinator: session.authChannels, sessionSnapshot: session.authChannelSnapshot, domesticPhoneVisible: true,
+                        onOpenAgreement: {}, onOpenPrivacy: {})
     }
 }
 #endif

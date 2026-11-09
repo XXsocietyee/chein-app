@@ -14,57 +14,71 @@ struct LoginView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                if session.canUsePassword {
-                Section("auth.existingAccount") {
-                    TextField("auth.username",text:$username)
-                        .textContentType(.username).textInputAutocapitalization(.never)
-                        .autocorrectionDisabled().submitLabel(.next)
-                        .focused($focusedField,equals:.username)
-                        .onSubmit { focusedField = .password }
-                    SecureField("auth.password",text:$password)
-                        .textContentType(.password).submitLabel(.go)
-                        .focused($focusedField,equals:.password)
-                        .onSubmit { submit() }
-                    Button { submit() } label: {
-                        HStack {
-                            Text("auth.signIn")
-                            if session.isWorking { ProgressView() }
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    Image(systemName: "mappin.and.ellipse").font(.system(size: 44, weight: .semibold))
+                        .foregroundStyle(CYColor.textPrimary).padding(.top, CYSpacing.xl).accessibilityHidden(true)
+                    Text("auth.title").font(.system(.largeTitle, weight: .semibold)).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    if session.canUsePassword {
+                        VStack(alignment: .leading, spacing: CYSpacing.md) {
+                            Text("auth.existingAccount").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                            VStack(spacing: 0) {
+                                TextField("auth.username",text:$username)
+                                    .textContentType(.username).textInputAutocapitalization(.never)
+                                    .autocorrectionDisabled().submitLabel(.next)
+                                    .focused($focusedField,equals:.username)
+                                    .onSubmit { focusedField = .password }
+                                    .frame(minHeight: 52)
+                                Divider().overlay(CYColor.textPrimary.opacity(0.1))
+                                SecureField("auth.password",text:$password)
+                                    .textContentType(.password).submitLabel(.go)
+                                    .focused($focusedField,equals:.password)
+                                    .onSubmit { submit() }
+                                    .frame(minHeight: 52)
+                            }
+                            .padding(.horizontal, CYSpacing.lg)
+                            .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            Button { submit() } label: {
+                                HStack {
+                                    Text("auth.signIn")
+                                    if session.isWorking { ProgressView() }
+                                }
+                            }
+                            .buttonStyle(.cyPrimary)
+                            .disabled(!session.canUsePassword || session.isWorking || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
+                            .accessibilityIdentifier("auth.signIn")
                         }
+                    } else if session.operationalMarket != .china { Text("region.usLoginPending").foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("region.auth.pending") }
+                    if !session.isConfigured {
+                        Label("auth.notConfigured",systemImage:"info.circle").font(.footnote).foregroundStyle(CYColor.textSecondary)
                     }
-                    .buttonStyle(.cyPrimary)
-                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
-                    .disabled(!session.canUsePassword || session.isWorking || username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty || password.isEmpty)
-                    .accessibilityIdentifier("auth.signIn")
-                }
-                } else if session.operationalMarket != .china { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
-                if !session.isConfigured {
-                    Section { Label("auth.notConfigured",systemImage:"info.circle").foregroundStyle(CYColor.textSecondary) }
-                }
-                if let key=session.errorKey {
-                    Section { Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error") }
-                }
-                SessionRestorationRetrySection(session: session)
-                if !consentGranted {
-                    UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
-                }
-                if session.operationalMarket == .china && consentGranted {
-                    WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
-                }
-                Section {
+                    if let key=session.errorKey {
+                        Label { Text(LocalizedStringKey(key)) } icon: { Image(systemName: "exclamationmark.circle") }.font(.footnote).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("auth.error")
+                    }
+                    SessionRestorationRetrySection(session: session)
+                    if !consentGranted {
+                        UsageConsentSignInRequirement(market: session.operationalMarket, granted: $consentGranted)
+                    }
+                    if session.operationalMarket == .china && consentGranted {
+                        WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
+                    }
                     Button(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title")) { session.weChatAuth.cancel(); password="";showsOtherSignIn=true
 #if DEBUG
                         recordIntegratedLoginPhase("other_action")
 #endif
                     }
-                        .disabled(session.isWorking || !consentGranted)
-                        .accessibilityIdentifier("auth.otherChannels")
+                    .buttonStyle(.cyPrimary)
+                    .disabled(session.isWorking || !consentGranted)
+                    .accessibilityIdentifier("auth.otherChannels")
                 }
+                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.bottom, CYSpacing.xxl)
             }
+            .scrollDismissesKeyboard(.interactively)
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
             .themeDomain(.player)
-            .appNavigationTitle("auth.title")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement:.confirmationAction) { LanguageSwitcher() }
                 ToolbarItem(placement:.cancellationAction) {

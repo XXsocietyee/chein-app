@@ -17,7 +17,7 @@ import UIKit
         Form {
             Section {
                 VStack(spacing: CYSpacing.md) {
-                    Image("SettingsBrandMark")
+                    Image(uiImage: UIImage(named: "SettingsBrandMark") ?? UIImage())
                         .resizable()
                         .scaledToFit()
                         .padding(CYSpacing.md)
