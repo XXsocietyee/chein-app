@@ -44,15 +44,15 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 Section {
                     VStack(alignment: .leading, spacing: Theme.Space.s2) {
                         ClubDetailCover(source: club.cover)
-                        ClubName(value: club.name).font(Theme.Font.pageTitle)
+                        ClubName(value: club.name).font(.largeTitle.weight(.heavy)).padding(.horizontal, Theme.Space.s4).padding(.top, Theme.Space.s2)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.detail.name")
                         Label { Text(verbatim: headerMeta(club)) } icon: { Image(systemName: "person.3") }
-                            .font(Theme.Font.label).foregroundStyle(.secondary)
+                            .font(.subheadline).foregroundStyle(.secondary).padding(.horizontal, Theme.Space.s4)
                         if club.joinPolicySupported {
                             Label(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
                                   systemImage: club.needsApproval ? "lock" : "checkmark")
-                                .font(Theme.Font.label).foregroundStyle(.secondary)
+                                .font(.subheadline).foregroundStyle(.secondary).padding(.horizontal, Theme.Space.s4)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -253,6 +253,8 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            .scrollContentBackground(.hidden)
+            .cyDomainPageBackground()
             .background {
                 if let session = reader as? AppSession, let context = session.currentRuntimeDependencyContext,
                    reader.clubIdentity == ClubReadIdentity(accountID: context.session.accountID, epoch: context.session.epoch) {
@@ -339,7 +341,9 @@ private struct ClubDetailCover: View {
             }
         }
         .frame(maxWidth: .infinity).frame(height: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+        .padding(.horizontal, Theme.Space.s4)
+        .shadow(color: .black.opacity(0.3), radius: 12, y: 6)
         .accessibilityHidden(true)
     }
 }

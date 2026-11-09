@@ -159,6 +159,7 @@ struct ClubGovernanceReadView: View {
     @Environment(\.clubStoryTemplates) private var storyTemplates
     @Environment(\.clubTerminalSessions) private var terminalSessions
     @Environment(\.clubOwnerFunds) private var ownerFunds
+    @Environment(\.locale) private var locale
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -623,6 +624,7 @@ struct ClubGovernanceReadView: View {
             }
             if !loading { Button("club.gov.refresh") { Task { await load() } }.accessibilityIdentifier("club.gov.refresh") }
         }
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
         .navigationTitle(title)
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
         .background {
@@ -1132,8 +1134,39 @@ struct ClubGovernanceReadView: View {
         customerTopic = target
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
-        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: Self.symbol(target)) }
+        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(LocalizedStringKey("club.gov." + target.rawValue))
+                    if operation == .access, let line = Self.subline(target, locale: locale) {
+                        Text(verbatim: line).font(.footnote).foregroundStyle(CYColor.textSecondary)
+                    }
+                }
+            } icon: { Image(systemName: Self.symbol(target)) }
+        }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
+    }
+    /// Mini-program settings-sheet rows carry a one-line description under the title (workspace list only).
+    static func subline(_ read: ClubGovernanceRead, locale: Locale) -> String? {
+        let pair: (String, String)
+        switch read {
+        case .customers: pair = ("报名过的客户", "People who have signed up")
+        case .stats: pair = ("参与与转化数据", "Participation and conversion")
+        case .settlement: pair = ("收入与结算记录", "Income and settlement records")
+        case .eventTopics: pair = ("新建与管理系列场次", "Create and manage recurring sessions")
+        case .series: pair = ("已发布的系列场次", "Published recurring sessions")
+        case .topics: pair = ("俱乐部运营的主题", "Themes this club runs")
+        case .editions: pair = ("按期次查看与自报", "View and self-report by edition")
+        case .leaderboard: pair = ("成员贡献榜", "Top member contributors")
+        case .posts: pair = ("俱乐部动态内容", "Club posts")
+        case .roles: pair = ("分配与撤销角色", "Assign and revoke roles")
+        case .bans: pair = ("被禁言的成员", "Muted members")
+        case .cases: pair = ("举报与申诉", "Reports and appeals")
+        case .audienceCounts: pair = ("可触达人数", "Audience reach")
+        case .dissolutionBlockers: pair = ("解散前需处理的事项", "Items to clear before dissolving")
+        default: return nil
+        }
+        return ChannelCopy.text(pair.0, pair.1, locale: locale)
     }
     /// One meaningful icon per workspace entry instead of the same chevron on every row.
     static func symbol(_ read: ClubGovernanceRead) -> String {
@@ -1209,15 +1242,21 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-            Section("club.gov.workspace") {
+            // Mini-program club settings sheet order: 客户与项目, then 成员与权限.
+            Section(ChannelCopy.text("客户与项目", "Customers & projects", locale: locale)) {
                 if snapshot.permissions?.allows("club:member:list:read", scope: scope) == true { enrollmentLink() }
-                ForEach([ClubGovernanceRead.stats, .customers, .settlement, .eventTopics, .series, .bans, .cases, .roles, .audienceCounts, .topics, .editions, .dissolutionBlockers, .leaderboard, .posts], id: \.rawValue) { read in
+                ForEach([ClubGovernanceRead.customers, .stats, .settlement, .eventTopics, .series, .topics, .editions, .leaderboard, .posts], id: \.rawValue) { read in
                     if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                     if read == .series, ClubOpsEventAccess(permissions: snapshot.permissions, scope: scope).permitted {
                         NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
                             Label { Text("clubOpsEvent.title", tableName: "ClubOpsEvent") } icon: { Image(systemName: "calendar.badge.clock") }
                         }.accessibilityIdentifier("clubOpsEvent.open")
                     }
+                }
+            }
+            Section(ChannelCopy.text("成员与权限", "Members & permissions", locale: locale)) {
+                ForEach([ClubGovernanceRead.roles, .bans, .cases, .audienceCounts, .dissolutionBlockers], id: \.rawValue) { read in
+                    if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                 }
             }
             if let events = snapshot.permissions?.eventAccesses, !events.isEmpty {
@@ -1549,7 +1588,7 @@ struct ClubGovernanceEventView: View {
             if scope.topicID != nil {
                 NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.action.issueGroupCode", systemImage: "qrcode") }
             }
-        }.navigationTitle("club.gov.events")
+        }.scrollContentBackground(.hidden).cyDomainPageBackground().navigationTitle("club.gov.events")
     }
 }
 
@@ -1633,6 +1672,7 @@ struct ClubGovernanceEventView: View {
             }
             Button("club.gov.refresh") { Task { await reload() } }.disabled(loading).accessibilityIdentifier("club.story.refresh")
         }
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
         .navigationTitle("club.gov.story").accessibilityIdentifier("club.gov.story")
         .navigationDestination(item: $selectedTemplate) { selection in
             Group {

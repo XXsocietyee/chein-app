@@ -18,16 +18,22 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
             } else {
                 List {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
-                        NavigationLink {
-                            ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-                        } label: { ClubRow(club: club) }
-                        .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                        ZStack {
+                            ClubRow(club: club)
+                            NavigationLink {
+                                ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
+                            } label: { EmptyView() }.opacity(0)
+                        }
+                        .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
                         .accessibilityIdentifier("club.directory.\(club.id)")
                     }
                 }
+                .listStyle(.plain).scrollContentBackground(.hidden).listRowSpacing(4)
             }
         }
         .id(submittedName)
+        .cyDomainPageBackground()
         .appNavigationTitle("club.directory")
         .searchable(text: $searchText, prompt: "club.searchPrompt")
         .onSubmit(of: .search) { submittedName = searchText.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -60,7 +66,8 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
                         .accessibilityIdentifier("club.owned.\(club.id)")
                     }
                 }
+                .listStyle(.plain).scrollContentBackground(.hidden).listRowSpacing(4)
             }
-        }.appNavigationTitle("club.owned")
+        }.cyDomainPageBackground().appNavigationTitle("club.owned")
     }
 }

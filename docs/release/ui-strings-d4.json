@@ -1,0 +1,7 @@
+[
+  {"key": "club.gov.discardTitle", "en": "Close this draft?", "zh-Hans": "关闭此草稿？"},
+  {"key": "club.gov.unknown", "en": "We couldn’t confirm the result. Don’t submit again; check the record first.", "zh-Hans": "暂时无法确认结果。请勿重复提交，先查看原记录。"},
+  {"key": "club.gov.discardBody", "en": "Unsaved local changes will be discarded", "zh-Hans": "尚未保存的本地修改将被丢弃"},
+  {"key": "club.gov.discard", "en": "Close draft", "zh-Hans": "关闭草稿"},
+  {"key": "settings.signOut.message", "en": "You’ll need to sign in again on this device. Your tickets, orders and coupons stay on your account.", "zh-Hans": "本机登录态将清除，下次进入需要重新登录。已购通行证、订单和券都保留在账号里，不会丢。"}
+]

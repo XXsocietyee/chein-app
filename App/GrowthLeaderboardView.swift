@@ -67,7 +67,7 @@ import SwiftUI
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.board.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

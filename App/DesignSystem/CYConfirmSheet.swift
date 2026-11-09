@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// One icon row inside the consequence box of a `CYConfirmSheet`.
+public struct CYConfirmConsequence: Identifiable {
+    public let id = UUID()
+    public let systemImage: String
+    public let text: String
+    public init(systemImage: String, text: String) { self.systemImage = systemImage; self.text = text }
+}
+
 /// Bottom-sheet confirmation. Not a centered alert.
 public struct CYConfirmSheet: View {
     private let title: String
@@ -8,13 +16,18 @@ public struct CYConfirmSheet: View {
     private let onConfirm: () -> Void
     private let isDestructive: Bool
     private let confirmIdentifier: String?
+    private let consequences: [CYConfirmConsequence]
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 24
 
     public init(title: String, message: String, confirmTitle: String,
                 isDestructive: Bool = false, confirmIdentifier: String? = nil,
+                consequences: [CYConfirmConsequence] = [],
                 onConfirm: @escaping () -> Void) {
         self.isDestructive = isDestructive
+        self.consequences = consequences
         self.confirmIdentifier = confirmIdentifier
         self.title = title
         self.message = message
@@ -33,8 +46,20 @@ public struct CYConfirmSheet: View {
         }
     }
 
+    private var cancelButton: some View {
+        Button("action.cancel") { dismiss() }.buttonStyle(.cySecondary(fullWidth: true))
+    }
+
     @ViewBuilder private func styled(_ label: some View) -> some View {
-        if isDestructive {
+        if isDestructive && !consequences.isEmpty {
+            // Solid red, matching the mini-program quit dialog.
+            label.buttonStyle(.plain)
+                .font(CYTypography.label)
+                .foregroundStyle(Color.white)
+                .padding(.vertical, CYSpacing.sm)
+                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                .background(CYColor.dangerSolid, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        } else if isDestructive {
             label.buttonStyle(.cyDestructive)
         } else {
             label.buttonStyle(.cyPrimary)
@@ -42,6 +67,7 @@ public struct CYConfirmSheet: View {
     }
 
     public var body: some View {
+        ScrollView {
         VStack(alignment: .leading, spacing: CYSpacing.md) {
             Text(title)
                 .font(CYTypography.sheetTitle)
@@ -51,21 +77,53 @@ public struct CYConfirmSheet: View {
                 .font(CYTypography.body)
                 .foregroundStyle(CYColor.textSecondary)
                 .fixedSize(horizontal: false, vertical: true)
-            Spacer(minLength: CYSpacing.lg)
+            if !consequences.isEmpty {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    ForEach(consequences) { item in
+                        HStack(alignment: .top, spacing: CYSpacing.sm) {
+                            Image(systemName: item.systemImage)
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .frame(width: iconWidth)
+                                .accessibilityHidden(true)
+                            Text(item.text)
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(CYSpacing.md)
+                .background(CYColor.bgPage, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .accessibilityIdentifier("confirm.consequences")
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .frame(maxWidth: .infinity, alignment: .topLeading)
         .padding(CYSpacing.lg)
+        }
+        .scrollBounceBehavior(.basedOnSize)
         .background(CYColor.bgElevated.ignoresSafeArea())
         .safeAreaInset(edge: .bottom) {
-            VStack(spacing: CYSpacing.sm) {
-                confirmButton
-                Button("action.cancel") { dismiss() }
-                    .buttonStyle(.cySecondary(fullWidth: true))
+            Group {
+                if consequences.isEmpty {
+                    VStack(spacing: CYSpacing.sm) {
+                        confirmButton
+                        Button("action.cancel") { dismiss() }
+                            .buttonStyle(.cySecondary(fullWidth: true))
+                    }
+                } else {
+                    // Cancel left, destructive right (mini-program dialog); stacks when the type is large.
+                    ViewThatFits(in: .horizontal) {
+                        HStack(spacing: CYSpacing.sm) { cancelButton; confirmButton }
+                        VStack(spacing: CYSpacing.sm) { confirmButton; cancelButton }
+                    }
+                }
             }
             .padding(CYSpacing.lg)
             .background(CYColor.bgElevated)
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : (consequences.isEmpty ? [.fraction(0.36), .large] : [.medium, .large]))
         .presentationDragIndicator(.visible)
     }
 }
