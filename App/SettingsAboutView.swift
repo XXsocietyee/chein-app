@@ -16,16 +16,22 @@ import UIKit
     var body: some View {
         Form {
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    CYHeroHeader("settingsNative.about.title", subtitle: "settingsNative.about.tagline") {
-                        Image("SettingsBrandMark")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 54, height: 54)
-                            .accessibilityHidden(true)
-                    }
+                VStack(spacing: CYSpacing.md) {
+                    Image(uiImage: UIImage(named: "SettingsBrandMark") ?? UIImage())
+                        .resizable()
+                        .scaledToFit()
+                        .padding(CYSpacing.md)
+                        .frame(width: 88, height: 88)
+                        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(palette.textPrimary.opacity(0.1), lineWidth: 1))
+                        .accessibilityHidden(true)
                     appName
+                    Text("settingsNative.about.tagline")
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
+                .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
                 .listRowInsets(EdgeInsets(top: CYSpacing.lg, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
@@ -100,20 +106,13 @@ import UIKit
         .onDisappear { copyStatus = nil }
     }
 
-    @ViewBuilder private var appName: some View {
-        if let name = appInformation.displayName {
-            Text(verbatim: name)
-                .font(CYTypography.pageTitle)
-                .foregroundStyle(palette.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier("settingsNative.about.appName")
-        } else {
-            Text("settingsNative.about.nameMissing")
-                .font(CYTypography.pageTitle)
-                .foregroundStyle(palette.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
+    private var appName: some View {
+        Text(verbatim: "Chengyin 城瘾")
+            .font(CYTypography.pageTitle)
+            .foregroundStyle(palette.textPrimary)
+            .multilineTextAlignment(.center)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("settingsNative.about.appName")
     }
 
     private var marketRow: some View {

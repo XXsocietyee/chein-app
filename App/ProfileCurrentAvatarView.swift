@@ -30,6 +30,12 @@ import Observation
         return reader?.key(snapshot: snapshot, identity: model.coordinator.identity,
                            viewerRevision: model.coordinator.viewerRevision)
     }
+    private var editBadge: some View {
+        Image(systemName: "pencil.circle.fill").font(.title2)
+            .symbolRenderingMode(.palette).foregroundStyle(CYColor.textPrimary, CYColor.bgRaised)
+            .background(Circle().fill(CYColor.bgPage))
+            .accessibilityHidden(true)
+    }
     private struct Load: Hashable {
         let key: ProfileCurrentAvatarReadKey?
         let retry: Int
@@ -40,7 +46,8 @@ import Observation
         VStack(spacing: 8) {
             if let key, loadedKey == key, let image {
                 Image(uiImage: image).resizable().scaledToFill()
-                    .frame(width: 88, height: 88).clipShape(Circle())
+                    .frame(width: 112, height: 112).clipShape(Circle())
+                    .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityLabel(Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI"))
             } else if let key, failedKey == key {
                 Label { Text("profile.currentAvatar.failed", tableName: "ProfileCurrentMediaUI") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
@@ -50,7 +57,9 @@ import Observation
                 ProgressView { Text("profile.currentAvatar.loading", tableName: "ProfileCurrentMediaUI") }
                     .accessibilityIdentifier("profile.avatar.current.loading")
             } else {
-                Image(systemName: "person.crop.circle").font(.largeTitle).imageScale(.large)
+                Image(systemName: "person.fill").font(.system(.largeTitle)).foregroundStyle(CYColor.textSecondary)
+                    .frame(width: 112, height: 112).background(CYColor.bgRaised, in: Circle())
+                    .overlay(alignment: .bottomTrailing) { editBadge }
                     .accessibilityHidden(true)
                 (model.savedAvatarReadSnapshot?.avatar.isEmpty == true ? Text("profile.currentAvatar.empty", tableName: "ProfileCurrentMediaUI") : Text("profile.currentAvatar.unavailable", tableName: "ProfileCurrentMediaUI"))
                     .font(.footnote).foregroundStyle(.secondary)

@@ -33,7 +33,7 @@ import UIKit
             ForEach(SettingsLegalType.allCases) { type in
                 NavigationLink {
                     SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
-                } label: { Text(LocalizedStringKey(type.titleKey)) }
+                } label: { Label(LocalizedStringKey(type.titleKey), systemImage: "doc.text") }
                 .accessibilityIdentifier("settingsNative.openLegal.\(type.rawValue)")
             }
         }
@@ -51,7 +51,7 @@ import UIKit
             ForEach(SettingsUnavailableFeature.allCases) { feature in
                 NavigationLink {
                     SettingsUnavailableFeatureView(feature: feature, market: market, legalReader: legalReader)
-                } label: { Text(LocalizedStringKey(feature.titleKey)) }
+                } label: { Label(LocalizedStringKey(feature.titleKey), systemImage: "lock.shield") }
                 .accessibilityIdentifier("settingsNative.openBlocked.\(feature.rawValue)")
             }
         }
@@ -164,6 +164,22 @@ import UIKit
                         identifier: "settingsNative.attribution.copy.\(attribution.id)", copyText: copyText)
                 }
             }
+        }
+    }
+}
+
+/// iOS Settings style row icon: a 30pt rounded-square tile with a neutral raised fill (one accent, no rainbow).
+struct SettingsTileLabelStyle: LabelStyle {
+    @Environment(\.cyPalette) private var palette
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            configuration.icon
+                .font(.system(.subheadline, weight: .semibold))
+                .foregroundStyle(palette.textPrimary)
+                .frame(width: 30, height: 30)
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .accessibilityHidden(true)
+            configuration.title
         }
     }
 }

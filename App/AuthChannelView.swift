@@ -27,89 +27,45 @@ struct AuthChannelView: View {
     }
     var body: some View {
         NavigationStack {
-            Form {
-                if domesticPhoneVisible {
-                Section {
-                    TextField("auth.channels.phone", text: $model.phone)
-                        .keyboardType(.phonePad).textContentType(.telephoneNumber)
-                        .textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .focused($focus, equals: .phone)
-                        .disabled(model.state.isWorking)
-                        .accessibilityIdentifier("auth.channels.phone")
-                    TextField("auth.channels.code", text: $model.code)
-                        .keyboardType(.numberPad).textContentType(.oneTimeCode)
-                        .textInputAutocapitalization(.never).autocorrectionDisabled()
-                        .focused($focus, equals: .code)
-                        .disabled(model.state.isWorking)
-                        .accessibilityIdentifier("auth.channels.code")
-                    TimelineView(.periodic(from: .now, by: 1)) { _ in
-                        Button { focus = nil; model.sendCode() } label: {
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    if domesticPhoneVisible {
+                        phoneField
+                        codeBoxes
+                        resendRow
+                        statusMessages
+                        Button { focus = nil; model.signIn() } label: {
                             HStack {
-                                Text(smsButtonKey)
-                                Spacer()
-                                if model.state.work == .sendingSMS { ProgressView() }
-                                else if model.coordinator.smsCooldownRemaining > 0 {
-                                    Text(model.coordinator.smsCooldownRemaining, format: .number)
-                                        .monospacedDigit().accessibilityLabel(Text("auth.channels.cooldownSeconds"))
-                                        .accessibilityValue(Text(model.coordinator.smsCooldownRemaining, format: .number))
-                                }
+                                Text("auth.signIn")
+                                if model.state.work == .phoneLogin { ProgressView() }
                             }
                         }
-                        .disabled(!model.canStart || model.coordinator.smsCooldownRemaining > 0 || !validPhone)
-                        .accessibilityIdentifier("auth.channels.sendCode")
+                        .buttonStyle(.cyPrimary)
+                        .disabled(!model.canStart || !validPhone || !validCode)
+                        .accessibilityIdentifier("auth.channels.phoneSignIn")
+                        .sensoryFeedback(.success, trigger: model.state.signedIn)
+                    } else {
+                        Text("region.usLoginPending").foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("region.auth.pending")
+                        statusMessages
                     }
-                    Button {
-                        focus = nil; model.signIn()
-                    } label: {
-                        HStack {
-                            Text("auth.signIn")
-                            Spacer()
-                            if model.state.work == .phoneLogin { ProgressView() }
-                        }
-                    }
-                    .disabled(!model.canStart || !validPhone || !validCode)
-                    .accessibilityIdentifier("auth.channels.phoneSignIn")
-                } header: { Text("auth.channels.phoneTitle") }
-                } else { Section { Text("region.usLoginPending").accessibilityIdentifier("region.auth.pending") } }
-                if model.state.smsSent {
-                    Section { Label("auth.channels.smsSent", systemImage: "checkmark.circle") }
-                }
-                if let issue = model.state.issue {
-                    Section {
-                        Text(LocalizedStringKey(issue.localizationKey))
-                            .foregroundStyle(issue == .appleIncomplete ? CYColor.textSecondary : CYColor.dangerText)
-                            .accessibilityIdentifier("auth.channels.error")
-                        if model.state.requiresAppUpdate && issue != .upgradeRequired {
-                            Text("auth.channels.upgradeRequired")
-                                .foregroundStyle(CYColor.dangerText)
-                                .accessibilityIdentifier("auth.channels.upgradeRequired")
-                        }
-                    }
-                }
-                Section {
                     if model.coordinator.appleConfigurationVerified {
                         AuthChannelAppleButton(model: model)
                             .id(colorScheme)
                             .frame(minHeight: 50)
+                            .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
                             .accessibilityIdentifier("auth.channels.appleSignIn")
                         if model.state.work == .appleAuthorization || model.state.work == .appleExchange {
                             ProgressView("auth.channels.appleWorking")
                         }
                     }
+                    if !model.coordinator.isConfigured {
+                        Label("auth.notConfigured", systemImage: "info.circle").foregroundStyle(CYColor.textSecondary)
+                    }
+                    legalFootnote
                 }
-                if !model.coordinator.isConfigured {
-                    Section { Label("auth.notConfigured", systemImage: "info.circle").foregroundStyle(CYColor.textSecondary) }
-                }
-                Section {
-                    Text("auth.channels.legalConsent")
-                    Button("auth.channels.userAgreement") { focus = nil; onOpenAgreement?() }
-                        .disabled(onOpenAgreement == nil)
-                        .frame(minHeight: 44)
-                    Button("auth.channels.privacyPolicy") { focus = nil; onOpenPrivacy?() }
-                        .disabled(onOpenPrivacy == nil)
-                        .frame(minHeight: 44)
-                }
+                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.lg)
             }
+            .scrollDismissesKeyboard(.interactively)
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
             .appNavigationTitle("auth.channels.title")
@@ -133,6 +89,90 @@ struct AuthChannelView: View {
             .onChange(of: sessionSnapshot) { _, _ in model.clear(); dismiss() }
             .onDisappear { model.clear() }
         }
+    }
+    private var phoneField: some View {
+        HStack(spacing: CYSpacing.md) {
+            Text(verbatim: "+86").font(.system(.body, weight: .semibold)).foregroundStyle(CYColor.textPrimary)
+                .padding(.trailing, CYSpacing.md)
+                .overlay(alignment: .trailing) { Rectangle().fill(CYColor.textPrimary.opacity(0.15)).frame(width: 1, height: 24) }
+                .accessibilityLabel(Text("auth.channels.phone"))
+            TextField("auth.channels.phone", text: $model.phone)
+                .font(.system(.title3, design: .rounded).monospacedDigit())
+                .keyboardType(.phonePad).textContentType(.telephoneNumber)
+                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .focused($focus, equals: .phone)
+                .disabled(model.state.isWorking)
+                .accessibilityIdentifier("auth.channels.phone")
+        }
+        .padding(.horizontal, CYSpacing.lg).frame(minHeight: 56)
+        .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(focus == .phone ? CYColor.textPrimary.opacity(0.5) : .clear, lineWidth: 1.5))
+    }
+    private var codeBoxes: some View {
+        ZStack {
+            TextField("auth.channels.code", text: $model.code)
+                .keyboardType(.numberPad).textContentType(.oneTimeCode)
+                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .focused($focus, equals: .code)
+                .disabled(model.state.isWorking)
+                .opacity(0.02)
+                .accessibilityIdentifier("auth.channels.code")
+            HStack(spacing: CYSpacing.sm) {
+                ForEach(0..<6, id: \.self) { i in
+                    let chars = Array(model.code)
+                    Text(i < chars.count ? String(chars[i]) : "")
+                        .font(.system(.title2, design: .rounded, weight: .semibold).monospacedDigit())
+                        .foregroundStyle(CYColor.textPrimary)
+                        .frame(maxWidth: .infinity, minHeight: 56)
+                        .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+                        .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous)
+                            .strokeBorder(focus == .code && i == min(chars.count, 5) ? CYColor.textPrimary.opacity(0.6) : .clear, lineWidth: 1.5))
+                }
+            }
+            .allowsHitTesting(false).accessibilityHidden(true)
+        }
+        .contentShape(Rectangle()).onTapGesture { focus = .code }
+        .sensoryFeedback(.selection, trigger: model.code)
+    }
+    private var resendRow: some View {
+        TimelineView(.periodic(from: .now, by: 1)) { _ in
+            Button { focus = nil; model.sendCode() } label: {
+                HStack(spacing: CYSpacing.sm) {
+                    Text(smsButtonKey)
+                    if model.state.work == .sendingSMS { ProgressView() }
+                    else if model.coordinator.smsCooldownRemaining > 0 {
+                        Text(model.coordinator.smsCooldownRemaining, format: .number)
+                            .monospacedDigit().accessibilityLabel(Text("auth.channels.cooldownSeconds"))
+                    }
+                }
+                .font(.system(.subheadline, weight: .semibold)).frame(minHeight: 44)
+            }
+            .disabled(!model.canStart || model.coordinator.smsCooldownRemaining > 0 || !validPhone)
+            .accessibilityIdentifier("auth.channels.sendCode")
+        }
+    }
+    @ViewBuilder private var statusMessages: some View {
+        if model.state.smsSent { Label("auth.channels.smsSent", systemImage: "checkmark.circle").font(.footnote).foregroundStyle(CYColor.textSecondary) }
+        if let issue = model.state.issue {
+            Text(LocalizedStringKey(issue.localizationKey)).font(.footnote)
+                .foregroundStyle(issue == .appleIncomplete ? CYColor.textSecondary : CYColor.dangerText)
+                .accessibilityIdentifier("auth.channels.error")
+            if model.state.requiresAppUpdate && issue != .upgradeRequired {
+                Text("auth.channels.upgradeRequired").font(.footnote).foregroundStyle(CYColor.dangerText)
+                    .accessibilityIdentifier("auth.channels.upgradeRequired")
+            }
+        }
+    }
+    private var legalFootnote: some View {
+        VStack(spacing: CYSpacing.xs) {
+            Text("auth.channels.legalConsent").font(.footnote).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            HStack(spacing: CYSpacing.lg) {
+                Button("auth.channels.userAgreement") { focus = nil; onOpenAgreement?() }.disabled(onOpenAgreement == nil)
+                Button("auth.channels.privacyPolicy") { focus = nil; onOpenPrivacy?() }.disabled(onOpenPrivacy == nil)
+            }
+            .font(.footnote.weight(.semibold)).frame(minHeight: 44)
+        }
+        .frame(maxWidth: .infinity)
     }
     private var validPhone: Bool { (try? AuthChannelInput.phone(model.phone)) != nil }
     private var validCode: Bool { (try? AuthChannelInput.code(model.code)) != nil }
