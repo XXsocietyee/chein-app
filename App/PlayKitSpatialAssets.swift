@@ -38,7 +38,7 @@ import ImageIO
         return UIImage(cgImage: normalized) // EXIF orientation applied; bounded texture, original aspect ratio.
     }
 }
-private final class PlayKitSpatialRedirectGuard: NSObject, URLSessionTaskDelegate {
+private final class PlayKitSpatialRedirectGuard: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     let hosts: Set<String>
     init(hosts: Set<String>) { self.hosts = hosts }
     func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse,

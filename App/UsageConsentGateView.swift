@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// UserDefaults holds only the agreed document versions and pending request IDs, never tokens.
-final class UserDefaultsUsageConsentStorage: UsageConsentStorage {
+final class UserDefaultsUsageConsentStorage: UsageConsentStorage, @unchecked Sendable {
     private let defaults: UserDefaults
     init(defaults: UserDefaults = .standard) { self.defaults = defaults }
     func data(forKey key: String) -> Data? { defaults.data(forKey: key) }

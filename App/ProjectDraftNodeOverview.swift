@@ -14,8 +14,8 @@ import SwiftUI
         let id = UUID()
         let capture: Capture
         let row: ProjectDraftNodeProjection.Row
-        static func == (a: Self, b: Self) -> Bool { a.id == b.id }
-        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+        nonisolated static func == (a: Self, b: Self) -> Bool { a.id == b.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     let model: ProjectEditModel
     private let controllerID = UUID()
