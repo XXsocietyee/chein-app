@@ -182,7 +182,7 @@ import SwiftUI
             .privacySensitive()
     }
 }
-private struct RoamEnrolledChapterRow: View {
+struct RoamEnrolledChapterRow: View {
     let ticket: TicketWalletTicket
     var showsActionNotice = false
     var body: some View {

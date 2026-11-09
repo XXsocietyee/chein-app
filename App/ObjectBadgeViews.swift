@@ -192,10 +192,9 @@ struct ObjectBadgeWallBadgeLabel: View {
                     VStack(spacing: CYSpacing.sm) {
                         Text(verbatim: displayName).font(CYTypography.display).multilineTextAlignment(.center)
                             .foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: CYSpacing.sm) {
-                            CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
-                                         tone: badge.isLocked ? .neutral : .success, systemImage: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
-                            if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained) }
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: CYSpacing.sm) { statusChips }
+                            VStack(spacing: CYSpacing.sm) { statusChips }
                         }
                     }
                     requirementCard
@@ -241,6 +240,11 @@ struct ObjectBadgeWallBadgeLabel: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: displayName))
+    }
+    @ViewBuilder private var statusChips: some View {
+        CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
+                     tone: badge.isLocked ? .neutral : .success, systemImage: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
+        if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained) }
     }
     private var requirementCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
