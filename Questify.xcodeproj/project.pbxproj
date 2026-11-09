@@ -3025,6 +3025,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "3A5981A924FC86306EBBF6F6";
 		};
+		"EC9FE7E5343516D469E1AF87" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/E3Fixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"8D07A35B332F6D9BDBE0F8E9" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "EC9FE7E5343516D469E1AF87";
+		};
 		"AB2F28F1134AA9B7D2A28CAE" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -35360,6 +35370,7 @@
 				"D5B6BD987ADCEA15F903B05E",
 				"DCCDC54EA0B2D688B267E692",
 				"3A5981A924FC86306EBBF6F6",
+				"EC9FE7E5343516D469E1AF87",
 				"AB2F28F1134AA9B7D2A28CAE",
 				"9B0EDC37EB6DE6F316452DBC",
 				"B4AB29D60DEF4C8CEB5AF328",
@@ -39935,6 +39946,7 @@
 				"C185AAC650678F2E61882320",
 				"B7B1DE3919417E86151D4F40",
 				"B7A79EF39057FC1CD4EC1E82",
+				"8D07A35B332F6D9BDBE0F8E9",
 				"F5F75EDEBBDCF86DC2C80F40",
 				"AACCA15E06488CEC7A5DB23D",
 				"DA8B566C0BBB97AC4E427904",
@@ -43247,7 +43259,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E2Fixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E2Fixtures.swift E3Fixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift";
 			};
 			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
 		};
