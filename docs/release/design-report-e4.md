@@ -66,3 +66,28 @@ Phone sign-in 8/8/8/8/6/8 -> 8. Login 7/8/8/7/5/8 -> 7 (sparse, no Apple in fixt
 - Wallet balance and points ledgers: large 44pt rounded balance hero (unknown stays an em dash), rows grouped by month, signed amounts. Shots: batch-balance-{en,zh,xl}, batch-points-{en,zh}, batch-income-en, batch-assets-en.
 - Profile edit pinned Save + one grouped card: done in the earlier commit (batch-profile-*). About brand mark renders (batch-about-{en,zh}).
 - Self-score: wallet balance 8, points 8, income 7 (rows grouped by day, no hero), About 8.
+
+---
+# Fourth pass (ADA rework), branch ui/e4
+Merge: origin/ui/main merged at start (43b3a24d1). Shots: /Users/fanning/chengyin-refs/design-reports/e4/ (`batch-f4-*`, contact sheet and before/after sheets `compare-f4-*.png`). One batch of 16: EN 6, zh 6, XL 4.
+
+## Done this pass
+- Phone sign-in (`PhoneSignInForm`, new pure view; `AuthChannelView` is now a thin wrapper): Welcome art backdrop, rounded large title, subtitle, flag + "+86" country chip, phone field with the "Get code" capsule inside it, six 60pt code boxes over a real `oneTimeCode` field (paste works, non-digits stripped, focus jumps to the code field when the SMS is sent, auto-submit on the sixth digit, spring on each digit, selection haptic), resend timer ("Resend in 42s", ticking each second), wrong-code state (red boxes, icon + sentence, shake keyframe, error haptic, both gated on Reduce Motion), CTA with spinner + "Signing in…", Apple button under an "or" divider only when `appleConfigurationVerified`, legal footnote with agreement/privacy links.
+- Login (`LoginView`): same Welcome layered cards (WelcomeHero reused) over a blurred full-bleed art backdrop, "Welcome back" headline, icon-led username/password card, inline error, loading CTA, phone sign-in as the secondary pill, legal footnote with links on a bar.
+- Settings: account header card (art, initial avatar, name, level), iOS Settings tinted 30pt tiles per group (blue/orange/teal/pink/green/red/indigo/purple/gray via `settingsTileTint`), search field (`searchable`, flat results list that opens sound, legal, about, marketing, roam, close-account, language), secondary-text footers (language, privacy), close-account moved into its own red section with a consequence footer.
+- About: 112pt art tile hero, brand "Chengyin - 城瘾", tagline, version/build capsule, grouped "This app" rows (version, build, market) and "Legal" link rows as tinted tiles. The "QR code isn't ready" empty block was removed (it was noise for an unshippable feature).
+- Deregister: calm header (icon tile, large title, one reassuring sentence, 3-step strip Read/Verify/Confirm), consequences list with icon tiles (title, value, effect), warning card, typed confirmation field (red outline when it matches), destructive pill, and a confirmation sheet ("Close this account?") before the submit is sent. Marketing: header, per-merchant block with initial tile, one toggle row per channel with an explanation line.
+- Member card: art backdrop card. Complaint and creator application: icon-tile headers, footers, pill buttons.
+- DEBUG hosts (App/DesignFixtures only, plus one `designOverride`/`designModel` hook on the real views): `e4-login`, `e4-login-error`, `e4-auth-phone`, `e4-auth-phone-error`, `e4-settings`, `e4-settings-search`, `e4-deregister`, `e4-deregister-blocked`, `e4-marketing`. Deregister and marketing mount the real `AccountComplianceSheet` on a real but inert `AccountComplianceCoordinator` (stub transport, temp journal) and stub its `ComplianceState`; no Core change.
+
+## Not done / left
+- Creator application has no fixture host (coordinator needs wiring), so it is compile-checked only, not shot. Member and complaint were shot in zh only (batch limit).
+- The brief's brand string 'chein - 城瘾' was read as a typo for Chengyin; shipped "Chengyin - 城瘾". Tell me if the literal spelling is wanted.
+- The Apple button in the phone fixture is the system button for layout review only; in the app it stays gated.
+- Settings search covers the entries that can open without extra context; the long tail (notifications, favourites…) is not indexed.
+
+## Benchmarks (Mobbin, new this pass)
+- Welcome back / full-bleed art: Hinge https://mobbin.com/screens/8dbbaa4b-6f0a-4631-9e58-5dd5aeec61b7 (Brink layered tiles, same pattern as our Welcome), Cleo AI https://mobbin.com/screens/46f5e2fc-950c-4bd0-be0f-c8e35b362411 (art above, sheet card with the sign-in), Hypelist https://mobbin.com/screens/d96461fe-6ec6-4fe1-b002-3ae3373b9e19 (centred headline, legal footnote).
+- Phone step: Lugg flow https://mobbin.com/flows/b10b360c-4b0f-4ebb-b591-ddba0d03cf84 (country chip + field, spinner inside the CTA) and Believe flow https://mobbin.com/flows/80f89842-5465-4828-9a36-541c297ac956.
+- Settings: Phantom https://mobbin.com/screens/6b70b1c1-0dee-4b6d-a7db-e0f8eb7c3696 (search + account card), Instagram https://mobbin.com/screens/f08baa0d-fca5-4c2c-bbd1-a1e10c367714 (search field, secondary footers), Google Calendar https://mobbin.com/screens/0ef5f2e4-f938-42d4-befc-82e71fe14de8 (tinted icon tiles).
+- Delete account: Quo https://mobbin.com/screens/96d639aa-7714-40e5-963e-c044cc5ff9ab (what you should know + type to continue), Kit https://mobbin.com/screens/52d49146-98ed-49b2-a816-7d7a07da444f and Grailed https://mobbin.com/screens/592c51aa-3f22-4cb4-976c-6aea3eb7310d (typed confirm in a confirm step), Manus https://mobbin.com/screens/f06ce2f1-dea4-495e-9717-90ffb223cbd0 (consequence bullets).
