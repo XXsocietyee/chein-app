@@ -25,7 +25,6 @@ struct CYScreenStyle: ViewModifier {
             .listSectionSpacing(CYSpacing.md)
             .listRowSeparatorTint(palette.borderSubtle)
             .headerProminence(.increased)
-            .containerBackground(palette.bgPage, for: .navigation)
             .background(palette.bgPage.ignoresSafeArea())
             .background {
                 CYScreenStyleAnchorHost(domain: domain)
@@ -147,7 +146,8 @@ enum CYScreenChrome {
     /// System section headers only: one secondary label. Custom headers keep their own color and font.
     private static func styleSectionHeader(_ view: UIView, palette: CYDomainPalette) {
         let labels = labels(in: view)
-        guard labels.count == 1, let label = labels[0] else { return }
+        guard labels.count == 1 else { return }
+        let label = labels[0]
         let traits = label.traitCollection
         let secondary = UIColor.secondaryLabel.resolvedColor(with: traits)
         let current = label.textColor.resolvedColor(with: traits)
