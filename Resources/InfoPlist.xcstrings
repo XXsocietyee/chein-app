@@ -71,13 +71,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Save a walk card to Photos when you choose Save to Photos."
+            "value": "Save a walk card, a medal card, or a city stamp slip picture to Photos when you choose Save to Photos."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "仅在你选择“保存到相册”时，将漫游足迹卡添加到相册。"
+            "value": "仅在你选择“保存到相册”时，将足迹卡、勋章卡或城市签小票图片添加到相册。"
           }
         }
       }
