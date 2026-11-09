@@ -257,6 +257,22 @@
         }
       }
     },
+    "authEntry.gate.details": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整说明"
+          }
+        }
+      }
+    },
     "authEntry.gate.localOnly": {
       "localizations": {
         "en": {
@@ -333,6 +349,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "阅读并同意"
+          }
+        }
+      }
+    },
+    "authEntry.gate.summary": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questify processes only the information needed for the features you use. Roaming location is used only for live position, check-ins and trail recording, and is not collected in the background when you are not using it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾会在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。"
           }
         }
       }
