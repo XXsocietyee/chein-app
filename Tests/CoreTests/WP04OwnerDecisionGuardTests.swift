@@ -120,23 +120,29 @@ import Foundation
         XCTAssertTrue(cancelFlow.contains("expectedOutcome: quote.expectedOutcome"), "expectedOutcome must come from the server quote")
     }
 
-    // Release boundary: the shipped composition has no reviewed deployment.
+    // Release boundary: China can be selected. Every other build stays unconfigured.
     func testShippedCompositionIsUnconfigured() throws {
         let text = code(try source("App/RegionalLaunchConfiguration.swift"))
         XCTAssertTrue(text.contains("makeComposition(reviewed: nil, build: .current)"))
         XCTAssertTrue(text.contains("guard let reviewed else"))
         XCTAssertTrue(text.contains(".init(deployment: .unconfigured"))
-        // No code path in the shipped property builds a reviewed deployment.
         guard let start = text.range(of: "static var composition"), let end = text.range(of: "static func reviewedDeployment") else {
             return XCTFail("composition property not found")
         }
         let property = String(text[start.lowerBound..<end.lowerBound])
-        XCTAssertFalse(property.contains("reviewedComposition"))
-        XCTAssertFalse(property.contains("reviewedDeployment"))
+        XCTAssertTrue(property.contains("shippedComposition(build: .current)"))
+        XCTAssertTrue(property.contains("ReviewedMarketLaunch.admitsShippedChina"))
+        XCTAssertTrue(property.contains("reviewedComposition("))
+        XCTAssertTrue(property.contains("makeComposition(reviewed: nil, build: .current)"))
+        XCTAssertFalse(property.contains("unitedStates"))
+        XCTAssertFalse(property.contains("usernamePassword"))
+        XCTAssertFalse(property.contains("bankCreate"))
+        XCTAssertFalse(property.contains(".mall"))
+        XCTAssertFalse(property.contains("https://"))
         XCTAssertEqual(matches(#"makeComposition\(reviewed:\s*(?!nil\b)\S"#, in: property), [])
-        // The approved-URL registry stays empty.
         XCTAssertTrue(text.contains("let approved:[RegionalMarket:Set<String>]=[:]"))
         XCTAssertTrue(text.contains("verifiedCapabilities:[]"))
+        XCTAssertTrue(text.contains("productionGatesEnabled: false"))
     }
 
     // DEC-04: no feature is enabled or disabled from a minor/age signal in the client.

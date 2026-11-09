@@ -1,7 +1,7 @@
 import XCTest
 @testable import QuestifyCore
 
-/// WIRE-1. The shipped composition stays fail-closed. The China deployment below is opt-in.
+/// WIRE-1. A matching China build selects the reviewed deployment. Every other build stays fail-closed.
 final class ReviewedChinaLaunchTests: XCTestCase {
     private let bundle = "invalid.example.questify.ios"
     private let realm = "cn-prod"
@@ -116,26 +116,61 @@ final class ReviewedChinaLaunchTests: XCTestCase {
         XCTAssertFalse(unverified.isFeatureShown(.domesticChinaPhone))
     }
 
+    func testShippedChinaAdmissionAcceptsOnlyTheReviewedHost() {
+        XCTAssertTrue(ReviewedMarketLaunch.admitsShippedChina(
+            market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm))
+        XCTAssertTrue(ReviewedMarketLaunch.admitsShippedChina(
+            market: .china, baseURL: "  \(ReviewedMarketLaunch.chinaProductionBaseURL)  ", bundleIdentifier: bundle, realm: realm))
+        XCTAssertFalse(ReviewedMarketLaunch.admitsShippedChina(
+            market: .unitedStates, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm))
+        XCTAssertNil(ReviewedMarketLaunch.approvedBaseURLs[.unitedStates])
+        for host in ["", "https://www.chengyinhub.com/other/", "http://47.103.124.64/prod-api/", "https://api.example.com/"] {
+            XCTAssertFalse(ReviewedMarketLaunch.admitsShippedChina(
+                market: .china, baseURL: host, bundleIdentifier: bundle, realm: realm), host)
+        }
+        XCTAssertFalse(ReviewedMarketLaunch.admitsShippedChina(
+            market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: "", realm: realm))
+        XCTAssertFalse(ReviewedMarketLaunch.admitsShippedChina(
+            market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: ""))
+        XCTAssertFalse(ReviewedMarketLaunch.admitsShippedChina(
+            market: .china, baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: "$(QUESTIFY_SESSION_REALM)"))
+    }
+
     func testShippedCompositionAndBuildInputsStayFailClosed() throws {
         let launch = try source("App/RegionalLaunchConfiguration.swift")
         XCTAssertTrue(launch.contains("makeComposition(reviewed: nil, build: .current)"))
+        XCTAssertFalse(launch.contains("https://"))
         guard let start = launch.range(of: "static var composition"),
               let end = launch.range(of: "static func reviewedDeployment") else {
             return XCTFail("composition property not found")
         }
         let property = String(launch[start.lowerBound..<end.lowerBound])
+        XCTAssertTrue(property.contains("shippedComposition(build: .current)"))
+        XCTAssertTrue(property.contains("ReviewedMarketLaunch.admitsShippedChina"))
+        XCTAssertTrue(property.contains("reviewedComposition("))
+        XCTAssertTrue(property.contains("ReviewedMarketLaunch.chinaProductionBaseURL"))
+        XCTAssertTrue(property.contains("makeComposition(reviewed: nil, build: .current)"))
+        XCTAssertTrue(property.contains(".manualMap"))
+        XCTAssertTrue(property.contains(".officialPublicEventCatalogAndDetail"))
+        XCTAssertTrue(property.contains(".playNodesAndRouteState"))
         XCTAssertFalse(property.contains("reviewedMarketComposition"))
         XCTAssertFalse(property.contains("reviewedMarketDeployment"))
-        XCTAssertFalse(property.contains("chinaProductionBaseURL"))
         XCTAssertFalse(property.contains("productionGatesEnabled: true"))
+        XCTAssertFalse(property.contains("unitedStates"))
+        XCTAssertFalse(property.contains("usernamePassword"))
+        XCTAssertFalse(property.contains("bankCreate"))
+        XCTAssertFalse(property.contains(".mall"))
+        XCTAssertFalse(property.contains("https://"))
         XCTAssertTrue(launch.contains("let approved:[RegionalMarket:Set<String>]=[:]"))
         XCTAssertTrue(launch.contains("productionGatesEnabled: false"))
 
         let china = try source("Config/China.Production.xcconfig")
         XCTAssertTrue(china.contains("QUESTIFY_API_BASE_URL = https:/$()/www.chengyinhub.com/prod-api/"))
+        XCTAssertTrue(china.contains("QUESTIFY_SESSION_REALM = cn-prod"))
         let unitedStates = try source("Config/UnitedStates.Production.xcconfig")
         XCTAssertFalse(unitedStates.contains("chengyinhub.com"))
         XCTAssertTrue(unitedStates.contains("QUESTIFY_API_BASE_URL =\n"))
+        XCTAssertTrue(unitedStates.contains("QUESTIFY_SESSION_REALM =\n"))
         let base = try source("Config/Base.xcconfig")
         XCTAssertTrue(base.contains("QUESTIFY_API_BASE_URL =\n"))
         XCTAssertFalse(base.contains("chengyinhub.com"))

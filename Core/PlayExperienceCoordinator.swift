@@ -413,6 +413,26 @@ public struct PlayCompletionReview: Equatable {
                 localRecoveryFailed = true; issue = .persistenceUnavailable; phase = .unknown; return
             }
             if let ticket, sent {
+                if case PlayExperienceError.unknownResult = error,
+                   let actionID = ticket.value.intent.advance?.actionID,
+                   let retained = PlayActionReceiptIdentity.retained(original: actionID, proposed: actionID) {
+                    let outcome = try? await service.originalActionReceipt(
+                        scope: scope, nodeID: review.nodeID, routeActionID: retained, token: session.token)
+                    if let outcome, case .confirmed(let value) = outcome,
+                       value["nodeId"].tolerantInteger == review.nodeID || value["data"]["nodeId"].tolerantInteger == review.nodeID {
+                        do {
+                            let acknowledged = try await recovery.transition(ticket, to: .acknowledged, key: key)
+                            try check(session, request)
+                            cachedCompletion = acknowledged
+                            reward = value
+                            phase = .needsReadback
+                            await load()
+                            return
+                        } catch {
+                            guard currentSession() == session, generation == request else { return }
+                        }
+                    }
+                }
                 do {
                     switch error {
                     case PlayExperienceError.disabled:
@@ -456,7 +476,10 @@ public struct PlayCompletionReview: Equatable {
     }
     public func retryExactBranchAfterReadback() async {
         guard canRetryExactBranch, let session = loadedSession, let pending = cachedCompletion,
-              let review = try? pending.value.intent.review(session: session, generation: generation) else { return }
+              let review = try? pending.value.intent.review(session: session, generation: generation),
+              let stored = pending.value.intent.advance?.actionID,
+              let proposed = review.advance?.actionID,
+              PlayActionReceiptIdentity.retained(original: stored, proposed: proposed) == stored else { return }
         await dispatch(review, recovering: pending)
     }
     public func requestHint(nodeID: Int, level: Int?, context: PlayInteractionContext? = nil) async {

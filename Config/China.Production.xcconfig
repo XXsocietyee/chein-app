@@ -4,9 +4,11 @@
 QUESTIFY_API_BASE_URL =
 QUESTIFY_SESSION_REALM =
 // Reviewed China host only. `$()` keeps the URL from being read as an xcconfig comment.
-// This build input does not approve the shipped composition, which stays reviewed: nil.
+// The shipped composition selects this host when the bundle and this realm are present.
+// Password login, bank withdrawal, virtual goods, and the US market stay off.
 QUESTIFY_API_BASE_URL = https:/$()/www.chengyinhub.com/prod-api/
+QUESTIFY_SESSION_REALM = cn-prod
 #include? "Local.China.Production.xcconfig"
-// Bind environment and market after optional overrides; endpoints and realms remain local inputs.
+// Bind environment and market after optional overrides. A local file may replace the realm.
 QUESTIFY_DEPLOYMENT_ENVIRONMENT = production
 QUESTIFY_MARKET = CN

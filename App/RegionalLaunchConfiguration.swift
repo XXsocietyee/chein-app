@@ -1,13 +1,46 @@
 import Foundation
 
-/// Deployment metadata is independent of language. No endpoint has been approved yet.
+/// Deployment metadata is independent of language. The only reviewed host is the China
+/// registry in `ReviewedMarketLaunch`. The United States registry has no host.
 enum RegionalLaunchConfiguration {
-    /// Shipped artifact deliberately has no reviewed deployment. Deployment integration replaces
-    /// this typed composition input, never the runtime URL allowlist or a server feature flag.
+    /// Selects the reviewed China deployment when the build matches it. An empty build and
+    /// every United States build stay unconfigured and call no backend.
     @MainActor static var composition: AppCompositionRoot {
-        // Only a separately reviewed, source-owned deployment may replace nil.
-        // Build metadata validates that choice; it never creates an approval.
-        makeComposition(reviewed: nil, build: .current)
+        shippedComposition(build: .current)
+    }
+
+    /// China selection uses `ReviewedAppDeployment` through `reviewedComposition` and the
+    /// host already named by Config and `ReviewedMarketLaunch`. Password login, bank
+    /// withdrawal, virtual goods, and payment or payout writes are not switched on here.
+    @MainActor static func shippedComposition(
+        build: BuildMetadata = .current,
+        storage: AppScopedStorageFactory? = nil,
+        makeTransport: @escaping () -> any HTTPTransport = { URLSessionTransport() }
+    ) -> AppCompositionRoot {
+        let market = try? RegionalConfiguration.market(buildValue: build.market)
+        let base = build.baseURL ?? ""
+        let bundle = build.bundleIdentifier ?? ""
+        let realm = build.realm ?? ""
+        guard let market, ReviewedMarketLaunch.admitsShippedChina(
+            market: market, baseURL: base, bundleIdentifier: bundle, realm: realm
+        ) else {
+            return makeComposition(reviewed: nil, build: .current)
+        }
+        let pinned = BuildMetadata(
+            market: market.rawValue,
+            baseURL: ReviewedMarketLaunch.chinaProductionBaseURL,
+            bundleIdentifier: bundle.trimmingCharacters(in: .whitespacesAndNewlines),
+            realm: realm.trimmingCharacters(in: .whitespacesAndNewlines)
+        )
+        return reviewedComposition(
+            build: pinned,
+            reads: [
+                .homeAndSearch, .manualMap, .publicMapLayers, .publicTopicTemplateCatalogAndDetail,
+                .officialPublicEventCatalogAndDetail, .playNodesAndRouteState
+            ],
+            storage: storage,
+            makeTransport: makeTransport
+        )
     }
 
     static func reviewedDeployment(

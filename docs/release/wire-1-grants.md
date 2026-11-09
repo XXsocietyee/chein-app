@@ -1,8 +1,8 @@
 # WIRE-1 grant preparation
 
-The shipped composition is still `RegionalLaunchConfiguration.composition`, which calls `makeComposition(reviewed: nil, build: .current)` and therefore stays `DeploymentState.unconfigured`. Tests may select `reviewedMarketComposition` / `ReviewedMarketLaunch`. That China deployment's only approved base URL is `https://www.chengyinhub.com/prod-api/`. The same host is the `QUESTIFY_API_BASE_URL` build input in `Config/China.Production.xcconfig`. Neither one approves the shipped composition, and `productionGatesEnabled` stays false, so password login, bank withdrawal, and virtual goods stay off.
+The shipped composition is `RegionalLaunchConfiguration.composition`, which calls `shippedComposition`. That function selects `reviewedComposition` only when the build market is China, the base URL is `ReviewedMarketLaunch.chinaProductionBaseURL` (`https://www.chengyinhub.com/prod-api/`), and the bundle and realm can form a storage scope. `Config/China.Production.xcconfig` supplies that URL and `QUESTIFY_SESSION_REALM = cn-prod`. The default target still uses `Config/Base.xcconfig`, whose URL and realm are empty, so that build calls `makeComposition(reviewed: nil, build: .current)`, stays `DeploymentState.unconfigured`, and calls no backend.
 
-The US market has no reviewed host. `Config/Base.xcconfig`, the development loopback, and `Config/UnitedStates.Production.xcconfig` do not carry this URL. Nothing is deployed and no production host is contacted. `47.103.124.64` stays disallowed.
+The US market has no reviewed host. `admitsShippedChina` returns false for it. `Config/UnitedStates.Production.xcconfig` leaves the URL and realm empty. Nothing is deployed and no production host is contacted. `47.103.124.64` stays disallowed. Password login, bank-card withdrawal, and virtual goods stay off. Payment and payout writes stay behind their own switch.
 
 `ReviewedAppDeployment.ReadGrant` has exactly six cases (`App/AppCompositionRoot.swift`). Together they are the in-scope read groups. Push notifications and webhooks are not among them. No new `ReadGrant` case is added.
 
@@ -15,7 +15,7 @@ A later owner-supplied deployment that covers every in-scope group would pass th
 - `officialPublicEventCatalogAndDetail`
 - `playNodesAndRouteState`
 
-`reviewedDeployment` / `reviewedComposition` still default to `[.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail]`. That default leaves out manual map, official public events, and play nodes. This preparation does not change the default and does not call those helpers from the shipped property.
+`reviewedDeployment` / `reviewedComposition` still default to `[.homeAndSearch, .publicMapLayers, .publicTopicTemplateCatalogAndDetail]`. The shipped China selection passes all six grants above. Callers that use the helper default still get the three-grant set.
 
 Each value only names a root read family. Transport still requires the existing independent approval (session, market, selected source, or runtime grant). A `ReadGrant` does not create that approval.
 
