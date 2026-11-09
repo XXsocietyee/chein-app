@@ -17,8 +17,8 @@ struct DiscoveryTemplateDetailView: View {
         let id = UUID()
         let source: DiscoveryPlayTemplate
         let key: RequestKey
-        static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
-        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     private struct RequestKey: Hashable {
         let id: Int

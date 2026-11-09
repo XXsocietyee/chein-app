@@ -144,8 +144,8 @@ import SwiftUI
         let receipt: PublishingSubmissionHandoff
         let session: ProjectEditSession
         let visit: UUID
-        static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
-        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     func submissionDestination(_ receipt: PublishingSubmissionHandoff, incarnation: UUID) -> SubmissionDestination? {
         guard submissionIsCurrent(receipt, incarnation: incarnation), let session = coordinator.session,
