@@ -205,7 +205,7 @@ struct CYStateLayout: View {
 }
 
 extension View {
-    @ViewBuilder func ifLet<T>(_ value: T?, _ transform: (Self, T) -> some View) -> some View {
+    @ViewBuilder func ifLet<T, Content: View>(_ value: T?, _ transform: (Self, T) -> Content) -> some View {
         if let value { transform(self, value) } else { self }
     }
 }

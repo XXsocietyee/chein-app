@@ -300,7 +300,7 @@ public struct CYEmptyStateView: View {
             kind: CYStateKind(symbol: systemImage),
             title: Text(title),
             detail: description.map { Text($0) },
-            primary: actionTitle.flatMap { t in action.map { (t, $0) } },
+            primary: actionTitle.flatMap { t in action.map { (title: t, action: $0) } },
             primaryStyle: .primary
         )
     }
@@ -335,7 +335,7 @@ public struct CYErrorStateView: View {
             kind: CYStateKind(symbol: systemImage) == .offline ? .offline : .failure,
             title: Text(title),
             detail: Text(message),
-            primary: onRetry.map { (retryTitle, $0) },
+            primary: onRetry.map { (title: retryTitle, action: $0) },
             primaryStyle: .secondary
         )
     }

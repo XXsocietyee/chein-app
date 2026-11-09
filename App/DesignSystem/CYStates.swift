@@ -43,7 +43,7 @@ struct CYEmptyState: View {
             kind: kind ?? CYStateKind(symbol: systemImage),
             title: Text(message, tableName: tableName),
             detail: detail.map { Text($0) },
-            primary: actionTitle.flatMap { title in action.map { (title, $0) } },
+            primary: actionTitle.flatMap { title in action.map { (title: title, action: $0) } },
             primaryStyle: actionStyle,
             primaryIdentifier: actionIdentifier
         )
