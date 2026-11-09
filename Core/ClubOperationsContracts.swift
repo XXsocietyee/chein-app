@@ -581,3 +581,261 @@ public enum ClubEditDissolveAccess {
         return profile.club.id == id && profile.club.isOwner
     }
 }
+
+/// pages/club/edit/index projection. Reads stay on the existing club detail body.
+/// Edit uses the existing update command. Dissolve uses the existing owner command
+/// and only when a governance context is already available. Player-first surfaces
+/// and missing capabilities stay hidden. This type does not register a route.
+public struct ClubEditPage: Equatable {
+    public static let unknownMark = "—"
+    public enum Surface: Equatable {
+        /// Public club detail, home, and search. Edit and dissolve stay off.
+        case playerFirst
+        /// Manage tab. Capabilities still come from the server body.
+        case manage
+    }
+    public enum State: Equatable { case loading, empty, error, unknown, ready }
+    public enum Read: Equatable {
+        case loading, empty, error, unknown
+        case detail(Data, blockers: Data?)
+    }
+    public let surface: Surface
+    public let state: State
+    public let showsEdit: Bool
+    public let showsDissolve: Bool
+    public let reservedQuotaText: String
+    public let memberCountText: String
+    public let blockerCountText: String
+    public let updatePath: String?
+    public let dissolvePath: String?
+    public let blockersPath: String?
+    public var isPlayerFirstEntry: Bool { surface == .playerFirst }
+    /// Hidden unless the manage surface has a proven edit or dissolve capability.
+    public var entryVisible: Bool { surface == .manage && (showsEdit || showsDissolve) }
+
+    public static func make(read: Read, surface: Surface, clubID: Int, governanceAvailable: Bool) -> ClubEditPage {
+        let hidden = ClubEditPage(surface: surface, state: .unknown, showsEdit: false, showsDissolve: false,
+                                   reservedQuotaText: unknownMark, memberCountText: unknownMark, blockerCountText: unknownMark,
+                                   updatePath: nil, dissolvePath: nil, blockersPath: nil)
+        switch read {
+        case .loading:
+            return ClubEditPage(surface: surface, state: .loading, showsEdit: false, showsDissolve: false,
+                                reservedQuotaText: unknownMark, memberCountText: unknownMark, blockerCountText: unknownMark,
+                                updatePath: nil, dissolvePath: nil, blockersPath: nil)
+        case .empty:
+            return ClubEditPage(surface: surface, state: .empty, showsEdit: false, showsDissolve: false,
+                                reservedQuotaText: unknownMark, memberCountText: unknownMark, blockerCountText: unknownMark,
+                                updatePath: nil, dissolvePath: nil, blockersPath: nil)
+        case .error:
+            return ClubEditPage(surface: surface, state: .error, showsEdit: false, showsDissolve: false,
+                                reservedQuotaText: unknownMark, memberCountText: unknownMark, blockerCountText: unknownMark,
+                                updatePath: nil, dissolvePath: nil, blockersPath: nil)
+        case .unknown:
+            return hidden
+        case .detail(let data, let blockers):
+            guard clubID > 0 else { return hidden }
+            switch ClubEditPageDecoding.parse(data) {
+            case .empty:
+                return ClubEditPage(surface: surface, state: .empty, showsEdit: false, showsDissolve: false,
+                                    reservedQuotaText: unknownMark, memberCountText: unknownMark, blockerCountText: unknownMark,
+                                    updatePath: nil, dissolvePath: nil, blockersPath: nil)
+            case .error:
+                return ClubEditPage(surface: surface, state: .error, showsEdit: false, showsDissolve: false,
+                                    reservedQuotaText: unknownMark, memberCountText: unknownMark, blockerCountText: unknownMark,
+                                    updatePath: nil, dissolvePath: nil, blockersPath: nil)
+            case .unknown:
+                return hidden
+            case .ready(let body, let profile):
+                guard body.hasID, let id = body.id, id == clubID else { return hidden }
+                let quotaText = body.memberReservedQuota?.text ?? unknownMark
+                let memberText = body.memberCount?.text ?? unknownMark
+                let isOwner = body.isOwner?.value == true
+                let isAdmin = body.viewerIsAdmin?.value == true
+                let profileOK = profile?.club.id == clubID && profile?.club.isOwner == isOwner && profile?.club.viewerIsAdmin == isAdmin
+                let quotaKnown = body.memberReservedQuota?.known != nil
+                let priorityKnown = body.prioritySignupEnabled?.known == 0 || body.prioritySignupEnabled?.known == 1
+                let joinKnown = body.joinPolicy?.known == 0 || body.joinPolicy?.known == 1
+                let joinSupported = body.joinPolicySupported?.value == true
+                let ownerCanSave = isOwner && quotaKnown && priorityKnown && (!joinSupported || joinKnown)
+                let adminCanSave = isAdmin && !isOwner
+                var showsEdit = surface == .manage && profileOK && (ownerCanSave || adminCanSave)
+                var showsDissolve = false
+                if let profile, surface == .manage, profileOK, isOwner, governanceAvailable {
+                    let snapshot = ClubOperationsSnapshot(target: .club(clubID), profile: profile)
+                    showsDissolve = ClubEditDissolveAccess.isAvailable(snapshot: snapshot)
+                }
+                if surface == .playerFirst { showsEdit = false; showsDissolve = false }
+                let updatePath: String?
+                if showsEdit, let profile {
+                    updatePath = ClubOperationsCommand.update(ClubOperationsDraft(profile: profile), original: profile).path
+                } else { updatePath = nil }
+                let dissolvePath = showsDissolve ? ClubGovernanceMutation.dissolve.path : nil
+                let blockersPath = showsDissolve ? ClubGovernanceRead.dissolutionBlockers.path : nil
+                let blockerText = showsDissolve ? ClubEditPageDecoding.blockerText(blockers) : unknownMark
+                return ClubEditPage(surface: surface, state: .ready, showsEdit: showsEdit, showsDissolve: showsDissolve,
+                                    reservedQuotaText: quotaText, memberCountText: memberText, blockerCountText: blockerText,
+                                    updatePath: updatePath, dissolvePath: dissolvePath, blockersPath: blockersPath)
+            }
+        }
+    }
+
+    /// Coordinator readback never supplies a number the raw body did not contain.
+    /// A received snapshot without that body stays unknown, including an explicit zero.
+    public static func make(readback: ClubOperationsReadback, write: ClubOperationsState, surface: Surface, clubID: Int, governanceAvailable: Bool, detailBody: Data?, blockersBody: Data?) -> ClubEditPage {
+        switch write {
+        case .outcomeUnknown:
+            return make(read: .unknown, surface: surface, clubID: clubID, governanceAvailable: governanceAvailable)
+        case .preparing, .reviewing, .preflighting, .submitting:
+            return make(read: .loading, surface: surface, clubID: clubID, governanceAvailable: governanceAvailable)
+        case .idle, .notSent, .acknowledged, .rejected:
+            break
+        }
+        switch readback {
+        case .loading:
+            return make(read: .loading, surface: surface, clubID: clubID, governanceAvailable: governanceAvailable)
+        case .unavailable:
+            return make(read: .error, surface: surface, clubID: clubID, governanceAvailable: governanceAvailable)
+        case .idle:
+            guard let detailBody else { return make(read: .empty, surface: surface, clubID: clubID, governanceAvailable: governanceAvailable) }
+            return make(read: .detail(detailBody, blockers: blockersBody), surface: surface, clubID: clubID, governanceAvailable: governanceAvailable)
+        case .received:
+            guard let detailBody else { return make(read: .unknown, surface: surface, clubID: clubID, governanceAvailable: governanceAvailable) }
+            return make(read: .detail(detailBody, blockers: blockersBody), surface: surface, clubID: clubID, governanceAvailable: governanceAvailable)
+        }
+    }
+}
+
+private enum ClubEditPageDecoding {
+    struct Count: Equatable, Decodable {
+        let known: Int?
+        var text: String { known.map(String.init) ?? ClubEditPage.unknownMark }
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if container.decodeNil() { known = nil; return }
+            if let int = try? container.decode(Int.self), int >= 0 { known = int; return }
+            if let string = try? container.decode(String.self) {
+                let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+                if let int = Int(trimmed), int >= 0, String(int) == trimmed { known = int; return }
+            }
+            known = nil
+        }
+    }
+    struct Flag: Equatable, Decodable {
+        let value: Bool?
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if container.decodeNil() { value = nil; return }
+            value = try? container.decode(Bool.self)
+        }
+    }
+    struct Body: Decodable {
+        let hasID: Bool
+        let id: Int?
+        let name: String?
+        let city: String?
+        let detail: String?
+        let memberCount: Count?
+        let memberReservedQuota: Count?
+        let prioritySignupEnabled: Count?
+        let joinPolicy: Count?
+        let isOwner: Flag?
+        let viewerIsAdmin: Flag?
+        let joinPolicySupported: Flag?
+        enum CodingKeys: String, CodingKey {
+            case id, name, city, description, memberCount, memberReservedQuota, prioritySignupEnabled, joinPolicy, isOwner, viewerIsAdmin, joinPolicySupported
+        }
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            hasID = container.contains(.id)
+            id = try container.decodeIfPresent(Count.self, forKey: .id)?.known
+            name = try container.decodeIfPresent(String.self, forKey: .name)
+            city = try container.decodeIfPresent(String.self, forKey: .city)
+            detail = try container.decodeIfPresent(String.self, forKey: .description)
+            memberCount = try container.decodeIfPresent(Count.self, forKey: .memberCount)
+            memberReservedQuota = try container.decodeIfPresent(Count.self, forKey: .memberReservedQuota)
+            prioritySignupEnabled = try container.decodeIfPresent(Count.self, forKey: .prioritySignupEnabled)
+            joinPolicy = try container.decodeIfPresent(Count.self, forKey: .joinPolicy)
+            isOwner = try container.decodeIfPresent(Flag.self, forKey: .isOwner)
+            viewerIsAdmin = try container.decodeIfPresent(Flag.self, forKey: .viewerIsAdmin)
+            joinPolicySupported = try container.decodeIfPresent(Flag.self, forKey: .joinPolicySupported)
+        }
+        var isVacant: Bool {
+            !hasID && name == nil && city == nil && detail == nil && memberCount == nil && memberReservedQuota == nil
+                && prioritySignupEnabled == nil && joinPolicy == nil && isOwner == nil && viewerIsAdmin == nil && joinPolicySupported == nil
+        }
+    }
+    struct Box: Decodable {
+        let code: Int?
+        let sawData: Bool
+        let data: Body?
+        enum CodingKeys: String, CodingKey { case code, data }
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            code = try container.decodeIfPresent(Int.self, forKey: .code)
+            sawData = container.contains(.data)
+            if sawData {
+                data = try container.decodeNil(forKey: .data) ? nil : try container.decode(Body.self, forKey: .data)
+            } else { data = nil }
+        }
+    }
+    struct Row: Decodable {
+        init(from decoder: Decoder) throws { _ = try decoder.container(keyedBy: Ignore.self) }
+    }
+    struct Ignore: CodingKey {
+        var stringValue: String
+        init?(stringValue: String) { self.stringValue = stringValue }
+        var intValue: Int? { nil }
+        init?(intValue: Int) { return nil }
+    }
+    struct Blockers: Decodable {
+        let text: String
+        enum CodingKeys: String, CodingKey { case deposits, settlements }
+        init(from decoder: Decoder) throws {
+            let container = try decoder.container(keyedBy: CodingKeys.self)
+            let depositsNull = try container.decodeNil(forKey: .deposits)
+            let settlementsNull = try container.decodeNil(forKey: .settlements)
+            guard container.contains(.deposits), container.contains(.settlements), !depositsNull, !settlementsNull else {
+                text = ClubEditPage.unknownMark
+                return
+            }
+            let deposits = try container.decode([Row].self, forKey: .deposits)
+            let settlements = try container.decode([Row].self, forKey: .settlements)
+            text = String(deposits.count + settlements.count)
+        }
+    }
+    enum Parsed { case empty, error, unknown, ready(Body, ClubOperationsProfile?) }
+    static func parse(_ data: Data) -> Parsed {
+        let trimmed = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty || trimmed == "null" || trimmed == "[]" || trimmed == "{}" { return .empty }
+        guard let box = try? JSONDecoder().decode(Box.self, from: data) else { return .unknown }
+        if let code = box.code, code != 200 { return .error }
+        let body: Body?
+        if box.sawData { body = box.data }
+        else { body = try? JSONDecoder().decode(Body.self, from: data) }
+        guard let body else { return box.sawData ? .empty : .unknown }
+        if body.isVacant { return .empty }
+        guard body.hasID, let id = body.id, id > 0 else { return .unknown }
+        return .ready(body, profile(matching: body, in: data))
+    }
+    static func profile(matching body: Body, in data: Data) -> ClubOperationsProfile? {
+        guard let object = clubObject(from: data),
+              let profile = try? JSONDecoder().decode(ClubOperationsProfile.self, from: object),
+              profile.club.id == body.id,
+              profile.club.isOwner == (body.isOwner?.value == true),
+              profile.club.viewerIsAdmin == (body.viewerIsAdmin?.value == true) else { return nil }
+        return profile
+    }
+    static func clubObject(from data: Data) -> Data? {
+        guard let root = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return nil }
+        let object: [String: Any]
+        if root.keys.contains("data") {
+            guard let inner = root["data"] as? [String: Any] else { return nil }
+            object = inner
+        } else { object = root }
+        return try? JSONSerialization.data(withJSONObject: object)
+    }
+    static func blockerText(_ data: Data?) -> String {
+        guard let data, let blockers = try? JSONDecoder().decode(Blockers.self, from: data) else { return ClubEditPage.unknownMark }
+        return blockers.text
+    }
+}

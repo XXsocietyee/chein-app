@@ -90,4 +90,31 @@ public enum ClubOperationsFixtureScenario: String, CaseIterable {
         return receipt
     }
 }
+
+/// Deterministic JSON for the create-page read model. No URL, credential, or disk.
+public enum ClubCreatePageFixtureData {
+    public static let emptyOwned = #"{"data":{"owned":[]}}"#
+    public static let oneLive = #"{"data":{"owned":[{"id":81,"name":"Fixture club","isOwner":true,"status":1}]}}"#
+    public static let withheldOwned = #"{"data":{}}"#
+    public static let duplicateIDs = #"{"data":{"owned":[{"id":81,"isOwner":true},{"id":81,"isOwner":true}]}}"#
+    public static let nonPositiveID = #"{"data":{"owned":[{"id":0,"isOwner":true}]}}"#
+    public static let fractionalID = #"{"data":{"owned":[{"id":1.5,"isOwner":true}]}}"#
+    public static let malformed = "not-json"
+}
+
+/// DEBUG club-edit documents. Counts that are missing or not whole numbers stay out of these
+/// payloads instead of being written as zero. No network, credential, or live club.
+public enum ClubEditFixtureData {
+    public static let owner = #"{"id":81,"name":"Fixture club","city":"Fixture city","description":"Synthetic club profile","isOwner":true,"viewerIsAdmin":false,"memberCount":2,"memberReservedQuota":4,"prioritySignupEnabled":1,"joinPolicy":1,"joinPolicySupported":true}"#
+    public static let admin = #"{"id":81,"name":"Fixture club","city":"Fixture city","description":"Synthetic club profile","isOwner":false,"viewerIsAdmin":true,"memberCount":2,"memberReservedQuota":4,"prioritySignupEnabled":1,"joinPolicy":1,"joinPolicySupported":true}"#
+    public static let member = #"{"id":81,"name":"Fixture club","city":"Fixture city","isOwner":false,"viewerIsAdmin":false,"memberCount":2,"memberReservedQuota":4,"prioritySignupEnabled":1,"joinPolicy":0,"joinPolicySupported":false}"#
+    public static let missingQuota = #"{"id":81,"name":"Fixture club","city":"Fixture city","isOwner":true,"viewerIsAdmin":false,"joinPolicySupported":false}"#
+    public static let explicitZero = #"{"id":81,"name":"Fixture club","city":"Fixture city","isOwner":true,"viewerIsAdmin":false,"memberCount":0,"memberReservedQuota":0,"prioritySignupEnabled":0,"joinPolicy":0,"joinPolicySupported":true}"#
+    public static let unknownQuota = #"{"id":81,"name":"Fixture club","city":"Fixture city","isOwner":true,"viewerIsAdmin":false,"memberCount":"UNKNOWN","memberReservedQuota":"UNKNOWN","prioritySignupEnabled":"UNKNOWN","joinPolicy":"UNKNOWN","joinPolicySupported":false}"#
+    public static let emptyDocument = "{}"
+    public static let blockersEmpty = #"{"deposits":[],"settlements":[]}"#
+    public static let blockersMissing = #"{"deposits":[]}"#
+    public static let envelopeOwner = #"{"code":200,"data":{"id":81,"name":"Fixture club","city":"Fixture city","description":"Synthetic club profile","isOwner":true,"viewerIsAdmin":false,"memberCount":2,"memberReservedQuota":4,"prioritySignupEnabled":1,"joinPolicy":1,"joinPolicySupported":true}}"#
+    public static let failedEnvelope = #"{"code":500,"data":null}"#
+}
 #endif

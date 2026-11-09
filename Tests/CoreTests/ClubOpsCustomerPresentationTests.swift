@@ -134,4 +134,129 @@ final class ClubOpsCustomerPresentationTests: XCTestCase {
         XCTAssertNil(ClubOpsFailureCopy(operation: .customers, failure: .signedOut))
         XCTAssertNil(ClubOpsFailureCopy(operation: .roles, failure: .malformed))
     }
+
+    func testCustomerDetailPageStaysHiddenWithoutDirectoryCapability() {
+        let page = ClubCustomerDetailPage.project(value: ClubCustomerDetailFixtureData.ready, memberID: 704, capability: .absent)
+        XCTAssertTrue(page.hidden)
+        XCTAssertNil(page.phase)
+        XCTAssertNil(page.metrics)
+        XCTAssertNil(page.detail)
+        XCTAssertNil(page.displayName)
+        XCTAssertFalse(ClubCustomerDetailPage.includedInPlayerFirstEntry)
+        XCTAssertFalse(ClubCustomerDetailPage.routeMarkedLive)
+        XCTAssertEqual(ClubCustomerDetailPage.readOperation, .customer)
+        XCTAssertEqual(ClubCustomerDetailPage.readOperation.path, "api/club/crm/customers/detail")
+        let scope = ClubCustomerDetailFixtureData.scope
+        XCTAssertTrue(ClubCustomerDetailCapability(permissions: permissions(roles: ["CLUB_OWNER"], codes: []), scope: scope).granted)
+        XCTAssertTrue(ClubCustomerDetailCapability(permissions: permissions(roles: ["CLUB_OPERATOR"], codes: ["club:member:manage"]), scope: scope).granted)
+        XCTAssertFalse(ClubCustomerDetailCapability(permissions: permissions(roles: ["CLUB_OPERATOR"], codes: ["club:member:list:read"]), scope: scope).granted)
+        XCTAssertFalse(ClubCustomerDetailCapability(permissions: permissions(roles: ["EVENT_CHECKIN"], codes: ["club:event:checkin"]), scope: scope).granted)
+        XCTAssertFalse(ClubCustomerDetailCapability(permissions: nil, scope: scope).granted)
+    }
+
+    func testCustomerDetailPageLoadingEmptyReadyAndLiteralZero() throws {
+        let loading = ClubCustomerDetailPage.loading(clientCapabilityPresent: true)
+        XCTAssertEqual(loading.phase, .some(.loading))
+        XCTAssertTrue(loading.hidden)
+        XCTAssertNil(loading.metrics)
+        let ready = ClubCustomerDetailPage.project(value: ClubCustomerDetailFixtureData.ready, memberID: 704, capability: .granted)
+        XCTAssertEqual(ready.phase, .some(.ready))
+        XCTAssertFalse(ready.hidden)
+        XCTAssertEqual(ready.metrics?.arrived.literal, 2)
+        XCTAssertEqual(ready.metrics?.pending.displayText, "1")
+        XCTAssertEqual(ready.metrics?.refunded.literal, 0)
+        XCTAssertEqual(ready.metrics?.refunded.displayText, "0")
+        XCTAssertEqual(ready.paidAmount, .some(.withheld))
+        XCTAssertNil(ready.paidAmount?.displayText)
+        XCTAssertEqual(ready.detail?.memberID, 704)
+        XCTAssertGreaterThan(ready.recordCount ?? 0, 0)
+        let empty = ClubCustomerDetailPage.project(value: ClubCustomerDetailFixtureData.emptyBody, memberID: 704, capability: .granted)
+        XCTAssertEqual(empty.phase, .some(.empty))
+        XCTAssertEqual(empty.recordCount, 0)
+        XCTAssertEqual(empty.metrics?.arrived.literal, 0)
+        XCTAssertEqual(empty.metrics?.arrived.displayText, "0")
+        XCTAssertEqual(empty.metrics?.pending.displayText, "0")
+        XCTAssertEqual(empty.metrics?.refunded.displayText, "0")
+        XCTAssertEqual(empty.paidAmount?.displayText, "¥0")
+        XCTAssertFalse(empty.hasTagsOrRemark)
+        let tagged = try taggedEmpty()
+        let withTag = ClubCustomerDetailPage.project(value: tagged, memberID: 704, capability: .granted)
+        XCTAssertEqual(withTag.phase, .some(.ready))
+        XCTAssertTrue(withTag.hasTagsOrRemark)
+        XCTAssertEqual(withTag.recordCount, 0)
+    }
+
+    func testCustomerDetailUnknownCountsAreEmDashNeverZero() {
+        let page = ClubCustomerDetailPage.project(value: ClubCustomerDetailFixtureData.unknownCounts, memberID: 704, capability: .granted)
+        XCTAssertEqual(page.phase, .some(.unknown))
+        XCTAssertFalse(page.hidden)
+        XCTAssertNil(page.detail)
+        XCTAssertNil(page.recordCount)
+        XCTAssertEqual(page.displayName, "Fixture customer")
+        for count in [page.metrics?.arrived, page.metrics?.pending, page.metrics?.refunded] {
+            XCTAssertNil(count?.literal)
+            XCTAssertEqual(count?.displayText, "—")
+            XCTAssertNotEqual(count?.displayText, "0")
+        }
+        XCTAssertEqual(page.paidAmount, .some(.unknown))
+        XCTAssertEqual(page.paidAmount?.displayText, "—")
+        XCTAssertEqual(ClubCustomerDetailCount.parse(.string("0")).displayText, "—")
+        XCTAssertNil(ClubCustomerDetailCount.parse(.string("0")).literal)
+        XCTAssertNil(ClubCustomerDetailCount.parse(.null).literal)
+        XCTAssertNil(ClubCustomerDetailCount.parse(.decimal(2)).literal)
+        XCTAssertNil(ClubCustomerDetailCount.parse(.integer(-1)).literal)
+        XCTAssertEqual(ClubCustomerDetailCount.parse(.integer(0)).literal, 0)
+        XCTAssertEqual(ClubCustomerDetailPaidAmount.parse(.string("88.50")), .unknown)
+        XCTAssertEqual(ClubCustomerDetailPaidAmount.parse(.string("")), .withheld)
+        XCTAssertEqual(ClubCustomerDetailPaidAmount.parse(.null), .withheld)
+        XCTAssertEqual(ClubCustomerDetailPaidAmount.parse(.integer(0)).displayText, "¥0")
+        let mismatch = ClubCustomerDetailPage.project(value: ClubCustomerDetailFixtureData.ready, memberID: 705, capability: .granted)
+        XCTAssertEqual(mismatch.phase, .some(.error(.malformed)))
+        XCTAssertNil(mismatch.metrics)
+        XCTAssertNil(mismatch.detail)
+        let missingRecords = ClubGovernanceFixtures.json(#"{"summary":{"memberId":704,"arrivedCount":1,"pendingCount":0,"refundedCount":0,"paidAmount":null},"tags":[]}"#)
+        let broken = ClubCustomerDetailPage.project(value: missingRecords, memberID: 704, capability: .granted)
+        XCTAssertEqual(broken.phase, .some(.error(.malformed)))
+        XCTAssertNil(broken.metrics)
+    }
+
+    @MainActor func testCustomerDetailLoadUsesExistingReadAndHidesADeniedGrant() async {
+        var reads = 0
+        let denied = ClubGovernanceFixtureAccess()
+        denied.onRead = { reads += 1 }
+        let hidden = await ClubCustomerDetailPage.load(access: denied, scope: ClubCustomerDetailFixtureData.scope, capability: .absent)
+        XCTAssertTrue(hidden.hidden)
+        XCTAssertNil(hidden.phase)
+        XCTAssertEqual(reads, 0)
+        let access = ClubGovernanceFixtureAccess()
+        access.onRead = { reads += 1 }
+        let loaded = await ClubCustomerDetailPage.load(access: access, scope: ClubCustomerDetailFixtureData.scope, capability: .granted)
+        XCTAssertEqual(loaded.phase, .some(.ready))
+        XCTAssertEqual(reads, 1)
+        XCTAssertNil(loaded.detail?.paidAmountText)
+        access.readFailure = .malformed
+        let failed = await ClubCustomerDetailPage.load(access: access, scope: ClubCustomerDetailFixtureData.scope, capability: .granted)
+        XCTAssertEqual(failed.phase, .some(.error(.malformed)))
+        XCTAssertNil(failed.detail)
+        access.readFailure = .forbidden
+        let refused = await ClubCustomerDetailPage.load(access: access, scope: ClubCustomerDetailFixtureData.scope, capability: .granted)
+        XCTAssertTrue(refused.hidden)
+        XCTAssertNil(refused.detail)
+        XCTAssertNil(refused.metrics)
+    }
+
+    private func permissions(roles: [String], codes: [String]) -> ClubGovernancePermissions? {
+        try? ClubGovernancePermissions(value: .object([
+            "active": .bool(true), "club": .object(["id": .integer(81)]),
+            "roleCodes": .array(roles.map(ClubGovernanceValue.string)),
+            "permissions": .array(codes.map(ClubGovernanceValue.string)),
+            "canManageRoles": .bool(false)
+        ]), scope: ClubCustomerDetailFixtureData.scope)
+    }
+
+    private func taggedEmpty() throws -> ClubGovernanceValue {
+        var value = try XCTUnwrap(ClubCustomerDetailFixtureData.emptyBody.object)
+        value["tags"] = .array([.string("Regular")])
+        return .object(value)
+    }
 }

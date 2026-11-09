@@ -257,3 +257,48 @@ class ClubOpsCustomerRecordIdentityChecks(unittest.TestCase):
     def test_duplicate_record_keys_fail_closed(self):
         core = (ROOT / 'Core/ClubOpsCustomerPresentation.swift').read_text()
         self.assertIn('guard Set(records.map(\\.id)).count == records.count else { throw ClubGovernanceFailure.malformed }', core)
+
+
+class ClubCustomerDetailPageReadyChecks(unittest.TestCase):
+    def test_customer_detail_page_states_stay_off_player_entry(self):
+        core = read("Core/ClubOpsCustomerPresentation.swift")
+        view = read("App/ClubOpsCustomerViews.swift")
+        self.assertNotIn("ClubCustomerDetailPage", view)
+        for token in [
+            "case loading", "case empty", "case error(ClubGovernanceFailure)", "case unknown", "case ready",
+            'public static let unknownDisplay = "—"',
+            "public static let includedInPlayerFirstEntry = false",
+            "public static let routeMarkedLive = false",
+            "public static let readOperation = ClubGovernanceRead.customer",
+            "guard capability.granted else { return .loading(clientCapabilityPresent: false) }",
+        ]:
+            self.assertIn(token, core)
+        for flag in ["showsMerchantChoice = true", "paymentEnabled = true", "payoutEnabled = true",
+                     "withdrawalEnabled = true", "virtualGoodsEnabled = true"]:
+            self.assertNotIn(flag, core)
+        self.assertLess(core.index("#if DEBUG"), core.index("enum ClubCustomerDetailFixtureData"))
+        self.assertLess(core.index("enum ClubCustomerDetailFixtureData"), core.rindex("#endif"))
+        strings = json.loads(read("docs/release/ui-strings-pages-club-customer-detail-index.json"))
+        self.assertEqual(strings["page"], "pages/club/customer-detail/index")
+        keys = {row["key"] for row in strings["strings"]}
+        for key in ["club.customerDetail.page.loading", "club.customerDetail.page.empty",
+                    "club.customerDetail.page.unknown", "clubOps.customer.failed", "clubOps.customer.amountHidden"]:
+            self.assertIn(key, keys)
+        for row in strings["strings"]:
+            self.assertTrue(row["en"].strip() or row["en"] == "—", row["key"])
+            self.assertTrue(row["zh-Hans"].strip() or row["zh-Hans"] == "—", row["key"])
+            self.assertNotIn("http", row["en"].lower())
+            self.assertNotIn("http", row["zh-Hans"].lower())
+        identifiers = {row["id"] for row in strings["accessibilityIdentifiers"]}
+        for identifier in ["club.customerDetail.page.loading", "club.customerDetail.page.empty",
+                           "club.customerDetail.page.error", "club.customerDetail.page.unknown",
+                           "club.customerDetail.metric.arrived", "club.customerDetail.metric.pending",
+                           "club.customerDetail.metric.refunded", "clubOps.customer.paidAmount"]:
+            self.assertIn(identifier, identifiers)
+            self.assertIn(identifier, core)
+        tests = read("Tests/CoreTests/ClubOpsCustomerPresentationTests.swift")
+        for name in ["testCustomerDetailPageStaysHiddenWithoutDirectoryCapability",
+                     "testCustomerDetailPageLoadingEmptyReadyAndLiteralZero",
+                     "testCustomerDetailUnknownCountsAreEmDashNeverZero",
+                     "testCustomerDetailLoadUsesExistingReadAndHidesADeniedGrant"]:
+            self.assertIn("func " + name + "(", tests)

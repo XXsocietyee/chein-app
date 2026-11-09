@@ -217,4 +217,18 @@ public enum ClubOperationsReadback: Equatable { case idle, loading, received(Clu
         restoredCreateReads[key]?.outcome = next
     }
 
+    /// Page-ready projection for club creation. Reads the retained session only.
+    /// A player-first entry passes `onPlayerFirstEntry: true` and gets no form.
+    public func createPageModel(loading: Bool, snapshot: ClubOperationsSnapshot? = nil, onPlayerFirstEntry: Bool = false) -> ClubCreatePageModel {
+        ClubCreatePageModel.interpret(
+            signedIn: identity != nil,
+            configured: access.isConfigured,
+            loading: loading,
+            gate: ClubCreationGate(isConfigured: access.isConfigured, writeAvailability: writeAvailability),
+            snapshot: snapshot,
+            readback: readback(target: .create),
+            onPlayerFirstEntry: onPlayerFirstEntry
+        )
+    }
+
 }
