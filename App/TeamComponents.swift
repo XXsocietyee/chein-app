@@ -1,6 +1,4 @@
 import SwiftUI
-import UIKit
-import UniformTypeIdentifiers
 
 @MainActor final class TeamScreenModel: ObservableObject {
     struct RunPermit: Equatable { fileprivate let presentationID: UUID }
@@ -223,7 +221,7 @@ struct TeamMemberRow: View {
     }
     private func copyInvitationCode(_ code: String) {
         let copied = model.copyInvitationCode(from: team, code: code, permit: copyPermit) { value in
-            UIPasteboard.general.setItems([[UTType.utf8PlainText.identifier: value]], options: [.localOnly: true])
+            LocalPasteboard.copy(value)
         }
         copyMessageKey = copied ? "team.invite.copied" : "team.invite.unavailable"
     }

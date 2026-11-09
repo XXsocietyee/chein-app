@@ -11524,6 +11524,23 @@
         }
       }
     },
+    "club.community.repostedBy %@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reposted by %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 转发"
+          }
+        }
+      }
+    },
     "club.community.review": {
       "extractionState": "manual",
       "localizations": {
@@ -49400,6 +49417,91 @@
           "stringUnit": {
             "state": "translated",
             "value": "满足此条件时"
+          }
+        }
+      }
+    },
+    "cy.cachedImage.failed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片不可用"
+          }
+        }
+      }
+    },
+    "cy.cachedImage.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Image"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "图片"
+          }
+        }
+      }
+    },
+    "cy.state.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loading"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在加载"
+          }
+        }
+      }
+    },
+    "cy.state.offline.retry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Retry"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重试"
+          }
+        }
+      }
+    },
+    "cy.state.offline.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're offline. Showing what's saved."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前无网络连接，仅显示已保存的内容"
           }
         }
       }
@@ -128100,6 +128202,57 @@
         }
       }
     },
+    "officialInbox.hero.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Official events · Responsibilities"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "官方活动 · 承接关系"
+          }
+        }
+      }
+    },
+    "officialInbox.hero.sub": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Events where the platform has invited you to deliver appear here — this is the only entry point for taking part in an official event. Accepting, declining and leaving are all audited; being shown on an event does not mean you have accepted it."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "平台点名邀请你履约的活动都在这里，这是官方活动唯一的承接入口。接受、拒绝和退出都会保留审计；被活动展示不等于已经承接。"
+          }
+        }
+      }
+    },
+    "officialInbox.hero.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the duties that are yours for this event"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只处理属于你的本场职责"
+          }
+        }
+      }
+    },
     "officialRoute.detail.error": {
       "extractionState": "manual",
       "localizations": {
@@ -144195,6 +144348,57 @@
         }
       }
     },
+    "playx.circle.disclaimer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This card only records players' own choices. It does not mean a merchant confirmed a visit, booking, redemption or sale."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本卡仅记录玩家自助选择，不代表商家确认到店、预约、核销或成交。"
+          }
+        }
+      }
+    },
+    "playx.circle.eyebrow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PLAYER SELF-RECORD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家自助记录"
+          }
+        }
+      }
+    },
+    "playx.circle.interactions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Light theme interactions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题轻互动"
+          }
+        }
+      }
+    },
     "playx.circle.invite": {
       "localizations": {
         "en": {
@@ -144207,6 +144411,74 @@
           "stringUnit": {
             "state": "translated",
             "value": "邀请码（选填）"
+          }
+        }
+      }
+    },
+    "playx.circle.inviteLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Companion invite code"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同行邀请码"
+          }
+        }
+      }
+    },
+    "playx.circle.loading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preparing free exploration…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在准备自由探索…"
+          }
+        }
+      }
+    },
+    "playx.circle.memoryEmpty": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Exploration complete. Your record card is ready."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本次探索已完成，记录卡已生成。"
+          }
+        }
+      }
+    },
+    "playx.circle.memoryTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shared memory card"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "共同记忆卡"
           }
         }
       }
@@ -144311,6 +144583,57 @@
         }
       }
     },
+    "playx.circle.progress %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded %lld / 2 shops"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录 %lld / 2 家"
+          }
+        }
+      }
+    },
+    "playx.circle.recordOne": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Record this shop myself"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自助记录这家"
+          }
+        }
+      }
+    },
+    "playx.circle.recordedBadge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已记录"
+          }
+        }
+      }
+    },
     "playx.circle.records": {
       "extractionState": "manual",
       "localizations": {
@@ -144358,6 +144681,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "从已记录的商家中选择后保存城市关键词。"
+          }
+        }
+      }
+    },
+    "playx.circle.shareInvite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite a companion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请同行加入"
           }
         }
       }
@@ -225358,6 +225698,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "活动内容"
+          }
+        }
+      }
+    },
+    "topicXcx.section.intro": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Introduction"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主题介绍"
           }
         }
       }

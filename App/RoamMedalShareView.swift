@@ -7,7 +7,10 @@ import UIKit
     let reader: any RoamExperienceReading
     private let authority: RoamMedalShareAuthority?
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.openURL) private var openURL
+    /// Poster height follows the medal name. At Dynamic Type .large this stays 400.
+    @ScaledMetric(relativeTo: .title3) private var posterHeight: CGFloat = 400
     @StateObject private var photoSave: RoamSharePhotoSaveModel
     @StateObject private var presentation: RoamSharePresentationLifetime
     @State private var image: UIImage?
@@ -81,7 +84,7 @@ import UIKit
     private func prepare() {
         guard sourceIsCurrent else { invalidate(); sourceChanged = true; return }
         photoSave.invalidate()
-        image = RoamMedalShareRenderer.render(selection.card)
+        image = RoamMedalShareRenderer.render(selection.card, dynamicTypeSize: dynamicTypeSize, posterHeight: posterHeight)
         renderFailed = image == nil
     }
     private func invalidate() { photoSave.invalidate(); systemShare = nil; image = nil; renderFailed = false }
@@ -140,16 +143,17 @@ import UIKit
 
 /// Preview and both export actions use this same image. No asset URL or mutable live result.
 @MainActor enum RoamMedalShareRenderer {
-    static func render(_ card: RoamMedalShareSelection.Card) -> UIImage? {
-        let renderer = ImageRenderer(content: RoamMedalShareCard(card: card)
-            .environment(\.colorScheme, .dark).environment(\.dynamicTypeSize, .large))
-        renderer.scale = 2.5 // 300×400 points -> the retained Mini's 750×1000 portrait card.
+    static func render(_ card: RoamMedalShareSelection.Card, dynamicTypeSize: DynamicTypeSize = .large, posterHeight: CGFloat = 400) -> UIImage? {
+        let renderer = ImageRenderer(content: RoamMedalShareCard(card: card, posterHeight: posterHeight)
+            .environment(\.colorScheme, .dark).environment(\.dynamicTypeSize, dynamicTypeSize))
+        renderer.scale = 2.5 // At Dynamic Type .large the card is 300×400pt, the retained Mini's 750×1000 portrait.
         return renderer.uiImage
     }
 }
 
 private struct RoamMedalShareCard: View {
     let card: RoamMedalShareSelection.Card
+    var posterHeight: CGFloat = 400
     var body: some View {
         VStack(spacing: 12) {
             ZStack {
@@ -166,7 +170,7 @@ private struct RoamMedalShareCard: View {
             if let date = card.recordedAt { Text(date, style: .date).font(.caption).foregroundStyle(.white.opacity(0.7)) }
             Spacer(minLength: 0)
             Text("roam.medalShare.brand").font(.caption2).foregroundStyle(.white.opacity(0.5))
-        }.padding(24).frame(width: 300, height: 400)
+        }.padding(24).frame(width: 300, height: posterHeight)
             .foregroundStyle(.white)
             .background(LinearGradient(colors: [Color(white: 0.13), .black], startPoint: .top, endPoint: .bottom))
     }

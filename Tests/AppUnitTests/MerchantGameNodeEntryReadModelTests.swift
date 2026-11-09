@@ -12,7 +12,7 @@ import XCTest
     func loadProjection(activityID: Int) async -> MerchantGameNodeLoadResult { fatalError("Not an entry read") }
     func issueLiveCode(activityID: Int, nodeID: Int) async -> MerchantGameNodeLiveCodeResult { fatalError("No code issuance") }
     func submit(_ command: MerchantGameNodeCommand) async -> MerchantGameNodeWriteResult { fatalError("No writes") }
-    func readReceipt(activityID: Int, requestID: String) async -> MerchantGameNodeReceiptResult { fatalError("No receipt request") }
+    func readReceipt(activityID: Int, requestID: String) async throws -> MerchantGameNodeReceiptResult { fatalError("No receipt request") }
     func persistPending(_ index: MerchantGameNodePendingIndex) -> Bool { false }
     func restorePending(activityID: Int) -> MerchantGameNodePendingIndex? { nil }
     func clearPending(activityID: Int) { XCTFail("No journal mutation") }

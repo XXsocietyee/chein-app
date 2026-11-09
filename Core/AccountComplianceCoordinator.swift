@@ -64,6 +64,10 @@ public struct AccountMarketingReadIntent {
     private var deregistrationPresentation: AccountDeregistrationPresentation?
     private var deregistrationPresentationActive = false
     public var deregistrationOriginalRevision: UUID? { service.deregistrationOriginalRevision }
+    /// Source cooling-off clock. Pending stays cancellable after this becomes true; the explanation changes.
+    public func coolingOffHasPassed(now: Date) -> Bool {
+        DeregistrationStatusRules.executeAfterPassed(state.status?.executeAfter, now: now)
+    }
     private var reviewSession: ComplianceSession?
     private var reviewIssuance: UUID?
     private var noticeAccepted = false
@@ -269,6 +273,16 @@ public struct AccountMarketingReadIntent {
             guard self.state.localCancellationConsent.allowsNewConsent else { throw ComplianceFailure.unresolved }
             let result = try await self.service.precheck(session: session); try self.deregistrationFence(session, stamp, issuance: issuance)
             self.state.status = result
+            switch DeregistrationStatusRules.evaluatePrecheck(result) {
+            case .malformed:
+                self.state.step = .unknown
+                return
+            case .blocked:
+                self.state.step = .blocked
+                return
+            case .eligible(let method):
+                guard method == .sms else { self.state.step = .verificationUnavailable; return }
+            }
             if let impact = result.impact {
                 guard impact.valid(for: session.accountID), impact.confirmable else { self.state.step = .blocked; return }
             } else if issuance != nil {

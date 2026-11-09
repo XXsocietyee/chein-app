@@ -66,6 +66,10 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
     /// Switch to `.resultEndpoint` only once the backend ships the route.
     public enum ReceiptSource: Equatable { case derivedFromStatus, resultEndpoint }
     public var receiptSource: ReceiptSource = .derivedFromStatus
+    /// Durable "this request was handed to apply". Empty unless the service installs the file journal.
+    public var rememberedApply: (String) -> Bool = { _ in false }
+    /// Called immediately before the apply body is sent. A throw skips the send.
+    public var rememberApply: ((String) throws -> Void)?
     public init(context: RuntimeDependencyContext, approval: AccountDeregistrationOriginalApproval, transport: any HTTPTransport,
                 current: @escaping () -> RuntimeDependencyContext?, stillApproved: @escaping () -> Bool, onUnauthorized: @escaping () -> Void) {
         self.context = context; self.approval = approval; self.transport = transport; self.current = current
@@ -131,7 +135,10 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
     private func derivedResult(_ intent: CompliancePendingOperation, session: ComplianceSession) async throws -> AccountDeregistrationOriginalReceipt {
         let state = try await status(session: session)
         let after = Self.milliseconds(state.executeAfter)
-        let receipt = state.pending && sent.contains(intent.requestID) && (after ?? 0) > 0
+        // PENDING is this request's acceptance only after apply was handed off. A new process
+        // has an empty `sent` set; the journal note is what survives that process.
+        let handedOff = sent.contains(intent.requestID) || rememberedApply(intent.requestID)
+        let receipt = state.pending && handedOff && (after ?? 0) > 0
             ? AccountDeregistrationOriginalReceipt(derivedOutcome: "ACCEPTED", requestId: intent.requestID, actorId: session.accountID, executeAfterAtAcceptance: after)
             : AccountDeregistrationOriginalReceipt(derivedOutcome: "UNKNOWN", requestId: intent.requestID, actorId: session.accountID, executeAfterAtAcceptance: nil)
         try receipt.validate(request: intent.requestID, actor: session.accountID)
@@ -153,9 +160,12 @@ public struct AccountDeregistrationOriginalReceipt: Decodable, Equatable {
         var r = try AuthRequestBuilder.makeFormRequest(url: context.baseURL.appendingPathComponent(Self.base + "apply"),
             fields: ["smscode": code, "requestId": intent.requestID, "impactRevision": revision], token: context.session.token)
         r.httpShouldHandleCookies = false; r.setValue("1", forHTTPHeaderField: "X-Account-Deregistration-Original")
+        try rememberApply?(intent.requestID)
         sent.insert(intent.requestID)
         _ = try await send(r, session: session, as: MerchantBusinessValue.self) // Response is not a receipt read.
     }
+    /// True only after `apply` has passed every guard and handed the body to the transport.
+    public func didHandApplyToTransport(_ requestID: String) -> Bool { sent.contains(requestID) }
     public static func accepts(_ r: URLRequest, context: RuntimeDependencyContext, approval: AccountDeregistrationOriginalApproval) -> Bool {
         guard approval.matches(context), !r.httpShouldHandleCookies, r.httpBodyStream == nil,
               r.value(forHTTPHeaderField: "Authorization") == context.session.token, r.value(forHTTPHeaderField: "Accept") == "application/json",

@@ -253,5 +253,8 @@ with tempfile.TemporaryDirectory(prefix='questify-current-scaffold-') as directo
         relative='Questify.xcodeproj/xcshareddata/xcschemes/'+name
         assert ET.canonicalize((ROOT/relative).read_text())==ET.canonicalize((scratch/relative).read_text()),('Current scheme differs',name)
 assert hashlib.sha256(project_path.read_bytes()).hexdigest()==before
+# EN / zh-Hans coverage for every Resources/*.xcstrings catalog. Local tool
+# path only; this does not add a hosted macOS workflow.
+subprocess.run(['python3','-B',str(pathlib.Path(__file__).resolve().with_name('check_catalog_coverage.py'))],check=True)
 print(f'PASS structural checks: {len(source_paths)} Swift source files, {len(catalog["strings"])} bilingual keys, references, scheme, read-only expected project equivalence')
 print('SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence')

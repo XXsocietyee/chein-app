@@ -164,10 +164,15 @@ public struct CompliancePendingOperation: Codable, Equatable {
     func marketingPending(scope: String) throws -> [CompliancePendingOperation]
     func begin(_ operation: CompliancePendingOperation) throws
     func resolve(scope: String, operation: String) throws
+    /// Durable mark that `apply` was handed to the transport. Absent on in-memory journals.
+    func noteDeregistrationApplyDispatched(scope: String, requestID: String) throws
+    func deregistrationApplyWasDispatched(scope: String, requestID: String) throws -> Bool
 }
 extension ComplianceJournaling {
     public var isDurable: Bool { false }
     public func marketingPending(scope: String) throws -> [CompliancePendingOperation] { throw ComplianceFailure.unavailable }
+    public func noteDeregistrationApplyDispatched(scope: String, requestID: String) throws {}
+    public func deregistrationApplyWasDispatched(scope: String, requestID: String) throws -> Bool { false }
 }
 /// Atomic durable journal. A corrupt/unreadable file fails closed; never silently resets locks.
 @MainActor public final class ComplianceFileJournal: ComplianceJournaling {
@@ -198,4 +203,29 @@ extension ComplianceJournaling {
         rows.append(operation); try write(rows)
     }
     public func resolve(scope: String, operation: String) throws { try write(read().filter { !($0.scope == scope && $0.operation == operation) }) }
+    /// Sibling of the operation journal. A crash after this write and before the response
+    /// is the lost-apply case: recovery may read status, and must not POST apply again.
+    public func noteDeregistrationApplyDispatched(scope: String, requestID: String) throws {
+        guard AccountDeregistrationOriginalClient.validUUID(requestID), !scope.isEmpty else { throw ComplianceFailure.invalidInput }
+        var rows = try readDispatches()
+        let note = DeregistrationApplyDispatch(scope: scope, requestID: requestID)
+        guard !rows.contains(note) else { return }
+        rows.append(note)
+        try FileManager.default.createDirectory(at: dispatchURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try JSONEncoder().encode(rows).write(to: dispatchURL, options: .atomic)
+    }
+    public func deregistrationApplyWasDispatched(scope: String, requestID: String) throws -> Bool {
+        try readDispatches().contains(DeregistrationApplyDispatch(scope: scope, requestID: requestID))
+    }
+    private var dispatchURL: URL { url.deletingLastPathComponent().appendingPathComponent(url.lastPathComponent + ".apply-dispatch") }
+    private func readDispatches() throws -> [DeregistrationApplyDispatch] {
+        guard FileManager.default.fileExists(atPath: dispatchURL.path) else { return [] }
+        return try JSONDecoder().decode([DeregistrationApplyDispatch].self, from: Data(contentsOf: dispatchURL))
+    }
+}
+
+/// Request id handed to `POST api/user/deregister/apply`. Not an acceptance receipt.
+private struct DeregistrationApplyDispatch: Codable, Equatable {
+    var scope: String
+    var requestID: String
 }

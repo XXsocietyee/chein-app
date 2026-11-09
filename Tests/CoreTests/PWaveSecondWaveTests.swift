@@ -430,6 +430,202 @@ final class PWaveSecondWaveTests: XCTestCase {
         XCTAssertFalse(failed.hidden)
     }
 
+    func testCatalogCardKeepsNamedFieldsAndDropsANonStringSample() throws {
+        let card = try readyCatalog(#"""
+        {"id":"9","name":"江岸","chapterNames":["序",1],"canonicalPath":"/t/9","subtitle":"夜","summary":"短",
+         "imgUrl":"/a.png","productType":"CITY","priceUnit":"起","priceFrom":12,"priceState":"ON_SALE",
+         "groupEligible":false,"schoolEligible":true,"translationState":"MACHINE","revision":{"state":"DRAFT"},
+         "requestedLocale":"zh-CN"}
+        """#)
+        let row = card.cards[0]
+        XCTAssertNil(row.chapterNames)
+        XCTAssertEqual(row.sampleCountText, emDash)
+        XCTAssertNotEqual(row.sampleCountText, "0")
+        XCTAssertFalse(row.samplesPadded)
+        XCTAssertEqual(row.canonicalPath, "/t/9")
+        XCTAssertEqual(row.subtitle, "夜")
+        XCTAssertEqual(row.summary, "短")
+        XCTAssertEqual(row.imageURL, "/a.png")
+        XCTAssertEqual(row.productType, "CITY")
+        XCTAssertEqual(row.priceUnit, "起")
+        XCTAssertEqual(row.priceText, "12")
+        XCTAssertEqual(row.translationState, "MACHINE")
+        XCTAssertEqual(row.revisionState, "DRAFT")
+        XCTAssertTrue(row.groupEligibilityDeclared)
+        XCTAssertEqual(row.groupEligible, Optional(false))
+        XCTAssertFalse(row.presentsAsDoesNotHost)
+        XCTAssertTrue(row.schoolEligibilityDeclared)
+        XCTAssertNil(row.localeFellBack)
+        let two = try readyCatalog(#"{"id":"1","chapterNames":["序","二"]}"#)
+        XCTAssertEqual(two.cards[0].sampleCountText, "2")
+        XCTAssertFalse(two.cards[0].samplesPadded)
+        XCTAssertNotEqual(two.cards[0].sampleCountText, "3")
+        let scalar = PWaveThemeCollection.decode(data: envelope("\"nope\"", capability: "public.catalog"), status: 200, supported: ["public.catalog"])
+        XCTAssertEqual(scalar.phase, .some(.unknown))
+        XCTAssertNotEqual(scalar.phase, .empty)
+    }
+
+    func testCatalogPathsAndThemeHistoryUseNamedReads() async throws {
+        let wire = Wire()
+        let reader = try makeReader(wire, granted: [.themeCollection, .runMemory, .memberBoard],
+                                   supported: ["public.catalog", "play.memory", "rank.board"])
+        let scope = try PWaveSessionScope(accountID: 7, epoch: 1, namespace: "cn")
+        wire.body = envelope(#"[{"cityCode":"SHA","cityName":"上海"}]"#, capability: "public.catalog")
+        let cities = try await reader.themeCatalog(.cityList, fields: [:], token: "session-token", scope: scope, currentScope: { scope })
+        guard case .ready(let cityFact)? = cities.phase else { return XCTFail("expected cities") }
+        XCTAssertEqual(cityFact.cities[0].cityName, "上海")
+        XCTAssertEqual(wire.requests[0].httpMethod, "POST")
+        XCTAssertEqual(wire.requests[0].url?.path, "/api/public-catalog/city/list")
+        XCTAssertEqual(wire.requests[0].value(forHTTPHeaderField: "Authorization"), "session-token")
+        XCTAssertEqual(String(decoding: wire.requests[0].httpBody ?? Data(), as: UTF8.self), "")
+
+        wire.body = envelope("[]", capability: "public.catalog")
+        let paths: [(PWaveCatalogPath, String)] = [(.map, "/api/public-catalog/map"), (.filters, "/api/public-catalog/filters"), (.list, "/api/public-catalog/list")]
+        for (path, expected) in paths {
+            _ = try await reader.themeCatalog(path, fields: ["city_code": "SHA"], token: nil, scope: scope, currentScope: { scope })
+            XCTAssertEqual(wire.requests.last?.url?.path, expected)
+        }
+
+        wire.body = envelope(#"{"id":"9","name":"江岸"}"#, capability: "public.catalog")
+        let ids = try await reader.themeCatalog(.ids, fields: ["ids": "9", "keyword": "a b"], token: nil, scope: scope, currentScope: { scope })
+        guard case .ready(let listed)? = ids.phase else { return XCTFail("expected ids") }
+        XCTAssertEqual(listed.cards[0].primaryTargetID, "9")
+        XCTAssertEqual(wire.requests.last?.url?.path, "/api/public-catalog/ids")
+        XCTAssertEqual(String(decoding: wire.requests.last?.httpBody ?? Data(), as: UTF8.self), "ids=9&keyword=a%20b")
+        let sentBeforeReject = wire.requests.count
+        do {
+            _ = try await reader.themeCatalog(.ids, fields: ["city_code": "SHA"], token: nil, scope: scope, currentScope: { scope })
+            XCTFail("ids needs ids")
+        } catch PWaveRefusal.invalidRequest {}
+        XCTAssertEqual(wire.requests.count, sentBeforeReject)
+
+        wire.body = envelope(#"[{"sessionId":"run-9"}]"#, capability: "play.memory")
+        let history = try await reader.themeHistory(topicID: "9", beforeSessionID: "run-8", limit: 5, token: "session-token", scope: scope, currentScope: { scope })
+        guard case .ready(let sessions)? = history.phase else { return XCTFail("expected history") }
+        XCTAssertEqual(sessions.sessionIDs, ["run-9"])
+        XCTAssertFalse(sessions.fillsCurrentContent)
+        let historyURL = try XCTUnwrap(wire.requests.last?.url)
+        XCTAssertEqual(historyURL.path, "/api/play/theme/history")
+        XCTAssertTrue(historyURL.query?.contains("topicId=9") == true)
+        XCTAssertTrue(historyURL.query?.contains("beforeSessionId=run-8") == true)
+        XCTAssertTrue(historyURL.query?.contains("limit=5") == true)
+        let sent = wire.requests.count
+        do {
+            _ = try await reader.themeHistory(topicID: "9", limit: 0, token: "session-token", scope: scope, currentScope: { scope })
+            XCTFail("limit")
+        } catch PWaveRefusal.invalidRequest {}
+        do {
+            _ = try await reader.themeHistory(topicID: "", token: "session-token", scope: scope, currentScope: { scope })
+            XCTFail("topic")
+        } catch PWaveRefusal.invalidRequest {}
+        do {
+            _ = try await reader.questBoard(scopeID: "9", limit: 0, token: "session-token", scope: scope, currentScope: { scope })
+            XCTFail("quest limit")
+        } catch PWaveRefusal.invalidRequest {}
+        do {
+            _ = try await reader.teamRanking(ownerType: 3, ownerID: "4", token: "session-token", scope: scope, currentScope: { scope })
+            XCTFail("owner")
+        } catch PWaveRefusal.invalidRequest {}
+        XCTAssertEqual(wire.requests.count, sent)
+    }
+
+    func testCityPassKeepsTheTermAndABadProductIdSendsNothing() async throws {
+        let term = try readyProduct(#"""
+        {"purchase_kind":1,"explore_capacity":0,"validityKind":2,"validDays":30,"fixedValidFrom":"2026-11-01","fixedValidTo":"2027-11-01","seat_count":1,"coveredTopics":["9",8],"price":12,"priceState":"ON_SALE","refundPolicy":"UNUSED_ONLY"}
+        """#, frozen: false)
+        let product = term.products[0]
+        XCTAssertEqual(product.exploreCapacity.literal, 0)
+        XCTAssertEqual(product.validityKind.literal, 2)
+        XCTAssertEqual(product.validDays.literal, 30)
+        XCTAssertEqual(product.fixedValidFrom, "2026-11-01")
+        XCTAssertEqual(product.fixedValidTo, "2027-11-01")
+        XCTAssertEqual(product.refundPolicy, "UNUSED_ONLY")
+        XCTAssertEqual(product.coveredTopicCountText, "2")
+        XCTAssertEqual(product.catalogPriceText, "12")
+        XCTAssertFalse(product.frozenSnapshot)
+        XCTAssertFalse(product.purchaseShown)
+        let objectTopics = try readyProduct(#"{"price":1,"priceState":"ON_SALE","coveredTopics":{"id":"9"}}"#, frozen: false)
+        XCTAssertEqual(objectTopics.products[0].coveredTopicCountText, emDash)
+        XCTAssertNotEqual(objectTopics.products[0].coveredTopicCountText, "0")
+        let scalar = PWaveCityPass.decode(data: envelope("\"nope\"", capability: "marketing.product"), status: 200,
+                                          supported: ["marketing.product"], frozenSnapshot: false)
+        XCTAssertEqual(scalar.phase, .some(.unknown))
+
+        let wire = Wire()
+        let reader = try makeReader(wire, granted: [.cityPass], supported: ["marketing.product"])
+        let scope = try PWaveSessionScope(accountID: 7, epoch: 1, namespace: "cn")
+        do {
+            _ = try await reader.product(id: "../9", token: "session-token", scope: scope, currentScope: { scope })
+            XCTFail("path")
+        } catch PWaveRefusal.invalidRequest {}
+        do {
+            _ = try await reader.product(id: "9/1", token: "session-token", scope: scope, currentScope: { scope })
+            XCTFail("slash")
+        } catch PWaveRefusal.invalidRequest {}
+        do {
+            _ = try await reader.products(city: "", token: "session-token", scope: scope, currentScope: { scope })
+            XCTFail("city")
+        } catch PWaveRefusal.invalidRequest {}
+        XCTAssertTrue(wire.requests.isEmpty)
+        wire.body = envelope(#"{"price":15,"priceState":"ON_SALE","contentRevision":{"id":"rev"}}"#, capability: "marketing.product")
+        let one = try await reader.product(id: "9", token: "session-token", scope: scope, currentScope: { scope })
+        guard case .ready(let pass)? = one.phase else { return XCTFail("expected product") }
+        XCTAssertFalse(pass.products[0].frozenSnapshot)
+        XCTAssertTrue(pass.products[0].contentRevisionPresent)
+        XCTAssertEqual(wire.requests[0].url?.path, "/api/marketing/product/9")
+        XCTAssertEqual(wire.requests[0].httpMethod, "GET")
+        XCTAssertNil(wire.requests[0].httpBody)
+    }
+
+    func testAffiliateCountTextAndUnknownCurrencyDoNotInventATotal() throws {
+        let fact = try readyAffiliate(#"""
+        {"credentials":[{},{}],"allocations":[{}],"held":{"amountFen":1,"currency":"UNKNOWN"},"currency":"CNY","payout":{"available":true}}
+        """#)
+        XCTAssertEqual(fact.credentialCountText, "2")
+        XCTAssertEqual(fact.campaignCountText, emDash)
+        XCTAssertNotEqual(fact.campaignCountText, "0")
+        XCTAssertNil(fact.campaignCount)
+        XCTAssertEqual(fact.allocationCountText, "1")
+        XCTAssertEqual(fact.currency, "CNY")
+        XCTAssertEqual(fact.heldAmountText, "1")
+        XCTAssertTrue(fact.withdrawShown)
+        let unknown = try readyAffiliate(#"""
+        {"credentials":[],"campaigns":[{}],"allocations":[],"held":{"amountFen":1,"currency":"UNKNOWN"},"currency":"UNKNOWN","payout":{"available":true}}
+        """#)
+        XCTAssertNil(unknown.currency)
+        XCTAssertEqual(unknown.heldAmountText, "1")
+        XCTAssertTrue(unknown.withdrawShown)
+        XCTAssertFalse(unknown.multipleCurrencies)
+        XCTAssertEqual(unknown.credentialCountText, "0")
+    }
+
+    func testMemoryZeroAndPrivateShareStayClosed() throws {
+        let none = try readyMemory(#"{"moments":[],"participantCount":1,"photoShareCapability":"PRIVATE"}"#)
+        XCTAssertEqual(none.momentCount, 0)
+        XCTAssertEqual(none.momentCountText, "0")
+        XCTAssertTrue(none.showsNoPhotoAssociation)
+        XCTAssertFalse(none.consentFactAbsent)
+        XCTAssertFalse(none.otherPrivatePhotosVisible)
+        XCTAssertEqual(none.photoShareCapability, "PRIVATE")
+        let walked = Data(#"{"code":200,"msg":"NO_PRIVATE_PHOTO_SHARE_CONSENT_FACT","requiredCapabilities":["play.memory"],"data":{"participantCount":1,"photoShareCapability":"PRIVATE"}}"#.utf8)
+        let presented = PWaveRunMemory.decode(data: walked, status: 200, supported: ["play.memory"])
+        guard case .ready(let fact)? = presented.phase else { return XCTFail("expected memory") }
+        XCTAssertTrue(fact.consentFactAbsent)
+        XCTAssertFalse(fact.otherPrivatePhotosVisible)
+    }
+
+    func testHistoryEmptyIsEmptyAndAnIntegerSessionIdIsKept() {
+        let empty = PWaveRunMemory.decodeHistory(data: envelope("[]", capability: "play.memory"), status: 200, supported: ["play.memory"])
+        XCTAssertEqual(empty.phase, .some(.empty))
+        XCTAssertFalse(empty.hidden)
+        let presented = PWaveRunMemory.decodeHistory(data: envelope(#"[{"sessionId":7}]"#, capability: "play.memory"), status: 200, supported: ["play.memory"])
+        guard case .ready(let fact)? = presented.phase else { return XCTFail("expected history") }
+        XCTAssertEqual(fact.sessionIDs, ["7"])
+        XCTAssertFalse(fact.fillsCurrentContent)
+        let object = PWaveRunMemory.decodeHistory(data: envelope(#"{"sessionId":"run-9"}"#, capability: "play.memory"), status: 200, supported: ["play.memory"])
+        guard case .unknown? = object.phase else { return XCTFail("a single object is not a history list") }
+    }
+
     func testCatalogRejectsAnUnknownFieldBeforeSending() async throws {
         let wire = Wire()
         let reader = try makeReader(wire, granted: [.themeCollection])

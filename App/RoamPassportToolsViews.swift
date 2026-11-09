@@ -734,6 +734,8 @@ struct RoamAnniversaryReadIntent {
 private struct RoamRecapWeekChart: View {
     let weeks: [RoamRecapWeek]
     @Binding var picked: Int?
+    /// The 110pt bar stays put. The column's minimum height scales with the caption instead of locking at 170.
+    @ScaledMetric(relativeTo: .caption) private var chartHeight: CGFloat = 170
     var body: some View {
         let top = max(weeks.map(\.count).max() ?? 0, 1)
         HStack(alignment: .bottom, spacing: 12) {
@@ -750,6 +752,6 @@ private struct RoamRecapWeekChart: View {
                 }.buttonStyle(.plain)
                     .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
             }
-        }.frame(height: 170).accessibilityIdentifier("roam.tools.recap.weeks")
+        }.frame(minHeight: chartHeight).accessibilityIdentifier("roam.tools.recap.weeks")
     }
 }
