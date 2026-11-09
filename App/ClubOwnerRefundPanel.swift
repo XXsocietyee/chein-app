@@ -81,6 +81,7 @@ extension EnvironmentValues {
                             if status.inFlight { ProgressView("club.refund.working") }
                         }
                     }
+                    .cyGroupedSurface()
                     .navigationTitle("club.refund.question")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) {

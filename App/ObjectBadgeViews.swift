@@ -125,6 +125,7 @@ struct ObjectBadgeWallBadgeLabel: View {
     let layout: ObjectBadgeWallLayout
     var body: some View {
         if layout == .wall {
+<<<<<<< HEAD
             VStack(spacing: CYSpacing.sm) {
                 CYFoilMedal(unlocked: !badge.isLocked, size: 76) {
                     ZStack {
@@ -136,9 +137,24 @@ struct ObjectBadgeWallBadgeLabel: View {
             }.frame(maxWidth: .infinity, minHeight: 72)
                 .cyDomainCard(padding: CYSpacing.md)
                 .accessibilityElement(children: .combine)
+=======
+            // Collectible tile: generated medal when earned, a quiet dashed socket with a lock when not.
+            VStack(spacing: CYSpacing.sm) {
+                CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 84)
+                Group { if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) } }
+                    .font(CYTypography.bodyCompact.weight(.semibold))
+                    .foregroundStyle(badge.isLocked ? CYColor.textSecondary : CYColor.textPrimary)
+                    .multilineTextAlignment(.center).lineLimit(2)
+                CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success)
+            }
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .padding(.vertical, CYSpacing.md)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityElement(children: .combine)
+>>>>>>> origin/ui/main
         } else {
-            HStack {
-                CYRowIcon(systemImage: badge.isLocked ? "lock" : "medal")
+            HStack(spacing: CYSpacing.md) {
+                CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 48)
                 description
             }
             .accessibilityElement(children: .combine)
@@ -187,6 +203,7 @@ struct ObjectBadgeWallBadgeLabel: View {
         ScrollView {
             if !valid { Text("objects.sessionChanged").padding(CYSpacing.pageHorizontal) }
             else {
+<<<<<<< HEAD
                 VStack(spacing: CYSpacing.xl) {
                     stage
                     VStack(spacing: CYSpacing.sm) {
@@ -196,6 +213,35 @@ struct ObjectBadgeWallBadgeLabel: View {
                             HStack(spacing: CYSpacing.sm) { statusChips }
                             VStack(spacing: CYSpacing.sm) { statusChips }
                         }
+=======
+                Section {
+                    VStack(spacing: 16) {
+                        ObjectCardArtwork(url: badge.image, label: badge.name, media: media,
+                            expectedScope: mediaScope, currentScope: { valid ? mediaScope : expiredScope })
+                            .frame(width: 188, height: 188).padding(6)
+                            .background(tint.opacity(style == "glow" ? 0.16 : 0.05), in: Circle())
+                            .overlay(Circle().stroke(tint, lineWidth: style == "enamel" ? 3 : 1))
+                        if badge.name.isEmpty { Text(badge.familyKey).font(.title3.bold()) }
+                        else { Text(verbatim: badge.name).font(.title3.bold()) }
+                        Label(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
+                              systemImage: badge.isLocked ? "lock" : "checkmark.seal")
+                            .symbolEffect(.bounce, options: .nonRepeating, value: badge.isLocked)
+                            .sensoryFeedback(.success, trigger: badge.isLocked) { _, locked in !locked }
+                        Text(style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote).foregroundStyle(.secondary)
+                    }.frame(maxWidth: .infinity).padding(.vertical, 16)
+                }
+                Section("profile.badges.details") {
+                    LabeledContent("profile.badges.family") { Text(badge.familyKey) }
+                    switch badge {
+                    case .identity(let value):
+                        LabeledContent("profile.badges.category") { Text(LocalizedStringKey("objects.track." + String(track))) }
+                        ProfileOptionalRow(key: "profile.badges.statement", value: value.statement)
+                        ProfileOptionalRow(key: "profile.badges.unlockHint", value: value.unlockHint)
+                        if value.unlocked { ProfileOptionalRow(key: "profile.badges.obtained", value: ObjectBadgePresentation.date(value.unlockTime)) }
+                    case .medal(let value):
+                        ProfileOptionalRow(key: "profile.badges.condition", value: value.displayCondition)
+                        ProfileOptionalRow(key: "profile.badges.obtained", value: ObjectBadgePresentation.date(value.getTime))
+>>>>>>> origin/ui/main
                     }
                     requirementCard
                     if let collection, collection.total > 0 { collectionCard(collection) }

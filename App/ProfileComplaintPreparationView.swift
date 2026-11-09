@@ -111,7 +111,6 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 if model.contextMatches { ProfileComplaintProgressSection(model: progress) }
             }
         }
-        .navigationTitle("profile.complaint.pageTitle")
         .themeDomain(.player)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

@@ -458,6 +458,7 @@ import SwiftUI
             }
         }
         .nativeChannelScreen()
+        .cyGroupedSurface()
         .navigationTitle(Text("d7.channelChat.photo"))
         .onAppear { model.observe() }
         .task(id: active) {

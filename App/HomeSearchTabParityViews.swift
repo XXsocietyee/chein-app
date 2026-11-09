@@ -94,7 +94,7 @@ struct HomeHeroHeaderSectionView: View {
                             .frame(maxWidth: .infinity, minHeight: 52)
                             .contentShape(Rectangle())
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(CYPressScaleStyle(scale: 0.98))
                         .accessibilityAddTraits(.isSearchField)
                         .accessibilityIdentifier("homeIndex.hero.searchEntry")
 
@@ -205,28 +205,38 @@ struct PlayContinuationBannerView: View {
                         onOpen?(card.destination)
                     }
                 } label: {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(verbatim: card.kind.badgeTitle(locale: locale))
-                                .font(.caption.weight(.semibold))
-                                .foregroundStyle(QuestifyPalette.accent)
-                            Text(verbatim: card.localizedTitle(locale: locale))
-                                .font(CYTypography.cardTitle)
-                                .foregroundStyle(CYColor.textPrimary)
-                            if let subtitle = card.localizedSubtitle(locale: locale) {
-                                Text(verbatim: subtitle)
-                                    .font(CYTypography.caption)
-                                    .foregroundStyle(CYColor.textSecondary)
+                    // Photo-led "continue" card: cover art (generated until the route has a photo), scrim, text over it.
+                    ZStack(alignment: .bottomLeading) {
+                        CYCoverArt(seed: card.localizedTitle(locale: locale), symbol: "figure.walk", showsDebugLabel: false)
+                        LinearGradient(stops: [.init(color: .clear, location: 0.2), .init(color: .black.opacity(0.72), location: 1)], startPoint: .top, endPoint: .bottom)
+                        HStack(alignment: .bottom, spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(verbatim: card.kind.badgeTitle(locale: locale))
+                                    .font(.caption.weight(.bold))
+                                    .foregroundStyle(.white.opacity(0.85))
+                                Text(verbatim: card.localizedTitle(locale: locale))
+                                    .font(.system(.title3, design: .rounded).weight(.heavy))
+                                    .foregroundStyle(.white)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if let subtitle = card.localizedSubtitle(locale: locale) {
+                                    Text(verbatim: subtitle)
+                                        .font(CYTypography.caption)
+                                        .foregroundStyle(.white.opacity(0.85))
+                                }
                             }
+                            Spacer(minLength: 0)
+                            Image(systemName: "play.circle.fill")
+                                .font(.system(size: 40))
+                                .foregroundStyle(.white)
+                                .shadow(color: .black.opacity(0.4), radius: 6, y: 2)
                         }
-                        Spacer()
-                        Image(systemName: "play.circle.fill")
-                            .font(.title3)
-                            .foregroundStyle(QuestifyPalette.accent)
+                        .padding(CYSpacing.lg)
                     }
-                    .questifyCardSurface()
+                    .frame(maxWidth: .infinity, minHeight: 132)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .shadow(color: .black.opacity(0.35), radius: 8, y: 4)
                 }
-                .buttonStyle(QuestifyCardButtonStyle())
+                .buttonStyle(CYPressScaleStyle(scale: 0.98))
                 .accessibilityIdentifier("homeIndex.continuation.\(card.id)")
                 .questifyCardListRow()
             }

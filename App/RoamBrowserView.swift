@@ -429,7 +429,7 @@ struct RoamBrowserView: View {
                             .buttonStyle(.plain).accessibilityLabel(Text("roam.preflightRules.availability"))
                             .accessibilityIdentifier("roam.rules")
                         NavigationLink { startDestination() } label: { CYGoLabel() }
-                            .buttonStyle(.plain)
+                            .buttonStyle(CYGoPressStyle())
                             .accessibilityLabel(Text("GO"))
                             .accessibilityIdentifier("roam.go")
                         if let nearbyTeamsDestination {
@@ -571,7 +571,10 @@ struct RoamItemRow: View {
     var showsCurrentReadStatus = false
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: item.symbol).foregroundStyle(CYColor.textPrimary).frame(width: 26)
+            // Photo-led row: generated category art stands in until the place carries a photo.
+            CYCoverArt(seed: String(describing: item.id), symbol: item.symbol, showsDebugLabel: false)
+                .frame(width: 60, height: 60)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             VStack(alignment: .leading, spacing: 6) {
                 RoamTitle(item.title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
                 Text(item.kindLabel).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)

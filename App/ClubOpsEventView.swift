@@ -35,6 +35,7 @@ import SwiftUI
                 ForEach(model.sections, id: \.self) { section in self.section(section, model: model) }
             }
         }
+        .cyGroupedSurface()
         .navigationTitle(Text("clubOpsEvent.title", tableName: "ClubOpsEvent"))
         .accessibilityIdentifier("clubOpsEvent.root")
         .task(id: key) { await load() }

@@ -116,6 +116,7 @@ struct IMConversationReadAllButtonToken: Equatable {
                     }
                 } else { Text("messaging.signInHint") }
             }
+            .cyGroupedSurface()
             .navigationTitle(Text("im.readAll.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

@@ -22,7 +22,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
                     ContentUnavailableView("activity.unavailable",systemImage:"network.slash",
                         description:Text(LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured")))
                 } else if model.identity != identity || (model.isLoading && model.items.isEmpty) {
-                    ProgressView("activity.loading")
+                    ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading"))
                 } else if model.failed && model.items.isEmpty {
                     ContentUnavailableView {
                         Label { Text("activity.loadFailed").accessibilityIdentifier("activity.list.error") } icon: { Image(systemName:"wifi.exclamationmark") }

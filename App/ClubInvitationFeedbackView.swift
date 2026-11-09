@@ -237,6 +237,7 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
                     .disabled(model.phase == .loading || model.permit(in: scope) == nil).accessibilityIdentifier("club.inviteFeedback.reload")
             }
         }
+        .cyGroupedSurface()
         .navigationTitle("club.inviteFeedback.title")
         .onAppear { presentation.appear(scope, active: scenePhase == .active) }
         .onChange(of: scope, initial: true) { _, value in presentation.bind(value) }
@@ -324,6 +325,7 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
                                 .accessibilityIdentifier("club.inviteFeedback.detail.reload")
                         }
                     }
+                    .cyGroupedSurface()
                     .navigationTitle("club.inviteFeedback.detail")
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button("club.gov.close") {

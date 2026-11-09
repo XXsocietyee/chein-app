@@ -59,6 +59,7 @@ import SwiftUI
             }
         }
         .nativeChannelScreen()
+        .cyGroupedSurface()
         .navigationTitle(Text("d7.channelMention.title"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("d7.channelMention.cancel") { dismiss() } } }
         .onAppear { members=Set(original?.memberIDs ?? []);roles=Set(original?.roleIDs ?? []);everyone=original?.mentionEveryone ?? false }

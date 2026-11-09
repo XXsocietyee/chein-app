@@ -125,6 +125,7 @@ import SwiftUI
         }
         .font(Theme.Font.body)
         .nativeChannelScreen()
+        .cyGroupedSurface()
         .navigationTitle("d7.chain.title")
         .privacySensitive()
         .task(id: available) {

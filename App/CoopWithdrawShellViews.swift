@@ -20,6 +20,7 @@ import SwiftUI
                 Section { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cooperation.withdraw.login") }
             }
         }
+        .cyGroupedSurface()
         .cyMiniListScreen()
         .appNavigationTitle("cooperation.withdraw.title")
         .questifyBottomAction {

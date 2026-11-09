@@ -47,7 +47,7 @@ struct CityTaskHistoryEntry: View {
                     }
                 }
             }.padding()
-        }.navigationTitle(Text("cityHistory.title", tableName: table)).navigationBarTitleDisplayMode(.inline)
+        }
         .accessibilityIdentifier("city.history.screen")
         .task(id: readID) { guard visible, scenePhase == .active, !Task.isCancelled else { return }; await controller.load() }
         .onAppear { visible = true; readID = UUID() }

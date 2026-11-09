@@ -68,6 +68,7 @@ import SwiftUI
             } else { ProgressView() }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(Text("d7.channelPersonal.title"))
         .task { await open() }
         .task { while !Task.isCancelled { if let flow,!flow.isCurrent { close() };do { try await Task.sleep(nanoseconds:500_000_000) } catch { return } } }

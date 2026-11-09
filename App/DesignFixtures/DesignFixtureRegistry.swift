@@ -21,6 +21,11 @@ enum DesignFixtureRegistry {
         case "d2-inbox": return AnyView(D2Fixture(screen: .inbox))
         case "d2-me": return AnyView(D2Fixture(screen: .me))
         case "d2-roam": return AnyView(D2Fixture(screen: .roam))
+        case "e5b-unlock": return AnyView(E5bMomentFixture(kind: .unlock))
+        case "e5b-stamp": return AnyView(E5bMomentFixture(kind: .stamp))
+        case "e5b-checkin": return AnyView(E5bMomentFixture(kind: .checkIn))
+        case "e5b-badge-wall": return AnyView(E5bBadgeWallFixture())
+        case "e5b-join": return AnyView(E5bJoinFixture())
         case "welcome": return AnyView(WelcomeFixture())
         case "welcome-menu": return AnyView(WelcomeMenuFixture())
         case "consent": return AnyView(ConsentFixture())
@@ -72,10 +77,53 @@ enum DesignFixtureRegistry {
         case "e2-npc": return AnyView(D2Fixture(screen: .npc))
         // D7 creator / publish (PublishDesignFixtures)
         case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
+        case let n where n.hasPrefix("e1-") && E1Fixture.make(n) != nil: return E1Fixture.make(n)!
+        case let n where n.hasPrefix("e3-") && E3Fixtures.make(n) != nil: return E3Fixtures.make(n)!
         default:
+            if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }
+            if let e5 = MainActor.assumeIsolated({ E5Fixtures.make(name) }) { return e5 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
+    }
+}
+
+// MARK: e4 account and settings fixtures (kept in this file so no project file change is needed)
+
+/// e4 account and settings pages: every fixture mounts the REAL view on the existing synthetic readers (labelled, DEBUG only).
+/// Reachable with `--design-fixture e4-<name>`.
+enum E4Fixtures {
+    @MainActor static func make(_ name: String) -> AnyView? {
+        switch name {
+        case "e4-profile-edit": return wrap(ProfileEditFixtureHost(scenario: "success"))
+        case "e4-profile-edit-error": return wrap(ProfileEditFixtureHost(scenario: "rejected"))
+        case "e4-settings-support": return wrap(SettingsFixtureHostView())
+        case "e4-about":
+            return wrap(NavigationStack { SettingsAboutView(market: RegionalLaunchConfiguration.market, appInformation: .current(), legalReader: SettingsFixtureLegalReader(scenario: "content")) })
+        case "e4-privacy": return wrap(OwnMediaFixtureHost(scenario: "ready"))
+        case "e4-favorites": return wrap(TopicUnlikeFixtureHost(scenario: "ready"))
+        case "e4-collection": return wrap(AccountCollectionFixtureHostView())
+        case "e4-complaint": return wrap(ProfileComplaintPreparationFixtureView(scenario: "content"))
+        case "e4-member": return wrap(MemberHomeFixtureHost(scenario: "ready"))
+        case "e4-participants": return wrap(ParticipantFixtureHostView())
+        case "e4-self-projects": return wrap(ProfileSelfProjectsFixtureHost(scenario: "content"))
+        case "e4-self-growth": return wrap(ProfileSelfGrowthFixtureHost(scenario: "content"))
+        case "e4-self-medals": return wrap(ProfileSelfMedalsFixtureHost(scenario: "content"))
+        case "e4-template-mine": return wrap(TemplateAuthoringFixtureHostView())
+        case "e4-wallet-income": return wrap(WalletCommerceFixtureHost(designPage: "income"))
+        case "e4-wallet-points": return wrap(WalletCommerceFixtureHost(designPage: "points"))
+        case "e4-wallet-balance": return wrap(WalletCommerceFixtureHost(designPage: "balance"))
+        case "e4-wallet-assets": return wrap(WalletCommerceFixtureHost(designPage: "assets"))
+        case "e4-wallet-analysis": return wrap(WalletCommerceFixtureHost(designPage: "analysis"))
+        case "e4-wallet-bank": return wrap(WalletCommerceFixtureHost(designPage: "bank"))
+        case "e4-wallet-withdrawals": return wrap(WalletCommerceFixtureHost(designPage: "withdrawals"))
+        case "e4-wallet-tasks": return wrap(WalletCommerceFixtureHost(designPage: "tasks"))
+        default: return nil
+        }
+    }
+
+    @MainActor private static func wrap<V: View>(_ view: V) -> AnyView {
+        AnyView(view.themeDomain(.player).cyDomainPageBackground().themeDomain(.player).preferredColorScheme(.dark))
     }
 }
 #endif

@@ -48,6 +48,7 @@ import SwiftUI
             HomeFeedView(reader: reader, viewerNickname: hero ? "Mia" : nil,
                          selectedCity: hero ? "Shanghai" : nil,
                          showsHeroBanners: hero,
+                         continuationCards: hero ? [.init(id: "fx-continue", kind: .continueExploration, destination: .topic(7), title: "Old Town: ten hidden spots", subtitle: "Stop 4 of 10 · 18 min in")] : [],
                          onActionBanner: hero ? { _ in } : nil,
                          onOpenUnifiedSearch: hero ? { _ in } : nil) { path.append($0) }
                 .navigationDestination(for: HomeFeedDestination.self) { destination in

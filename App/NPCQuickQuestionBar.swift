@@ -64,9 +64,9 @@ import SwiftUI
 struct NPCQuickPillStyle: ButtonStyle {
     @Environment(\.isEnabled) private var isEnabled
     func makeBody(configuration: Configuration) -> some View {
-        configuration.label.font(CYTypography.label).lineLimit(1)
+        configuration.label.font(CYTypography.bodyMedium).lineLimit(1)
             .foregroundStyle(isEnabled ? CYColor.textPrimary : CYColor.textDisabled)
-            .padding(.horizontal, 16).frame(minHeight: 44)
+            .padding(.horizontal, 18).frame(minHeight: 48)
             .background(configuration.isPressed ? CYColor.bgElevated : .clear, in: Capsule())
             .overlay(Capsule().stroke(CYColor.borderStrong, lineWidth: 1))
             .contentShape(Capsule())

@@ -133,6 +133,7 @@ import SwiftUI
                     .disabled(model.phase == .loading || model.permit(in: scope) == nil).accessibilityIdentifier("club.leadProgress.reload")
             }
         }
+        .cyGroupedSurface()
         .navigationTitle("club.leadProgress.title")
         .task(id: scope) {
             guard let permit = model.activate(scope) else { return }

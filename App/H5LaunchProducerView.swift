@@ -36,7 +36,7 @@ import SwiftUI
                                       entry: producer.entry,
                                       onClose: onClose)
             } else {
-                Text("h5.launchTicket")
+                CYEmptyState(systemImage: "hourglass", "h5.launchTicket")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }

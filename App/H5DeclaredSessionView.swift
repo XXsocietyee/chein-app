@@ -16,25 +16,30 @@ import SwiftUI
 
     var body: some View {
         Form {
-            Section("h5.surface") {
-                Text(verbatim: host)
-                Text(verbatim: capability)
-                Text(verbatim: sdkVersion)
-            }
+            Section {
+                CYListRow(verbatim: host, meta: capability, trailing: .value(sdkVersion)) { CYRowIcon(systemImage: "globe") }
+                    .accessibilityElement(children: .combine)
+            } header: { CYSectionHeader("h5.surface") }
             Section {
                 TextField("h5.request", text: $requestID)
                 TextField("h5.module", text: $moduleID)
                 TextField("h5.answer", text: $answer)
+            }
+            Section {
                 Button("h5.admit") { admit() }
                 Button("h5.compare") { compare() }
                 Button("h5.rejectAnswers") { rejectAnswers() }
                 Button("h5.importMetadata") { importMetadata() }
-                Button("h5.open") { message = page.openShell(launch: launch).capabilityText }.buttonStyle(.questifyPrimary).controlSize(.large)
-                    .disabled(page.session.gate.phase != .admitted && page.session.gate.phase != .waitingSource)
+            } footer: {
+                if !message.isEmpty { Text(LocalizedStringKey(message)).font(CYTypography.meta) }
             }
-            if !message.isEmpty { Text(LocalizedStringKey(message)).font(.footnote) }
         }
         .navigationTitle(Text("h5.title")).navigationBarTitleDisplayMode(.inline).formStyle(.grouped)
+        .safeAreaInset(edge: .bottom) {
+            CYPillButton("h5.open", style: .primary) { message = page.openShell(launch: launch).capabilityText }
+                .disabled(page.session.gate.phase != .admitted && page.session.gate.phase != .waitingSource)
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+        }
     }
 
     private func admit() {

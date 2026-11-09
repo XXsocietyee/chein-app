@@ -91,6 +91,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            .cyGroupedSurface()
         }
         }
         }

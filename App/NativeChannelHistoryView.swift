@@ -146,6 +146,7 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
                     .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s2).background(.background)
             }
         }
+        .cyGroupedSurface()
         .navigationTitle(nativeChannelLocalized("channel.history", locale: locale))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
