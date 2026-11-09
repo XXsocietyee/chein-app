@@ -1,18 +1,21 @@
 #if DEBUG
 import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
 
 /// D4 design fixtures (clubs / channels / me). Synthetic, in-memory data only — never shipped in Release.
 /// Reachable with `--design-fixture d4-directory | d4-detail | d4-owner-detail | d4-channels | d4-settings | d4-growth | d4-leaderboard | d4-badges`.
 /// The "synthetic" label lives in the nav bar title area of the host, never over content.
 @MainActor struct D4ClubFixture: View {
-    enum Screen { case directory, detail(owner: Bool), channels }
+    enum Screen { case directory, detail(owner: Bool), channels(list: Bool), confirm }
     let screen: Screen
     @StateObject private var reader: ClubFixtureReader
     init(_ screen: Screen) {
         self.screen = screen
         let scenario: ClubFixtureScenario
         switch screen {
-        case .detail(owner: true), .channels: scenario = .owner
+        case .detail(owner: true), .channels, .confirm: scenario = .owner
         case .detail(owner: false): scenario = .visitor
         case .directory: scenario = .visitor
         }
@@ -23,21 +26,42 @@ import SwiftUI
             switch screen {
             case .directory: ClubDirectoryView(reader: reader)
             case .detail: ClubDetailView(id: 81, reader: reader)
-            case .channels: D4ChannelsHost(reader: reader)
+            case .channels(let list): D4ChannelsHost(reader: reader, startInList: list)
+            case .confirm: D4ConfirmHost(reader: reader)
             }
         }
         .environment(\.clubEnrollmentProfile, ClubEnrollmentProfileContext(reader: reader.profileReader, squareReader: reader.squareReader))
     }
 }
 
+/// Club detail with the quit-club CYConfirmSheet presented (same content as ClubActionPanel's leave flow).
+@MainActor private struct D4ConfirmHost: View {
+    @ObservedObject var reader: ClubFixtureReader
+    @State private var show = true
+    @Environment(\.locale) private var locale
+    var body: some View {
+        ClubDetailView(id: 81, reader: reader)
+            .sheet(isPresented: $show) {
+                CYConfirmSheet(
+                    title: ChannelCopy.text("退出「城瘾跑团」？", "Leave “City Run Club”?", locale: locale),
+                    message: String(localized: "club.action.confirm.leave"),
+                    confirmTitle: String(localized: "club.action.leave"),
+                    isDestructive: true,
+                    consequences: ClubLeaveConsequences.rows(locale: locale)
+                ) { show = false }
+            }
+    }
+}
+
 @MainActor private struct D4ChannelsHost: View {
     @ObservedObject var reader: ClubFixtureReader
+    let startInList: Bool
     @State private var club: ClubRecord?
     var body: some View {
         Group {
             if let club {
                 ClubChannelMessagingView(club: club, viewerMemberID: 701, viewerRoleTier: .member,
-                                         listing: Self.listing, initialMessagesByChannelID: Self.messages,
+                                         listing: Self.listing, startsInChannelList: startInList, initialMessagesByChannelID: Self.messages,
                                          blockedUsersStore: D4MemoryBlockedStore())
             } else { ProgressView() }
         }

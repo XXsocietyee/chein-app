@@ -1,4 +1,7 @@
 import SwiftUI
+#if canImport(QuestifyCore)
+import QuestifyCore
+#endif
 
 /// The session owner supplies one retained coordinator. No coordinator or writer is
 /// constructed by a view, and the read-only detail remains the default without one.
@@ -17,6 +20,7 @@ struct ClubActionPanel: View {
     @State private var task: Task<Void, Never>? = nil
     @State private var isWorking = false
     @State private var joinMessage = ""
+    @Environment(\.locale) private var locale
 
     private var availability: ClubActionAvailability {
         ClubActionAvailability.resolve(club, viewerIsMerchant: coordinator.viewerIsMerchant)
@@ -65,11 +69,16 @@ struct ClubActionPanel: View {
         .sheet(isPresented: Binding(get: { confirmation != nil }, set: { if !$0 { cancelConfirmation() } })) {
             if let value = confirmation {
                 CYConfirmSheet(
-                    title: String(localized: String.LocalizationValue(actionKey(value.action))),
-                    message: confirmationMessage(value),
+                    title: value.action == .leave
+                        ? ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
+                        : String(localized: String.LocalizationValue(actionKey(value.action))),
+                    message: value.action == .leave
+                        ? String(localized: String.LocalizationValue(confirmationKey(.leave)))
+                        : confirmationMessage(value),
                     confirmTitle: String(localized: String.LocalizationValue(actionKey(value.action))),
                     isDestructive: value.action == .leave,
-                    confirmIdentifier: "club.action.confirm"
+                    confirmIdentifier: "club.action.confirm",
+                    consequences: value.action == .leave ? ClubLeaveConsequences.rows(locale: locale) : []
                 ) { submit(value) }
             }
         }
@@ -215,5 +224,19 @@ struct ClubActionPanel: View {
         coordinator.synchronizeSession()
         coordinator.leaveScreen(clubID: clubID ?? club.id, expectedIdentity: identity, ownerID: ownerID)
         confirmation = nil; isWorking = false; issueKey = nil; joinMessage = ""; revision &+= 1
+    }
+}
+
+/// Consequence rows of the quit-club confirmation (mini-program `pages/club/detail` quit dialog).
+enum ClubLeaveConsequences {
+    static func rows(locale: Locale) -> [CYConfirmConsequence] {
+        [
+            CYConfirmConsequence(systemImage: "rectangle.portrait.and.arrow.right",
+                                 text: ChannelCopy.text("你会被移出团群，看不到成员专属内容", "You’ll be removed from the group and lose member-only content", locale: locale)),
+            CYConfirmConsequence(systemImage: "ticket",
+                                 text: ChannelCopy.text("会员专属活动的报名资格立即失效，已付款项不随退出自动退回", "Member-only event spots end immediately; payments already made are not refunded automatically", locale: locale)),
+            CYConfirmConsequence(systemImage: "exclamationmark.triangle",
+                                 text: ChannelCopy.text("此操作不可撤销，当前的成员身份与加入时间不会保留", "This can’t be undone; your membership and join date won’t be kept", locale: locale))
+        ]
     }
 }

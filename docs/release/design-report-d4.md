@@ -32,3 +32,15 @@ None removed; no controls added.
 - Channels: sidebar takes ~half the width on iPhone and header title wraps ("club-news" / badge); needs compact-width collapse default. Rules gate banner is tall.
 - Detail fixture shows the "application rejected" status (reader fixture), so the primary join pill is not visible in the capture.
 - XL Dynamic Type, growth, badges, stamp album, enrollment/governance/operations, join/quit CYConfirmSheet not visually verified this session (machine-gentle resume).
+
+## Round 2 (coordinator review of compare-channels.png)
+Compare images (in `/Users/fanning/chengyin-refs/design-reports/d4/`): `compare-channels.png` (list EN | conversation EN | conversation XL), `compare-detail.png`, `compare-confirm.png` (mini-program quit dialog | zh | EN | XL zh). Reference crop: `ref-club-detail-quit.png`.
+1. Channels: on compact width ONE pane. Channel list is its own screen (grouped rows: # / megaphone icon, name, unread/mention count); tapping a channel opens the full-width conversation. Regular width keeps two panes (260 pt list). Fixtures `d4-channels` (list) and `d4-channel-chat` (conversation).
+2. Header: back + one-line truncating title + quiet caption ("Announcement · read only" / "Muted") + ONE overflow menu (mute, members & roles with count, report). Ids kept (`club.channel.muteButton`, `memberRosterButton`, `reportChannelButton`).
+3. Rules/EULA: one compact row with a "Review rules" pill; full text + "Accept Channel Rules & EULA" in a CYConfirmSheet. Posting is still locked until accepted (composer lock text, `hasAcceptedRules` untouched). Row stacks vertically at accessibility sizes.
+4. Messages: avatar + name + role badge + time on one line, body below full width, grouped by sender, 20 pt between groups. Composer pinned at the bottom with a "+" attachments menu.
+5. Pairing corrected: the quit-dialog page pairs with ClubDetailView (compare-detail.png). Leave confirmation = CYConfirmSheet with title, existing localized message, consequence box with 3 icon rows (new optional `consequences:` param on CYConfirmSheet, default empty so other callers are unchanged), Cancel + solid red destructive button side by side (stacks when too wide). Join/apply confirmation unchanged. Fixture `d4-confirm`.
+6. Captured: default size zh+EN, XL (accessibility-extra-large) for conversation (EN) and confirm (zh). The sheet content scrolls at XL.
+
+Demoted: sidebar toggle with unread badge (unread now lives in the list screen), bell / flag / member-count buttons (now in the overflow menu), status chip (now caption), mute icon next to the title (now caption).
+Caveats: the "+" attachments menu is visual only (Photo/Link entries disabled; no attachment logic exists). The leave-sheet message keeps the existing localized text ("Rejoining may require approval") rather than the mini-program's "no approval needed", which may be untrue for approval clubs. Consequence-row strings are inline via ChannelCopy (zh/EN) like the channel view; not yet in ui-strings-d4.json. Join confirmation sheet and the channel list at XL not separately captured. The XL zh confirm capture predates the white-label fix on the red button.

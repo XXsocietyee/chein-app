@@ -23,12 +23,14 @@ public struct ClubChannelMessagingView: View {
     @State private var replyReferences: [Int: ChannelReplyThreadReference] = [:]
     @State private var activeReplyTarget: MessagingMessage?
     @State private var composerText: String = ""
-    @State private var showChannelSidebar: Bool = true
+    @State private var showChannelList: Bool
+    @State private var showRulesSheet: Bool = false
     @State private var showMemberRosterSheet: Bool = false
     @State private var showReportChannelDialog: Bool = false
     @State private var unreadByChannelID: [Int64: Int] = [:]
     @State private var mentionByChannelID: [Int64: Int] = [:]
     @Environment(\.locale) private var locale
+    @Environment(\.horizontalSizeClass) private var sizeClass
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
@@ -43,6 +45,7 @@ public struct ClubChannelMessagingView: View {
         viewerRoleTier: ChannelMemberRoleTier = .member,
         capabilities: ChannelModerationCapabilities = ChannelModerationCapabilities(),
         listing: ChannelDirectoryListing,
+        startsInChannelList: Bool = true,
         initialMessages: [ChannelTranscriptMessage] = [],
         initialMessagesByChannelID: [Int64: [ChannelTranscriptMessage]] = [:],
         memberRoster: [ChannelMemberRoleItem] = [],
@@ -55,6 +58,7 @@ public struct ClubChannelMessagingView: View {
         safetyService: (any ClubChannelSafetyServing)? = nil
     ) {
         self.club = club
+        _showChannelList = State(initialValue: startsInChannelList)
         self.viewerMemberID = viewerMemberID
         self.viewerRoleTier = viewerRoleTier
         self.capabilities = capabilities
@@ -167,16 +171,12 @@ public struct ClubChannelMessagingView: View {
         return map
     }
 
+    private var isCompact: Bool { sizeClass != .regular }
+
     public var body: some View {
         VStack(spacing: 0) {
-            channelTopBar
-            Divider()
             if let banner = moderationCoordinator.feedbackBanner {
                 moderationBannerView(banner)
-            }
-            if !moderationCoordinator.hasAcceptedRules {
-                channelRulesGateBanner
-                Divider()
             }
             if directoryProjection.groups.isEmpty {
                 let emptyTitle = copy("暂无频道", "No channels yet")
@@ -187,14 +187,25 @@ public struct ClubChannelMessagingView: View {
                     description: LocalizedStringKey(emptyDesc)
                 )
                 .frame(maxHeight: .infinity)
+            } else if isCompact && showChannelList {
+                // iPhone: the channel list is its own screen; the conversation is full width.
+                channelCategorySidebar
             } else {
-                HStack(spacing: 0) {
-                    if showChannelSidebar {
-                        channelCategorySidebar
-                            .frame(width: 210)
-                        Divider()
-                    }
+                channelTopBar
+                Divider()
+                if !moderationCoordinator.hasAcceptedRules {
+                    channelRulesGateRow
+                    Divider()
+                }
+                if isCompact {
                     channelTranscriptColumn
+                } else {
+                    HStack(spacing: 0) {
+                        channelCategorySidebar
+                            .frame(width: 260)
+                        Divider()
+                        channelTranscriptColumn
+                    }
                 }
             }
         }
@@ -214,6 +225,17 @@ public struct ClubChannelMessagingView: View {
                 submitChannelReport(reasonCode: "OBJECT_CONTENT", detail: "Illegal or objectionable content in channel")
             }
             Button(copy("取消", "Cancel"), role: .cancel) {}
+        }
+        .sheet(isPresented: $showRulesSheet) {
+            CYConfirmSheet(
+                title: copy("俱乐部频道公约与安全守则", "Club Channel Rules & Safety EULA"),
+                message: rulesFullText,
+                confirmTitle: copy("我已阅读并同意频道公约", "Accept Channel Rules & EULA"),
+                confirmIdentifier: "club.channel.rulesGate.accept"
+            ) {
+                moderationCoordinator.acceptChannelRules(locale: locale)
+                showRulesSheet = false
+            }
         }
         .sheet(isPresented: $showMemberRosterSheet) {
             ClubChannelMemberRosterSheet(
@@ -260,154 +282,140 @@ public struct ClubChannelMessagingView: View {
         .accessibilityIdentifier("club.channel.moderation.banner")
     }
 
-    private var channelRulesGateBanner: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            HStack(spacing: CYSpacing.xs) {
-                Image(systemName: "hand.raised.shield.fill")
-                    .foregroundStyle(CYColor.warningText)
-                Text(copy("俱乐部频道公约与安全守则（App Store 1.2）", "Club Channel Rules & Safety EULA"))
-                    .font(CYTypography.label)
-                    .foregroundStyle(CYColor.textPrimary)
-            }
-            Text(
-                copy(
-                    "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。",
-                    "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
-                )
-            )
-            .font(CYTypography.caption)
-            .foregroundStyle(CYColor.textSecondary)
+    private var rulesFullText: String {
+        copy(
+            "参与频道发言与治理前，请确认遵守社区安全准则：严禁发布违法违规、骚扰辱骂、欺诈广告及令人反感的内容。被举报内容将在 24 小时内由安全团队审核并处理，违规成员将被删帖并移出或封禁。",
+            "Before posting or moderating, you must agree to our zero-tolerance policy against objectionable content, harassment, and spam. Reported content is reviewed within 24 hours and violators will be removed or banned."
+        )
+    }
 
-            HStack {
-                Spacer()
-                Button {
-                    moderationCoordinator.acceptChannelRules(locale: locale)
-                } label: {
-                    Text(copy("我已阅读并同意频道公约", "Accept Channel Rules & EULA"))
-                        .font(CYTypography.label)
-                        .padding(.horizontal, CYSpacing.md)
-                        .padding(.vertical, CYSpacing.xs)
-                        .foregroundStyle(Color.black)
-                }
-                .buttonStyle(.borderedProminent).tint(Color.white)
-                .frame(minHeight: CYSpacing.minTouchTarget)
-                .accessibilityIdentifier("club.channel.rulesGate.accept")
-            }
+    /// One compact row; the full EULA text opens in a sheet. Accepting stays mandatory before posting.
+    private var channelRulesGateRow: some View {
+        ViewThatFits(in: .horizontal) {
+            rulesRowContent(horizontal: true)
+            rulesRowContent(horizontal: false)
         }
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.sm)
-        .background(CYColor.warningSoft)
+        .background(CYColor.bgSurfaceSubtle)
         .accessibilityIdentifier("club.channel.rulesGate")
+    }
+
+    @ViewBuilder private func rulesRowContent(horizontal: Bool) -> some View {
+        let label = Label {
+            Text(copy("发言前请先阅读频道公约", "Review the channel rules to post"))
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textSecondary)
+                .lineLimit(horizontal ? 1 : nil)
+                .fixedSize(horizontal: !horizontal ? false : true, vertical: true)
+        } icon: {
+            Image(systemName: "hand.raised.shield.fill").foregroundStyle(CYColor.warningText)
+        }
+        let button = Button {
+            showRulesSheet = true
+        } label: {
+            Text(copy("查看公约", "Review rules")).lineLimit(1)
+        }
+        .buttonStyle(.cyDomainPrimary(fullWidth: !horizontal))
+        .accessibilityIdentifier("club.channel.rulesGate.review")
+        if horizontal {
+            HStack(spacing: CYSpacing.sm) { label; Spacer(minLength: CYSpacing.sm); button }
+        } else {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) { label; button }
+        }
     }
 
     // MARK: - Top Header Bar
 
     private var channelTopBar: some View {
         HStack(spacing: CYSpacing.sm) {
-            Button {
-                withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
-                    showChannelSidebar.toggle()
-                }
-            } label: {
-                HStack(spacing: CYSpacing.xs) {
-                    Image(systemName: "sidebar.left")
-                        .foregroundStyle(CYColor.textPrimary)
-                    if let badge = directoryProjection.totalUnreadBadgeText {
-                        Text(badge)
-                            .font(CYTypography.micro.monospacedDigit())
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(CYColor.dangerSolid, in: Capsule())
-                            .foregroundStyle(CYColor.textOnAccent)
-                    }
-                }
-            }
-            .buttonStyle(.borderless)
-            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
-            .accessibilityLabel(copy("切换频道列表", "Toggle channel list"))
-
-            if let channel = selectedChannel {
-                HStack(spacing: 6) {
-                    Image(systemName: channel.symbolName)
-                        .font(CYTypography.label)
-                        .foregroundStyle(CYColor.textSecondary)
-                    Text(channel.name)
+            if isCompact {
+                Button {
+                    showChannelList = true
+                } label: {
+                    Image(systemName: "chevron.backward")
                         .font(CYTypography.cardTitle)
                         .foregroundStyle(CYColor.textPrimary)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                    if channel.isReadOnlyAnnouncement {
-                        Text(copy("公告只读", "Announcement · Read only"))
-                            .font(CYTypography.micro)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(CYColor.warningSoft, in: Capsule())
-                            .foregroundStyle(CYColor.warningText)
-                    }
-                    if channel.isMuted {
-                        Image(systemName: "bell.slash.fill")
-                            .font(CYTypography.caption)
+                        .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(copy("返回频道列表", "Back to channel list"))
+                .accessibilityIdentifier("club.channel.backToList")
+            }
+
+            if let channel = selectedChannel {
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Image(systemName: channel.symbolName)
+                            .font(CYTypography.label)
                             .foregroundStyle(CYColor.textSecondary)
+                        Text(channel.name)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                    }
+                    if channel.isReadOnlyAnnouncement {
+                        Text(copy("公告 · 只读", "Announcement · read only"))
+                            .font(CYTypography.caption)
+                            .foregroundStyle(CYColor.textTertiary)
+                            .lineLimit(2)
+                    } else if channel.isMuted {
+                        Text(copy("已开启免打扰", "Muted"))
+                            .font(CYTypography.caption)
+                            .foregroundStyle(CYColor.textTertiary)
+                            .lineLimit(1)
                     }
                 }
             }
 
-            Spacer()
+            Spacer(minLength: CYSpacing.sm)
 
-            Button {
-                guard let channel = selectedChannel else { return }
-                let nextMuted = !channel.isMuted
-                Task {
-                    let ok = await moderationCoordinator.muteChannel(
-                        conversationID: Int(channel.id),
-                        muted: nextMuted,
-                        locale: locale
-                    )
-                    if ok {
-                        refreshDirectoryProjection()
+            Menu {
+                Button {
+                    guard let channel = selectedChannel else { return }
+                    let nextMuted = !channel.isMuted
+                    Task {
+                        let ok = await moderationCoordinator.muteChannel(
+                            conversationID: Int(channel.id),
+                            muted: nextMuted,
+                            locale: locale
+                        )
+                        if ok { refreshDirectoryProjection() }
                     }
+                } label: {
+                    Label(selectedChannel?.isMuted == true ? copy("取消频道免打扰", "Unmute channel") : copy("频道免打扰", "Mute channel"),
+                          systemImage: selectedChannel?.isMuted == true ? "bell.slash.fill" : "bell")
                 }
-            } label: {
-                Image(systemName: selectedChannel?.isMuted == true ? "bell.slash.fill" : "bell")
-                    .foregroundStyle(CYColor.textPrimary)
-            }
-            .buttonStyle(.borderless)
-            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
-            .accessibilityLabel(selectedChannel?.isMuted == true ? copy("取消频道免打扰", "Unmute channel") : copy("频道免打扰", "Mute channel"))
-            .accessibilityIdentifier("club.channel.muteButton")
+                .accessibilityIdentifier("club.channel.muteButton")
 
-            Button {
-                showReportChannelDialog = true
-            } label: {
-                Image(systemName: "flag")
-                    .foregroundStyle(CYColor.textPrimary)
-            }
-            .buttonStyle(.borderless)
-            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
-            .accessibilityLabel(copy("举报当前频道", "Report channel"))
-            .accessibilityIdentifier("club.channel.reportChannelButton")
-
-            Button {
-                showMemberRosterSheet = true
-            } label: {
-                HStack(spacing: CYSpacing.xs) {
-                    Image(systemName: "person.2.fill")
-                    Text("\(effectiveMemberRoster.count)")
-                        .font(CYTypography.caption)
+                Button {
+                    showMemberRosterSheet = true
+                } label: {
+                    Label(copy("频道成员与身份组 · \(effectiveMemberRoster.count)", "Members & roles · \(effectiveMemberRoster.count)"),
+                          systemImage: "person.2")
                 }
-                .foregroundStyle(CYColor.textPrimary)
+                .accessibilityIdentifier("club.channel.memberRosterButton")
+
+                Button(role: .destructive) {
+                    showReportChannelDialog = true
+                } label: {
+                    Label(copy("举报当前频道", "Report channel"), systemImage: "flag")
+                }
+                .accessibilityIdentifier("club.channel.reportChannelButton")
+            } label: {
+                Image(systemName: "ellipsis.circle")
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .contentShape(Rectangle())
             }
-            .buttonStyle(.borderless)
-            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
-            .contentShape(Rectangle())
-            .accessibilityLabel(copy("频道成员与身份组", "Channel members and roles"))
-            .accessibilityIdentifier("club.channel.memberRosterButton")
+            .accessibilityLabel(copy("更多", "More"))
+            .accessibilityIdentifier("club.channel.overflowMenu")
         }
         .padding(.horizontal, CYSpacing.md)
-        .padding(.vertical, CYSpacing.sm)
+        .padding(.vertical, CYSpacing.xs)
         .background(CYColor.bgSurface)
     }
 
@@ -511,7 +519,7 @@ public struct ClubChannelMessagingView: View {
             ZStack(alignment: .bottom) {
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(alignment: .leading, spacing: CYSpacing.md) {
+                        LazyVStack(alignment: .leading, spacing: CYSpacing.xl) {
                             if viewportState.hasMoreOlderPages {
                                 Button {
                                     viewportState.prependOlderPage([], hasMore: false, currentTopVisibleMessageID: viewportState.oldestCursorID)
@@ -585,7 +593,7 @@ public struct ClubChannelMessagingView: View {
                                 )
                             }
                         }
-                        .padding(12)
+                        .padding(CYSpacing.lg)
                     }
                     .onChange(of: viewportState.pendingNewMessageCount) { _ in
                         if viewportState.isNearBottom, let lastID = burstGroups.last?.items.last?.id {
@@ -673,6 +681,18 @@ public struct ClubChannelMessagingView: View {
                 .padding(.vertical, 10)
             } else {
                 HStack(spacing: 8) {
+                    // Visual placeholder: attachments are not wired yet, so both entries are disabled.
+                    Menu {
+                        Button { } label: { Label(copy("图片", "Photo"), systemImage: "photo") }.disabled(true)
+                        Button { } label: { Label(copy("链接", "Link"), systemImage: "link") }.disabled(true)
+                    } label: {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.title2)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .frame(minWidth: 44, minHeight: 44)
+                    }
+                    .accessibilityLabel(copy("添加附件", "Add attachment"))
+                    .accessibilityIdentifier("club.channel.composer.attachments")
                     TextField(copy("在 #\(selectedChannel?.name ?? "频道") 发送消息…", "Message #\(selectedChannel?.name ?? "channel")…"), text: $composerText)
                         .padding(.horizontal, 16).frame(minHeight: 44)
                         .background(CYColor.bgElevated, in: Capsule())
@@ -713,6 +733,7 @@ public struct ClubChannelMessagingView: View {
     }
 
     private func selectChannel(_ channelID: Int64) {
+        showChannelList = false
         messagesByChannelID[selectedChannelID] = viewportState.messages
         selectedChannelID = channelID
         unreadByChannelID[channelID] = 0
@@ -852,33 +873,34 @@ private struct ChannelBurstGroupCard: View {
                 .padding(.vertical, 4)
             }
 
-            HStack(alignment: .top, spacing: 10) {
-                Circle()
-                    .fill(group.isSystemGroup ? CYColor.warningText.opacity(0.2) : CYColor.bgRaised)
-                    .frame(width: 34, height: 34)
-                    .overlay(
-                        Text(String(group.senderName.prefix(1)))
-                            .font(.subheadline.weight(.bold))
-                            .foregroundStyle(group.isSystemGroup ? CYColor.warningText : CYColor.textPrimary)
-                    )
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 6) {
-                        Text(group.senderName)
-                            .font(.subheadline.weight(.semibold))
-                        if let badge = group.senderRoleBadge, !badge.isEmpty {
-                            Text(badge)
-                                .font(.caption2.weight(.semibold))
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 1)
-                                .background(CYColor.accentText.opacity(0.14), in: Capsule())
-                                .foregroundStyle(CYColor.accentText)
-                        }
-                        Text(group.headerTimestampText)
-                            .font(.caption2)
-                            .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                HStack(spacing: CYSpacing.sm) {
+                    Circle()
+                        .fill(group.isSystemGroup ? CYColor.warningText.opacity(0.2) : CYColor.bgRaised)
+                        .frame(width: 28, height: 28)
+                        .overlay(
+                            Text(String(group.senderName.prefix(1)))
+                                .font(.footnote.weight(.bold))
+                                .foregroundStyle(group.isSystemGroup ? CYColor.warningText : CYColor.textPrimary)
+                        )
+                        .accessibilityHidden(true)
+                    Text(group.senderName)
+                        .font(.subheadline.weight(.semibold))
+                    if let badge = group.senderRoleBadge, !badge.isEmpty {
+                        Text(badge)
+                            .font(.caption2.weight(.semibold))
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(CYColor.accentText.opacity(0.14), in: Capsule())
+                            .foregroundStyle(CYColor.accentText)
                     }
+                    Text(group.headerTimestampText)
+                        .font(.caption2)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
 
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     ForEach(group.items) { item in
                         VStack(alignment: .leading, spacing: 4) {
                             if let reply = item.replyReference {
