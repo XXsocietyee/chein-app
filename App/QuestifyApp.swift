@@ -389,14 +389,46 @@ struct SessionRootView: View {
     }
 
     private func chain3<V: View>(_ v: V) -> some View {
+        chain3_7(chain3_6(chain3_5(chain3_4(chain3_3(chain3_2(chain3_1(chain3_0(v))))))))
+    }
+
+    private func chain3_0<V: View>(_ v: V) -> some View {
         v
         .environment(\.bankWithdrawalDestination, session.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true ? { AnyView(SessionBankWithdrawalView()) } : nil)
+    }
+
+    private func chain3_1<V: View>(_ v: V) -> some View {
+        v
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
+    }
+
+    private func chain3_2<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantPersonalIncomeDestination, { AnyView(SessionMerchantPersonalIncomeView(session: session, source: $0)) })
+    }
+
+    private func chain3_3<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantLedgerAssetsDestination, { AnyView(SessionMerchantLedgerAssetsView(session: session, source: $0)) })
+    }
+
+    private func chain3_4<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantAcceptedProjectDestination, { AnyView(SessionMerchantAcceptedProjectView(session: session, source: $0)) })
+    }
+
+    private func chain3_5<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantOfficialRecruitmentDestination, { AnyView(SessionMerchantOfficialRecruitmentView(session: session, source: $0)) })
+    }
+
+    private func chain3_6<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantCoopCenterDestination, { session.merchantCoopCenterDestination(initialTab: $0, focusTopicID: $1) })
+    }
+
+    private func chain3_7<V: View>(_ v: V) -> some View {
+        v
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
     }
 
