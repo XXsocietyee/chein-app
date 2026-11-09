@@ -8,14 +8,14 @@ import QuestifyCore
 /// Reachable with `--design-fixture d4-directory | d4-detail | d4-owner-detail | d4-channels | d4-settings | d4-growth | d4-leaderboard | d4-badges`.
 /// The "synthetic" label lives in the nav bar title area of the host, never over content.
 @MainActor struct D4ClubFixture: View {
-    enum Screen { case directory, detail(owner: Bool), channels(list: Bool), confirm, joinConfirm }
+    enum Screen { case directory, detail(owner: Bool), channels(list: Bool), confirm, joinConfirm, tab(ClubDetailTab), members }
     let screen: Screen
     @StateObject private var reader: ClubFixtureReader
     init(_ screen: Screen) {
         self.screen = screen
         let scenario: ClubFixtureScenario
         switch screen {
-        case .detail(owner: true), .channels, .confirm, .joinConfirm: scenario = .owner
+        case .detail(owner: true), .channels, .confirm, .joinConfirm, .tab, .members: scenario = .owner
         case .detail(owner: false): scenario = .visitor
         case .directory: scenario = .visitor
         }
@@ -26,6 +26,8 @@ import QuestifyCore
             switch screen {
             case .directory: ClubDirectoryView(reader: reader)
             case .detail: ClubDetailView(id: 81, reader: reader)
+            case .tab(let tab): ClubDetailView(id: 81, reader: reader, requestedTab: tab)
+            case .members: ClubMembersView(id: 81, reader: reader)
             case .channels(let list): D4ChannelsHost(reader: reader, startInList: list)
             case .confirm: D4ConfirmHost(reader: reader, join: false)
             case .joinConfirm: D4ConfirmHost(reader: reader, join: true)

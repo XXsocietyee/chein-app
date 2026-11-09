@@ -72,6 +72,7 @@ extension EnvironmentValues {
     let host: ClubEnrollmentHostContext
     let focusTopicID: Int?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @StateObject private var navigation = ClubEnrollmentNavigation()
     private var liveHost: ClubEnrollmentHostContext {
         .init(clubID: clubID, focusTopicID: focusTopicID, identity: identity, access: access, profile: profile)
@@ -99,8 +100,7 @@ extension EnvironmentValues {
             if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
                 // Mini-program sub line: 「俱乐部名 · N 个团 · 报名费由平台担保托管」.
                 Section {
-                    LabeledContent("club.enroll.teamCount") { Text(reader.teams.count, format: .number) }
-                        .accessibilityIdentifier("club.enroll.headerLine")
+                    teamCountRow.accessibilityIdentifier("club.enroll.headerLine")
                     Label("club.enroll.escrow", systemImage: "lock.shield").foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.enroll.escrow")
                 } header: {
@@ -271,6 +271,17 @@ extension EnvironmentValues {
         HStack {
             if let avatar = value.avatar { SquareImage(source: avatar).frame(width: 32, height: 32).clipShape(Circle()).accessibilityHidden(true) }
             title(value.nickname, fallback: "club.enroll.player")
+        }
+    }
+    /// Label + count; stacks at accessibility sizes so the label never wraps against the number.
+    @ViewBuilder private var teamCountRow: some View {
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("club.enroll.teamCount").font(.subheadline).foregroundStyle(.secondary)
+                Text(reader.teams.count, format: .number).font(.title2.bold()).monospacedDigit()
+            }.frame(maxWidth: .infinity, alignment: .leading).accessibilityElement(children: .combine)
+        } else {
+            LabeledContent("club.enroll.teamCount") { Text(reader.teams.count, format: .number) }
         }
     }
     @ViewBuilder private func title(_ text: String?, fallback: LocalizedStringKey) -> some View {
