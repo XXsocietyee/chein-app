@@ -25,40 +25,48 @@ import Combine
     var body: some View {
         // Same choices and order as the mini-program publish menu (cy-publish-sheet):
         // a topic (city orientation or free explore, quick or professional), then interaction.
-        List {
-            Section("publishModes.section.topic") {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                CYHeroHeader("publishModes.title")
+                // One primary action: the quick publish journey ("Quick setup").
                 NavigationLink { QuickPublishingView(placeSearch: placeSearch, account: account, draftStore: draftStore, makeAIDraft: makeAIDraft, openProfessional: openProfessional).id(account?.epoch) } label: {
                     Label("publishModes.quick", systemImage: "wand.and.stars")
-                }
-                if let makeProfessional {
-                    NavigationLink { makeProfessional(.city) } label: { Label("publishModes.pro.city", systemImage: "map") }
-                        .accessibilityIdentifier("publishModes.pro.city")
-                    NavigationLink { makeProfessional(.freeExplore) } label: { Label("publishModes.pro.freeExplore", systemImage: "location.magnifyingglass") }
-                        .accessibilityIdentifier("publishModes.pro.freeExplore")
-                }
-            }
-            if let makeTemplateAuthoring {
-                Section("publishModes.section.interaction") {
-                    NavigationLink { makeTemplateAuthoring() } label: { Label("publishModes.interaction", systemImage: "puzzlepiece.extension") }
-                        .accessibilityIdentifier("publishModes.interaction")
-                }
-            }
-            if showsActivity {
-                Section {
-                    NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
-                        Label("publishModes.activity", systemImage: "calendar.badge.plus")
+                }.buttonStyle(CYPillButtonStyle(style: .primary))
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    CYSectionHeader("publishModes.section.topic")
+                    if let makeProfessional {
+                        NavigationLink { makeProfessional(.city) } label: { CYListRow("publishModes.pro.city", card: true) { CYRowIcon(systemImage: "map") } }
+                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.pro.city")
+                        NavigationLink { makeProfessional(.freeExplore) } label: { CYListRow("publishModes.pro.freeExplore", card: true) { CYRowIcon(systemImage: "location.magnifyingglass") } }
+                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.pro.freeExplore")
                     }
                 }
-            }
-            Section {
-                NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
-                    Label("publishModes.projects", systemImage: "square.stack")
+                if let makeTemplateAuthoring {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        CYSectionHeader("publishModes.section.interaction")
+                        NavigationLink { makeTemplateAuthoring() } label: { CYListRow("publishModes.interaction", card: true) { CYRowIcon(systemImage: "puzzlepiece.extension") } }
+                            .buttonStyle(.plain).accessibilityIdentifier("publishModes.interaction")
+                    }
                 }
-                NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
-                    Label("publishModes.identity", systemImage: "person.text.rectangle")
+                VStack(spacing: CYSpacing.md) {
+                    if showsActivity {
+                        NavigationLink { ActivityPublishingView(service: service, account: account, placeSearch: placeSearch, draftStore: draftStore, makeIdentityRegistration: makeIdentityRegistration, makeActivityTemplate: makeActivityTemplate, makeActivityCover: makeActivityCover, openResource: openResource) } label: {
+                            CYListRow("publishModes.activity", card: true) { CYRowIcon(systemImage: "calendar.badge.plus") }
+                        }.buttonStyle(.plain)
+                    }
+                    NavigationLink { PublishingProjectsView(service: service, account: account, openResource: openResource) } label: {
+                        CYListRow("publishModes.projects", card: true) { CYRowIcon(systemImage: "square.stack") }
+                    }.buttonStyle(.plain)
+                    NavigationLink { PublishingIdentityStatusView(service: service, account: account) } label: {
+                        CYListRow("publishModes.identity", card: true) { CYRowIcon(systemImage: "person.text.rectangle") }
+                    }.buttonStyle(.plain)
                 }
             }
-        }.navigationTitle(Text("publishModes.title")).accessibilityIdentifier("publishModes.home")
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .cyDomainPageBackground()
+        .navigationTitle("").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("publishModes.home")
     }
 }
 @MainActor struct QuickPublishingView: View {

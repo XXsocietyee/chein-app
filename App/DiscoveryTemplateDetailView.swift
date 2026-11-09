@@ -9,6 +9,7 @@ struct DiscoveryTemplateDetailView: View {
     let authoringCompletion: TemplateAuthoringCompletionContext?
     let imageReader: any RetainedPublicImageReading
     @StateObject private var detail = DiscoveryLoader<DiscoveryPlayTemplateRead>()
+    @Environment(\.cyPalette) private var palette
     @State private var galleryScope = UUID()
     @State private var loadedKey: RequestKey?
     @State private var readerChange: UInt64 = 0
@@ -43,7 +44,7 @@ struct DiscoveryTemplateDetailView: View {
             if !reader.isConfigured {
                 ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
             } else if detail.isLoading || loadedKey != requestKey {
-                ProgressView("discovery.loading")
+                CYSkeleton().padding(CYSpacing.pageHorizontal).frame(maxHeight: .infinity, alignment: .top)
             } else if let error = detail.error {
                 DiscoveryErrorView(error: error) { Task { await reload() } }
             } else if let read = detail.value {
@@ -52,15 +53,18 @@ struct DiscoveryTemplateDetailView: View {
                 List {
                     // Mini-program `xb-head` then `xb-cta`: title and publisher, then 应用 right under them.
                     Section {
-                        DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay").font(.title2.bold())
+                        DiscoveryTitle(text: item.title, fallback: "discovery.untitledPlay")
+                            .font(.system(.largeTitle, design: .default).weight(.heavy))
+                            .foregroundStyle(palette.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
                         DiscoveryPlayMetadata(item: item)
                         if authoringFactory != nil {
                             Button {
                                 guard loadedKey == requestKey, reader.isConfigured,
                                       authoringCompletion?.isCurrent() != false else { return }
                                 adoption = Adoption(source: item, key: requestKey)
-                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc").frame(maxWidth: .infinity, minHeight: 44) }
-                                .buttonStyle(.questifyPrimary)
+                            } label: { Label("templateAuthor.adopt", systemImage: "doc.on.doc") }
+                                .buttonStyle(CYPillButtonStyle(style: .primary))
                                 .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
                                 .accessibilityIdentifier("templateAuthor.adopt")
                         }
@@ -80,6 +84,8 @@ struct DiscoveryTemplateDetailView: View {
                         }
                     }
                 }
+                .scrollContentBackground(.hidden)
+                .cyDomainPageBackground()
                 .refreshable { await reload() }
                 .accessibilityIdentifier("discovery.detail.content")
             }
@@ -173,7 +179,8 @@ struct DiscoveryTopicTemplatePreview: View {
                 List {
                     Section {
                         if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
-                        DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic").font(.title2.bold())
+                        DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic")
+                            .font(.system(.largeTitle, design: .default).weight(.heavy)).accessibilityAddTraits(.isHeader)
                         optionalText(item.subtitle)
                         TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
                         if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
@@ -228,6 +235,8 @@ struct DiscoveryTopicTemplatePreview: View {
                         Section { Text("discovery.publicEmpty") }
                     }
                 }
+                .scrollContentBackground(.hidden)
+                .cyDomainPageBackground()
                 .refreshable { await detail.load() }
                 .accessibilityIdentifier("discovery.topicPreview.content")
             } else { ProgressView("discovery.loading") }
