@@ -11,6 +11,10 @@ enum DesignFixtureRegistry {
         case "kit-2": return AnyView(KitGalleryFixture(domain: .player, lower: true))
         case "kit-merchant-2": return AnyView(KitGalleryFixture(domain: .merchant, lower: true))
         case "kit-merchant": return AnyView(KitGalleryFixture(domain: .merchant))
+        case "welcome": return AnyView(WelcomeFixture())
+        case "welcome-menu": return AnyView(WelcomeMenuFixture())
+        case "consent": return AnyView(ConsentFixture())
+        case "login-player": return AnyView(LoginFixture())
         // D1..D5: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
         default: return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }

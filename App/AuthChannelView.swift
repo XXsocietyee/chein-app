@@ -98,7 +98,7 @@ struct AuthChannelView: View {
                     }
                 }
                 if !model.coordinator.isConfigured {
-                    Section { Label("auth.notConfigured", systemImage: "info.circle") }
+                    Section { Label("auth.notConfigured", systemImage: "info.circle").foregroundStyle(CYColor.textSecondary) }
                 }
                 Section {
                     Text("auth.channels.legalConsent")
@@ -110,6 +110,8 @@ struct AuthChannelView: View {
                         .frame(minHeight: 44)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(CYColor.bgPage)
             .appNavigationTitle("auth.channels.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -268,7 +268,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "完整说明"
+            "value": "查看完整说明"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questify processes only the information needed for the features you use. Roaming location is used only for live position, check-ins and trail recording, and is not collected in the background when you are not using it."
+            "value": "We only process the information a feature needs, when you use it. Roam location is used for live position, check-ins and trails, and never collected in the background when you are not using the app."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾会在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。"
+            "value": "城瘾只在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。"
           }
         }
       }

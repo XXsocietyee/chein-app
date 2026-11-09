@@ -35,12 +35,12 @@ struct PrivacyProtectionView: View {
 
     var body: some View {
         Form {
-            Section { Text("authEntry.gate.body", tableName: "AuthEntry").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).lineSpacing(CYSpacing.xs).fixedSize(horizontal: false, vertical: true) }
+            Section { Text("authEntry.gate.body", tableName: "AuthEntry").fixedSize(horizontal: false, vertical: true) }
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        Text(LocalizedStringKey(item.id + ".title"), tableName: "PrivacyGuideSummary").font(.subheadline.weight(.medium))
+                        Text(LocalizedStringKey(item.id + ".detail"), tableName: "PrivacyGuideSummary").font(.footnote).foregroundStyle(CYColor.textSecondary)
                     }
                 }
             }
@@ -49,7 +49,7 @@ struct PrivacyProtectionView: View {
                 Button { document = AuthEntryLegalSheet(type: .privacyPolicy) } label: { Text("authEntry.gate.openPrivacyGuide", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.guide")
                 if !isPrivacyPolicyBundled {
-                    Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
+                    Text("authEntry.privacy.guideUnavailable", tableName: "AuthEntry").font(.footnote).foregroundStyle(CYColor.textSecondary)
                 }
                 Button { document = AuthEntryLegalSheet(type: .userAgreement) } label: { Text("authEntry.gate.openAgreement", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.agreement")
@@ -60,7 +60,7 @@ struct PrivacyProtectionView: View {
                     else { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") }
                 } label: { Text("authEntry.privacy.consentStatus", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.consentStatus")
-                Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(.secondary)
+                Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(CYColor.textSecondary)
                 if granted {
                     Button(role: .destructive) {
                         policy.decline()

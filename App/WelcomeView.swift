@@ -17,56 +17,67 @@ struct WelcomeView: View {
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Image(systemName: "map")
-                        .font(.title2.weight(.semibold))
-                        .frame(width: 56, height: 56)
-                        .background(Color(uiColor: .secondarySystemFill), in: Circle())
-                        .accessibilityHidden(true)
-                    Text("welcome.title")
-                        .font(CYTypography.display)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .accessibilityAddTraits(.isHeader)
+                VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                    WelcomeHero().padding(.top, CYSpacing.lg)
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        Text("welcome.title")
+                            .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityAddTraits(.isHeader)
+                        Text("role.player.detail")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     if let key = WelcomeSessionPresentation.upgradeNoticeKey(errorKey: session.errorKey, accountID: session.account?.id) {
                         Label(LocalizedStringKey(key), systemImage: "arrow.up.circle")
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(CYColor.textSecondary)
                             .accessibilityIdentifier("welcome.upgradeRequired")
                     }
                 }
-                .padding(.horizontal, 24)
-                .padding(.top, 32)
+                .padding(.horizontal, CYSpacing.xxl)
+                .padding(.top, CYSpacing.hero)
                 .frame(maxWidth: 620, alignment: .leading)
                 .frame(maxWidth: .infinity)
             }
+            .background(CYColor.bgPage)
             .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 12) {
-                    roleButton(.player, title: "role.player", detail: "role.player.detail", symbol: "figure.walk", primary: true)
-                    roleButton(.merchant, title: "role.merchant", detail: "role.merchant.detail", symbol: "storefront")
-                    HStack(spacing: 24) {
-                        NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
-                            .accessibilityIdentifier("ownerDraft.guestEntry")
-                        if let onBrowse {
-                            Button("welcome.browse", action: onBrowse)
-                                .accessibilityIdentifier("welcome.browse")
-                        }
+                VStack(spacing: CYSpacing.md) {
+                    // One primary action per screen: players register first; merchants are the outlined secondary.
+                    roleButton(.player, title: "role.player", primary: true)
+                    roleButton(.merchant, title: "role.merchant", primary: false)
+                    if let onBrowse {
+                        Button("welcome.browse", action: onBrowse)
+                            .font(CYTypography.bodyCompact.weight(.semibold))
+                            .foregroundStyle(CYColor.textSecondary)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityIdentifier("welcome.browse")
                     }
-                    .font(.subheadline.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.top, 4)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, onBrowse == nil ? 84 : 16) // clear the floating tab bar when shown as the Me tab
-                .padding(.top, 12)
+                .padding(.horizontal, CYSpacing.xxl)
+                .padding(.bottom, onBrowse == nil ? 84 : CYSpacing.lg) // clear the floating tab bar when shown as the Me tab
+                .padding(.top, CYSpacing.md)
                 .frame(maxWidth: 620)
                 .frame(maxWidth: .infinity)
-                .background(.bar)
+                .background(CYColor.bgPage)
             }
             .appNavigationTitle("Questify")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) { LanguageSwitcher() }
+                // Language, saved drafts and settings live in one quiet menu.
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("settings.title", systemImage: "gearshape") { destination = .settings }
-                        .accessibilityIdentifier("welcome.settings")
+                    Menu {
+                        NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
+                            .accessibilityIdentifier("ownerDraft.guestEntry")
+                        Button("settings.title", systemImage: "gearshape") { destination = .settings }
+                            .accessibilityIdentifier("welcome.settings")
+                        LanguageSwitcher()
+                    } label: {
+                        Image(systemName: "ellipsis.circle").accessibilityLabel(Text("settings.title"))
+                    }
+                    .accessibilityIdentifier("welcome.more")
                 }
             }
             .sheet(item: $destination) { destination in
@@ -78,36 +89,26 @@ struct WelcomeView: View {
         }
     }
 
-    private func roleButton(_ role: RegistrationIntent, title: LocalizedStringKey,
-                            detail: LocalizedStringKey, symbol: String, primary: Bool = false) -> some View {
-        Button { destination = .login(role) } label: {
-            HStack(alignment: .top, spacing: 16) {
-                Image(systemName: symbol).font(.title2).accessibilityHidden(true)
-                // Title only: ui-spec allows no subtitle captions under rows.
-                Text(title).font(CYTypography.cardTitle)
-                    .fixedSize(horizontal: false, vertical: true)
-                Spacer(minLength: 0)
-                Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
-                    .foregroundStyle(.tertiary).accessibilityHidden(true)
-            }
-            .foregroundStyle(primary ? Color(uiColor: .systemBackground) : .primary)
-            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
-            .modifier(WelcomeRoleSurface(primary: primary))
-        }
-        // One primary action per screen: players register first; merchants are the quiet secondary.
-        .buttonStyle(QuestifyCardButtonStyle())
-        .accessibilityIdentifier("welcome.\(role.rawValue)")
+    private func roleButton(_ role: RegistrationIntent, title: LocalizedStringKey, primary: Bool) -> some View {
+        Button { destination = .login(role) } label: { Text(title) }
+            .buttonStyle(RoleButtonStyle(primary: primary))
+            .accessibilityIdentifier("welcome.\(role.rawValue)")
     }
 }
 
-private struct WelcomeRoleSurface: ViewModifier {
+/// Full-width pill: filled for the primary role, outlined for the secondary.
+private struct RoleButtonStyle: ButtonStyle {
     let primary: Bool
-    func body(content: Content) -> some View {
-        if primary {
-            content.padding(16).background(QuestifyPalette.accent, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
-        } else {
-            content.questifyCardSurface()
-        }
+    func makeBody(configuration: Configuration) -> some View {
+        let shape = RoundedRectangle(cornerRadius: CYRadius.pill, style: .continuous)
+        configuration.label
+            .font(CYTypography.label)
+            .foregroundStyle(primary ? CYColor.textOnAccent : CYColor.textPrimary)
+            .frame(maxWidth: .infinity, minHeight: 56)
+            .background(primary ? AnyShapeStyle(configuration.isPressed ? CYColor.accentPressed : CYColor.accent) : AnyShapeStyle(Color.clear), in: shape)
+            .overlay(shape.strokeBorder(primary ? Color.clear : CYColor.borderStrong, lineWidth: 1.5))
+            .shadow(color: .black.opacity(primary ? 0.3 : 0), radius: 10, y: 4)
+            .contentShape(shape)
     }
 }
 
@@ -117,3 +118,29 @@ private struct WelcomeRoleSurface: ViewModifier {
         .environment(\.dynamicTypeSize, .accessibility3)
 }
 #Preview("Dark") { WelcomeView().environmentObject(AppSession()).preferredColorScheme(.dark) }
+
+
+/// Decorative collage of three tilted place cards (placeholder tiles; real imagery replaces the symbols later).
+private struct WelcomeHero: View {
+    var body: some View {
+        ZStack {
+            tile("fork.knife", angle: -9, x: -86, y: 16, size: 140)
+            tile("ticket", angle: 8, x: 92, y: 30, size: 128)
+            tile("map", angle: -2, x: 0, y: -8, size: 164, lift: true)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 224)
+        .accessibilityHidden(true)
+    }
+
+    private func tile(_ symbol: String, angle: Double, x: CGFloat, y: CGFloat, size: CGFloat, lift: Bool = false) -> some View {
+        RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
+            .fill(lift ? AnyShapeStyle(Color.white.opacity(0.16)) : AnyShapeStyle(CYColor.bgElevated))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous).strokeBorder(Color.white.opacity(lift ? 0.35 : 0.18), lineWidth: 1))
+            .overlay(Image(systemName: symbol).font(.system(size: size * 0.34, weight: .semibold)).foregroundStyle(CYColor.textPrimary.opacity(0.9)))
+            .frame(width: size, height: size * 1.2)
+            .rotationEffect(.degrees(angle))
+            .offset(x: x, y: y)
+            .shadow(color: .black.opacity(0.5), radius: 14, y: 8)
+    }
+}
