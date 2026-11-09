@@ -114,15 +114,27 @@ struct E3PersonRow: View {
     let state: E3FollowState
     let actionTitle: String
     let action: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(spacing: CYSpacing.md) {
-            E3Avatar(seed: seed, size: 48)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).lineLimit(2)
-                Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).lineLimit(2)
+        let text = VStack(alignment: .leading, spacing: 2) {
+            Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+        }
+        // At accessibility sizes the follow button drops under the name so nothing truncates.
+        Group {
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    HStack(spacing: CYSpacing.md) { E3Avatar(seed: seed, size: 48); text }
+                    E3FollowButton(state: state, title: actionTitle, action: action)
+                }
+            } else {
+                HStack(spacing: CYSpacing.md) {
+                    E3Avatar(seed: seed, size: 48)
+                    text
+                    Spacer(minLength: CYSpacing.sm)
+                    E3FollowButton(state: state, title: actionTitle, action: action)
+                }
             }
-            Spacer(minLength: CYSpacing.sm)
-            E3FollowButton(state: state, title: actionTitle, action: action)
         }
         .padding(.vertical, CYSpacing.sm)
         .accessibilityElement(children: .contain)
@@ -137,8 +149,10 @@ struct E3NoticeRow: View {
     let detail: String
     let time: String
     var unread = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
+        layout {
             Image(systemName: systemImage).font(.body.weight(.semibold)).foregroundStyle(tint)
                 .frame(width: 44, height: 44).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .accessibilityHidden(true)
@@ -148,7 +162,7 @@ struct E3NoticeRow: View {
                 Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
             }
             Spacer(minLength: 0)
-            if unread {
+            if unread, !typeSize.isAccessibilitySize {
                 Circle().fill(CYChat.sent).frame(width: 9, height: 9).padding(.top, 6).accessibilityHidden(true)
             }
         }
@@ -224,14 +238,14 @@ struct E3FileCard: View {
             Image(systemName: kind).font(.title3).foregroundStyle(isOwn ? CYChat.sent : CYColor.textInverse)
                 .frame(width: 44, height: 44).background(isOwn ? Color.white : CYColor.textPrimary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
             VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: name).font(CYTypography.bodyMedium).lineLimit(2)
+                Text(verbatim: name).font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: size).font(CYTypography.meta).opacity(0.72)
             }
             Spacer(minLength: 0)
             Image(systemName: "arrow.down.circle").font(.title3).opacity(0.8)
         }
         .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
-        .padding(CYSpacing.md).frame(width: 260)
+        .padding(CYSpacing.md).frame(maxWidth: 260)
         .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .accessibilityElement(children: .combine)
     }
@@ -608,6 +622,7 @@ struct E3RichChatFixture: View {
 struct E3InviteFixture: View {
     @Environment(\.locale) private var locale
     @State private var accepted = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         let t = { (zh: String, en: String) in locale.pick(zh, en) }
         NavigationStack {
@@ -649,11 +664,12 @@ struct E3InviteFixture: View {
         .preferredColorScheme(.dark)
     }
     private func term(_ icon: String, _ k: String, _ v: String) -> some View {
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
+        return layout {
             Image(systemName: icon).foregroundStyle(CYColor.textSecondary).frame(width: 24).accessibilityHidden(true)
             Text(verbatim: k).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-            Spacer(minLength: CYSpacing.sm)
-            Text(verbatim: v).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.trailing)
+            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
+            Text(verbatim: v).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(typeSize.isAccessibilitySize ? .leading : .trailing)
         }
     }
 }
@@ -666,15 +682,15 @@ struct E3NoticesFixture: View {
     var body: some View {
         let t = { (zh: String, en: String) in locale.pick(zh, en) }
         E3Page(title: t("通知", "Notices")) {
-            HStack(spacing: CYSpacing.sm) {
+            ScrollView(.horizontal, showsIndicators: false) { HStack(spacing: CYSpacing.sm) {
                 ForEach(Array([t("全部", "All"), t("俱乐部", "Clubs"), t("合作", "Collab"), t("系统", "System")].enumerated()), id: \.offset) { i, n in
                     Button { filter = i } label: {
-                        Text(verbatim: n).font(.subheadline.weight(.medium)).padding(.horizontal, 14).frame(minHeight: 44)
+                        Text(verbatim: n).font(.subheadline.weight(.medium)).padding(.horizontal, 14).frame(minHeight: 44).fixedSize()
                             .foregroundStyle(filter == i ? CYColor.textInverse : CYColor.textPrimary)
                             .background(filter == i ? CYColor.textPrimary : CYColor.bgElevated, in: Capsule())
                     }.buttonStyle(E3PressStyle())
                 }
-            }.sensoryFeedback(.selection, trigger: filter)
+            } }.sensoryFeedback(.selection, trigger: filter)
             E3SectionTitle(title: t("今天", "Today"))
             VStack(spacing: 0) {
                 E3NoticeRow(systemImage: "person.3.fill", tint: .orange, title: t("夜行者批准了你的加入申请", "Night Walkers approved your request"), detail: t("欢迎！本周三 19:30 钟楼广场集合。", "Welcome! Meet Wednesday 7:30 PM at Clock Tower Square."), time: t("刚刚", "Just now"), unread: true)
