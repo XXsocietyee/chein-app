@@ -124,19 +124,19 @@ private struct RoleButtonStyle: ButtonStyle {
 private struct WelcomeHero: View {
     var body: some View {
         ZStack {
-            tile("fork.knife", angle: -9, x: -86, y: 18, size: 150)
-            tile("ticket", angle: 8, x: 92, y: 34, size: 138)
-            tile("map", angle: -2, x: 0, y: -8, size: 176)
+            tile("fork.knife", angle: -9, x: -86, y: 16, size: 140)
+            tile("ticket", angle: 8, x: 92, y: 30, size: 128)
+            tile("map", angle: -2, x: 0, y: -8, size: 164, lift: true)
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 250)
+        .frame(height: 224)
         .accessibilityHidden(true)
     }
 
-    private func tile(_ symbol: String, angle: Double, x: CGFloat, y: CGFloat, size: CGFloat) -> some View {
+    private func tile(_ symbol: String, angle: Double, x: CGFloat, y: CGFloat, size: CGFloat, lift: Bool = false) -> some View {
         RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
-            .fill(CYColor.bgElevated)
-            .overlay(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous).strokeBorder(CYColor.borderStrong.opacity(0.5), lineWidth: 1))
+            .fill(lift ? AnyShapeStyle(Color.white.opacity(0.16)) : AnyShapeStyle(CYColor.bgElevated))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous).strokeBorder(Color.white.opacity(lift ? 0.35 : 0.18), lineWidth: 1))
             .overlay(Image(systemName: symbol).font(.system(size: size * 0.34, weight: .semibold)).foregroundStyle(CYColor.textPrimary.opacity(0.9)))
             .frame(width: size, height: size * 1.2)
             .rotationEffect(.degrees(angle))
