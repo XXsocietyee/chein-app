@@ -16,6 +16,7 @@ extension EnvironmentValues {
     let reader: any GrowthCenterReading
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.scenePhase) private var scenePhase
+    @ScaledMetric(relativeTo: .largeTitle) private var scoreSize: CGFloat = 52
     @State private var badgePresentationID = UUID()
     @State private var badgeVisible = false
     @State private var badgeExploreConsumed = false
@@ -93,7 +94,7 @@ extension EnvironmentValues {
                 // Mini-program score card: the points are the one number that matters.
                 VStack(alignment: .leading, spacing: 4) {
                     Text("growth.currentPoints").font(.subheadline).foregroundStyle(.secondary)
-                    GrowthCenterInteger(value: board.me.score).font(.system(size: 52, weight: .heavy, design: .rounded))
+                    GrowthCenterInteger(value: board.me.score).font(.system(size: scoreSize, weight: .heavy, design: .rounded)).monospacedDigit()
                         .lineLimit(1).minimumScaleFactor(0.5)
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
                     .accessibilityElement(children: .ignore)

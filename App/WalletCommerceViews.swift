@@ -526,7 +526,7 @@ enum WalletPayoutCapability { static let isOn = false }
                     else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
                 .font(.body.weight(.semibold).monospacedDigit())
-                .foregroundStyle(direction.rawValue == "income" ? Color.green : Color.primary)
+                .foregroundStyle(direction.rawValue == "income" ? CYColor.successText : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
                     Text(verbatim: format.amount(balance, currency: row.currency)).font(.caption).foregroundStyle(.secondary)
                 }
