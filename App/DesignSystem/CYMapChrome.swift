@@ -9,7 +9,8 @@ struct CYGlassButton: View {
     private let systemImage: String
     private let label: LocalizedStringKey
     private let action: () -> Void
-    @ScaledMetric(relativeTo: .body) private var size: CGFloat = 48
+    @ScaledMetric(relativeTo: .body) private var scaled: CGFloat = 48
+    private var size: CGFloat { min(scaled, 60) }
 
     init(systemImage: String, label: LocalizedStringKey, action: @escaping () -> Void) {
         self.systemImage = systemImage
@@ -49,7 +50,8 @@ struct CYGlassCapsule<Content: View>: View {
 struct CYGoButton: View {
     private let title: LocalizedStringKey
     private let action: () -> Void
-    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 96
+    @ScaledMetric(relativeTo: .largeTitle) private var scaled: CGFloat = 96
+    private var size: CGFloat { min(scaled, 112) }
 
     init(_ title: LocalizedStringKey = "GO", action: @escaping () -> Void) {
         self.title = title
@@ -127,22 +129,36 @@ struct CYMapCallout: View {
     }
 }
 
-extension View {
-    /// Persistent bottom sheet over a full-bleed map: detents, map stays interactive behind, never dismissed.
-    /// Use for node / task / result information; the screen's primary action lives inside it.
-    func cyMapSheet<Sheet: View>(
-        isPresented: Binding<Bool>,
-        detents: Set<PresentationDetent> = [.height(236), .medium, .large],
-        @ViewBuilder content: @escaping () -> Sheet
-    ) -> some View {
-        sheet(isPresented: isPresented) {
-            content()
-                .presentationDetents(detents)
+private struct CYMapSheetModifier<Sheet: View>: ViewModifier {
+    @Binding var isPresented: Bool
+    let detents: Set<PresentationDetent>
+    @ViewBuilder let sheet: () -> Sheet
+    @Environment(\.dynamicTypeSize) private var type
+    @State private var selection: PresentationDetent = .height(236)
+
+    func body(content: Content) -> some View {
+        content.sheet(isPresented: $isPresented) {
+            sheet()
+                .presentationDetents(detents, selection: $selection)
                 .presentationDragIndicator(.visible)
                 .presentationBackgroundInteraction(.enabled(upThrough: .medium))
                 .presentationCornerRadius(28)
                 .presentationBackground(Color(red: 0.11, green: 0.11, blue: 0.118))
                 .interactiveDismissDisabled()
+                .onAppear { if type.isAccessibilitySize { selection = .medium } }
         }
+    }
+}
+
+extension View {
+    /// Persistent bottom sheet over a full-bleed map: detents, map stays interactive behind, never dismissed.
+    /// Use for node / task / result information; the screen's primary action lives inside it.
+    /// At accessibility text sizes it opens at the medium detent so the primary action is visible.
+    func cyMapSheet<Sheet: View>(
+        isPresented: Binding<Bool>,
+        detents: Set<PresentationDetent> = [.height(236), .medium, .large],
+        @ViewBuilder content: @escaping () -> Sheet
+    ) -> some View {
+        modifier(CYMapSheetModifier(isPresented: isPresented, detents: detents, sheet: content))
     }
 }

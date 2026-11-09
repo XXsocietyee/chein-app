@@ -59,8 +59,8 @@ struct D6MapFixture: View {
                     CYSkeleton()
                 } else {
                     HStack(spacing: CYSpacing.sm) {
-                        CYStatusChip(t("Task 2 of 5", "任务 2 / 5"), systemImage: "flag.fill")
-                        CYStatusChip(t("120 m", "120 米"), systemImage: "location")
+                        CYStatusChip(LocalizedStringKey(t("Task 2 of 5", "任务 2 / 5")), systemImage: "flag.fill")
+                        CYStatusChip(LocalizedStringKey(t("120 m", "120 米")), systemImage: "location")
                     }
                     Text(verbatim: t("Find the Lantern Gate", "找到灯笼门"))
                         .font(.system(.title, design: .default).weight(.heavy))
@@ -70,8 +70,8 @@ struct D6MapFixture: View {
                         .font(CYTypography.body).foregroundStyle(Color.white.opacity(0.7))
                     CYPillButton(LocalizedStringKey(t("I've arrived", "我到了")), action: {})
                     CYSectionHeader(LocalizedStringKey(t("Next stops", "接下来")))
-                    CYListRow(t("Tea House", "茶馆"), meta: t("Locked until task 2", "完成任务 2 后解锁"), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
-                    CYListRow(t("Old Bridge", "老桥"), meta: t("Locked", "未解锁"), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
+                    CYListRow(LocalizedStringKey(t("Tea House", "茶馆")), meta: LocalizedStringKey(t("Locked until task 2", "完成任务 2 后解锁")), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
+                    CYListRow(LocalizedStringKey(t("Old Bridge", "老桥")), meta: LocalizedStringKey(t("Locked", "未解锁")), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
                 }
             }
             .padding(.horizontal, CYSpacing.pageHorizontal)
@@ -122,6 +122,7 @@ struct D6MapFixture: View {
                         HStack(spacing: CYSpacing.sm) {
                             Image(systemName: "magnifyingglass").foregroundStyle(Color.white.opacity(0.6))
                             Text(verbatim: t("Search routes, places", "搜索路线、地点等")).foregroundStyle(Color.white.opacity(0.6))
+                                .lineLimit(1).minimumScaleFactor(0.7)
                             Spacer(minLength: 0)
                         }.font(CYTypography.body)
                     }
