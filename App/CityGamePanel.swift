@@ -45,7 +45,7 @@ struct CityGamePanel: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         .accessibilityElement(children: .contain)
-        .sensoryFeedback(.success, trigger: model.lastOutcome == .applied)
+        .sensoryFeedback(.success, trigger: outcomeApplied)
         .accessibilityIdentifier("cityGame.panel")
     }
 
@@ -176,6 +176,11 @@ struct CityGamePanel: View {
         text.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs + 1)
             .background(Capsule(style: .continuous).fill(CYColor.bgRaised))
+    }
+
+    private var outcomeApplied: Bool {
+        if case .applied? = model.lastOutcome { return true }
+        return false
     }
 
     private func title(for property: CityPropertyState) -> String {
