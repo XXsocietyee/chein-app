@@ -132,6 +132,8 @@ import SwiftUI
 @MainActor private struct SearchMapDatePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    /// Wheel rows are clipped to this height. It tracks title2 so the clip window grows with the text.
+    @ScaledMetric(relativeTo: .title2) private var wheelHeight: CGFloat = 160
     @State private var picker: SearchMapDatePickerDraft
     @State private var invalid = false
     let confirm: (SearchMapDatePickerDraft) -> Bool
@@ -186,7 +188,7 @@ import SwiftUI
             Picker(title, selection: selection) {
                 ForEach(values, id: \.self) { Text(verbatim: String($0)).tag($0) }
             }
-            .pickerStyle(.wheel).labelsHidden().frame(height: 160).clipped()
+            .pickerStyle(.wheel).labelsHidden().frame(height: wheelHeight).clipped()
             .accessibilityIdentifier(identifier)
         }.frame(maxWidth: .infinity)
     }

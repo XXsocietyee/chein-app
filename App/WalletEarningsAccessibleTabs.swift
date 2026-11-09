@@ -1,11 +1,12 @@
 import SwiftUI
 import UIKit
 
-/// A native segmented control with real 44pt segment bounds, not only outer SwiftUI padding.
+/// A native segmented control whose bounds start at 44pt and can grow with Dynamic Type.
 @MainActor struct WalletEarningsAccessibleTabs: UIViewRepresentable {
     let tab: WalletEarningsTabHold.Tab
     let select: (WalletEarningsTabHold.Tab) -> Void
     @Environment(\.locale) private var locale
+    @ScaledMetric(relativeTo: .body) private var minimumHeight: CGFloat = 44
 
     func makeUIView(context: Context) -> WalletEarningsSegmentedControl {
         WalletEarningsSegmentedControl(items: ["", ""])
@@ -18,7 +19,8 @@ import UIKit
         control.refreshAccessibility()
     }
     func sizeThatFits(_ proposal: ProposedViewSize, uiView: WalletEarningsSegmentedControl, context: Context) -> CGSize? {
-        CGSize(width: proposal.width ?? uiView.intrinsicContentSize.width, height: 44)
+        let fitted = uiView.intrinsicContentSize
+        return CGSize(width: proposal.width ?? fitted.width, height: max(minimumHeight, fitted.height))
     }
 }
 

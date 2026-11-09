@@ -137,10 +137,11 @@ struct WalletEarningsTabHold: Equatable {
 @MainActor struct WalletEarningsTabBar: View {
     let tab: WalletEarningsTabHold.Tab
     let select: (WalletEarningsTabHold.Tab) -> Void
-    /// Keep the existing total vertical slot while giving each native segment 44pt bounds.
+    /// Slot starts at 44pt. A minimum lets a taller segment intrinsic size grow with Dynamic Type.
+    @ScaledMetric(relativeTo: .body) private var tabHeight: CGFloat = 44
     var body: some View {
         WalletEarningsAccessibleTabs(tab: tab, select: select)
-            .frame(height: 44)
+            .frame(minHeight: tabHeight)
             .padding(.horizontal, Theme.Space.pageX)
             .padding(.vertical, max(0, Theme.Space.s2 - 6))
     }
