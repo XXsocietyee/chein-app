@@ -4,6 +4,38 @@ import FoundationNetworking
 #endif
 
 #if DEBUG
+/// Offline earnings-overview bytes for the reads this build already sends.
+/// Unknown money is an em dash. A known zero stays 0. This type does not send a withdrawal.
+public enum WalletEarningsOverviewFixtureData {
+    public static let unknownMoney = "—"
+    public static let stagesUnknown = #"{"pendingSettlement":"12.30","disputed":2,"withdrawable":0,"complaintPeriod":[{"availableDate":"2026-10-08","amount":"4.50"}],"amountsKnown":false}"#
+    public static let stagesEmpty = #"{"pendingSettlement":0,"disputed":0,"withdrawable":0,"complaintPeriod":[],"amountsKnown":true,"currency":"CNY"}"#
+    public static let stagesReady = #"{"pendingSettlement":"1.00","disputed":0,"withdrawable":"3.00","complaintPeriod":[],"amountsKnown":true,"currency":"CNY"}"#
+    public static let userInfoReady = #"{"balance":"128.50","currency":"CNY"}"#
+    public static let userInfoEmpty = #"{"balance":"0","currency":"CNY"}"#
+    public static let errorEnvelope = #"{"code":503}"#
+    public enum Outcome: Equatable { case loading, empty, ready, unknown, failed, balanceEmpty, balanceReady }
+    public static func envelope(_ body: String) -> (Data, Int) {
+        (Data(("{\"code\":200,\"data\":" + body + "}").utf8), 200)
+    }
+    public static func response(_ outcome: Outcome) -> (Data, Int)? {
+        switch outcome {
+        case .loading: return nil
+        case .empty: return envelope(stagesEmpty)
+        case .ready: return envelope(stagesReady)
+        case .unknown: return envelope(stagesUnknown)
+        case .failed: return (Data(errorEnvelope.utf8), 503)
+        case .balanceEmpty: return envelope(userInfoEmpty)
+        case .balanceReady: return envelope(userInfoReady)
+        }
+    }
+    /// Unknown, missing, or not-yet-loaded money is an em dash. A known zero stays the digit 0.
+    public static func moneyText(known: Bool, amount: Decimal?) -> String {
+        guard known, let amount else { return unknownMoney }
+        return NSDecimalNumber(decimal: amount).stringValue
+    }
+}
+
 /// Offline only; all IDs and financial values are invented test data. Never a live factory.
 public enum WalletIncomeDetailFixtureData {
     public static let incomeList = #"{"rows":[{"id":4,"changeBalance":"8.50","changeType":1,"eventType":4,"changeReason":"Synthetic withdrawal rejection return"}],"total":1}"#
@@ -20,7 +52,7 @@ public struct WalletCommerceSyntheticTransport: HTTPTransport {
         if fail { return (Data(WalletIncomeDetailFixtureData.errorEnvelope.utf8), 503) }
         let payload: String
         switch request.url?.path {
-        case "/api/wallet/stages": payload = #"{"pendingSettlement":"12.30","disputed":2,"withdrawable":0,"complaintPeriod":[{"availableDate":"2026-10-08","amount":"4.50"}],"amountsKnown":false}"#
+        case "/api/wallet/stages": payload = WalletEarningsOverviewFixtureData.stagesUnknown
         case "/api/balance/list": payload = #"[{"id":1,"changeBalance":"5.00","changeType":2,"changeReason":"Synthetic debit"},{"id":2,"changeType":1,"changeReason":"Synthetic missing amount"}]"#
         case "/api/points/list": payload = #"[{"id":3,"changePoints":-7,"afterPoints":40,"changeReason":"Synthetic points"}]"#
         case "/api/user/points/list": payload = #"{"rows":[{"id":3,"changePoints":-7,"afterPoints":40,"changeReason":"Synthetic points"}],"total":1}"#
