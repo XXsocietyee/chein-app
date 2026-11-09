@@ -190,7 +190,7 @@ struct RoamAlbumReadOwner: Hashable {
                 }
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
-        }.cyDomainPageBackground().navigationTitle("roam.experience.album")
+        }.cyDomainPageBackground()
             .toolbar {
                 if allowsCapture {
                     ToolbarItem(placement: .topBarTrailing) {
