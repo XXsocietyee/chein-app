@@ -17,16 +17,21 @@ public struct CYConfirmSheet: View {
     private let isDestructive: Bool
     private let confirmIdentifier: String?
     private let consequences: [CYConfirmConsequence]
+    private let cancelIdentifier: String?
+    private let titleIdentifier: String?
 
     @Environment(\.dismiss) private var dismiss
 
     public init(title: String, message: String, confirmTitle: String,
                 isDestructive: Bool = false, confirmIdentifier: String? = nil,
                 consequences: [CYConfirmConsequence] = [],
+                cancelIdentifier: String? = nil, titleIdentifier: String? = nil,
                 onConfirm: @escaping () -> Void) {
         self.isDestructive = isDestructive
         self.consequences = consequences
         self.confirmIdentifier = confirmIdentifier
+        self.cancelIdentifier = cancelIdentifier
+        self.titleIdentifier = titleIdentifier
         self.title = title
         self.message = message
         self.confirmTitle = confirmTitle
@@ -45,7 +50,9 @@ public struct CYConfirmSheet: View {
     }
 
     private var cancelButton: some View {
-        Button("action.cancel") { dismiss() }.buttonStyle(.cySecondary(fullWidth: true))
+        Button("action.cancel") { dismiss() }
+            .buttonStyle(.cySecondary(fullWidth: true))
+            .cyOptionalAccessibilityIdentifier(cancelIdentifier)
     }
 
     @ViewBuilder private func styled(_ label: some View) -> some View {
@@ -71,6 +78,7 @@ public struct CYConfirmSheet: View {
                 .font(CYTypography.sheetTitle)
                 .foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader)
+                .cyOptionalAccessibilityIdentifier(titleIdentifier)
             Text(message)
                 .font(CYTypography.body)
                 .foregroundStyle(CYColor.textSecondary)
@@ -107,8 +115,7 @@ public struct CYConfirmSheet: View {
                 if consequences.isEmpty {
                     VStack(spacing: CYSpacing.sm) {
                         confirmButton
-                        Button("action.cancel") { dismiss() }
-                            .buttonStyle(.cySecondary(fullWidth: true))
+                        cancelButton
                     }
                 } else {
                     // Cancel left, destructive right (mini-program dialog); stacks when the type is large.
@@ -123,6 +130,12 @@ public struct CYConfirmSheet: View {
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
+    }
+}
+
+private extension View {
+    @ViewBuilder func cyOptionalAccessibilityIdentifier(_ identifier: String?) -> some View {
+        if let identifier { accessibilityIdentifier(identifier) } else { self }
     }
 }
 
