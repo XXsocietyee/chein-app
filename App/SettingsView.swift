@@ -55,6 +55,9 @@ struct SettingsView: View {
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
+            .scrollContentBackground(.hidden)
+            .cyDomainPageBackground()
+            .listSectionSpacing(.custom(20))
             .modifier(ProfileSettingsProfileNavigation(session: session, owner: profileOwner))
             .modifier(ProfileSettingsFavoritesNavigation(session: session, owner: favoritesOwner))
             .appNavigationTitle("settings.title")

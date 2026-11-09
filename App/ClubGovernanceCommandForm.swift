@@ -286,6 +286,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { activateHostMaterials() } else { hostMaterials.retire() }
         }
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
         .navigationTitle(ClubOpsEventFormCopy.title(route))
         .alert(Text("clubOpsEvent.cancel.confirmTitle", tableName: "ClubOpsEvent"), isPresented: Binding(get: { cancelConfirmReview != nil }, set: { if !$0 { cancelConfirmReview = nil } })) {
             Button(role: .destructive) {

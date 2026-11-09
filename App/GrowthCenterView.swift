@@ -69,7 +69,7 @@ extension EnvironmentValues {
                 }
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground()
         .appNavigationTitle("growth.title")
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

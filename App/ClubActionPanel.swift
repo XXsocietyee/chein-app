@@ -53,11 +53,7 @@ struct ClubActionPanel: View {
                                 .accessibilityIdentifier("club.application.messageTooLong")
                         }
                     }
-                    Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {
-                        Label(LocalizedStringKey(actionKey(action)), systemImage: action == .leave ? "rectangle.portrait.and.arrow.right" : "person.badge.plus")
-                    }
-                    .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
-                    .accessibilityIdentifier("club.action.\(action.rawValue)")
+                    membershipButton(action, state: state)
                 } else {
                     Text(LocalizedStringKey(availabilityKey)).foregroundStyle(.secondary)
                         .accessibilityIdentifier("club.action.gated")
@@ -80,6 +76,20 @@ struct ClubActionPanel: View {
         .onChange(of: identity) { _, _ in reset() }
         .onChange(of: club.id) { old, _ in reset(clubID: old) }
         .onDisappear { reset() }
+    }
+    @ViewBuilder private func membershipButton(_ action: ClubAction, state: ClubActionState) -> some View {
+        let button = Button(role: action == .leave ? .destructive : nil) { prepare(action) } label: {
+            Label(LocalizedStringKey(actionKey(action)), systemImage: action == .leave ? "rectangle.portrait.and.arrow.right" : "person.badge.plus")
+                .frame(maxWidth: .infinity)
+        }
+        .disabled(isWorking || state.preventsNewAction || !ClubApplicationMessage.isValid(action == .apply ? joinMessage : "", for: action))
+        .accessibilityIdentifier("club.action.\(action.rawValue)")
+        .listRowBackground(Color.clear)
+        if action == .leave {
+            button.buttonStyle(.cyDomainSecondary(fullWidth: true)).foregroundStyle(CYColor.dangerText).clipShape(Capsule())
+        } else {
+            button.buttonStyle(.cyDomainPrimary(fullWidth: true)).clipShape(Capsule())
+        }
     }
     @ViewBuilder private func stateContent(_ state: ClubActionState) -> some View {
         switch state {

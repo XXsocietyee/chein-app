@@ -76,7 +76,7 @@ struct ObjectBadgeWallLayoutSelection {
                     }
                 }
             }
-        }.appNavigationTitle("profile.badges.title")
+        }.scrollContentBackground(.hidden).cyDomainPageBackground().appNavigationTitle("profile.badges.title")
             // The typed internal badge-path entry is not a player feature and is not offered here.
             .onChange(of: layoutOwner) { _, _ in layoutSelection.retire() }
     }
