@@ -707,16 +707,8 @@ public enum UGHelp {
             guard let layer = row.object else { return .unknown }
             layers.append(decodeLayer(layer))
         }
-        for index in layers.indices where index > 0 {
-            let previousLocked = layers[..<index].contains { $0.unlocked != true }
-            if previousLocked {
-                let current = layers[index]
-                layers[index] = UGHelpLayer(level: current.level, type: current.type, serverUsable: current.serverUsable,
-                                            unlocked: current.unlocked, free: current.free, costPoints: current.costPoints,
-                                            freeQuota: current.freeQuota, reason: current.reason,
-                                            currencyRejected: current.currencyRejected, blockedUntilPrevious: true)
-            }
-        }
+        // A locked earlier layer does not rewrite a later layer. The contract hint policy
+        // reports that later layer usable and leaves its free/cost fields unchanged.
         let legacy = !enabled || layers.isEmpty
         let remaining = object.keys.contains("remainingFreeUses") ? UGNumberFact.parse(object["remainingFreeUses"] ?? .null) : .unknown
         return .ready(UGHelpView(runID: UGNumberFact.parse(object["runId"] ?? .null),
