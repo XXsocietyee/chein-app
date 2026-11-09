@@ -16,3 +16,4 @@
 - wire21 [x] 14e2cfbda. PR 1016. Deregister reads DeregisterIndexPageModel.page. Not merged.
 - wire19 [x] f1868e9dc. PR 1015. Nearby page total reads NearbyMerchantPage.resolve. Distance line restored. Not merged.
 - wire23 [x] 3236cb774. PR 1017. Aftercare detail reads the refund amount. A missing amount is an em dash. Not merged.
+- wire30 sent back. PR 1018. Customer detail turns every non-count field into an em dash.
