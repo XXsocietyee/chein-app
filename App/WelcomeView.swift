@@ -17,18 +17,21 @@ struct WelcomeView: View {
     }
     @State private var destination: Destination?
     @Environment(\.locale) private var locale
-    private var wordmark: String { locale.identifier.hasPrefix("zh") ? "城瘾" : "CHENGYIN" }
+    private var isChinese: Bool { locale.identifier.hasPrefix("zh") }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xl) {
                     // Wordmark carries the brand now (no nav title): one quiet line above the hero.
-                    Text(verbatim: wordmark)
-                        .font(.system(.title3, design: .rounded).weight(.heavy))
-                        .tracking(1.5)
-                        .foregroundStyle(CYColor.textPrimary)
-                        .accessibilityAddTraits(.isHeader)
+                    HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                        Text(verbatim: isChinese ? "城瘾" : "chein")
+                            .font(.system(.title2, design: .rounded).weight(.heavy))
+                        if !isChinese { Text(verbatim: "城瘾").font(.system(.subheadline, design: .rounded).weight(.semibold)).foregroundStyle(CYColor.textSecondary) }
+                    }
+                    .foregroundStyle(CYColor.textPrimary)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityAddTraits(.isHeader)
                     WelcomeHero()
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Text("welcome.title")

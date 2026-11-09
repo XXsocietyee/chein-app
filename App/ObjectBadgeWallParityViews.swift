@@ -13,16 +13,13 @@ struct ObjectBadgeWallParityHeader: View {
         Section {
             if !wall.isPartial {
                 HStack(spacing: CYSpacing.lg) {
-                    CYProgressRing(progress: summary.total > 0 ? Double(summary.unlocked) / Double(summary.total) : nil, lineWidth: 8) {
-                        Text(verbatim: "\(summary.unlocked)").font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                    }.frame(width: 84, height: 84)
+                    CYCountRing(value: summary.unlocked, total: summary.total)
                     Text("badgeWall.summary \(summary.unlocked) \(summary.total) \(summary.locked)")
                         .font(Theme.Font.sectionTitle).monospacedDigit()
                         .foregroundStyle(Theme.Color.textPrimary(in: domain))
                         .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("objects.badge.summary")
                 }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("objects.badge.summary")
             }
             if let focus = ObjectBadgeWallFocus.resolve(code: focusBadgeCode, wall: wall) {
                 Label { focusText(focus) } icon: { Image(systemName: "scope").accessibilityHidden(true) }
