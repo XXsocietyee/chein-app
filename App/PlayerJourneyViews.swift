@@ -299,7 +299,7 @@ private struct ParticipationCoverPlaceholder: View {
             if !reader.isAuthenticated { PlayerJourneyLogin(signIn: signIn) }
             else if loading && rows == nil { ProgressView("playerJourney.loading") }
             else if let rows {
-                if rows.isEmpty { ContentUnavailableView("playerJourney.completed.empty", systemImage: "figure.walk") }
+                if rows.isEmpty { CYEmptyState(systemImage: "figure.walk", "playerJourney.completed.empty") }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                     Button { if let destination = row.destination { open(destination) } } label: {
                         VStack(alignment: .leading, spacing: 8) {

@@ -178,7 +178,7 @@ import UIKit
                         .id("\(state.sessionID):\(kind.rawValue)")
                 } else {
                     if state.inline && !state.isMultiplayer && state.config["leaderboard"]["enabled"].bool != true {
-                        ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash")
+                        CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable")
                     }
                     NavigationLink { fallback() } label: { Label("chapterStory.play", systemImage: "play.circle") }
                 }

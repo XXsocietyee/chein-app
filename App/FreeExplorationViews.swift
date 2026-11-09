@@ -178,7 +178,7 @@ struct FreeExplorationStoreName: View {
                 if model.unresolved { Text(LocalizedStringKey(model.hasModeRecoveryBlock ? "playMode.recoveryBlocked" : "playFree.proof.pending")) }
                 if let issue { PlayExperienceIssueView(issue: issue) }
             } else if model.phase == .loading || model.phase == .submitting { ProgressView("playx.loading") }
-            else { ContentUnavailableView("playFree.store.unavailable", systemImage: "storefront") }
+            else { CYEmptyState(systemImage: "storefront", "playFree.store.unavailable") }
         }.cyGroupedSurface()
         .refreshable { if model.phase != .loading && model.phase != .submitting { await model.load() } }
         .toolbar {

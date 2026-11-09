@@ -13,7 +13,7 @@ import SwiftUI
             #endif
         } else { SessionRoamEnrolledChaptersDestination(roamReader: roamReader) }
     }
-    private var changed: some View { ContentUnavailableView("roam.chapters.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+    private var changed: some View { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.chapters.changed") }
 }
 @MainActor private struct SessionRoamEnrolledChaptersDestination: View {
     @EnvironmentObject private var session: AppSession
@@ -23,7 +23,7 @@ import SwiftUI
             RoamEnrolledChaptersView(roam: roamReader, tickets: session.ticketWalletReader)
                 .environment(\.ticketWalletPlayProvider, playProvider)
                 .id(session.sessionRevision)
-        } else { ContentUnavailableView("roam.chapters.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+        } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.chapters.changed") }
     }
     private var playProvider: TicketWalletPlayProvider {
         TicketWalletPlayProvider(reader: session.ticketWalletReader, revision: session.sessionRevision,
@@ -135,7 +135,7 @@ import SwiftUI
             }
             if let snapshot = model.snapshot {
                 if snapshot.topics.isEmpty {
-                    ContentUnavailableView("roam.chapters.empty", systemImage: "map")
+                    CYEmptyState(systemImage: "map", "roam.chapters.empty")
                         .accessibilityIdentifier("roam.chapters.empty")
                 }
                 ForEach(snapshot.topics) { ticket in
@@ -166,7 +166,7 @@ import SwiftUI
             .navigationDestination(item: $target) { selection in
                 if model.mayRemainOpen(selection) {
                     TicketWalletDetailView(id: selection.registrationID, reader: tickets)
-                } else { ContentUnavailableView("roam.chapters.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+                } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.chapters.changed") }
             }
             .accessibilityIdentifier("roam.chapters.list")
             .privacySensitive()

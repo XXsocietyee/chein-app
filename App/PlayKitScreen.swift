@@ -111,7 +111,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
             if let issue { PlayExperienceIssueView(issue: issue) }
             if let modelIssue = model.issue { PlayExperienceIssueView(issue: modelIssue) }
             if !model.isCurrent { Text("playkit.sessionChanged") }
-            else if segment.object == nil { ContentUnavailableView("playkit.unavailable", systemImage: "rectangle.slash") }
+            else if segment.object == nil { CYEmptyState(systemImage: "rectangle.slash", "playkit.unavailable") }
             else { content; authoritativeResult }
             recovery
         }

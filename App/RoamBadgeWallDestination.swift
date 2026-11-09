@@ -13,7 +13,7 @@ import SwiftUI
             #endif
         } else { SessionRoamBadgeWallDestination(roamReader: roamReader) }
     }
-    private var changed: some View { ContentUnavailableView("roam.badgeWall.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+    private var changed: some View { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.badgeWall.changed") }
 }
 @MainActor private struct SessionRoamBadgeWallDestination: View {
     @EnvironmentObject private var session: AppSession
@@ -22,7 +22,7 @@ import SwiftUI
         if ObjectIdentifier(roamReader) == ObjectIdentifier(session.roamExperienceReader) {
             RoamBadgeWallOwnedView(roam: roamReader, profile: session.profileReader,
                 currentOwner: .init(roam: roamReader, profile: session.profileReader))
-        } else { ContentUnavailableView("roam.badgeWall.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+        } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.badgeWall.changed") }
     }
 }
 @MainActor private struct RoamBadgeWallOwnedView: View {
@@ -35,7 +35,7 @@ import SwiftUI
         if currentOwner == reader.origin, reader.isCurrent {
             ObjectBadgeWallView(reader: reader)
         } else {
-            ContentUnavailableView("roam.badgeWall.changed", systemImage: "person.crop.circle.badge.exclamationmark")
+            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.badgeWall.changed")
                 .accessibilityIdentifier("roam.badgeWall.changed")
         }
     }

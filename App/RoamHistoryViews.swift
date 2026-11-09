@@ -304,7 +304,7 @@ struct RoamHistoryLiveOwner: Equatable, Hashable {
                     .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("roam.share.open")
                 } else if currentLoaded {
-                    ContentUnavailableView("roam.experience.recordMissing", systemImage: "questionmark.folder", description: Text("roam.experience.recordMissingHint"))
+                    CYEmptyState(systemImage: "questionmark.folder", "roam.experience.recordMissing", detail: "roam.experience.recordMissingHint")
                         .accessibilityIdentifier("roam.experience.history.missing")
                 } else { ProgressView("roam.loading") }
             }.padding()
