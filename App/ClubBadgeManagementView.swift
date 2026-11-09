@@ -82,6 +82,7 @@ import SwiftUI
             } else { Text("readError", tableName: "ClubBadge") }
         }
         .disabled(model.working)
+        .cyGroupedSurface()
         .navigationTitle(Text("title", tableName: "ClubBadge"))
         .privacySensitive()
         .toolbar { Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") } }

@@ -63,7 +63,7 @@ import SwiftUI
                     }
                     Section { Text("cityRules.excluded", tableName: table).font(.footnote) }
                 }
-            }
+            }.cyGroupedSurface()
             .navigationTitle(Text("cityRules.title", tableName: table))
             .accessibilityIdentifier("cityRules.screen")
             .toolbar { ToolbarItem(placement: .cancellationAction) {

@@ -46,7 +46,7 @@ struct SettingsView: View {
                         Text(verbatim: "English").tag(AppLanguage.english)
                         Text(verbatim: "简体中文").tag(AppLanguage.simplifiedChinese)
                     }
-                    .pickerStyle(.inline)
+                    .pickerStyle(.menu)
                 }
                 MemberScoreAppealSettingsEntry(session: session)
                 SettingsInvoiceEntry(session: session)

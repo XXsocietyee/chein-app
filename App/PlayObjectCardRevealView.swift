@@ -7,15 +7,15 @@ extension PlayKitScreen {
                 isCurrent: { model.isCurrent && model.objectCardReceipt == receipt })
                 .id("\(receipt.sessionID):\(receipt.nodeID):\(receipt.version):\(receipt.card.id)")
         } else if model.phase == "submitting" {
-            ProgressView("playCard.processing").accessibilityIdentifier("playCard.processing")
+            CYSkeleton().accessibilityLabel(Text("playCard.processing")).accessibilityIdentifier("playCard.processing")
         } else if raw["passed"].bool == true || raw["flagged"].bool == true {
             // Completion and minting are different server facts. A refresh or a
             // failed mint may have no card; do not manufacture a successful reveal.
             Label("playCard.noReceipt", systemImage: "rectangle.badge.questionmark")
                 .accessibilityIdentifier("playCard.noReceipt")
-            Text("playCard.noReceiptDetail").font(.footnote)
+            Text("playCard.noReceiptDetail").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         } else {
-            Text("playCard.capture").font(.title2.bold())
+            CYHeroHeader("playCard.capture")
             if raw["degraded"].bool == true { Text("playCard.degraded").accessibilityIdentifier("playCard.degraded") }
             ordinaryPhotoCheckForm
         }
@@ -43,7 +43,7 @@ extension PlayKitScreen {
         VStack(alignment: .leading, spacing: 16) {
             if isCurrent() {
                 Label("playCard.received", systemImage: "rectangle.portrait.on.rectangle.portrait")
-                    .font(.title2.bold()).accessibilityIdentifier("playCard.received")
+                    .font(.system(.title2, design: .default).weight(.heavy)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("playCard.received")
                 ObjectCardArtwork(url: card.frame(at: frame).isEmpty ? card.thumbnail : card.frame(at: frame), label: card.title,
                     media: media, expectedScope: scope, currentScope: { isCurrent() ? scope : UUID() })
                     .frame(maxWidth: .infinity, minHeight: 240)
@@ -58,17 +58,17 @@ extension PlayKitScreen {
                         Text("\(frame + 1) / \(card.frames.count)").monospacedDigit()
                         Spacer()
                         Button("objects.next") { move(1) }.accessibilityIdentifier("playCard.next")
-                    }.buttonStyle(.bordered)
+                    }.buttonStyle(.cySecondary(fullWidth: false))
                 }
-                Text(verbatim: card.title).font(.headline).accessibilityIdentifier("playCard.title")
+                Text(verbatim: card.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("playCard.title")
                 if !card.caption.isEmpty { Text(verbatim: card.caption) }
                 if !card.place.isEmpty { LabeledContent("objects.place", value: card.place) }
                 LabeledContent("objects.style") { Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil") }
                 if card.generating { Label("objects.generating", systemImage: "hourglass") }
                 if card.generationStatus == "FAILED" { Text("playCard.framesUnavailable") }
-                Text("playCard.collectionHint").font(.footnote).foregroundStyle(.secondary)
+                Text("playCard.collectionHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             } else { Text("objects.sessionChanged") }
-        }.padding().background(.thinMaterial, in: RoundedRectangle(cornerRadius: 20))
+        }.frame(maxWidth: .infinity, alignment: .leading).cyDomainCard(radius: CYRadius.lg, padding: CYSpacing.lg)
             .privacySensitive().accessibilityIdentifier("playCard.reveal")
             .onDisappear { scope = UUID(); frame = 0 }
     }

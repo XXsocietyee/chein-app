@@ -10,7 +10,7 @@ import SwiftUI
             if model.isCurrent, session.currentRuntimeDependencyContext == model.captured {
                 content
             } else {
-                ContentUnavailableView("当前地图不可用", systemImage: "person.crop.circle.badge.xmark")
+                CYEmptyState(systemImage: "person.crop.circle.badge.xmark", "当前地图不可用")
             }
         }
         .navigationTitle("城市地图更新")
@@ -61,7 +61,7 @@ import SwiftUI
                     }
                 }
                 Section { refreshButton }
-            }
+            }.cyGroupedSurface()
         } else if model.phase == .loading {
             ProgressView("正在读取地图")
         } else {

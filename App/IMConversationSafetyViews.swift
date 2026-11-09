@@ -61,6 +61,7 @@ struct IMSafetyCopy {
     var body: some View {
         NavigationStack {
             Form { content }
+                .cyGroupedSurface()
                 .navigationTitle(Text("im.safety.title"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

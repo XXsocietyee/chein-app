@@ -129,6 +129,7 @@ import SwiftUI
                             .fixedSize(horizontal: false, vertical: true)
                     }
                 }
+                .cyGroupedSurface()
                 .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page", in: domain) != nil ? .hidden : .automatic)
                 .background {
                     if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }

@@ -19,7 +19,7 @@ struct SocialIssueView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label(message, systemImage: "exclamationmark.circle")
             if case SocialAccountFailure.rejected(_, let text) = error, let text { Text(verbatim: text).font(.footnote) }
-            if let retry { Button("action.retry", action: retry) }
+            if let retry { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry) }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")
     }
 }
@@ -57,7 +57,7 @@ struct SocialReadPresentationKey: Hashable {
             if reader.isOfflineExample { Text("social.offline").font(.caption).foregroundStyle(.secondary) }
             if requiresSignIn && reader.identity.accountID == nil { SocialIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key || busy { ProgressView("social.loading") }
+            else if loadedKey != key || busy { CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top).accessibilityElement(children: .ignore).accessibilityLabel(Text("social.loading")) }
             else if let error { SocialIssueView(error: error) { loads.start { await reload() } } }
             else if let value { content(value) }
         }

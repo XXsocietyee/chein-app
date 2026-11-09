@@ -40,38 +40,81 @@ import SwiftUI
         }
     }
 }
+/// Join moment: the club medal lands with a spring and light confetti, success haptic, then the three first
+/// steps as one quiet card and a single primary action (events). "Got it" is the quiet secondary.
 @MainActor struct ClubMemberWelcomeSheet: View {
     let value: ClubMemberWelcome
     let close: () -> Void
     let goEvents: () -> Void
-    @Environment(\.themeDomain) private var domain
+    @State private var arrived = false
     var body: some View {
         NavigationStack {
-            List {
-                if let note = value.club.welcomeNote, !note.isEmpty {
-                    Section { Text(verbatim: note).textSelection(.enabled) } header: { Text("welcome.note", tableName: "ClubMemberWelcome") }
+            ScrollView {
+                VStack(spacing: CYSpacing.xl) {
+                    VStack(spacing: CYSpacing.md) {
+                        CYBadgeMedal(seed: value.club.name.isEmpty ? "club" : value.club.name, symbol: "person.3.fill", size: 116)
+                            .cyStampSlam(trigger: true)
+                            .overlay { CYConfettiBurst(fireOnAppear: true).frame(height: 200) }
+                            .padding(.top, CYSpacing.lg)
+                        Text("welcome.title", tableName: "ClubMemberWelcome")
+                            .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                            .foregroundStyle(CYColor.textPrimary)
+                            .multilineTextAlignment(.center)
+                            .accessibilityAddTraits(.isHeader)
+                        if !value.club.name.isEmpty {
+                            Text(verbatim: value.club.name).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                                .multilineTextAlignment(.center)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .sensoryFeedback(.success, trigger: arrived)
+                    if let note = value.club.welcomeNote, !note.isEmpty {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text("welcome.note", tableName: "ClubMemberWelcome").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: note).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).textSelection(.enabled)
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(CYSpacing.lg)
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    }
+                    VStack(alignment: .leading, spacing: 0) {
+                        step("text.bubble", Text(LocalizedStringKey(value.postingKey), tableName: "ClubMemberWelcome"))
+                        Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
+                        step("calendar", Text(LocalizedStringKey(value.eventsKey), tableName: "ClubMemberWelcome"))
+                        Divider().overlay(CYColor.borderSubtle).padding(.leading, 52)
+                        step("person.3", Text("welcome.overview", tableName: "ClubMemberWelcome"))
+                    }
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                 }
-                Section {
-                    Label { Text(LocalizedStringKey(value.postingKey), tableName: "ClubMemberWelcome") } icon: { Image(systemName: "text.bubble") }
-                    Label { Text(LocalizedStringKey(value.eventsKey), tableName: "ClubMemberWelcome") } icon: { Image(systemName: "calendar") }
-                    Label { Text("welcome.overview", tableName: "ClubMemberWelcome") } icon: { Image(systemName: "person.3") }
-                } header: { Text("welcome.actions", tableName: "ClubMemberWelcome") }
-                Section {
-                    Button(action: close) { Text("welcome.gotIt", tableName: "ClubMemberWelcome") }.accessibilityIdentifier("club.welcome.close")
-                        .buttonStyle(.bordered)
-                    Button(action: goEvents) { Text("welcome.events", tableName: "ClubMemberWelcome") }.accessibilityIdentifier("club.welcome.events")
-                        .buttonStyle(.borderedProminent)
+                .padding(.horizontal, CYSpacing.xxl)
+                .padding(.bottom, CYSpacing.lg)
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack(spacing: CYSpacing.sm) {
+                    Button(action: goEvents) { Text("welcome.events", tableName: "ClubMemberWelcome") }
+                        .buttonStyle(.cyPrimary)
+                        .accessibilityIdentifier("club.welcome.events")
+                    Button(action: close) { Text("welcome.gotIt", tableName: "ClubMemberWelcome").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
+                        .font(CYTypography.bodyCompact.weight(.semibold))
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("club.welcome.close")
                 }
+                .padding(.horizontal, CYSpacing.xxl)
+                .padding(.vertical, CYSpacing.md)
+                .background(CYColor.bgPage)
             }
-            .font(Theme.Font.body)
-            .listStyle(.insetGrouped)
-            .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page", in: domain) != nil ? .hidden : .automatic)
-            .background {
-                if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
-            }
-            .navigationTitle(Text("welcome.title", tableName: "ClubMemberWelcome"))
-            .safeAreaInset(edge: .top) { if !value.club.name.isEmpty { Text(verbatim: value.club.name).font(.headline).padding(.horizontal) } }
+            .background(CYColor.bgPage)
+            .onAppear { arrived = true }
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button(action: close) { Text("welcome.close", tableName: "ClubMemberWelcome") } } }
         }
+    }
+    private func step(_ symbol: String, _ text: Text) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Image(systemName: symbol).foregroundStyle(CYColor.textPrimary).frame(width: 24)
+            text.font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+        }
+            .padding(CYSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
     }
 }

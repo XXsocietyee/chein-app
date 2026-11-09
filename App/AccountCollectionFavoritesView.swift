@@ -74,7 +74,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if model.state.isLoading || model.state.loadedScope != key.scope {
-                ProgressView("accountCollection.loading")
+                CYSkeleton()
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
@@ -101,7 +101,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                 }
                 if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await loadMore() } })
-                } else if model.state.isLoadingMore { ProgressView("accountCollection.loading") }
+                } else if model.state.isLoadingMore { CYSkeleton() }
                 else if model.state.pagination.hasMore {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)
@@ -225,7 +225,7 @@ private struct AccountCollectionFavoriteCard: View {
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if model.state.isLoading || model.state.loadedScope != key.scope {
-                ProgressView("accountCollection.loading")
+                CYSkeleton()
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
@@ -256,7 +256,7 @@ private struct AccountCollectionFavoriteCard: View {
                 }
                 if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await loadMore() } })
-                } else if model.state.isLoadingMore { ProgressView("accountCollection.loading") }
+                } else if model.state.isLoadingMore { CYSkeleton() }
                 else if model.state.pagination.hasMore {
                     Button("accountCollection.loadMore") { Task { await loadMore() } }
                         .frame(minHeight: 44)

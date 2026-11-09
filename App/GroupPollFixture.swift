@@ -64,4 +64,15 @@ import SwiftUI
         }.id(store.identity)
     }
 }
+/// Direct poll screen (result + vote) for design shots: the poll row is decoded from the fixture store.
+@MainActor struct GroupPollDirectFixtureRoot: View {
+    @StateObject private var store = GroupPollFixtureStore(scenario: "success")
+    var body: some View {
+        NavigationStack {
+            if let poll = try? store.decode(GroupPoll.self, store.row), let owner = store.owner(12, GroupPollReference(poll: poll)) {
+                GroupPollView(owner: owner)
+            }
+        }
+    }
+}
 #endif

@@ -349,7 +349,7 @@ import SwiftUI
                         }
                     }
                 }
-            }
+            }.cyGroupedSurface()
             .scrollContentBackground(.hidden).background(CYColor.bgElevated)
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button { model.closeSheets() } label: { Text("playStoreDay.mask.close", tableName: "PlayStoreDay") } } }
         }
@@ -371,7 +371,7 @@ import SwiftUI
                         .buttonStyle(.plain).foregroundStyle(CYColor.textTertiary).listRowBackground(Color.clear)
                         .accessibilityIdentifier("storeDayPage.task.later")
                 }
-            }
+            }.cyGroupedSurface()
             .scrollContentBackground(.hidden).background(CYColor.bgElevated)
         }
         .presentationBackground(CYColor.bgElevated).presentationDragIndicator(.visible)

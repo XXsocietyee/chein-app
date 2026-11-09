@@ -128,6 +128,7 @@ import SwiftUI
             }
             .environment(\.calendar, ClubSeriesScheduleDraft.calendar)
             .environment(\.timeZone, ClubSeriesScheduleDraft.timeZone)
+            .cyGroupedSurface()
             .navigationTitle("club.schedule.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("club.gov.close") { dismiss() }.accessibilityIdentifier("club.schedule.cancel") }

@@ -1,0 +1,14 @@
+# Design report e5 (second pass)
+Branch ui/e5, merged origin/ui/main 357154584. Build via design-batch.sh: BUILD SUCCEEDED, 58 shots.
+Shots: /Users/fanning/chengyin-refs/design-reports/e5/ (batch-<fixture>-en|zh|xl.png, contact-110754.png). Note: the "en" shots rendered Chinese because the simulator default language is zh; true EN was not captured. XL (accessibility-extra-large, zh) shot for guide, info-detail, invoice-detail, creator-projects, h5-shell, free-explore, club-ai, route-error; only the grid contact sheet was reviewed for them.
+Pages restyled (kit, dark, one primary action): guide, info-detail/link, creator center/projects/empty/error/rejected, free-explore, invoice (overview, history, detail, rejected, titles, title editor pinned primary), H5 shell/declared/waiting, route error and legacy, club AI, external game import, circle link, crop.
+Review findings: no truncation or overlap seen at large size. Open issues: `e5-invoice-apply` fixture renders blank (fixture host does not load an overview with orders; real view unchanged); the AI view has a disabled generate button in the fixture (intended, AI unavailable state); invoice-title-edit has no fixture so was not shot.
+Left (not e5, gated or other family): template authoring/publish temp pages, topic pricing, roam tools (e2), invite history, report/appeal pages (e3), QR scanner (camera), maintenance/version-update (no native pages exist), entry landing (needs AppSession).
+Pillow compare vs mini-program references: not done (no reference screenshots located for this family).
+Gap list: docs/release/ui-gap-e5.md.
+
+## ADA pass (guide family)
+Benchmarks (Mobbin): Wanderlog guide hero with title over photo and gradient (https://mobbin.com/screens/414c90df-1f3a-4a93-ac95-8cb21b0903c6), Apple Maps guide cards with eyebrow and one "Open Guide" button (https://mobbin.com/screens/4100f337-26a7-4f0b-af32-bb965979a292), Vrbo travel-guide eyebrow + tag chips (https://mobbin.com/screens/1a58e583-20c3-4e39-88ee-f8b454710054).
+Changes: play-guide modes are now full-width image-led cover cards (generated tonal gradient plus oversized symbol, tag chip, title, description, one white "go" pill, radius 24, spring press scale gated on Reduce Motion, selection haptic); information rows use generated art thumbnails; article detail has a cover banner with eyebrow, large title and date over a scrim.
+Self-score (6 lenses): guide 8, info-detail 8 (cover symbol overlap at AX XL fixed after the shot), guide-empty 7, creator/free-explore/invoice/H5/route pages 6-7 (functional utility pages, grouped lists; not reworked in this pass). Under 8: those utility pages, no photos exist in their data, and no more batches were available.
+Shots: design-reports/e5/batch-guide-*.png, batch-info-detail-*.png. The final symbol-position tweak is compile-checked only by reading, not re-shot.

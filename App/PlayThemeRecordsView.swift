@@ -29,7 +29,7 @@ import SwiftUI
                 }
                     .disabled(model.busy).accessibilityIdentifier("playx.themeRecords.more")
             }
-        }
+        }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .navigationTitle(Text("playx.themeRecords.title"))
@@ -114,7 +114,7 @@ import SwiftUI
                 Button("playx.themeRecords.retryCard") { Task { await model.openCard(sessionID: session) } }
                     .accessibilityIdentifier("playx.themeRecords.retryCard")
             }
-        }
+        }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .accessibilityIdentifier("playx.themeRecords.card")

@@ -223,7 +223,7 @@ struct RoamPrivatePageScope: Hashable {
                 let scope = RoamPrivatePageScope(tools)
                 RoamCapsuleContent(tools: tools, isConfigured: tools.isConfigured, allowsWrites: tools.allowsWrites).id(scope)
             } else {
-                List { RoamPrivateIssueView(issue: .notConfigured) }
+                List { RoamPrivateIssueView(issue: .notConfigured) }.cyGroupedSurface()
                     .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(identifier: "roam.private.issue")]) }
                     .accessibilityIdentifier("roam.capsule.screen")
             }
@@ -305,7 +305,7 @@ struct RoamPrivatePageScope: Hashable {
             } else if scenePhase == .active && (tools.identity == nil || !tools.isConfigured) {
                 Section { RoamPrivateIssueView(issue: tools.identity == nil ? .signInRequired : .notConfigured) }
             }
-        }
+        }.cyGroupedSurface()
         .disabled(!page.acceptsInput || page.settlementInFlight)
         .privacySensitive()
         .toolbar {
@@ -521,7 +521,7 @@ struct RoamPrivatePageScope: Hashable {
                 let scope = RoamPrivatePageScope(tools)
                 RoamGoalsContent(tools: tools, isConfigured: tools.isConfigured, allowsWrites: tools.allowsWrites).id(scope)
             } else {
-                List { RoamPrivateIssueView(issue: .notConfigured) }
+                List { RoamPrivateIssueView(issue: .notConfigured) }.cyGroupedSurface()
                     .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(identifier: "roam.private.issue")]) }
                     .accessibilityIdentifier("roam.goals.screen")
             }
@@ -616,7 +616,7 @@ extension RoamGoalState {
             } else if scenePhase == .active && (tools.identity == nil || !tools.isConfigured) {
                 Section { RoamPrivateIssueView(issue: tools.identity == nil ? .signInRequired : .notConfigured) }
             }
-        }
+        }.cyGroupedSurface()
         .disabled(!page.acceptsInput || page.settlementInFlight)
         .privacySensitive()
         .toolbar {

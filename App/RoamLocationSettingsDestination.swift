@@ -137,7 +137,7 @@ import UIKit
                 Button("roam.locationSettings.refresh") { model.refresh() }
                     .accessibilityIdentifier("roam.locationSettings.refresh")
             }
-        }
+        }.cyGroupedSurface()
         .navigationTitle("roam.locationSettings.title")
         .accessibilityIdentifier("roam.locationSettings.screen")
         .onAppear { isVisible = true; if scenePhase == .active { model.activate() } }

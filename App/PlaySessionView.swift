@@ -35,7 +35,7 @@ struct PlaySessionView: View {
                         }.padding(CYSpacing.lg)
                     }.background(CYColor.bgPage).accessibilityIdentifier("playFree.read.overview")
                 } else if snapshot.result.mode == 1 { mapPanel { overview(snapshot) } }
-                else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
+                else { CYEmptyState(systemImage: "questionmark.circle", "playMode.unavailable") }
             } else {
                 mapPanel { PlayIssueView(issue: .init(APIError.malformedResponse)) { Task { await model.load() } } }
             }

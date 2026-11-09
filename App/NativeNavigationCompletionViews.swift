@@ -15,8 +15,10 @@ import SwiftUI
                 Text(failure == .cannotOpen ? "nativeNav.error.cannotOpen" : "nativeNav.error.detail")
             }
         } actions: {
-            Button("nativeNav.close") { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
-            Button("homeFeed.title", action: goHome).accessibilityIdentifier("nativeNav.error.home")
+            VStack(spacing: CYSpacing.sm) {
+                CYPillButton("homeFeed.title", style: .primary, action: goHome).accessibilityIdentifier("nativeNav.error.home")
+                CYPillButton("nativeNav.close", style: .tertiary) { dismiss() }.accessibilityIdentifier("nativeNav.error.close")
+            }.padding(.horizontal, CYSpacing.lg)
         }.navigationTitle("nativeNav.error.title")
             .accessibilityElement(children: .contain).accessibilityIdentifier("nativeNav.error")
     }

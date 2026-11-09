@@ -23,7 +23,7 @@ import SwiftUI
                 Text("原记录已保留；此页面不会开启游戏或再次提交。")
             }
             if model.busy { ProgressView().accessibilityLabel("正在查询原请求") }
-        }
+        }.cyGroupedSurface()
         .navigationTitle("参与请求恢复")
         .accessibilityIdentifier("city.participation.recovery")
         .task { if scenePhase == .active { model.open() } }

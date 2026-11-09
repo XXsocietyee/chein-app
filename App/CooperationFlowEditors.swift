@@ -86,7 +86,7 @@ struct CoopFlowTemplateEditor: View {
                 }
             }
             if validityIssue {
-                Text("merchant.perkSubmission.invalidDate").foregroundStyle(.red)
+                Text("merchant.perkSubmission.invalidDate").foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("merchant.perkSubmission.invalidDate")
             }
             if let operation {
@@ -284,6 +284,7 @@ struct CoopFlowOfferEditor: View {
                 }.scrollDismissesKeyboard(.interactively)
             } else { Text("coopflow.invite.sessionChanged") }
         }
+        .cyGroupedSurface()
         .navigationTitle("coopflow.invite.title")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

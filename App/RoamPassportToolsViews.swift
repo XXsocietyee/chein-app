@@ -230,7 +230,7 @@ struct RoamAnniversaryReadIntent {
                 Button("roam.tools.loadMore") { enqueue(more) }
                     .accessibilityIdentifier("roam.tools.anniversary.more")
             }
-        }
+        }.cyGroupedSurface()
         .navigationDestination(item: routeBinding(navigation.openedPresentation, owner: reader?.identity)) { lease in
             if let routeDestination {
                 RoamAnniversaryRouteHost(presentation: lease, owner: reader?.identity,
@@ -663,7 +663,7 @@ struct RoamAnniversaryReadIntent {
                 }
             }
             }
-        }
+        }.cyGroupedSurface()
         .disabled(!lifetime.canPresent(reader))
         .privacySensitive()
         .background(LifetimeAttachment(lifetime: lifetime).frame(width: 0, height: 0))

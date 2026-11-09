@@ -76,6 +76,7 @@ import SwiftUI
         .formStyle(.grouped)
         .font(.body)
         .foregroundStyle(.primary)
+        .cyGroupedSurface()
         .navigationTitle(Text("entry.title", tableName: "NativeChannelAppealDetails"))
         .navigationBarTitleDisplayMode(.inline)
         // Pull to refresh replaces the refresh row; the same read-only refresh runs.

@@ -31,10 +31,15 @@ import SwiftUI
         VStack(spacing: 0) {
             // The identity/disclosure stays visible when the transcript scrolls.
             VStack(alignment: .leading, spacing: 4) {
-                if showsConversation { Label(name, systemImage: "person.crop.circle").font(.headline) }
+                if showsConversation {
+                    HStack(spacing: CYSpacing.md) {
+                        CYAvatarView(name: name, size: .md)
+                        Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    }.accessibilityElement(children: .combine)
+                }
                 else if coordinator.isSuspended { Text("shopNPC.paused") }
                 else { Text("shopNPC.stale") }
-                Text("shopNPC.disclosure").font(.footnote).foregroundStyle(.secondary)
+                Text("shopNPC.disclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
                 SafetyDisclosureBanner(policy: safetyPolicy)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
@@ -67,8 +72,8 @@ import SwiftUI
                                     }
                                     if !message.mine {
                                         Button { typing = false; attempt { try coordinator.reviewRegeneration(answerID: message.id) } } label: {
-                                            Text("shopNPC.regenerate").frame(minHeight: 44).contentShape(Rectangle())
-                                        }
+                                            Label("shopNPC.regenerate", systemImage: "arrow.clockwise").font(CYTypography.label).frame(minHeight: 44).contentShape(Rectangle())
+                                        }.buttonStyle(.plain).foregroundStyle(CYColor.textSecondary)
                                             .disabled(recording || !coordinator.canRegenerate(answerID: message.id))
                                             .accessibilityIdentifier("shopNPC.regenerate")
                                     }
@@ -94,7 +99,7 @@ import SwiftUI
                                 else { Text(LocalizedStringKey(error.key)) }
                             }.accessibilityIdentifier("shopNPC.error")
                         }
-                        Text("shopNPC.voiceDisclosure").font(.footnote).foregroundStyle(.secondary)
+                        Text("shopNPC.voiceDisclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         if dynamicTypeSize.isAccessibilitySize { composer }
                         Color.clear.frame(height: 1).id("referenceNPC.bottom").accessibilityHidden(true)
                     }.padding()
@@ -115,6 +120,7 @@ import SwiftUI
                 Button("action.done") { typing = false }.accessibilityIdentifier("shopNPC.keyboard.done")
             }
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .navigationTitle("shopNPC.title").navigationBarTitleDisplayMode(.inline).privacySensitive()
         .modifier(AIOutgoingSensitiveConfirmation(findings: $sensitiveFindings, send: confirmedSend, cancel: cancelSensitiveConfirmation))
         .onChange(of: draft) { _, _ in cancelSensitiveConfirmation() }

@@ -20,50 +20,57 @@ import SwiftUI
 
     var body: some View {
         Section {
-            HStack(alignment: .top, spacing: 14) {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            HStack(alignment: .center, spacing: CYSpacing.lg) {
                 avatar
                 VStack(alignment: .leading, spacing: 6) {
-                    name.font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
+                    name.font(.system(.title2, design: .rounded).weight(.heavy)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
                     HStack(spacing: 6) {
-                        Text(verbatim: "Lv.\(level ?? snapshot?.levelID ?? account.level)")
+                        Text(verbatim: "Lv.\(level ?? snapshot?.levelID ?? account.level)").monospacedDigit()
                         Text("member.card.levelTitle", tableName: "MemberProfile")
-                    }.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
+                    }
+                    .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                    .background(CYColor.bgRaised, in: Capsule(style: .continuous))
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
                     HStack(spacing: 10) {
                         Label { city } icon: { Image(systemName: "mappin.and.ellipse") }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
                             HStack(spacing: 2) {
+                                Image(systemName: "flame.fill").symbolEffect(.pulse, options: .nonRepeating, value: streakDays)
                                 Text("member.card.streak", tableName: "MemberProfile")
-                                Text(verbatim: "\(streakDays)")
+                                Text(verbatim: "\(streakDays)").monospacedDigit()
                                 Text("member.card.days", tableName: "MemberProfile")
                             }.accessibilityElement(children: .combine).accessibilityIdentifier("member.card.streak")
                         }
                     }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
+                Spacer(minLength: 0)
             }
-            HStack {
+            HStack(spacing: CYSpacing.sm) {
                 stat(snapshot?.friendCount, id: "friends") { Text("member.card.friends", tableName: "MemberProfile") }
-                Divider()
                 stat(snapshot?.followCount, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
-                Divider()
                 stat(snapshot?.fansCount, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
-            }.frame(maxWidth: .infinity)
-            if let onOpenTickets {
-                Button(action: onOpenTickets) {
-                    Label { Text("member.card.tickets", tableName: "MemberProfile") } icon: { Image(systemName: "ticket") }
-                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-                }.accessibilityIdentifier("member.card.tickets")
             }
-            LabeledContent {
-                Text(verbatim: snapshot?.balancePreviewText ?? "—")
-                    .font(.subheadline.weight(.semibold).monospacedDigit())
-                    .accessibilityIdentifier("member.card.balanceValue")
-            } label: {
-                Text("member.card.balance", tableName: "MemberProfile").font(.subheadline)
+            // Quick actions as tiles: tickets (opens) and balance (read-only preview, em dash when unknown).
+            HStack(spacing: CYSpacing.sm) {
+                if let onOpenTickets {
+                    Button(action: onOpenTickets) {
+                        tile(symbol: "ticket.fill") { Text("member.card.tickets", tableName: "MemberProfile") } value: { Image(systemName: "chevron.right").font(.caption.weight(.bold)) }
+                    }
+                    .buttonStyle(CYPressScaleStyle())
+                    .accessibilityIdentifier("member.card.tickets")
+                }
+                tile(symbol: "wallet.pass.fill") { Text("member.card.balance", tableName: "MemberProfile") } value: {
+                    Text(verbatim: snapshot?.balancePreviewText ?? "—")
+                        .font(.subheadline.weight(.semibold).monospacedDigit())
+                        .accessibilityIdentifier("member.card.balanceValue")
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("member.card.balance")
             }
-            .accessibilityElement(children: .combine)
-            .accessibilityIdentifier("member.card.balance")
             switch phase {
             case .loading:
                 HStack { ProgressView(); Text("member.card.loading", tableName: "MemberProfile").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
@@ -82,7 +89,11 @@ import SwiftUI
                 }.accessibilityIdentifier("member.card.failed")
             case .ready: EmptyView()
             }
+            }
+            .padding(.vertical, CYSpacing.xs)
         }
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
         .onAppear { readOwner.appear(active: scenePhase == .active) }
         .task(id: TaskKey(scope: reader.scope, refresh: refreshToken, active: scenePhase == .active)) { await load() }
         .onDisappear { readOwner.disappear() }
@@ -123,15 +134,32 @@ import SwiftUI
                 MemberIdentityAvatarView(observation: observation, owner: readOwner, access: avatarAccess)
                     .id(AvatarKey(read: observation.readRevision, source: avatarAccess?.sourceRevision()))
             }
-        }.frame(width: 56, height: 56).clipShape(Circle()).accessibilityHidden(true)
+        }.frame(width: 72, height: 72).clipShape(Circle())
+        .overlay(Circle().strokeBorder(LinearGradient(colors: [.white.opacity(0.55), .white.opacity(0.08)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 2))
+        .shadow(color: .black.opacity(0.4), radius: 8, y: 4)
+        .accessibilityHidden(true)
     }
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
     private func stat(_ value: Int?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary)
-            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-        }.frame(maxWidth: .infinity).accessibilityElement(children: .combine)
+            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity, minHeight: 64)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityElement(children: .combine)
         .accessibilityIdentifier("member.card.\(id)")
+    }
+    private func tile<Title: View, Value: View>(symbol: String, @ViewBuilder title: () -> Title, @ViewBuilder value: () -> Value) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Image(systemName: symbol).font(.title3).foregroundStyle(CYColor.textPrimary)
+            title().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            value().foregroundStyle(CYColor.textPrimary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 88, alignment: .leading)
+        .padding(CYSpacing.md)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
     }
 
     private func load() async {

@@ -65,7 +65,7 @@ struct PlayEntryCodeContext {
             List {
                 PlayEntryCodeSection(context: .init(registrationID: registrationID, openTicketWallet: { walletOpened = true }))
                 if walletOpened { Text("playx.entryCode.fixtureWallet").accessibilityIdentifier("playx.entryCode.fixtureWallet") }
-            }
+            }.cyGroupedSurface()
         }
         .environment(\.verificationCodeFactory, nil)
     }

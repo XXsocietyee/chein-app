@@ -141,6 +141,7 @@ import SwiftUI
                     .accessibilityIdentifier("club.sessionStart.reload")
             }
         }
+        .cyGroupedSurface()
         .navigationTitle("club.sessionStart.title")
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { pendingSelection = nil; creation.retire(); model.leave(scope); dismiss() }.accessibilityIdentifier("club.sessionStart.cancel") } }
         .onAppear { hostVisible = true; finishCreationReturn() }

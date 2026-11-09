@@ -124,15 +124,22 @@ struct ObjectBadgeWallBadgeLabel: View {
     let layout: ObjectBadgeWallLayout
     var body: some View {
         if layout == .wall {
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Image(systemName: badge.isLocked ? "lock" : "medal").font(.title2).accessibilityHidden(true)
-                description.fixedSize(horizontal: false, vertical: true)
-            }.frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
-                .cyDomainCard(padding: CYSpacing.md)
-                .accessibilityElement(children: .combine)
+            // Collectible tile: generated medal when earned, a quiet dashed socket with a lock when not.
+            VStack(spacing: CYSpacing.sm) {
+                CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 84)
+                Group { if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) } }
+                    .font(CYTypography.bodyCompact.weight(.semibold))
+                    .foregroundStyle(badge.isLocked ? CYColor.textSecondary : CYColor.textPrimary)
+                    .multilineTextAlignment(.center).lineLimit(2)
+                CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success)
+            }
+            .frame(maxWidth: .infinity, minHeight: 72)
+            .padding(.vertical, CYSpacing.md)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityElement(children: .combine)
         } else {
-            HStack {
-                CYRowIcon(systemImage: badge.isLocked ? "lock" : "medal")
+            HStack(spacing: CYSpacing.md) {
+                CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 48)
                 description
             }
             .accessibilityElement(children: .combine)
@@ -177,6 +184,8 @@ struct ObjectBadgeWallBadgeLabel: View {
                         else { Text(verbatim: badge.name).font(.title3.bold()) }
                         Label(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
                               systemImage: badge.isLocked ? "lock" : "checkmark.seal")
+                            .symbolEffect(.bounce, options: .nonRepeating, value: badge.isLocked)
+                            .sensoryFeedback(.success, trigger: badge.isLocked) { _, locked in !locked }
                         Text(style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity).padding(.vertical, 16)
                 }
@@ -244,7 +253,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                         .accessibilityIdentifier("objects.badge.turntableHint")
                 }
                 if !parameters.subtitle.isEmpty {
-                    CYListRow(verbatim: parameters.subtitle, trailing: .none, card: true)
+                    CYListRow(verbatim: parameters.subtitle, trailing: .none, card: true) { EmptyView() }
                 }
                 HStack(spacing: CYSpacing.sm) {
                     CYStatusChip(LocalizedStringKey("objects.rarity." + String(parameters.rarity)), tone: .info)

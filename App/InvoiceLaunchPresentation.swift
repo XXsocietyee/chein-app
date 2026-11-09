@@ -183,20 +183,22 @@ func invoiceTime(_ time: InvoiceLaunchTime?, locale: Locale) -> String {
     var body: some View {
         if model.unresolved {
             Section {
-                invoiceText("unknown").accessibilityIdentifier("invoice.pending")
-                Button { Task { await model.refresh() } } label: { invoiceText("checkResult") }
+                Label { invoiceText("unknown") } icon: { Image(systemName: "clock.badge.questionmark") }
+                    .font(CYTypography.body).accessibilityIdentifier("invoice.pending")
+                CYPillButton("checkResult", style: .secondary, tableName: "InvoiceLaunchUI") { Task { await model.refresh() } }
                     .disabled(model.busy).accessibilityIdentifier("invoice.recover")
+                    .listRowBackground(Color.clear)
             }
         }
         if let issue = model.issue {
             ContentUnavailableView {
                 Label { invoiceText(issue) } icon: { Image(systemName: "exclamationmark.circle") }
             } actions: {
-                Button { Task { if let retry { await retry() } else { await model.refresh() } } } label: { invoiceText("retry") }
+                CYPillButton("retry", style: .secondary, fullWidth: false, tableName: "InvoiceLaunchUI") { Task { if let retry { await retry() } else { await model.refresh() } } }
                     .disabled(model.busy)
             }
         } else if model.busy {
-            ProgressView().frame(maxWidth: .infinity).accessibilityLabel(invoiceText("loading"))
+            CYLoadingStateView(rows: 3).listRowBackground(Color.clear).accessibilityLabel(invoiceText("loading"))
         }
     }
 }
@@ -235,4 +237,17 @@ struct InvoiceLaunchWithdrawFlow: Equatable {
     }
     mutating func finish(id: Int64, success: Bool) { succeeded = success ? id : nil }
     mutating func dismissNotice() { succeeded = nil }
+}
+
+/// Resolved label for chips (status keys live in the InvoiceLaunchUI table).
+func invoiceString(_ key: String) -> String { String(localized: String.LocalizationValue(key), table: "InvoiceLaunchUI") }
+extension InvoiceLaunchStatus {
+    var chipTone: CYStatusTone {
+        switch playerState { case .issued: return .success; case .rejected: return .danger; case .paused: return .warning
+        case .cancelled: return .neutral; case .issuing: return .info }
+    }
+    var chipSymbol: String {
+        switch playerState { case .issued: return "checkmark.circle"; case .rejected: return "xmark.circle"; case .paused: return "pause.circle"
+        case .cancelled: return "arrow.uturn.backward.circle"; case .issuing: return "clock" }
+    }
 }

@@ -52,7 +52,7 @@ import SwiftUI
                 // Mini-program `search2` head: one pill field with 筛选 trailing inside it.
                 HStack(spacing: 8) {
                     Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                    TextField(hidesMerchants ? String(localized: "searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs") : String(localized: "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
+                    TextField(LocalizedStringKey(hidesMerchants ? "searchMap.placeholder.player" : "searchMap.placeholder"), text: Binding(get: { filter.keyword }, set: setKeyword)).textInputAutocapitalization(.never)
                         .submitLabel(.search).onSubmit { Task { await search() } }
                         .accessibilityIdentifier("searchMap.keyword")
                     Button { openFilters() } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease.circle") }

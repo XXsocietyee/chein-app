@@ -137,6 +137,7 @@ extension EnvironmentValues {
             }
         }
         .scrollContentBackground(.hidden).cyDomainPageBackground()
+        .cyGroupedSurface()
         .navigationTitle("club.enroll.title")
         .background {
             if let attachment = navigation.attachment {

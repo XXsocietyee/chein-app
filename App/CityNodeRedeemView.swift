@@ -137,7 +137,7 @@ extension EnvironmentValues {
             if let failure = model.coordinator.failure {
                 Text(LocalizedStringKey(failure)).accessibilityIdentifier("merchant.cityRedeem.failure")
             }
-        }
+        }.cyGroupedSurface()
         .scrollDismissesKeyboard(.interactively)
         .appNavigationTitle("merchant.cityRedeem.title")
         .confirmationDialog("merchant.cityRedeem.confirmTitle", isPresented: Binding(

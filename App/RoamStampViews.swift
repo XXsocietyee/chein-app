@@ -190,7 +190,7 @@ struct RoamAlbumReadOwner: Hashable {
                 }
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
-        }.cyDomainPageBackground().navigationTitle("roam.experience.album")
+        }.cyDomainPageBackground()
             .toolbar {
                 if allowsCapture {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -227,8 +227,11 @@ struct RoamStampCard: View {
                 }
                 if offline {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 12).fill(kit ? palette.bgRaised : Color.accentColor.opacity(0.13))
-                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(kit ? palette.textSecondary : Color.accentColor)
+                        if kit { CYCoverArt(seed: String(stamp.id), symbol: "building.2.crop.circle.fill", cornerRadius: 12) }
+                        else {
+                            RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.13))
+                            Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(Color.accentColor)
+                        }
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))
                 } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }

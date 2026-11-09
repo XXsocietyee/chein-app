@@ -921,7 +921,7 @@ private struct ChannelBurstGroupCard: View {
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 3)
-                                .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
+                                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 6))
                             }
 
                             Text(item.displayBody)
@@ -943,7 +943,7 @@ private struct ChannelBurstGroupCard: View {
                                     }
                                 }
                                 .padding(6)
-                                .background(Color.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: 8))
+                                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 8))
                             }
 
                             if let sendState = item.transcriptMessage.sendState {
@@ -959,11 +959,11 @@ private struct ChannelBurstGroupCard: View {
                                             .foregroundStyle(.secondary)
                                     case ChannelOutboundSendPhase.failed.rawValue:
                                         Image(systemName: "exclamationmark.circle.fill")
-                                            .foregroundStyle(.red)
+                                            .foregroundStyle(CYColor.dangerText)
                                             .font(.caption2)
                                         Text(copy("发送失败", "Failed to send"))
                                             .font(.caption2)
-                                            .foregroundStyle(.red)
+                                            .foregroundStyle(CYColor.dangerText)
                                         if let cid = item.transcriptMessage.clientMessageID {
                                             Button(copy("重试（先核对回执）", "Retry (check receipt first)")) {
                                                 onRetrySend(cid)
@@ -1096,7 +1096,7 @@ public struct ClubChannelMemberRosterSheet: View {
                                             if coordinator.blockedSenderIDs.contains(member.memberID) {
                                                 Text(copy("已拉黑", "Blocked"))
                                                     .font(.caption2)
-                                                    .foregroundStyle(.red)
+                                                    .foregroundStyle(CYColor.dangerText)
                                             }
                                         }
                                         if let expires = member.expiresText, !expires.isEmpty {
@@ -1178,8 +1178,8 @@ public struct ClubChannelMemberRosterSheet: View {
                                                 .font(.caption2.weight(.semibold))
                                                 .padding(.horizontal, 6)
                                                 .padding(.vertical, 1)
-                                                .background(Color.red.opacity(0.14), in: Capsule())
-                                                .foregroundStyle(.red)
+                                                .background(CYColor.dangerSoft, in: Capsule())
+                                                .foregroundStyle(CYColor.dangerText)
                                         }
                                         Text("\(ban.reasonCode): \(ban.reasonText)")
                                             .font(.caption2)
@@ -1204,6 +1204,7 @@ public struct ClubChannelMemberRosterSheet: View {
                     }
                 }
             }
+            .cyGroupedSurface()
             .navigationTitle(copy("\(clubName) · 成员与身份组", "\(clubName) · Members & Roles"))
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

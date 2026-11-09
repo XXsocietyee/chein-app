@@ -76,6 +76,7 @@ import SwiftUI
         }
         .formStyle(.grouped)
         .font(Theme.Font.body)
+        .cyGroupedSurface()
         .navigationTitle(localized("friendRemoval.title"))
         .accessibilityIdentifier("friendRemoval.home")
         .task { await flow.load() }
