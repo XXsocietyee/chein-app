@@ -35,3 +35,9 @@ Shots now at DEFAULT text size, EN and zh-Hans, in /Users/fanning/chengyin-refs/
 - Demoted: "Withdrawal parity" and "Sign out" moved into the fixture's overflow (ellipsis) menu; Sign out is no longer in the wallet chrome.
 - Order detail: primary action pinned at the bottom, secondary actions quiet, amount hero kept as focal point, one divider inset. Shot below the fold with `--design-fixture order-detail-bottom` (debug auto-scroll); the top (amount hero) was not re-shot this round.
 - Open: cover is a placeholder tile (ProfileOrder has no image URL); wallet row spacing is a little loose; light theme not applicable (player is dark).
+
+## Round 3 (coordinator review vs mini-program 账户收益)
+- Wallet hub now mirrors the earnings page: centered, larger tabular hero (grey label above, currency symbol before the amount; only a truly unknown currency shows a small grey dash in the symbol slot). Four circular actions: 提现 (white primary, withdrawal support), 收益明细, 积分明细, 更多 (opens a sheet with 分析, invites, 积分商城, 提现记录, 我的资产; nothing removed). New sections: 本月收入明细 (month + 全部 › link, this month's income rows or the empty card 这个月还没有收入) and 我的资产 (icon rows, trailing amounts, em dash while unknown). Strings inline via ChannelCopy (xcstrings not editable). Shot shot-001201 (default size, zh, with --wallet-ledger-empty), compare-wallet.png (reference left).
+- Fixed: month/asset loads were skipped when the first load ran before scenePhase became active; the scenePhase reload now also reloads the month.
+- Orders list rows: design fixture rows all carry the same time range and address (rows 1/3 were missing meta lines); fixture-only change.
+- Open: fixture stages are amountsKnown=false so asset rows show em dash; EN not re-shot.

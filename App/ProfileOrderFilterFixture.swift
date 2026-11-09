@@ -27,7 +27,9 @@ import SwiftUI
     static var richJson: String {
         var out = json
         for i in 701...707 { out = out.replacingOccurrences(of: "{\"id\":\(i),\"memberId\":7001,", with: "{\"id\":\(i),\"memberId\":7001,\"registrationNo\":\"A2026092\(i)FAD04987\",\"payableAmount\":\(i - 700).5,") }
-        return out.replacingOccurrences(of: "\"startDate\":\"2099-01-01\"", with: "\"addressName\":\"Synthetic address 100\",\"startDate\":\"2099-01-01\"")
+        // Every row gets the same time range and address so each card shows its full anatomy.
+        out = out.replacingOccurrences(of: ",\"startDate\":\"2099-01-01\",\"endDate\":\"2099-01-02\"", with: "")
+        return out.replacingOccurrences(of: "\"cmsTopic\":{\"name\"", with: "\"cmsTopic\":{\"addressName\":\"Synthetic address 100\",\"startDate\":\"2099-01-01\",\"endDate\":\"2099-01-02\",\"name\"")
     }
     static let json = #"[{"id":701,"memberId":7001,"registrationStatus":1,"cmsTopic":{"name":"Synthetic pending"}},{"id":702,"memberId":7001,"registrationStatus":2,"paymentStatus":2,"cmsTopic":{"name":"Synthetic upcoming","startDate":"2099-01-01","endDate":"2099-01-02"}},{"id":703,"memberId":7001,"registrationStatus":2,"verificationStatus":1,"cmsTopic":{"name":"Synthetic completed"}},{"id":704,"memberId":7001,"registrationStatus":3,"refundApplication":{"payoutStatus":0,"status":1,"refundAmount":2},"cmsTopic":{"name":"Synthetic refunding"}},{"id":705,"memberId":7001,"registrationStatus":3,"refundApplication":{"payoutStatus":4,"refundAmount":2},"cmsTopic":{"name":"Synthetic refunded"}},{"id":706,"memberId":7001,"registrationStatus":3,"cmsTopic":{"name":"Synthetic cancelled"}},{"id":707,"memberId":7001,"registrationStatus":99,"cmsTopic":{"name":"Synthetic unknown"}}]"#
 }
