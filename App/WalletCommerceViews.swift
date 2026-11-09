@@ -503,7 +503,16 @@ enum WalletPayoutCapability { static let isOn = false }
         let direction = income ? row.incomeDirection : row.assetDirection
         let stacked = dynamicTypeSize.isAccessibilitySize
         let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+        let isIn = direction.rawValue == "income"
         return layout {
+            if !stacked {
+                Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
+                    .font(.system(.subheadline, weight: .semibold))
+                    .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(CYColor.bgRaised, in: Circle())
+                    .accessibilityHidden(true)
+            }
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
@@ -529,7 +538,7 @@ enum WalletPayoutCapability { static let isOn = false }
                     else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
                 .font(.body.weight(.semibold).monospacedDigit())
-                .foregroundStyle(direction.rawValue == "income" ? CYColor.successText : CYColor.textPrimary)
+                .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
                     Text(verbatim: format.amount(balance, currency: row.currency)).font(.caption).foregroundStyle(.secondary)
                 }
