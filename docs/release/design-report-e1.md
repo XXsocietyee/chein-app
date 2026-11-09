@@ -48,6 +48,9 @@ Contact sheets: /Users/fanning/chengyin-refs/design-reports/e1/contact-141057.pn
 ### Self-score (6 ADA lenses)
 Orders list 8, order detail 8, cancel/refund sheet 8, ticket detail 8.5, ticket wallet list 8, participant list/form 8, registration 8, global search results 8, bundle detail at XL 8. None under 8 after rework; the 8.0 pages are 8 rather than 9 because there are no real photos in fixtures and the one memorable moment is limited to the checked-in seal bounce.
 
+### Last verified shots
+Rework batch /Users/fanning/chengyin-refs/design-reports/e1/contact-143510.png (search EN/zh/XL, review sheet EN/zh, registration XL). The review sheet showed its confirm button below the fold at the medium detent, so detents were changed to large only after that shot (one-line change, built but not re-shot).
+
 ### Not done (honest list)
 - Shop pages: ShopNPCView is the d2 NPC chat (d2-npc). WorkshopCommerceView needs a live WorkshopCommerceController and has no offline fixture; not restyled, no screenshot possible without logic changes.
 - Map search list: owned by d6 (d6-search); not touched.
