@@ -52,8 +52,11 @@ public struct MessagingHistory: Equatable {
             let nearby = try await page(preferredCursor)
             if let message = nearby.messages.last(where: { $0.id == id }) { return (message, preferredCursor) }
         }
-        var cursor = 0, consumed = Set<Int>()
+        var cursor = 0, consumed = Set<Int>(), pages = 0
         while true {
+            pages += 1
+            // A cursor that never repeats must not page forever.
+            guard pages <= 1024 else { throw APIError.malformedResponse }
             guard consumed.insert(cursor).inserted else { throw APIError.malformedResponse }
             let result = try await page(cursor)
             if let message = result.messages.last(where: { $0.id == id }) { return (message, cursor) }

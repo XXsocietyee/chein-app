@@ -74,7 +74,10 @@ public enum CollectSetAuthoring {
             guard index < bytes.count, bytes[index] == 34 else { throw ProjectEditError.invalidDraft }
             index += 1
             while index < bytes.count {
-                if bytes[index] == 92 { index += 2 }
+                if bytes[index] == 92 {
+                    guard index + 1 < bytes.count else { throw ProjectEditError.invalidDraft }
+                    index += 2
+                }
                 else if bytes[index] == 34 { index += 1; return }
                 else { index += 1 }
             }

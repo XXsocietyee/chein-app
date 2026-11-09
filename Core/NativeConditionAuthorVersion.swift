@@ -13,7 +13,10 @@ enum NativeConditionAuthorVersion {
             if byte == 0x22 {
                 let start = index; index += 1
                 while index < bytes.count && bytes[index] != 0x22 {
-                    index += bytes[index] == 0x5c ? 2 : 1
+                    if bytes[index] == 0x5c {
+                        guard index + 1 < bytes.count else { return false }
+                        index += 2
+                    } else { index += 1 }
                 }
                 guard index < bytes.count else { return false }
                 let end = index; index += 1

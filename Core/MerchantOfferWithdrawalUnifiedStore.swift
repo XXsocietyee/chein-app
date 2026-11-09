@@ -117,7 +117,7 @@ import Glibc
         guard fstat(fd, &info) == 0, info.st_mode & mode_t(S_IFMT) == mode_t(S_IFREG), flock(fd, LOCK_EX | LOCK_NB) == 0 else { throw CoopFlowFailure.storage }
         return try body()
     }
-    private func ensureDirectory(_ path: URL) throws {
+    private func ensureDirectory(_ path: URL, retries: Int = 0) throws {
         var info = stat()
         if lstat(path.path, &info) == 0 {
             // Root-owned aliases such as /var -> /private/var are the platform's own layout (every iOS and
@@ -125,13 +125,20 @@ import Glibc
             if info.st_mode & mode_t(S_IFMT) == mode_t(S_IFLNK), info.st_uid == 0 { return }
             guard info.st_mode & mode_t(S_IFMT) == mode_t(S_IFDIR) else { throw CoopFlowFailure.storage }
             // Inspect ancestors as well: O_NOFOLLOW on the leaf cannot reject a parent symlink.
-            if path.path != "/" { try ensureDirectory(path.deletingLastPathComponent()) }
+            if path.path != "/" {
+                let parent = path.deletingLastPathComponent()
+                guard parent.path != path.path else { throw CoopFlowFailure.storage }
+                try ensureDirectory(parent)
+            }
             return
         }
         guard errno == ENOENT, path.path != "/" else { throw CoopFlowFailure.storage }
-        try ensureDirectory(path.deletingLastPathComponent())
+        let parent = path.deletingLastPathComponent()
+        guard parent.path != path.path else { throw CoopFlowFailure.storage }
+        try ensureDirectory(parent)
         guard mkdir(path.path, mode_t(0o700)) == 0 || errno == EEXIST else { throw CoopFlowFailure.storage }
-        try ensureDirectory(path); try syncDirectory(path.deletingLastPathComponent())
+        guard retries < 8 else { throw CoopFlowFailure.storage }
+        try ensureDirectory(path, retries: retries + 1); try syncDirectory(parent)
     }
     private func syncDirectory(_ path: URL) throws {
         let fd = open(path.path, O_RDONLY | O_NOFOLLOW); guard fd >= 0 else { throw CoopFlowFailure.storage }
