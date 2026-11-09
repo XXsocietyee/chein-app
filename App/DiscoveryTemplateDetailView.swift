@@ -253,17 +253,41 @@ struct DiscoveryTopicTemplatePreview: View {
     }
 }
 
+/// Route silhouette from the public projection (normalised 0...1 points, no coordinates): a quiet street-grid
+/// backdrop, the route with start / end markers. Debug builds label it so it is never mistaken for a live map.
 private struct PublicTemplateSilhouette: View {
     let points: [PublicTemplateShapePoint]
+    @Environment(\.cyPalette) private var palette
     var body: some View {
-        GeometryReader { geometry in
-            Path { path in
-                for (index, point) in points.enumerated() {
-                    let position = CGPoint(x: 12 + point.x * max(0, geometry.size.width - 24),
-                                           y: 12 + point.y * max(0, geometry.size.height - 24))
-                    if index == 0 { path.move(to: position) } else { path.addLine(to: position) }
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgSurfaceSubtle)
+            Canvas { context, size in
+                var streets = Path()
+                let step: CGFloat = 28
+                var x = step / 2
+                while x < size.width { streets.move(to: CGPoint(x: x, y: 0)); streets.addLine(to: CGPoint(x: x, y: size.height)); x += step }
+                var y = step / 2
+                while y < size.height { streets.move(to: CGPoint(x: 0, y: y)); streets.addLine(to: CGPoint(x: size.width, y: y)); y += step }
+                context.stroke(streets, with: .color(palette.borderSubtle), lineWidth: 1)
+                let inset: CGFloat = 20
+                let mapped = points.map { CGPoint(x: inset + $0.x * max(0, size.width - inset * 2), y: inset + $0.y * max(0, size.height - inset * 2)) }
+                var route = Path()
+                for (index, position) in mapped.enumerated() { if index == 0 { route.move(to: position) } else { route.addLine(to: position) } }
+                context.stroke(route, with: .color(palette.textPrimary), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                if let first = mapped.first {
+                    context.fill(Path(ellipseIn: CGRect(x: first.x - 6, y: first.y - 6, width: 12, height: 12)), with: .color(palette.success))
                 }
-            }.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-        }.accessibilityElement(children: .ignore)
+                if mapped.count > 1, let last = mapped.last {
+                    context.fill(Path(ellipseIn: CGRect(x: last.x - 6, y: last.y - 6, width: 12, height: 12)), with: .color(palette.info))
+                }
+            }
+            #if DEBUG
+            Text(verbatim: "ROUTE SHAPE · DEBUG")
+                .font(CYTypography.micro).foregroundStyle(palette.textTertiary)
+                .padding(CYSpacing.sm)
+            #endif
+        }
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityElement(children: .ignore)
     }
 }

@@ -34,6 +34,22 @@ enum PublishDesignFixtures {
                 try JSONDecoder().decode(PublicTopicTemplateDetail.self, from: Data(PublicTopicTemplateFixtures.content(merchant: false).utf8))
             }
             return wrap(NavigationStack { DiscoveryTopicTemplatePreview(coordinator: coordinator) })
+        case "publish-cover":
+            return wrap(NavigationStack { Form { Section { ActivityCoverAuthoringSection(owner: ActivityCoverAuthoringOwner()) } header: { CYSectionHeader("publishModes.coverSection") } }
+                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "Cover (debug fixture)")).navigationBarTitleDisplayMode(.inline) })
+        case "publish-template-select":
+            let owner = ActivityTemplateSelectionOwner()
+            let rows = [(1, "Sample city walk (debug fixture)", ""), (2, "Sample museum trail (debug fixture)", ""), (3, "Sample album template (debug fixture)", #","advancedConfigJson":"{}""#)]
+                .compactMap { try? ActivityTemplateChoice(JSONDecoder().decode(ProjectEditJSON.self, from: Data(#"{"id":\#($0.0),"title":"\#($0.1)"\#($0.2)}"#.utf8))) }
+            owner.designPreviewRows(rows, selected: 1)
+            return wrap(NavigationStack { Form { ActivityTemplateSelectionSection(owner: owner, apply: { _ in true }, createAvailable: true) }
+                .scrollContentBackground(.hidden).navigationTitle(Text(verbatim: "Template (debug fixture)")).navigationBarTitleDisplayMode(.inline) })
+        case "publish-timerange":
+            let draft = ActivityPublishingTimeRangeDraft(source: ActivityPublishDraft(), now: Date())!
+            let presentation = ActivityPublishingTimeRangeOwner.Presentation(generation: UUID(), source: Data(), draft: draft, timeZoneID: TimeZone.autoupdatingCurrent.identifier)
+            var sheet = ActivityPublishingTimeRangeSheet(owner: ActivityPublishingTimeRangeOwner(), original: presentation, apply: { _ in true })
+            sheet.designPreview = true
+            return wrap(sheet)
         default: return nil
         }
     }

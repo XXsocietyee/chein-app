@@ -188,32 +188,52 @@ import UIKit
 
 @MainActor struct ActivityCoverAuthoringSection: View {
     @ObservedObject var owner: ActivityCoverAuthoringOwner
+    @Environment(\.cyPalette) private var palette
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("boundary", tableName: "ActivityCoverAuthoring").font(.caption)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("boundary", tableName: "ActivityCoverAuthoring").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
             if !owner.isOpen {
+                if let reference = owner.visiblePreviewReference {
+                    DiscoveryArtwork(source: reference)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .accessibilityIdentifier("activityCover.remotePreview")
+                }
                 Button(action: owner.openAction()) { label("open") }.disabled(!owner.canOpen)
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("activityCover.open")
-                Button(action: owner.previewAction()) { label("preview") }.accessibilityIdentifier("activityCover.preview")
-                Button(role: .destructive, action: owner.clearAction()) { label("remove") }.accessibilityIdentifier("activityCover.remove")
-                if let reference = owner.visiblePreviewReference { DiscoveryArtwork(source: reference).accessibilityIdentifier("activityCover.remotePreview") }
+                VStack(spacing: CYSpacing.xs) {
+                    Button(action: owner.previewAction()) { label("preview") }
+                        .buttonStyle(CYPillButtonStyle(style: .tertiary)).accessibilityIdentifier("activityCover.preview")
+                    Button(role: .destructive, action: owner.clearAction()) { label("remove") }
+                        .buttonStyle(CYPillButtonStyle(style: .tertiary)).foregroundStyle(palette.danger)
+                        .accessibilityIdentifier("activityCover.remove")
+                }
             } else {
                 Text(LocalizedStringKey(owner.current ? owner.status : "changed"), tableName: "ActivityCoverAuthoring")
+                    .font(CYTypography.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier("activityCover.status")
                 Button(action: owner.chooseAction()) { label("choose") }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .disabled(!owner.canChoose).accessibilityIdentifier("activityCover.choose")
                 if let crop = owner.crop, owner.current {
                     MerchantImageCropView(draft: crop, confirm: owner.confirmCrop, cancel: { owner.cancelCrop(crop.id) }).id(crop.id)
                 }
-                if let image = owner.preview, owner.current { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityIdentifier("activityCover.localPreview") }
+                if let image = owner.preview, owner.current {
+                    Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                        .accessibilityIdentifier("activityCover.localPreview")
+                }
                 if let review = owner.review, owner.current {
                     Button(action: owner.uploadAction(review)) { label(owner.status == "rejected" ? "retry" : "upload") }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
                         .disabled(owner.busy).accessibilityIdentifier("activityCover.upload")
                 }
                 if let receipt = owner.receipt, owner.current {
-                    Button(action: owner.applyAction(receipt)) { label("apply") }.accessibilityIdentifier("activityCover.apply")
+                    Button(action: owner.applyAction(receipt)) { label("apply") }
+                        .buttonStyle(CYPillButtonStyle(style: .secondary)).accessibilityIdentifier("activityCover.apply")
                 }
-                Button(action: owner.closeAction()) { label("cancel") }.disabled(owner.busy).accessibilityIdentifier("activityCover.cancel")
+                Button(action: owner.closeAction()) { label("cancel") }
+                    .buttonStyle(CYPillButtonStyle(style: .tertiary)).disabled(owner.busy).accessibilityIdentifier("activityCover.cancel")
             }
         }.buttonStyle(.borderless)
     }

@@ -389,6 +389,13 @@ private extension View { func publishFormChrome() -> some View { modifier(Publis
             }
             submissionResult
         }.publishFormChrome().navigationTitle(Text("publishModes.activity"))
+        .navigationBarTitleDisplayMode(.inline)
+        // Large titles truncate at accessibility sizes ("Publish an act…"): inline title, type capped, shrinks before clipping.
+        .toolbar { ToolbarItem(placement: .principal) {
+            Text("publishModes.activity").font(.headline).foregroundStyle(palette.textPrimary)
+                .lineLimit(1).minimumScaleFactor(0.7).dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .accessibilityAddTraits(.isHeader)
+        } }
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if !message.isEmpty {
@@ -839,64 +846,96 @@ struct ActivityPublishingTimeRangeDraft {
     }
 }
 
-@MainActor private struct ActivityPublishingTimeRangeSheet: View {
+@MainActor struct ActivityPublishingTimeRangeSheet: View {
     @ObservedObject var owner: ActivityPublishingTimeRangeOwner
     let original: ActivityPublishingTimeRangeOwner.Presentation
     let apply: (ActivityPublishingTimeRangeDraft) -> Bool
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     @State private var draft: ActivityPublishingTimeRangeDraft
     @State private var editingEnd = false
     @State private var failure = false
+    #if DEBUG
+    /// Design fixtures only: treats the synthetic presentation as current so the controls render enabled.
+    var designPreview = false
+    #endif
     init(owner: ActivityPublishingTimeRangeOwner, original: ActivityPublishingTimeRangeOwner.Presentation,
          apply: @escaping (ActivityPublishingTimeRangeDraft) -> Bool) {
         self.owner = owner; self.original = original; self.apply = apply
         _draft = State(initialValue: original.draft)
     }
-    private var current: Bool { owner.current(original, timeZoneID: TimeZone.autoupdatingCurrent.identifier) }
+    private var current: Bool {
+        #if DEBUG
+        if designPreview { return true }
+        #endif
+        return owner.current(original, timeZoneID: TimeZone.autoupdatingCurrent.identifier)
+    }
+    private func endpointRow(_ key: LocalizedStringKey, value: String, selected: Bool) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Text(key).font(selected ? CYTypography.label : CYTypography.body).foregroundStyle(selected ? palette.textPrimary : palette.textSecondary)
+            Spacer(minLength: CYSpacing.sm)
+            Text(verbatim: value).font(CYTypography.numericBody).monospacedDigit()
+                .foregroundStyle(selected ? palette.textPrimary : palette.textTertiary)
+        }
+        .padding(CYSpacing.lg).frame(minHeight: 56)
+        .background(selected ? palette.bgRaised : palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .overlay { RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).stroke(selected ? palette.borderStrong : .clear, lineWidth: 1) }
+        .contentShape(Rectangle())
+    }
     var body: some View {
         // Mini-program 设置活动时间 sheet: start / end switch, the picker, then one primary step button.
         NavigationStack {
-            Form {
-                Section {
-                    Button { editingEnd = false; failure = false } label: {
-                        LabeledContent("publishModes.start", value: ProjectEditDateSelection.beijingValue(draft.start) ?? "—")
-                            .fontWeight(editingEnd ? .regular : .semibold)
-                    }.foregroundStyle(Color.primary)
-                    LabeledContent("publishModes.end", value: editingEnd ? (ProjectEditDateSelection.beijingValue(draft.end) ?? "—") : "—")
-                        .fontWeight(editingEnd ? .semibold : .regular)
-                } header: { Text("publishModes.beijingTime") }
-                Section {
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    Text("publishModes.beijingTime").font(CYTypography.label).foregroundStyle(palette.textTertiary)
+                    VStack(spacing: CYSpacing.sm) {
+                        Button { editingEnd = false; failure = false } label: {
+                            endpointRow("publishModes.start", value: ProjectEditDateSelection.beijingValue(draft.start) ?? "—", selected: !editingEnd)
+                        }.buttonStyle(.plain)
+                        endpointRow("publishModes.end", value: editingEnd ? (ProjectEditDateSelection.beijingValue(draft.end) ?? "—") : "—", selected: editingEnd)
+                    }
                     DatePicker(selection: editingEnd ? $draft.end : $draft.start, displayedComponents: [.date, .hourAndMinute]) {
                         Text(LocalizedStringKey(editingEnd ? "publishModes.end" : "publishModes.start"))
-                    }.datePickerStyle(.graphical)
+                    }.datePickerStyle(.graphical).labelsHidden()
+                        .tint(palette.textPrimary)
                         .environment(\.timeZone, TimeZone(identifier: original.timeZoneID) ?? .gmt)
+                        .padding(CYSpacing.sm)
+                        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         .accessibilityIdentifier("publishModes.activity.timeRange.date")
                     if failure || (editingEnd && draft.end <= draft.start) {
-                        Text("publishModes.timeRange.invalid").font(.footnote).foregroundStyle(CYColor.dangerText)
+                        Text("publishModes.timeRange.invalid").font(CYTypography.meta).foregroundStyle(palette.danger)
                             .accessibilityIdentifier("publishModes.activity.timeRange.invalid")
                     }
-                } header: { Text(LocalizedStringKey(editingEnd ? "publishModes.end" : "publishModes.start")) }
-            }.disabled(!current)
-                .navigationTitle(Text("publishModes.timeRange.title")).navigationBarTitleDisplayMode(.inline)
-                .toolbar { ToolbarItem(placement: .cancellationAction) {
-                    Button("publishModes.cancel") { owner.close(original) }.accessibilityIdentifier("publishModes.activity.timeRange.cancel")
-                } }
-                .questifyBottomAction {
+                }
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+            }
+            .disabled(!current)
+            .cyDomainPageBackground()
+            .navigationTitle(Text("publishModes.timeRange.title")).navigationBarTitleDisplayMode(.inline)
+            .toolbar { ToolbarItem(placement: .cancellationAction) {
+                Button("publishModes.cancel") { owner.close(original) }.accessibilityIdentifier("publishModes.activity.timeRange.cancel")
+            } }
+            .safeAreaInset(edge: .bottom) {
+                Group {
                     if editingEnd {
-                        Button {
+                        CYPillButton("publishModes.done") {
                             guard current else { return }; failure = !apply(draft)
-                        } label: { Text("publishModes.done").frame(maxWidth: .infinity) }
-                            .disabled(!current || draft.end <= draft.start).accessibilityIdentifier("publishModes.activity.timeRange.apply")
+                        }
+                        .disabled(!current || draft.end <= draft.start).accessibilityIdentifier("publishModes.activity.timeRange.apply")
                     } else {
-                        Button {
+                        CYPillButton("publishModes.wizard.next") {
                             guard current else { return }
                             if draft.end <= draft.start { draft.end = draft.start.addingTimeInterval(3600) }
                             editingEnd = true; failure = false
-                        } label: { Text("publishModes.wizard.next").frame(maxWidth: .infinity) }
-                            .disabled(!current)
-                            .accessibilityIdentifier("publishModes.activity.timeRange.next")
+                        }
+                        .disabled(!current)
+                        .accessibilityIdentifier("publishModes.activity.timeRange.next")
                     }
                 }
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+                .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
+                .background(palette.bgPage)
+            }
         }
         .presentationDragIndicator(.visible)
         .onAppear { owner.sheetAppeared(original, timeZoneID: TimeZone.autoupdatingCurrent.identifier) }

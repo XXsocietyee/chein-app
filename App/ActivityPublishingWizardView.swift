@@ -28,7 +28,7 @@ import SwiftUI
                         Text(Self.titleKey(item.key))
                             .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
                             .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
-                            .lineLimit(2).multilineTextAlignment(.center)
+                            .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity)
@@ -37,6 +37,8 @@ import SwiftUI
                     .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
                 }
             }
+            // Three step columns cannot hold accessibility-size words: cap the labels (the heading below still scales).
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
                     .font(CYTypography.meta)
