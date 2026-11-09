@@ -182,7 +182,7 @@ def app_unit_classes():
     found=[]
     for path in sorted(ROOT.glob('Tests/AppUnitTests/**/*.swift')):
         found.extend(APP_UNIT_CLASS.findall(path.read_text()))
-    if len(found)!=len(set(found)) or not found:
+    if len(found)!=len(set(found)):
         raise SystemExit('App-unit XCTest classes must be present and unique')
     return found
 def shard_of(name):
@@ -191,34 +191,37 @@ def stable_uuid(name):
     digest=hashlib.sha256(name.encode()).hexdigest()
     return f'{digest[0:8]}-{digest[8:12]}-{digest[12:16]}-{digest[16:20]}-{digest[20:32]}'.upper()
 classes=app_unit_classes()
-groups=[[] for _ in range(APP_UNIT_SHARDS)]
-for name in classes: groups[shard_of(name)].append(name)
-if any(not group for group in groups): raise SystemExit('Refusing an empty app-unit shard')
-plan_dir=folder/'xcshareddata/xctestplans'; plan_dir.mkdir(parents=True,exist_ok=True)
-for index,group in enumerate(groups,start=1):
-    label=f'Shard{index:02d}'
-    included=set(group)
-    plan={
-        'configurations':[{'id':stable_uuid('xctestplan-config:'+label),'name':'Test Scheme Action','options':{}}],
-        'defaultOptions':{'targetForVariableExpansion':{'containerPath':'container:Questify.xcodeproj','identifier':target,'name':'Questify'}},
-        'testTargets':[{
-            'parallelizable':False,
-            'skippedTests':sorted(name for name in classes if name not in included),
-            'target':{'containerPath':'container:Questify.xcodeproj','identifier':unit_target,'name':'QuestifyAppUnitTests'},
-        }],
-        'version':1,
-    }
-    plan_name=f'QuestifyAppUnitTests-{label}.xctestplan'
-    (plan_dir/plan_name).write_text(json.dumps(plan,indent=2)+'\n')
-    shard_scheme=ET.Element('Scheme',LastUpgradeVersion='1500',version='1.3')
-    shard_build=ET.SubElement(shard_scheme,'BuildAction',parallelizeBuildables='YES',buildImplicitDependencies='YES')
-    shard_entries=ET.SubElement(shard_build,'BuildActionEntries')
-    for reference in [entry,unit_entry]:
-        build=ET.SubElement(shard_entries,'BuildActionEntry',buildForTesting='YES',buildForRunning='NO',buildForProfiling='NO',buildForArchiving='NO',buildForAnalyzing='NO')
-        ET.SubElement(build,'BuildableReference',**reference)
-    shard_action=ET.SubElement(shard_scheme,'TestAction',buildConfiguration='Debug',selectedDebuggerIdentifier='Xcode.DebuggerFoundation.Debugger.LLDB',selectedLauncherIdentifier='Xcode.IDEFoundation.Launcher.LLDB',shouldUseLaunchSchemeArgsEnv='NO')
-    ET.SubElement(ET.SubElement(shard_action,'MacroExpansion'),'BuildableReference',**entry)
-    ET.SubElement(ET.SubElement(shard_action,'TestPlans'),'TestPlanReference',reference='container:Questify.xcodeproj/xcshareddata/xctestplans/'+plan_name,default='YES')
-    ET.indent(shard_scheme)
-    ET.ElementTree(shard_scheme).write(scheme_dir/f'QuestifyAppUnitTests-{label}.xcscheme',encoding='utf-8',xml_declaration=True)
-print(f'Wrote {APP_UNIT_SHARDS} shared app-unit shards covering {len(classes)} classes: '+', '.join(f'{len(group)}' for group in groups))
+# Synthetic generator fixtures have no XCTestCase classes. The real tree still
+# refuses duplicate names and an empty shard once any class is present.
+if classes:
+    groups=[[] for _ in range(APP_UNIT_SHARDS)]
+    for name in classes: groups[shard_of(name)].append(name)
+    if any(not group for group in groups): raise SystemExit('Refusing an empty app-unit shard')
+    plan_dir=folder/'xcshareddata/xctestplans'; plan_dir.mkdir(parents=True,exist_ok=True)
+    for index,group in enumerate(groups,start=1):
+        label=f'Shard{index:02d}'
+        included=set(group)
+        plan={
+            'configurations':[{'id':stable_uuid('xctestplan-config:'+label),'name':'Test Scheme Action','options':{}}],
+            'defaultOptions':{'targetForVariableExpansion':{'containerPath':'container:Questify.xcodeproj','identifier':target,'name':'Questify'}},
+            'testTargets':[{
+                'parallelizable':False,
+                'skippedTests':sorted(name for name in classes if name not in included),
+                'target':{'containerPath':'container:Questify.xcodeproj','identifier':unit_target,'name':'QuestifyAppUnitTests'},
+            }],
+            'version':1,
+        }
+        plan_name=f'QuestifyAppUnitTests-{label}.xctestplan'
+        (plan_dir/plan_name).write_text(json.dumps(plan,indent=2)+'\n')
+        shard_scheme=ET.Element('Scheme',LastUpgradeVersion='1500',version='1.3')
+        shard_build=ET.SubElement(shard_scheme,'BuildAction',parallelizeBuildables='YES',buildImplicitDependencies='YES')
+        shard_entries=ET.SubElement(shard_build,'BuildActionEntries')
+        for reference in [entry,unit_entry]:
+            build=ET.SubElement(shard_entries,'BuildActionEntry',buildForTesting='YES',buildForRunning='NO',buildForProfiling='NO',buildForArchiving='NO',buildForAnalyzing='NO')
+            ET.SubElement(build,'BuildableReference',**reference)
+        shard_action=ET.SubElement(shard_scheme,'TestAction',buildConfiguration='Debug',selectedDebuggerIdentifier='Xcode.DebuggerFoundation.Debugger.LLDB',selectedLauncherIdentifier='Xcode.IDEFoundation.Launcher.LLDB',shouldUseLaunchSchemeArgsEnv='NO')
+        ET.SubElement(ET.SubElement(shard_action,'MacroExpansion'),'BuildableReference',**entry)
+        ET.SubElement(ET.SubElement(shard_action,'TestPlans'),'TestPlanReference',reference='container:Questify.xcodeproj/xcshareddata/xctestplans/'+plan_name,default='YES')
+        ET.indent(shard_scheme)
+        ET.ElementTree(shard_scheme).write(scheme_dir/f'QuestifyAppUnitTests-{label}.xcscheme',encoding='utf-8',xml_declaration=True)
+    print(f'Wrote {APP_UNIT_SHARDS} shared app-unit shards covering {len(classes)} classes: '+', '.join(f'{len(group)}' for group in groups))
