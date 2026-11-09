@@ -8,18 +8,19 @@ import SwiftUI
         List {
             switch model.state {
             case .idle, .loading where model.items.isEmpty:
-                ProgressView()
+                CYLoadingStateView(rows: 2).listRowBackground(Color.clear)
             case .unavailable:
-                Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews are not available yet"))
-                    .accessibilityIdentifier("bundleReviewList.unavailable")
+                CYEmptyState(systemImage: "star.bubble", LocalizedStringKey(W8Text.t("评价功能暂未开放", "Reviews are not available yet")),
+                             messageIdentifier: "bundleReviewList.unavailable").listRowBackground(Color.clear)
             case .failed:
-                Text(verbatim: W8Text.t("评价加载失败", "Couldn't load reviews"))
+                CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(W8Text.t("评价加载失败", "Couldn't load reviews")),
+                             actionTitle: "action.retry") { Task { await model.load() } }.listRowBackground(Color.clear)
             case .empty:
-                Text(verbatim: W8Text.t("暂无评价", "No reviews yet"))
+                CYEmptyState(systemImage: "star.bubble", LocalizedStringKey(W8Text.t("暂无评价", "No reviews yet"))).listRowBackground(Color.clear)
             default:
                 ForEach(model.items, id: \.id) { review in
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(verbatim: String(review.rating)).font(.headline)
+                        Label { Text(verbatim: String(review.rating)).font(CYTypography.cardTitle).monospacedDigit() } icon: { Image(systemName: "star.fill").foregroundStyle(CYColor.warning) }
                         Text(verbatim: review.content)
                         if let time = review.createTime { Text(verbatim: time).font(.caption) }
                     }
