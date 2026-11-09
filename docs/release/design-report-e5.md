@@ -6,3 +6,9 @@ Review findings: no truncation or overlap seen at large size. Open issues: `e5-i
 Left (not e5, gated or other family): template authoring/publish temp pages, topic pricing, roam tools (e2), invite history, report/appeal pages (e3), QR scanner (camera), maintenance/version-update (no native pages exist), entry landing (needs AppSession).
 Pillow compare vs mini-program references: not done (no reference screenshots located for this family).
 Gap list: docs/release/ui-gap-e5.md.
+
+## ADA pass (guide family)
+Benchmarks (Mobbin): Wanderlog guide hero with title over photo and gradient (https://mobbin.com/screens/414c90df-1f3a-4a93-ac95-8cb21b0903c6), Apple Maps guide cards with eyebrow and one "Open Guide" button (https://mobbin.com/screens/4100f337-26a7-4f0b-af32-bb965979a292), Vrbo travel-guide eyebrow + tag chips (https://mobbin.com/screens/1a58e583-20c3-4e39-88ee-f8b454710054).
+Changes: play-guide modes are now full-width image-led cover cards (generated tonal gradient plus oversized symbol, tag chip, title, description, one white "go" pill, radius 24, spring press scale gated on Reduce Motion, selection haptic); information rows use generated art thumbnails; article detail has a cover banner with eyebrow, large title and date over a scrim.
+Self-score (6 lenses): guide 8, info-detail 8 (cover symbol overlap at AX XL fixed after the shot), guide-empty 7, creator/free-explore/invoice/H5/route pages 6-7 (functional utility pages, grouped lists; not reworked in this pass). Under 8: those utility pages, no photos exist in their data, and no more batches were available.
+Shots: design-reports/e5/batch-guide-*.png, batch-info-detail-*.png. The final symbol-position tweak is compile-checked only by reading, not re-shot.
