@@ -69,7 +69,7 @@ import SwiftUI
                             }
                             .swipeActions(edge:.trailing) {
                                 if !flow.hasPending {
-                                    Button("d7.channelRoles.editMemberRoles") { member=row.id;operation = .memberRoles;flow.cancelReview() }.tint(.accentColor)
+                                    Button("d7.channelRoles.editMemberRoles") { member=row.id;operation = .memberRoles;flow.cancelReview() }.tint(CYColor.textPrimary)
                                     if operation == .roleMembers {
                                         Button("d7.channelRoles.addToList") {
                                             var ids=completeIDs.split(separator:",").map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }

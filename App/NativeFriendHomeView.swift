@@ -293,7 +293,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: Theme.Space.s1) {
                 HStack(spacing: Theme.Space.s1) {
                     Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(.yellow).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
+                    if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(CYColor.warningText).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
                 }
                 if item.state != .friend && !item.message.isEmpty { Text(verbatim: item.message).font(Theme.Font.label).fixedSize(horizontal: false, vertical: true).foregroundStyle(.secondary) }
             }

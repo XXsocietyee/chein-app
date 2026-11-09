@@ -1710,7 +1710,7 @@ struct ClubGovernanceEventView: View {
                         ClubStoryChapterTitle(chapter: chapter).padding(.horizontal, 12).padding(.vertical, 8)
                     }
                     .buttonStyle(.bordered)
-                    .tint(selectedChapter == chapter.id ? .accentColor : .secondary)
+                    .tint(selectedChapter == chapter.id ? CYColor.textPrimary : CYColor.textTertiary)
                     .accessibilityAddTraits(selectedChapter == chapter.id ? .isSelected : [])
                     .accessibilityIdentifier("club.story.chapter.\(chapter.id)")
                 }

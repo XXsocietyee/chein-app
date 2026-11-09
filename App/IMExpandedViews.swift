@@ -393,7 +393,7 @@ struct IMMutationSummary: View {
                 Button { onDestination(action.destination) } label: {
                     if action.label.hasPrefix("im.full.") { Text(LocalizedStringKey(action.label)) } else { Text(verbatim: action.label) }
                 }
-                .foregroundStyle(action.isReject ? CYColor.dangerText : Color.accentColor)
+                .foregroundStyle(action.isReject ? CYColor.dangerText : CYColor.textPrimary)
             }
         }.accessibilityIdentifier("im.full.cardActions")
     }

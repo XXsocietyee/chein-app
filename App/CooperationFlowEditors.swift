@@ -86,7 +86,7 @@ struct CoopFlowTemplateEditor: View {
                 }
             }
             if validityIssue {
-                Text("merchant.perkSubmission.invalidDate").foregroundStyle(.red)
+                Text("merchant.perkSubmission.invalidDate").foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("merchant.perkSubmission.invalidDate")
             }
             if let operation {

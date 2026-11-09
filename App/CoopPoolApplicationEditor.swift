@@ -189,7 +189,7 @@ import SwiftUI
                     TextEditor(text: messageBinding).frame(minHeight: 140)
                         .accessibilityLabel("coopflow.poolMessage.optional").accessibilityIdentifier("club.poolApplication.message")
                     Text("coopflow.poolMessage.length \(message.unicodeScalars.count)").font(.caption).foregroundStyle(.secondary)
-                    if !valid { Text("coopflow.poolMessage.tooLong").foregroundStyle(.red).fixedSize(horizontal: false, vertical: true) }
+                    if !valid { Text("coopflow.poolMessage.tooLong").foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true) }
                 }
                 Button("coopflow.reviewAction") {
                     guard let value = model.review(message: message, session: session, context: currentContext(), reader: reader) else { return }

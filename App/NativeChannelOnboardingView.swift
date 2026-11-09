@@ -91,7 +91,7 @@ import SwiftUI
                                         }.fixedSize(horizontal:false,vertical:true)
                                         Spacer(minLength:Theme.Space.s2)
                                         Image(systemName:selections[prompt.id]?.contains(option.id)==true ? "checkmark.circle.fill":"circle")
-                                            .foregroundStyle(selections[prompt.id]?.contains(option.id)==true ? Color.accentColor : Color.secondary)
+                                            .foregroundStyle(selections[prompt.id]?.contains(option.id)==true ? CYColor.textPrimary : CYColor.textTertiary)
                                             .accessibilityHidden(true)
                                     }.frame(maxWidth:.infinity,minHeight:44,alignment:.leading)
                                 }

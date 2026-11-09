@@ -182,7 +182,7 @@ import SwiftUI
                             }
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .foregroundStyle(cell.inMonth ? Color.primary : Color.secondary)
-                            .background(selectedDay == cell.day ? Color.accentColor.opacity(0.12) : Color.clear, in: RoundedRectangle(cornerRadius: 8))
+                            .background(selectedDay == cell.day ? CYColor.bgRaised : Color.clear, in: RoundedRectangle(cornerRadius: 8))
                         }
                         .buttonStyle(.borderless)
                         .accessibilityLabel(Text("club.calendar.day \(cell.day.id) \(cell.events.count)"))
