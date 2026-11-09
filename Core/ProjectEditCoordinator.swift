@@ -463,4 +463,9 @@ public struct ProjectEditContinuation {
         apply(result, operation: pending, session: session)
     }
 
+    /// Projects the professional editor page. Does not submit, register a route, or open the player-first entry.
+    public func fabuPageModel(home: [String: ProjectEditJSON]?, chapterCount: Int?) -> PublishFabuPageProjection {
+        PublishFabuPageModel.project(coordinatorState: PublishFabuCoordinatorState(matching: state), messageKey: messageKey, home: home, chapterCount: chapterCount)
+    }
+
 }
