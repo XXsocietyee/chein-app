@@ -48,7 +48,7 @@ private actor WalletAssetFixtureTransport: HTTPTransport {
             }
         }
         if request.url?.path == "/api/user/info", arguments.contains("--design-fixture") {
-            return (Data(#"{"code":200,"data":{"balance":"128.50"}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"balance":"128.50","currency":"CNY"}}"#.utf8), 200)
         }
         guard request.url?.path == "/api/wallet/stages" else { return try await fallback.send(request) }
         reads += 1
