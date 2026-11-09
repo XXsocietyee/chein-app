@@ -3,6 +3,9 @@ import SwiftUI
 struct WelcomeView: View {
     @EnvironmentObject private var session: AppSession
     var onBrowse: (() -> Void)? = nil
+    /// Launch is player-first (owner decision): the merchant choice is hidden here. Merchants still reach their
+    /// flow through Settings / the Me tab; flip to `true` to restore the second role button.
+    static let showsMerchantChoice = false
     private enum Destination: Identifiable {
         case settings, login(RegistrationIntent)
         var id: String {
@@ -47,7 +50,7 @@ struct WelcomeView: View {
                 VStack(spacing: CYSpacing.md) {
                     // One primary action per screen: players register first; merchants are the outlined secondary.
                     roleButton(.player, title: "role.player", primary: true)
-                    roleButton(.merchant, title: "role.merchant", primary: false)
+                    if Self.showsMerchantChoice { roleButton(.merchant, title: "role.merchant", primary: false) }
                     if let onBrowse {
                         Button("welcome.browse", action: onBrowse)
                             .font(CYTypography.bodyCompact.weight(.semibold))

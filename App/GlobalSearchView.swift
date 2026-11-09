@@ -121,6 +121,15 @@ import SwiftUI
             }
         }
         .task(id: readOwner) { await prepare() }
+        #if DEBUG
+        .task {
+            // Design fixtures only: `--design-search-keyword <text>` runs one search so the results list can be shot.
+            let args = ProcessInfo.processInfo.arguments
+            guard let i = args.firstIndex(of: "--design-search-keyword"), args.indices.contains(i + 1) else { return }
+            try? await Task.sleep(nanoseconds: 800_000_000)
+            setKeyword(args[i + 1]); await search()
+        }
+        #endif
         .onChange(of: categoryOwner) { _, _ in updateCategoryPresentation() }
         .onChange(of: scenePhase) { _, _ in updateCategoryPresentation() }
         .onChange(of: showsFilters) { _, visible in
