@@ -161,6 +161,7 @@ struct CityPlayerView: View {
             }
         }
         .appNavigationTitle("city.read.title")
+        .navigationBarTitleDisplayMode(.inline) // the city name below is the page title; one title only
         .accessibilityIdentifier("city.read.screen")
         .navigationDestination(item: $acquisition) { selected in
             CityAcquisitionView(controller: selected.controller)
