@@ -192,10 +192,9 @@ struct ObjectBadgeWallBadgeLabel: View {
                     VStack(spacing: CYSpacing.sm) {
                         Text(verbatim: displayName).font(CYTypography.display).multilineTextAlignment(.center)
                             .foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: CYSpacing.sm) {
-                            CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
-                                         tone: badge.isLocked ? .neutral : .success, systemImage: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
-                            if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained) }
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: CYSpacing.sm) { statusChips }
+                            VStack(spacing: CYSpacing.sm) { statusChips }
                         }
                     }
                     requirementCard
@@ -224,7 +223,7 @@ struct ObjectBadgeWallBadgeLabel: View {
     /// Large foil medal with a requirement ring around it: full when earned, an empty track while locked (no per-badge progress is available).
     private var stage: some View {
         CYProgressRing(progress: badge.isLocked ? nil : 1, lineWidth: 6, tint: tint.opacity(0.9), track: CYColor.bgRaised) {
-            CYFoilMedal(unlocked: !badge.isLocked, size: 188, tint: tint) {
+            CYFoilMedal(unlocked: !badge.isLocked, size: 168, tint: tint) {
                 if media == nil || badge.image.isEmpty {
                     ZStack {
                         LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
@@ -237,10 +236,15 @@ struct ObjectBadgeWallBadgeLabel: View {
                 }
             }
         }
-        .frame(width: 244, height: 244)
+        .frame(width: 212, height: 212)
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: displayName))
+    }
+    @ViewBuilder private var statusChips: some View {
+        CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
+                     tone: badge.isLocked ? .neutral : .success, systemImage: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
+        if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained) }
     }
     private var requirementCard: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {

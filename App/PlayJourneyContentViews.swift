@@ -16,10 +16,9 @@ import SwiftUI
                         }.accessibilityHidden(true)
                         Text(verbatim: problem.skill).font(CYTypography.display).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("journey.check.stage")
-                        HStack(spacing: CYSpacing.sm) {
-                            CYStatusChip(verbatim: problem.tier)
-                            if problem.advantage { CYStatusChip("journey.advantage", tone: .success, systemImage: "plus.circle") }
-                            if problem.disadvantage { CYStatusChip("journey.disadvantage", tone: .warning, systemImage: "minus.circle") }
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: CYSpacing.sm) { checkChips(problem) }
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) { checkChips(problem) }
                         }
                         DiceD20CanvasView(
                             values: model.receipt?.dice ?? [],
@@ -91,14 +90,21 @@ import SwiftUI
     @ViewBuilder private func number(_ key: LocalizedStringKey, _ value: Int?) -> some View {
         if let value { HStack(spacing: 4) { Text(key); Text(verbatim: String(value)).monospacedDigit().fontWeight(.semibold) } }
     }
+    @ViewBuilder private func checkChips(_ problem: JourneyCheckProblem) -> some View {
+        CYStatusChip(verbatim: problem.tier)
+        if problem.advantage { CYStatusChip("journey.advantage", tone: .success, systemImage: "plus.circle") }
+        if problem.disadvantage { CYStatusChip("journey.disadvantage", tone: .warning, systemImage: "minus.circle") }
+    }
     private func modifiers(_ mods: [JourneyCheckMod]) -> some View {
         ForEach(Array(mods.enumerated()), id: \.offset) { _, mod in
-            HStack(spacing: CYSpacing.sm) {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                 Image(systemName: mod.active ? "checkmark.circle.fill" : "circle").foregroundStyle(mod.active ? CYColor.successText : CYColor.textTertiary)
-                Text(verbatim: mod.label).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
-                Spacer()
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: mod.label).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                    Text(mod.active ? "journey.active" : "journey.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                Spacer(minLength: 0)
                 if let value = mod.value { Text(verbatim: value >= 0 ? "+\(value)" : "\(value)").font(CYTypography.label).monospacedDigit() }
-                Text(mod.active ? "journey.active" : "journey.inactive").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }.accessibilityElement(children: .combine)
         }
     }

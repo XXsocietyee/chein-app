@@ -61,13 +61,29 @@ struct E2Fixture: View {
     }
 }
 
-/// Readers live in @State: a reader rebuilt on every body pass changes the view owner and the list never loads.
+/// Immediate-result stub: the real list container only reads while the scene is foreground and never completed inside the fixture host,
+/// so this renders the real rows and cover header from synthetic tickets without any reader lifecycle.
 private struct E2ChaptersHost: View {
-    @State private var roam = RoamExperienceFixtureReader(scenario: .content)
-    @State private var tickets: TicketWalletFixtureReader
-    init(empty: Bool) { _tickets = State(initialValue: TicketWalletFixtureReader(scenario: empty ? .empty : .content)) }
-    /// The nested fixture host can mount before the scene reports .active; the chapters view only reads while foreground, so pin it.
-    var body: some View { NavigationStack { RoamEnrolledChaptersView(roam: roam, tickets: tickets) }.environment(\.scenePhase, .active) }
+    let empty: Bool
+    private var topics: [TicketWalletTicket] {
+        struct Envelope: Decodable { let data: [TicketWalletTicket] }
+        guard !empty,
+              let routes = try? JSONDecoder().decode(Envelope.self, from: Data(TicketWalletSyntheticFixtures.routeListJSON.utf8)).data,
+              let acts = try? JSONDecoder().decode(Envelope.self, from: Data(TicketWalletSyntheticFixtures.activityListJSON.utf8)).data,
+              let rows = try? RoamEnrolledChaptersProjection.topics(TicketWalletSnapshot(tickets: routes + acts)) else { return [] }
+        return rows
+    }
+    var body: some View {
+        NavigationStack {
+            List {
+                CYCoverHeaderSection("roam.chapters.title", symbol: "book.pages.fill", seed: "chapters")
+                if topics.isEmpty { CYEmptyState(systemImage: "map", "roam.chapters.empty") }
+                ForEach(topics) { ticket in
+                    RoamEnrolledChapterRow(ticket: ticket, showsActionNotice: ticket.action != .detail).questifyCardListRow()
+                }
+            }.cyGroupedSurface().navigationTitle("roam.chapters.title")
+        }
+    }
 }
 
 private struct E2BadgeDetailHost: View {

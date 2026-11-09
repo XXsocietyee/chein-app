@@ -122,6 +122,15 @@ import SwiftUI
         self.tickets = tickets; _viewModel = StateObject(wrappedValue: .init(roam: roam, tickets: tickets))
     }
     private var model: RoamEnrolledChaptersModel { viewModel.model }
+    /// DEBUG design fixtures run before the scene reports .active; the real session path is unchanged in Release.
+    private var fixtureForeground: Bool {
+        #if DEBUG
+        ProcessInfo.processInfo.arguments.contains("--design-fixture")
+        #else
+        false
+        #endif
+    }
+    private var isForeground: Bool { scenePhase == .active || fixtureForeground }
     var body: some View {
         let retry = viewModel.readAction(), refresh = viewModel.refreshAction()
         List {
@@ -157,10 +166,10 @@ import SwiftUI
             if model.isLoading || (model.snapshot == nil && model.issue == nil) { ProgressView("ticketWallet.loading") }
             } else { ProgressView("ticketWallet.loading") }
         }.cyGroupedSurface().navigationTitle("roam.chapters.title")
-            .onAppear { viewModel.appear(foreground: scenePhase == .active) }
+            .onAppear { viewModel.appear(foreground: isForeground) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in
-                viewModel.setForeground(phase == .active, preservingSnapshot: target != nil)
+                viewModel.setForeground(phase == .active || fixtureForeground, preservingSnapshot: target != nil)
             }
             .onChange(of: model.owner) { _, _ in target = nil }
             .refreshable { await refresh() }
@@ -173,7 +182,7 @@ import SwiftUI
             .privacySensitive()
     }
 }
-private struct RoamEnrolledChapterRow: View {
+struct RoamEnrolledChapterRow: View {
     let ticket: TicketWalletTicket
     var showsActionNotice = false
     var body: some View {
