@@ -450,6 +450,167 @@ final class UGGameplayTests: XCTestCase {
         }
     }
 
+    func testHangmanDropsPrivateKeysAndKeepsASeparator() throws {
+        XCTAssertEqual(UGHangman.decodeProjection(data: envelope(#"{"aliases":["ENDLESS"],"length":7,"blankCount":5,"caseSensitive":false,"solved":false,"display":"E_____S","slots":[]}"#), status: 200), .unknown)
+        XCTAssertEqual(UGHangman.decodeProjection(data: envelope(#"{"format":"A","length":7,"blankCount":5,"caseSensitive":false,"solved":false,"display":"E_____S","slots":[]}"#), status: 200), .unknown)
+        XCTAssertEqual(UGHangman.decodeProjection(data: envelope(#"{"length":7,"blankCount":5,"solved":false,"display":"E_____S","slots":[]}"#), status: 200), .unknown)
+        let slots = try readyHangman(UGHangman.decodeProjection, #"""
+        {"length":3,"blankCount":1,"caseSensitive":false,"solved":false,"display":"-A_","slots":[
+          {"i":0,"kind":"SEPARATOR","ch":"-"},{"i":1,"kind":"FILLED","ch":"A"},{"i":2,"kind":"BLANK","ch":"Z"}]}
+        """#)
+        XCTAssertEqual(slots.slots[0].kind, "SEPARATOR")
+        XCTAssertEqual(slots.slots[0].character, "-")
+        XCTAssertEqual(slots.slots[1].character, "A")
+        XCTAssertNil(slots.slots[2].character)
+        XCTAssertFalse(strings(in: slots).contains("Z"))
+        XCTAssertEqual(UGHangman.decodeResult(data: envelope(#"{"verdict":"CORRECT","solved":false,"display":"ENDLESS","answerText":"ENDLESS"}"#), status: 200), .unknown)
+        XCTAssertEqual(UGHangman.decodeResult(data: envelope(#"{"verdict":"WRONG","solved":true,"display":"ENDLESS"}"#), status: 200), .unknown)
+        let bare = try readyHangman(UGHangman.decodeResult, #"{"verdict":"CORRECT","solved":true,"display":"ENDLESS","answerText":"ENDLESS"}"#)
+        XCTAssertEqual(bare.slots.count, 0)
+        XCTAssertEqual(bare.answerText, "ENDLESS")
+        XCTAssertFalse(bare.judgesLocally)
+    }
+
+    func testAnswerLayerStaysKnownAndALongDigitIsNotShown() throws {
+        let view = try readyHelp(#"""
+        {"runId":1,"nodeId":1,"enabled":true,"layers":[
+          {"level":1,"type":"ANSWER","usable":true,"unlocked":false,"free":true,"costPoints":0,"freeQuota":0,"reason":null}
+        ]}
+        """#)
+        XCTAssertTrue(view.layers[0].knownType)
+        XCTAssertTrue(view.layers[0].available)
+        XCTAssertEqual(view.layers[0].playerLine, "免费")
+        XCTAssertFalse(view.layers[0].offersSkipButton)
+        let answer = try readyUse(#"""
+        {"runId":1,"nodeId":2,"level":5,"type":"ANSWER","content":"END","applied":true,"alreadyUnlocked":false,"chargedPoints":0,"balanceAfter":8}
+        """#)
+        XCTAssertEqual(answer.content, "END")
+        XCTAssertFalse(answer.cutsAnswerLocally)
+        let letter = try readyUse(#"""
+        {"runId":1,"nodeId":2,"level":3,"type":"LETTER","content":"AB","applied":true,"alreadyUnlocked":false,"chargedPoints":0,"balanceAfter":8}
+        """#)
+        XCTAssertNil(letter.content)
+        let skip = try readyUse(#"""
+        {"runId":1,"nodeId":2,"level":1,"type":"SKIP","content":"skip me","applied":false,"alreadyUnlocked":false,"chargedPoints":0,"balanceAfter":8}
+        """#)
+        XCTAssertNil(skip.content)
+        XCTAssertFalse(skip.offersSkipButton)
+    }
+
+    func testReceiptKeepsBonusSourceOffTheNet() throws {
+        let fact = try readyReceipt(#"""
+        {"scoreState":"SCORED","baseScore":10,"bonus":0,"bonusSource":"THEME","helpDeduction":0,"skipDeduction":0,"netScore":10,"pointsCharged":0,"skipped":false,"assisted":false,
+         "levels":[{"level":1,"type":"ANSWER","free":true,"pointsCharged":0}]}
+        """#)
+        XCTAssertEqual(fact.bonusSource, "THEME")
+        XCTAssertEqual(fact.bonus.literal, 0)
+        XCTAssertEqual(fact.renderedNetScore, 10)
+        XCTAssertFalse(fact.didComputeNet)
+        XCTAssertEqual(fact.levels?.first?.type, "ANSWER")
+        XCTAssertFalse(fact.claimsGlobalRank)
+    }
+
+    func testClueNamesStayLiteralAndFlipIsNotAMirror() throws {
+        let standard = try readyClue(#"{"question":"钟摆后面","clueTransform":{"mode":"STANDARD"}}"#)
+        XCTAssertEqual(standard.mode, .standard)
+        XCTAssertEqual(standard.presentationName, "原样")
+        XCTAssertTrue(standard.includesClueTransformKey)
+        XCTAssertEqual(standard.textLayerScaleX, 1)
+        XCTAssertFalse(standard.reportsUnrecognized)
+        XCTAssertFalse(standard.reversesAgain)
+        let flip = try readyClue(#"{"question":"钟摆后面","clueTransform":{"mode":"FLIP"}}"#)
+        XCTAssertEqual(flip.mode, .unrecognized)
+        XCTAssertTrue(flip.rejectedCipher)
+        XCTAssertEqual(flip.presentationName, "原样")
+        XCTAssertEqual(flip.textLayerScaleX, 1)
+        XCTAssertFalse(flip.flipsPage)
+        XCTAssertFalse(flip.usesMirrorImage)
+        let absent = try readyClue(#"{"question":"钟摆后面","clueTransform":null}"#)
+        XCTAssertEqual(absent.mode, .standard)
+        XCTAssertFalse(absent.includesClueTransformKey)
+        let mirror = try readyClue(#"{"question":"钟摆后面","clueTransform":{"mode":"MIRROR"}}"#)
+        XCTAssertEqual(mirror.presentationName, "镜像")
+        let reversed = try readyClue(#"{"question":"CBA","clueTransform":{"mode":"REVERSE"}}"#)
+        XCTAssertEqual(reversed.presentationName, "倒序")
+        XCTAssertEqual(reversed.questionText, "CBA")
+        XCTAssertEqual(UGClueTransform.decode(data: envelope(#"{"question":1}"#), status: 200), .unknown)
+    }
+
+    func testAccusationDropsAnObjectScreenAndASecretSuspect() throws {
+        let early = try readyOutcome(#"{"verdict":"CORRECT","early":true,"winScreen":{"text":"证据还没齐"}}"#)
+        XCTAssertEqual(early.label, Optional(UGAccusationOutcome.Label.early))
+        XCTAssertNil(early.endingCopy)
+        XCTAssertFalse(early.isSuccessfulAccusation)
+        XCTAssertFalse(strings(in: early).contains("证据还没齐"))
+        let board = try readyAccusation(#"""
+        {"enabled":true,"suspects":[{"id":"o1","name":"张医生"}],"corkboardImage":"https://cdn.example.test/board.png"}
+        """#)
+        XCTAssertEqual(board.corkboardURL, "https://cdn.example.test/board.png")
+        XCTAssertNil(board.corkboardAlt)
+        let hidden = try readyAccusation(#"""
+        {"enabled":true,"suspects":[{"id":"o1","name":"张医生"}],"corkboardImage":"media-asset:1"}
+        """#)
+        XCTAssertNil(hidden.corkboardURL)
+        XCTAssertEqual(UGAccusation.decodePublic(data: envelope(#"{"enabled":true,"correctSuspectId":"o1","suspects":[]}"#), status: 200), .unknown)
+    }
+
+    func testSameHelpRequestIsNotAConflict() {
+        let draft = UGHelpUseDraft(runID: 1, nodeID: 2, level: 3, requestID: "req-help-1", costPoints: 0)
+        let same = UGHelpIdempotency.resend(draft, original: draft)
+        XCTAssertEqual(same, .same)
+        XCTAssertNil(same.playerCopy)
+        XCTAssertNil(same.replacementRequestID)
+        let other = UGHelpIdempotency.resend(draft, original: UGHelpUseDraft(runID: 1, nodeID: 2, level: 3, requestID: "req-help-2", costPoints: 0))
+        XCTAssertEqual(other, .differentRequest)
+        XCTAssertNil(other.playerCopy)
+    }
+
+    func testFractionalNumbersStayUnknown() {
+        XCTAssertNil(UGNumberFact.parse(.number(1.5)).literal)
+        XCTAssertEqual(UGNumberFact.parse(.number(2)).literal, 2)
+        XCTAssertNil(UGNumberFact.parse(.bool(false)).literal)
+        XCTAssertNotEqual(UGNumberFact.parse(.number(1.5)).literal, 0)
+    }
+
+    func testReaderRejectsALeadingZeroAndDropsAStaleOrFailedRead() async throws {
+        let wire = Wire()
+        let reader = try makeReader(wire, granted: [.hintLadder])
+        let session = try scope()
+        for runID in ["0", "09", "1a", ""] {
+            do {
+                _ = try await reader.help(runID: runID, nodeID: "3", token: "session-token", scope: session, currentScope: { session })
+                XCTFail(runID)
+            } catch UGRefusal.invalidRequest {}
+        }
+        XCTAssertThrowsError(try UGSessionScope(accountID: 7, epoch: 1, namespace: ""))
+        XCTAssertTrue(wire.requests.isEmpty)
+
+        wire.body = envelope(#"{"runId":9,"nodeId":3,"enabled":false,"layers":[]}"#)
+        var current = try scope()
+        wire.onSend = { current = try! UGSessionScope(accountID: 8, epoch: 2, namespace: "cn") }
+        let stale = try await reader.help(runID: "9", nodeID: "3", token: "session-token",
+                                          scope: try UGSessionScope(accountID: 7, epoch: 1, namespace: "cn"),
+                                          currentScope: { current })
+        XCTAssertNil(stale.phase)
+        XCTAssertTrue(stale.hidden)
+
+        wire.onSend = {}
+        wire.failure = TestFailure()
+        let failed = try await reader.help(runID: "9", nodeID: "3", token: "session-token", scope: current, currentScope: { current })
+        guard case .error(let error)? = failed.phase else { return XCTFail("expected error") }
+        XCTAssertNil(error.httpStatus)
+        XCTAssertNil(error.businessCode)
+        XCTAssertFalse(failed.hidden)
+
+        wire.failure = nil
+        wire.status = 500
+        wire.body = Data(#"{"code":500,"data":{"runId":0,"nodeId":0,"enabled":false,"layers":[]}}"#.utf8)
+        let http = try await reader.help(runID: "9", nodeID: "3", token: "session-token", scope: current, currentScope: { current })
+        guard case .error(let httpError)? = http.phase else { return XCTFail("expected http error") }
+        XCTAssertEqual(httpError.httpStatus, 500)
+        XCTAssertNil(httpError.message)
+    }
+
     func testCoreSourcesCarryNoFixtureAnswerWalletOrLiveSession() throws {
         let root = try repoRoot()
         let sources = try FileManager.default.contentsOfDirectory(at: root.appendingPathComponent("Core"), includingPropertiesForKeys: nil)
@@ -544,9 +705,14 @@ final class UGGameplayTests: XCTestCase {
     private final class Wire: HTTPTransport, @unchecked Sendable {
         var requests: [URLRequest] = []
         var body = Data()
+        var status = 200
+        var failure: Error?
+        var onSend: () -> Void = {}
         func send(_ request: URLRequest) async throws -> (Data, Int) {
             requests.append(request)
-            return (body, 200)
+            onSend()
+            if let failure { throw failure }
+            return (body, status)
         }
     }
 }
