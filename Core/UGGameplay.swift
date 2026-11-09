@@ -365,7 +365,7 @@ public enum UGHangman {
 
     public static func submitData(slots: [Int: String]) throws -> Data {
         let body = Dictionary(uniqueKeysWithValues: slots.map { (String($0.key), $0.value) })
-        try JSONSerialization.data(withJSONObject: ["slots": body], options: [.sortedKeys])
+        return try JSONSerialization.data(withJSONObject: ["slots": body], options: [.sortedKeys])
     }
 
     private static func projection(_ payload: PlayWireValue, result: Bool) -> UGServerFact<UGHangmanProjection> {
