@@ -98,7 +98,7 @@ enum CYCachedAsyncImageSource {
         guard let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
               !trimmed.isEmpty,
               trimmed.utf8.count <= maximumUTF8Bytes,
-              trimmed.unicodeScalars.allSatisfy({ $0.value >= 32 && $0 != 0x7F }),
+              trimmed.unicodeScalars.allSatisfy({ $0.value >= 32 && $0.value != 0x7F }),
               !trimmed.contains("\\"),
               !trimmed.contains(where: \.isWhitespace),
               let url = URL(string: trimmed),
