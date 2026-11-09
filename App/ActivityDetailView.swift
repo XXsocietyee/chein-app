@@ -97,7 +97,7 @@ struct ActivityDetailView: View {
         // Group with nil access produces EmptyView, which cannot host the initial task.
         // Keep one concrete root for the task and navigation title through every state.
         ZStack {
-            if loading { ProgressView("activity.loading") }
+            if loading { ScrollView { CYLoadingStateView(rows: 2).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading")) }
             else if failed {
                 ContentUnavailableView {
                     Label {
@@ -123,7 +123,7 @@ struct ActivityDetailView: View {
                 case .allowed(let detail):
                     detailContent(detail)
                 }
-            } else { ProgressView("activity.loading") }
+            } else { ScrollView { CYLoadingStateView(rows: 2).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading")) }
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)

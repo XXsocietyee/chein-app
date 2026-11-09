@@ -53,7 +53,7 @@ struct ActivityFixtureRootView: View {
 }
 
 @MainActor
-private final class ActivityFixtureReader: ActivityReading {
+final class ActivityFixtureReader: ActivityReading {
     let isConfigured=true
     private let scenario: ActivityFixtureScenario
     private var didFailList=false

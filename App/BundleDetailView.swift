@@ -11,10 +11,14 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
-                if let name = content.catalog.topicName { Text(verbatim: name).font(.headline) }
-                if let price = content.extras?.price { LabeledContent { Text(verbatim: price.text) } label: { text("detail.price") } }
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    if let name = content.catalog.topicName { Text(verbatim: name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary) }
+                    if let price = content.extras?.price {
+                        Text(verbatim: price.text).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    }
+                }
                 if let days = content.extras?.validityDays {
-                    LabeledContent { Text(verbatim: String(days)) } label: { text("detail.validityDays") }
+                    LabeledContent { Text(verbatim: String(days)).monospacedDigit() } label: { text("detail.validityDays") }
                 }
             }
             Section {
@@ -48,13 +52,16 @@ import SwiftUI
                     }
                 } header: { text("detail.compliance") }
             }
-            Section {
-                if content.showsNotOnSale {
-                    text("detail.notOnSale").accessibilityIdentifier("bundle.detail.notOnSale")
-                } else if let onPurchase {
-                    Button(action: onPurchase) { text("detail.purchase") }
-                        .accessibilityIdentifier("bundle.detail.purchase")
-                }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if content.showsNotOnSale {
+                text("detail.notOnSale").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .frame(maxWidth: .infinity).padding(CYSpacing.lg).background(.bar)
+                    .accessibilityIdentifier("bundle.detail.notOnSale")
+            } else if let onPurchase {
+                CYPillButton("detail.purchase", tableName: table, action: onPurchase)
+                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md).background(.bar)
+                    .accessibilityIdentifier("bundle.detail.purchase")
             }
         }
         .navigationTitle(Text("detail.title", tableName: table))
