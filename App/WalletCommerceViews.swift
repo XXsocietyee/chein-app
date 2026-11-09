@@ -274,7 +274,12 @@ extension WalletScreen where Value == WithdrawalBalance {
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
                 if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
-                    Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
+                    if income {
+                        CYEmptyState(systemImage: "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
+                            .accessibilityIdentifier("wallet.ledger.empty")
+                    } else {
+                        Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
+                    }
                 }
                 if points {
                     ForEach(WalletPointsMonthGroup.group(filtered)) { group in
@@ -302,7 +307,10 @@ extension WalletScreen where Value == WithdrawalBalance {
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
                 WalletIssueView(reader: reader, requiresLogin: model.pager.requiresLogin, unavailable: model.pager.unavailable) { Task { await model.load(reader, kind: kind) } }
             }
-            if model.pager.isLoading { ProgressView("wallet.loading") }
+            if model.pager.isLoading {
+                if income { CYSkeleton().accessibilityLabel(Text("wallet.loading")) }
+                else { ProgressView("wallet.loading") }
+            }
             else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
                     .accessibilityIdentifier("wallet.ledger.loadMore")
@@ -366,11 +374,7 @@ extension WalletScreen where Value == WithdrawalBalance {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
-                        Text(verbatim: badge)
-                            .font(.caption2.bold())
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 2)
-                            .background(CYColor.accentSoft, in: Capsule())
+                        CYStatusChip(verbatim: badge, tone: .info)
                             .accessibilityIdentifier("wallet.income.badge.\(row.id)")
                     }
                     Text(verbatim: row.changeReason ?? appLocalized("wallet.entry", locale: locale))
@@ -397,6 +401,15 @@ extension WalletScreen where Value == WithdrawalBalance {
         .accessibilityElement(children: .combine)
         .accessibilityValue(Text(LocalizedStringKey("wallet.direction." + direction.rawValue)))
         .accessibilityIdentifier("wallet.ledger.\(row.id)")
+        .modifier(WalletIncomeListCard(enabled: income))
+    }
+}
+
+/// Income-detail rows sit on the domain card. Points and balance ledgers keep their existing row.
+private struct WalletIncomeListCard: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        if enabled { content.cyDomainCard(padding: CYSpacing.md).themeDomain(.player) } else { content }
     }
 }
 @MainActor struct WalletIncomeView: View {
@@ -445,7 +458,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                         .zIndex(hold.tab == .organizer ? 1 : 0)
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
-        }.appNavigationTitle("wallet.income")
+        }.appNavigationTitle("wallet.income").navigationBarTitleDisplayMode(.inline).themeDomain(.player)
             .onChange(of: scenePhase) { _, phase in
                 guard financeAccess != nil else { return }
                 if phase != .active { hold.background() } else { hold.foreground() }
@@ -458,14 +471,15 @@ extension WalletScreen where Value == WithdrawalBalance {
             #endif
     }
     private var incomeBody: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYHeroHeader("wallet.income").padding(.horizontal)
             Picker("wallet.income", selection: $filter) {
                 Text("wallet.all").tag(WalletIncomeFilter.all)
                 Text("wallet.creationIncome").tag(WalletIncomeFilter.create)
                 Text("wallet.brandIncome").tag(WalletIncomeFilter.brand)
             }.pickerStyle(.segmented).padding()
             if financeAccess == nil, showsCooperationFinance {
-                Button("wallet.clubFinance", action: onCooperationFinance).frame(minHeight: 44)
+                CYPillButton("wallet.clubFinance", style: .secondary, action: onCooperationFinance).frame(minHeight: 44).padding(.horizontal)
             }
             WalletLedgerView(reader: reader, kind: .income(filter)).id(filter.rawValue)
         }

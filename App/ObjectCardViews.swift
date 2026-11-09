@@ -10,8 +10,9 @@ import ImageIO
     private var scope: UUID { reader.scope }
     var body: some View {
         List {
-            if !reader.isAuthenticated { ContentUnavailableView("objects.login", systemImage: "person.crop.circle") }
-            else if !reader.isConfigured { ContentUnavailableView("objects.disabled", systemImage: "rectangle.stack") }
+            Section { CYHeroHeader("objects.title") }.listRowBackground(Color.clear)
+            if !reader.isAuthenticated { CYEmptyState(systemImage: "person.crop.circle", "objects.login") }
+            else if !reader.isConfigured { CYEmptyState(systemImage: "rectangle.stack", "objects.disabled") }
             else {
                 Section {
                     Menu {
@@ -26,20 +27,21 @@ import ImageIO
                     }
                     .buttonStyle(.borderless)
                     .disabled(model.loading).accessibilityIdentifier("objects.filter")
-                    if model.loading { ProgressView("objects.loading") }
+                    if model.loading { CYSkeleton().accessibilityLabel(Text("objects.loading")) }
                     if model.failed, model.access == .denied {
                         Text("objectCards.denied").accessibilityIdentifier("objects.denied")
                     } else if model.failed {
                         Text(model.collection == nil ? "objects.failed" : "objects.filterFailed")
                             .accessibilityIdentifier("objects.failed")
-                        Button("objects.retry") { Task { await model.load(category: model.category, reader: reader) } }
+                        CYPillButton("objects.retry") { Task { await model.load(category: model.category, reader: reader) } }
                     }
                 }
                 if model.loadedScope == scope, let collection = model.collection {
                     Section {
                         LabeledContent("objects.total", value: collection.total.formatted())
                         if collection.cards.isEmpty {
-                            ObjectCardsEmptyTitle(isAllCategories: model.category == .all).accessibilityIdentifier("objects.empty")
+                            ObjectCardsEmptyTitle(isAllCategories: model.category == .all)
+                                .accessibilityIdentifier("objects.empty")
                         }
                         // Preserve duplicate source rows safely rather than accidentally conflating IDs.
                         ForEach(Array(collection.cards.enumerated()), id: \.offset) { _, card in
@@ -49,8 +51,8 @@ import ImageIO
                             } label: {
                                 QuestifyImageEntityCard(imageSource: nil, title: card.title, subtitle: card.caption,
                                     fallbackTitle: "objects.item", minimumHeight: 210) {
-                                    Text(verbatim: card.category)
-                                    if card.generating { Label("objects.generating", systemImage: "hourglass") }
+                                    Text(verbatim: card.category.isEmpty ? "—" : card.category)
+                                    if card.generating { CYStatusChip("objects.generating", tone: .info, systemImage: "hourglass") }
                                     if !card.place.isEmpty { Text(verbatim: card.place) }
                                 }
                                 .overlay(alignment: .topLeading) {
@@ -65,7 +67,8 @@ import ImageIO
                 }
             }
         }
-        .appNavigationTitle("objects.title").privacySensitive()
+        .appNavigationTitle("objects.title").navigationBarTitleDisplayMode(.inline)
+        .themeDomain(.player).privacySensitive()
         .task(id: scope) {
             if model.loadedScope != scope { model.invalidate() }
             if model.collection == nil && reader.isAuthenticated && reader.isConfigured {

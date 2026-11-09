@@ -6,6 +6,7 @@ enum CYPillStyle { case primary, secondary, tertiary }
 /// One primary per screen (owner rule). Disabled state keeps full contrast via palette, no opacity drop.
 struct CYPillButton: View {
     private let title: LocalizedStringKey
+    private let tableName: String?
     private let style: CYPillStyle
     private let systemImage: String?
     private let fullWidth: Bool
@@ -16,9 +17,11 @@ struct CYPillButton: View {
         style: CYPillStyle = .primary,
         systemImage: String? = nil,
         fullWidth: Bool = true,
+        tableName: String? = nil,
         action: @escaping () -> Void
     ) {
         self.title = title
+        self.tableName = tableName
         self.style = style
         self.systemImage = systemImage
         self.fullWidth = fullWidth
@@ -29,7 +32,7 @@ struct CYPillButton: View {
         Button(action: action) {
             HStack(spacing: CYSpacing.sm) {
                 if let systemImage { Image(systemName: systemImage) }
-                Text(title)
+                Text(title, tableName: tableName)
             }
         }
         .buttonStyle(CYPillButtonStyle(style: style, fullWidth: fullWidth))

@@ -19,7 +19,8 @@ struct MessagingHomeView: View {
             if let coopInviteStrip { coopInviteStrip().padding(.horizontal) }
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
         }.appNavigationTitle("messaging.title")
-        .navigationBarTitleDisplayMode(.large)
+        .navigationBarTitleDisplayMode(.inline)
+        .themeDomain(.player)
     }
 }
 
@@ -48,6 +49,7 @@ private struct MessagingConversationListView: View {
             let summary = IMInboxSummary(conversations: conversations)
             let tab = currentTab
             List {
+                Section { CYHeroHeader("messaging.title") }.listRowBackground(Color.clear)
                 Section {
                     Picker("messaging.scope", selection: Binding(get: { currentTab }, set: { selectedTab = $0 })) {
                         ForEach(MessagingSegment.allCases, id: \.self) { item in
@@ -86,6 +88,7 @@ private struct MessagingConversationListView: View {
                     if displayLimit < rows.count {
                         Section {
                             Button("messaging.moreConversations") { displayLimit += 30 }
+                                .buttonStyle(CYPillButtonStyle(style: .secondary))
                                 .frame(maxWidth: .infinity)
                                 .accessibilityIdentifier("messaging.list.more")
                         }
@@ -193,9 +196,8 @@ private struct MessagingConversationListView: View {
         }
     }
     @ViewBuilder private func emptyState(title: LocalizedStringKey, identifier: String, tab: MessagingSegment? = nil) -> some View {
-        ContentUnavailableView {
-            Label { Text(title).accessibilityIdentifier(identifier) } icon: { Image(systemName: "bubble.left.and.bubble.right") }
-        } actions: {
+        VStack(spacing: CYSpacing.md) {
+            CYEmptyState(systemImage: "bubble.left.and.bubble.right", title, messageIdentifier: identifier)
             // P032: only a successfully loaded, genuinely empty direct-message list
             // offers Square. Search misses, errors and missing grants do not.
             if tab == .direct || tab == .all, query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
@@ -210,7 +212,7 @@ private struct MessagingConversationListView: View {
                           IMInboxSummary(conversations: conversations).rows(for: .direct).isEmpty else { return }
                     showsSquare = true
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: false))
                 .accessibilityIdentifier("messaging.list.emptySquare")
             }
         }
@@ -226,7 +228,6 @@ private struct MessagingConversationListView: View {
                 } label: {
                     Label(LocalizedStringKey(action.titleKey), systemImage: action.symbolName)
                 }
-                .tint(action == .markRead ? .blue : .orange)
                 .disabled(!actions.canPrepare)
                 .accessibilityIdentifier("im.row.\(conversation.id).\(action == .markRead ? "read" : "mute")")
             }

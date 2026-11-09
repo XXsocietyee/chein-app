@@ -16,11 +16,15 @@ import SwiftUI
     private func readText(_ key: String) -> Text { Text(LocalizedStringKey("wallet.analysis.read." + key), tableName: "WalletIncomeAnalysisRead") }
     var body: some View {
         List {
+            Section {
+                CYHeroHeader(LocalizedStringKey("wallet.analysis.title"), tableName: "WalletIncomeAnalysis")
+            }.listRowBackground(Color.clear)
             if !reader.isConfigured { text("unavailable") }
             else if reader.scope == nil || model.requiresLogin { text("login") }
             else if model.loading {
                 Section {
-                    ProgressView { text("loading") }.frame(maxWidth: .infinity)
+                    CYSkeleton()
+                    text("loading").frame(maxWidth: .infinity)
                 }.accessibilityIdentifier("wallet.analysis.loading")
             }
             else if model.unavailable { text("unavailable") }
@@ -28,7 +32,7 @@ import SwiftUI
                 Label { text("failed") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                     .font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 Button { Task { await load() } } label: { text("retry") }
-                    .buttonStyle(.bordered).controlSize(.large).frame(minHeight: 44)
+                    .buttonStyle(CYPillButtonStyle(style: .primary)).frame(minHeight: 44)
             } else if let slice = model.displayedResult(for: reader) {
                 content(slice)
             } else { ProgressView { text("loading") } }
@@ -39,6 +43,7 @@ import SwiftUI
         .background(Theme.Color.bgPage(in: domain))
         .labeledContentStyle(WalletIncomeAnalysisDetailStyle())
         .navigationTitle(text("title"))
+        .navigationBarTitleDisplayMode(.inline)
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
         .privacySensitive()
@@ -61,6 +66,7 @@ import SwiftUI
             if slice.isPartial {
                 Label { readText("partial") } icon: { Image(systemName: "exclamationmark.circle").accessibilityHidden(true) }
                 Button { Task { await load() } } label: { text("retry") }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
                     .accessibilityIdentifier("wallet.analysis.partial.retry")
             } else if slice.stop == .budget {
                 readText("budget").font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
@@ -76,7 +82,13 @@ import SwiftUI
                 LabeledContent { Text(verbatim: String(summary.unknownCount)) } label: { text("unknown") }
             }
         }
-        if slice.rows.isEmpty { if slice.isPartial { readText("noVerifiedRecords") } else { text("empty") } }
+        if slice.rows.isEmpty {
+            if slice.isPartial { readText("noVerifiedRecords") }
+            else {
+                CYEmptyState(systemImage: "chart.bar.xaxis", LocalizedStringKey("wallet.analysis.empty"), tableName: "WalletIncomeAnalysis")
+                text("empty").frame(width: 0, height: 0).clipped().accessibilityHidden(true)
+            }
+        }
         else if let currency {
             Section {
                 if let current = summary.months.last {

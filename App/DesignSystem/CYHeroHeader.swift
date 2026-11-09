@@ -5,6 +5,7 @@ import SwiftUI
 struct CYHeroHeader<Illustration: View>: View {
     private let title: LocalizedStringKey
     private let subtitle: LocalizedStringKey?
+    private let tableName: String?
     private let illustration: Illustration
 
     @Environment(\.cyPalette) private var palette
@@ -12,10 +13,12 @@ struct CYHeroHeader<Illustration: View>: View {
     init(
         _ title: LocalizedStringKey,
         subtitle: LocalizedStringKey? = nil,
+        tableName: String? = nil,
         @ViewBuilder illustration: () -> Illustration
     ) {
         self.title = title
         self.subtitle = subtitle
+        self.tableName = tableName
         self.illustration = illustration()
     }
 
@@ -23,13 +26,13 @@ struct CYHeroHeader<Illustration: View>: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             illustration
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(title)
+                Text(title, tableName: tableName)
                     .font(.system(.largeTitle, design: .default).weight(.heavy))
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
                 if let subtitle {
-                    Text(subtitle)
+                    Text(subtitle, tableName: tableName)
                         .font(CYTypography.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -41,8 +44,8 @@ struct CYHeroHeader<Illustration: View>: View {
 }
 
 extension CYHeroHeader where Illustration == EmptyView {
-    init(_ title: LocalizedStringKey, subtitle: LocalizedStringKey? = nil) {
-        self.init(title, subtitle: subtitle) { EmptyView() }
+    init(_ title: LocalizedStringKey, subtitle: LocalizedStringKey? = nil, tableName: String? = nil) {
+        self.init(title, subtitle: subtitle, tableName: tableName) { EmptyView() }
     }
 }
 

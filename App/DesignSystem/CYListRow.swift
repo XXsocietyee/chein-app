@@ -14,6 +14,8 @@ enum CYListRowTrailing {
 struct CYListRow<Leading: View>: View {
     private let title: LocalizedStringKey
     private let meta: LocalizedStringKey?
+    private let verbatimTitle: String?
+    private let verbatimMeta: String?
     private let trailing: CYListRowTrailing
     private let card: Bool
     private let leading: Leading
@@ -25,13 +27,23 @@ struct CYListRow<Leading: View>: View {
         meta: LocalizedStringKey? = nil,
         trailing: CYListRowTrailing = .chevron,
         card: Bool = false,
+        verbatimTitle: String? = nil,
+        verbatimMeta: String? = nil,
         @ViewBuilder leading: () -> Leading
     ) {
         self.title = title
         self.meta = meta
+        self.verbatimTitle = verbatimTitle
+        self.verbatimMeta = verbatimMeta
         self.trailing = trailing
         self.card = card
         self.leading = leading()
+    }
+
+    /// Server text stays verbatim. An empty title renders as an em dash.
+    init(verbatim title: String, meta: String? = nil, trailing: CYListRowTrailing = .chevron, card: Bool = false, @ViewBuilder leading: () -> Leading) {
+        let shown = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.init(LocalizedStringKey(""), meta: nil, trailing: trailing, card: card, verbatimTitle: shown.isEmpty ? "—" : shown, verbatimMeta: meta, leading: leading)
     }
 
     var body: some View {
@@ -46,10 +58,14 @@ struct CYListRow<Leading: View>: View {
         HStack(spacing: CYSpacing.md) {
             leading
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(title)
+                titleText
                     .font(CYTypography.cardTitle)
                     .foregroundStyle(palette.textPrimary)
-                if let meta {
+                if let verbatimMeta {
+                    Text(verbatim: verbatimMeta)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textTertiary)
+                } else if let meta {
                     Text(meta)
                         .font(CYTypography.meta)
                         .foregroundStyle(palette.textTertiary)
@@ -60,6 +76,10 @@ struct CYListRow<Leading: View>: View {
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
+    }
+
+    @ViewBuilder private var titleText: some View {
+        if let verbatimTitle { Text(verbatim: verbatimTitle) } else { Text(title) }
     }
 
     @ViewBuilder private var trailingView: some View {
