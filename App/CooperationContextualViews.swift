@@ -152,6 +152,11 @@ import SwiftUI
     var body: some View {
         let permit = model.permit
         Form {
+            Section {
+                CYHeroHeader("context.coop.new", subtitle: "context.coop.topic")
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .listRowBackground(Color.clear)
+            }
             Section("context.coop.topic") {
                 if model.topicsFailed { Button("action.retry") { Task { await model.retryTopics(permit) } }.disabled(model.topicsBusy) }
                 Picker("context.coop.topic", selection: Binding(get: { model.isCurrent ? model.topicID : nil }, set: { model.chooseTopic($0, permit: permit) })) {
@@ -182,10 +187,10 @@ import SwiftUI
                         .accessibilityIdentifier("cooperation.invite.nearby")
                 }
                 TextField("context.coop.search", text: $search).accessibilityIdentifier("context.coop.search")
-                if model.busy { ProgressView("cooperation.loading") }
-                if model.targetsFailed { Button("action.retry") { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
+                if model.busy { CYSkeleton().accessibilityLabel(Text("cooperation.loading")) }
+                if model.targetsFailed { CYPillButton("action.retry", style: .secondary) { Task { await model.retryTargets(permit) } }.disabled(model.targetsBusy) }
                 if !model.busy, !model.targetsFailed, filtered.isEmpty {
-                    Text("context.picker.empty").font(CYTypography.body).foregroundStyle(CYColor.textTertiary)
+                    CYEmptyState("context.picker.empty")
                 }
                 ForEach(filtered) { candidate in
                     Button { model.toggle(candidate.id, permit: permit) } label: {
@@ -196,7 +201,9 @@ import SwiftUI
                             }
                             Spacer()
                             // Mini `.target-action`: "已选" chip when chosen; a check keeps it native.
-                            if model.selected.contains(candidate.id) { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.accentText).accessibilityHidden(true) }
+                            if model.selected.contains(candidate.id) {
+                                CYStatusChip("context.coop.selected", tone: .neutral, systemImage: "checkmark")
+                            }
                         }
                     }.disabled(model.targetsBusy || !model.isCurrent)
                         .accessibilityAddTraits(model.selected.contains(candidate.id) ? .isSelected : [])
@@ -204,13 +211,13 @@ import SwiftUI
                 }
             }
             if !model.selected.isEmpty, model.isCurrent {
-                LabeledContent { Text(verbatim: String(model.selected.count)).monospacedDigit() } label: { Text("context.coop.selected") }
+                CYListRow("context.coop.selected", trailing: .value(model.selected.isEmpty ? "—" : String(model.selected.count)))
                 // Mini `.cta-bar`: one solid action for the whole screen.
-                Button("context.coop.continue") {
+                CYPillButton("context.coop.continue") {
                     guard let contexts = model.contexts(permit: permit) else { return }
                     editing = contexts; showEditor = true
                 }
-                .buttonStyle(.cyPrimary).listRowBackground(Color.clear)
+                .listRowBackground(Color.clear)
                 .disabled(model.contexts(permit: permit) == nil)
             }
             CoopFlowSafetyNotice()
@@ -311,7 +318,17 @@ import SwiftUI
     }
     var body: some View {
         Form {
-            Section("context.coop.targets") { ForEach(contexts) { Text(verbatim: $0.recipientName) } }
+            Section {
+                CYHeroHeader("coopflow.invite.title", subtitle: "context.coop.targets")
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .listRowBackground(Color.clear)
+            }
+            Section("context.coop.targets") {
+                ForEach(contexts) { context in
+                    let name = context.recipientName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    Text(verbatim: name.isEmpty ? "—" : name)
+                }
+            }
             TextField("cooperation.invite.messagePlaceholder", text: $message, axis: .vertical).lineLimit(3...8).focused($typing)
                 .onChange(of: message) { _, value in if value.count > 100 { message = String(value.prefix(100)) } }
             Text(verbatim: "\(message.count) / 100").font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary)
@@ -331,15 +348,24 @@ import SwiftUI
                 Text("coopflow.currency")
             }
             if let drafts {
-                NavigationLink("coopflow.reviewAction") {
+                NavigationLink {
                     List {
                         Text("context.coop.individualReviews")
                         ForEach(Array(drafts.enumerated()), id: \.offset) { index, draft in
-                            NavigationLink(contexts[index].recipientName) { CoopFlowRequestPreview(operation: .invite(draft)) }
+                            let name = contexts[index].recipientName.trimmingCharacters(in: .whitespacesAndNewlines)
+                            NavigationLink { CoopFlowRequestPreview(operation: .invite(draft)) } label: {
+                                Text(verbatim: name.isEmpty ? "—" : name)
+                            }
                         }
                         CoopFlowSafetyNotice()
                     }.navigationTitle("coopflow.reviewAction")
+                } label: {
+                    Text("coopflow.reviewAction").frame(maxWidth: .infinity)
                 }
+                .buttonStyle(CYPillButtonStyle())
+                .listRowBackground(Color.clear)
+            } else {
+                CYListRow("coopflow.reviewAction", trailing: .value("—"))
             }
             CoopFlowSafetyNotice()
         }.cyMiniListScreen().navigationTitle("coopflow.invite.title").scrollDismissesKeyboard(.interactively)
