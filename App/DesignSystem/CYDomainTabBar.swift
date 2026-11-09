@@ -87,12 +87,10 @@ struct CYDomainTabBarStyle: ViewModifier {
     let domain: ThemeDomain
 
     func body(content: Content) -> some View {
-        let palette = CYDomainPalette(domain)
         if domain == .merchant {
             // components/tabBar/index.wxss `.tabbar.merchant .list`: 0 -> .96 white vertical gradient, no blur,
-            // no top border, no shadow.
+            // no top border, no shadow. Selected violet is `CYTabBarAppearance` / `CYScreenStyle`, not this tint.
             content
-                .tint(QuestifyPalette.accent)
                 .toolbarBackground(
                     LinearGradient(
                         colors: [Color.white.opacity(0), Color.white.opacity(0.96)],
@@ -105,8 +103,8 @@ struct CYDomainTabBarStyle: ViewModifier {
                 .toolbarColorScheme(.light, for: .tabBar)
         } else {
             // `.tabbar.dark .list`: rgba(28,28,30,.55) glass + blur(40rpx) + 0.5pt subtle top border.
+            // Content tint is `CYScreenStyle` (domain brand). Selected tab violet is the appearance proxy.
             content
-                .tint(QuestifyPalette.accent)
                 .toolbarBackground(.ultraThinMaterial, for: .tabBar)
                 .toolbarBackground(.visible, for: .tabBar)
                 .toolbarColorScheme(.dark, for: .tabBar)
@@ -149,6 +147,8 @@ enum CYTabBarAppearance {
             layout.selected.titleTextAttributes = [.foregroundColor: selectedViolet]
         }
 
+        let selectedViolet = UIColor(red: 122.0/255, green: 92.0/255, blue: 255.0/255, alpha: 1)
+        UITabBar.appearance().tintColor = selectedViolet
         UITabBar.appearance().standardAppearance = appearance
         UITabBar.appearance().scrollEdgeAppearance = appearance
     }
@@ -171,6 +171,7 @@ private struct CYDomainTabBarPreview: View {
                     .tag(tab)
             }
         }
+        .cyScreenStyle()
         .cyDomainTabBar(domain)
         .themeDomain(domain)
     }

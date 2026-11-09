@@ -1206,6 +1206,7 @@ struct SessionMerchantRootContainerView: View {
             .tag(MerchantRootBusinessTab.mine)
         }
         .id(coordinator.merchantContainerGeneration)
+        .cyScreenStyle()
         .cyDomainTabBar(.merchant)
         .roleTheme(.merchant)
         .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }
