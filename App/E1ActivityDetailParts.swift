@@ -51,9 +51,10 @@ struct E1ActivityInfoCard: View {
         // Same calendar day: the end shows the time only.
         let utc = TimeZone(secondsFromGMT: 0)!
         func parse(_ raw: String?) -> Date? { HomeFeedDate.parse(raw) ?? HomeFeedDate.parse(raw, sourceTimeZone: utc) }
-        var cal = Calendar(identifier: .gregorian); cal.timeZone = timeZone
+        let zone = HomeFeedDate.parse(detail.summary.endDate) == nil ? utc : timeZone
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = zone
         if let sd = parse(detail.summary.startDate), let ed = parse(detail.summary.endDate), cal.isDate(sd, inSameDayAs: ed) {
-            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = timeZone
+            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = zone
             e = ed.formatted(style)
         }
         switch (s, e) {
