@@ -87,7 +87,7 @@ private struct CreatorContentIssueView: View {
                         card(project).questifyCardListRow().allowsHitTesting(false)
                     }
                 }
-                else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
+                else if model.state.isLoading || model.state.loadedScope != key.scope { CYSkeleton() }
                 else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
                 else if let page = model.state.visibleValue(scope: key.scope) {
                     if page.rows.isEmpty { MyProjectEmptyView(type: query.type) }
@@ -167,7 +167,7 @@ private struct CreatorContentIssueView: View {
             if reader.isOfflineExample { Text("creatorContent.offlineExample") }
             if !reader.isAuthenticated { issue(.login) }
             else if !reader.isConfigured { issue(.notConfigured) }
-            else if model.state.isLoading || model.state.loadedScope != key.scope { ProgressView("creatorContent.loading") }
+            else if model.state.isLoading || model.state.loadedScope != key.scope { CYSkeleton() }
             else if let failure = model.state.visibleIssue(scope: key.scope) { issue(failure) }
             else if let center = model.state.visibleValue(scope: key.scope) {
                 Section {

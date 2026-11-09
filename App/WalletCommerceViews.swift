@@ -104,7 +104,7 @@ enum WalletPayoutCapability { static let isOn = false }
             if visibility.income {
                 Section {
                     if earnings.loading {
-                        ProgressView("wallet.loading").accessibilityIdentifier("wallet.earnings.loading")
+                        CYSkeleton().accessibilityIdentifier("wallet.earnings.loading")
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
                         WalletEarningsHero(label: appLocalized("withdrawal.support.balance", locale: locale),
@@ -324,7 +324,7 @@ enum WalletPayoutCapability { static let isOn = false }
     var body: some View {
         List {
             Section("wallet.fundStages") {
-                if funds.loading { ProgressView("wallet.loading").accessibilityIdentifier("wallet.assets.loading") }
+                if funds.loading { CYSkeleton().accessibilityIdentifier("wallet.assets.loading") }
                 else if let value = funds.value, funds.loadedScope == reader.scope {
                     if !value.amountsKnown {
                         Text("wallet.amountsUnknown").accessibilityIdentifier("wallet.assets.unknown")
@@ -439,7 +439,7 @@ enum WalletPayoutCapability { static let isOn = false }
             }
             if model.pager.isLoading {
                 if income { CYSkeleton().accessibilityLabel(Text("wallet.loading")) }
-                else { ProgressView("wallet.loading") }
+                else { CYSkeleton() }
             }
             else if model.pager.hasLoadedPage && model.pager.hasMore && !model.pager.failed && reader.isConfigured && reader.scope != nil {
                 Button("wallet.loadMore") { Task { await model.load(reader, kind: kind) } }.frame(minHeight: 44)
@@ -641,7 +641,7 @@ private struct WalletIncomeListCard: ViewModifier {
             Picker("wallet.sort", selection: $sort) {
                 ForEach(0..<5) { value in Text(LocalizedStringKey("wallet.sort." + String(value))).tag(value) }
             }.onChange(of: sort) { _, _ in scheduleLoad() }
-            if model.loading { ProgressView("wallet.loading") }
+            if model.loading { CYSkeleton() }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { Text("wallet.empty") }
                 ForEach(page.rows) { item in
@@ -714,7 +714,7 @@ private struct WalletIncomeListCard: ViewModifier {
     @StateObject private var model = WalletScreen<WalletProduct>()
     var body: some View {
         List {
-            if model.loading { ProgressView("wallet.loading") }
+            if model.loading { CYSkeleton() }
             else if let item = model.value, model.loadedScope == reader.scope {
                 Text(verbatim: item.productName ?? appLocalized("wallet.product", locale: locale)).font(.title2)
                 LabeledContent("wallet.price", value: format.points(item.price))
@@ -744,7 +744,7 @@ private struct WalletIncomeListCard: ViewModifier {
     @State private var selected = Set<Int>()
     var body: some View {
         List {
-            if model.loading { ProgressView("wallet.loading") }
+            if model.loading { CYSkeleton() }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { Text("wallet.empty") }
                 ForEach(page.rows) { item in
@@ -778,7 +778,7 @@ private struct WalletIncomeListCard: ViewModifier {
     @StateObject private var model = WalletScreen<WalletCheckoutPreview>()
     var body: some View {
         List {
-            if model.loading { ProgressView("wallet.loading") }
+            if model.loading { CYSkeleton() }
             else if let preview = model.value, model.loadedScope == reader.scope {
                 LabeledContent("wallet.productAmount", value: format.points(preview.productAmount))
                 LabeledContent("wallet.deliveryFee", value: format.points(preview.deliveryFee))
@@ -809,7 +809,7 @@ private struct WalletIncomeListCard: ViewModifier {
     var body: some View {
         List {
             Text("bank.withdrawal.historyNotice")
-            if model.loading { ProgressView("wallet.loading") }
+            if model.loading { CYSkeleton() }
             else if let page = model.value, model.loadedScope == reader.scope {
                 if page.rows.isEmpty { Text("wallet.withdrawals.emptyTitle").accessibilityIdentifier("wallet.withdrawals.empty") }
                 ForEach(page.rows) { item in
@@ -850,7 +850,7 @@ private struct WalletIncomeListCard: ViewModifier {
     @StateObject private var model = WalletScreen<[WalletPointsTask]>()
     var body: some View {
         List {
-            if model.loading { ProgressView("wallet.loading") }
+            if model.loading { CYSkeleton() }
             else if let rows = model.value, model.loadedScope == reader.scope {
                 if rows.isEmpty { Text("wallet.empty") }
                 ForEach(rows) { item in

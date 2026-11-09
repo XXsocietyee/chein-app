@@ -33,7 +33,7 @@ extension EnvironmentValues {
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
             else if model.isLoading || model.loadedKey != key {
-                ProgressView("growth.loading").frame(maxWidth: .infinity, minHeight: 88).accessibilityIdentifier("growth.loading")
+                CYSkeleton().padding(.vertical, CYSpacing.sm).accessibilityIdentifier("growth.loading")
             }
             else if let issue = model.issue(key: key) { GrowthCenterIssueView(issue: issue, retry: reload) }
             else if let overview = model.value(key: key) {
