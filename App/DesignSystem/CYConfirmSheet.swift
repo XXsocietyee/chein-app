@@ -16,6 +16,8 @@ public struct CYConfirmSheet: View {
     private let onConfirm: () -> Void
     private let isDestructive: Bool
     private let confirmIdentifier: String?
+    private let cancelIdentifier: String?
+    private let titleIdentifier: String?
     private let consequences: [CYConfirmConsequence]
 
     @Environment(\.dismiss) private var dismiss
@@ -24,6 +26,7 @@ public struct CYConfirmSheet: View {
 
     public init(title: String, message: String, confirmTitle: String,
                 isDestructive: Bool = false, confirmIdentifier: String? = nil,
+                cancelIdentifier: String? = nil, titleIdentifier: String? = nil,
                 consequences: [CYConfirmConsequence] = [],
                 onConfirm: @escaping () -> Void) {
         self.isDestructive = isDestructive
@@ -50,6 +53,7 @@ public struct CYConfirmSheet: View {
 
     private var cancelButton: some View {
         Button("action.cancel") { dismiss() }.buttonStyle(.cySecondary(fullWidth: true))
+            .cyOptionalAccessibilityIdentifier(cancelIdentifier)
     }
 
     @ViewBuilder private func styled(_ label: some View) -> some View {
