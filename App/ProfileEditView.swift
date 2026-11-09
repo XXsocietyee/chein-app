@@ -549,11 +549,6 @@ struct ProfileEditView: View {
             } else {
                 if model.coordinator.snapshot != nil {
                     // Mini-program pages/gerenziliao order: avatar, nickname, phone, city signature, works, contact QR, route preferences.
-                    Section {
-                        CYHeroHeader("profile.edit.title")
-                            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                            .listRowBackground(Color.clear)
-                    }
                     ProfileCurrentAvatarView(model: model, reader: savedMedia?.avatar)
                     ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)

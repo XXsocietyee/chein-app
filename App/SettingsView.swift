@@ -55,6 +55,7 @@ struct SettingsView: View {
                 SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)
                 SettingsSignOutEntry(session: session) { dismiss() }
             }
+            .labelStyle(SettingsTileLabelStyle())
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .listSectionSpacing(.custom(20))
