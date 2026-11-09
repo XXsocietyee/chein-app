@@ -2,7 +2,7 @@
 
 Owner note for [iOS CI run 42605481564](https://github.com/liboyang42-cpu/chengyin-app/actions/runs/42605481564).
 
-Base of this note: `origin/rc/20261108` `2f6d5041a57d876d3b0a953f56ecf5208089622f`.
+Branched from `rc/20261108` at `2f6d5041a57d876d3b0a953f56ecf5208089622f`. The pull request targets `rc/20261108`.
 Branch: `cursor/cb90`.
 
 This note does not rerun the workflow, does not edit `.github/workflows`, and does not refresh the CI manifest.
