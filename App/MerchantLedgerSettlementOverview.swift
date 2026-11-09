@@ -111,6 +111,8 @@ import UIKit
                     .accessibilityIdentifier("merchant.ledgerSettlement.refresh")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle(Text("merchant.business.overview"))
         .navigationDestination(item: cover) { item in
             MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner,
@@ -154,7 +156,7 @@ import UIKit
                 let summary = snapshot.document.summary
                 if summary.isEmpty { Text("merchant.business.empty").foregroundStyle(.secondary) }
                 if let strip = MerchantLedgerParity.summary(summary, canReadFinance: snapshot.access.allows("merchant:finance:read")) {
-                    MerchantLedgerSummaryStrip(summary: strip)
+                    MerchantLedgerSummaryStrip(summary: strip, usesKit: false)
                 }
                 ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount"], id: \.self) { key in
                     if key == "personalArrivedThisMonthNet" {
@@ -287,6 +289,8 @@ import UIKit
                 detailRows(snapshot.document, id: "adjustments")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle(Text("merchant.business.batch"))
         .onAppear { model.appear() }
         .onDisappear { model.disappear() }

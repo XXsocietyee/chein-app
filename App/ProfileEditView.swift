@@ -543,12 +543,17 @@ struct ProfileEditView: View {
     private var editorForm: some View {
         Form {
             if model.coordinator.identity == nil {
-                Text("profile.edit.signIn")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.edit.signIn")
             } else if !model.coordinator.isConfigured {
-                Text("profile.edit.unavailable")
+                CYEmptyState(systemImage: "network.slash", "profile.edit.unavailable")
             } else {
                 if model.coordinator.snapshot != nil {
-                    // Mini-program pages/gerenziliao order: avatar, nickname + introduction, phone, works, contact QR, route preferences.
+                    // Mini-program pages/gerenziliao order: avatar, nickname, phone, city signature, works, contact QR, route preferences.
+                    Section {
+                        CYHeroHeader("profile.edit.title")
+                            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                            .listRowBackground(Color.clear)
+                    }
                     ProfileCurrentAvatarView(model: model, reader: savedMedia?.avatar)
                     ProfileAvatarDraftSection(model: model, dependencies: avatarDependencies)
                     ProfileCurrentReviewNotice(model: model, reader: currentReviewReader, owner: currentReviewNotice)
@@ -560,7 +565,8 @@ struct ProfileEditView: View {
                         Section {
                             LabeledContent("profile.phone.title") {
                                 switch phone {
-                                case .masked(let value): Text(verbatim: value).monospacedDigit()
+                                case .masked(let value):
+                                    Text(verbatim: value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : value).monospacedDigit()
                                 case .unbound: Text("profile.phone.unbound")
                                 case .unavailable: Text("profile.phone.unavailable")
                                 }
@@ -596,22 +602,24 @@ struct ProfileEditView: View {
                     }
                 }
                 if let key = model.coordinator.messageKey {
-                    Text(LocalizedStringKey(key)).accessibilityIdentifier("profile.edit.status")
+                    CYStatusChip(LocalizedStringKey(key))
+                        .accessibilityIdentifier("profile.edit.status")
                 }
                 if let remote = model.coordinator.remoteMessage { Text(verbatim: remote) }
-                Button { Task { await model.requestReload() } } label: {
-                    Text(LocalizedStringKey(model.coordinator.isLocked ? "profile.edit.check" : "profile.edit.reload"))
+                CYPillButton(LocalizedStringKey(model.coordinator.isLocked ? "profile.edit.check" : "profile.edit.reload"), style: .secondary) {
+                    Task { await model.requestReload() }
                 }.disabled(model.busy || model.textEdit != nil).accessibilityIdentifier("profile.edit.reload")
-                if model.busy { ProgressView().accessibilityIdentifier("profile.edit.busy") }
+                if model.busy { CYSkeleton().accessibilityIdentifier("profile.edit.busy") }
             }
         }
     }
     private var editorNavigation: some View {
         editorForm
         .cyGroupedSurface()
+        .themeDomain(.player)
         .questifyBottomAction {
             if model.coordinator.identity != nil, model.coordinator.isConfigured, model.coordinator.snapshot != nil {
-                            Button { Task { await model.prepare() } } label: { Text("profile.edit.review") }
+                            CYPillButton("profile.edit.review") { Task { await model.prepare() } }
                                 .disabled(model.busy || model.coordinator.isLocked || !model.draft.isValid
                                           || model.textEdit != nil || !(model.coordinator.snapshot.map { model.draft.hasChanges(comparedTo: $0) } ?? false))
                                 .accessibilityIdentifier("profile.edit.review")
@@ -701,16 +709,16 @@ struct ProfileEditView: View {
                         if value.payload.avatarReplacement != nil { Text("profile.avatar.confirmChange") }
                         Text("profile.edit.confirmHint")
                     }
-                    Button {
+                    CYPillButton("profile.edit.confirm") {
                         Task {
                             guard let receipt = await model.save(value), model.consumeSavedReturn(receipt) else { return }
                             if let onSaved { onSaved() } else { dismiss() }
                         }
-                    } label: { Text("profile.edit.confirm") }
+                    }
                         .accessibilityIdentifier("profile.edit.confirm")
-                    Button(role: .cancel) {
+                    CYPillButton("profile.edit.cancel", style: .tertiary) {
                         model.coordinator.cancel(value); model.confirmation = nil
-                    } label: { Text("profile.edit.cancel") }
+                    }
                 }.appNavigationTitle("profile.edit.reviewTitle")
             }.interactiveDismissDisabled(model.busy)
         }

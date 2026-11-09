@@ -7,6 +7,7 @@ import SwiftUI
     let step: Int
     let block: String?
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     private static let fieldOwned: Set<String> = ["name", "addressName", "startDate", "endDate", "categoryIds",
         "description", "imgUrl", "templateId", "collaborators", "ticket"]
     private static let ticketPrefixes = ["ticketName", "ticketPrice", "ticketStock", "ticketStart", "ticketEnd"]
@@ -22,11 +23,11 @@ import SwiftUI
                 ForEach(ActivityPublishingWizard.progress(current)) { item in
                     VStack(spacing: 6) {
                         Capsule()
-                            .fill(item.state == "todo" ? Color.secondary.opacity(0.25) : Color.accentColor)
+                            .fill(item.state == "todo" ? palette.borderSubtle : palette.brand)
                             .frame(height: 4)
                         Text(Self.titleKey(item.key))
                             .font(item.state == "current" ? .footnote.weight(.semibold) : .footnote)
-                            .foregroundStyle(item.state == "todo" ? .secondary : .primary)
+                            .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
                             .lineLimit(2).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -45,7 +46,7 @@ import SwiftUI
             }
             Text(verbatim: CoreLoopCopy(locale: locale).wizardHeading(for: current))
                 .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
+                .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.heading")
         }
@@ -73,31 +74,26 @@ import SwiftUI
     let onReview: () -> Void
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        HStack(spacing: 12) {
+        HStack(spacing: CYSpacing.md) {
             if current == 0 {
-                Button(action: onCancel) { Text("publishModes.cancel").frame(minWidth: 72) }
-                    .buttonStyle(.bordered)
+                CYPillButton("publishModes.cancel", style: .secondary, fullWidth: false, action: onCancel)
                     .disabled(!enabled)
                     .accessibilityIdentifier("publishModes.activity.wizard.cancel")
             } else {
-                Button(action: onBack) { Text("publishModes.wizard.back").frame(minWidth: 72) }
-                    .buttonStyle(.bordered)
+                CYPillButton("publishModes.wizard.back", style: .secondary, fullWidth: false, action: onBack)
                     .disabled(!enabled)
                     .accessibilityIdentifier("publishModes.activity.wizard.back")
             }
             if current < ActivityPublishingWizard.steps.count - 1 {
-                Button(action: onNext) { Text("publishModes.wizard.next").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary)
+                CYPillButton("publishModes.wizard.next", action: onNext)
                     .disabled(!enabled)
                     .accessibilityIdentifier("publishModes.activity.wizard.next")
             } else {
-                Button(action: onReview) { Text("publishModes.review").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary)
+                CYPillButton("publishModes.review", action: onReview)
                     .disabled(!enabled)
                     .accessibilityIdentifier("publishModes.activity.review")
             }
         }
-        .controlSize(.large)
     }
 }
 
@@ -147,15 +143,16 @@ import SwiftUI
 
     @ViewBuilder
     private func summaryRow(label: String, value: String, id: String) -> some View {
+        let shown = value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : value
         if dynamicTypeSize.isAccessibilitySize {
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: label).font(.caption).foregroundStyle(.secondary)
-                Text(verbatim: value).font(.subheadline).fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: shown).font(.subheadline).fixedSize(horizontal: false, vertical: true)
             }
             .accessibilityIdentifier("publishModes.activity.reviewSummary.\(id)")
         } else {
             LabeledContent {
-                Text(verbatim: value)
+                Text(verbatim: shown)
                     .fixedSize(horizontal: false, vertical: true)
             } label: {
                 Text(verbatim: label)

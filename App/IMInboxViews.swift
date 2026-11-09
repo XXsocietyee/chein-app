@@ -81,14 +81,15 @@ struct IMUnreadBadge: View {
 /// symbol placeholder.
 struct IMInboxRow: View {
     let conversation: MessagingConversation
+    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .body) private var avatarSize: CGFloat = 56
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
             Image(systemName: symbol)
                 .font(.title2)
-                .foregroundStyle(.secondary)
+                .foregroundStyle(palette.textSecondary)
                 .frame(width: avatarSize, height: avatarSize)
-                .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
+                .background(Circle().fill(palette.bgRaised))
                 .clipShape(Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
@@ -96,10 +97,7 @@ struct IMInboxRow: View {
                     MessagingConversationName(conversation: conversation)
                         .font(.body.weight(.semibold)).lineLimit(1)
                     if conversation.kind == .merchant {
-                        Text("im.inbox.officialTag").font(.caption2.weight(.semibold))
-                            .padding(.horizontal, 5).padding(.vertical, 1)
-                            .overlay(Capsule().stroke(Color.accentColor))
-                            .foregroundStyle(Color.accentColor)
+                        CYStatusChip("im.inbox.officialTag", tone: .neutral)
                             .accessibilityIdentifier("im.inbox.official.\(conversation.id)")
                     }
                     if conversation.muted == true {

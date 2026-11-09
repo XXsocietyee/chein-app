@@ -7,11 +7,13 @@ extension SocialGuideMode {
 }
 
 struct SocialGuideXcxHero: View {
+    @Environment(\.cyPalette) private var palette
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            (Text("guideXcx.heroLead").fontWeight(.light) + Text("guideXcx.heroEmphasis").bold()).font(.title2)
-            Text("guideXcx.heroDetail").font(.subheadline).foregroundStyle(.secondary)
-        }.padding(.vertical, 4).accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.hero")
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYHeroHeader("guideXcx.heroLead", subtitle: "guideXcx.heroDetail")
+            Text("guideXcx.heroEmphasis").font(CYTypography.label).foregroundStyle(palette.textSecondary)
+        }.accessibilityElement(children: .combine).accessibilityIdentifier("social.guide.hero")
+            .themeDomain(.player)
     }
 }
 
@@ -20,14 +22,15 @@ struct SocialGuideXcxModeRow: View {
     let mode: SocialGuideMode
     var onOpen: ((SocialGuideDestination) -> Void)?
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 8) {
-                Label(mode.titleKey, systemImage: mode.icon).font(.headline)
-                Text(mode.xcxTagKey).font(.caption).padding(.horizontal, 8).padding(.vertical, 2)
-                    .background(Capsule().fill(Color.secondary.opacity(0.15)))
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYListRow(mode.titleKey, meta: mode.xcxDetailKey, trailing: .none, card: true) {
+                CYRowIcon(systemImage: mode.icon)
             }
-            Text(mode.xcxDetailKey).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-            if let onOpen { Button("guideXcx.go") { onOpen(mode.destination) }.buttonStyle(.questifyPrimary).controlSize(.small).accessibilityIdentifier("social.guide.\(mode.rawValue)") }
-        }.padding(.vertical, 5)
+            CYStatusChip(mode.xcxTagKey)
+            if let onOpen {
+                CYPillButton("guideXcx.go", style: .secondary, fullWidth: false) { onOpen(mode.destination) }
+                    .accessibilityIdentifier("social.guide.\(mode.rawValue)")
+            }
+        }.padding(.vertical, CYSpacing.xs).themeDomain(.player)
     }
 }

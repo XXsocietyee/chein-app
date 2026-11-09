@@ -21,44 +21,49 @@ import SwiftUI
                 // Mini-program `oi-hero`: eyebrow, headline and one explanatory paragraph above the invitations.
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                        Text("officialInbox.hero.eyebrow").font(CYTypography.label).foregroundStyle(CYColor.accentText)
-                        Text("officialInbox.hero.title").font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
-                        Text("officialInbox.hero.sub").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        Text("officialInbox.hero.eyebrow").font(CYTypography.label).foregroundStyle(palette.textSecondary)
+                        CYHeroHeader("officialInbox.hero.title", subtitle: "officialInbox.hero.sub")
                     }.accessibilityElement(children: .combine)
                 }
                 if rows.isEmpty {
-                    ContentUnavailableView("official.inbox.empty", systemImage: "envelope.open")
+                    CYEmptyState(systemImage: "envelope.open", "official.inbox.empty")
                 }
                 ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                    VStack(alignment: .leading, spacing: 8) {
-                        if row.title.isEmpty { Text("official.inviteUntitled").font(CYTypography.cardTitle) }
-                        else { Text(verbatim: row.title).font(CYTypography.cardTitle) }
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        if row.title.isEmpty {
+                            CYListRow("official.inviteUntitled", trailing: .none) { CYRowIcon(systemImage: "envelope") }
+                        } else {
+                            CYListRow(verbatim: row.title, trailing: .none) { CYRowIcon(systemImage: "envelope") }
+                        }
                         if let title = row.eventTitle, !title.isEmpty { Text(verbatim: title) }
                         // Source meta line: "(city ‖ 全国) · role".
-                        (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(.subheadline)
-                        Text(LocalizedStringKey(row.scopeKey)).font(.caption)
+                        (cityText(row) + Text(verbatim: " · ") + roleText(row)).font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        Text(LocalizedStringKey(row.scopeKey)).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
                         if let note = row.roleNoteTuple {
-                            Text(verbatim: c.t(note.zh, note.en)).font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: c.t(note.zh, note.en)).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
                         }
                         if let cap = row.capacity {
-                            Text(verbatim: c.t("承接名额 \(cap)", "Capacity \(cap)")).font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: c.t("承接名额 \(cap)", "Capacity \(cap)")).font(CYTypography.caption).foregroundStyle(palette.textSecondary)
                         }
-                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(.caption) }
+                        if let facts = row.windowFacts { OfficialPrivateFactsText.window(facts.window).font(CYTypography.caption) }
                         if let summary = row.responsibilitySummary, !summary.isEmpty, summary != row.title {
-                            Text(verbatim: summary).font(.footnote)
+                            Text(verbatim: summary).font(CYTypography.meta)
                         }
                         if row.isPaused {
                             Text(verbatim: c.t("本场活动已暂停，恢复前以主办通知为准。",
                                               "This event is paused. Updates will be shared by the organizer before resuming."))
-                                .font(.caption).foregroundStyle(palette.warning)
+                                .font(CYTypography.caption).foregroundStyle(palette.warning)
                         }
-                        Label(LocalizedStringKey(row.sourceStatusKey), systemImage: "envelope")
-                        if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status).font(.caption) }
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("official.invite.\(row.id)")
+                        CYStatusChip(LocalizedStringKey(row.sourceStatusKey), tone: row.isPaused ? .warning : .neutral, systemImage: "envelope")
+                        if let status = row.status, row.statusKey == "official.status.unknown" { Text(verbatim: status.isEmpty ? "—" : status).font(CYTypography.caption) }
+                    }
+                    .cyDomainCard(padding: CYSpacing.md)
+                    .accessibilityElement(children: .combine).accessibilityIdentifier("official.invite.\(row.id)")
                     if let actions { OfficialInviteResponseActions(coordinator: actions, invite: row, publisher: publisher) }
                 }
                 Section { OfficialReadOnlyNotice(offline: reader.isOfflineExample) }
-            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(CYColor.bgPage)
+            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(palette.bgPage)
+            .themeDomain(.player)
             .accessibilityIdentifier("official.inbox.content")
         }.appNavigationTitle("official.inbox.title").navigationBarTitleDisplayMode(.inline)
     }

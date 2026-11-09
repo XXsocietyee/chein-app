@@ -107,7 +107,17 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
     }
     var body: some View {
         Form {
-            if model.state.busy { ProgressView("compliance.loading").accessibilityIdentifier("compliance.loading") }
+            Section {
+                CYHeroHeader(LocalizedStringKey(destination.title))
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .listRowBackground(Color.clear)
+            }
+            if model.state.busy {
+                CYSkeleton()
+                    .accessibilityIdentifier("compliance.loading")
+                    .accessibilityLabel(Text("compliance.loading"))
+                    .listRowBackground(Color.clear)
+            }
             if let error = model.state.error {
                 Text(LocalizedStringKey(error), tableName: error == "compliance.impactChanged" ? "AccountDeregistrationPresentation" : nil)
                     .foregroundStyle(CYColor.dangerText).accessibilityIdentifier("compliance.error")
@@ -119,6 +129,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             }
         }
         .navigationTitle(Text(LocalizedStringKey(destination.title)))
+        .themeDomain(.player)
         .toolbar {
             if showsCloseButton {
                 ToolbarItem(placement: .cancellationAction) {
@@ -214,7 +225,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             if let impact = status.impact { AccountDeregistrationImpactSection(impact: impact) }
             else { Text("c08.display.41", tableName: "AccountDeregistrationPresentation") }
             Section("compliance.serverStatus") {
-                statusText(status.status).accessibilityIdentifier("compliance.serverStatus")
+                statusMark(status.status).accessibilityIdentifier("compliance.serverStatus")
                 ForEach(Array(status.blockers.enumerated()), id: \.offset) { _, blocker in Text(blocker) }
                 if status.executeAfter != nil || status.pending { DeregistrationExecuteAfterRow(raw: status.executeAfter) }
             }
@@ -245,6 +256,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     Task { await model.coordinator.precheckAndAgree(documentRead: documentWasRead,
                         explicitAgreement: explicitlyAgreed, expectedConsentVersion: displayedVersion, intent: intent) }
                 }
+                    .buttonStyle(CYPillButtonStyle())
                     .disabled(document?.version.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty != false
                         || !agreement || !model.state.localCancellationConsent.allowsNewConsent)
                     .accessibilityIdentifier("compliance.precheck")
@@ -256,13 +268,16 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard let intent = model.cancellationIntent() else { return }; let number = phone
                     Task { await model.coordinator.sendSMS(phone: number, explicitlyRequested: true, intent: intent) }
                 }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .disabled(!model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.sendSMS")
                 if model.state.smsSent { Text("compliance.smsSent") }
                 TextField("compliance.code", text: $code).textContentType(.oneTimeCode).keyboardType(.numberPad).accessibilityIdentifier("compliance.code")
                 Button("compliance.review") {
                     guard model.cancellationIntent() != nil else { return }
                     model.coordinator.prepareReview(code: code); code = ""
-                }.disabled(!model.state.smsSent || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.review")
+                }
+                .buttonStyle(CYPillButtonStyle())
+                .disabled(!model.state.smsSent || !model.state.localCancellationConsent.allowsNewConsent).accessibilityIdentifier("compliance.review")
             }
         case .verificationUnavailable:
             DeregistrationVerificationUnavailableSection(method: model.state.status?.verificationMethod) { requestCancellationRead() }
@@ -287,6 +302,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     guard model.cancellationIntent() != nil else { return }
                     model.coordinator.backToVerification()
                 }
+                .buttonStyle(CYPillButtonStyle(style: .tertiary))
             }
         case .pending:
             Text("compliance.pending")
@@ -296,14 +312,16 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         case .unknown: Text("compliance.unknown").accessibilityIdentifier("compliance.unknown")
         }
         Button("compliance.refresh") { requestCancellationRead() }
+            .buttonStyle(CYPillButtonStyle(style: .tertiary))
     }
     /// Server status codes (PENDING / ELIGIBLE / BLOCKED) read as plain words, as the mini-program titles them.
-    private func statusText(_ raw: String) -> Text {
+    @ViewBuilder private func statusMark(_ raw: String) -> some View {
         switch raw.uppercased() {
-        case "PENDING": return Text("compliance.status.pending")
-        case "ELIGIBLE": return Text("compliance.status.eligible")
-        case "BLOCKED": return Text("compliance.status.blocked")
-        default: return Text(verbatim: raw)
+        case "PENDING": CYStatusChip("compliance.status.pending", tone: .warning)
+        case "ELIGIBLE": CYStatusChip("compliance.status.eligible", tone: .success)
+        case "BLOCKED": CYStatusChip("compliance.status.blocked", tone: .danger)
+        default:
+            Text(verbatim: raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw)
         }
     }
     private var roam: some View {
@@ -403,7 +421,10 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                     }
                 }.disabled(!agreed || busy).accessibilityIdentifier("compliance.scope.confirm")
             } else { Text("compliance.legalMissing") }
-            if busy { ProgressView("compliance.loading") }
+            if busy {
+                CYSkeleton()
+                    .accessibilityLabel(Text("compliance.loading"))
+            }
             if let errorKey { Text(LocalizedStringKey(errorKey)) }
         }
         .interactiveDismissDisabled(busy)

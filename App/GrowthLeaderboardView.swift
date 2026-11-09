@@ -2,6 +2,7 @@ import SwiftUI
 
 @MainActor struct GrowthLeaderboardView: View {
     let reader: any GrowthCenterReading
+    @Environment(\.cyPalette) private var palette
     @Environment(\.growthExploreHomeAction) private var onExploreHome
     @Environment(\.scenePhase) private var scenePhase
     private var reads: GrowthNormalReadTask { model.overviewReads }
@@ -14,7 +15,8 @@ import SwiftUI
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope, query: query) }
     var body: some View {
         List {
-            if reader.isOfflineExample { Text("growth.offlineExample").font(.caption) }
+            Section { CYHeroHeader("growth.board.title") }.listRowBackground(Color.clear)
+            if reader.isOfflineExample { Text("growth.offlineExample").font(CYTypography.caption).foregroundStyle(palette.textSecondary) }
             Section {
                 Picker("growth.board.metric", selection: $query.metric) {
                     ForEach(GrowthBoardMetric.allCases) { option in Text(LocalizedStringKey("growth.metric." + option.rawValue)).tag(option) }
@@ -25,7 +27,7 @@ import SwiftUI
             }
             if !reader.isAuthenticated { GrowthCenterIssueView(issue: .login) }
             else if !reader.isConfigured { GrowthCenterIssueView(issue: .notConfigured) }
-            else if model.isLoading || model.loadedKey != key { ProgressView("growth.loading") }
+            else if model.isLoading || model.loadedKey != key { CYSkeleton().accessibilityLabel(Text("growth.loading")) }
             else if let issue = model.issue(key: key) {
                 if issue == .notConfigured { GrowthNormalLeaderboardHoldView() }
                 else { GrowthCenterIssueView(issue: issue, retry: reload) }
@@ -35,15 +37,16 @@ import SwiftUI
                     Section("growth.myRank") { GrowthLeaderboardRow(entry: board.me, fallback: "growth.me", metric: board.metric, isMe: true).accessibilityIdentifier("growth.board.me.\(rank)") }
                 }
                 if board.list.isEmpty {
-                    ContentUnavailableView {
-                        Label("growth.board.empty", systemImage: "list.number")
-                    } description: {
+                    VStack(spacing: CYSpacing.md) {
+                        CYEmptyState(systemImage: "list.number", "growth.board.empty")
                         Text("growth.board.emptyHint")
-                    } actions: {
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textSecondary)
+                            .multilineTextAlignment(.center)
                         if let onExploreHome {
                             let selection = GrowthLeaderboardExploreSelection(readerID: ObjectIdentifier(reader), key: key,
                                 board: board, presentationID: explorePresentationID)
-                            Button("growthExplore.openHome") {
+                            CYPillButton("growthExplore.openHome") {
                                 guard !exploreConsumed, scenePhase == .active,
                                       selection.accepts(readerID: latestReaderID, key: key, board: model.value(key: key),
                                           presentationID: explorePresentationID, visible: exploreVisible,
@@ -51,12 +54,12 @@ import SwiftUI
                                           loading: model.isLoading, hasIssue: model.issue(key: key) != nil) else { return }
                                 exploreConsumed = true; explorePresentationID = UUID()
                                 onExploreHome()
-                            }.buttonStyle(.bordered).frame(minHeight: 44)
-                                .disabled(exploreConsumed || !exploreVisible || scenePhase != .active)
-                                .accessibilityIdentifier("growthExplore.openHome")
+                            }
+                            .disabled(exploreConsumed || !exploreVisible || scenePhase != .active)
+                            .accessibilityIdentifier("growthExplore.openHome")
                         }
                     }
-                        .accessibilityIdentifier("growth.board.empty")
+                    .accessibilityIdentifier("growth.board.empty")
                 } else {
                     Section("growth.board.leaders") {
                         ForEach(Array(board.list.enumerated()), id: \.offset) { index, row in
@@ -128,10 +131,7 @@ private struct GrowthLeaderboardRow: View {
                 HStack(spacing: 8) {
                     GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline)
                         .foregroundStyle(palette.textPrimary).lineLimit(2)
-                    if isMe {
-                        Text("growth.board.meTag").font(.caption.bold()).foregroundStyle(palette.textPrimary)
-                            .padding(.horizontal, 6).background(palette.bgRaised, in: Capsule())
-                    }
+                    if isMe { CYStatusChip("growth.board.meTag") }
                 }
                 if let percentage = GrowthCenterFormatting.nonempty(entry.rankPercentage) {
                     Text(verbatim: percentage).font(.caption).foregroundStyle(palette.textSecondary)
@@ -142,7 +142,8 @@ private struct GrowthLeaderboardRow: View {
                 GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
                 Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
             }
-        }.accessibilityElement(children: .combine).padding(.vertical, 4)
+        }.accessibilityElement(children: .combine).padding(.vertical, CYSpacing.xs)
+            .cyDomainCard(padding: CYSpacing.md)
     }
 }
 

@@ -72,6 +72,8 @@ import SwiftUI
             }
         }
         .merchantM02Page()
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle("couponManagement.title")
         .task(id: sessionKey) {
             model.synchronize(); creating = false

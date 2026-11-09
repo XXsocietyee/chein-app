@@ -24,13 +24,24 @@ import SwiftUI
     private var seconds: Double { segment[kind == .stopwatch ? "targetSeconds" : "seconds"].double ?? 0 }
     private var running: Bool { timing.phase == .running || [.waiting, .signal].contains(reaction.phase) }
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            CYHeroHeader(LocalizedStringKey("playkit.kind." + kind.rawValue))
             if kind == .reaction { reactionStage }
             else { timedStage }
-            if timing.phase == .interrupted || reaction.phase == .interrupted { Label("playkit.challenge.interrupted", systemImage: "pause.circle") }
-            if expired { Text("playkit.challenge.expired") }
-            if running { Button("playkit.challenge.abort", role: .destructive) { interrupt() } }
+            if timing.phase == .interrupted || reaction.phase == .interrupted {
+                CYStatusChip("playkit.challenge.interrupted", tone: .warning, systemImage: "pause.circle")
+            }
+            if expired { CYStatusChip("playkit.challenge.expired", tone: .danger) }
+            if running {
+                Button("playkit.challenge.abort", role: .destructive) { interrupt() }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
+            }
         }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .tint(CYDomainPalette(.player).brand)
         .onAppear { mounted = true; expectedRevision = currentRevisionIdentity?() ?? revisionIdentity }
         .task(id: ticker) {
             while mounted && active && running && !Task.isCancelled {
@@ -74,19 +85,19 @@ import SwiftUI
         Text(verbatim: clockLabel).font(.system(.largeTitle, design: .rounded).monospacedDigit())
             .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
         if timing.phase == .idle || timing.phase == .interrupted {
-            Button("playkit.challenge.start") { start() }.buttonStyle(.questifyPrimary)
+            CYPillButton("playkit.challenge.start") { start() }
                 .disabled(!enabled || !validConfiguration).accessibilityIdentifier("playkit.challenge.start")
         }
         if timing.phase == .running && kind != .countdown {
-            Button(kind == .stopwatch ? "playkit.stopwatch.stop" : "playkit.type.finish") {
+            CYPillButton(kind == .stopwatch ? "playkit.stopwatch.stop" : "playkit.type.finish") {
                 timing.measure(now: ProcessInfo.processInfo.systemUptime); elapsed = timing.elapsedMilliseconds; typingFocused = false
-            }.buttonStyle(.questifyPrimary).disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
+            }.disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
         }
         if timing.phase == .measured {
-            Button("playkit.review") { reviewMeasurement() }.buttonStyle(.questifyPrimary)
+            CYPillButton("playkit.review") { reviewMeasurement() }
                 .disabled(!enabled || (kind == .typeIn && input.isEmpty)).accessibilityIdentifier("playkit.challenge.submit")
         }
-        if !validConfiguration { Text("playkit.configurationInvalid") }
+        if !validConfiguration { CYEmptyState(systemImage: "exclamationmark.triangle", "playkit.configurationInvalid") }
     }
     private var validConfiguration: Bool {
         if kind == .reaction { return true }
@@ -105,27 +116,29 @@ import SwiftUI
         LabeledContent("playkit.reaction.round") { Text(verbatim: PlayTimedDisplayLocalization.round(current: reaction.roundsMilliseconds.count, total: reaction.rounds, locale: locale)).monospacedDigit() }
         if let goal = segment["goalMs"].integer, goal > 0 { LabeledContent("playkit.reaction.goal") { Text(verbatim: PlayTimedDisplayLocalization.milliseconds(goal, locale: locale)) } }
         if reaction.phase == .idle || reaction.phase == .interrupted {
-            Button("playkit.challenge.start") { start() }.buttonStyle(.questifyPrimary).disabled(!enabled)
+            CYPillButton("playkit.challenge.start") { start() }.disabled(!enabled)
         } else if reaction.phase == .waiting || reaction.phase == .signal {
             Button {
                 reaction.tap(now: ProcessInfo.processInfo.systemUptime); onDirty()
             } label: {
-                VStack(spacing: 12) {
+                VStack(spacing: CYSpacing.md) {
                     Image(systemName: reaction.phase == .signal ? "hand.tap.fill" : "hourglass")
-                    Text(reaction.phase == .signal ? "playkit.reaction.tap" : "playkit.reaction.wait")
-                }.font(.largeTitle.bold()).frame(maxWidth: .infinity, minHeight: 240)
-            }.buttonStyle(.questifyPrimary).tint(reaction.phase == .signal ? .green : .orange)
-                .disabled(!enabled).accessibilityIdentifier("playkit.reaction.target")
+                    CYStatusChip(reaction.phase == .signal ? "playkit.reaction.tap" : "playkit.reaction.wait",
+                                 tone: reaction.phase == .signal ? .success : .warning)
+                }.frame(maxWidth: .infinity, minHeight: 240)
+            }
+            .buttonStyle(CYPillButtonStyle(style: reaction.phase == .signal ? .primary : .secondary))
+            .disabled(!enabled).accessibilityIdentifier("playkit.reaction.target")
         } else if reaction.phase == .early || reaction.phase == .betweenRounds {
-            if reaction.phase == .early { Label("playkit.reaction.early", systemImage: "exclamationmark.circle") }
-            Button("playkit.reaction.next") { reaction.arm(now: ProcessInfo.processInfo.systemUptime, randomUnit: Double.random(in: 0...1)); ticker = UUID() }.disabled(!enabled)
+            if reaction.phase == .early { CYStatusChip("playkit.reaction.early", tone: .warning, systemImage: "exclamationmark.circle") }
+            CYPillButton("playkit.reaction.next", style: .secondary) { reaction.arm(now: ProcessInfo.processInfo.systemUptime, randomUnit: Double.random(in: 0...1)); ticker = UUID() }.disabled(!enabled)
         }
         ForEach(Array(reaction.roundsMilliseconds.enumerated()), id: \.offset) { index, ms in
             HStack { Text(verbatim: PlayTimedDisplayLocalization.count(index + 1, locale: locale)); Spacer(); Text(verbatim: PlayTimedDisplayLocalization.milliseconds(ms, locale: locale)).monospacedDigit() }
         }
         if reaction.phase == .measured {
-            Button("playkit.review") { requestReview("SUBMIT_REACTION", ["times": .array(reaction.roundsMilliseconds.map(PlayWireValue.int))], {}) }
-                .buttonStyle(.questifyPrimary).disabled(!enabled)
+            CYPillButton("playkit.review") { requestReview("SUBMIT_REACTION", ["times": .array(reaction.roundsMilliseconds.map(PlayWireValue.int))], {}) }
+                .disabled(!enabled)
         }
     }
     private func start() {

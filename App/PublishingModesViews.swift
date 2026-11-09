@@ -242,7 +242,7 @@ import Combine
                     }
                 }
                 .questifyBottomAction {
-                    Button { if let snapshot { Task { await submit(snapshot) } } } label: { Text("publishModes.confirm").frame(maxWidth: .infinity) }
+                    CYPillButton("publishModes.confirm") { if let snapshot { Task { await submit(snapshot) } } }
                         .disabled(snapshot == nil || busy || service?.mutationsConfigured != true)
                 }
             }
@@ -255,6 +255,11 @@ import Combine
         // tickets (collaborators, ticket options, add ticket, publisher identity).
         // Input errors sit in red under the field they refer to.
         Form {
+            Section {
+                CYHeroHeader("publishModes.activity", subtitle: Self.wizardSubtitle(wizardStep))
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .listRowBackground(Color.clear)
+            }
             Section { ActivityPublishingWizardChrome(step: wizardStep, block: wizardBlock) }
             if ActivityPublishingWizard.clamp(wizardStep) == 0 {
                 Section {
@@ -395,7 +400,7 @@ import Combine
             VStack(spacing: 8) {
                 if !message.isEmpty {
                     Text(LocalizedStringKey(message)).font(.footnote)
-                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? CYColor.dangerText : Color.secondary)
+                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? CYColor.dangerText : CYColor.textSecondary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishModes.message")
                 }
@@ -445,12 +450,19 @@ import Combine
                 .accessibilityIdentifier("publishModes.activity.wizard.validation")
         }
     }
-    private func chooserRow(_ title: LocalizedStringKey, value: String?, icon: String? = nil) -> some View {
-        HStack {
-            if let icon { Label(title, systemImage: icon).foregroundStyle(Color.primary) } else { Text(title).foregroundStyle(Color.primary) }
-            Spacer()
-            Text(verbatim: value ?? "—").foregroundStyle(.secondary).lineLimit(1)
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+    private static func wizardSubtitle(_ step: Int) -> LocalizedStringKey {
+        switch ActivityPublishingWizard.clamp(step) {
+        case 0: return "publishModes.wizard.step.basic"
+        case 1: return "publishModes.wizard.step.content"
+        default: return "publishModes.wizard.step.ticket"
+        }
+    }
+    @ViewBuilder private func chooserRow(_ title: LocalizedStringKey, value: String?, icon: String? = nil) -> some View {
+        let shown = value?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? value! : "—"
+        if let icon {
+            CYListRow(title, trailing: .valueChevron(shown)) { CYRowIcon(systemImage: icon) }
+        } else {
+            CYListRow(title, trailing: .valueChevron(shown))
         }
     }
     private func clearButton(_ field: ActivityPublishingLocalClearOwner.Field) -> some View {

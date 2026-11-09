@@ -304,10 +304,11 @@ struct SessionRootView: View {
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
+                .cyScreenStyle()
                 .cyDomainTabBar(.player)
                 .roleTheme(.player)
                 }
-            } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).roleTheme(.player) }
+            } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).cyScreenStyle().roleTheme(.player) }
         }
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
         .onChange(of: session.account?.id) { _, accountID in

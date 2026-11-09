@@ -106,40 +106,46 @@ struct MessagingHistoryView: View {
         let lease = authority.bind(reader: reader, policy: replyPolicy, ready: currentHistoryReady)
         ZStack {
             if !reader.isConfigured {
-                MessagingIssueView(issue: .init(APIError.notConfigured), identifier: "messaging.history.unconfigured", retry: {})
+                ChatHistoryStatus(issue: .init(APIError.notConfigured), identifier: "messaging.history.unconfigured", retry: {})
             } else if reader.identity == nil {
-                MessagingIssueView(issue: .init(APIError.unauthorized), identifier: "messaging.history.signedOut", retry: {})
+                ChatHistoryStatus(issue: .init(APIError.unauthorized), identifier: "messaging.history.signedOut", retry: {})
             } else if conversationID <= 0 || (conversation != nil && conversation?.id != conversationID) {
-                MessagingIssueView(issue: .init(APIError.invalidRequest), identifier: "messaging.history.missing", retry: {})
+                ChatHistoryStatus(issue: .init(APIError.invalidRequest), identifier: "messaging.history.missing", retry: {})
             } else if isLoading {
-                ProgressView("messaging.loading").accessibilityIdentifier("messaging.history.loading")
+                ChatHistoryLoading(labelKey: "messaging.loading", identifier: "messaging.history.loading")
             } else if let issue {
-                VStack {
-                    MessagingIssueView(issue: issue, identifier: "messaging.history.error") { Task { await reload() } }
+                VStack(spacing: CYSpacing.lg) {
+                    ChatHistoryStatus(issue: issue, identifier: "messaging.history.error") { Task { await reload() } }
                     // Source closed hangout: 「返回消息列表」 instead of a dead end.
+                    // This is the one primary action on the closed screen. Retry stays secondary.
                     if issue.titleKey == "messaging.closed" {
                         Button("im.chat.returnToList") { dismissHistory() }
-                            .buttonStyle(.questifyPrimary)
+                            .buttonStyle(.cyPrimary)
                             .accessibilityIdentifier("im.chat.returnToList")
                     }
                 }
+                .padding(.horizontal, CYSpacing.lg)
             } else if currentHistoryReady {
                 transcript
             } else {
-                ProgressView("messaging.loading")
+                ChatHistoryLoading(labelKey: "messaging.loading", identifier: "messaging.history.loading")
             }
         }
         .safeAreaInset(edge:.bottom) {
             if replyPolicy.isSystemNotice, currentHistoryReady {
                 Label("im.reply.systemNotice", systemImage: "info.circle")
-                    .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+                    .background(CYColor.bgElevated)
                     .accessibilityIdentifier("im.reply.systemNotice")
             } else if let block = replyBlock, block != .systemNotice, currentHistoryReady {
                 Label(LocalizedStringKey(block == .blockedByMe ? "im.chat.blockedByMe" : "im.chat.peerUnavailable"),
                       systemImage: "hand.raised")
-                    .font(.footnote).frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3).background(.bar)
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+                    .background(CYColor.bgElevated)
                     .accessibilityIdentifier("im.chat.replyBlocked")
             } else if replyPolicy.permitsReply, let sender {
                 MessageActionComposer(coordinator: sender, identity: reader.identity,
@@ -155,6 +161,7 @@ struct MessagingHistoryView: View {
                 if let owner = expanded?.pollCoordinator?(conversationID, nil) { GroupPollView(owner: owner, creating: true) }
                 else { GroupPollUnavailableView().toolbar { Button("action.cancel") { showingPollComposer = false } } }
             }
+            .themeDomain(.player)
         }
         .privacySensitive()
         .appNavigationTitle("messaging.history.title")
@@ -196,7 +203,7 @@ struct MessagingHistoryView: View {
             }
         }
         .sheet(item: $safety) { presentation in
-            IMSafetyReviewView(owner: presentation.owner) { action in
+            ChatSafetySheet(owner: presentation.owner) { action in
                 switch action {
                 case .hide: dismissHistory()                       // source navigateBack after hide
                 case .block, .unblock: Task { await reload() }     // blockedByMe is read back, not assumed
@@ -204,6 +211,8 @@ struct MessagingHistoryView: View {
                 }
             }
         }
+        .themeDomain(.player)
+        .cyDomainPageBackground()
         .onChange(of: reader.identity) { _, _ in showingPollComposer = false; safety = nil }
         .refreshable { if issue?.isTerminal != true { await reload() } }
         .task(id: MessagingHistoryLoadKey(identity: reader.identity, conversationID: conversationID,
@@ -216,34 +225,44 @@ struct MessagingHistoryView: View {
     }
     private var transcript: some View {
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: Theme.Space.s2) {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if history.hasMore {
                     if isLoadingEarlier {
-                        ProgressView("messaging.loadingEarlier").accessibilityIdentifier("messaging.history.loadingEarlier")
+                        ChatHistoryLoading(labelKey: "messaging.loadingEarlier", identifier: "messaging.history.loadingEarlier", fills: false)
                     } else {
                         if let earlierIssue {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("messaging.earlierFailed").font(.headline)
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text("messaging.earlierFailed").font(CYTypography.sectionTitle)
                                 if let message = earlierIssue.message { Text(verbatim: message) }
                                 else { Text(LocalizedStringKey(earlierIssue.detailKey)) }
-                            }.accessibilityIdentifier("messaging.history.earlierError")
+                            }
+                            .foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("messaging.history.earlierError")
                         }
-                        Button(LocalizedStringKey(earlierIssue == nil ? "messaging.earlier" : "messaging.retry")) { Task { await loadEarlier() } }
-                            .accessibilityIdentifier("messaging.history.earlier")
+                        Button { Task { await loadEarlier() } } label: {
+                            CYListRow(
+                                LocalizedStringKey(earlierIssue == nil ? "messaging.earlier" : "messaging.retry"),
+                                meta: earlierIssue.map { LocalizedStringKey($0.detailKey) },
+                                trailing: earlierTrailing,
+                                card: false
+                            ) {
+                                CYRowIcon(systemImage: "clock.arrow.circlepath")
+                            }
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityIdentifier("messaging.history.earlier")
                     }
                 }
                 if history.messages.isEmpty {
-                    MessagingEmptyView(title: "messaging.history.empty",
-                                       hint: replyPolicy.isSystemNotice ? "im.chat.emptySystemHint"
-                                           : (sender != nil && replyBlock == nil ? "im.chat.emptyReplyHint" : "messaging.history.emptyHint"),
-                                       identifier: "messaging.history.empty")
+                    ChatHistoryEmpty(hint: emptyHintKey)
                 }
                 let dividers = IMInboxTime.dividers(for: history.messages, now: Date())
+                let accountID = loadedIdentity?.accountID ?? 0
                 ForEach(history.messages) { message in
-                    VStack(spacing: Theme.Space.s2) {
+                    VStack(spacing: CYSpacing.sm) {
                         // Time is grouped: one divider per burst, not a stamp on every bubble.
                         if let divider = dividers[message.id] {
-                            IMChatDividerLabel(divider: divider).font(.caption).foregroundStyle(.secondary)
+                            IMChatDividerLabel(divider: divider).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 .frame(maxWidth: .infinity).accessibilityIdentifier("im.chat.divider.\(message.id)")
                         }
                         NavigationLink {
@@ -251,8 +270,16 @@ struct MessagingHistoryView: View {
                                 reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
                                 currentMessage: { history.messages.first { $0.id == message.id } })
                         } label: {
-                            MessagingBubble(message: message, conversation: conversation,
-                                accountID: loadedIdentity?.accountID ?? 0)
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                CYListRow(
+                                    rowTitle(message, accountID: accountID),
+                                    trailing: .valueChevron(ChatDisplay.stamp(message.createdAt)),
+                                    card: false
+                                ) {
+                                    CYRowIcon(systemImage: rowSymbol(message, accountID: accountID))
+                                }
+                                MessagingBubble(message: message, conversation: conversation, accountID: accountID)
+                            }
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("messaging.message.\(message.id)")
@@ -260,7 +287,7 @@ struct MessagingHistoryView: View {
                     .id(message.id)
                 }
             }
-            .padding(.horizontal, Theme.Space.pageX).padding(.vertical, Theme.Space.s3)
+            .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
             .scrollTargetLayout()
         }
@@ -316,6 +343,32 @@ struct MessagingHistoryView: View {
         generation == request && !Task.isCancelled && identity != nil && reader.identity == identity
             && ObjectIdentifier(reader) == source && reader.isConfigured
             && history.conversationID == conversationID
+    }
+    private var emptyHintKey: LocalizedStringKey {
+        if replyPolicy.isSystemNotice { return "im.chat.emptySystemHint" }
+        if sender != nil && replyBlock == nil { return "im.chat.emptyReplyHint" }
+        return "messaging.history.emptyHint"
+    }
+    /// A missing earlier failure message is unknown, so the row shows an em dash.
+    private var earlierTrailing: CYListRowTrailing {
+        guard let earlierIssue else { return .none }
+        if let message = earlierIssue.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return .value(message)
+        }
+        return .value(ChatDisplay.unknown)
+    }
+    private func rowTitle(_ message: MessagingMessage, accountID: Int) -> LocalizedStringKey {
+        if !message.isPayloadVisible {
+            return message.status == .recalled ? "messaging.message.recalled" : "messaging.message.withheld"
+        }
+        if message.senderID == accountID && accountID > 0 { return "messaging.you" }
+        if message.senderID == 0 { return "messaging.system" }
+        return "messaging.member"
+    }
+    private func rowSymbol(_ message: MessagingMessage, accountID: Int) -> String {
+        if !message.isPayloadVisible { return "eye.slash" }
+        if message.senderID == accountID && accountID > 0 { return "person.fill" }
+        return "bubble.left"
     }
 }
 
@@ -404,5 +457,238 @@ private struct MessagingBubble: View {
     }
     private func identifier(_ item: IMSafetyMenu.Item) -> String {
         switch item { case .report: return "report"; case .block: return "block"; case .unblock: return "unblock"; case .hide: return "hide" }
+    }
+}
+
+/// Unknown chat values render as an em dash. A blank server string is unknown, not zero.
+private enum ChatDisplay {
+    static let unknown = "—"
+    static func stamp(_ value: String?) -> String {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? unknown : trimmed
+    }
+}
+
+/// Layout-shaped loading. The visible label keeps the existing localization key.
+private struct ChatHistoryLoading: View {
+    let labelKey: LocalizedStringKey
+    let identifier: String
+    var fills = true
+    var body: some View {
+        if fills {
+            row.frame(maxHeight: .infinity, alignment: .top)
+        } else {
+            row
+        }
+    }
+    private var row: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(labelKey).font(CYTypography.meta)
+            CYSkeleton().accessibilityHidden(true)
+        }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .top)
+        .accessibilityIdentifier(identifier)
+    }
+}
+
+/// Empty transcript. Title and hint keys stay; the hint is the second line.
+private struct ChatHistoryEmpty: View {
+    let hint: LocalizedStringKey
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            CYEmptyState(systemImage: "bubble.left.and.bubble.right", "messaging.history.empty")
+            Text(hint)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textTertiary)
+                .multilineTextAlignment(.center)
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("messaging.history.empty")
+    }
+}
+
+/// Issue copy stays on the existing keys. Retry is secondary so a closed chat has one primary.
+private struct ChatHistoryStatus: View {
+    let issue: MessagingLoadIssue
+    let identifier: String
+    let retry: () -> Void
+    var body: some View {
+        VStack(spacing: CYSpacing.md) {
+            CYEmptyState(systemImage: issue.canRetry ? "exclamationmark.triangle" : "lock", LocalizedStringKey(issue.titleKey))
+            if let message = issue.message {
+                Text(verbatim: message)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .multilineTextAlignment(.center)
+            } else {
+                Text(LocalizedStringKey(issue.detailKey))
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            if issue.canRetry {
+                Button("messaging.retry", action: retry)
+                    .buttonStyle(.cySecondary(fullWidth: true))
+                    .accessibilityIdentifier(identifier + ".retry")
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier(identifier)
+    }
+}
+
+/// Same safety owner calls as the shared review sheet. The reviewing step is a `CYConfirmSheet`.
+@MainActor private struct ChatSafetySheet: View {
+    @StateObject private var model: IMSafetyModel
+    let onSettled: (IMSafetyAction) -> Void
+    @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
+    @State private var task: Task<Void, Never>?
+
+    init(owner: IMSafetyCoordinator, onSettled: @escaping (IMSafetyAction) -> Void) {
+        _model = StateObject(wrappedValue: IMSafetyModel(owner: owner))
+        self.onSettled = onSettled
+    }
+
+    var body: some View {
+        Group {
+            if case .reviewing(let action) = model.state {
+                reviewing(action)
+            } else {
+                statusForm
+            }
+        }
+        .themeDomain(.player)
+        .accessibilityIdentifier("im.safety.sheet")
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(isInFlight)
+        .onDisappear {
+            if case .acknowledged(let action) = model.state { onSettled(action) }
+            model.owner.cancelReview()
+        }
+    }
+
+    private var isInFlight: Bool {
+        switch model.state { case .submitting, .verifying, .resolving: return true; default: return false }
+    }
+
+    private func reviewing(_ action: IMSafetyAction) -> some View {
+        let copy = IMSafetyCopy(action)
+        return NavigationStack {
+            CYConfirmSheet(
+                title: appLocalized(String.LocalizationValue(copy.titleKey), locale: locale),
+                message: confirmationMessage(copy),
+                confirmTitle: appLocalized(String.LocalizationValue(copy.confirmKey), locale: locale),
+                isDestructive: confirmsDestructively(action),
+                confirmIdentifier: "im.safety." + "confirm",
+                cancelIdentifier: "im.safety." + "cancel",
+                titleIdentifier: "im.safety." + "reviewTitle"
+            ) {
+                run { await model.owner.confirm() }
+            }
+            .navigationTitle(Text("im.safety.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.close") { dismiss() }
+                        .disabled(isInFlight)
+                        .accessibilityIdentifier("im.safety.close")
+                }
+            }
+        }
+    }
+
+    /// Every non-review state stays reachable. Confirm, retry, and verify still call the owner.
+    private var statusForm: some View {
+        NavigationStack {
+            Form { statusContent }
+                .navigationTitle(Text("im.safety.title"))
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("action.close") { dismiss() }
+                            .disabled(isInFlight)
+                            .accessibilityIdentifier("im.safety.close")
+                    }
+                }
+        }
+    }
+
+    @ViewBuilder private var statusContent: some View {
+        switch model.state {
+        case .idle:
+            Text("im.safety.idle").accessibilityIdentifier("im.safety.idle")
+        case .resolving:
+            ProgressView("im.safety.resolving").accessibilityIdentifier("im.safety.resolving")
+        case .unavailable(let message):
+            Section {
+                Label("im.safety.unavailable", systemImage: "exclamationmark.circle").accessibilityIdentifier("im.safety.unavailable")
+                if let message, !message.isEmpty { Text(verbatim: message) }
+            }
+        case .reviewing(_):
+            EmptyView()
+        case .submitting:
+            ProgressView("im.safety.submitting").accessibilityIdentifier("im.safety.submitting")
+        case .verifying:
+            ProgressView("im.safety.verifying").accessibilityIdentifier("im.safety.verifying")
+        case .acknowledged(let action):
+            let copy = IMSafetyCopy(action)
+            Section {
+                Label(LocalizedStringKey(copy.doneKey), systemImage: "checkmark.circle").accessibilityIdentifier("im.safety.done")
+                if let key = copy.doneDetailKey { Text(LocalizedStringKey(key)) }
+            }
+            Button("action.close") { dismiss() }.accessibilityIdentifier("im.safety.doneClose")
+        case .rejected(let action, let message):
+            Section {
+                Label(LocalizedStringKey(IMSafetyCopy(action).failureKey), systemImage: "xmark.octagon").accessibilityIdentifier("im.safety.rejected")
+                if let message, !message.isEmpty { Text(verbatim: message) }
+                Button("im.safety.retrySame") { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+            }
+        case .outcomeUnknown(let action):
+            Section {
+                Label("im.safety.unknown", systemImage: "questionmark.circle").accessibilityIdentifier("im.safety.unknown")
+                if case .report = action {
+                    Text("im.safety.unknownReport")
+                } else if case .reportWithReason = action {
+                    Text("im.safety.unknownReport")
+                } else {
+                    Text("im.safety.unknownHint")
+                    Button("im.safety.verify") { run { await model.owner.verify() } }.accessibilityIdentifier("im.safety.verify")
+                }
+                Button("im.safety.retrySame") { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+            }
+        case .notApplied:
+            Section {
+                Label("im.safety.notApplied", systemImage: "arrow.uturn.backward.circle").accessibilityIdentifier("im.safety.notApplied")
+                Button("im.safety.retrySame") { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+            }
+        }
+    }
+
+    private func confirmationMessage(_ copy: IMSafetyCopy) -> String {
+        var lines: [String] = []
+        if let key = copy.contentKey {
+            lines.append(appLocalized(String.LocalizationValue(key), locale: locale))
+        }
+        for key in copy.consequenceKeys {
+            lines.append(appLocalized(String.LocalizationValue(key), locale: locale))
+        }
+        let text = lines.joined(separator: "\n").trimmingCharacters(in: .whitespacesAndNewlines)
+        return text.isEmpty ? ChatDisplay.unknown : text
+    }
+
+    /// Hide and block stay destructive. Report and unblock keep one primary confirm.
+    private func confirmsDestructively(_ action: IMSafetyAction) -> Bool {
+        switch action {
+        case .hide, .block: return true
+        case .report, .reportWithReason, .unblock: return false
+        }
+    }
+
+    private func run(_ body: @escaping @MainActor () async -> Void) {
+        guard task == nil else { return }
+        task = Task { @MainActor in await body(); task = nil }
     }
 }

@@ -28,15 +28,22 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     var body: some View {
         ZStack {
             if !session.isConfigured || !model.coordinator.isConfigured {
-                ContentUnavailableView("merchant.onboarding.title", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                VStack(spacing: CYSpacing.md) {
+                    CYEmptyState(systemImage: "network.slash", "merchant.onboarding.title")
+                    Text("auth.notConfigured").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                }
             } else if !session.isSignedIn {
-                ContentUnavailableView("merchant.onboarding.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
+                VStack(spacing: CYSpacing.md) {
+                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "merchant.onboarding.title")
+                    Text("merchant.signIn").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                }
             } else if model.identity != model.coordinator.identity {
-                ProgressView("merchant.onboarding.checking")
+                CYSkeleton().accessibilityLabel(Text("merchant.onboarding.checking"))
             } else {
                 content
             }
         }
+        .themeDomain(.merchant)
         .appNavigationTitle("merchant.onboarding.title")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: session.sessionRevision) {
@@ -89,31 +96,39 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
     @ViewBuilder private var content: some View {
         switch model.coordinator.loadState {
         case .idle, .loading:
-            ProgressView("merchant.onboarding.checking").accessibilityIdentifier("merchant.onboarding.loading")
+            CYSkeleton()
+                .accessibilityIdentifier("merchant.onboarding.loading")
+                .accessibilityLabel(Text("merchant.onboarding.checking"))
         case .unavailable:
             Form {
+                onboardingHero
                 submissionSection
-                Section { Text("merchant.onboarding.stateUnavailable"); refreshButton }
+                Section {
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "merchant.onboarding.stateUnavailable")
+                    refreshButton
+                }
             }
         case .loaded(let snapshot):
             if model.coordinator.submission.isLocked && model.coordinator.submission != .awaitingConfirmation {
                 Form {
+                    onboardingHero
                     submissionSection
                     if case .application(let application) = snapshot { statusSection(application) }
-                    else { Section { Text("merchant.onboarding.noApplicationReadback") } }
+                    else { Section { CYEmptyState("merchant.onboarding.noApplicationReadback") } }
                     Section { refreshButton }
                 }
             } else if case .application(let application) = snapshot, (!model.isEditing || !application.canReapply) {
                 Form {
+                    onboardingHero
                     submissionSection
                     statusSection(application)
                     Section {
                         if application.canReapply {
-                            Button("merchant.onboarding.reapply") { model.reapply(application) }
+                            CYPillButton("merchant.onboarding.reapply") { model.reapply(application) }
                                 .accessibilityIdentifier("merchant.onboarding.reapply")
                         }
                         if application.status == 1 && application.accountStatus == 1, let openMerchant {
-                            Button("merchant.onboarding.openMerchant", action: openMerchant)
+                            CYPillButton("merchant.onboarding.openMerchant", style: application.canReapply ? .secondary : .primary, action: openMerchant)
                         }
                         refreshButton
                     }
@@ -121,8 +136,24 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             } else { applicationForm }
         }
     }
+    private var onboardingHero: some View {
+        Section {
+            CYHeroHeader("merchant.onboarding.title", subtitle: heroSubtitle)
+                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                .listRowBackground(Color.clear)
+        }
+    }
+    private var heroSubtitle: LocalizedStringKey {
+        switch model.step {
+        case 1: return "merchant.onboarding.step.1"
+        case 2: return "merchant.onboarding.step.2"
+        case 3: return "merchant.onboarding.step.3"
+        default: return "merchant.onboarding.step.4"
+        }
+    }
     private var applicationForm: some View {
         Form {
+            onboardingHero
             submissionSection
             switch model.step {
             case 1: basicSection
@@ -135,9 +166,11 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
             }
             if model.isBusy || model.step > 1 {
                 Section {
-                    if model.isBusy { ProgressView("merchant.onboarding.working") }
+                    if model.isBusy {
+                        CYSkeleton().accessibilityLabel(Text("merchant.onboarding.working"))
+                    }
                     if model.step > 1 {
-                        Button("merchant.onboarding.previous") { model.step -= 1; model.errorKey = nil }
+                        CYPillButton("merchant.onboarding.previous", style: .secondary) { model.step -= 1; model.errorKey = nil }
                             .disabled(model.isBusy || model.coordinator.submission.isLocked)
                     }
                 }
@@ -149,10 +182,10 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         .questifyBottomAction {
             Group {
                 if model.step < 4 {
-                    Button("merchant.onboarding.next") { model.next() }
+                    CYPillButton("merchant.onboarding.next") { model.next() }
                         .accessibilityIdentifier("merchant.onboarding.next")
                 } else {
-                    Button("merchant.onboarding.reviewSubmit") {
+                    CYPillButton("merchant.onboarding.reviewSubmit") {
                         model.prepare(); showSubmitConfirmation = model.confirmation != nil
                     }
                     .disabled(model.coordinator.identityGate != .registered || model.draft.blocker() != nil)
@@ -174,7 +207,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         Section("merchant.onboarding.step.2") {
             TextField("merchant.onboarding.address", text: $model.draft.address, axis: .vertical)
                 .accessibilityIdentifier("merchant.onboarding.address")
-            LabeledContent("merchant.onboarding.hours", value: model.draft.businessTime.isEmpty ? appLocalized("merchant.onboarding.notSet",locale:locale) : displayHours(model.draft.businessTime))
+            CYListRow("merchant.onboarding.hours", trailing: .value(model.draft.businessTime.isEmpty ? "—" : displayHours(model.draft.businessTime)))
             Button("merchant.onboarding.chooseHours") {
                 hoursEditor = MerchantOnboardingHoursSession(model: model)
                 showHours = hoursEditor != nil
@@ -257,13 +290,13 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         return indexes.map { names[$0] }.joined(separator: ", ") + " " + String(parts[1])
     }
     private func reviewRow(_ key: String, _ value: String) -> some View {
-        RevolutInsetRow(title: appLocalized(String.LocalizationValue(stringLiteral: key), locale: locale), value: value.isEmpty ? "—" : value)
+        CYListRow(LocalizedStringKey(key), trailing: .value(value.isEmpty ? "—" : value), card: true)
     }
     private var identitySection: some View {
         Section("merchant.onboarding.identity.title") {
             switch model.coordinator.identityGate {
-            case .registered: Label("merchant.onboarding.identity.registered", systemImage: "checkmark.circle")
-            case .checking: ProgressView("merchant.onboarding.identity.checking")
+            case .registered: CYStatusChip("merchant.onboarding.identity.registered", tone: .success, systemImage: "checkmark")
+            case .checking: CYSkeleton().accessibilityLabel(Text("merchant.onboarding.identity.checking"))
             case .required:
                 Text("merchant.onboarding.identity.required").accessibilityIdentifier("merchant.onboarding.identityGate")
                 Text("merchant.onboarding.identity.regionalGate").font(.footnote).foregroundStyle(.secondary)
@@ -286,13 +319,15 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
                 if let message = failure.message, !message.isEmpty { Text(message) }
             }
         case .notSent: Section { Text("merchant.onboarding.notSent") }
-        case .checking, .submitting: Section { ProgressView("merchant.onboarding.working") }
+        case .checking, .submitting:
+            Section { CYSkeleton().accessibilityLabel(Text("merchant.onboarding.working")) }
         default: EmptyView()
         }
     }
     private func statusSection(_ application: MerchantOnboardingApplication) -> some View {
         Section("merchant.onboarding.serverStatus") {
-            Text(LocalizedStringKey(application.statusKey)).font(.headline).accessibilityIdentifier("merchant.onboarding.status")
+            CYStatusChip(LocalizedStringKey(application.statusKey), tone: application.accountStatus == 2 || application.status == 2 ? .danger : application.status == 1 ? .success : .warning)
+                .accessibilityIdentifier("merchant.onboarding.status")
             Text(LocalizedStringKey(application.explanationKey))
             if let reason = application.displayedReason { Text(reason) }
             if !application.name.isEmpty { LabeledContent("merchant.onboarding.name", value: application.name) }
@@ -300,7 +335,7 @@ struct MerchantOnboardingView<Session: MerchantOnboardingObserving>: View {
         }
     }
     private var refreshButton: some View {
-        Button("merchant.onboarding.checkAgain") { Task { await model.load() } }
+        CYPillButton("merchant.onboarding.checkAgain", style: .tertiary) { Task { await model.load() } }
             .disabled(model.isBusy).accessibilityIdentifier("merchant.onboarding.refresh")
     }
 }

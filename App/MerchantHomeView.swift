@@ -28,9 +28,9 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
     var body: some View {
         ZStack {
             if !reader.isConfigured {
-                ContentUnavailableView("merchant.title", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                merchantGate(systemImage: "network.slash", message: "auth.notConfigured")
             } else if !reader.isSignedIn {
-                ContentUnavailableView("merchant.title", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("merchant.signIn"))
+                merchantGate(systemImage: "person.crop.circle.badge.exclamationmark", message: "merchant.signIn")
             } else if access.loadedRevision == reader.sessionRevision, let identity = access.value {
                 if identity.active {
                     MerchantWorkbench(reader: reader, access: identity, marketingModel: marketingModel, marketingDestination: marketingDestination, operationsReader: operationsReader, operationsDestinationFactory: operationsDestinationFactory, businessReader: businessReader, businessJournal: businessJournal, contentService: contentService, cooperationFlowReader: cooperationFlowReader, engagementReader: engagementReader, exportRecovery: exportRecovery, showsRecordLinks: showsRecordLinks, predictionReader: predictionReader, refreshAccess: reload, dashboard: dashboard, todo: todo, events: events, onChildReturn: { childReturnRevision &+= 1 })
@@ -43,21 +43,38 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
                                 .accessibilityIdentifier("merchant.access.inactive")
                         }
                         if let openApplication {
-                            Button("merchant.onboarding.openApplication", action: openApplication)
+                            CYPillButton("merchant.onboarding.openApplication", action: openApplication)
                                 .accessibilityIdentifier("merchant.onboarding.entry")
+                            CYPillButton("merchant.refreshAccess", style: .secondary) { Task { await reload() } }
+                                .accessibilityIdentifier("merchant.access.refresh")
+                        } else {
+                            CYPillButton("merchant.refreshAccess") { Task { await reload() } }
+                                .accessibilityIdentifier("merchant.access.refresh")
                         }
-                        Button("merchant.refreshAccess") { Task { await reload() } }
-                            .accessibilityIdentifier("merchant.access.refresh")
                     }.refreshable { await reload() }
                 }
             } else if let error = access.errorKey {
-                MerchantFailureView(errorKey: error, identifier: "merchant.access", retry: { Task { await reload() } })
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    CYHeroHeader("merchant.title")
+                    Text(LocalizedStringKey(error)).accessibilityIdentifier("merchant.access.error")
+                    if error != "merchant.access.denied" && error != "auth.expired" {
+                        CYPillButton("action.retry") { Task { await reload() } }
+                            .accessibilityIdentifier("merchant.access.retry")
+                    }
+                }
+                .padding(CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             } else {
-                ProgressView("merchant.checkingAccess").accessibilityIdentifier("merchant.access.loading")
+                CYSkeleton()
+                    .padding(CYSpacing.pageHorizontal)
+                    .accessibilityIdentifier("merchant.access.loading")
+                    .accessibilityLabel(Text("merchant.checkingAccess"))
             }
         }
         .appNavigationTitle("merchant.title")
-        .preferredColorScheme(.light) // merchant surfaces are LIGHT (ui-agent-brief: role themes)
+        .cyDomainPageBackground()
+        .themeDomain(.merchant)
+        .tint(CYDomainPalette(.merchant).brand)
         .task(id: [reader.sessionRevision, childReturnRevision]) { await reload() }
     }
     private func reload() async {
@@ -119,6 +136,15 @@ struct MerchantHomeView<Reader: MerchantReading>: View {
         }
         return current() ? disposition : .cancelled
     }
+
+    private func merchantGate(systemImage: String, message: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            CYHeroHeader("merchant.title")
+            CYEmptyState(systemImage: systemImage, message)
+        }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+    }
 }
 
 @MainActor
@@ -175,6 +201,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     @State private var quickRoute: MerchantWorkbenchBusinessRoute?
     @State private var showsScan = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var quickShortcuts: [MerchantWorkbenchBusinessShortcut] {
         guard let businessReader, let businessJournal else { return [] }
@@ -192,7 +219,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             Section {
                 VStack(spacing: CYSpacing.md) {
                     Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
-                        .font(CYTypography.sectionTitle)
+                        .font(CYTypography.pageTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -205,32 +232,34 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                 Text("merchant.revenue")
                                     .font(CYTypography.meta)
                                     .foregroundStyle(CYColor.textSecondary)
+                                // Unknown revenue is an em dash (MerchantMoney.display), never a fake zero.
                                 Text(MerchantMoney.display(value.revenue))
-                                    .font(CYTypography.data2XL)
+                                    .font(CYTypography.display)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textPrimary)
                                     .lineLimit(1)
                                     .minimumScaleFactor(0.5)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, CYSpacing.xxl)
+                            .padding(.vertical, CYSpacing.lg)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("merchant.dashboard.revenue")
                         }
                     }
                 }
                 .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+                .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.xs, bottom: CYSpacing.md, trailing: CYSpacing.xs))
             }
             if showsScanAction || !quickShortcuts.isEmpty {
                 Section {
-                    HStack(alignment: .top, spacing: Theme.Space.s2) {
+                    // At accessibility sizes the four circles wrap to two columns instead of clipping.
+                    (dynamicTypeSize.isAccessibilitySize ? AnyLayout(GridFlowLayout()) : AnyLayout(HStackLayout(alignment: .top, spacing: Theme.Space.s2))) {
                         if showsScanAction {
-                            MerchantQuickCircleAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder") { showsScan = true }
+                            MerchantQuickCircleAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder", primary: true) { showsScan = true }
                                 .accessibilityIdentifier("merchant.workbench.scan")
                         }
-                        ForEach(quickShortcuts) { shortcut in
-                            MerchantQuickCircleAction(title: LocalizedStringKey(shortcut.shortTitleKey), systemImage: shortcut.symbol) {
+                        ForEach(Array(quickShortcuts.enumerated()), id: \.element.id) { index, shortcut in
+                            MerchantQuickCircleAction(title: LocalizedStringKey(shortcut.shortTitleKey), systemImage: shortcut.symbol, primary: !showsScanAction && index == 0) {
                                 if let businessReader, let businessJournal {
                                     quickRoute = MerchantWorkbenchBusinessRoute(shortcut: shortcut, reader: businessReader, journal: businessJournal)
                                 }
@@ -254,8 +283,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                 Section("merchant.todo") {
                     MerchantSectionState(model: todo, retry: { Task { await loadTodo() } }) { value in
                         if !value.hasPendingWork {
-                            Label("merchant.todo.empty", systemImage: "checkmark.circle")
-                                .foregroundStyle(CYColor.textSecondary)
+                            CYEmptyState(systemImage: "checkmark.circle", "merchant.todo.empty")
                         }
                         if access.isOwner, value.pendingVerify > 0 { MerchantCountRow("merchant.todo.verify", value: value.pendingVerify) }
                         if access.isOwner, value.pendingScanConfirm > 0 { MerchantCountRow("merchant.todo.scan", value: value.pendingScanConfirm) }
@@ -375,7 +403,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             if access.isOwner {
                 Section("merchant.events") {
                     MerchantSectionState(model: events, retry: { Task { await loadEvents() } }) { values in
-                        if values.isEmpty { Text("merchant.events.empty").foregroundStyle(.secondary) }
+                        if values.isEmpty { CYEmptyState(systemImage: "calendar", "merchant.events.empty") }
                         ForEach(Array(values.enumerated()), id: \.offset) { _, event in
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(event.content)
@@ -391,6 +419,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(CYSpacing.xxl)
         .navigationDestination(item: $quickRoute) { route in
             if let businessReader, let businessJournal,
@@ -531,7 +560,9 @@ struct MerchantSectionState<Value, Content: View>: View {
 private struct MerchantQuickCircleAction: View {
     let title: LocalizedStringKey
     let systemImage: String
+    var primary = false
     let action: () -> Void
+    @Environment(\.cyPalette) private var palette
     @ScaledMetric(relativeTo: .title3) private var diameter: CGFloat = 56
 
     var body: some View {
@@ -539,13 +570,14 @@ private struct MerchantQuickCircleAction: View {
             VStack(spacing: CYSpacing.sm) {
                 Image(systemName: systemImage)
                     .font(.title3.weight(.semibold))
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(primary ? palette.actionPrimaryFg : palette.textPrimary)
                     .frame(width: diameter, height: diameter)
-                    .background(CYColor.bgSurface, in: Circle())
-                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+                    .background(CYColor.bgElevated, in: Circle())
+                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
                     .font(CYTypography.caption)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
             }
@@ -674,3 +706,25 @@ struct MerchantWorkbenchBusinessRoute: Hashable {
     static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.reader?.retire() }
 }
 
+
+/// Two-column flow for the quick circles when text is at an accessibility size.
+private struct GridFlowLayout: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 320, cell = width / 2
+        let heights = subviews.map { $0.sizeThatFits(.init(width: cell, height: nil)).height }
+        var total: CGFloat = 0
+        for row in stride(from: 0, to: heights.count, by: 2) { total += heights[row..<min(row + 2, heights.count)].max() ?? 0 }
+        return CGSize(width: width, height: total)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let cell = bounds.width / 2; var y = bounds.minY
+        for row in stride(from: 0, to: subviews.count, by: 2) {
+            let slice = subviews[row..<min(row + 2, subviews.count)]
+            let height = slice.map { $0.sizeThatFits(.init(width: cell, height: nil)).height }.max() ?? 0
+            for (i, v) in slice.enumerated() {
+                v.place(at: CGPoint(x: bounds.minX + CGFloat(i) * cell, y: y), anchor: .topLeading, proposal: .init(width: cell, height: height))
+            }
+            y += height
+        }
+    }
+}

@@ -5,6 +5,7 @@ enum CYStatusTone { case neutral, success, warning, danger, info }
 /// Small capsule status label (order state, ticket state). Colour is never the only signal: pass text.
 struct CYStatusChip: View {
     private let text: LocalizedStringKey
+    private let verbatim: String?
     private let tone: CYStatusTone
     private let systemImage: String?
 
@@ -12,6 +13,16 @@ struct CYStatusChip: View {
 
     init(_ text: LocalizedStringKey, tone: CYStatusTone = .neutral, systemImage: String? = nil) {
         self.text = text
+        self.verbatim = nil
+        self.tone = tone
+        self.systemImage = systemImage
+    }
+
+    /// Server status text. Blank text renders as an em dash.
+    init(verbatim text: String, tone: CYStatusTone = .neutral, systemImage: String? = nil) {
+        let shown = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.text = ""
+        self.verbatim = shown.isEmpty ? "—" : shown
         self.tone = tone
         self.systemImage = systemImage
     }
@@ -19,7 +30,9 @@ struct CYStatusChip: View {
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
             if let systemImage { Image(systemName: systemImage).font(.caption2.weight(.bold)) }
-            Text(text).font(CYTypography.caption)
+            Group {
+                if let verbatim { Text(verbatim: verbatim) } else { Text(text) }
+            }.font(CYTypography.caption)
         }
         .foregroundStyle(foreground)
         .padding(.horizontal, CYSpacing.md)

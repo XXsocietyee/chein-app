@@ -40,6 +40,7 @@ struct ObjectBadgeWallLayoutSelection {
         let layout = layoutSelection.value(for: owner)
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", load: { try await reader.profileBadges() }) { wall in
             List {
+                Section { CYHeroHeader("profile.badges.title") }.listRowBackground(Color.clear)
                 Section {
                     ObjectBadgeWallLayoutControl(selection: Binding(
                         get: { layoutSelection.value(for: layoutOwner) },
@@ -53,7 +54,7 @@ struct ObjectBadgeWallLayoutSelection {
                     }
                 }
                 if wall.isEmpty {
-                    ContentUnavailableView("profile.badges.empty", systemImage: "medal")
+                    CYEmptyState(systemImage: "medal", "profile.badges.empty")
                         .accessibilityIdentifier("profile.badges.emptyState")
                 }
                 if !wall.identities.isEmpty {
@@ -123,23 +124,24 @@ struct ObjectBadgeWallBadgeLabel: View {
     let layout: ObjectBadgeWallLayout
     var body: some View {
         if layout == .wall {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Image(systemName: badge.isLocked ? "lock" : "medal").font(.title2).accessibilityHidden(true)
                 description.fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
-                .padding(12).background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+                .cyDomainCard(padding: CYSpacing.md)
                 .accessibilityElement(children: .combine)
         } else {
             HStack {
-                Image(systemName: badge.isLocked ? "lock" : "medal").accessibilityHidden(true)
+                CYRowIcon(systemImage: badge.isLocked ? "lock" : "medal")
                 description
             }
+            .accessibilityElement(children: .combine)
         }
     }
     private var description: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) }
-            Text(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked").font(.caption)
+            CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success)
         }
     }
 }
@@ -207,8 +209,10 @@ struct ObjectBadgeWallBadgeLabel: View {
     @State private var turntable: ObjectBadgeTurntable?
     var body: some View {
         let table = turntable ?? ObjectBadgeTurntable(style: parameters.style, reducedMotion: reduceMotion)
-        VStack(spacing: 16) {
+        VStack(spacing: CYSpacing.lg) {
             if currentScope() == expectedScope {
+                if parameters.name.isEmpty { CYHeroHeader("profile.badges.detail") }
+                else { CYHeroHeader(verbatim: parameters.name) }
                 // Native turntable: drag to rotate, tap to spin a pin badge; static under Reduce Motion.
                 ObjectCardArtwork(url: parameters.image, label: parameters.name, media: media,
                     expectedScope: expectedScope, currentScope: currentScope).frame(height: 200)
@@ -236,15 +240,24 @@ struct ObjectBadgeWallBadgeLabel: View {
                     }
                     .accessibilityIdentifier("objects.badge.turntable")
                 if let hint = table.hintKey {
-                    Text(LocalizedStringKey(hint)).font(.footnote).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(hint)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("objects.badge.turntableHint")
                 }
-                if parameters.name.isEmpty { Text("profile.badges.detail").font(.headline) }
-                else { Text(verbatim: parameters.name).font(.headline) }
-                if !parameters.subtitle.isEmpty { Text(verbatim: parameters.subtitle).font(.caption) }
-                Text(LocalizedStringKey("objects.rarity." + String(parameters.rarity)))
-                Text(LocalizedStringKey(parameters.style == "glow" ? "objects.glow" : (parameters.style == "pin" ? "objects.pin" : "objects.enamel"))).font(.footnote).foregroundStyle(.secondary)
-            } else { Text("objects.sessionChanged") }
-        }.padding().appNavigationTitle("profile.badges.detail").privacySensitive()
+                if !parameters.subtitle.isEmpty {
+                    CYListRow(verbatim: parameters.subtitle, trailing: .none, card: true)
+                }
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip(LocalizedStringKey("objects.rarity." + String(parameters.rarity)), tone: .info)
+                    CYStatusChip(LocalizedStringKey(parameters.style == "glow" ? "objects.glow" : (parameters.style == "pin" ? "objects.pin" : "objects.enamel")))
+                }
+            } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "objects.sessionChanged") }
+        }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .tint(CYDomainPalette(.player).brand)
+        .appNavigationTitle("profile.badges.detail")
+        .privacySensitive()
     }
 }
