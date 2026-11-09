@@ -33,7 +33,7 @@ struct CYCoverArt: View {
         GeometryReader { proxy in
             let reach = max(proxy.size.width, proxy.size.height)
             ZStack {
-                LinearGradient(colors: [Color(hue: hue, saturation: 0.62, brightness: 0.52), Color(hue: hue2, saturation: 0.75, brightness: 0.22)],
+                LinearGradient(colors: [Color(hue: hue, saturation: 0.78, brightness: 0.66), Color(hue: hue2, saturation: 0.85, brightness: 0.26)],
                                startPoint: .topLeading, endPoint: .bottomTrailing)
                 RadialGradient(colors: [Color(hue: hue3, saturation: 0.55, brightness: 0.95).opacity(0.55), .clear],
                                center: UnitPoint(x: ax, y: ay), startRadius: 0, endRadius: reach * 0.7)

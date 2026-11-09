@@ -5,6 +5,9 @@ struct CYHeroBannerItem: Identifiable {
     let id: Int
     var imageURL: URL?
     var accessibilityLabel: LocalizedStringKey?
+    /// Optional copy drawn over the art with a scrim. Without it the slide is art only.
+    var title: Text? = nil
+    var subtitle: Text? = nil
     var action: (() -> Void)?
 }
 
@@ -57,7 +60,7 @@ struct CYHeroBanner: View {
     }
 
     @ViewBuilder private func slide(_ item: CYHeroBannerItem, index: Int) -> some View {
-        let art = cover(item, index: index)
+        let art = cover(item, index: index).overlay(alignment: .bottomLeading) { caption(item) }
         if let action = item.action {
             Button(action: action) { art }
                 .buttonStyle(.plain)
@@ -81,6 +84,20 @@ struct CYHeroBanner: View {
         .scaleEffect(reduceMotion ? 1 : 1.18)
         .scrollTransition(axis: .horizontal) { content, phase in
             content.offset(x: reduceMotion ? 0 : phase.value * -44)
+        }
+    }
+
+    @ViewBuilder private func caption(_ item: CYHeroBannerItem) -> some View {
+        if let title = item.title {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                title.font(.system(.title2, design: .rounded).weight(.heavy)).lineLimit(2)
+                if let subtitle = item.subtitle { subtitle.font(CYTypography.bodyCompact).opacity(0.9).lineLimit(2) }
+            }
+            .foregroundStyle(.white)
+            .padding(CYSpacing.lg)
+            .padding(.top, CYSpacing.jumbo)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(LinearGradient(colors: [.clear, .black.opacity(0.7)], startPoint: .top, endPoint: .bottom))
         }
     }
 

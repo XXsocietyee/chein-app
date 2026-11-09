@@ -12,7 +12,11 @@ import SwiftUI
     /// Design fixture only: three synthetic banners without a cover (the kit pager draws brand gradients).
     func banners() async throws -> [DiscoveryBanner] {
         guard showsBanners else { return [] }
-        return try (1...3).map { try JSONDecoder().decode(DiscoveryBanner.self, from: Data(#"{"id":\#($0),"picUrl":null,"linkType":0,"dataId":null,"contents":null}"#.utf8)) }
+        let titles = ["Night market after rain", "Old Town: ten hidden spots", "Riverside lantern walk"]
+        return try (1...3).map { index in
+            let json = "{\"id\":\(index),\"picUrl\":null,\"linkType\":0,\"dataId\":null,\"contents\":\"\(titles[index - 1])\"}"
+            return try JSONDecoder().decode(DiscoveryBanner.self, from: Data(json.utf8))
+        }
     }
     func categories() async throws -> [DiscoveryCategory] {
         try JSONDecoder().decode([DiscoveryCategory].self, from: Data(#"[{"id":2,"categoryName":"Sample category"}]"#.utf8))
