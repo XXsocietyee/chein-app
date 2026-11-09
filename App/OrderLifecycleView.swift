@@ -58,6 +58,9 @@ import SwiftUI
             Section { Text("orderLifecycle.production.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
+        .listRowBackground(CYColor.bgElevated)
         .appNavigationTitle("orderLifecycle.title")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -91,22 +94,32 @@ import SwiftUI
             verificationStatus: detail.verificationStatus
         )
         return Section {
-            VStack(alignment: .leading, spacing: 12) {
-                Label(LocalizedStringKey("orderLifecycle.state." + state.state.rawValue), systemImage: "ticket")
-                    .font(CYTypography.label).accessibilityIdentifier("orderLifecycle.state")
-                if let title = detail.title, !title.isEmpty { Text(verbatim: title).font(CYTypography.sheetTitle) }
-                else { Text("orderLifecycle.untitled").font(CYTypography.sheetTitle) }
-                if let reason = state.serverReason { Text(verbatim: reason).foregroundStyle(CYColor.textSecondary) }
-                else { Text(LocalizedStringKey(state.explanationKey)).foregroundStyle(CYColor.textSecondary) }
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + state.state.rawValue), systemImage: "ticket", emphasized: true)
+                    .accessibilityIdentifier("orderLifecycle.state")
+                Group {
+                    if let title = detail.title, !title.isEmpty { Text(verbatim: title) }
+                    else { Text("orderLifecycle.untitled") }
+                }
+                .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                Group {
+                    if let reason = state.serverReason { Text(verbatim: reason) }
+                    else { Text(LocalizedStringKey(state.explanationKey)) }
+                }
+                .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
                 if let notice = fulfillment.fulfillmentNotice {
                     Text(verbatim: c.tr(notice)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            }.fixedSize(horizontal: false, vertical: true).padding(.vertical, 8)
+                // Revolut hero: unknown amount is an em dash, never 0.
+                OrderAmountHero(label: "orderLifecycle.amount", amount: detail.payableAmount)
+            }.padding(.vertical, CYSpacing.sm)
             OrderLifecycleField(label: "orderLifecycle.number", value: detail.registrationNumber)
             OrderLifecycleField(label: "orderLifecycle.ticket", value: detail.ticketName)
-            LabeledContent("orderLifecycle.amount") { AmountLabel(amount: detail.payableAmount).font(CYTypography.numericBody) }
         }
-        .listRowBackground(CYColor.bgSurface)
+        .listRowBackground(CYColor.bgElevated)
     }
     private func payment(_ detail: OrderLifecycleDetail) -> some View {
         let observation = OrderPaymentObservation(payment: detail.paymentStatus, registration: detail.registrationStatus)
@@ -118,16 +131,32 @@ import SwiftUI
         }
     }
     private func timeline(_ detail: OrderLifecycleDetail) -> some View {
-        Section("orderLifecycle.timeline.title") {
-            ForEach(detail.timeline()) { row in
-                Label {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(LocalizedStringKey(row.labelKey))
-                        if let time = row.time { Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary) }
-                    }.fixedSize(horizontal: false, vertical: true)
-                } icon: { Image(systemName: row.done ? "checkmark.circle" : "clock").accessibilityHidden(true) }
+        let rows = detail.timeline()
+        return Section("orderLifecycle.timeline.title") {
+            VStack(alignment: .leading, spacing: 0) {
+                ForEach(Array(rows.enumerated()), id: \.element.id) { index, row in
+                    HStack(alignment: .top, spacing: CYSpacing.md) {
+                        VStack(spacing: 0) {
+                            Image(systemName: row.done ? "checkmark.circle.fill" : "circle")
+                                .font(.title3).foregroundStyle(row.done ? CYColor.textPrimary : CYColor.textTertiary)
+                                .accessibilityHidden(true)
+                            if index < rows.count - 1 {
+                                Rectangle().fill(row.done ? CYColor.textSecondary : CYColor.borderStrong).frame(width: 2).frame(maxHeight: .infinity)
+                            }
+                        }
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                            Text(LocalizedStringKey(row.labelKey)).font(CYTypography.bodyCompact)
+                                .foregroundStyle(row.done ? CYColor.textPrimary : CYColor.textSecondary)
+                            if let time = row.time { Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+                        }
+                        .padding(.bottom, index < rows.count - 1 ? CYSpacing.lg : 0)
+                        .fixedSize(horizontal: false, vertical: true)
+                        Spacer(minLength: 0)
+                    }
+                    .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("orderLifecycle.timeline." + row.id)
-            }
+                }
+            }.padding(.vertical, CYSpacing.xs)
             Text("orderLifecycle.timeline.zone").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
         }
     }
@@ -159,6 +188,7 @@ import SwiftUI
                 if OrderLifecycleCoordinator.isReviewable(action, detail: detail) {
                     Button { model.prepare(action, orderID: id) } label: { Text(LocalizedStringKey("orderLifecycle.review." + action.rawValue)) }
                         .buttonStyle(CYOrderActionButtonStyle(primary: action == reviewable.first))
+                        .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: 0, bottom: CYSpacing.xs, trailing: 0))
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("orderLifecycle.review." + action.rawValue)
                         .disabled(coordinator.isAttemptBlocking(action, orderID: detail.id))
@@ -258,13 +288,14 @@ private struct CYOrderActionPrimaryLabel: ViewModifier {
     func body(content: Content) -> some View {
         content.font(CYTypography.label).foregroundStyle(CYColor.textOnAccent)
             .frame(maxWidth: .infinity, minHeight: 50)
-            .background(CYColor.accent, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .background(CYColor.accent, in: Capsule(style: .continuous))
     }
 }
 private struct CYOrderActionSecondaryLabel: ViewModifier {
     func body(content: Content) -> some View {
         content.font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-            .frame(maxWidth: .infinity, minHeight: 50)
-            .background(CYColor.actionSecondary, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+            .overlay(Capsule(style: .continuous).strokeBorder(CYColor.borderStrong, lineWidth: 1))
+            .contentShape(Capsule(style: .continuous))
     }
 }

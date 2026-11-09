@@ -22,18 +22,10 @@ import SwiftUI
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: CYSpacing.sm) {
                         ForEach(AccountCollectionCouponFilter.allCases) { option in
-                            Button { filter = option } label: {
-                                Text(LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue))
-                                    .font(CYTypography.label)
-                                    .foregroundStyle(filter == option ? CYColor.textOnAccent : CYColor.textPrimary)
-                                    .padding(.horizontal, CYSpacing.lg)
-                                    .frame(minHeight: CYSpacing.minTouchTarget)
-                                    .background(filter == option ? CYColor.accent : CYColor.bgElevated, in: Capsule())
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityAddTraits(filter == option ? .isSelected : [])
+                            OrderFilterPill(title: LocalizedStringKey("accountCollection.coupons.filter." + option.rawValue),
+                                            isSelected: filter == option) { filter = option }
                         }
-                    }
+                    }.padding(.horizontal, CYSpacing.pageHorizontal)
                 }
                 .listRowInsets(EdgeInsets())
                 .listRowBackground(Color.clear)
@@ -65,6 +57,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
+        .scrollContentBackground(.hidden)
         .appNavigationTitle("accountCollection.coupons.title")
         .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always), prompt: Text("accountCollection.coupons.search"))
         .onSubmit(of: .search) { submittedQuery = searchText }
@@ -112,7 +105,7 @@ struct AccountCollectionCouponRow: View {
         VStack(alignment: .leading, spacing: 12) {
             AccountCollectionCouponBadge(status: coupon.status)
             AccountCollectionTitle(value: coupon.name, fallback: "accountCollection.coupon.untitled")
-                .font(CYTypography.cardTitle).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
             if let description = coupon.displayDescription, !description.isEmpty {
                 Text(verbatim: description).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -126,6 +119,6 @@ struct AccountCollectionCouponRow: View {
             if coupon.status != .invalid, let day = AccountCollectionCoupon.calendarDay(coupon.endTime) {
                 QuestifyMetadataLine(label: "accountCollection.coupon.validUntil", value: day, systemImage: "calendar")
             }
-        }.questifyCardSurface()
+        }.orderCardSurface()
     }
 }

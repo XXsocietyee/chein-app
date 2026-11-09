@@ -101,7 +101,9 @@ extension WalletScreen where Value == WithdrawalBalance {
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
                         Text(verbatim: format.amount(value.balance, currency: value.currency))
-                            .font(.title2.bold()).privacySensitive()
+                            .font(CYTypography.data2XL).foregroundStyle(CYColor.textPrimary)
+                            .lineLimit(1).minimumScaleFactor(0.5).privacySensitive()
+                            .padding(.vertical, CYSpacing.sm)
                             .accessibilityIdentifier("wallet.earnings.balance")
                         if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {

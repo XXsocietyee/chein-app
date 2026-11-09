@@ -83,7 +83,7 @@ struct AccountCollectionIssueView: View {
             .accessibilityIdentifier("accountCollection.issue")
             if let retry, issue != .login, issue != .notConfigured {
                 Button("accountCollection.retry", action: retry)
-                    .buttonStyle(.bordered).controlSize(.large)
+                    .buttonStyle(.cyPrimary(fullWidth: false))
                     .accessibilityIdentifier("accountCollection.retry")
             }
         }.padding(.vertical, 10)
@@ -109,8 +109,8 @@ struct AccountCollectionCouponBadge: View {
         }
     }
     var body: some View {
-        QuestifyStatusBadge(title: LocalizedStringKey("accountCollection.coupon.status." + status.rawValue),
-                            systemImage: symbol, emphasized: status == .unused, stateKey: status.rawValue)
+        OrderStatusChip(title: LocalizedStringKey("accountCollection.coupon.status." + status.rawValue),
+                        systemImage: symbol, emphasized: status == .unused)
     }
 }
 struct AccountCollectionCouponDate: View {
