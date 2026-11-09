@@ -1,6 +1,6 @@
 # CB85 — pre-merge parity audit
 
-Base: `origin/rc/20261108` `8cac4681a592621c663c231991bda4f2c660fa21` (2026-11-09 03:01 AM PT).
+Base: `origin/rc/20261108` `ab58518e4261537908141e02cbdaeb3002c442e6` (2026-11-09 03:06 AM PT).
 Branch: `cursor/cb85`. This pass is the pre-merge audit only.
 
 The post-merge audit is waiting. The UI merge queue is not in this RC. `docs/release/ui-tier3-batches.md` names `origin/cursor/theme` `cfd65e7fddcece2dc3b7e40b2cc708934188a562`, `origin/cursor/ui-list` `0765d3053ea2d29d5afa52d72ed8c0fff547f0d6`, `origin/cursor/ui-detail` `3c8016846bdbde0533e861e563bc9d18bfd2239e`, `origin/cursor/ui-form` `2b957c7348d0c3b528d2d6a2f2635957c51759af`, `origin/cursor/ui-settings` `c4109d858e6e99340fdfca20a7c9af13e3fdbee3`, `origin/cursor/ui-chat` `e3a173ac96b2319d8956ab30d780922f8563c35c`, and `origin/cursor/ui-empty` `6284f2ce7aa6403f7e665acb6048e16d01096c12`. None of those objects is in this RC. Those branches were not read. No `docs/parity/page-map.csv` row was marked changed because an unmerged cursor branch exists. No view was edited. `docs/parity/page-map.csv` was not edited.
@@ -40,4 +40,4 @@ The only status-column change between `89dcba807e7e5439182ff8852d6600d1fa9fdd49`
 
 The other 16 `CB14:` notes do not ask for a different status. Those rows are already `partial` or `gated`. `pages/roam/index` stays `exists`; its CB14 sentence says presence sharing stays off.
 
-`docs/release/cb70-gap-register.md` says the CB14 sentences are not in this RC's page map. They are: `docs/parity/page-map.csv` on `8cac4681a592621c663c231991bda4f2c660fa21` has 17 notes that contain `CB14:`. That sentence in CB70 is stale. It is not a page-map status, and this pass does not edit that file.
+`docs/release/cb70-gap-register.md` says the CB14 sentences are not in this RC's page map. They are: `docs/parity/page-map.csv` on `ab58518e4261537908141e02cbdaeb3002c442e6` has 17 notes that contain `CB14:`. `ab58518e4261537908141e02cbdaeb3002c442e6` merged `origin/cursor/cb75` and did not change `docs/parity/page-map.csv` or `Config/Base.xcconfig`. That sentence in CB70 is stale. It is not a page-map status, and this pass does not edit that file.
