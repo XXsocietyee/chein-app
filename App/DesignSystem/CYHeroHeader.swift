@@ -45,7 +45,7 @@ struct CYHeroHeader<Illustration: View>: View {
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
-                    .modifier(CYOptionalAccessibilityIdentifier(titleIdentifier))
+                    .modifier(CYOptionalAccessibilityIdentifier(identifier: titleIdentifier))
                 if let subtitle {
                     subtitle
                         .font(CYTypography.body)
