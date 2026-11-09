@@ -12,6 +12,13 @@ ui_source_paths = sorted(ROOT.glob('Tests/AppUITests/*.swift'))
 # retains the old tests by compiling that same source in the test bundle instead.
 release_test_fixture_sources = [ROOT/'App/AppStoreReviewDemoAccountAndFixtureSectionView.swift']
 release_test_fixture_names = ' '.join(path.name for path in release_test_fixture_sources)
+# Design fixtures and their registry stay in the Debug compile only. An empty
+# directory (synthetic generator fixtures) must not change the exclusion string.
+design_fixture_sources = sorted(ROOT.glob('App/DesignFixtures/*.swift'))
+design_fixture_names = ' '.join(path.name for path in design_fixture_sources)
+release_excluded_names = release_test_fixture_names
+if design_fixture_names:
+    release_excluded_names += ' '+design_fixture_names
 unit_source_paths = sorted([*ROOT.glob('Tests/AppUnitTests/**/*.swift'), *release_test_fixture_sources])
 
 def validate_swift_basenames(target_name, paths):
@@ -76,7 +83,7 @@ def configurations(scope):
             settings['SWIFT_ACTIVE_COMPILATION_CONDITIONS']='DEBUG $(inherited)'
             settings['ENABLE_TESTABILITY']='YES'
         if scope=='target' and name=='Release':
-            settings['EXCLUDED_SOURCE_FILE_NAMES']='$(inherited) '+release_test_fixture_names
+            settings['EXCLUDED_SOURCE_FILE_NAMES']='$(inherited) '+release_excluded_names
         extra={'baseConfigurationReference':config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')

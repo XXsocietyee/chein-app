@@ -2975,6 +2975,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "3A68B2FEE73CEF7C32E4B061";
 		};
+		"157BE3732C00EE23BAE4C233" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/DesignFixtureReleaseExclusionAudit.swift";
+			"sourceTree" = "<group>";
+		};
+		"7921968AF207DEC8B2BB1D49" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "157BE3732C00EE23BAE4C233";
+		};
 		"AB2F28F1134AA9B7D2A28CAE" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -35175,6 +35185,7 @@
 				"983E4F4A515049BFC1647968",
 				"CF2B676C2317254407CF074F",
 				"3A68B2FEE73CEF7C32E4B061",
+				"157BE3732C00EE23BAE4C233",
 				"AB2F28F1134AA9B7D2A28CAE",
 				"B4AB29D60DEF4C8CEB5AF328",
 				"E0DF3A3D482E7F8028906353",
@@ -39731,6 +39742,7 @@
 				"263851C408F43819D3F4AAA5",
 				"843640297630A42AB861E5DE",
 				"52CDE783C7584FC43E837EA5",
+				"7921968AF207DEC8B2BB1D49",
 				"F5F75EDEBBDCF86DC2C80F40",
 				"DA8B566C0BBB97AC4E427904",
 				"060AE06495FCB0EBB5B09591",
@@ -43030,7 +43042,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift KitGalleryFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift";
 			};
 			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
 		};
