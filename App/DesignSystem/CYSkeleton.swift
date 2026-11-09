@@ -21,11 +21,28 @@ public struct CYSkeleton: View {
     private func bar(fraction: CGFloat, height: CGFloat, highlight: Bool) -> some View {
         RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous)
             .fill(highlight ? palette.skeletonHighlight : palette.skeletonBase)
-            .frame(maxWidth: .infinity, alignment: .leading)
             .frame(height: height)
-            .containerRelativeFrame(.horizontal, alignment: .leading) { length, _ in
-                length * fraction
-            }
+            .modifier(CYFractionWidth(fraction: fraction))
+    }
+}
+
+/// Proposes `fraction` of the parent's offered width and left-aligns the child.
+private struct CYFractionWidth: ViewModifier {
+    let fraction: CGFloat
+    func body(content: Content) -> some View {
+        CYFractionWidthLayout(fraction: fraction) { content }
+    }
+}
+
+private struct CYFractionWidthLayout: Layout {
+    let fraction: CGFloat
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 200
+        let h = subviews.first?.sizeThatFits(ProposedViewSize(width: width * fraction, height: nil)).height ?? 0
+        return CGSize(width: width, height: h)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, proposal: ProposedViewSize(width: bounds.width * fraction, height: bounds.height))
     }
 }
 

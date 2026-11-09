@@ -31,7 +31,7 @@ struct CYEmptyState: View {
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.jumbo)
+        .padding(.vertical, CYSpacing.xxl)
         .padding(.horizontal, CYSpacing.xxl)
     }
 }

@@ -3,6 +3,9 @@ import SwiftUI
 /// Cover image with bottom gradient scrim, title and a meta line over it. Remote images are HTTPS-only;
 /// without a URL a neutral placeholder tile is shown (also used in debug fixtures).
 struct CYImageCard: View {
+    /// `.hero` is full-width and tall (16:10); `.shelf` is a compact 3:2 card, 280pt wide, for horizontal shelves.
+    enum Style { case hero, shelf }
+    private let style: Style
     private let title: LocalizedStringKey
     private let meta: LocalizedStringKey?
     private let imageURL: URL?
@@ -10,11 +13,12 @@ struct CYImageCard: View {
 
     @Environment(\.cyPalette) private var palette
 
-    init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat = 16.0 / 10.0) {
+    init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
+        self.style = style
         self.title = title
         self.meta = meta
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
-        self.aspectRatio = aspectRatio
+        self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
     }
 
     var body: some View {
@@ -31,12 +35,15 @@ struct CYImageCard: View {
                     }
                 }
                 .foregroundStyle(.white)
-                .padding(CYSpacing.lg)
+                .padding(.horizontal, style == .shelf ? CYSpacing.md : CYSpacing.lg)
+                .padding(.bottom, style == .shelf ? CYSpacing.md : CYSpacing.lg)
+                .padding(.top, CYSpacing.jumbo)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .top, endPoint: .bottom)
+                    LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black.opacity(0.78), location: 0.7)], startPoint: .top, endPoint: .bottom)
                 )
             }
+            .frame(width: style == .shelf ? 280 : nil)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .shadow(color: palette.cardShadowColor.opacity(0.4), radius: 8, x: 0, y: 3)
             .accessibilityElement(children: .combine)
