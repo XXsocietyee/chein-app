@@ -124,3 +124,90 @@ public enum SettingsHomeFixtureData {
     public static let blankRole = "  "
 }
 #endif
+
+/// pages/shezhi/about/index. Projects the existing bundle facts and `SettingsPlayerCode`
+/// contract. No player-code route is called: the source POST can generate a code.
+public enum SettingsAboutMetadataPhase: Equatable {
+    case loading
+    case empty
+    case error
+    case unknown
+    case ready(String)
+
+    /// Missing, unread, and failed facts. Never a substitute version or the digit 0.
+    public static let unknownText = "—"
+
+    public var text: String {
+        if case .ready(let value) = self { return value }
+        return Self.unknownText
+    }
+
+    public static func fromBundle(_ value: String?) -> Self {
+        guard let value else { return .unknown }
+        return .ready(value)
+    }
+}
+
+public enum SettingsAboutPlayerCodePhase: Equatable {
+    case loading
+    case empty
+    case error
+    case unknown
+    case ready(SettingsPlayerCode)
+
+    /// `POST /api/user/player-code` stays uninstalled. Nothing here marks a route live.
+    public static let routeInstalled = false
+    public static let routeMarkedLive = false
+
+    public var imageURL: URL? {
+        if case .ready(let code) = self { return code.imageURL }
+        return nil
+    }
+
+    /// The mini program keeps the voucher in error until a real code exists.
+    public static func production() -> Self { .error }
+
+    /// Classify a `data` object from the existing contract. Nil is unknown.
+    /// A blank or omitted `qr` is empty. `UNKNOWN`, null, and a non-string stay unknown.
+    /// An unsafe or unusable string is error. Only `SettingsPlayerCode` becomes ready.
+    public static func classify(dataObject: Data?) -> Self {
+        guard let dataObject else { return .unknown }
+        let trimmedBody = String(data: dataObject, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmedBody?.lowercased() == "null" { return .unknown }
+        guard let parsed = try? JSONSerialization.jsonObject(with: dataObject) else { return .error }
+        if parsed is NSNull { return .unknown }
+        guard let dictionary = parsed as? [String: Any] else { return .error }
+        guard let raw = dictionary["qr"] else { return .empty }
+        if raw is NSNull { return .unknown }
+        guard let string = raw as? String else { return .unknown }
+        let trimmed = string.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return .empty }
+        if trimmed.uppercased() == "UNKNOWN" { return .unknown }
+        guard let code = try? JSONDecoder().decode(SettingsPlayerCode.self, from: dataObject) else { return .error }
+        return .ready(code)
+    }
+}
+
+public struct SettingsAboutPageModel: Equatable {
+    public let version: SettingsAboutMetadataPhase
+    public let build: SettingsAboutMetadataPhase
+    public let displayName: SettingsAboutMetadataPhase
+    public let playerCode: SettingsAboutPlayerCodePhase
+    public let contactPhone: String?
+
+    public static let showsMerchantChoice = false
+    public static let paymentEnabled = false
+    public static let payoutEnabled = false
+    public static let withdrawalEnabled = false
+    public static let virtualGoodsEnabled = false
+
+    public init(information: SettingsAppInformation, market: RegionalMarket?,
+                playerCode: SettingsAboutPlayerCodePhase = .production()) {
+        version = .fromBundle(information.version)
+        build = .fromBundle(information.build)
+        displayName = .fromBundle(information.displayName)
+        self.playerCode = playerCode
+        contactPhone = SettingsSourceContact.phone(market: market)
+    }
+}
