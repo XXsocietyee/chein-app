@@ -11,8 +11,11 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
+                if let name = content.catalog.topicName {
+                    CYImageCard(title: Text(verbatim: name), meta: nil, style: .hero)
+                        .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                }
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                    if let name = content.catalog.topicName { Text(verbatim: name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary) }
                     if let price = content.extras?.price {
                         Text(verbatim: price.text).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
                     }
