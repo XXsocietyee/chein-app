@@ -25,31 +25,41 @@ struct CYHeroBanner: View {
         [Color(red: 0.08, green: 0.36, blue: 0.24), Color(red: 0.04, green: 0.12, blue: 0.14)],
     ]
 
+    private static let cardFraction: CGFloat = 0.88
+
     var body: some View {
         if !items.isEmpty {
             VStack(spacing: CYSpacing.sm) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHStack(spacing: CYSpacing.md) {
-                        ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
-                            card(item, index: index).id(index)
-                        }
-                    }
-                    .scrollTargetLayout()
-                }
-                .contentMargins(.horizontal, CYSpacing.lg, for: .scrollContent)
-                .scrollClipDisabled()
-                .scrollTargetBehavior(.viewAligned)
-                .scrollPosition(id: $page)
-                .sensoryFeedback(.selection, trigger: page)
+                // The clear box fixes the height (card width x 9/16) so the pager never collapses inside a List row.
+                Color.clear
+                    .frame(maxWidth: .infinity)
+                    .aspectRatio(items.count > 1 ? 16.0 / 9.0 / Self.cardFraction : 16.0 / 9.0, contentMode: .fit)
+                    .overlay { pager }
                 if items.count > 1 { dots }
             }
         }
     }
 
+    private var pager: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            LazyHStack(spacing: CYSpacing.md) {
+                ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
+                    card(item, index: index).id(index)
+                }
+            }
+            .scrollTargetLayout()
+        }
+        .contentMargins(.horizontal, CYSpacing.lg, for: .scrollContent)
+        .scrollClipDisabled()
+        .scrollTargetBehavior(.viewAligned)
+        .scrollPosition(id: $page)
+        .sensoryFeedback(.selection, trigger: page)
+    }
+
     private func card(_ item: CYHeroBannerItem, index: Int) -> some View {
         slide(item, index: index)
-            .containerRelativeFrame(.horizontal) { width, _ in items.count > 1 ? width * 0.9 : width }
-            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .containerRelativeFrame(.horizontal) { width, _ in items.count > 1 ? width * Self.cardFraction : width }
+            .frame(maxHeight: .infinity)
             .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .shadow(color: .black.opacity(0.35), radius: 10, x: 0, y: 6)
             .scrollTransition(axis: .horizontal) { content, phase in
