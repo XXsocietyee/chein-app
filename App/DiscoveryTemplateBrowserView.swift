@@ -271,7 +271,7 @@ struct DiscoveryTemplateBrowserView: View {
                         topics.cover()
                     } label: {
                         if hero && index == 0 {
-                            TemplateHeroCard(title: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                            CYImageCard(verbatim: item.name, fallback: "discovery.untitledTopic", meta: item.subtitle, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
                         } else {
                             HStack(alignment: .top, spacing: CYSpacing.md) {
                                 DiscoveryTopicCoverThumb(urlString: item.imgUrl)
@@ -301,7 +301,7 @@ struct DiscoveryTemplateBrowserView: View {
                         DiscoveryTemplateDetailView(id: item.id, reader: reader, authoringFactory: TemplateTabPolicy.refusal(for: .configure, previewOnly: false, scope: templateTabScope) == nil ? authoringFactory : nil, authoringRevision: authoringRevision, imageReader: imageReader, authoringCompletion: authoringCompletion)
                     } label: {
                         if hero && index == 0 {
-                            TemplateHeroCard(title: item.title, fallback: "discovery.untitledPlay", meta: item.description ?? "", imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
+                            CYImageCard(verbatim: item.title, fallback: "discovery.untitledPlay", meta: item.description, imageURL: TemplateBrowserPort.coverURL(item.imgUrl))
                         } else {
                             DiscoveryPlayRow(item: item).cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
                         }
@@ -397,44 +397,5 @@ struct DiscoveryTemplateBrowserView: View {
             self.error = error
             if error as? APIError == .unauthorized { request.onUnauthorized() }
         }
-    }
-}
-
-/// Hero cover card for server-authored titles (kept verbatim, so it cannot reuse `CYImageCard`'s LocalizedStringKey title).
-private struct TemplateHeroCard: View {
-    let title: String
-    let fallback: LocalizedStringKey
-    let meta: String
-    let imageURL: URL?
-    @Environment(\.cyPalette) private var palette
-    var body: some View {
-        Color.clear
-            .aspectRatio(16.0 / 10.0, contentMode: .fit)
-            .overlay {
-                if let imageURL {
-                    AsyncImage(url: imageURL) { phase in
-                        if let image = phase.image { image.resizable().scaledToFill() } else { placeholder }
-                    }
-                } else { placeholder }
-            }
-            .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    DiscoveryTitle(text: title, fallback: fallback).font(CYTypography.sectionTitle).lineLimit(2)
-                    if !meta.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                        Text(verbatim: meta).font(CYTypography.meta).opacity(0.85).lineLimit(1)
-                    }
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, CYSpacing.jumbo)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black.opacity(0.78), location: 0.7)], startPoint: .top, endPoint: .bottom))
-            }
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .shadow(color: palette.cardShadowColor.opacity(0.4), radius: 8, x: 0, y: 3)
-            .accessibilityElement(children: .combine)
-    }
-    private var placeholder: some View {
-        LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
-            .overlay(Image(systemName: "photo").font(.largeTitle).foregroundStyle(palette.textPlaceholder))
     }
 }

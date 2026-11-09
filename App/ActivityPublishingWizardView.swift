@@ -7,6 +7,7 @@ import SwiftUI
     let step: Int
     let block: String?
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     private static let fieldOwned: Set<String> = ["name", "addressName", "startDate", "endDate", "categoryIds",
         "description", "imgUrl", "templateId", "collaborators", "ticket"]
     private static let ticketPrefixes = ["ticketName", "ticketPrice", "ticketStock", "ticketStart", "ticketEnd"]
@@ -22,11 +23,11 @@ import SwiftUI
                 ForEach(ActivityPublishingWizard.progress(current)) { item in
                     VStack(spacing: 6) {
                         Capsule()
-                            .fill(item.state == "todo" ? Color.secondary.opacity(0.25) : Color.accentColor)
+                            .fill(item.state == "todo" ? palette.bgStrong : palette.textPrimary)
                             .frame(height: 4)
                         Text(Self.titleKey(item.key))
-                            .font(item.state == "current" ? .footnote.weight(.semibold) : .footnote)
-                            .foregroundStyle(item.state == "todo" ? .secondary : .primary)
+                            .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
+                            .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
                             .lineLimit(2).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -38,14 +39,14 @@ import SwiftUI
             }
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
-                    .font(.footnote)
-                    .foregroundStyle(.red)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.danger)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("publishModes.activity.wizard.validation")
             }
             Text(verbatim: CoreLoopCopy(locale: locale).wizardHeading(for: current))
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(palette.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.heading")
         }
@@ -71,33 +72,36 @@ import SwiftUI
     let onBack: () -> Void
     let onNext: () -> Void
     let onReview: () -> Void
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        HStack(spacing: 12) {
-            if current == 0 {
-                Button(action: onCancel) { Text("publishModes.cancel").frame(minWidth: 72) }
-                    .buttonStyle(.bordered)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.wizard.cancel")
-            } else {
-                Button(action: onBack) { Text("publishModes.wizard.back").frame(minWidth: 72) }
-                    .buttonStyle(.bordered)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.wizard.back")
-            }
-            if current < ActivityPublishingWizard.steps.count - 1 {
-                Button(action: onNext) { Text("publishModes.wizard.next").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.wizard.next")
-            } else {
-                Button(action: onReview) { Text("publishModes.review").frame(maxWidth: .infinity) }
-                    .buttonStyle(.questifyPrimary)
-                    .disabled(!enabled)
-                    .accessibilityIdentifier("publishModes.activity.review")
-            }
+        if dynamicTypeSize.isAccessibilitySize {
+            VStack(spacing: CYSpacing.sm) { primary(current); secondary(current) }
+        } else {
+            HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
         }
-        .controlSize(.large)
+    }
+    @ViewBuilder private func secondary(_ current: Int) -> some View {
+        if current == 0 {
+            CYPillButton("publishModes.cancel", style: .secondary, fullWidth: false, action: onCancel)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.wizard.cancel")
+        } else {
+            CYPillButton("publishModes.wizard.back", style: .secondary, fullWidth: false, action: onBack)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.wizard.back")
+        }
+    }
+    @ViewBuilder private func primary(_ current: Int) -> some View {
+        if current < ActivityPublishingWizard.steps.count - 1 {
+            CYPillButton("publishModes.wizard.next", action: onNext)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.wizard.next")
+        } else {
+            CYPillButton("publishModes.review", action: onReview)
+                .disabled(!enabled)
+                .accessibilityIdentifier("publishModes.activity.review")
+        }
     }
 }
 

@@ -17,6 +17,10 @@ enum PublishDesignFixtures {
             })
         case "publish-projects":
             return wrap(NavigationStack { PublishingProjectsView(service: nil, account: nil, openResource: { _ in }) })
+        case "publish-quick":
+            return wrap(NavigationStack { QuickPublishingView(placeSearch: nil, account: nil, openProfessional: { _ in }) })
+        case "publish-activity":
+            return wrap(NavigationStack { ActivityPublishingView(service: nil, account: nil, placeSearch: nil) })
         case "template-topics": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader()) })
         case "template-games": return wrap(NavigationStack { DiscoveryTemplateBrowserView(reader: DiscoveryFixtureReader(), startOnGames: true) })
         case "template-detail":

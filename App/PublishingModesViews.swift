@@ -3,6 +3,15 @@ import UIKit
 import MapKit
 import Combine
 
+/// Form chrome shared by the publish forms: page background from the role palette, no violet accent.
+private struct PublishFormChrome: ViewModifier {
+    @Environment(\.cyPalette) private var palette
+    func body(content: Content) -> some View {
+        content.scrollContentBackground(.hidden).cyDomainPageBackground().tint(palette.textPrimary)
+    }
+}
+private extension View { func publishFormChrome() -> some View { modifier(PublishFormChrome()) } }
+
 /// Additive composition surface. Parent supplies professional-editor routing and the current
 /// account epoch. No production mutation approval, map provider or token is created here.
 @MainActor struct PublishingModesView: View {
@@ -73,6 +82,7 @@ import Combine
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var journey = QuickPublishingJourneyOwner()
+    @Environment(\.cyPalette) private var palette
     var placeSearch: (any PublishingPlaceSearching)?
     var account: PublishingSession? = nil
     var draftStore: PublishingDraftStore? = nil
@@ -86,34 +96,30 @@ import Combine
         Form {
             Section {
                 Button(action: journey.openAIAction(makeClient: makeAIDraft)) {
-                    Label("contextPublish.ai.title", systemImage: "sparkles")
-                }.accessibilityIdentifier("contextPublish.ai.open")
+                    CYListRow("contextPublish.ai.title") { CYRowIcon(systemImage: "sparkles") }
+                }.buttonStyle(.plain).accessibilityIdentifier("contextPublish.ai.open")
             }
-            Section("publishModes.details") {
+            Section {
                 Picker("publishModes.product", selection: draft.product) { Text("projectEdit.city").tag(ProjectEditProduct.city); Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore) }
                 TextField("publishModes.name", text: draft.title).accessibilityIdentifier("publishModes.quick.name")
                 TextField("publishModes.description", text: draft.description, axis: .vertical).lineLimit(3...8)
-            }
+            } header: { CYSectionHeader("publishModes.details") }
             ForEach(draft.nodes) { $node in
                 let index = (draft.wrappedValue.nodes.firstIndex { $0.id == node.id } ?? 0) + 1
                 Section {
                     TextField("publishModes.name", text: $node.name)
                     TextField("publishModes.description", text: $node.description, axis: .vertical).lineLimit(2...6)
                     Button(action: journey.openPlaceAction(node.id)) {
-                        HStack {
-                            Label {
-                                Text(verbatim: node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? appLocalized("publishModes.choosePlace", locale: locale))
-                                    .foregroundStyle(node.confirmedPlace == nil ? Color.accentColor : Color.primary)
-                            } icon: { Image(systemName: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill") }
-                            Spacer()
-                            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
+                        CYListRow("publishModes.choosePlace", trailing: .valueChevron(node.confirmedPlace.map { $0.address.isEmpty ? $0.name : $0.address } ?? "—")) {
+                            CYRowIcon(systemImage: node.confirmedPlace == nil ? "mappin.and.ellipse" : "checkmark.circle.fill")
                         }
-                    }
+                    }.buttonStyle(.plain)
                     Button("publishModes.remove", role: .destructive, action: journey.removeNodeAction(node.id))
-                } header: { Text("publishModes.stopNumber \(index)") }
+                } header: { CYSectionHeader("publishModes.stopNumber \(index)") }
             }
             Section {
-                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle") }
+                Button(action: journey.addNodeAction()) { Label("publishModes.addNode", systemImage: "plus.circle").frame(maxWidth: .infinity) }
+                    .buttonStyle(CYSecondaryButtonStyle(isFullWidth: true))
                     .accessibilityIdentifier("publishModes.quick.add")
             }
             if account != nil && draftStore != nil {
@@ -123,19 +129,19 @@ import Combine
                     if !journey.storageMessage.isEmpty { Text(LocalizedStringKey(journey.storageMessage)) }
                 }
             }
-        }.disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
+        }.publishFormChrome().disabled(!journey.canEdit).navigationTitle(Text("publishModes.quick"))
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if journey.problem {
-                    Text("publishModes.confirmEveryPlace").font(.footnote).foregroundStyle(CYColor.dangerText).multilineTextAlignment(.center)
+                    Text("publishModes.confirmEveryPlace").font(CYTypography.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
                     ForEach(Array(QuickPublishValidation.issues(draft.wrappedValue).enumerated()), id: \.offset) { _, issue in
-                        Text(verbatim: issue.message).font(.footnote).foregroundStyle(CYColor.dangerText).multilineTextAlignment(.center)
+                        Text(verbatim: issue.message).font(CYTypography.meta).foregroundStyle(palette.danger).multilineTextAlignment(.center)
                     }
                 }
-                Button(action: journey.handoffAction(openProfessional)) { Text("publishModes.continueEditor").frame(maxWidth: .infinity) }
+                CYPillButton("publishModes.continueEditor", action: journey.handoffAction(openProfessional))
                     .disabled(!journey.canEdit)
                     .accessibilityIdentifier("publishModes.quick.continue")
-            }
+            }.background(palette.bgPage)
         }
         .onAppear { journey.appear(active: scenePhase == .active) }
         .onChange(of: scenePhase) { _, phase in journey.setActive(phase == .active) }
@@ -151,6 +157,7 @@ import Combine
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     @StateObject private var localClear = ActivityPublishingLocalClearOwner()
     @StateObject private var timeRange = ActivityPublishingTimeRangeOwner()
     @StateObject private var identityRegistration = PublisherIdentityRegistrationOwner()
@@ -291,10 +298,10 @@ import Combine
                         TextField("publishModes.cover", text: $draft.coverURL).textInputAutocapitalization(.never).autocorrectionDisabled()
                     }
                 }.disabled(!editable)
-                Section("publishModes.coverSection") {
+                Section {
                     ActivityCoverAuthoringSection(owner: cover)
                     fieldError("imgUrl")
-                }
+                } header: { CYSectionHeader("publishModes.coverSection") }
                 Section {
                     Button {
                         localClear.invalidate(); timeRange.retire()
@@ -381,17 +388,17 @@ import Combine
                 }
             }
             submissionResult
-        }.navigationTitle(Text("publishModes.activity"))
+        }.publishFormChrome().navigationTitle(Text("publishModes.activity"))
         .questifyBottomAction {
             VStack(spacing: 8) {
                 if !message.isEmpty {
                     Text(LocalizedStringKey(message)).font(.footnote)
-                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? CYColor.dangerText : Color.secondary)
+                        .foregroundStyle(message == "publishModes.invalid" || message == "publishModes.storageFailed" ? palette.danger : palette.textSecondary)
                         .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("publishModes.message")
                 }
                 ActivityPublishingWizardNavigation(step: wizardStep, enabled: editable, onCancel: cancelWizard, onBack: goBack, onNext: goNext, onReview: { Task { await prepare() } })
-            }
+            }.background(palette.bgPage)
         }
         .onChange(of: draft) { _, _ in timeRange.retire(); if let review { service?.cancel(review) }; review = nil; localReview = false }
         .onChange(of: account) { _, _ in
@@ -432,17 +439,12 @@ import Combine
     @ViewBuilder private func fieldError(_ field: String) -> some View {
         if wizardBlock == field {
             Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: field))
-                .font(.footnote).foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)
+                .font(CYTypography.meta).foregroundStyle(palette.danger).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("publishModes.activity.wizard.validation")
         }
     }
     private func chooserRow(_ title: LocalizedStringKey, value: String?, icon: String? = nil) -> some View {
-        HStack {
-            if let icon { Label(title, systemImage: icon).foregroundStyle(Color.primary) } else { Text(title).foregroundStyle(Color.primary) }
-            Spacer()
-            Text(verbatim: value ?? "—").foregroundStyle(.secondary).lineLimit(1)
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
-        }
+        CYListRow(title, trailing: .valueChevron(value ?? "—")) { if let icon { CYRowIcon(systemImage: icon) } }
     }
     private func clearButton(_ field: ActivityPublishingLocalClearOwner.Field) -> some View {
         let action = localClear.action(field, draft: $draft, account: account, draftID: draftID, allowed: { mayClear })

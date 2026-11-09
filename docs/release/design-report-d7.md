@@ -15,7 +15,18 @@ Shelf search "搜索" button now inside the search pill (also Return); pack/cate
 ## Checklist
 1 order kept; 2 one primary (menu, detail); 3 ok; 4 dark; 5 no violet; 6 kit tokens; 7 skeleton/empty via CYSkeleton/CYEmptyState; 8 XL NOT verified; 9 zh-Hans verified, EN not shot; 10 builds, no logic changes.
 
+## Round 2 (real views, EN + Dynamic Type accessibility-extra-large, player dark)
+Shots in /Users/fanning/chengyin-refs/design-reports/d7/ named `r2-<page>-en.png` / `r2-<page>-xl.png`: projects, quick, activity, games (template browser), detail (template detail), menu, sheet.
+- **PublishingProjectsView** (App/PublishingManagementViews.swift). Mini-program pair: subpackageA/pages/myproject ("我的项目": big title, tabs topic/activity/template, illustrated empty state). Reference image: docs/delivery/page-polish-20261102/preview/shots/q01-myproject-player.png (right half, dark). Matched: title, type tabs as a segmented control (All + topic/activity/template), empty/error state centred under the tabs. Different on purpose: native large title and segmented control instead of the WeChat capsule/underline tabs; state and publisher filters are quiet menu chips ("Status · All", "Publisher · All"); no illustration (asset not in the iOS catalog) and no "go publish" button (the view has no route to it; no flow invented). Project rows are kit cards with a state pill, signup count, secondary toggle and destructive-role remove actions (same logic, same guards); loading = CYSkeleton cards, error = CYErrorState, empty = CYEmptyState; remove/online/offline confirmation sheet uses kit pill/destructive buttons. All logic, identifiers and keys unchanged. Only the error state could be shot (fixture has no service); rows/skeleton/empty not visually verified.
+- **QuickPublishingView / ActivityPublishingView** (App/PublishingModesViews.swift, ActivityPublishingWizardView.swift). Pairs: pages/publish/simple, pages/publish/activity (order unchanged). Player theme (dark) as in the code; page background and tint from the role palette (no violet). CYSectionHeader for sections, CYListRow/CYRowIcon for AI draft, place and chooser rows, CYPillButton for the one primary action (Continue in professional editor / Next / Review) with secondary Cancel/Back; stacked vertically at accessibility sizes. Wizard step dots, headings and validation use palette tokens. Fixtures `publish-quick`, `publish-activity` added.
+- **Template hero**: `CYImageCard(verbatim:fallback:meta:imageURL:)` added to the kit (server titles verbatim, empty title falls back, blank meta dropped, HTTPS-only covers); private `TemplateHeroCard` removed.
+- Menu and publish sheet re-shot in EN/XL (r2-menu-*, r2-sheet-*), unchanged since round 1.
+
+## Checklist update
+8 XL shot for all pages touched; 9 EN shot for all touched pages (zh-Hans verified earlier for menu/sheet/browser/detail). Build green (design-run, BUILD_EXIT=0); no tests run, no logic changes.
+
 ## Open issues
-- Not restyled: `PublishingProjectsView` (fixture `publish-projects` exists but no shot), QuickPublishingView/ActivityPublishingView forms, topic preview detail body (only background/title), template detail sections still system List rows.
-- `CYImageCard` has no verbatim-string init, so a private `TemplateHeroCard` exists in the browser for server titles; fold into kit.
-- Dynamic Type XL, English, and `publish-sheet-locked/quota` screenshots not taken.
+- At accessibility-extra-large the pinned bottom action (Next + Cancel stacked, 56pt scaled pills) takes about a third of the screen in the activity form; content still scrolls (safeAreaInset), but a tighter AX layout would be better. Wizard step labels truncate at AX XL ("Activity conte…").
+- Projects list with real rows, skeleton and empty state not captured (fixture has no data source); locked/quota sheet fixtures not shot; zh-Hans for the new forms not shot.
+- Not restyled: topic preview detail body, template detail sections (system List rows), other forms (cover, template selection, time range sheet).
+- No side-by-side composite image tool available (no PIL/ImageMagick); the pair is the reference PNG above vs r2-projects-en.png, compared by eye.
