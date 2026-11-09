@@ -61,7 +61,6 @@ struct SocialReadPresentationKey: Hashable {
             else if let error { SocialIssueView(error: error) { loads.start { await reload() } } }
             else if let value { content(value) }
         }
-        .background(CYColor.bgPage.ignoresSafeArea())
         .task(id: key) { await loads.run { await reload() } }
         .onDisappear { loads.cancel(); generation += 1; busy = false }
     }
