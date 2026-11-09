@@ -113,6 +113,24 @@ import XCTest
         guard case .unconfigured = RegionalLaunchConfiguration.composition.deployment else {
             return XCTFail("shipped composition must stay fail-closed")
         }
+        for build in [
+            RegionalLaunchConfiguration.BuildMetadata(market: "CN", baseURL: "", bundleIdentifier: bundle, realm: realm),
+            RegionalLaunchConfiguration.BuildMetadata(market: "CN", baseURL: " ", bundleIdentifier: bundle, realm: realm),
+            RegionalLaunchConfiguration.BuildMetadata(market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: ""),
+            RegionalLaunchConfiguration.BuildMetadata(market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: " "),
+            RegionalLaunchConfiguration.BuildMetadata(market: "CN", baseURL: "", bundleIdentifier: bundle, realm: "")
+        ] {
+            let composition = RegionalLaunchConfiguration.shippedComposition(build: build)
+            guard case .unconfigured = composition.deployment else {
+                return XCTFail("empty URL or realm must stay unconfigured")
+            }
+            XCTAssertNil(composition.reviewed)
+        }
+        let admitted = RegionalLaunchConfiguration.shippedComposition(build: .init(
+            market: "CN", baseURL: ReviewedMarketLaunch.chinaProductionBaseURL, bundleIdentifier: bundle, realm: realm))
+        guard case .reviewed = admitted.deployment else {
+            return XCTFail("a China host with a bundle and realm still selects the reviewed deployment")
+        }
         XCTAssertFalse(RegionalLaunchConfiguration.composition.reviewed?.productionGatesEnabled == true)
     }
 }
