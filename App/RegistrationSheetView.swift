@@ -336,6 +336,7 @@ struct RegistrationSheetView: View {
         default: return copy.t("暂时无法继续", "Not available right now")
         }
     }
+    @State private var blockedTaps = 0
     private var checkoutBar: some View {
         let copy = CoreLoopCopy(locale: locale)
         return VStack(spacing: CYSpacing.sm) {
@@ -349,12 +350,12 @@ struct RegistrationSheetView: View {
                     let blocked = flow.confirmationBlock != nil
                     Button {
                         focusedField = nil
+                        if blocked { blockedTaps += 1; return }
                         if flow.prepareConfirmation() { showingConfirmation = true }
                     } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
                     .buttonStyle(.cyPrimary)
-                    // Blocked state keeps the primary look (dimmed, not grey) and the action is inert; the reason is below.
-                    .opacity(blocked ? 0.62 : 1)
-                    .allowsHitTesting(!blocked)
+                    // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
+                    .sensoryFeedback(.warning, trigger: blockedTaps)
                     .accessibilityAddTraits(blocked ? .isButton : [])
                     .accessibilityHint(blockReason(copy) ?? "")
                     .accessibilityIdentifier("registration.form.review")
