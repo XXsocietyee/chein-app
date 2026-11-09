@@ -4,8 +4,8 @@ import Foundation
 /// POI node card, city voucher copy, city stamp slip). Pure projections of already-read facts:
 /// nothing here reads location, writes, or invents a value the record does not contain.
 
-/// `scene-roam-history` RunCard. Unknown values stay unknown ("—"), except the source's
-/// documented distance fallback (UI-04: an unread distance renders 0 on the card).
+/// `scene-roam-history` RunCard. Unknown values stay unknown ("—"). An unread distance
+/// is unknown too; a literal 0 stays "0".
 public struct RoamRunCardPresentation: Equatable {
     public enum Title: Equatable { case zone(String), city }
     public let title: Title
@@ -24,7 +24,7 @@ public struct RoamRunCardPresentation: Equatable {
                 dateShort = "\(month)/\(day)/" + String(String(year).suffix(2))
             } else { dateShort = nil }
         } else { dateShort = nil }
-        distanceText = record.distance.map(Self.number) ?? "0"
+        distanceText = record.distance.map(Self.number) ?? "—"
         shopsText = record.shops.map(String.init) ?? "—"
         timeText = record.durationText ?? "—"
         stamps = record.photos.count

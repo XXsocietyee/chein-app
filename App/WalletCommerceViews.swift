@@ -87,7 +87,6 @@ extension WalletScreen where Value == WithdrawalBalance {
     @State private var showsMore = false
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
-    private func t(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
     let reader: WalletCommerceReader
     let visibility: WalletCommerceVisibility
     let onCooperationFinance: () -> Void
@@ -152,7 +151,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         item.primary(index == 0)
                     }
-                    WalletQuickAction(title: t("更多", "More"), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
+                    WalletQuickAction(title: appLocalized("wallet.more", locale: locale), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
                 }.frame(maxWidth: .infinity)
             }.listRowBackground(Color.clear).listRowSeparator(.hidden)
         }
@@ -189,7 +188,7 @@ extension WalletScreen where Value == WithdrawalBalance {
         Section {
             if monthModel.pager.hasLoadedPage, monthModel.pager.loadedScope == reader.scope {
                 if monthRows.isEmpty {
-                    Text(verbatim: t("这个月还没有收入", "No income this month"))
+                    Text("wallet.analysis.noSources", tableName: "WalletIncomeAnalysis")
                         .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 96)
                         .orderCardSurface()
@@ -220,12 +219,12 @@ extension WalletScreen where Value == WithdrawalBalance {
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: t("本月收入明细", "Income this month")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: appLocalized("wallet.monthIncome.title", locale: locale)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 NavigationLink { incomeDestination } label: {
                     HStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: monthTitle + " " + t("全部", "All"))
+                        Text(verbatim: monthTitle + " " + appLocalized("wallet.all", locale: locale))
                         Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
                     }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
@@ -239,15 +238,15 @@ extension WalletScreen where Value == WithdrawalBalance {
             let known = stages?.amountsKnown == true
             NavigationLink { WalletAssetsView(reader: reader) } label: {
                 VStack(spacing: 0) {
-                    assetRow("creditcard", t("可提现", "Withdrawable"), known ? stages.map { assetAmount($0.withdrawable, $0.currency) } : nil)
+                    assetRow("creditcard", appLocalized("wallet.assets.withdrawableLabel", locale: locale), known ? stages.map { assetAmount($0.withdrawable, $0.currency) } : nil)
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("clock.arrow.circlepath", t("待结算", "Pending settlement"), known ? stages.map { assetAmount($0.pendingSettlement, $0.currency) } : nil)
+                    assetRow("clock.arrow.circlepath", appLocalized("wallet.pendingSettlement", locale: locale), known ? stages.map { assetAmount($0.pendingSettlement, $0.currency) } : nil)
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("exclamationmark.bubble", t("争议中", "Disputed"), known ? stages.map { assetAmount($0.disputed, $0.currency) } : nil)
+                    assetRow("exclamationmark.bubble", appLocalized("wallet.assets.disputedLabel", locale: locale), known ? stages.map { assetAmount($0.disputed, $0.currency) } : nil)
                 }.orderCardSurface(padding: CYSpacing.md)
             }.buttonStyle(.plain).questifyHidesLinkIndicator().accessibilityIdentifier("wallet.assets.open")
         } header: {
-            Text(verbatim: t("我的资产", "My assets")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: appLocalized("wallet.assets.myAssets", locale: locale)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader).textCase(nil)
         }.accessibilityIdentifier("wallet.earnings.stages.home")
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -326,7 +325,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                         Text("wallet.amountsUnknown").accessibilityIdentifier("wallet.assets.unknown")
                     } else {
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text(verbatim: locale.language.languageCode?.identifier == "en" ? "AVAILABLE BALANCE" : "可提现/可用余额")
+                            Text(verbatim: appLocalized("wallet.assets.availableBalanceLabel", locale: locale))
                                 .font(CYTypography.caption.weight(.semibold))
                                 .foregroundStyle(CYColor.textSecondary)
                             Text(verbatim: format.amount(value.withdrawable, currency: value.currency))
@@ -457,13 +456,13 @@ extension WalletScreen where Value == WithdrawalBalance {
                                 LabeledContent {
                                     Text(verbatim: "#\(row.id)")
                                 } label: {
-                                    Text(verbatim: locale.language.languageCode?.identifier == "en" ? "Reference ID" : "流水编号")
+                                    Text(verbatim: appLocalized("wallet.ledger.referenceID", locale: locale))
                                 }
                                 if let createTime = row.createTime, !createTime.isEmpty {
                                     LabeledContent {
                                         Text(verbatim: createTime)
                                     } label: {
-                                        Text(verbatim: locale.language.languageCode?.identifier == "en" ? "Timestamp" : "记录时间")
+                                        Text(verbatim: appLocalized("wallet.ledger.timestamp", locale: locale))
                                     }
                                 }
                             }

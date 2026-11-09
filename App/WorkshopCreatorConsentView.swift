@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Issued by the live owned-CMS row. A later navigation appearance cannot revive an old action.
 @MainActor struct WorkshopCreatorConsentSelection: Identifiable, Hashable {
-    let id = UUID()
+    nonisolated let id = UUID()
     let source: MemberPlayTemplateID
     let appearance = WorkshopCreatorConsentAppearance()
     let pendingAppearance = WorkshopCreatorPendingAppearance()

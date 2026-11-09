@@ -69,9 +69,12 @@ final class ParticipationParityTests: XCTestCase {
 
     func testStatisticsShowZeroForUnknownAndTwoSourceCells() throws {
         let unknown = try detail(String(paid.dropLast()) + #","status":1,"totalOrderNum":2,"verifiedNum":3}"#)
-        XCTAssertEqual([unknown.pendingText, unknown.verifiedText, unknown.totalText], ["0", "0", "0"])
+        XCTAssertEqual([unknown.pendingText, unknown.verifiedText, unknown.totalText], ["—", "—", "—"])
         let known = try detail(String(paid.dropLast()) + #","status":1,"totalOrderNum":5,"verifiedNum":2}"#)
         XCTAssertEqual([known.pendingText, known.verifiedText, known.totalText], ["3", "2", "5"])
+        let zero = try detail(String(paid.dropLast()) + #","status":1,"totalOrderNum":0,"verifiedNum":0}"#)
+        XCTAssertEqual([zero.pendingText, zero.verifiedText, zero.totalText], ["0", "0", "0"])
+        XCTAssertNotEqual(zero.pendingText, "—")
     }
 
     func testLoadIssueKeepsServerTextAndUsesSourceFallbacks() {

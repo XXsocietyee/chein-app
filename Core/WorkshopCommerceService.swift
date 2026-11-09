@@ -118,6 +118,10 @@ import FoundationNetworking
     private func send<T: Decodable>(_ route: String, method: String = "GET", body: Data? = nil) async throws -> T {
         try check()
         guard !readOnly || (method == "GET" && body == nil) else { throw WorkshopCommerceIssue.disabled }
+        if method != "GET" {
+            let commercePath = "api/mod-commerce/" + String(route.split(separator: "?", maxSplits: 1, omittingEmptySubsequences: false)[0])
+            if ReleaseMoneyWriteSwitch.blocks(commercePath) { throw WorkshopCommerceIssue.disabled }
+        }
         if method == "POST" && route.hasSuffix("/cancel") { guard canCancelOrder else { throw WorkshopCommerceIssue.disabled } }
         if route.hasSuffix("/release-record") { guard canReadOwnedRelease else { throw WorkshopCommerceIssue.disabled } }
         if route.hasSuffix("/reversal-status") { guard canReadReversalStatus else { throw WorkshopCommerceIssue.disabled } }

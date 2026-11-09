@@ -11,8 +11,8 @@ import SwiftUI
         /// the row, so a return lets the list re-read instead of mutating local state.
         let decision: MyProjectStateNavigationDecision
         let merchantScopeAccess: MyProjectMerchantScopeAccess
-        static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
-        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     @Published private(set) var selection: Selection?
     func open(_ project: CreatorContentProject, scope: UUID, reader: any CreatorContentReading,

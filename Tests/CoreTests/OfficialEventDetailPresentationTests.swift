@@ -113,7 +113,7 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
         let value = try event(#","status":4,"city":"Example city","myProgress":3,"activityStart":"2030-01-01 10:00:00","contentJson":"{\"tasks\":[\"Synthetic task\",{\"name\":\"Synthetic card\",\"type\":\"walk\"},{\"title\":\"\"},7]}""#)
         let presentation = OfficialEventDetailPresentation(event: value, now: Date())
         XCTAssertEqual(presentation.facts.map(\.id), ["participants", "duration", "dates", "scope", "tasks"])
-        XCTAssertEqual(presentation.facts[0].value, .verbatim("0"))
+        XCTAssertEqual(presentation.facts[0].value, .verbatim("—"))
         XCTAssertEqual(presentation.facts[1].value, .key("official.notAnnounced"))
         XCTAssertEqual(presentation.facts[2].value, .key("official.notAnnounced"))
         XCTAssertEqual(presentation.facts[3].value, .verbatim("Example city"))
@@ -125,6 +125,15 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
         XCTAssertTrue(presentation.missions.isEmpty); XCTAssertNil(presentation.eligibilityKey)
         let signed = OfficialEventDetailPresentation(event: try event(#","signed":true,"myProgress":3"#), now: Date()).facts
         XCTAssertEqual(signed[1].value, .verbatim("3")); XCTAssertEqual(signed[1].sub, .key("official.detailParity.fact.progressCompleted"))
+    }
+    func testMissingCountsStayDashAndLiteralZeroStaysZero() throws {
+        let zero = OfficialEventDetailPresentation(event: try event(#","participants":0,"signed":true,"myProgress":0"#), now: Date()).facts
+        XCTAssertEqual(zero[0].value, .verbatim("0"))
+        XCTAssertEqual(zero[1].value, .verbatim("0"))
+        let missing = OfficialEventDetailPresentation(event: try event(#","signed":true"#), now: Date()).facts
+        XCTAssertEqual(missing[0].value, .verbatim("—"))
+        XCTAssertEqual(missing[1].value, .verbatim("—"))
+        XCTAssertFalse("\(missing[0].value)".contains("0"))
     }
     func testDurationAndDateRangeBoundaries() {
         XCTAssertEqual(OfficialEventDetailPresentation.duration(start: .milliseconds(start), end: .milliseconds(1893432600000)), .hours(2))

@@ -46,7 +46,7 @@ final class RoamContractTests: XCTestCase {
     func testRunnerCoordinatePrivacyAndLimits() throws {
         let player = try decode(RoamPlayer.self, #"{"memberId":1,"nickname":"Walker","lat":"-1.234567","lng":2.987654,"explorePct":120,"shops":-1,"elapsedSec":-20,"realName":"Not retained","phone":"Not retained","conversationId":999}"#)
         XCTAssertEqual(player.approximateCoordinate, RoamCoordinate(latitude: -1.234, longitude: 2.987))
-        XCTAssertEqual(player.explorePct, 99); XCTAssertEqual(player.shops, 0); XCTAssertEqual(player.elapsedSec, 0)
+        XCTAssertEqual(player.explorePct, .some(99)); XCTAssertEqual(player.shops, .some(0)); XCTAssertEqual(player.elapsedSec, .some(0))
         XCTAssertTrue(player.isDisplayable)
         let coarse = try decode(RoamPlayer.self, #"{"memberId":1,"lat":1.001,"lng":-1.001}"#)
         XCTAssertEqual(coarse.approximateCoordinate, RoamCoordinate(latitude: 1.001, longitude: -1.001))
@@ -54,6 +54,23 @@ final class RoamContractTests: XCTestCase {
         XCTAssertFalse(labels.contains("realName")); XCTAssertFalse(labels.contains("phone")); XCTAssertFalse(labels.contains("conversationId"))
         XCTAssertFalse(try decode(RoamPlayer.self, #"{"memberId":1,"nickname":"No location"}"#).isDisplayable)
         XCTAssertFalse(try decode(RoamPlayer.self, #"{"memberId":0,"lat":1,"lng":2}"#).isDisplayable)
+    }
+    func testMissingRunnerStatsStayUnknownAndLiteralZeroStaysZero() throws {
+        let missing = try decode(RoamPlayer.self, #"{"memberId":1,"lat":1,"lng":2}"#)
+        XCTAssertNil(missing.explorePct); XCTAssertNil(missing.shops); XCTAssertNil(missing.elapsedSec)
+        XCTAssertEqual(RoamPlayer.exploreText(nil), "—")
+        XCTAssertEqual(RoamPlayer.shopsText(nil), "—")
+        XCTAssertEqual(RoamPlayer.walkingMinutesText(nil), "—")
+        XCTAssertEqual(RoamPlayer.exploreText(0), "0%")
+        XCTAssertEqual(RoamPlayer.shopsText(0), "0")
+        XCTAssertEqual(RoamPlayer.walkingMinutesText(0), "0")
+        XCTAssertEqual(RoamPlayer.walkingMinutesText(119), "1")
+        XCTAssertFalse(RoamPlayer.exploreText(nil).contains("0"))
+        let zero = try decode(RoamPlayer.self, #"{"memberId":2,"lat":1,"lng":2,"explorePct":0,"shops":0,"elapsedSec":0}"#)
+        XCTAssertEqual(zero.explorePct, .some(0)); XCTAssertEqual(zero.shops, .some(0)); XCTAssertEqual(zero.elapsedSec, .some(0))
+        XCTAssertEqual(RoamPlayer.exploreText(zero.explorePct), "0%")
+        XCTAssertEqual(RoamPlayer.shopsText(zero.shops), "0")
+        XCTAssertEqual(RoamPlayer.walkingMinutesText(zero.elapsedSec), "0")
     }
     func testNodeStatusOneOnlyPublishedAndFlagsAreStrictBooleans() throws {
         for status in ["null", "0", "2", "99"] {

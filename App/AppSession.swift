@@ -1127,12 +1127,18 @@ final class AppSession: ObservableObject {
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
     }, manualAreaSelection: searchMapSelection)
+    /// The explorer section is built only when this is non-nil. A hidden route stays nil
+    /// so the section is not mounted as a notConfigured control.
+    private var searchMapPublicLayerCoordinator: MapPublicLayerCoordinator? {
+        guard mapPublicLayerService != nil, regionalConfiguration?.showsRoute("/api/map/public-layers") == true else { return nil }
+        return mapPublicLayerCoordinator
+    }
     lazy var searchMapReader = SearchMapSessionReader(service: searchMapService, currentContext: { [weak self] in
         self?.currentSearchMapContext ?? SearchMapContext(guestEpoch: 0)
     }, onUnauthorized: { [weak self] captured in
         guard let self, self.currentSearchMapContext == captured else { return }
         self.expireIfMatching(error: APIError.unauthorized, stamp: captured.epoch, credential: self.token)
-    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: mapPublicLayerCoordinator, topicReader: topicReader)
+    }, manualAreaSelection: searchMapSelection, publicLayerCoordinator: searchMapPublicLayerCoordinator, topicReader: topicReader)
     private let registrationApproval: RegistrationProductionApproval?
     private let registrationStorefront: () -> String?
     private var registrationJournal: any OperationPendingJournal { composition.storage.operationJournal() }
@@ -1721,7 +1727,8 @@ final class AppSession: ObservableObject {
         }
         return WorkshopCommerceComposition.make(context: captured, approval: workshopCommerceApproval,
             currentApproval: { [weak self] in self?.workshopCommerceApproval }, current: current,
-            storage: templateAuthoringSecureStorage, enableApprovedStoreKit: !readOnly, readOnly: readOnly,
+            storage: templateAuthoringSecureStorage,
+            enableApprovedStoreKit: ReleaseMoneyWriteSwitch.virtualGoodsEnabled && !readOnly, readOnly: readOnly,
             onUnauthorized: { [weak self] context in
                 guard let self, ContentDraftContextFence.matches(current(), context) else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
@@ -4339,7 +4346,7 @@ final class AppSession: ObservableObject {
     private lazy var nativeWeChatPaymentAdapter = WeChatSDKPaymentAdapter(driver: nativeWeChatPaymentDriver,
         configuration: runtimeDependencies.weChatPaymentConfiguration,
         allowed: { [weak self] in
-            guard let self else { return false }
+            guard let self, ReleaseMoneyWriteSwitch.paymentEnabled else { return false }
             if let auth = self.weChatSDKConfiguration, let payment = self.runtimeDependencies.weChatPaymentConfiguration,
                auth.appID != payment.sdk.appID || auth.universalLink != payment.sdk.universalLink { return false }
             let selfPlayAllowed = self.businessRuntimeFactory.map {
@@ -4372,7 +4379,8 @@ final class AppSession: ObservableObject {
                 guard let self, self.currentRuntimeDependencyContext == captured, let session = self.publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
             })
-        let payment: (any TopicSelfPlayPaymentProviding)? = factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
+        let payment: (any TopicSelfPlayPaymentProviding)? = ReleaseMoneyWriteSwitch.paymentEnabled
+            && factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
             ? (runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter) : nil
         let flow = TopicSelfPlayFlow(topic: topic, client: client, provider: payment, journal: TopicSelfPlayDefaultsJournal(defaults: .standard), operationGate: selfPlayOperationGate)
         retainedSelfPlayFlows[key] = flow; return flow
@@ -4500,9 +4508,11 @@ final class AppSession: ObservableObject {
             })
     }
     func makeBankWithdrawalContext() -> BankWithdrawalRuntimeContext? {
-        guard let factory = businessRuntimeFactory, factory.permits(.bankPrepare), factory.permits(.bankConsentRead),
+        guard ReleaseMoneyWriteSwitch.withdrawalEnabled,
+              let factory = businessRuntimeFactory, factory.permits(.bankPrepare), factory.permits(.bankConsentRead),
               let provider = runtimeDependencies.bankDocument, let scope = walletCommerceScope,
-              let configuration = regionalConfiguration?.apiConfiguration else { return nil }
+              let configuration = regionalConfiguration?.apiConfiguration,
+              ChinaReviewedRouteCapability.offersFeature("/api/withdrawal/create", baseURL: configuration.baseURL) else { return nil }
         let captured = factory.captured
         let routes = BankWithdrawalRuntimeRoutes(factory: factory)
         let consent = BankWithdrawalConsentReader(configuration: configuration, transport: factory.client([.bankConsentRead]),
@@ -5364,7 +5374,8 @@ final class AppSession: ObservableObject {
         return OrderLifecycleProductionFactory.make(configuration: runtimeDependencies.orderLifecycleConfiguration,
             api: api, transport: runtimeHTTPTransport, journal: journal,
             document: runtimeDependencies.signupDocument,
-            provider: runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter,
+            provider: ReleaseMoneyWriteSwitch.paymentEnabled
+                ? (runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter) : nil,
             sharedGate: selfPlayOperationGate, selfPlayJournal: TopicSelfPlayDefaultsJournal(defaults: .standard),
             current: { [weak self] in self?.currentRuntimeDependencyContext },
             reviewScope: { [weak self] in self?.orderLifecycleReader.scope ?? UUID() })
@@ -7309,7 +7320,7 @@ final class AppSession: ObservableObject {
 #endif
             authChannelService=regional.canUseDomesticChinaPhone ? AuthChannelService(configuration:configuration,transport:transport,allowLoginRoleFallback:composition.reviewed?.allowLoginRoleFallbackOnRolelessUserInfo ?? false) : nil
             searchMapService=composition.reviewed?.reads.isDisjoint(with: [.homeAndSearch, .manualMap, .publicMapLayers]) == false ? SearchMapService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
-            mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
+            mapPublicLayerService=composition.reviewed?.reads.isDisjoint(with: [.manualMap, .publicMapLayers]) == false && regional.showsRoute("/api/map/public-layers") ? MapPublicLayerService(configuration:configuration,transport:transport.scopedForManualMap(searchMapSelection)) : nil
             activityService=ActivityService(configuration:configuration,transport:transport)
             registrationBackend=RegistrationService(configuration:configuration,transport:transport)
             homeFeedService=composition.reviewed?.reads.contains(.homeAndSearch) == true ? HomeFeedService(configuration:configuration,transport:transport) : nil

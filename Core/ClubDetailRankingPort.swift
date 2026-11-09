@@ -32,7 +32,11 @@ public enum ClubDetailRankingPort {
     }
 
     /// One decimal place, e.g. `15.0` (mini `toFixed(1)`), so rows never mix `15` and `42.3`.
-    public static func oneDecimal(_ value: Double?) -> String { String(format: "%.1f", value ?? 0) }
+    /// Nil and non-finite values are unknown ("—"). A literal zero stays `0.0`.
+    public static func oneDecimal(_ value: Double?) -> String {
+        guard let value, value.isFinite else { return "—" }
+        return String(format: "%.1f", value)
+    }
 
     /// Localization key for the empty leaderboard of the current sort.
     public static func emptyKey(sort: String) -> String {

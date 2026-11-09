@@ -398,7 +398,7 @@ enum MerchantDecorEditorTarget: String, CaseIterable {
     }
 }
 @MainActor struct MerchantDecorEditorRoute: Hashable, Identifiable {
-    let id = UUID()
+    nonisolated let id = UUID()
     let reader: any MerchantOperationsReading
     let destination: MerchantOperationsDestination
     private let source: ObjectIdentifier

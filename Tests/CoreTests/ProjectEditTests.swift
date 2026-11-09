@@ -322,6 +322,13 @@ final class ProjectEditTests: XCTestCase {
         XCTAssertEqual(value.draft.chapters[0].preserved["atmospherePreset"], .string("BLUE"))
         XCTAssertEqual(value.draft.chapters[0].blocks?[1].nodeID, value.draft.chapters[0].nodes[0].id)
         XCTAssertEqual(value.draft.tickets[0].price, "0"); XCTAssertEqual(value.draft.tickets[0].totalStock, "15")
+        XCTAssertEqual(value.draft.tickets[0].teamSize, "")
+    }
+    func testMissingTeamSizeStaysBlankAndLiteralZeroStaysZero() throws {
+        let missing = Data(#"{"code":200,"data":{"editScope":"FULL","topic":{"id":71,"productType":1,"name":"Route","description":"Description","updateTime":"r1"},"chapters":[],"tickets":[{"name":"Free","price":0,"totalInventory":15}]}}"#.utf8)
+        let present = Data(#"{"code":200,"data":{"editScope":"FULL","topic":{"id":71,"productType":1,"name":"Route","description":"Description","updateTime":"r1"},"chapters":[],"tickets":[{"name":"Free","price":0,"totalInventory":15,"teamSize":0}]}}"#.utf8)
+        XCTAssertEqual(try ProjectEditContract.decodeEditDetail(missing, expectedTopicID: 71, owner: .personal).draft.tickets[0].teamSize, "")
+        XCTAssertEqual(try ProjectEditContract.decodeEditDetail(present, expectedTopicID: 71, owner: .personal).draft.tickets[0].teamSize, "0")
     }
     func testUnknownEditScopeAndWrongTopicAreRejected() {
         let data = Data(#"{"code":200,"data":{"editScope":"NEW_SCOPE","topic":{"id":71,"productType":1,"updateTime":"r1"},"chapters":[],"tickets":[]}}"#.utf8)

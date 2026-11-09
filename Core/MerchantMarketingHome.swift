@@ -100,14 +100,18 @@ public struct MerchantMarketingHome: Equatable {
         return Int((Double(coupons.verified) / Double(coupons.received) * 100).rounded())
     }
     public enum HeroSubtitle: Equatable { case noSignup, noVerification, verified(String) }
-    public var heroValue: String { Self.compact(analytics?.stage("SIGNUP")?.currentCount ?? 0) }
+    /// SIGNUP count. A missing analytics block is unknown ("—"), never 0. A literal 0 stays "0".
+    public var heroValue: String {
+        guard let count = analytics?.stage("SIGNUP")?.currentCount else { return "—" }
+        return Self.compact(count)
+    }
     public var heroSubtitle: HeroSubtitle {
         let signup = analytics?.stage("SIGNUP"), verify = analytics?.stage("VERIFY")
         if signup == nil && verify == nil { return .noSignup }
         guard let verify else { return .noVerification }
         return .verified(Self.compact(verify.currentCount))
     }
-    /// Source _compact: numbers at or above 10,000 become "x.x万"; numbers never render as a dash.
+    /// Source _compact: numbers at or above 10,000 become "x.x万". A known count, including 0, stays numeric.
     public static func compact(_ value: Int) -> String {
         guard value >= 10_000 else { return String(value) }
         let tenths = (Double(value) / 1000).rounded() / 10

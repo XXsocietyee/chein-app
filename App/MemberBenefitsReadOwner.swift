@@ -9,8 +9,8 @@ import Observation
     }
     struct Navigation: Hashable {
         let id: UUID, snapshot: Snapshot
-        static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
-        func hash(into hasher: inout Hasher) { hasher.combine(id) }
+        nonisolated static func == (lhs: Self, rhs: Self) -> Bool { lhs.id == rhs.id }
+        nonisolated func hash(into hasher: inout Hasher) { hasher.combine(id) }
     }
     enum Phase: Equatable { case loading, ready(Snapshot), unavailable, failed }
     private let reader: any MemberHomeReading

@@ -204,7 +204,7 @@ public struct OfficialEventDetailPresentation: Equatable {
         collectiveTipKey = event.hasCollectiveReward
             ? "official.detailParity.collective.tipConfigured" : "official.detailParity.collective.tipAbsent"
         var facts = [OfficialDetailFact(id: "participants", labelKey: "official.detailParity.fact.participants",
-                                        value: .verbatim(String(event.participants ?? 0)),
+                                        value: .verbatim(Self.countText(event.participants)),
                                         sub: .key("official.detailParity.fact.participantsSub"))]
         if event.signed == true {
             facts.append(event.isV2
@@ -212,7 +212,7 @@ public struct OfficialEventDetailPresentation: Equatable {
                                      value: .verbatim("\(event.completedMissionCount)/\(event.missions.count)"),
                                      sub: .key("official.detailParity.fact.progressTasks"))
                 : OfficialDetailFact(id: "progress", labelKey: "official.detailParity.fact.progress",
-                                     value: .verbatim(String(event.myProgress ?? 0)),
+                                     value: .verbatim(Self.countText(event.myProgress)),
                                      sub: .key("official.detailParity.fact.progressCompleted")))
         }
         facts.append(OfficialDetailFact(id: "duration", labelKey: "official.detailParity.fact.duration",
@@ -237,6 +237,8 @@ public struct OfficialEventDetailPresentation: Equatable {
         }
         self.facts = facts
     }
+    /// A missing count is an em dash. A literal zero stays "0".
+    private static func countText(_ value: Int?) -> String { value.map(String.init) ?? "—" }
     /// Ceil days from 24 h, else ceil hours (at least one); numeric timestamps only.
     public static func duration(start: OfficialEventTime?, end: OfficialEventTime?) -> OfficialDetailFactValue {
         guard let from = start?.displayMilliseconds, let to = end?.displayMilliseconds else { return .key("official.notAnnounced") }

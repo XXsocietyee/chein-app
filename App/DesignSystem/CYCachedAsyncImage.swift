@@ -5,7 +5,7 @@ import UIKit
 ///
 /// Pages keep their own image gates. This store never opens a URL session:
 /// a caller hands it bytes, and an unknown reference is not stored.
-final class CYCachedAsyncImageStore {
+final class CYCachedAsyncImageStore: @unchecked Sendable {
     static let maximumByteCount = 8 * 1024 * 1024
     /// Shared cache for cover and shelf tiles. Tests use a private store.
     static let coversAndShelves = CYCachedAsyncImageStore(capacity: 32)

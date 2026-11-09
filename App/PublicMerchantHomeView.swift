@@ -135,7 +135,7 @@ import SwiftUI
                     guard gameFactsSelection == nil, canOpenGameFacts(selection) else { return }
                     gameFactsSelection = selection
                 } label: {
-                    CYListRow(verbatim: locale.identifier.hasPrefix("zh") ? "店内内容与原回复" : "Store content and original reply", card: true) {
+                    CYListRow(verbatim: appLocalized("merchant.publicHome.gameFacts", locale: locale), card: true) {
                         CYRowIcon(systemImage: "doc.text.magnifyingglass")
                     }
                 }
