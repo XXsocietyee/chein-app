@@ -27,7 +27,7 @@ struct CYCoverArt: View {
         if let cornerRadius { art.clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)) } else { art }
     }
 
-    private var art: some View {
+    @ViewBuilder private var art: some View {
         let h = Self.stableHash(seed)
         let hue = Double(h % 360) / 360.0
         let hue2 = (hue + 0.14).truncatingRemainder(dividingBy: 1)
