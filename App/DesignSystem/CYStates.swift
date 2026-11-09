@@ -42,6 +42,7 @@ struct CYEmptyState: View {
                 .font(.system(size: 40, weight: .regular))
                 .foregroundStyle(palette.textTertiary)
                 .accessibilityHidden(true)
+                .cyEntrance(scale: 0.8)
             Text(message, tableName: tableName)
                 .font(CYTypography.body)
                 .foregroundStyle(palette.textSecondary)
@@ -58,6 +59,7 @@ struct CYEmptyState: View {
                     .cyIdentifier(actionIdentifier)
             }
         }
+        .cyEntrance(delay: 0.08, scale: 0.98)
         .frame(maxWidth: .infinity)
         .padding(.vertical, CYSpacing.xxl)
         .padding(.horizontal, CYSpacing.xxl)

@@ -112,7 +112,7 @@ struct UsageConsentGateView: View {
                     Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact) }
                         .toggleStyle(.switch)
                         .tint(CYColor.accent)
-                        .sensoryFeedback(.selection, trigger: checked)
+                        .cyHaptic(.selection, trigger: checked)
                         .accessibilityIdentifier("authEntry.gate.checkbox")
                     if showsCheckRequired && !checked {
                         Label { Text("authEntry.gate.checkRequired", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }
@@ -130,7 +130,7 @@ struct UsageConsentGateView: View {
                     } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
                         .buttonStyle(.cyPrimary)
                         .disabled(!checked)
-                        .sensoryFeedback(.success, trigger: agreeTaps)
+                        .cyHaptic(.success, trigger: agreeTaps)
                         .accessibilityIdentifier("authEntry.gate.agree")
                     Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
                         .font(CYTypography.bodyCompact)

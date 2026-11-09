@@ -67,7 +67,7 @@ import SwiftUI
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .sensoryFeedback(.success, trigger: arrived)
+                    .cyHaptic(.success, trigger: arrived)
                     if let note = value.club.welcomeNote, !note.isEmpty {
                         VStack(alignment: .leading, spacing: CYSpacing.sm) {
                             Text("welcome.note", tableName: "ClubMemberWelcome").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)

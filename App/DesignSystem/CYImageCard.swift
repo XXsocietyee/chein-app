@@ -61,6 +61,7 @@ struct CYImageCard: View {
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .shadow(color: palette.cardShadowColor.opacity(0.4), radius: 8, x: 0, y: 3)
         .accessibilityElement(children: .combine)
+        .cyPressTracking()
     }
 
     /// Default: text sits on the photo over a bottom scrim.

@@ -8,12 +8,17 @@ import SwiftUI
     private var officialRouteIsChinese: Bool { locale.language.languageCode?.identifier == "zh" }
     let reader: OfficialRouteReader
     @State private var state: LoadState = .loading
+    @Namespace private var hero
+    @State private var stagger = CYStaggerGate()
     private enum LoadState { case loading, ready([OfficialRoute]), empty, failed }
+    private var stateKey: Int {
+        switch state { case .loading: return 0; case .ready: return 1; case .empty: return 2; case .failed: return 3 }
+    }
     var body: some View {
         Group {
             switch state {
             case .loading:
-                ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }
                     .accessibilityLabel(Text("officialRoute.loading"))
             case .failed:
                 CYErrorStateView(title: "officialRoute.list.error", message: "officialRoute.error.message", retryTitle: "officialRoute.retry") { Task { await load() } }
@@ -22,9 +27,11 @@ import SwiftUI
             case .ready(let routes):
                 ScrollView {
                     LazyVStack(spacing: CYSpacing.lg) {
-                        ForEach(routes) { route in
-                            NavigationLink { OfficialRouteDetailView(reader: reader, routeID: route.id) } label: { row(route) }
-                                .buttonStyle(.plain)
+                        ForEach(Array(routes.enumerated()), id: \.element.id) { index, route in
+                            NavigationLink { OfficialRouteDetailView(reader: reader, routeID: route.id).cyHeroDestination(route.id, in: hero) } label: {
+                                row(route).cyHeroSource(route.id, in: hero).cyStaggeredAppear(index: index, gate: stagger)
+                            }
+                                .buttonStyle(CYPressableStyle())
                                 .accessibilityLabel(Text("officialRoute.list.open \(route.name)"))
                         }
                     }
@@ -32,15 +39,16 @@ import SwiftUI
                 }
             }
         }
+        .cyAnimation(.easeInOut(duration: CYMotion.Duration.standard), value: stateKey)
         .navigationTitle(Text("officialRoute.title"))
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .task { await load() }
-        .refreshable { await load() }
+        .cyRefreshable { await load(refreshing: true) }
         .accessibilityIdentifier("officialRoute.list")
     }
     private func row(_ route: OfficialRoute) -> some View { OfficialRouteCard(route: route, chinese: officialRouteIsChinese) }
-    private func load() async {
-        state = .loading
+    private func load(refreshing: Bool = false) async {
+        if !refreshing { state = .loading }
         do {
             let routes = try await reader.list()
             state = routes.isEmpty ? .empty : .ready(routes)

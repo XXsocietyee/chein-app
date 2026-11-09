@@ -227,7 +227,7 @@ struct CityPlayerView: View {
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("city.read.point.card.\(point.pointId)")
-                .sensoryFeedback(.selection, trigger: renderedSelection.id)
+                .cyHaptic(.selection, trigger: renderedSelection.id)
         }
         CYSectionHeader("city.read.points.list")
         ForEach(context.points) { point in

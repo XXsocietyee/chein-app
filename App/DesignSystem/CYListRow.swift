@@ -49,9 +49,9 @@ struct CYListRow<Leading: View>: View {
 
     var body: some View {
         if card {
-            row.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+            row.cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg).cyPressTracking()
         } else {
-            row
+            row.cyPressTracking()
         }
     }
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 // Signature-moment kit (e5b): generated cover art, press feel, ring pulse, light confetti.
-// Presentation only. Every moving piece is gated on Reduce Motion; haptics go through `.sensoryFeedback`.
+// Presentation only. Every moving piece is gated on Reduce Motion; haptics go through `CYHaptics`.
 
 // MARK: - Cover art
 
@@ -74,7 +74,7 @@ struct CYPressScaleStyle: ButtonStyle {
             .scaleEffect(configuration.isPressed && !reduceMotion ? scale : 1)
             .opacity(configuration.isPressed && reduceMotion ? 0.7 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.28, dampingFraction: 0.62), value: configuration.isPressed)
-            .sensoryFeedback(.selection, trigger: configuration.isPressed) { old, new in !old && new }
+            .cyHaptic(.selection, trigger: configuration.isPressed) { old, new in !old && new }
     }
 }
 
@@ -97,7 +97,7 @@ private struct CYGoPressBody: View {
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.88 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.5), value: configuration.isPressed)
             .background { CYRingPulse(trigger: burst).allowsHitTesting(false) }
-            .sensoryFeedback(.impact(weight: .heavy), trigger: configuration.isPressed) { old, new in !old && new }
+            .cyHaptic(.impactHeavy, trigger: configuration.isPressed) { old, new in !old && new }
             .onChange(of: configuration.isPressed) { old, new in if old && !new { burst += 1 } }
     }
 }
@@ -162,7 +162,7 @@ extension View {
 // MARK: - Confetti (light)
 
 /// A short, restrained confetti burst. Fires when `trigger` changes (or once on appear with `onAppear`).
-/// Under Reduce Motion nothing is drawn; pair it with `.sensoryFeedback(.success, ...)` and a symbol effect.
+/// Under Reduce Motion nothing is drawn; pair it with `.cyHaptic(.success, ...)` and a symbol effect.
 struct CYConfettiBurst: View {
     var trigger: Int = 0
     var fireOnAppear = false

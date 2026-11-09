@@ -185,7 +185,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                         Label(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
                               systemImage: badge.isLocked ? "lock" : "checkmark.seal")
                             .symbolEffect(.bounce, options: .nonRepeating, value: badge.isLocked)
-                            .sensoryFeedback(.success, trigger: badge.isLocked) { _, locked in !locked }
+                            .cyHaptic(.success, trigger: badge.isLocked) { _, locked in !locked }
                         Text(style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote).foregroundStyle(.secondary)
                     }.frame(maxWidth: .infinity).padding(.vertical, 16)
                 }

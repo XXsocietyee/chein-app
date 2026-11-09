@@ -90,7 +90,7 @@ import SwiftUI
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.5).lineLimit(1).padding(CYSpacing.xl)
         }
         .frame(maxWidth: 260).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
-        .sensoryFeedback(.success, trigger: timing.phase == .measured)
+        .cyHaptic(.success, trigger: timing.phase == .measured)
         .accessibilityElement(children: .ignore)
         .accessibilityValue(Text(verbatim: clockLabel))
         .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))

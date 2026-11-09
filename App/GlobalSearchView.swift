@@ -342,7 +342,7 @@ import SwiftUI
                 .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
                 .background(Capsule(style: .continuous).fill(selected ? CYColor.textPrimary : CYColor.bgElevated))
         }
-        .buttonStyle(.plain).sensoryFeedback(.selection, trigger: selectedKind)
+        .buttonStyle(.plain).cyHaptic(.selection, trigger: selectedKind)
         .accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func kindPicker(_ value: GlobalSearchResults) -> some View {

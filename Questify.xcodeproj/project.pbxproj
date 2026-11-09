@@ -3491,6 +3491,26 @@
 			"path" = "App/E1CommerceComponents.swift";
 			"sourceTree" = "<group>";
 		};
+		"3FA47A88D63428175AF20E77" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYMotion.swift";
+			"sourceTree" = "<group>";
+		};
+		"4BC98972D6E4AB96EF6E96E6" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "3FA47A88D63428175AF20E77";
+		};
+		"AB12C28BD1A55285E94755D0" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/MotionLabFixture.swift";
+			"sourceTree" = "<group>";
+		};
+		"CA2510131681040C90C13E4F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "AB12C28BD1A55285E94755D0";
+		};
 		"CE86A73646A1D746B30FC481" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -35498,6 +35518,8 @@
 				"AFA659529E6B179CB0C9B853",
 				"1A0DC24B3BF72C8171C5686D",
 				"CE86A73646A1D746B30FC481",
+				"AB12C28BD1A55285E94755D0",
+				"3FA47A88D63428175AF20E77",
 				"3F9FDD03C3C82065C4FC725C",
 				"19910EB1B960182E22A2C389",
 				"116D7DDB31ED071EF09492E7",
@@ -40082,6 +40104,8 @@
 				"61577D8D4FC4CC41EE308B5B",
 				"4F801E160F90566D54C95FDF",
 				"F70C7F129F32DEAC5E2C2D3C",
+				"CA2510131681040C90C13E4F",
+				"4BC98972D6E4AB96EF6E96E6",
 				"9919A5B056BB9BA9DF2A2643",
 				"C65518D55CE6E296E369C5DB",
 				"6DB2F83170870339CF339622",

@@ -37,7 +37,7 @@ struct CYHeroBanner: View {
                 .scrollClipDisabled()
                 .scrollTargetBehavior(.viewAligned)
                 .scrollPosition(id: $page)
-                .sensoryFeedback(.selection, trigger: page)
+                .cyHaptic(.selection, trigger: page)
                 if items.count > 1 { dots }
             }
         }

@@ -9,6 +9,8 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
     var community: ClubCommunityContext? = nil
     var publicRoster: ClubPublicRosterReader? = nil
     @State private var searchText = ""
+    @Namespace private var hero
+    @State private var stagger = CYStaggerGate()
     @State private var submittedName = ""
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.directory", onSignIn: onSignIn,
@@ -17,13 +19,16 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                 ClubEmptyState(title: "club.emptyDirectory", hint: "club.emptyDirectoryHint", identifier: "club.directory.empty")
             } else {
                 List {
-                    ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
+                    ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
                         ZStack {
-                            ClubRow(club: club)
+                            ClubRow(club: club).cyHeroSource(club.id, in: hero)
                             NavigationLink {
                                 ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
+                                    .cyHeroDestination(club.id, in: hero)
                             } label: { EmptyView() }.opacity(0)
                         }
+                        .cyPressTracking()
+                        .cyStaggeredAppear(index: index, gate: stagger)
                         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                         .accessibilityIdentifier("club.directory.\(club.id)")
