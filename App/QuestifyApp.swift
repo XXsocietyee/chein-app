@@ -322,7 +322,7 @@ struct SessionRootView: View {
     }
 
     var body: some View {
-        Group {
+        let base = Group {
             if session.account != nil || browsingAsGuest {
                 if let access = merchantRootCoordinator.activeMerchantAccess(accountID: session.account?.id, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision) {
                     SessionMerchantRootContainerView(session: session, coordinator: merchantRootCoordinator, access: access, onReturnToConsumer: { destination in
@@ -334,6 +334,11 @@ struct SessionRootView: View {
                 }
             } else { WelcomeView(onBrowse:{ browsingAsGuest=true }).cyScreenStyle().roleTheme(.player) }
         }
+        return chain6(chain5(chain4(chain3(chain2(chain1(chain0(base)))))))
+    }
+
+    private func chain0<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
         .onChange(of: session.account?.id) { _, accountID in
             merchantRootCoordinator.handleSessionChange(accountID: accountID, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision)
@@ -348,6 +353,10 @@ struct SessionRootView: View {
         .modifier(NativeOriginalUnreadBadgeLifecycle(session: session))
         .environment(\.cityMerchantOperationsFactory, { session.makeCityMerchantOperationsController() })
         .environment(\.merchantLedgerInboxDestination, { AnyView(SessionMerchantLedgerInboxView(session: session, source: $0)) })
+    }
+
+    private func chain1<V: View>(_ v: V) -> some View {
+        v
         .environment(\.merchantCityNodeHubDestination, { AnyView(session.merchantCityNodeHub()) })
         .environment(\.merchantGameNodeDestination, { $1.view(service: $0) })
         .environment(\.merchantCityTemplateHandoffFactory, {
@@ -362,6 +371,10 @@ struct SessionRootView: View {
         .environment(\.nativeAttributeAuthorProjectFactory, session.nativeAttributeAuthorProjectFactory)
         .environment(\.projectCategoryReader, session)
             .environment(\.projectNodePlaceReader, session.searchMapReader)
+    }
+
+    private func chain2<V: View>(_ v: V) -> some View {
+        v
         .environment(\.projectChapterAudioPlayback, session.platformConsumers.audioFactory)
         .environment(\.projectNodeTemplateCreationFactory, {
             .init(coordinator: session.templateAuthoringEditor(), sessionRevision: session.sessionRevision, metadataReader: session,
@@ -373,6 +386,10 @@ struct SessionRootView: View {
         .environment(\.withdrawalSupportReader, session.withdrawalSupportReader)
         .environment(\.coopWalletReader, session.walletCommerceReader)
         .environment(\.squareRelatedTopic, .init(squareScope: session.squareReader.scope, reader: session.topicReader))
+    }
+
+    private func chain3<V: View>(_ v: V) -> some View {
+        v
         .environment(\.bankWithdrawalDestination, session.regionalConfiguration?.showsRoute("/api/withdrawal/create") == true ? { AnyView(SessionBankWithdrawalView()) } : nil)
         .environment(\.couponCodeFactory, { session.makeCouponCodeCoordinator(historyID: $0) })
         .environment(\.merchantPersonalIncomeDestination, { AnyView(SessionMerchantPersonalIncomeView(session: session, source: $0)) })
@@ -381,6 +398,10 @@ struct SessionRootView: View {
         .environment(\.merchantOfficialRecruitmentDestination, { AnyView(SessionMerchantOfficialRecruitmentView(session: session, source: $0)) })
         .environment(\.merchantCoopCenterDestination, { session.merchantCoopCenterDestination(initialTab: $0, focusTopicID: $1) })
         .environment(\.cooperationNearbyDestination, { AnyView(SessionNearbyMerchantsView(session: session)) })
+    }
+
+    private func chain4<V: View>(_ v: V) -> some View {
+        v
         .environment(\.cooperationRelationDiscovery, { AnyView(SessionCoopRelationDiscoveryView(session: session, reader: $0)) })
         .environment(\.complianceSignupDestination, { AnyView(SessionComplianceSignupView(session: session)) })
         .environment(\.merchantCouponManagementDestination, { AnyView(SessionCouponManagementView()) })
@@ -389,6 +410,10 @@ struct SessionRootView: View {
         .onAppear { session.setPrivateHomePresentationActive(true) }
         .onAppear { session.setOwnerDraftPresentationActive(true) }
         .onAppear { session.setWorkshopOwnedPresentationActive(true) }
+    }
+
+    private func chain5<V: View>(_ v: V) -> some View {
+        v
         .onDisappear { session.setPrivateHomePresentationActive(false) }
         .onDisappear { session.setOwnerDraftPresentationActive(false) }
         .onDisappear { session.setWorkshopOwnedPresentationActive(false) }
@@ -399,6 +424,10 @@ struct SessionRootView: View {
         }
         .sheet(isPresented:$showsAreaPicker) { RoamAreaPicker(onSelect:{ session.roamArea=$0 }) }
         .usageConsentLaunchGate(signedIn: session.account != nil, market: session.operationalMarket, onDecline: { browsingAsGuest = true })
+    }
+
+    private func chain6<V: View>(_ v: V) -> some View {
+        v
         .sessionExpiryNotice(session: session, onContinueAsGuest: { browsingAsGuest = true })
         #if DEBUG
         .sheet(isPresented: $showsScannerFixture) { NativeQRScanner { _ in } }
@@ -409,6 +438,7 @@ struct SessionRootView: View {
         }
         #endif
     }
+
 
     private func rootTabLabel(_ tab: RootTab) -> some View {
         Label(LocalizedStringKey(tab.titleKey), systemImage: tab.systemImage)
