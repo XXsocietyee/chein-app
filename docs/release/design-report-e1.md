@@ -1,7 +1,7 @@
 # Design report e1 (player discovery + commerce), ADA rework pass
 
 Branch `ui/e1`, SHA at report time: see `git log -1` (rework commits "e1: ADA rework ...", "e1: polish ...").
-Contact sheets: /Users/fanning/chengyin-refs/design-reports/e1/contact-122836.png (first rework batch, zh), contact-124656.png (EN/zh/XL batch, language args were mis-quoted so mostly zh), contact-131900-ish (final EN/zh/XL batch, newest `contact-*.png` in that folder). Individual shots: `batch-<page>-{en,zh,xl}.png`.
+Contact sheets: /Users/fanning/chengyin-refs/design-reports/e1/contact-122836.png (first rework batch, zh), contact-124656.png (EN/zh/XL batch, language args were mis-quoted so mostly zh), contact-132127.png (final EN/zh/XL batch). Individual shots: `batch-<page>-{en,zh,xl}.png`.
 
 ## Benchmarks (Mobbin, patterns borrowed)
 - Event detail + register: Luma https://mobbin.com/screens/054f5624-ea8a-4bf5-a3eb-ecf64a11805c (poster hero, big title), Insight Timer https://mobbin.com/screens/ccd6c9a0-abf9-4866-beb0-50a4c2e66a67 (pinned primary button over fading content), Meetup https://mobbin.com/screens/ec972fea-0cf4-4006-a80c-a2de330fbdd5 (date/location icon rows), Handshake https://mobbin.com/screens/cb5aa36f-5157-46f2-9972-5f66f3e973d3 (icon info rows) -> activity detail: poster hero with title on scrim, status/price chips, one icon-row info card, pinned single Register button.
