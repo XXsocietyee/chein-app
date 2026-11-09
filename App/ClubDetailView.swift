@@ -43,20 +43,25 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // 「类型 · N 名成员」 and the join policy (公开加入 / 需审核加入).
                 Section {
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        ZStack(alignment: .bottomLeading) {
-                            ClubDetailCover(source: club.cover, seed: club.name + String(club.id))
-                            LinearGradient(stops: [.init(color: .clear, location: 0.3), .init(color: .black.opacity(0.85), location: 1)], startPoint: .top, endPoint: .bottom)
-                                .allowsHitTesting(false).accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                                if club.joinPolicySupported {
-                                    CYStatusChip(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
-                                                 tone: club.needsApproval ? .warning : .success, systemImage: club.needsApproval ? "lock" : "checkmark.circle")
-                                }
-                                ClubName(value: club.name).font(.largeTitle.weight(.bold)).foregroundStyle(.white)
-                                    .fixedSize(horizontal: false, vertical: true)
-                                    .accessibilityIdentifier("club.detail.name")
-                            }.padding(CYSpacing.lg)
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            if club.joinPolicySupported {
+                                CYStatusChip(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
+                                             tone: club.needsApproval ? .warning : .success, systemImage: club.needsApproval ? "lock" : "checkmark.circle")
+                            }
+                            ClubName(value: club.name).font(.largeTitle.weight(.bold)).foregroundStyle(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("club.detail.name")
                         }
+                        .padding(CYSpacing.lg).padding(.top, 120)
+                        .frame(maxWidth: .infinity, minHeight: 280, alignment: .bottomLeading)
+                        // Cover + scrim grow with the text so large type never spills out of the hero.
+                        .background {
+                            ZStack {
+                                ClubDetailCover(source: club.cover, seed: club.name + String(club.id))
+                                LinearGradient(stops: [.init(color: .clear, location: 0.3), .init(color: .black.opacity(0.85), location: 1)], startPoint: .top, endPoint: .bottom)
+                            }.accessibilityHidden(true)
+                        }
+                        .clipped()
                         Label { Text(verbatim: headerMeta(club)) } icon: { Image(systemName: "person.3") }
                             .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).padding(.horizontal, CYSpacing.lg)
                     }
@@ -354,7 +359,7 @@ private struct ClubDetailCover: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity).frame(height: 280).clipped()
+        .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
         .accessibilityHidden(true)
     }
 }
