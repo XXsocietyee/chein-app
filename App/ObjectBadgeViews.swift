@@ -207,8 +207,10 @@ struct ObjectBadgeWallBadgeLabel: View {
     @State private var turntable: ObjectBadgeTurntable?
     var body: some View {
         let table = turntable ?? ObjectBadgeTurntable(style: parameters.style, reducedMotion: reduceMotion)
-        VStack(spacing: 16) {
+        VStack(spacing: CYSpacing.lg) {
             if currentScope() == expectedScope {
+                if parameters.name.isEmpty { CYHeroHeader("profile.badges.detail") }
+                else { CYHeroHeader(verbatim: parameters.name) }
                 // Native turntable: drag to rotate, tap to spin a pin badge; static under Reduce Motion.
                 ObjectCardArtwork(url: parameters.image, label: parameters.name, media: media,
                     expectedScope: expectedScope, currentScope: currentScope).frame(height: 200)
@@ -236,15 +238,24 @@ struct ObjectBadgeWallBadgeLabel: View {
                     }
                     .accessibilityIdentifier("objects.badge.turntable")
                 if let hint = table.hintKey {
-                    Text(LocalizedStringKey(hint)).font(.footnote).foregroundStyle(.secondary)
+                    Text(LocalizedStringKey(hint)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("objects.badge.turntableHint")
                 }
-                if parameters.name.isEmpty { Text("profile.badges.detail").font(.headline) }
-                else { Text(verbatim: parameters.name).font(.headline) }
-                if !parameters.subtitle.isEmpty { Text(verbatim: parameters.subtitle).font(.caption) }
-                Text(LocalizedStringKey("objects.rarity." + String(parameters.rarity)))
-                Text(LocalizedStringKey(parameters.style == "glow" ? "objects.glow" : (parameters.style == "pin" ? "objects.pin" : "objects.enamel"))).font(.footnote).foregroundStyle(.secondary)
-            } else { Text("objects.sessionChanged") }
-        }.padding().appNavigationTitle("profile.badges.detail").privacySensitive()
+                if !parameters.subtitle.isEmpty {
+                    CYListRow(verbatim: parameters.subtitle, trailing: .none, card: true)
+                }
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip(LocalizedStringKey("objects.rarity." + String(parameters.rarity)), tone: .info)
+                    CYStatusChip(LocalizedStringKey(parameters.style == "glow" ? "objects.glow" : (parameters.style == "pin" ? "objects.pin" : "objects.enamel")))
+                }
+            } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "objects.sessionChanged") }
+        }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .tint(CYDomainPalette(.player).brand)
+        .appNavigationTitle("profile.badges.detail")
+        .privacySensitive()
     }
 }

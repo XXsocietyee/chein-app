@@ -67,8 +67,8 @@ enum OfficialDetailID {
             List {
                 OfficialEventCard(event: event).questifyCardListRow()
                 OfficialOrganizerEntryRow(eventID: event.id, access: actions?.organizer)
-                HStack(spacing: 8) {
-                    Text(LocalizedStringKey(presentation.categoryKey)).font(CYTypography.label).foregroundStyle(CYColor.accentText)
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip(LocalizedStringKey(presentation.categoryKey), tone: .neutral)
                     Text("official.detailParity.organizer").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier(OfficialDetailID.organizer)
                 Section("official.facts") {
@@ -80,18 +80,21 @@ enum OfficialDetailID {
                         .accessibilityIdentifier("official.price")
                 }
                 Section {
-                    VStack(alignment: .leading, spacing: 8) {
-                        Text(verbatim: event.title).font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary)
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYHeroHeader(verbatim: event.title)
                         if let intro = presentation.intro { Text(verbatim: intro).font(CYTypography.body).foregroundStyle(CYColor.textSecondary).textSelection(.enabled) }
                     }.fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(OfficialDetailID.overview)
                 }
                 if !presentation.cards.isEmpty {
                     Section("official.detailParity.cardsHeading") {
                         ForEach(presentation.cards, id: \.index) { card in
-                            VStack(alignment: .leading, spacing: 4) {
-                                OfficialDetailTextView(value: card.title).font(.headline)
-                                OfficialDetailTextView(value: card.description).foregroundStyle(.secondary)
-                            }.accessibilityElement(children: .combine)
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                OfficialDetailTextView(value: card.title).font(CYTypography.cardTitle)
+                                OfficialDetailTextView(value: card.description).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
+                            .accessibilityElement(children: .combine)
                         }
                     }.accessibilityIdentifier(OfficialDetailID.cards)
                 }
@@ -109,7 +112,7 @@ enum OfficialDetailID {
                             if let reason = presentation.pausedReason { Text("official.detailParity.tasks.paused \(reason)").foregroundStyle(CYColor.dangerText) }
                             else { Text("official.detailParity.tasks.pausedDefault").foregroundStyle(CYColor.dangerText) }
                         }
-                        if presentation.missions.isEmpty { Text("official.detailParity.tasks.empty") }
+                        if presentation.missions.isEmpty { CYEmptyState(systemImage: "checklist", "official.detailParity.tasks.empty") }
                         if topicNameFailed {
                             Text("official.w206.detail.topicName.failed").font(.subheadline).foregroundStyle(.secondary)
                                 .accessibilityIdentifier(OfficialDetailID.topicNameError)
@@ -137,7 +140,7 @@ enum OfficialDetailID {
                     }
                 }
                 Section("official.detailParity.rewards.heading") {
-                    if event.rewards.isEmpty { Text("official.detailParity.rewards.empty") }
+                    if event.rewards.isEmpty { CYEmptyState(systemImage: "gift", "official.detailParity.rewards.empty") }
                     ForEach(Array(event.rewards.enumerated()), id: \.offset) { _, reward in
                         switch reward {
                         case .badge: Label("official.reward.badge", systemImage: "seal")
@@ -183,7 +186,7 @@ enum OfficialDetailID {
                         if let eligible = event.eligible { Text(eligible ? "official.eligible" : "official.notEligible") }
                     } else {
                         Text("official.signInForProgress")
-                        if let onLogin { Button("official.signIn", action: onLogin).frame(minHeight: 44) }
+                        if let onLogin { CYPillButton("official.signIn", style: .secondary, action: onLogin) }
                     }
                 }
                 if reader.isAuthenticated, let actions {
@@ -202,8 +205,10 @@ enum OfficialDetailID {
                 if let topicLinks, let topic = OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta) {
                     Section {
                         NavigationLink { topicLinks.destination(topic) } label: {
-                            Text(LocalizedStringKey(presentation.cta.key)).font(.headline).frame(maxWidth: .infinity, minHeight: 44)
-                        }.accessibilityIdentifier(OfficialDetailID.ctaTopic)
+                            Text(LocalizedStringKey(presentation.cta.key)).frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(CYPillButtonStyle())
+                        .accessibilityIdentifier(OfficialDetailID.ctaTopic)
                     }
                 } else if !presentation.cta.isSourceAction {
                     Section {
@@ -216,7 +221,7 @@ enum OfficialDetailID {
                     OfficialDetailRoamJumpSection(event: event, cta: presentation.cta, onOpenRoam: onOpenRoam)
                 }
                 if reader.isOfflineExample { Section { OfficialReadOnlyNotice(offline: true) } }
-            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).background(CYColor.bgPage)
+            }.listStyle(.insetGrouped).scrollContentBackground(.hidden).cyDomainPageBackground().themeDomain(.player).tint(CYDomainPalette(.player).brand)
             .accessibilityIdentifier("official.detail.content")
             .task(id: namesKey) {
                 await loadTopicNames(namesKey, detailVisit: namesVisit)
@@ -323,7 +328,7 @@ struct OfficialDetailMissionRow: View {
             OfficialDetailTextView(value: mission.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let topicName { Text("official.w206.detail.boundTopic \(topicName)").font(.subheadline) }
             OfficialDetailTextView(value: mission.description).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-            Label(LocalizedStringKey(mission.action.key), systemImage: symbol).font(CYTypography.label).foregroundStyle(mission.action == .verified ? CYColor.successText : CYColor.accentText)
+            CYStatusChip(LocalizedStringKey(mission.action.key), tone: mission.action == .verified ? .success : .neutral, systemImage: symbol)
         }.accessibilityElement(children: .combine)
     }
     private var symbol: String {

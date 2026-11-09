@@ -92,33 +92,30 @@ extension WalletScreen where Value == WithdrawalBalance {
     var showsWithdrawalSupport = true
     var showsCooperationFinance = true
     var organizerFinance: WalletOrganizerFinanceAccess? = nil
+    /// One solid action. Withdrawal support wins; otherwise the first destination that is actually shown.
+    private var primaryOverviewID: String {
+        if visibility.withdrawalRecords, showsWithdrawalSupport { return "withdrawal.support" }
+        if visibility.withdrawalRecords { return "wallet.withdrawals" }
+        if visibility.income { return "wallet.income" }
+        if visibility.assets { return "wallet.assets" }
+        if visibility.points { return "wallet.points" }
+        if visibility.mall { return "wallet.mall" }
+        return ""
+    }
     var body: some View {
         List {
             if visibility.income {
-                Section("withdrawal.support.balance") {
+                Section {
                     if earnings.loading {
-                        ProgressView("wallet.loading").accessibilityIdentifier("wallet.earnings.loading")
+                        CYSkeleton()
+                            .accessibilityIdentifier("wallet.earnings.loading")
+                            .accessibilityLabel(Text("wallet.loading"))
                     } else if let value = earnings.value, reader.isConfigured,
                               earnings.loadedScope == reader.scope, reader.scope != nil {
-                        // Revolut-style balance hero: one large tabular figure, calm surface.
-                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                            Text("withdrawal.support.balance")
-                                .font(CYTypography.caption.weight(.semibold))
-                                .foregroundStyle(CYColor.textSecondary)
-                                .accessibilityHidden(true)
-                            Text(verbatim: format.amount(value.balance, currency: value.currency))
-                                .font(CYTypography.data2XL)
-                                .foregroundStyle(CYColor.textPrimary)
-                                .minimumScaleFactor(0.6)
-                                .lineLimit(1)
-                                .privacySensitive()
-                                .accessibilityIdentifier("wallet.earnings.balance")
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.vertical, CYSpacing.sm)
+                        WalletEarningsOverviewHero(amount: format.amount(value.balance, currency: value.currency))
                         if value.balance.value == 0 { WalletEarningsEmptyNote() }
                     } else {
-                        WalletIssueView(reader: reader, requiresLogin: earnings.requiresLogin,
+                        WalletOverviewIssue(reader: reader, requiresLogin: earnings.requiresLogin,
                             unavailable: earnings.unavailable) { Task { await loadEarnings() } }
                     }
                 }.accessibilityIdentifier("wallet.earnings.overview")
@@ -130,34 +127,34 @@ extension WalletScreen where Value == WithdrawalBalance {
             }
             // Detail rows grouped as one inset section, then withdrawal rows, as the mini-program 账户收益 page lists them.
             Section {
-            if visibility.assets { NavigationLink("wallet.assets") { WalletAssetsView(reader: reader) } }
-            if visibility.income { NavigationLink("wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
+            if visibility.assets { overviewLink("wallet.assets", systemImage: "wallet.pass", id: "wallet.assets") { WalletAssetsView(reader: reader) } }
+            if visibility.income { overviewLink("wallet.income", systemImage: "list.bullet", id: "wallet.income") { WalletIncomeView(reader: reader, onCooperationFinance: onCooperationFinance, showsCooperationFinance: showsCooperationFinance, organizerFinance: organizerFinance) } }
             if visibility.income {
-                NavigationLink { WalletIncomeAnalysisView(reader: reader) } label: {
-                    Label { Text("wallet.analysis.title", tableName: "WalletIncomeAnalysis") } icon: { Image(systemName: "chart.bar.xaxis") }
-                }.accessibilityIdentifier("wallet.analysis.open")
+                overviewLink(verbatim: String(localized: String.LocalizationValue("wallet.analysis.title"), table: "WalletIncomeAnalysis", locale: locale), systemImage: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }
             }
             if visibility.income, let invitationHistory {
-                NavigationLink {
+                overviewLink("social.invites.title", systemImage: "person.2", id: "wallet.inviteHistory") {
                     SocialInviteHistoryView(reader: invitationHistory.reader,
                         squareReader: invitationHistory.squareReader, actions: invitationHistory.actions)
                         .id(invitationHistory.reader.identity)
-                } label: {
-                    Label("social.invites.title", systemImage: "person.2.badge.plus")
-                }.accessibilityIdentifier("wallet.inviteHistory")
+                }
             }
-            if visibility.points { NavigationLink("wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
-            if visibility.mall { NavigationLink("wallet.mall") { WalletProductsView(reader: reader) } }
+            if visibility.points { overviewLink("wallet.points", systemImage: "star.circle", id: "wallet.points") { WalletLedgerView(reader: reader, kind: .points) } }
+            if visibility.mall { overviewLink("wallet.mall", systemImage: "bag", id: "wallet.mall") { WalletProductsView(reader: reader) } }
             }
             if visibility.withdrawalRecords {
                 Section {
                     if showsWithdrawalSupport {
-                        NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                        overviewLink("withdrawal.support.title", systemImage: "arrow.up.right", id: "withdrawal.support") { WithdrawalSupportLandingView(reader: reader) }
                     }
-                    NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
+                    overviewLink("wallet.withdrawals", systemImage: "clock.arrow.circlepath", id: "wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
                 }
             }
-        }.appNavigationTitle("wallet.title")
+        }
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .tint(CYDomainPalette(.player).brand)
+        .appNavigationTitle("wallet.title")
             .task(id: reader.scope) {
                 isVisible = true
                 earnings.clear()
@@ -176,6 +173,30 @@ extension WalletScreen where Value == WithdrawalBalance {
                     AccessibilityNotification.Announcement(WalletLoadAnnouncement.text(locale: locale)).post()
                 }
             }
+    }
+    @ViewBuilder private func overviewLink<Destination: View>(_ title: LocalizedStringKey, systemImage: String, id: String, @ViewBuilder destination: () -> Destination) -> some View {
+        if id == primaryOverviewID {
+            NavigationLink { destination() } label: { Text(title).frame(maxWidth: .infinity) }
+                .buttonStyle(CYPillButtonStyle())
+                .accessibilityIdentifier(id)
+        } else {
+            NavigationLink { destination() } label: {
+                CYListRow(title, card: true) { CYRowIcon(systemImage: systemImage) }
+            }
+            .buttonStyle(.plain)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            .accessibilityIdentifier(id)
+        }
+    }
+    @ViewBuilder private func overviewLink<Destination: View>(verbatim title: String, systemImage: String, id: String, @ViewBuilder destination: () -> Destination) -> some View {
+        NavigationLink { destination() } label: {
+            CYListRow(verbatim: title, card: true) { CYRowIcon(systemImage: systemImage) }
+        }
+        .buttonStyle(.plain)
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+        .accessibilityIdentifier(id)
     }
     private func loadEarnings() async {
         guard visibility.income, isVisible, scenePhase == .active else { return }
@@ -726,5 +747,49 @@ enum WalletLoadAnnouncement {
     }
     static func text(locale: Locale) -> String {
         ChannelCopy.text("钱包数据已更新", "Wallet figures updated", locale: locale)
+    }
+}
+
+/// Centered earnings figure. The formatted amount is unchanged; an unknown figure stays whatever `WalletFormatting` already returns, and a missing balance is not invented as zero here.
+private struct WalletEarningsOverviewHero: View {
+    let amount: String
+    @ScaledMetric(relativeTo: .largeTitle) private var size: CGFloat = 56
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            Text("withdrawal.support.balance")
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .lineLimit(1)
+                .accessibilityHidden(true)
+            Text(verbatim: amount)
+                .font(.system(size: size, weight: .bold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.5)
+                .privacySensitive()
+        }
+        .padding(.vertical, CYSpacing.lg)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("wallet.earnings.balance")
+        .privacySensitive()
+    }
+}
+
+/// Same gates as `WalletIssueView`. The retry is a secondary pill so the overview keeps a single primary destination.
+private struct WalletOverviewIssue: View {
+    let reader: WalletCommerceReader
+    let requiresLogin: Bool
+    let unavailable: Bool
+    let retry: () -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(LocalizedStringKey((reader.scope == nil || requiresLogin) ? "wallet.login" : reader.isConfigured && !unavailable ? "wallet.failed" : "wallet.unavailable"))
+                .accessibilityIdentifier("wallet.issue")
+            if reader.isConfigured && reader.scope != nil && !requiresLogin && !unavailable {
+                CYPillButton("wallet.retry", style: .secondary, action: retry)
+            }
+        }
     }
 }

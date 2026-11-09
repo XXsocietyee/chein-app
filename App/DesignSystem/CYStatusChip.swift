@@ -4,14 +4,21 @@ enum CYStatusTone { case neutral, success, warning, danger, info }
 
 /// Small capsule status label (order state, ticket state). Colour is never the only signal: pass text.
 struct CYStatusChip: View {
-    private let text: LocalizedStringKey
+    private let text: Text
     private let tone: CYStatusTone
     private let systemImage: String?
 
     @Environment(\.cyPalette) private var palette
 
     init(_ text: LocalizedStringKey, tone: CYStatusTone = .neutral, systemImage: String? = nil) {
-        self.text = text
+        self.text = Text(text)
+        self.tone = tone
+        self.systemImage = systemImage
+    }
+
+    /// Server-supplied status text stays verbatim. It is not looked up as a catalog key.
+    init(verbatim text: String, tone: CYStatusTone = .neutral, systemImage: String? = nil) {
+        self.text = Text(verbatim: text)
         self.tone = tone
         self.systemImage = systemImage
     }
@@ -19,7 +26,7 @@ struct CYStatusChip: View {
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
             if let systemImage { Image(systemName: systemImage).font(.caption2.weight(.bold)) }
-            Text(text).font(CYTypography.caption)
+            text.font(CYTypography.caption)
         }
         .foregroundStyle(foreground)
         .padding(.horizontal, CYSpacing.md)

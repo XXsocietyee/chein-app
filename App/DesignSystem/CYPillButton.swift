@@ -5,7 +5,7 @@ enum CYPillStyle { case primary, secondary, tertiary }
 /// 56pt capsule button. Primary = solid, secondary = outlined, tertiary = text only.
 /// One primary per screen (owner rule). Disabled state keeps full contrast via palette, no opacity drop.
 struct CYPillButton: View {
-    private let title: LocalizedStringKey
+    private let title: Text
     private let style: CYPillStyle
     private let systemImage: String?
     private let fullWidth: Bool
@@ -18,7 +18,22 @@ struct CYPillButton: View {
         fullWidth: Bool = true,
         action: @escaping () -> Void
     ) {
-        self.title = title
+        self.title = Text(title)
+        self.style = style
+        self.systemImage = systemImage
+        self.fullWidth = fullWidth
+        self.action = action
+    }
+
+    /// Already-resolved copy (another string table, or a server string). Not looked up again.
+    init(
+        verbatim title: String,
+        style: CYPillStyle = .primary,
+        systemImage: String? = nil,
+        fullWidth: Bool = true,
+        action: @escaping () -> Void
+    ) {
+        self.title = Text(verbatim: title)
         self.style = style
         self.systemImage = systemImage
         self.fullWidth = fullWidth
@@ -29,7 +44,7 @@ struct CYPillButton: View {
         Button(action: action) {
             HStack(spacing: CYSpacing.sm) {
                 if let systemImage { Image(systemName: systemImage) }
-                Text(title)
+                title
             }
         }
         .buttonStyle(CYPillButtonStyle(style: style, fullWidth: fullWidth))

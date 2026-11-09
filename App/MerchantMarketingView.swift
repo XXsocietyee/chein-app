@@ -43,6 +43,9 @@ import SwiftUI
     }
     var body: some View {
         List {
+            CYHeroHeader(LocalizedStringKey(selected.titleKey))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             Section {
                 Picker("merchantMarketing.section", selection: $selected) {
                     ForEach(MerchantMarketingCoordinator.Surface.allCases) { item in Text(LocalizedStringKey(item.titleKey)).tag(item) }
@@ -53,7 +56,11 @@ import SwiftUI
             }
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
-            if model.busy { ProgressView("merchantMarketing.loading") }
+            if model.busy {
+                CYSkeleton()
+                    .accessibilityLabel(Text("merchantMarketing.loading"))
+                    .listRowBackground(Color.clear)
+            }
             if let error = model.failure { failure(error) }
             if let result = model.acknowledgement {
                 Section("merchantMarketing.acknowledged") {
@@ -71,6 +78,9 @@ import SwiftUI
             if let rounds = model.rounds { predictionSections(rounds) }
         }
         .navigationTitle(LocalizedStringKey(selected.titleKey))
+        .cyDomainPageBackground()
+        .themeDomain(.merchant)
+        .tint(CYDomainPalette(.merchant).brand)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } } label: {
@@ -105,7 +115,7 @@ import SwiftUI
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.title"))
                     Text(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.body")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.marketing.denied")
-                Button(MerchantOpsCopy.text("merchantOps.marketing.denied.retry")) { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }
+                CYPillButton(verbatim: MerchantOpsCopy.text("merchantOps.marketing.denied.retry"), style: .secondary) { refreshTask?.cancel(); refreshTask = Task { await loadSurface() } }
                     .accessibilityIdentifier("merchantOps.marketing.denied.retry")
             }
             Text(LocalizedStringKey(error.key)).accessibilityIdentifier("merchantMarketing.error")
@@ -134,28 +144,24 @@ import SwiftUI
                 && loadedRecommendationOrigin == recommendationOrigin && model.insight == insight, facts: insight.facts,
             onCoopCenter: cooperationCenterAction(insight: insight))
         Section("merchantMarketing.facts") {
-            LabeledContent("merchantMarketing.window", value: MerchantInsightAttribution(insight.facts).window ?? "—")
-            LabeledContent("merchantMarketing.sample", value: value(insight.facts["sampleMembers"].integer))
+            CYListRow("merchantMarketing.window", trailing: .value(MerchantInsightAttribution(insight.facts).window ?? "—"))
+            CYListRow("merchantMarketing.sample", trailing: .value(value(insight.facts["sampleMembers"].integer)))
             if insight.facts["lowSample"].isTrue { Text("merchantMarketing.lowSample") }
-            LabeledContent("merchantMarketing.checkins", value: value(insight.facts["checkin"]["total"].integer))
-            LabeledContent("merchantMarketing.redemptionRate", value: percent(insight.facts["checkin"]["redeemRate"].decimal))
-            LabeledContent("merchantMarketing.repeatRate", value: percent(insight.facts["checkin"]["repeatRate"].decimal))
-            LabeledContent("merchantMarketing.wait", value: value(insight.facts["checkin"]["avgWaitMinutes"].integer))
-            LabeledContent("merchantMarketing.members", value: value(insight.facts["crowd"]["members"].integer))
-            LabeledContent("merchantMarketing.offers", value: value(insight.facts["supply"]["activeOffers"].integer))
-            LabeledContent("merchantMarketing.quotaRate", value: percent(insight.facts["supply"]["quotaUsedRate"].decimal))
+            CYListRow("merchantMarketing.checkins", trailing: .value(value(insight.facts["checkin"]["total"].integer)))
+            CYListRow("merchantMarketing.redemptionRate", trailing: .value(percent(insight.facts["checkin"]["redeemRate"].decimal)))
+            CYListRow("merchantMarketing.repeatRate", trailing: .value(percent(insight.facts["checkin"]["repeatRate"].decimal)))
+            CYListRow("merchantMarketing.wait", trailing: .value(value(insight.facts["checkin"]["avgWaitMinutes"].integer)))
+            CYListRow("merchantMarketing.members", trailing: .value(value(insight.facts["crowd"]["members"].integer)))
+            CYListRow("merchantMarketing.offers", trailing: .value(value(insight.facts["supply"]["activeOffers"].integer)))
+            CYListRow("merchantMarketing.quotaRate", trailing: .value(percent(insight.facts["supply"]["quotaUsedRate"].decimal)))
             ForEach(Array((insight.facts["checkin"]["hourBuckets"].array ?? []).enumerated()), id: \.offset) { _, bucket in
                 // Source 到店时段: one row per hour slot with its check-in count.
-                LabeledContent {
-                    Text(verbatim: value(bucket["count"].integer)).monospacedDigit()
-                } label: {
-                    Text(verbatim: bucket["hour"].integer.map { String(format: "%02d:00", $0) } ?? "—")
-                }
+                CYListRow(verbatim: bucket["hour"].integer.map { String(format: "%02d:00", $0) } ?? "—", trailing: .value(value(bucket["count"].integer)))
             }
-            LabeledContent("merchantMarketing.maleRate", value: percent(insight.facts["crowd"]["sexRatio"]["male"].decimal))
-            LabeledContent("merchantMarketing.femaleRate", value: percent(insight.facts["crowd"]["sexRatio"]["female"].decimal))
+            CYListRow("merchantMarketing.maleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["male"].decimal)))
+            CYListRow("merchantMarketing.femaleRate", trailing: .value(percent(insight.facts["crowd"]["sexRatio"]["female"].decimal)))
             ForEach(Array((insight.facts["crowd"]["interestTop"].array ?? []).enumerated()), id: \.offset) { _, interest in
-                if let text = interest.text { LabeledContent("merchantMarketing.interest", value: text) }
+                if let text = interest.text { CYListRow("merchantMarketing.interest", trailing: .value(text)) }
             }
         }
         MerchantInsightRecentVisitorsSection(visitors: .init(insight.metadata["recentVisitors"]),
@@ -164,7 +170,7 @@ import SwiftUI
         Section("merchantMarketing.recommendedTopics") {
             recommendationRows(insight.recommendedTopics, kind: .topic, insight: insight)
             if let openCoopCenter = cooperationCenterAction(insight: insight) {
-                Button("merchant.insightCooperationCenter.open", action: openCoopCenter)
+                CYPillButton("merchant.insightCooperationCenter.open", style: .secondary, action: openCoopCenter)
                     .accessibilityIdentifier("merchant.insightCooperationCenter.open")
             }
         }
@@ -196,17 +202,18 @@ import SwiftUI
                 ForEach(Array((ai["audiences"].array ?? []).enumerated()), id: \.offset) { _, audience in
                     VStack(alignment: .leading) { Text(audience["label"].text ?? "—"); if let reason = audience["reason"].text { Text(reason) } }
                 }
-            } else { Text("merchantMarketing.aiUnavailable") }
+            } else { CYEmptyState(systemImage: "text.bubble", "merchantMarketing.aiUnavailable") }
             if let error = insight.aiError, !error.isEmpty { Text(error) }
             if let date = insight.generatedAt { LabeledContent("merchantMarketing.generatedAt", value: date) }
-            ForEach(Array(insight.suggestions.enumerated()), id: \.offset) { _, suggestion in
+            ForEach(Array(insight.suggestions.enumerated()), id: \.offset) { index, suggestion in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(suggestion.title).font(.headline)
                     if let reason = suggestion.reason { Text(reason) }
                     if let slot = suggestion.timeSlot { Text(slot) }
                     if let audience = suggestion.audience { Text(audience) }
                     if let destination = suggestion.destination {
-                        Button("merchantMarketing.openSuggestion") { onSuggestion(destination) }.accessibilityHint(suggestion.title)
+                        CYPillButton("merchantMarketing.openSuggestion", style: index == 0 ? .primary : .secondary) { onSuggestion(destination) }
+                            .accessibilityHint(suggestion.title)
                     }
                 }
             }
@@ -233,7 +240,10 @@ import SwiftUI
     }
     @ViewBuilder private func entitlementSections(_ subscriptions: [MerchantMarketingEntitlement]) -> some View {
         Section("merchantMarketing.activeEntitlements") {
-            if subscriptions.isEmpty { Text("merchantMarketing.noEntitlements").accessibilityIdentifier("merchantMarketing.emptyEntitlements") }
+            if subscriptions.isEmpty {
+                CYEmptyState(systemImage: "ticket", "merchantMarketing.noEntitlements")
+                    .accessibilityIdentifier("merchantMarketing.emptyEntitlements")
+            }
             ForEach(Array(subscriptions.enumerated()), id: \.offset) { _, item in
                 VStack(alignment: .leading, spacing: 8) {
                     Text(LocalizedStringKey(entitlementTitle(item.subscriptionType))).font(.headline)
@@ -256,19 +266,19 @@ import SwiftUI
     private func quotaRow(_ key: String, _ quota: MerchantMarketingCommerce.Quota) -> some View {
         VStack(alignment: .leading, spacing: 6) {
             Text(LocalizedStringKey(key)).font(.headline)
-            LabeledContent("merchantMarketing.used", value: value(quota.used))
-            LabeledContent("merchantMarketing.limit", value: value(quota.limit))
-            LabeledContent("merchantMarketing.remaining", value: value(quota.remaining))
+            CYListRow("merchantMarketing.used", trailing: .value(value(quota.used)))
+            CYListRow("merchantMarketing.limit", trailing: .value(value(quota.limit)))
+            CYListRow("merchantMarketing.remaining", trailing: .value(value(quota.remaining)))
         }.accessibilityElement(children: .combine)
     }
     @ViewBuilder private func predictionSections(_ rounds: [MerchantPredictionRound]) -> some View {
-        if rounds.isEmpty { Section { Text("merchantMarketing.emptyPredictions") } }
+        if rounds.isEmpty { Section { CYEmptyState(systemImage: "questionmark.circle", "merchantMarketing.emptyPredictions") } }
         ForEach(rounds) { round in
             Section {
                 Text(round.nodeName ?? appLocalized("merchantMarketing.unnamed", locale: locale)).font(.headline)
                 Text(round.playDay); if let question = round.question { Text(question) }
                 if let days = round.daysLeft {
-                    if days <= 0 { Label("merchantMarketing.today", systemImage: "exclamationmark.circle").foregroundStyle(CYColor.dangerText) }
+                    if days <= 0 { CYStatusChip("merchantMarketing.today", tone: .danger, systemImage: "exclamationmark.circle") }
                     else { LabeledContent("merchantMarketing.daysLeft", value: String(days)) }
                 }
                 if let count = round.betCount, count > 0 { LabeledContent("merchantMarketing.bets", value: String(count)) }
@@ -297,6 +307,7 @@ private struct MerchantPredictionReviewView: View {
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader("merchantMarketing.review")
                 Section("merchantMarketing.review") {
                     Text(accepted.round.nodeName ?? appLocalized("merchantMarketing.unnamed", locale: locale))
                     Text(accepted.round.playDay); Text(accepted.round.question ?? "—")

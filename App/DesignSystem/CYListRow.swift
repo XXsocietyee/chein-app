@@ -12,8 +12,8 @@ enum CYListRowTrailing {
 /// Row: leading icon or avatar, title, meta line, trailing value/chevron.
 /// `card: true` wraps it in the 16pt-radius card surface; otherwise it is a plain row for use inside a List/card.
 struct CYListRow<Leading: View>: View {
-    private let title: LocalizedStringKey
-    private let meta: LocalizedStringKey?
+    private let title: Text
+    private let meta: Text?
     private let trailing: CYListRowTrailing
     private let card: Bool
     private let leading: Leading
@@ -27,8 +27,23 @@ struct CYListRow<Leading: View>: View {
         card: Bool = false,
         @ViewBuilder leading: () -> Leading
     ) {
-        self.title = title
-        self.meta = meta
+        self.title = Text(title)
+        self.meta = meta.map { Text($0) }
+        self.trailing = trailing
+        self.card = card
+        self.leading = leading()
+    }
+
+    /// Server-supplied titles stay verbatim. They are not looked up as catalog keys.
+    init(
+        verbatim title: String,
+        meta: String? = nil,
+        trailing: CYListRowTrailing = .chevron,
+        card: Bool = false,
+        @ViewBuilder leading: () -> Leading
+    ) {
+        self.title = Text(verbatim: title)
+        self.meta = meta.map { Text(verbatim: $0) }
         self.trailing = trailing
         self.card = card
         self.leading = leading()
@@ -46,11 +61,11 @@ struct CYListRow<Leading: View>: View {
         HStack(spacing: CYSpacing.md) {
             leading
             VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(title)
+                title
                     .font(CYTypography.cardTitle)
                     .foregroundStyle(palette.textPrimary)
                 if let meta {
-                    Text(meta)
+                    meta
                         .font(CYTypography.meta)
                         .foregroundStyle(palette.textTertiary)
                 }
@@ -87,6 +102,10 @@ struct CYListRow<Leading: View>: View {
 extension CYListRow where Leading == EmptyView {
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, trailing: CYListRowTrailing = .chevron, card: Bool = false) {
         self.init(title, meta: meta, trailing: trailing, card: card) { EmptyView() }
+    }
+
+    init(verbatim title: String, meta: String? = nil, trailing: CYListRowTrailing = .chevron, card: Bool = false) {
+        self.init(verbatim: title, meta: meta, trailing: trailing, card: card) { EmptyView() }
     }
 }
 

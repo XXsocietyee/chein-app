@@ -44,6 +44,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // 「类型」/「N 名成员」/「公开加入」. The join CTA lives in ClubActionPanel below.
                 Section {
                     VStack(alignment: .leading, spacing: 0) {
+                        CYHeroHeader("club.detail")
+                            .padding(.horizontal, CYSpacing.pageHorizontal)
+                            .padding(.top, CYSpacing.md)
                         ClubDetailCover(source: club.cover)
                         HStack(alignment: .top, spacing: CYSpacing.md) {
                             ClubDetailLogo(source: club.logo)
@@ -77,11 +80,11 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // Viewer status only; the mini-program shows it through the join/quit controls.
                 if club.isOwner || club.isJoined || club.joinPending || club.myJoinStatus == 2 || club.viewerIsAdmin {
                     Section {
-                        if club.isOwner { Label("club.role.creator", systemImage: "person.crop.circle.badge.checkmark") }
-                        else if club.isJoined { Label("club.membership.joined", systemImage: "checkmark.circle") }
-                        else if club.joinPending { Label("club.membership.pending", systemImage: "clock") }
+                        if club.isOwner { CYStatusChip("club.role.creator", tone: .info, systemImage: "person.crop.circle.badge.checkmark") }
+                        else if club.isJoined { CYStatusChip("club.membership.joined", tone: .success, systemImage: "checkmark.circle") }
+                        else if club.joinPending { CYStatusChip("club.membership.pending", tone: .warning, systemImage: "clock") }
                         else if club.myJoinStatus == 2 {
-                            Label("club.membership.rejected", systemImage: "xmark.circle")
+                            CYStatusChip("club.membership.rejected", tone: .danger, systemImage: "xmark.circle")
                             if let reason = club.myJoinReviewReason {
                                 Text(verbatim: locale.pick("申请未通过：\(reason)", "Application not approved: \(reason)"))
                                     .font(CYTypography.meta)
@@ -89,7 +92,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                     .accessibilityIdentifier("club.membership.rejectedReason")
                             }
                         }
-                        if club.viewerIsAdmin { Label("club.viewerAdministrator", systemImage: "person.badge.shield.checkmark") }
+                        if club.viewerIsAdmin { CYStatusChip("club.viewerAdministrator", tone: .info, systemImage: "person.badge.shield.checkmark") }
                     }
                 }
                 if let actionCoordinator {
@@ -102,7 +105,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 ClubDetailTabBar(tabs: tabs.tabs, selection: tab) { selectedTab = tabs.select($0, from: tab) }
                 if tab == .posts, (club.isOwner || club.isJoined), reader.clubIdentity.isSignedIn, let session = reader as? AppSession {
                     Section {
-                        NavigationLink { SessionClubChatView(clubID: id, session: session) } label: { Label("club.chat.title", systemImage: "person.3") }
+                        NavigationLink { SessionClubChatView(clubID: id, session: session) } label: {
+                            CYListRow("club.chat.title", card: true) { CYRowIcon(systemImage: "person.3") }
+                        }.buttonStyle(.plain)
                             .accessibilityIdentifier("club.chat.entry")
                         NavigationLink {
                             ClubChannelMessagingHostView(
@@ -140,7 +145,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 }
                 if tab == .posts, community == nil {
                     Section {
-                        ContentUnavailableView("club.detail.posts.unavailable", systemImage: "text.bubble")
+                        CYEmptyState(systemImage: "text.bubble", "club.detail.posts.unavailable")
                             .accessibilityIdentifier("club.detail.posts.unavailable")
                     }
                 }
@@ -167,7 +172,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // V2 governance has its own access/me model, including delegated event staff.
                 if tab == .events, management?.governance == nil {
                     Section {
-                        ContentUnavailableView("club.detail.events.unavailable", systemImage: "calendar")
+                        CYEmptyState(systemImage: "calendar", "club.detail.events.unavailable")
                             .accessibilityIdentifier("club.detail.events.unavailable")
                     }
                 }
@@ -241,7 +246,10 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         if club.canSeeMembers {
                             NavigationLink {
                                 ClubMembersView(id: club.id, reader: reader, profile: management?.governance?.enrollmentProfile, governance: management?.governance, onSignIn: onSignIn)
-                            } label: { Label("club.viewMembers", systemImage: "person.3") }
+                            } label: {
+                                CYListRow("club.viewMembers", card: true) { CYRowIcon(systemImage: "person.3") }
+                            }
+                            .buttonStyle(.plain)
                                 .accessibilityIdentifier("club.openMembers")
                         } else if publicRoster?.authorization?.identity == reader.clubIdentity,
                                   ClubPublicRosterEligibility.mayRequest(club, identity: reader.clubIdentity) {
@@ -303,6 +311,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
             }
             }
         }.appNavigationTitle("club.detail")
+            .cyDomainPageBackground()
+            .themeDomain(.player)
+            .tint(CYDomainPalette(.player).brand)
             .id(id)
             .onAppear {
                 guard managementNeedsRefresh else { return }

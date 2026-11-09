@@ -3,8 +3,9 @@ import SwiftUI
 /// Large heavy headline with optional subtitle and optional illustration slot (X-style onboarding hero).
 /// Role-aware: colours come from `@Environment(\.cyPalette)`.
 struct CYHeroHeader<Illustration: View>: View {
-    private let title: LocalizedStringKey
-    private let subtitle: LocalizedStringKey?
+    private let title: Text
+    private let subtitle: Text?
+    private let titleIdentifier: String?
     private let illustration: Illustration
 
     @Environment(\.cyPalette) private var palette
@@ -12,10 +13,25 @@ struct CYHeroHeader<Illustration: View>: View {
     init(
         _ title: LocalizedStringKey,
         subtitle: LocalizedStringKey? = nil,
+        titleIdentifier: String? = nil,
         @ViewBuilder illustration: () -> Illustration
     ) {
-        self.title = title
-        self.subtitle = subtitle
+        self.title = Text(title)
+        self.subtitle = subtitle.map { Text($0) }
+        self.titleIdentifier = titleIdentifier
+        self.illustration = illustration()
+    }
+
+    /// Server-supplied titles stay verbatim. They are not looked up as catalog keys.
+    init(
+        verbatim title: String,
+        subtitle: String? = nil,
+        titleIdentifier: String? = nil,
+        @ViewBuilder illustration: () -> Illustration
+    ) {
+        self.title = Text(verbatim: title)
+        self.subtitle = subtitle.map { Text(verbatim: $0) }
+        self.titleIdentifier = titleIdentifier
         self.illustration = illustration()
     }
 
@@ -23,13 +39,14 @@ struct CYHeroHeader<Illustration: View>: View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             illustration
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                Text(title)
+                title
                     .font(.system(.largeTitle, design: .default).weight(.heavy))
                     .foregroundStyle(palette.textPrimary)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityAddTraits(.isHeader)
+                    .modifier(CYOptionalAccessibilityIdentifier(titleIdentifier))
                 if let subtitle {
-                    Text(subtitle)
+                    subtitle
                         .font(CYTypography.body)
                         .foregroundStyle(palette.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -41,8 +58,23 @@ struct CYHeroHeader<Illustration: View>: View {
 }
 
 extension CYHeroHeader where Illustration == EmptyView {
-    init(_ title: LocalizedStringKey, subtitle: LocalizedStringKey? = nil) {
-        self.init(title, subtitle: subtitle) { EmptyView() }
+    init(_ title: LocalizedStringKey, subtitle: LocalizedStringKey? = nil, titleIdentifier: String? = nil) {
+        self.init(title, subtitle: subtitle, titleIdentifier: titleIdentifier) { EmptyView() }
+    }
+
+    init(verbatim title: String, subtitle: String? = nil, titleIdentifier: String? = nil) {
+        self.init(verbatim: title, subtitle: subtitle, titleIdentifier: titleIdentifier) { EmptyView() }
+    }
+}
+
+struct CYOptionalAccessibilityIdentifier: ViewModifier {
+    let identifier: String?
+    func body(content: Content) -> some View {
+        if let identifier, !identifier.isEmpty {
+            content.accessibilityIdentifier(identifier)
+        } else {
+            content
+        }
     }
 }
 
