@@ -16,6 +16,7 @@ enum CityArrivalCopy {
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
+            CYCoverHeaderSection(CityArrivalCopy.text("title"), symbol: "mappin.and.ellipse", seed: "arrival")
             Section {
                 CityArrivalCopy.text("boundary")
                 Text(LocalizedStringKey(controller.messageKey), tableName: "CityArrivalEvidence")

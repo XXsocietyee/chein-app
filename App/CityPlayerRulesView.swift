@@ -18,6 +18,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                CYCoverHeaderSection(Text("cityRules.title", tableName: table), symbol: "list.bullet.rectangle.portrait.fill", seed: "rules")
                 Section {
                     Text("cityRules.boundary", tableName: table).fixedSize(horizontal: false, vertical: true)
                     if flow.phase == .loading { ProgressView { Text("cityRules.loading", tableName: table) } }

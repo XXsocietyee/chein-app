@@ -19,6 +19,7 @@ import SwiftUI
     private let table = "CityNeutralTask"
     var body: some View {
         Form {
+            CYCoverHeaderSection(Text("cityNeutral.title", tableName: table), symbol: "checklist", seed: "neutral")
             Section {
                 Text("cityNeutral.boundary", tableName: table)
                 Text(LocalizedStringKey(controller.messageKey), tableName: table).accessibilityIdentifier("cityNeutral.status")

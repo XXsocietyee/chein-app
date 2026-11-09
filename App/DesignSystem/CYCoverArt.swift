@@ -88,23 +88,23 @@ struct CYFoilMedal<Face: View>: View {
 /// Art cover header for Form/List pages that have no photo: generated gradient + symbol, big title, optional subtitle and chips.
 /// Drop it as the first element of a List/Form via `CYCoverHeaderSection`.
 struct CYArtCoverHeader<Chips: View>: View {
-    let title: LocalizedStringKey
-    var subtitle: LocalizedStringKey? = nil
+    let title: Text
+    var subtitle: Text? = nil
     let symbol: String
     var seed: String = ""
     @ViewBuilder let chips: () -> Chips
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             Spacer(minLength: CYSpacing.xl)
-            Text(title).font(CYTypography.display).foregroundStyle(.white)
+            title.font(CYTypography.sectionTitle.weight(.bold)).foregroundStyle(.white)
                 .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
             if let subtitle {
-                Text(subtitle).font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.85))
+                subtitle.font(CYTypography.bodyCompact).foregroundStyle(.white.opacity(0.85))
                     .fixedSize(horizontal: false, vertical: true)
             }
             chips()
         }
-        .frame(maxWidth: .infinity, minHeight: 148, alignment: .bottomLeading)
+        .frame(maxWidth: .infinity, minHeight: 132, alignment: .bottomLeading)
         .padding(CYSpacing.xl)
         .background {
             ZStack(alignment: .bottom) {
@@ -119,8 +119,8 @@ struct CYArtCoverHeader<Chips: View>: View {
 
 /// First section of a List/Form: the art cover header with no row chrome.
 struct CYCoverHeaderSection<Chips: View>: View {
-    let title: LocalizedStringKey
-    var subtitle: LocalizedStringKey? = nil
+    let title: Text
+    var subtitle: Text? = nil
     let symbol: String
     var seed: String = ""
     @ViewBuilder let chips: () -> Chips
@@ -132,7 +132,10 @@ struct CYCoverHeaderSection<Chips: View>: View {
     }
 }
 extension CYCoverHeaderSection where Chips == EmptyView {
-    init(_ title: LocalizedStringKey, subtitle: LocalizedStringKey? = nil, symbol: String, seed: String = "") {
+    init(_ title: Text, subtitle: Text? = nil, symbol: String, seed: String = "") {
         self.init(title: title, subtitle: subtitle, symbol: symbol, seed: seed) { EmptyView() }
+    }
+    init(_ title: LocalizedStringKey, subtitle: Text? = nil, symbol: String, seed: String = "") {
+        self.init(title: Text(title), subtitle: subtitle, symbol: symbol, seed: seed) { EmptyView() }
     }
 }

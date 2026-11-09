@@ -24,6 +24,7 @@ import SwiftUI
     private var interactive: Bool { visible && scenePhase == .active && controller.current }
     var body: some View {
         Form {
+            CYCoverHeaderSection(Text("cityOnsite.title", tableName: table), symbol: "figure.walk.motion", seed: "onsite")
             Section {
                 Text("cityOnsite.boundary", tableName: table)
                 Text(LocalizedStringKey(controller.messageKey), tableName: table).accessibilityIdentifier("cityOnsite.status")

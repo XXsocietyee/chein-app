@@ -10,6 +10,7 @@ import SwiftUI
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
     var body: some View {
         Form {
+            CYCoverHeaderSection(text("title"), symbol: "shippingbox.fill", seed: "bundle")
             if !model.current { text("stale") }
             else {
                 if model.busy { ProgressView { text("loading") } }
