@@ -18,13 +18,7 @@ struct WelcomeView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xl) {
-                    Image(systemName: "map")
-                        .font(.title2.weight(.semibold))
-                        .foregroundStyle(CYColor.textPrimary)
-                        .frame(width: 64, height: 64)
-                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-                        .shadow(color: .black.opacity(0.25), radius: 12, y: 6)
-                        .accessibilityHidden(true)
+                    WelcomeHero().padding(.top, CYSpacing.lg)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Text("welcome.title")
                             .font(.system(.largeTitle, design: .rounded).weight(.heavy))
@@ -124,3 +118,29 @@ private struct RoleButtonStyle: ButtonStyle {
         .environment(\.dynamicTypeSize, .accessibility3)
 }
 #Preview("Dark") { WelcomeView().environmentObject(AppSession()).preferredColorScheme(.dark) }
+
+
+/// Decorative collage of three tilted place cards (placeholder tiles; real imagery replaces the symbols later).
+private struct WelcomeHero: View {
+    var body: some View {
+        ZStack {
+            tile("fork.knife", angle: -9, x: -86, y: 18, size: 150)
+            tile("ticket", angle: 8, x: 92, y: 34, size: 138)
+            tile("map", angle: -2, x: 0, y: -8, size: 176)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 250)
+        .accessibilityHidden(true)
+    }
+
+    private func tile(_ symbol: String, angle: Double, x: CGFloat, y: CGFloat, size: CGFloat) -> some View {
+        RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
+            .fill(CYColor.bgElevated)
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous).strokeBorder(CYColor.borderStrong.opacity(0.5), lineWidth: 1))
+            .overlay(Image(systemName: symbol).font(.system(size: size * 0.34, weight: .semibold)).foregroundStyle(CYColor.textPrimary.opacity(0.9)))
+            .frame(width: size, height: size * 1.2)
+            .rotationEffect(.degrees(angle))
+            .offset(x: x, y: y)
+            .shadow(color: .black.opacity(0.5), radius: 14, y: 8)
+    }
+}

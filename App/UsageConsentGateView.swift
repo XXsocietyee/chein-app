@@ -126,7 +126,7 @@ struct UsageConsentGateView: View {
             .background(CYColor.bgPage)
             .navigationTitle(Text("authEntry.gate.title", tableName: "AuthEntry"))
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarVisibility(.hidden, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(item: $document) { sheet in
                 NavigationStack {
                     SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
