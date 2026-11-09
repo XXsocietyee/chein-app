@@ -11,7 +11,10 @@ import SwiftUI
     var body: some View {
         Form {
             CYCoverHeaderSection(text("title"), symbol: "shippingbox.fill", seed: "bundle")
-            if !model.current { text("stale") }
+            if !model.current {
+                CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
+                    .frame(maxWidth: .infinity).listRowBackground(Color.clear)
+            }
             else {
                 if model.busy { ProgressView { text("loading") } }
                 if model.failure != nil {

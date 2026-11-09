@@ -34,16 +34,16 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 4) {
                 if showsConversation {
                     HStack(spacing: CYSpacing.md) {
-                        CYAvatarView(name: name, size: .md, isOnline: true)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        CYAvatarView(name: name, size: .lg, isOnline: true)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                             CYStatusChip(verbatim: ChannelCopy.text("AI 向导", "AI guide", locale: locale), tone: .info, systemImage: "sparkles")
                         }
                     }.accessibilityElement(children: .combine)
                 }
                 else if coordinator.isSuspended { Text("shopNPC.paused") }
                 else { Text("shopNPC.stale") }
-                Text("shopNPC.disclosure").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                Text("shopNPC.disclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
                 SafetyDisclosureBanner(policy: safetyPolicy)
             }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, CYSpacing.lg).padding(.vertical, 8)
@@ -89,7 +89,9 @@ import SwiftUI
                                 }.accessibilityIdentifier("shopNPCOutcome.serviceNotice")
                             }
                             if sending {
-                                ProgressView("shopNPC.busy").accessibilityIdentifier("shopNPC.busy")
+                                NPCChatBubble(name: name, isOwn: false) { NPCTypingDots() }
+                                    .accessibilityElement(children: .ignore).accessibilityLabel(Text("shopNPC.busy"))
+                                    .accessibilityIdentifier("shopNPC.busy")
                                 Button("shopNPC.stopWaiting") { coordinator.stopWaiting(); localFailure = nil }
                                     .controlSize(.large).frame(minHeight: 44)
                                     .accessibilityIdentifier("shopNPC.stopWaiting")
@@ -324,5 +326,21 @@ struct NPCChatBubble<Content: View>: View {
             if !isOwn { Spacer(minLength: typeSize.isAccessibilitySize ? 0 : 40) }
         }
         .frame(maxWidth: .infinity, alignment: isOwn ? .trailing : .leading)
+    }
+}
+
+/// Three pulsing dots inside an NPC bubble while a reply is pending. Static under Reduce Motion.
+struct NPCTypingDots: View {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var body: some View {
+        TimelineView(.animation(minimumInterval: 0.3, paused: reduceMotion)) { context in
+            let step = Int(context.date.timeIntervalSinceReferenceDate / 0.3) % 3
+            HStack(spacing: 6) {
+                ForEach(0..<3, id: \.self) { index in
+                    Circle().fill(CYColor.textSecondary).frame(width: 8, height: 8)
+                        .opacity(reduceMotion || index == step ? 1 : 0.35)
+                }
+            }.padding(.vertical, 6)
+        }
     }
 }

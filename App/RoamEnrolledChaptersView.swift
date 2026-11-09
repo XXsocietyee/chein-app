@@ -165,7 +165,7 @@ import SwiftUI
             }
             if model.isLoading || (model.snapshot == nil && model.issue == nil) { ProgressView("ticketWallet.loading") }
             } else { ProgressView("ticketWallet.loading") }
-        }.cyGroupedSurface().navigationTitle("roam.chapters.title")
+        }.cyGroupedSurface().navigationTitle("roam.chapters.title").navigationBarTitleDisplayMode(.inline)
             .onAppear { viewModel.appear(foreground: isForeground) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in
@@ -185,10 +185,13 @@ import SwiftUI
 struct RoamEnrolledChapterRow: View {
     let ticket: TicketWalletTicket
     var showsActionNotice = false
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            CYCoverArt(seed: ticket.title ?? "chapter", symbol: "book.pages.fill", cornerRadius: CYRadius.md)
-                .frame(width: 72, height: 72)
+            if !typeSize.isAccessibilitySize {
+                CYCoverArt(seed: ticket.title ?? "chapter", symbol: "book.pages.fill", cornerRadius: CYRadius.md)
+                    .frame(width: 72, height: 72)
+            }
             VStack(alignment: .leading, spacing: 8) {
                 TicketWalletTitle(title: ticket.title).font(CYTypography.cardTitle)
                 TicketWalletStatusBadge(status: ticket.status)
