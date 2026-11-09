@@ -272,16 +272,15 @@ struct ClubOperationsWorkspaceView: View {
         if target == .create && !value.canCreate {
             // Mini-program club/create no-permission and limit states.
             Section {
-                ContentUnavailableView {
-                    Label(value.accountRole != "club" ? "club.ops.leaderRequired.title" : "club.ops.clubLimit.title",
-                          systemImage: value.accountRole != "club" ? "person.badge.plus" : "person.3")
-                } description: {
-                    Text(value.accountRole != "club" ? "club.ops.leaderRequired.apply" : "club.ops.clubLimit")
-                }
+                CYEmptyState(
+                    systemImage: value.accountRole != "club" ? "person.badge.plus" : "person.3",
+                    value.accountRole != "club" ? "club.ops.leaderRequired.title" : "club.ops.clubLimit.title"
+                )
+                Text(value.accountRole != "club" ? "club.ops.leaderRequired.apply" : "club.ops.clubLimit")
                 if value.accountRole != "club", let hostApplication {
                     ClubCreateHostApplicationLink(identity: identity, governance: hostApplication)
                 }
-            }
+            }.listRowBackground(Color.clear)
         } else {
             if profileDraftEnabled {
                 ClubProfileDraftRecoverySection(flow: profileDraft, busy: loading || originalBusy || !draftVisit.matches(target: target, identity: identity, access: access), restore: {
@@ -301,17 +300,9 @@ struct ClubOperationsWorkspaceView: View {
                 choiceContext: profileChoiceContext, choiceIsCurrent: profileChoiceIsCurrent, choiceController: profileChoice)
                 .disabled(loading || state.locksForm || profileDraftBlocked)
             Section {
-                Button {
-                    let command: ClubOperationsCommand
-                    if let original = value.profile { command = .update(draft, original: original) }
-                    else { command = .create(draft) }
-                    Task { await prepare(command) }
-                } label: {
-                    Text(target == .create ? "club.ops.create" : "club.ops.reviewProfile").frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.questifyPrimary)
-                .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty) || (target == .create && ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: draft.name, city: draft.city) != nil))
-                .accessibilityIdentifier("club.ops.reviewProfile")
+                reviewProfileButton(value)
+                    .disabled(loading || state.locksForm || profileDraftBlocked || (target != .create && !dirty) || (target == .create && ClubOperationsPort.missingCreateStep(clubType: draft.clubType, name: draft.name, city: draft.city) != nil))
+                    .accessibilityIdentifier("club.ops.reviewProfile")
             }.listRowBackground(Color.clear)
         }
         if let profile = value.profile, profile.club.isOwner {
@@ -368,10 +359,30 @@ struct ClubOperationsWorkspaceView: View {
         }
         if access.writeAvailability == .unverified { Section { Text("club.ops.writeGated").accessibilityIdentifier("club.ops.writeGated") } }
     }
+    @ViewBuilder private func reviewProfileButton(_ value: ClubOperationsSnapshot) -> some View {
+        let button = Button {
+            let command: ClubOperationsCommand
+            if let original = value.profile { command = .update(draft, original: original) }
+            else { command = .create(draft) }
+            Task { await prepare(command) }
+        } label: {
+            Text(target == .create ? "club.ops.create" : "club.ops.reviewProfile").frame(maxWidth: .infinity)
+        }
+        if target == .create {
+            button.buttonStyle(CYPillButtonStyle())
+        } else {
+            button.buttonStyle(.questifyPrimary)
+        }
+    }
     @ViewBuilder private var status: some View {
         Section {
             switch state {
-            case .preparing, .preflighting, .submitting: ProgressView("club.ops.checking")
+            case .preparing, .preflighting, .submitting:
+                if target == .create {
+                    CYSkeleton().accessibilityLabel(Text("club.ops.checking"))
+                } else {
+                    ProgressView("club.ops.checking")
+                }
             case .notSent: Text("club.ops.notSent").accessibilityIdentifier("club.ops.notSent")
             case .acknowledged(let receipt):
                 Text("club.ops.acknowledged").accessibilityIdentifier("club.ops.acknowledged")
@@ -436,7 +447,7 @@ struct ClubOperationsWorkspaceView: View {
             Text(flow.validatedTab == .manage || !flow.canEnterManagement ? "club.ops.enterManagement" : "club.ops.enterDetail")
                 .frame(maxWidth: .infinity)
         }
-        .buttonStyle(.questifyPrimary)
+        .buttonStyle(CYPillButtonStyle())
         .disabled(loading || !flow.canEnterManagement)
         .accessibilityIdentifier("clubCreateManage.enterManagement")
         if let destination = enteredManageDestination,
@@ -836,6 +847,11 @@ private struct ClubOperationsProfileForm: View {
     }
     /// Mini-program club/create steps, in order: 类型 → 活动方向 → 资料 → 城市.
     @ViewBuilder private var createSections: some View {
+        Section {
+            CYHeroHeader("club.ops.create", subtitle: "club.ops.clubType")
+                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                .listRowBackground(Color.clear)
+        }
         Section {
             Picker("club.ops.clubType", selection: $draft.clubType) {
                 ForEach(ClubOperationsCatalog.types, id: \.self) { Text(LocalizedStringKey("club.ops.value." + $0)).tag($0) }

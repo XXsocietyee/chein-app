@@ -13,6 +13,7 @@ import UIKit
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyPalette) private var palette
     @State private var cameraDenied = false
     private enum ExchangePhase: Equatable { case idle, working, failed, done(RoamStampExchangeReceipt) }
     @State private var exchangePhase: ExchangePhase = .idle
@@ -31,6 +32,11 @@ import UIKit
         let _ = revision
         Form {
             Section {
+                CYHeroHeader("media.stamp.title")
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .listRowBackground(Color.clear)
+            }
+            Section {
                 if !cameraEnabled { Label("media.stamp.disabled", systemImage: "camera.fill") }
                 if cameraDenied {
                     VStack(alignment: .leading, spacing: 6) {
@@ -41,7 +47,7 @@ import UIKit
                         }.frame(minHeight: 44).accessibilityIdentifier("media.stamp.openSettings")
                     }.accessibilityIdentifier("media.stamp.cameraDenied")
                 } else if cameraIssue {
-                    Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(.orange)
+                    Label("media.stamp.cameraIssue", systemImage: "exclamationmark.triangle").foregroundStyle(palette.warning)
                     // Mini-program sc-err: a camera error that cannot open Settings offers 返回上一页.
                     Button("action.back") { dismiss() }.frame(minHeight: 44)
                         .accessibilityIdentifier("media.stamp.cameraIssue.back")
@@ -57,20 +63,21 @@ import UIKit
                     }
                     Group {
                         if isBusy { ProgressView(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase))) }
-                        else { Text(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase))) }
+                        else { CYStatusChip(LocalizedStringKey("media.stamp.phase." + phaseKey(coordinator.phase)), tone: phaseTone(coordinator.phase)) }
                     }.accessibilityFocused($focusedControl, equals: .status)
                     if coordinator.phase == .review {
-                        Button("media.stamp.upload") { run { await coordinator.upload() } }
-                            .buttonStyle(.questifyPrimary).disabled(!coordinator.canUpload)
-                        Button("media.stamp.retake") { coordinator.retake(); revision += 1 }.disabled(!coordinator.canCapture)
+                        CYPillButton("media.stamp.upload", style: coordinator.pending == nil ? .primary : .secondary) { run { await coordinator.upload() } }
+                            .disabled(!coordinator.canUpload)
+                        CYPillButton("media.stamp.retake", style: .secondary) { coordinator.retake(); revision += 1 }
+                            .disabled(!coordinator.canCapture)
                     }
                     if coordinator.pending != nil {
-                        Button("media.stamp.create") { run { await coordinator.create() } }
-                            .buttonStyle(.questifyPrimary).disabled(!coordinator.canCreate)
+                        CYPillButton("media.stamp.create") { run { await coordinator.create() } }
+                            .disabled(!coordinator.canCreate)
                     }
                     if case .created(let stampID) = coordinator.phase, let exchange { exchangeRows(stampID: stampID, exchange: exchange) }
                     if case .created = coordinator.phase, let album {
-                        Button("roam.createdStamp.open", systemImage: "rectangle.stack") {
+                        CYPillButton("roam.createdStamp.open", style: exchange == nil ? .primary : .secondary, systemImage: "rectangle.stack") {
                             guard createdStampTarget == nil else { return }
                             createdStampTarget = RoamCreatedStampTarget(phase: coordinator.phase, origin: coordinator.scope, reader: album.reader)
                         }
@@ -85,9 +92,9 @@ import UIKit
             if cameraEnabled, coordinator?.canCapture == true {
                 Button { requestCamera() } label: {
                     ZStack {
-                        Circle().strokeBorder(Color.primary.opacity(0.85), lineWidth: 4).frame(width: 76, height: 76)
-                        Circle().fill(purposeAccepted ? Color.accentColor : Color.secondary.opacity(0.4)).frame(width: 62, height: 62)
-                        Image(systemName: "camera.fill").font(.title2).foregroundStyle(.white)
+                        Circle().strokeBorder(palette.textPrimary.opacity(0.85), lineWidth: 4).frame(width: 76, height: 76)
+                        Circle().fill(purposeAccepted ? palette.actionPrimaryBg : palette.bgRaised).frame(width: 62, height: 62)
+                        Image(systemName: "camera.fill").font(.title2).foregroundStyle(purposeAccepted ? palette.actionPrimaryFg : palette.textTertiary)
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, 10)
                     .contentShape(Rectangle())
@@ -101,10 +108,11 @@ import UIKit
             }
         }
         .navigationTitle("media.stamp.title")
+            .themeDomain(.player)
             .navigationDestination(item: $createdStampTarget) { target in
                 if let album, target.isCurrent(reader: album.reader) {
                     RoamCreatedStampView(target: target, album: album)
-                } else { ContentUnavailableView("roam.createdStamp.changed", systemImage: "person.crop.circle.badge.exclamationmark") }
+                } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.createdStamp.changed") }
             }
             .fullScreenCover(isPresented: $showingCamera, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
@@ -134,12 +142,13 @@ import UIKit
         case .done(let receipt):
             RoamStampSlipView(slip: RoamStampSlip(receipt), place: Text("roamSub.w208.stamp.defaultPlace"), openedAt: exchangeStarted)
         case .working:
-            ProgressView("roam.stamp.exchange.working")
+            CYSkeleton()
+                .accessibilityLabel(Text("roam.stamp.exchange.working"))
         case .idle, .failed:
             if exchangePhase == .failed {
-                Label("roam.stamp.exchange.failed", systemImage: "exclamationmark.triangle").font(.footnote).foregroundStyle(.red)
+                Label("roam.stamp.exchange.failed", systemImage: "exclamationmark.triangle").font(.footnote).foregroundStyle(palette.danger)
             }
-            Button {
+            CYPillButton(LocalizedStringKey(exchangePhase == .failed ? "action.retry" : "roam.stamp.exchange.button")) {
                 guard exchangePhase != .working else { return }
                 exchangePhase = .working; exchangeStarted = Date()
                 Task {
@@ -147,8 +156,8 @@ import UIKit
                     catch is CancellationError { exchangePhase = .idle }
                     catch { exchangePhase = .failed }
                 }
-            } label: { Text(LocalizedStringKey(exchangePhase == .failed ? "action.retry" : "roam.stamp.exchange.button")).frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.questifyPrimary).accessibilityIdentifier("media.stamp.exchange")
+            }
+            .accessibilityIdentifier("media.stamp.exchange")
             Text("roam.stamp.exchange.footer").font(.footnote).foregroundStyle(.secondary)
         }
     }
@@ -165,7 +174,7 @@ import UIKit
             HStack {
                 if !RoamExperienceMath.validCaption(captionText) {
                     Label("roam.experience.captionLimit", systemImage: "exclamationmark.circle")
-                        .font(.caption).foregroundStyle(.red).accessibilityIdentifier("media.stamp.caption.limit")
+                        .font(.caption).foregroundStyle(palette.danger).accessibilityIdentifier("media.stamp.caption.limit")
                 }
                 Spacer(minLength: 8)
                 Text(verbatim: "\(captionText.utf16.count)/30").font(.caption).monospacedDigit().foregroundStyle(.secondary)
@@ -196,6 +205,14 @@ import UIKit
     }
     private func stop() { captureGeneration += 1; work?.cancel(); work = nil; coordinator?.cancel(); coordinator?.changed = nil; localDraft = RoamCityStampDraft() }
     private func run(_ action: @escaping @MainActor () async -> Void) { work?.cancel(); work = Task { await action(); revision += 1 } }
+    private func phaseTone(_ phase: RoamStampCaptureCoordinator.Phase) -> CYStatusTone {
+        switch phase {
+        case .created: return .success
+        case .failed: return .danger
+        case .unknown, .unavailable: return .warning
+        default: return .neutral
+        }
+    }
     private func phaseKey(_ phase: RoamStampCaptureCoordinator.Phase) -> String {
         switch phase {
         case .ready: return "ready"

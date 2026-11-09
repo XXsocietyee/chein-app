@@ -63,15 +63,22 @@ private struct ProfileComplaintPresentationKey: Hashable {
     var body: some View {
         Form {
             Section {
-                Text("profile.complaint.pageSubtitle").font(.subheadline)
+                CYHeroHeader("profile.complaint.pageTitle", subtitle: "profile.complaint.pageSubtitle")
                     .accessibilityIdentifier("profile.complaint.pageSubtitle")
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    .listRowBackground(Color.clear)
             }
             if !model.contextMatches {
                 Text("profile.complaint.retired").accessibilityIdentifier("profile.complaint.retired")
             } else if let review = model.review {
                 reviewSection(review)
             } else {
-                if model.isLoading { ProgressView("profile.loading").accessibilityIdentifier("profile.complaint.loading") }
+                if model.isLoading {
+                    CYSkeleton()
+                        .accessibilityIdentifier("profile.complaint.loading")
+                        .accessibilityLabel(Text("profile.loading"))
+                        .listRowBackground(Color.clear)
+                }
                 if let issue = model.issue {
                     Section {
                         Text(LocalizedStringKey(issue.sourceTitleKey)).font(.headline)
@@ -105,6 +112,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
             }
         }
         .navigationTitle("profile.complaint.pageTitle")
+        .themeDomain(.player)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -173,7 +181,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     Text(LocalizedStringKey(validation.titleKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("profile.complaint.validation")
                 }
-                Button("profile.complaint.review") {
+                CYPillButton("profile.complaint.review") {
                     focused = nil
                     if !model.beginReview() {
                         switch model.validation {
@@ -192,7 +200,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
                 topicLabel(review.topic).font(.headline)
                 Text(verbatim: review.reason).accessibilityIdentifier("profile.complaint.reviewText")
                 if sending.state == .succeeded {
-                    Label("profile.complaint.submit.done", systemImage: "checkmark.circle.fill").foregroundStyle(CYColor.successText)
+                    CYStatusChip("profile.complaint.submit.done", tone: .success, systemImage: "checkmark")
                         .accessibilityIdentifier("profile.complaint.submit.done")
                 } else if !sending.isConfigured {
                     Text("profile.complaint.notSubmitted").font(.footnote)
@@ -214,14 +222,13 @@ private struct ProfileComplaintPresentationKey: Hashable {
                         .accessibilityIdentifier("profile.complaint.submit.close")
                 } else {
                     if sending.isConfigured {
-                        Button { confirmingSend = true } label: {
-                            Text(LocalizedStringKey(sending.state == .sending ? "profile.complaint.submit.sending" : "profile.complaint.submit.action"))
-                                .frame(maxWidth: .infinity, minHeight: 44)
+                        CYPillButton(LocalizedStringKey(sending.state == .sending ? "profile.complaint.submit.sending" : "profile.complaint.submit.action")) {
+                            confirmingSend = true
                         }
                         .disabled(!sending.canSend(review: model.review))
                         .accessibilityIdentifier("profile.complaint.submit.action")
                     }
-                    Button("profile.complaint.continueEditing") { model.continueEditing() }
+                    CYPillButton("profile.complaint.continueEditing", style: .secondary) { model.continueEditing() }
                         .disabled(sending.state == .sending)
                         .accessibilityIdentifier("profile.complaint.continueEditing")
                 }
@@ -229,7 +236,7 @@ private struct ProfileComplaintPresentationKey: Hashable {
         }
     }
     private func topicLabel(_ topic: ProfileComplaintTopic) -> Text {
-        if let name = topic.name { return Text(verbatim: name) }
+        if let name = topic.name?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { return Text(verbatim: name) }
         return Text("profile.complaint.unnamed") + Text(verbatim: " #\(topic.id)")
     }
 }

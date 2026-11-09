@@ -201,7 +201,10 @@ struct ParticipantFormView: View {
     var body: some View {
         Group {
             if model.reader.identity == nil || model.coordinator.identity == nil {
-                ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
+                VStack(spacing: CYSpacing.md) {
+                    CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.signInRequired")
+                    Text("auth.expired").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                }
             } else if model.showsOwnedUnknown {
                 Form {
                     ParticipantOriginalCreateRetrySection(model: model) {
@@ -213,15 +216,27 @@ struct ParticipantFormView: View {
                     }
                 }
             } else if !model.reader.isConfigured || !model.coordinator.isConfigured {
-                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                VStack(spacing: CYSpacing.md) {
+                    CYEmptyState(systemImage: "network.slash", "profile.unavailable")
+                    Text("auth.notConfigured").font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                }
             } else if model.ownsOriginalCreateRetry && model.operation == .submitting {
-                Form { ProgressView("participant.form.saving") }
+                Form {
+                    CYSkeleton().accessibilityLabel(Text("participant.form.saving"))
+                }
             } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
-                ProgressView("profile.loading").accessibilityIdentifier("participant.form.loading")
+                CYSkeleton()
+                    .accessibilityIdentifier("participant.form.loading")
+                    .accessibilityLabel(Text("profile.loading"))
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
                 Form {
+                    Section {
+                        CYHeroHeader(model.id == nil ? "participant.form.add" : "participant.form.edit", subtitle: "participant.form.purpose")
+                            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                            .listRowBackground(Color.clear)
+                    }
                     Section {
                         TextField("profile.participants.name", text: $model.draft.fullName)
                             .textContentType(.name).textInputAutocapitalization(.words)
@@ -235,7 +250,7 @@ struct ParticipantFormView: View {
                             .accessibilityIdentifier("participant.form.phone")
                         // Input errors sit in red under the fields (ui-spec States).
                         if let field = model.validationIssue {
-                            Text(LocalizedStringKey(field.messageKey)).font(.footnote).foregroundStyle(.red)
+                            Text(LocalizedStringKey(field.messageKey)).font(.footnote).foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("profile.participantValidation.issue." + field.rawValue)
                         }
                     }
@@ -249,19 +264,20 @@ struct ParticipantFormView: View {
                 }
                 .scrollDismissesKeyboard(.interactively)
                 .safeAreaInset(edge: .bottom) {
-                    Button { focusedField = model.reviewForSave() } label: {
-                        Text(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
-                            : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check"))
-                            .frame(maxWidth: .infinity, minHeight: 44)
+                    CYPillButton(LocalizedStringKey(model.operation == .submitting ? "participant.form.saving"
+                        : model.draft.validation == nil ? "participant.form.save" : "profile.participantValidation.check")) {
+                        focusedField = model.reviewForSave()
                     }
-                    .buttonStyle(.questifyPrimary)
                     .disabled(!model.canReviewForSave)
                     .accessibilityIdentifier("participant.form.save")
-                    .padding().background(.regularMaterial)
+                    .padding(CYSpacing.pageHorizontal)
+                    .padding(.vertical, CYSpacing.md)
+                    .background(CYColor.bgPage)
                 }
             }
         }
         .cyGroupedSurface()
+        .themeDomain(.player)
         .appNavigationTitle(key: model.id == nil ? "participant.form.add" : "participant.form.edit")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
@@ -328,8 +344,8 @@ struct ParticipantScreenIssue {
 struct ParticipantIssueText: View {
     let issue: ParticipantScreenIssue
     var body: some View {
-        if let message = issue.message { Text(verbatim: message).foregroundStyle(.red) }
-        else { Text(LocalizedStringKey(issue.key), tableName: issue.tableName).foregroundStyle(.red) }
+        if let message = issue.message { Text(verbatim: message).foregroundStyle(CYColor.dangerText) }
+        else { Text(LocalizedStringKey(issue.key), tableName: issue.tableName).foregroundStyle(CYColor.dangerText) }
     }
 }
 
@@ -337,13 +353,11 @@ struct ParticipantLoadFailureView: View {
     let issue: ParticipantScreenIssue?
     let retry: () -> Void
     var body: some View {
-        ContentUnavailableView {
-            Label("profile.loadFailed", systemImage: "exclamationmark.circle")
-        } description: {
+        VStack(spacing: CYSpacing.md) {
+            CYEmptyState(systemImage: "exclamationmark.circle", "profile.loadFailed")
             if let issue { ParticipantIssueText(issue: issue) }
             else { Text("participant.form.sessionChanged") }
-        } actions: {
-            Button("action.retry", action: retry)
+            CYPillButton("action.retry", style: .secondary, fullWidth: false, action: retry)
                 .accessibilityIdentifier("participant.form.reload")
         }
     }
@@ -361,7 +375,7 @@ struct ParticipantOperationSections: View {
     var body: some View {
         switch state {
         case .submitting:
-            Section { ProgressView("participant.form.saving") }
+            Section { CYSkeleton().accessibilityLabel(Text("participant.form.saving")) }
         case .rejected(let failure):
             Section("participant.form.rejected") {
                 if let message = failure.message, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -380,14 +394,14 @@ struct ParticipantOperationSections: View {
             }
             switch readback {
             case .loading:
-                Section { ProgressView("profile.loading") }
+                Section { CYSkeleton().accessibilityLabel(Text("profile.loading")) }
             case .unavailable:
                 Section { Text("participant.form.readBackFailed") }
             case .received(let result):
                 Section("participant.form.readBackTitle") {
                     switch result {
                     case .list(let rows):
-                        if rows.isEmpty { Text("profile.participants.empty") }
+                        if rows.isEmpty { CYEmptyState("profile.participants.empty") }
                         ForEach(rows) { row in ParticipantReadbackRow(row: row) }
                     case .detail(let row): ParticipantReadbackRow(row: row)
                     }
