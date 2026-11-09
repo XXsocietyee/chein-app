@@ -156,7 +156,7 @@ import UIKit
                 let summary = snapshot.document.summary
                 if summary.isEmpty { Text("merchant.business.empty").foregroundStyle(.secondary) }
                 if let strip = MerchantLedgerParity.summary(summary, canReadFinance: snapshot.access.allows("merchant:finance:read")) {
-                    MerchantLedgerSummaryStrip(summary: strip)
+                    MerchantLedgerSummaryStrip(summary: strip, usesKit: false)
                 }
                 ForEach(MerchantBusinessDocument.overviewMoneyKeys + ["adjustmentPendingCount"], id: \.self) { key in
                     if key == "personalArrivedThisMonthNet" {

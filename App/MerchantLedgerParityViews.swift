@@ -4,6 +4,7 @@ import SwiftUI
 struct MerchantLedgerRowLabel: View {
     let line: MerchantLedgerParity.Line
     let identifier: String
+    @Environment(\.cyPalette) private var palette
     private var chipColor: Color {
         switch line.variant { case .warning: return CYColor.warningText; case .success: return CYColor.successText; case .danger: return CYColor.dangerText; case .neutral: return CYColor.textTertiary }
     }
@@ -11,7 +12,22 @@ struct MerchantLedgerRowLabel: View {
         switch line.tone { case .positive: return CYColor.successText; case .negative: return CYColor.dangerText; case .muted: return CYColor.textTertiary }
     }
     private func copy(_ text: String?, _ key: String?) -> String? { text ?? key.map { MerchantOpsCopy.text($0) } }
+    /// Redemption directory rows only. Batch rows share the identifier prefix but always use the public-transfer subtitle.
+    private var usesKit: Bool {
+        identifier.hasPrefix("merchantOps.ledger.row.") && line.subtitleKey != "merchantOps.ledger.batch.publicTransfer"
+    }
     var body: some View {
+        row
+            .padding(.vertical, CYSpacing.xs)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier(identifier)
+            .modifier(MerchantLedgerKitCard(enabled: usesKit))
+    }
+    @ViewBuilder private var row: some View {
+        if usesKit { kitRow } else { legacyRow }
+    }
+    private var legacyRow: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             Circle().fill(chipColor).frame(width: 8, height: 8).padding(.top, 7).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -33,28 +49,66 @@ struct MerchantLedgerRowLabel: View {
                 Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(amountColor)
             }
         }
-        .padding(.vertical, CYSpacing.xs)
-        .frame(minHeight: CYSpacing.minTouchTarget)
-        .accessibilityElement(children: .combine)
-        .accessibilityIdentifier(identifier)
+    }
+    private var kitRow: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            Circle().fill(chipColor).frame(width: 8, height: 8).padding(.top, 7).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: copy(line.title, line.titleKey) ?? "—").font(CYTypography.bodyMedium).foregroundStyle(palette.textPrimary)
+                let detail = [copy(line.subtitle, line.subtitleKey), line.timeText].compactMap { $0 }.joined(separator: " · ")
+                if !detail.isEmpty { Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
+                HStack(spacing: CYSpacing.sm) {
+                    switch line.state {
+                    case .key(let key): CYStatusChip(verbatim: MerchantOpsCopy.text(key), tone: chipTone)
+                    case .server(let text): CYStatusChip(verbatim: text, tone: chipTone)
+                    }
+                    if let extra = line.extraKey { Text(verbatim: MerchantOpsCopy.text(extra)).foregroundStyle(palette.textTertiary) }
+                }
+            }
+            Spacer(minLength: CYSpacing.sm)
+            if let amount = copy(line.amount, line.amountKey) {
+                Text(verbatim: amount).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(kitAmountColor)
+            }
+        }
+    }
+    private var kitAmountColor: Color {
+        switch line.tone { case .positive: return palette.success; case .negative: return palette.danger; case .muted: return palette.textTertiary }
+    }
+    private var chipTone: CYStatusTone {
+        switch line.variant { case .warning: return .warning; case .success: return .success; case .danger: return .danger; case .neutral: return .neutral }
+    }
+}
+
+private struct MerchantLedgerKitCard: ViewModifier {
+    let enabled: Bool
+    func body(content: Content) -> some View {
+        if enabled { content.cyDomainCard(padding: CYSpacing.md).themeDomain(.merchant) } else { content }
     }
 }
 
 /// Source ledger `.fin-summary`: three key/value cells (this month's redemptions, pending, arrived), server totals only.
 struct MerchantLedgerSummaryStrip: View {
     let summary: MerchantLedgerParity.Summary
+    /// Settlement overview keeps the previous strip. The redemption ledger uses the kit card.
+    var usesKit = true
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
-            cell("merchantOps.ledger.summary.count", MerchantOpsCopy.text("merchantOps.ledger.summary.countValue %lld", summary.count), CYColor.textPrimary)
-            if let pending = summary.pending { cell("merchantOps.ledger.summary.pending", pending, CYColor.warningText) }
-            if let arrived = summary.arrived { cell("merchantOps.ledger.summary.arrived", arrived, CYColor.successText) }
+            cell("merchantOps.ledger.summary.count", shown(MerchantOpsCopy.text("merchantOps.ledger.summary.countValue %lld", summary.count)), usesKit ? palette.textPrimary : CYColor.textPrimary)
+            if let pending = summary.pending { cell("merchantOps.ledger.summary.pending", shown(pending), usesKit ? palette.warning : CYColor.warningText) }
+            if let arrived = summary.arrived { cell("merchantOps.ledger.summary.arrived", shown(arrived), usesKit ? palette.success : CYColor.successText) }
         }
         .padding(.vertical, CYSpacing.xs)
+        .modifier(MerchantLedgerKitCard(enabled: usesKit))
         .accessibilityElement(children: .combine).accessibilityIdentifier("merchantOps.ledger.summary")
+    }
+    private func shown(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return usesKit && trimmed.isEmpty ? "—" : value
     }
     private func cell(_ key: String, _ value: String, _ tone: Color) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
-            Text(verbatim: MerchantOpsCopy.text(key)).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: MerchantOpsCopy.text(key)).font(CYTypography.caption).foregroundStyle(usesKit ? palette.textTertiary : CYColor.textTertiary)
             Text(verbatim: value).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(tone)
         }.frame(maxWidth: .infinity, alignment: .leading)
     }

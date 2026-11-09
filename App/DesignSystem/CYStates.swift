@@ -5,13 +5,17 @@ import SwiftUI
 struct CYEmptyState: View {
     private let systemImage: String
     private let message: LocalizedStringKey
+    private let tableName: String?
+    private let messageIdentifier: String?
     private let actionTitle: LocalizedStringKey?
     private let action: (() -> Void)?
     @Environment(\.cyPalette) private var palette
 
-    init(systemImage: String = "tray", _ message: LocalizedStringKey, actionTitle: LocalizedStringKey? = nil, action: (() -> Void)? = nil) {
+    init(systemImage: String = "tray", _ message: LocalizedStringKey, tableName: String? = nil, messageIdentifier: String? = nil, actionTitle: LocalizedStringKey? = nil, action: (() -> Void)? = nil) {
         self.systemImage = systemImage
         self.message = message
+        self.tableName = tableName
+        self.messageIdentifier = messageIdentifier
         self.actionTitle = actionTitle
         self.action = action
     }
@@ -22,10 +26,11 @@ struct CYEmptyState: View {
                 .font(.system(size: 40, weight: .regular))
                 .foregroundStyle(palette.textTertiary)
                 .accessibilityHidden(true)
-            Text(message)
+            Text(message, tableName: tableName)
                 .font(CYTypography.body)
                 .foregroundStyle(palette.textSecondary)
                 .multilineTextAlignment(.center)
+                .modifier(CYOptionalIdentifier(messageIdentifier))
             if let actionTitle, let action {
                 CYPillButton(actionTitle, style: .secondary, fullWidth: false, action: action)
             }
@@ -33,6 +38,13 @@ struct CYEmptyState: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, CYSpacing.xxl)
         .padding(.horizontal, CYSpacing.xxl)
+    }
+}
+
+private struct CYOptionalIdentifier: ViewModifier {
+    let identifier: String?
+    func body(content: Content) -> some View {
+        if let identifier { content.accessibilityIdentifier(identifier) } else { content }
     }
 }
 

@@ -40,6 +40,7 @@ struct ObjectBadgeWallLayoutSelection {
         let layout = layoutSelection.value(for: owner)
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", load: { try await reader.profileBadges() }) { wall in
             List {
+                Section { CYHeroHeader("profile.badges.title") }.listRowBackground(Color.clear)
                 Section {
                     ObjectBadgeWallLayoutControl(selection: Binding(
                         get: { layoutSelection.value(for: layoutOwner) },
@@ -53,7 +54,7 @@ struct ObjectBadgeWallLayoutSelection {
                     }
                 }
                 if wall.isEmpty {
-                    ContentUnavailableView("profile.badges.empty", systemImage: "medal")
+                    CYEmptyState(systemImage: "medal", "profile.badges.empty")
                         .accessibilityIdentifier("profile.badges.emptyState")
                 }
                 if !wall.identities.isEmpty {
@@ -123,23 +124,24 @@ struct ObjectBadgeWallBadgeLabel: View {
     let layout: ObjectBadgeWallLayout
     var body: some View {
         if layout == .wall {
-            VStack(alignment: .leading, spacing: 10) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 Image(systemName: badge.isLocked ? "lock" : "medal").font(.title2).accessibilityHidden(true)
                 description.fixedSize(horizontal: false, vertical: true)
             }.frame(maxWidth: .infinity, minHeight: 72, alignment: .topLeading)
-                .padding(12).background(.quaternary, in: RoundedRectangle(cornerRadius: 12))
+                .cyDomainCard(padding: CYSpacing.md)
                 .accessibilityElement(children: .combine)
         } else {
             HStack {
-                Image(systemName: badge.isLocked ? "lock" : "medal").accessibilityHidden(true)
+                CYRowIcon(systemImage: badge.isLocked ? "lock" : "medal")
                 description
             }
+            .accessibilityElement(children: .combine)
         }
     }
     private var description: some View {
-        VStack(alignment: .leading) {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) }
-            Text(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked").font(.caption)
+            CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success)
         }
     }
 }

@@ -146,8 +146,9 @@ struct RoamAlbumReadOwner: Hashable {
     var body: some View {
         let read = presentation.readAction(), refresh = presentation.refreshAction()
         ScrollView {
-            LazyVStack(alignment: .leading, spacing: 20) {
+            LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 if canShowAlbum {
+                CYHeroHeader("roam.experience.album")
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if let total = pager.total { StampAlbumTotalHeader(total: total) }
                 if let error = pager.error {
@@ -158,30 +159,42 @@ struct RoamAlbumReadOwner: Hashable {
                     }
                 }
                 if pager.loaded && pager.stamps.isEmpty {
-                    ContentUnavailableView("roam.experience.albumEmpty", systemImage: "rectangle.stack", description: Text("roam.experience.albumEmptyHint"))
-                        .accessibilityIdentifier("roam.experience.album.empty")
+                    VStack(spacing: CYSpacing.md) {
+                        CYEmptyState(systemImage: "rectangle.stack", "roam.experience.albumEmpty")
+                        Text("roam.experience.albumEmptyHint")
+                            .font(CYTypography.body)
+                            .multilineTextAlignment(.center)
+                    }
+                    .accessibilityIdentifier("roam.experience.album.empty")
                     if allowsCapture {
-                        NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
-                            .buttonStyle(.questifyPrimary).frame(minHeight: 44)
-                            .accessibilityIdentifier("roam.experience.album.openCamera")
+                        NavigationLink { captureDestination } label: {
+                            Text("stampAlbum.openCamera")
+                        }
+                        .buttonStyle(CYPillButtonStyle(style: .primary))
+                        .accessibilityIdentifier("roam.experience.album.openCamera")
                     }
                 }
                 ForEach(pager.stamps) { stamp in
                     NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages) } label: {
-                        RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
+                        RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
                     }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
                 }
                 if let error = pager.error, StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) == .retryContinuation {
                     StampAlbumContinuationRetry(retry: read)
                 }
-                if presentation.loading { ProgressView(pager.stamps.isEmpty ? "roam.loading" : "stampAlbum.loadingNext") }
+                if presentation.loading {
+                    CYSkeleton().accessibilityLabel(Text(pager.stamps.isEmpty ? "roam.loading" : "stampAlbum.loadingNext"))
+                }
                 if pager.hasMore && !presentation.loading && pager.loaded {
                     Button("roam.experience.loadMore", action: read)
-                        .buttonStyle(.bordered).accessibilityIdentifier("roam.experience.album.more")
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .accessibilityIdentifier("roam.experience.album.more")
                 }
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
         }.navigationTitle("roam.experience.album")
+            .navigationBarTitleDisplayMode(.inline)
+            .themeDomain(.player)
             .toolbar {
                 if allowsCapture {
                     ToolbarItem(placement: .topBarTrailing) {
@@ -200,19 +213,26 @@ struct RoamStampCard: View {
     let stamp: RoamAlbumStamp
     let offline: Bool
     var allowsRemoteImages = true
+    /// Album list uses the kit chip. The detail page keeps the previous label.
+    var kit = false
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         RoamExperienceCard {
             VStack(alignment: .leading, spacing: 14) {
                 HStack {
-                    Image(systemName: "envelope.badge").accessibilityHidden(true)
-                    Text("roam.experience.cityStamp").font(.caption).bold()
+                    if kit {
+                        CYStatusChip("roam.experience.cityStamp", systemImage: "envelope.badge")
+                    } else {
+                        Image(systemName: "envelope.badge").accessibilityHidden(true)
+                        Text("roam.experience.cityStamp").font(.caption).bold()
+                    }
                     Spacer()
                     Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).font(.caption.monospaced())
                 }
                 if offline {
                     ZStack {
-                        RoundedRectangle(cornerRadius: 12).fill(Color.accentColor.opacity(0.13))
-                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(.tint)
+                        RoundedRectangle(cornerRadius: 12).fill(kit ? palette.bgRaised : Color.accentColor.opacity(0.13))
+                        Image(systemName: "building.2.crop.circle").font(.largeTitle).imageScale(.large).foregroundStyle(kit ? palette.textSecondary : .tint)
                     }.frame(height: 140).accessibilityLabel(Text("roam.experience.sampleArt"))
                 } else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo") }
