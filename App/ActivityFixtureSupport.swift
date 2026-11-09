@@ -111,7 +111,8 @@ final class ActivityFixtureReader: ActivityReading {
             default:
                 fields = ""
             }
-            let data = Data("{\"id\":101,\"name\":\"Fixture review activity\"\(fields)}".utf8)
+            let base = "\"startDate\":\"2026-11-21 14:00:00\",\"endDate\":\"2026-11-21 17:30:00\",\"addressName\":\"Lantern Square (fixture)\",\"description\":\"A slow, story-led walk through the old market lanes. Offline fixture copy.\",\"minAmout\":58,\"registrationCount\":24,\"sysCategoryList\":[{\"categoryName\":\"Walk\"},{\"categoryName\":\"Food\"}],\"omsTicketList\":[{\"id\":501,\"name\":\"Standard ticket\",\"price\":58,\"remainingInventory\":18,\"description\":\"Guide, route booklet and one tasting.\"},{\"id\":502,\"name\":\"Early bird\",\"price\":42,\"remainingInventory\":0}]"
+            let data = Data("{\"id\":101,\"name\":\"Lantern Market Quest (fixture)\",\(base)\(fields)}".utf8)
             return .allowed(try JSONDecoder().decode(ActivityDetail.self, from: data))
         }
         // Intentionally omit image URLs and coordinates: no Map or remote media is instantiated.
@@ -128,7 +129,21 @@ final class ActivityFixtureReader: ActivityReading {
     }
 
     private func summary(id: Int, name: String) throws -> ActivitySummary {
-        let data=try JSONSerialization.data(withJSONObject:["id":id,"name":name])
+        var object: [String: Any] = ["id":id,"name":name]
+        if scenario == .pagination {
+            // Labelled synthetic metadata so the list is judged with date, place, status and price.
+            let titles = ["Old Town Night Walk", "Riverside Sunrise Run", "Lantern Market Quest", "Hutong Photo Trail", "Jazz in the Courtyard", "Temple Hill Hike", "Street Food Crawl"]
+            let places = ["Gulou East Lane", "Riverside Park Gate 2", "Lantern Square", "Nanluoguxiang", "Courtyard No. 9", "Temple Hill Trailhead", "Dumpling Street"]
+            let slot = id % 7
+            object["name"] = titles[slot] + " (fixture \(id))"
+            object["addressName"] = places[slot]
+            let day = [3, 14, 21, 28, 6, 12, 25][slot]
+            let month = slot % 3 == 0 ? 10 : 11
+            object["startDate"] = String(format: "2026-%02d-%02d 18:30:00", month, day)
+            object["endDate"] = String(format: "2026-%02d-%02d 21:00:00", month, day)
+            if slot % 3 != 2 { object["minAmout"] = slot % 3 == 1 ? 0 : Double(40 + slot * 12) }
+        }
+        let data=try JSONSerialization.data(withJSONObject:object)
         return try JSONDecoder().decode(ActivitySummary.self,from:data)
     }
 }

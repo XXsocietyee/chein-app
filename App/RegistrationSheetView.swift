@@ -103,6 +103,7 @@ struct RegistrationSheetView: View {
                 }
             }
             .scrollDismissesKeyboard(.interactively)
+            .safeAreaInset(edge: .bottom, spacing: 0) { if showsCheckoutBar { checkoutBar } }
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
             .appNavigationTitle("registration.form.title")
@@ -251,31 +252,96 @@ struct RegistrationSheetView: View {
             }
         }
     }
+    /// Ticket card: cover tile, activity name, date + venue, perforation, selected ticket and its price.
     private var activitySection: some View {
         let checkout = RegistrationCheckoutFacts(activity: flow.activity, ticket: flow.selectedTicket)
-        return Section("registrationParity.section.activity") {
-            if flow.activity.summary.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                Text("registrationParity.activityNamePending").font(CYTypography.cardTitle)
-            } else {
-                Text(verbatim: flow.activity.summary.name).font(CYTypography.cardTitle)
+        let copy = CoreLoopCopy(locale: locale)
+        let summary = flow.activity.summary
+        let name = summary.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let start = summary.startDate.flatMap { $0.isEmpty ? nil : $0 }
+        let dateText = QuestifyCardText.date(start, locale: locale, displayTimeZone: .current) ?? start
+        return Section {
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: CYSpacing.md) {
+                    Color.clear.frame(width: 72, height: 72)
+                        .overlay { E1CoverArt(seed: name, symbol: "ticket", imageURL: summary.imageURL, debugLabel: false) }
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        if name.isEmpty { Text("registrationParity.activityNamePending").font(CYTypography.cardTitle) }
+                        else { Text(verbatim: name).font(CYTypography.cardTitle).lineLimit(2) }
+                        if let dateText {
+                            Label { Text(verbatim: dateText) } icon: { Image(systemName: "calendar") }
+                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        }
+                        // Source: the session's 集合点 row appears only when the selected ticket supplies it.
+                        if let meetingPoint = checkout.meetingPoint {
+                            Label { Text("registrationParity.meetingPointValue \(meetingPoint)") } icon: { Image(systemName: "flag") }
+                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .accessibilityIdentifier("registration.activity.meetingPoint")
+                        }
+                        Label {
+                            if let venue = checkout.venue { Text(verbatim: venue) } else { Text(verbatim: "—") }
+                        } icon: { Image(systemName: "mappin.and.ellipse") }
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("registration.activity.venue")
+                    }
+                    Spacer(minLength: 0)
+                }
+                .padding(CYSpacing.lg)
+                E1Perforation()
+                HStack(alignment: .firstTextBaseline) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verbatim: copy.t("票种", "Ticket")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: flow.selectedTicket?.name ?? "—").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
+                    }
+                    Spacer(minLength: CYSpacing.sm)
+                    Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                        .minimumScaleFactor(0.7).lineLimit(1)
+                }
+                .padding(CYSpacing.lg)
+                .accessibilityElement(children: .combine)
             }
-            if let date = flow.activity.summary.startDate, !date.isEmpty {
-                LabeledContent("registration.form.startDate", value: date)
-            }
-            if let date = flow.activity.summary.endDate, !date.isEmpty {
-                LabeledContent("registration.form.endDate", value: date)
-            }
-            // Source: the session's 集合点 row appears only when the selected ticket supplies it.
-            if let meetingPoint = checkout.meetingPoint {
-                Label { Text("registrationParity.meetingPointValue \(meetingPoint)") } icon: { Image(systemName: "flag") }
-                    .accessibilityIdentifier("registration.activity.meetingPoint")
-            }
-            Label {
-                if let venue = checkout.venue { Text(verbatim: venue) }
-                else { Text(verbatim: "—") }
-            } icon: { Image(systemName: "mappin.and.ellipse") }
-                .accessibilityIdentifier("registration.activity.venue")
+            .background(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(CYColor.bgElevated))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
+            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0)).listRowBackground(Color.clear)
         }
+    }
+    private func ticketPriceText(_ copy: CoreLoopCopy) -> String {
+        guard let ticket = flow.selectedTicket else { return "—" }
+        if ticket.price == 0 { return copy.t("免费", "Free") }
+        return E1Money.yuan(ticket.price, locale: locale) ?? "—"
+    }
+    /// Total shown in the pinned summary bar: the server quote when present, else the listed ticket price.
+    private var summaryTotalText: String {
+        let copy = CoreLoopCopy(locale: locale)
+        if flow.quoteEnabled, case .received(let quote) = flow.quoteState,
+           let text = RegistrationUIMoney.display(quote.payAmount, locale: locale, currencyCode: RegistrationUIMoney.yuanCurrencyCode) { return text }
+        return ticketPriceText(copy)
+    }
+    private var showsCheckoutBar: Bool {
+        if !flow.hasCurrentSession || flow.hasRetainedIntent { return false }
+        if case .pending = flow.durableCreation { return false }
+        return true
+    }
+    private var checkoutBar: some View {
+        let copy = CoreLoopCopy(locale: locale)
+        return HStack(spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
+                    .lineLimit(1).minimumScaleFactor(0.6)
+            }
+            TimelineView(.periodic(from: .now, by: 1)) { _ in
+                Button {
+                    focusedField = nil
+                    if flow.prepareConfirmation() { showingConfirmation = true }
+                } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
+                .buttonStyle(.cyPrimary).disabled(flow.confirmationBlock != nil)
+                .accessibilityIdentifier("registration.form.review")
+            }
+        }
+        .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.md)
+        .background(.bar)
     }
     private var participantSection: some View {
         Section {
@@ -321,11 +387,11 @@ struct RegistrationSheetView: View {
             if !flow.draft.phone.isEmpty, flow.draft.validation == .invalidPhone {
                 Text("registration.form.phoneHint").font(.caption).foregroundStyle(CYColor.dangerText)
             }
-        } header: { Text("registrationParity.section.participants") }
+        } header: { E1IconHeader(systemImage: "person.crop.circle", title: CoreLoopCopy(locale: locale).t("参与人", "Who is going")) }
         .disabled(!flow.canEdit)
     }
     private var ticketSection: some View {
-        Section("registration.form.ticket") {
+        Section {
             if flow.activity.tickets.isEmpty {
                 Text("registration.form.noTickets").foregroundStyle(.secondary)
             } else {
@@ -358,7 +424,7 @@ struct RegistrationSheetView: View {
                     }
                 }
             }
-        }
+        } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("票种", "Ticket")) }
     }
     @ViewBuilder private var waitlistSection: some View {
         if flow.selectedTicket?.isSoldOut == true || flow.waitlistStatus != nil {
@@ -470,7 +536,7 @@ struct RegistrationSheetView: View {
             Button("registration.form.refreshQuote") { Task { await flow.requestQuote() } }
                 .disabled(!flow.quoteEnabled || !flow.canEdit || flow.isQuoting)
                 .accessibilityIdentifier("registration.form.refreshQuote")
-        } header: { Text("registration.form.fees") }
+        } header: { E1IconHeader(systemImage: "yensign.circle", title: CoreLoopCopy(locale: locale).t("费用明细", "Price details")) }
     }
     private var confirmationSection: some View {
         Section {
@@ -500,14 +566,6 @@ struct RegistrationSheetView: View {
                 }
             }
             if flow.block == .confirmationChanged { Text("registration.form.confirmationChanged").foregroundStyle(.secondary) }
-            TimelineView(.periodic(from: .now, by: 1)) { _ in
-                Button {
-                    focusedField = nil
-                    if flow.prepareConfirmation() { showingConfirmation = true }
-                } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
-                .buttonStyle(.cyPrimary).disabled(flow.confirmationBlock != nil)
-                .accessibilityIdentifier("registration.form.review")
-            }
         } footer: { Text("registration.form.sharingPurpose") }
     }
 }
