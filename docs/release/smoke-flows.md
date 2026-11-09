@@ -2,6 +2,8 @@
 
 Flows live in `.maestro/` and select controls only by accessibility identifiers that already exist in the SwiftUI sources. This change does not add or edit identifiers, Swift, or the Xcode project.
 
+`authEntry.gate.body` sits inside a collapsed `DisclosureGroup` (`App/UsageConsentGateView.swift`). Each smoke flow taps `authEntry.gate.details` once, then asserts the body. A second tap would collapse it, so the flows do not tap it again.
+
 The app id is the committed `PRODUCT_BUNDLE_IDENTIFIER` in `Config/Base.xcconfig`: `invalid.example.questify.ios`.
 
 Each flow starts with `launchApp` `clearState: true` and `clearKeychain: true`, and passes no launch arguments. Clearing state stops a saved token from being restored. The flows contain no URL, do not type into any field, and do not tap a password, code, WeChat, Apple, or payment control.
@@ -17,11 +19,14 @@ These flows were not executed in this workspace. It has no iOS Simulator or Maes
 | Welcome | `.maestro/welcome.yaml` |
 | Sign-in | `.maestro/sign-in.yaml` |
 
+`.maestro/sweep-welcome.yaml` is a screenshot helper. It is not one of the four smoke flows, and this change does not edit it. It does not clear the keychain and it does not pass the consent gate.
+
 ## Identifiers used
 
 | Identifier | Source | Flows |
 |---|---|---|
-| `authEntry.gate.body` | `App/UsageConsentGateView.swift` | launch, consent |
+| `authEntry.gate.details` | `App/UsageConsentGateView.swift` | launch, consent, welcome, sign-in |
+| `authEntry.gate.body` | `App/UsageConsentGateView.swift` | launch, consent, welcome, sign-in |
 | `authEntry.gate.privacyGuide` | `App/UsageConsentGateView.swift` | launch, consent |
 | `authEntry.gate.agreement` | `App/UsageConsentGateView.swift` | consent |
 | `authEntry.gate.checkbox` | `App/UsageConsentGateView.swift` | consent, welcome, sign-in |
@@ -44,7 +49,7 @@ These flows were not executed in this workspace. It has no iOS Simulator or Maes
 
 ## Omitted steps
 
-The generated launch screen (`INFOPLIST_KEY_UILaunchScreen_Generation` in `Config/Base.xcconfig`) has no accessibility identifier. `.maestro/launch.yaml` does not assert that screen. After a cleared launch the first stable identifier is `authEntry.gate.body`.
+The generated launch screen (`INFOPLIST_KEY_UILaunchScreen_Generation` in `Config/Base.xcconfig`) has no accessibility identifier. `.maestro/launch.yaml` does not assert that screen. After a cleared launch the first stable identifier is `authEntry.gate.details`. The flow opens it once, then asserts `authEntry.gate.body`.
 
 Do not pass extra launch arguments. In a DEBUG build, any argument other than `--uitesting-usage-consent-pending` treats consent as already granted (`UsageConsentEnvironment` in `App/UsageConsentGateView.swift`), so the gate identifiers are absent.
 
