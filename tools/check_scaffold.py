@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Offline structural checks, NOT a Swift compiler or runtime test."""
-import hashlib, json, pathlib, re, shutil, subprocess, tempfile, xml.etree.ElementTree as ET
+import hashlib, json, pathlib, re, shutil, subprocess, sys, tempfile, xml.etree.ElementTree as ET
 ROOT=pathlib.Path(__file__).resolve().parents[1]
 # Independent parser for the generated OpenStep subset (quoted keys/values, integers).
 def parse_project(text):
@@ -256,5 +256,7 @@ assert hashlib.sha256(project_path.read_bytes()).hexdigest()==before
 # EN / zh-Hans coverage for every Resources/*.xcstrings catalog. Local tool
 # path only; this does not add a hosted macOS workflow.
 subprocess.run(['python3','-B',str(pathlib.Path(__file__).resolve().with_name('check_catalog_coverage.py'))],check=True)
+if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_design_lint.py')]).returncode!=0:
+    raise SystemExit('Design lint failed')
 print(f'PASS structural checks: {len(source_paths)} Swift source files, {len(catalog["strings"])} bilingual keys, references, scheme, read-only expected project equivalence')
 print('SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence')

@@ -2,7 +2,7 @@
 
 ## Scope and runtime gates
 
-The app imports and links the actual GLTFKit2 framework unconditionally. The framework is compiled from 32 vendored upstream files at version **0.5.15**, immutable commit **e69e354c4f31ea07b7816b8cbe2ddb28e897d073**. `Vendor/GLTFKit2/PROVENANCE.json` records every original Git blob SHA-1 and SHA-256; `python3 tools/check_gltf_source.py` verifies all files offline. No dependency installer, remote build script, floating branch, binary package, KTX/BasisU/Zstandard, or Draco plugin is incorporated.
+The app imports and links the actual GLTFKit2 framework unconditionally. The framework is compiled from 32 vendored upstream files at version **0.5.15**, immutable commit **e69e354c4f31ea07b7816b8cbe2ddb28e897d073**. `Vendor/GLTFKit2/PROVENANCE.json` records every original Git blob SHA-1 and SHA-256; `python3 tools/check_gltf_source.py` verifies those blobs offline. The Xcode project file is the upstream project with only `IPHONEOS_DEPLOYMENT_TARGET` changed from 12.1 to 17.0, and the checker rebuilds the upstream bytes from that substitution before comparing hashes. No dependency installer, remote build script, floating branch, binary package, KTX/BasisU/Zstandard, or Draco plugin is incorporated.
 
 AR modes, image origins, and model origins remain empty by default. The backend's existing `modelUrl` is consumed without new fields or backend changes. A completed server QR validation and operator-approved AR mode are still required. A marker additionally needs accepted physical width for its exact reference-image URL. Neither rendering nor tracking submits arrival, task completion, reward, or other evidence.
 
