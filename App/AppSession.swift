@@ -1721,7 +1721,8 @@ final class AppSession: ObservableObject {
         }
         return WorkshopCommerceComposition.make(context: captured, approval: workshopCommerceApproval,
             currentApproval: { [weak self] in self?.workshopCommerceApproval }, current: current,
-            storage: templateAuthoringSecureStorage, enableApprovedStoreKit: !readOnly, readOnly: readOnly,
+            storage: templateAuthoringSecureStorage,
+            enableApprovedStoreKit: ReleaseMoneyWriteSwitch.virtualGoodsEnabled && !readOnly, readOnly: readOnly,
             onUnauthorized: { [weak self] context in
                 guard let self, ContentDraftContextFence.matches(current(), context) else { return }
                 self.expireIfMatching(error: APIError.unauthorized, stamp: context.session.epoch, credential: context.session.token)
@@ -4339,7 +4340,7 @@ final class AppSession: ObservableObject {
     private lazy var nativeWeChatPaymentAdapter = WeChatSDKPaymentAdapter(driver: nativeWeChatPaymentDriver,
         configuration: runtimeDependencies.weChatPaymentConfiguration,
         allowed: { [weak self] in
-            guard let self else { return false }
+            guard let self, ReleaseMoneyWriteSwitch.paymentEnabled else { return false }
             if let auth = self.weChatSDKConfiguration, let payment = self.runtimeDependencies.weChatPaymentConfiguration,
                auth.appID != payment.sdk.appID || auth.universalLink != payment.sdk.universalLink { return false }
             let selfPlayAllowed = self.businessRuntimeFactory.map {
@@ -4372,7 +4373,8 @@ final class AppSession: ObservableObject {
                 guard let self, self.currentRuntimeDependencyContext == captured, let session = self.publishingSession, let token = self.token else { return nil }
                 return try? PublishingCredentials(session: session, token: token)
             })
-        let payment: (any TopicSelfPlayPaymentProviding)? = factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
+        let payment: (any TopicSelfPlayPaymentProviding)? = ReleaseMoneyWriteSwitch.paymentEnabled
+            && factory.configuration.selfPlayPayment && factory.permits(.topicSelfPlayPay)
             ? (runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter) : nil
         let flow = TopicSelfPlayFlow(topic: topic, client: client, provider: payment, journal: TopicSelfPlayDefaultsJournal(defaults: .standard), operationGate: selfPlayOperationGate)
         retainedSelfPlayFlows[key] = flow; return flow
@@ -4500,7 +4502,8 @@ final class AppSession: ObservableObject {
             })
     }
     func makeBankWithdrawalContext() -> BankWithdrawalRuntimeContext? {
-        guard let factory = businessRuntimeFactory, factory.permits(.bankPrepare), factory.permits(.bankConsentRead),
+        guard ReleaseMoneyWriteSwitch.withdrawalEnabled,
+              let factory = businessRuntimeFactory, factory.permits(.bankPrepare), factory.permits(.bankConsentRead),
               let provider = runtimeDependencies.bankDocument, let scope = walletCommerceScope,
               let configuration = regionalConfiguration?.apiConfiguration else { return nil }
         let captured = factory.captured
@@ -5364,7 +5367,8 @@ final class AppSession: ObservableObject {
         return OrderLifecycleProductionFactory.make(configuration: runtimeDependencies.orderLifecycleConfiguration,
             api: api, transport: runtimeHTTPTransport, journal: journal,
             document: runtimeDependencies.signupDocument,
-            provider: runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter,
+            provider: ReleaseMoneyWriteSwitch.paymentEnabled
+                ? (runtimeDependencies.selfPlayPayment ?? nativeWeChatPaymentAdapter) : nil,
             sharedGate: selfPlayOperationGate, selfPlayJournal: TopicSelfPlayDefaultsJournal(defaults: .standard),
             current: { [weak self] in self?.currentRuntimeDependencyContext },
             reviewScope: { [weak self] in self?.orderLifecycleReader.scope ?? UUID() })

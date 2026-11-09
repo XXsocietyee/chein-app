@@ -31,8 +31,11 @@ public enum ChinaReviewedRouteCapability {
     }
 
     /// True only for a live production route the China reviewed deployment may call.
+    /// A payment, payout, withdrawal, or virtual-goods write stays unreachable while its own
+    /// Release switch is off, even if the path is later added to the wired catalog.
     public static func admitsChinaProductionCall(_ path: String) -> Bool {
         let key = normalized(path)
+        if ReleaseMoneyWriteSwitch.blocks(key) { return false }
         if forcedOff(key) != nil { return false }
         return wiredPatterns.contains(key)
     }
@@ -1792,6 +1795,61 @@ public enum ChinaReviewedRouteCapability {
         "/api/wallet/stages",
         "/api/withdrawal/list",
     ]
+}
+
+/// One Release switch per money-moving write. All four stay off. This type does not
+/// choose a payment provider or a payment route.
+public enum ReleaseMoneyWriteKind: String, Sendable, CaseIterable {
+    case payment
+    case payout
+    case withdrawal
+    case virtualGoods
+}
+
+public enum ReleaseMoneyWriteSwitch {
+    public static let paymentEnabled = false
+    public static let payoutEnabled = false
+    public static let withdrawalEnabled = false
+    public static let virtualGoodsEnabled = false
+
+    public static func isEnabled(_ kind: ReleaseMoneyWriteKind) -> Bool {
+        switch kind {
+        case .payment: return paymentEnabled
+        case .payout: return payoutEnabled
+        case .withdrawal: return withdrawalEnabled
+        case .virtualGoods: return virtualGoodsEnabled
+        }
+    }
+
+    /// True when `path` is a money-moving write and that write's own switch is off.
+    public static func blocks(_ path: String) -> Bool {
+        guard let kind = kind(for: path) else { return false }
+        return !isEnabled(kind)
+    }
+
+    /// Reads, team or offer exits, and other non-money actions return nil.
+    public static func kind(for rawPath: String) -> ReleaseMoneyWriteKind? {
+        let key = ChinaReviewedRouteCapability.normalized(rawPath)
+        switch key {
+        case "/api/registration/pay", "/api/registration/pay/app", "/api/pay/create":
+            return .payment
+        case "/api/club/settlement/withdraw":
+            return .payout
+        case "/api/withdrawal/create", "/api/asset/withdraw", "/api/wallet/withdraw":
+            return .withdrawal
+        case "/api/cart/cart/add", "/api/cart/add", "/api/cart/update", "/api/cart/delete", "/api/cart/order/settlement":
+            return .virtualGoods
+        default:
+            break
+        }
+        if key.hasPrefix("/api/fund/preflight") { return .withdrawal }
+        if key.hasPrefix("/api/mod-commerce/"),
+           key.hasSuffix("/payment") || key.hasSuffix("/native-dispatch") || key.hasSuffix("/native-transaction")
+            || key == "/api/mod-commerce/native-transactions/restore" || key == "/api/mod-commerce/orders" {
+            return .virtualGoods
+        }
+        return nil
+    }
 }
 
 public struct ChinaReviewedProductionTransport: HTTPTransport {
