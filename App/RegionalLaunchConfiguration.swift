@@ -170,7 +170,10 @@ enum RegionalLaunchConfiguration {
         }
         do {
             try validate(reviewed, build: build)
-            return .init(deployment: .reviewed(reviewed), storage: storage, makeTransport: makeTransport)
+            let guarded: () -> any HTTPTransport = {
+                ChinaReviewedProductionTransport(underlying: makeTransport())
+            }
+            return .init(deployment: .reviewed(reviewed), storage: storage, makeTransport: guarded)
         } catch {
             return .init(deployment: .incompatibleBuild, storage: storage, makeTransport: makeTransport)
         }
