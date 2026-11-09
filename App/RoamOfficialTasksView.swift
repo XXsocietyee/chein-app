@@ -155,7 +155,7 @@ import SwiftUI
                 ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading")
             }
             } else { ProgressView("official.loading").accessibilityIdentifier("roam.tasks.loading") }
-        }.navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
+        }.cyGroupedSurface().navigationTitle("roam.tasks.title").navigationBarTitleDisplayMode(.inline)
             .onAppear { viewModel.appear(foreground: scenePhase == .active) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in

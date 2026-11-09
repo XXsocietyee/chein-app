@@ -85,7 +85,7 @@ import SwiftUI
                 if model.hasMore { Button { run { await model.loadMore() } } label: { CityMerchantValueCopy.text("more") }.disabled(model.busy).accessibilityIdentifier("cityValue.more") }
                 CityMerchantValueCopy.text("missingSources").font(.footnote)
             }
-        }.accessibilityIdentifier("cityValue.merchant")
+        }.cyGroupedSurface().accessibilityIdentifier("cityValue.merchant")
             .task { guard !loadedInitially else { return }; loadedInitially = true; if let window { await model.load(window: window) } }
             .sheet(item: $selectedBenefit, onDismiss: { model.closeBenefit() }) { fact in
                 CityMerchantValueBenefitView(model: model, fact: fact)
@@ -138,7 +138,7 @@ import SwiftUI
                     guard phase == .active else { return }; retry?.cancel(); retry = Task { await model.readBenefit(fact) }
                 } label: { CityMerchantValueCopy.text("benefit.retry") }
                     .disabled(model.benefitBusy || !model.canReadBenefit(fact))
-            }.navigationTitle(CityMerchantValueCopy.string("benefit.title"))
+            }.cyGroupedSurface().navigationTitle(CityMerchantValueCopy.string("benefit.title"))
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button { dismiss() } label: { CityMerchantValueCopy.text("benefit.close") }.accessibilityIdentifier("cityValue.benefit.close")
                 } }

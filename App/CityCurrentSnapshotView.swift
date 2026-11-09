@@ -61,7 +61,7 @@ import SwiftUI
                     }
                 }
                 Section { refreshButton }
-            }
+            }.cyGroupedSurface()
         } else if model.phase == .loading {
             ProgressView("正在读取地图")
         } else {

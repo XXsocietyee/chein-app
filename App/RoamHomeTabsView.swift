@@ -298,7 +298,7 @@ struct RoamEntryCover: View {
                             Section { detailLink("roam.w208.entry.createTeam", identifier: "roam.home.sheet.createTeam") }
                         }
                         if readOnly { Section { Text("roam.readOnlyNotice").font(.footnote).foregroundStyle(.secondary) } }
-                    }
+                    }.cyGroupedSurface()
                 }
             }
             .navigationTitle(Text(verbatim: card.activity.title))
@@ -391,7 +391,7 @@ struct RoamToolUnavailableView: View {
                 ForEach(RoamPassportHome.Play.allCases) { play in playCard(play) }
             }
             RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
-        }
+        }.cyGroupedSurface()
         .onAppear { isPassportVisible = true; openedTile = nil; load() }
         .onDisappear { isPassportVisible = false }
         .refreshable { load() }

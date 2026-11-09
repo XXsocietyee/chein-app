@@ -57,7 +57,7 @@ import SwiftUI
                     }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .privacySensitive().navigationTitle("playBadge.collection").navigationBarTitleDisplayMode(.inline)
         .accessibilityIdentifier("playBadge.collection")
         .toolbar {

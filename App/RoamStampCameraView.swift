@@ -86,7 +86,7 @@ import UIKit
                     }
                 }
             }
-        }
+        }.cyGroupedSurface()
         // Mini-program viewfinder shutter: one round capture button pinned at the bottom.
         .safeAreaInset(edge: .bottom) {
             if cameraEnabled, coordinator?.canCapture == true {

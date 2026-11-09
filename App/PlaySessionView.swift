@@ -121,7 +121,7 @@ struct PlaySessionView: View {
                     }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)

@@ -178,7 +178,7 @@ struct FreeExplorationStoreName: View {
                 if let issue { PlayExperienceIssueView(issue: issue) }
             } else if model.phase == .loading || model.phase == .submitting { ProgressView("playx.loading") }
             else { ContentUnavailableView("playFree.store.unavailable", systemImage: "storefront") }
-        }
+        }.cyGroupedSurface()
         .refreshable { if model.phase != .loading && model.phase != .submitting { await model.load() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -262,6 +262,6 @@ struct FreeExplorationVisitSteps: View {
                 Button("play.refresh") { Task { await model.load(keepingReceipt: true) } }
             } else if model.isLoading { ProgressView("play.loading") }
             else { Text("playFree.store.unavailable") }
-        }.privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.read.store")
+        }.cyGroupedSurface().privacySensitive().navigationTitle("playFree.store.title").accessibilityIdentifier("playFree.read.store")
     }
 }

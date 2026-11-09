@@ -31,7 +31,7 @@ struct PlayBranchHistoryView: View {
                         }
                     }
                 }
-            }
+            }.cyGroupedSurface()
             .navigationTitle(branchHistoryLocalized("branchHistory.title", locale: locale))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

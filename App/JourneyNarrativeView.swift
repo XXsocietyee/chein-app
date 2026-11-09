@@ -17,7 +17,7 @@ import SwiftUI
             if let document = model.document { content(document) }
             Button("journey.record.refresh") { Task { await model.load() } }.disabled(model.busy || !model.available)
                 .accessibilityIdentifier("journey.record.refresh")
-        }
+        }.cyGroupedSurface()
         .navigationTitle(LocalizedStringKey(model.query.titleKey)).privacySensitive()
         .accessibilityIdentifier("journey.record." + model.query.key)
         .task(id: model.identity) { await model.load() }
@@ -31,7 +31,7 @@ import SwiftUI
                     Text("journey.record.askImpact")
                     Button("journey.confirm") { Task { await model.confirm(review) } }.disabled(model.busy)
                         .accessibilityIdentifier("journey.record.confirm")
-                }.navigationTitle("journey.record.questions")
+                }.cyGroupedSurface().navigationTitle("journey.record.questions")
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("journey.cancel") { model.cancelReview() }.disabled(model.busy) } }
             }.interactiveDismissDisabled(model.busy)
         }

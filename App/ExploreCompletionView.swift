@@ -123,7 +123,7 @@ struct ExploreCompletionProvider {
                 else { ContentUnavailableView("exploreCompletion.noTopic", systemImage: "questionmark.folder") }
             } else { ProgressView("exploreCompletion.loading") }
             Section { Text("exploreCompletion.readOnly").font(.footnote).foregroundStyle(.secondary) }
-        }
+        }.cyGroupedSurface()
         .navigationTitle("exploreCompletion.title")
         .privacySensitive()
         .onAppear { model.beginPresentation() }

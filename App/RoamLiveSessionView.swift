@@ -133,7 +133,7 @@ import Combine
                         .accessibilityIdentifier("roam.live.error")
                 }
             }
-        }
+        }.cyGroupedSurface()
         // Identify the list only; the inset actions keep their own accessible identities.
         .accessibilityIdentifier("roam.live.session")
         // Map ground behind the HUD (static fog backdrop; this screen has no map of its own).
@@ -399,7 +399,7 @@ import Combine
             Section("roam.live.ruleArrivalTitle") { Text("roam.live.ruleArrival") }
             Section("roam.live.ruleFinishTitle") { Text("roam.live.ruleFinish") }
             Section("roam.live.rulePrivacyTitle") { Text("roam.live.presencePrivacy"); Text("roam.live.leaveHint") }
-        }.navigationTitle("roam.live.rules").navigationBarTitleDisplayMode(.inline)
+        }.cyGroupedSurface().navigationTitle("roam.live.rules").navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }
     }
 }

@@ -70,7 +70,7 @@ enum PlayKitNativePresentation: Equatable { case navigation, inline }
                             .disabled(!model.canInteract || model.state?.version != item.version || model.state?.sessionID != item.sessionID)
                             .accessibilityIdentifier("playkit.review.confirm")
                     }
-                }.navigationTitle("playkit.submitQuestion")
+                }.cyGroupedSurface().navigationTitle("playkit.submitQuestion")
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil; reviewedCompletion = nil } } }
             }.privacySensitive()

@@ -43,7 +43,7 @@ import SwiftUI
             }
             if let actions = model.actions { actionStatus(actions) }
             if let bag = model.displayedBackpack { content(bag) }
-        }
+        }.cyGroupedSurface()
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
         .navigationTitle(Text("playx.backpack.title"))
@@ -393,7 +393,7 @@ import SwiftUI
                     .disabled(!reviewIsCurrent(choice, actions: actions))
                     .accessibilityIdentifier("playx.backpack.action.confirm")
                 }
-            }
+            }.cyGroupedSurface()
             .navigationTitle(copy("确认操作", "Confirm action"))
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

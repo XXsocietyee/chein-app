@@ -129,7 +129,7 @@ import SwiftUI
                 }
                 if p.result != .null { Section("最新原公共结果") { result(p.result, label: "原结果") } }
             }
-        }
+        }.cyGroupedSurface()
         .modifier(SharedPlanFormAppearance())
         .privacySensitive()
         .task { await model.load() }
@@ -157,7 +157,7 @@ import SwiftUI
                     Button("确认：" + review.command.action.title, role: [.withdraw, .change, .rejectAll, .cancel].contains(review.command.action) ? .destructive : nil) {
                         Task { await model.commit(review); offered = nil }
                     }.buttonStyle(.borderedProminent).disabled(!model.canInteract || !model.writesEnabled || model.review != review)
-                }.modifier(SharedPlanFormAppearance()).navigationTitle("核对原动作").interactiveDismissDisabled(model.busy)
+                }.cyGroupedSurface().modifier(SharedPlanFormAppearance()).navigationTitle("核对原动作").interactiveDismissDisabled(model.busy)
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("取消") { offered = nil } } }
             }
         }

@@ -115,7 +115,7 @@ enum PlayerJourneyRoute: Hashable { case play(ParticipationPlayEntry), history(P
                         .accessibilityFocused($focusedParticipationID, equals: row.id)
                 }
             } else if let issue { ParticipationIssueView(issue: issue, retry: { Task { await load() } }) }
-        }
+        }.cyGroupedSurface()
         .navigationTitle("playerJourney.participations")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: reader.scope) { resetPresentation(); rows = nil; await load() }
@@ -267,7 +267,7 @@ private struct ParticipationCoverPlaceholder: View {
                     }
                 }
             }
-        }.navigationTitle("playerJourney.detail").navigationBarTitleDisplayMode(.inline)
+        }.cyGroupedSurface().navigationTitle("playerJourney.detail").navigationBarTitleDisplayMode(.inline)
         .task(id: reader.scope) { detail = nil; await load() }
         .refreshable { await load() }
         .onDisappear { generation = UUID() }
@@ -314,7 +314,7 @@ private struct ParticipationCoverPlaceholder: View {
                 }
                 if let issue { Text(LocalizedStringKey(issue)).font(.footnote).foregroundStyle(.secondary) }
             } else if let issue { PlayerJourneyIssue(key: issue, retry: { Task { await load() } }) }
-        }.navigationTitle("playerJourney.completed").navigationBarTitleDisplayMode(.inline)
+        }.cyGroupedSurface().navigationTitle("playerJourney.completed").navigationBarTitleDisplayMode(.inline)
         .task(id: reader.scope) { rows = nil; await load() }.refreshable { await load() }
         .onDisappear { generation = UUID() }
     }

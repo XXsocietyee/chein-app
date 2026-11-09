@@ -177,7 +177,7 @@ struct RoamItemDetailView: View {
             case .event(let event): eventContent(event)
             case .player(let player): playerContent(player)
             }
-        }
+        }.cyGroupedSurface()
     }
     @ViewBuilder private func placeContent(_ place: RoamPlace) -> some View {
         if eventScope != nil, currentPlace == place {

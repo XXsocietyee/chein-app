@@ -26,7 +26,7 @@ import UniformTypeIdentifiers
                 let scope = RoamPrivatePageScope(tools)
                 RoamExportContent(tools: tools, isConfigured: tools.isConfigured).id(scope)
             } else {
-                List { RoamPrivateIssueView(issue: .notConfigured) }
+                List { RoamPrivateIssueView(issue: .notConfigured) }.cyGroupedSurface()
                     .background { RoamHostedAccessibilityGroup(items: [RoamHostedAccessibilityItem(identifier: "roam.private.issue")]) }
                     .accessibilityIdentifier("roam.export.screen")
             }
@@ -188,7 +188,7 @@ private struct RoamExportFileSaveLink: View {
             }
             if let saveResult { Section { Text(saveResult).accessibilityIdentifier("roam.export.saveResult") } }
             if prepared { if owner.active { progress } } else { chooser }
-        }
+        }.cyGroupedSurface()
         .task { if startDate.isEmpty { use(.last30Days) } }
         .background(RoamExportReadLifetime(owner: owner).frame(width: 0, height: 0))
         .onAppear { bindDeliveryFacts(); owner.appear(foreground: scenePhase == .active) }

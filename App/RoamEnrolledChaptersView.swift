@@ -155,7 +155,7 @@ import SwiftUI
             }
             if model.isLoading || (model.snapshot == nil && model.issue == nil) { ProgressView("ticketWallet.loading") }
             } else { ProgressView("ticketWallet.loading") }
-        }.navigationTitle("roam.chapters.title")
+        }.cyGroupedSurface().navigationTitle("roam.chapters.title")
             .onAppear { viewModel.appear(foreground: scenePhase == .active) }
             .onDisappear { viewModel.disappear(preservingSnapshot: target != nil) }
             .onChange(of: scenePhase) { _, phase in

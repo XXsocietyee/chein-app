@@ -94,7 +94,7 @@ extension EnvironmentValues {
                 } header: { Text("cityMerchant.receipt", tableName: table) }
             }
             Button { retireVisit(); dismiss() } label: { actionLabel("cityMerchant.back") }
-        }
+        }.cyGroupedSurface()
         .formStyle(.grouped)
         .scrollContentBackground(.hidden)
         .background(Theme.Color.bgPage(in: .merchant))
