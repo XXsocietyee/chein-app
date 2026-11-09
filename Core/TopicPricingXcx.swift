@@ -209,4 +209,89 @@ public enum TopicPricingXcx {
                              refreshing: refreshing, refreshFailed: refreshFailed, reference: reference, confirm: authority,
                              canSubmit: submit, lineupEmpty: preview.lineup.isEmpty))
     }
+
+    /// Partner share and fixed fee. Distinct from `moneyText`, which formats a topic price to two decimals.
+    /// `UNKNOWN`, null, and a non-numeric string are an em dash, never 0. A literal 0 stays "0".
+    public static func partnerMoneyText(_ raw: String?) -> String {
+        guard let raw else { return unknownMoney }
+        let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if text.isEmpty || text.compare("UNKNOWN", options: .caseInsensitive) == .orderedSame { return unknownMoney }
+        guard let value = Decimal(string: text, locale: Locale(identifier: "en_US_POSIX")), !value.isNaN else { return unknownMoney }
+        return NSDecimalNumber(decimal: value).stringValue
+    }
+
+    public enum PartnerPhase: Equatable {
+        case loading
+        case empty(PublisherPartnerInspection)
+        case error
+        case unknown
+        case ready(PublisherPartnerInspection)
+    }
+
+    /// Classifies the existing partner read. It does not open a route.
+    /// Loading wins over a previous result. A failure is an error. No result and no failure is unknown.
+    /// Empty means the profile has a loaded identity but none of the detail rows the page already shows.
+    public static func partnerPreviewPhase(loading: Bool, inspection: PublisherPartnerInspection?, failed: Bool) -> PartnerPhase {
+        if loading { return .loading }
+        if failed { return .error }
+        guard let inspection else { return .unknown }
+        if partnerDetailIsEmpty(type: inspection.terms.type, profile: inspection.profile) { return .empty(inspection) }
+        return .ready(inspection)
+    }
+
+    /// True when the partner page would show its empty-profile line. Name and description are not detail rows.
+    public static func partnerDetailIsEmpty(type: String, profile: ProjectEditJSON) -> Bool {
+        let object = profile.object ?? [:]
+        if type == "club" {
+            let city = factText(object["city"]) ?? factText(object["address"])
+            return factText(object["leaderName"]) == nil && city == nil && factText(object["clubType"]) == nil
+                && factText(object["memberCount"]) == nil && factText(object["levelText"]) == nil
+        }
+        return factText(object["sysCategoryList"]) == nil && factText(object["capacity"]) == nil
+            && factText(object["suitActivityTypes"]) == nil && factText(object["availableTime"]) == nil
+            && factText(object["chargeType"]) == nil && factText(object["demand"]) == nil
+            && factText(object["businessTime"]) == nil && factText(object["address"]) == nil
+    }
+
+    /// Profile object the partner page already reads from `PublicMerchantHome`.
+    /// Missing capacity is omitted, never stored as 0. `chargeType` is not on that contract and is not invented.
+    public static func merchantPartnerProfile(_ home: PublicMerchantHome, ownerMemberID: Int) -> ProjectEditJSON {
+        var fields: [String: ProjectEditJSON] = [
+            "memberId": .number(Decimal(ownerMemberID)),
+            "name": home.name.map(ProjectEditJSON.string) ?? .null,
+            "description": home.description.map(ProjectEditJSON.string) ?? .null
+        ]
+        if let merchantID = home.id, merchantID > 0 { fields["id"] = .number(Decimal(merchantID)) }
+        func text(_ key: String, _ value: String?) {
+            guard let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines), !trimmed.isEmpty else { return }
+            fields[key] = .string(trimmed)
+        }
+        text("address", home.address)
+        text("businessTime", home.businessTime)
+        text("availableTime", home.availableTime)
+        text("suitActivityTypes", home.suitActivityTypes)
+        text("demand", home.demand)
+        if let capacity = home.capacity { fields["capacity"] = .number(Decimal(capacity)) }
+        let categories = (home.sysCategoryList ?? []).compactMap { item -> ProjectEditJSON? in
+            guard let name = item.categoryName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty else { return nil }
+            return .object(["categoryName": .string(name)])
+        }
+        if !categories.isEmpty { fields["sysCategoryList"] = .array(categories) }
+        return .object(fields)
+    }
+
+    /// Same flattening the partner page uses for a profile value. A missing value is nil, not "0".
+    static func factText(_ value: ProjectEditJSON?) -> String? {
+        guard let value else { return nil }
+        if case .number(let number) = value { return NSDecimalNumber(decimal: number).stringValue }
+        if let array = value.array {
+            let parts = array.compactMap { factText($0) }
+            return parts.isEmpty ? nil : parts.joined(separator: " · ")
+        }
+        if let object = value.object {
+            return ["name", "title", "label", "address", "categoryName"].lazy.compactMap { object[$0]?.text }.first
+        }
+        guard let text = value.text?.trimmingCharacters(in: .whitespacesAndNewlines), !text.isEmpty, text != "null" else { return nil }
+        return text
+    }
 }
