@@ -8,6 +8,7 @@ struct RoamMapView: View {
     let items: [RoamMapItem]
     var selectedID: String? = nil
     var interactionID: AnyHashable? = nil
+    var fillsHeight = false
     let onSelect: (RoamMapItem) -> Void
     private var pins: [SearchMapPin] {
         items.compactMap { item in
@@ -28,7 +29,7 @@ struct RoamMapView: View {
                 let matches = items.filter { $0.id == id && $0.coordinate != nil }
                 guard matches.count == 1, let item = matches.first else { return }
                 onSelect(item)
-            })
+            }, fillsHeight: fillsHeight)
             .accessibilityIdentifier("roam.map")
     }
 }

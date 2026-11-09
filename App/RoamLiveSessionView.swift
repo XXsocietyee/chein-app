@@ -136,6 +136,9 @@ import Combine
         }
         // Identify the list only; the inset actions keep their own accessible identities.
         .accessibilityIdentifier("roam.live.session")
+        // Map ground behind the HUD (static fog backdrop; this screen has no map of its own).
+        .scrollContentBackground(.hidden)
+        .background { CYMapPlaceholder(fog: true) }
         // Mini-program pbar: one main round control (start / pause / continue) with 结束 beside it.
         .safeAreaInset(edge: .bottom) { actionBar }
         .toolbar {
@@ -251,15 +254,12 @@ import Combine
                     .disabled(!purposeAccepted || owner.busy).accessibilityIdentifier("roam.live.resume")
                 }
                 if canFinish {
-                    Button(role: .destructive) { confirmFinish = true } label: {
-                        Label("roam.live.finish", systemImage: "flag.checkered").frame(minHeight: CYSpacing.minTouchTarget)
-                    }
-                    .buttonStyle(.cyDestructive)
-                    .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
+                    // Demoted from a destructive pill to a glass circle; same confirmation dialog and identifier.
+                    CYGlassButton(systemImage: "flag.checkered", label: "roam.live.finish") { confirmFinish = true }
+                        .disabled(owner.busy).accessibilityIdentifier("roam.live.finish")
                 }
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
-            .background(.ultraThinMaterial)
         }
     }
     @ViewBuilder private var pauseAndBrowse: some View {

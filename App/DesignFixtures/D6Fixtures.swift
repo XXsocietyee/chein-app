@@ -1,0 +1,179 @@
+#if DEBUG
+import SwiftUI
+
+/// D6 player map fixtures (play / roam / search map / live roam). Synthetic, debug-only, never in Release.
+/// The map is a static placeholder; real screens render MapKit. Text follows the launch language.
+private func t(_ en: String, _ zh: String) -> String {
+    Locale.preferredLanguages.first?.hasPrefix("zh") == true ? zh : en
+}
+
+enum D6FixtureKind: String { case play, playLoading, roam, search, live }
+
+struct D6MapFixture: View {
+    let kind: D6FixtureKind
+    @State private var sheet = true
+
+    var body: some View {
+        ZStack {
+            CYMapPlaceholder(fog: kind == .roam || kind == .live)
+            content
+        }
+        .themeDomain(.player)
+        .preferredColorScheme(.dark)
+        .background(Color.black)
+    }
+
+    @ViewBuilder private var content: some View {
+        switch kind {
+        case .play, .playLoading: play
+        case .roam: roam
+        case .search: search
+        case .live: live
+        }
+    }
+
+    // MARK: Play: node on the map, info + the one primary action in a detent sheet
+
+    private var play: some View {
+        ZStack {
+            CYMapCallout(text: t("Lantern Gate", "灯笼门"), selected: true).position(x: 250, y: 330)
+            CYMapCallout(text: t("Tea House", "茶馆")).position(x: 120, y: 420)
+            VStack {
+                HStack {
+                    CYGlassButton(systemImage: "chevron.left", label: "Back", action: {})
+                    Spacer()
+                    CYGlassButton(systemImage: "location.fill", label: "Locate", action: {})
+                    CYGlassButton(systemImage: "ellipsis", label: "More", action: {})
+                }
+                .padding(.horizontal, CYSpacing.lg)
+                Spacer()
+            }
+        }
+        .cyMapSheet(isPresented: $sheet) { playSheet }
+    }
+
+    private var playSheet: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                if kind == .playLoading {
+                    CYSkeleton()
+                } else {
+                    HStack(spacing: CYSpacing.sm) {
+                        CYStatusChip(LocalizedStringKey(t("Task 2 of 5", "任务 2 / 5")), systemImage: "flag.fill")
+                        CYStatusChip(LocalizedStringKey(t("120 m", "120 米")), systemImage: "location")
+                    }
+                    Text(verbatim: t("Find the Lantern Gate", "找到灯笼门"))
+                        .font(.system(.title, design: .default).weight(.heavy))
+                        .foregroundStyle(.white)
+                    Text(verbatim: t("Follow the river and look for red lanterns above a stone arch.",
+                                     "沿着河走，找到石拱门上方的红灯笼。"))
+                        .font(CYTypography.body).foregroundStyle(Color.white.opacity(0.7))
+                    CYPillButton(LocalizedStringKey(t("I've arrived", "我到了")), action: {})
+                    CYSectionHeader(LocalizedStringKey(t("Next stops", "接下来")))
+                    CYListRow(LocalizedStringKey(t("Tea House", "茶馆")), meta: LocalizedStringKey(t("Locked until task 2", "完成任务 2 后解锁")), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
+                    CYListRow(LocalizedStringKey(t("Old Bridge", "老桥")), meta: LocalizedStringKey(t("Locked", "未解锁")), trailing: .none, card: true) { CYRowIcon(systemImage: "lock") }
+                }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.top, CYSpacing.xxl)
+        }
+        .themeDomain(.player)
+    }
+
+    // MARK: Roam: title top-left, passport menu, GO
+
+    private var roam: some View {
+        VStack {
+            HStack(alignment: .top) {
+                Text(verbatim: t("Roam", "漫游"))
+                    .font(.system(.largeTitle).weight(.heavy)).foregroundStyle(.white)
+                Spacer()
+                CYGlassCapsule {
+                    HStack(spacing: CYSpacing.lg) {
+                        Image(systemName: "book.closed").accessibilityLabel(Text(verbatim: t("Passport", "漫游护照")))
+                        Image(systemName: "ellipsis").accessibilityLabel(Text(verbatim: t("More", "更多")))
+                    }.foregroundStyle(.white).font(.system(.body).weight(.semibold))
+                }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            Spacer()
+            Text(verbatim: t("Walk anywhere — the fog lifts as you go.", "走到哪，雾散到哪。"))
+                .font(CYTypography.body).foregroundStyle(Color.white.opacity(0.75)).padding(.bottom, CYSpacing.lg)
+            HStack(spacing: CYSpacing.xxl) {
+                CYGlassButton(systemImage: "info", label: "Rules", action: {})
+                CYGoButton(action: {})
+                CYGlassButton(systemImage: "map", label: "Nearby", action: {})
+            }
+            .padding(.bottom, CYSpacing.xxl * 2)
+        }
+    }
+
+    // MARK: Search map: back + search + locate, callouts, one pill primary
+
+    private var search: some View {
+        ZStack {
+            CYMapCallout(text: t("Suzhou Creek, solo walk", "苏州河，一个人的散步")).position(x: 260, y: 240)
+            CYMapCallout(text: t("Bund at night", "夜色外滩")).position(x: 160, y: 340)
+            CYMapCallout(text: t("Old Town: ten hidden spots", "老城厢：十个没人去的地方")).position(x: 230, y: 560)
+            VStack(spacing: 0) {
+                HStack(spacing: CYSpacing.sm) {
+                    CYGlassButton(systemImage: "chevron.left", label: "Back", action: {})
+                    CYGlassCapsule {
+                        HStack(spacing: CYSpacing.sm) {
+                            Image(systemName: "magnifyingglass").foregroundStyle(Color.white.opacity(0.6))
+                            Text(verbatim: t("Search routes, places", "搜索路线、地点等")).foregroundStyle(Color.white.opacity(0.6))
+                                .lineLimit(1).minimumScaleFactor(0.7)
+                            Spacer(minLength: 0)
+                        }.font(CYTypography.body)
+                    }
+                    CYGlassButton(systemImage: "location.fill", label: "Locate", action: {})
+                }
+                .padding(.horizontal, CYSpacing.lg)
+                Spacer()
+                CYPillButton(LocalizedStringKey(t("View all 8 results", "查看全部 8 个结果")), fullWidth: false, action: {})
+                    .padding(.bottom, CYSpacing.xxl * 2)
+            }
+        }
+    }
+
+    // MARK: Live roam: stat strip, pause as the one primary, rules + finish
+
+    private var live: some View {
+        VStack {
+            CYGlassCapsule {
+                HStack(spacing: CYSpacing.xl) {
+                    stat(t("Time", "用时"), "00:24:10")
+                    stat(t("Fog", "地盘"), "3.2%")
+                    stat(t("km", "公里"), "1.8")
+                }.padding(.vertical, CYSpacing.md)
+            }
+            .padding(.horizontal, CYSpacing.lg)
+            Spacer()
+            HStack(spacing: CYSpacing.xxl) {
+                CYGlassButton(systemImage: "info", label: "Rules", action: {})
+                CYGoButton(LocalizedStringKey(t("Pause", "暂停")), action: {})
+                CYGlassButton(systemImage: "flag.checkered", label: "Finish", action: {})
+            }
+            .padding(.bottom, CYSpacing.xxl * 2)
+        }
+    }
+
+    private func stat(_ label: String, _ value: String) -> some View {
+        VStack(spacing: 2) {
+            Text(verbatim: value).font(.system(.title3).weight(.bold).monospacedDigit()).foregroundStyle(.white)
+            Text(verbatim: label).font(CYTypography.meta).foregroundStyle(Color.white.opacity(0.65))
+        }
+    }
+}
+/// DEBUG-only, labelled host: the real `RoamLiveSessionView` driven by the synthetic `RoamLiveFixture`.
+struct D6RealLiveHost: View {
+    @State private var fixture: RoamLiveFixture?
+    var body: some View {
+        NavigationStack {
+            if let fixture { RoamLiveSessionView(controller: fixture.controller, offlineExample: true) }
+        }
+        .task { if fixture == nil { fixture = await MainActor.run { RoamLiveFixture() } } }
+        .themeDomain(.player).preferredColorScheme(.dark)
+    }
+}
+#endif

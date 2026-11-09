@@ -66,17 +66,21 @@ struct PlayIssueView: View {
     let issue: PlayLoadIssue
     var retry: (() -> Void)? = nil
     var body: some View {
-        ContentUnavailableView {
-            Label(LocalizedStringKey(issue.titleKey), systemImage: "exclamationmark.circle")
-        } description: {
-            if let message = issue.message, !message.isEmpty { Text(verbatim: message).fixedSize(horizontal: false, vertical: true) }
-            else { Text(LocalizedStringKey(issue.detailKey)).fixedSize(horizontal: false, vertical: true) }
-        } actions: {
+        // Kit state: icon, headline, detail, one quiet retry. Same copy and identifiers.
+        VStack(spacing: CYSpacing.sm) {
+            CYEmptyState(systemImage: "exclamationmark.circle", LocalizedStringKey(issue.titleKey))
+            Group {
+                if let message = issue.message, !message.isEmpty { Text(verbatim: message) }
+                else { Text(LocalizedStringKey(issue.detailKey)) }
+            }
+            .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+            .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, CYSpacing.xxl)
             if issue.retryable, let retry {
-                Button("play.retry", action: retry).accessibilityIdentifier("play.retry")
+                CYPillButton("play.retry", style: .secondary, fullWidth: false, action: retry).accessibilityIdentifier("play.retry")
             }
         }
-        .font(Theme.Font.body)
+        .frame(maxWidth: .infinity)
         .tint(Theme.Color.accent(in: domain))
     }
 }

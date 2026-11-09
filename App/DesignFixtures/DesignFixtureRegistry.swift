@@ -25,6 +25,13 @@ enum DesignFixtureRegistry {
         case "welcome-menu": return AnyView(WelcomeMenuFixture())
         case "consent": return AnyView(ConsentFixture())
         case "login-player": return AnyView(LoginFixture())
+        case "d6-play": return AnyView(D6MapFixture(kind: .play))
+        case "d6-play-loading": return AnyView(D6MapFixture(kind: .playLoading))
+        case "d6-roam": return AnyView(D6MapFixture(kind: .roam))
+        case "d6-search": return AnyView(D6MapFixture(kind: .search))
+        case "d6-live": return AnyView(D6MapFixture(kind: .live))
+        // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
+        case "d6-real-live": return AnyView(D6RealLiveHost())
         // D1..D5: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
         default:
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }

@@ -15,15 +15,15 @@ struct PlaySessionView: View {
     var body: some View {
         Group {
             if !reader.scope.isValid {
-                PlayIssueView(issue: .init(APIError.invalidRequest))
+                mapPanel { PlayIssueView(issue: .init(APIError.invalidRequest)) }
             } else if !reader.isConfigured {
-                PlayIssueView(issue: .init(APIError.notConfigured))
+                mapPanel { PlayIssueView(issue: .init(APIError.notConfigured)) }
             } else if reader.identity == nil {
-                PlayIssueView(issue: .init(APIError.unauthorized))
+                mapPanel { PlayIssueView(issue: .init(APIError.unauthorized)) }
             } else if model.isLoading {
-                CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).accessibilityIdentifier("play.loading")
+                mapPanel { CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top).accessibilityIdentifier("play.loading") }
             } else if let issue = model.visibleIssue {
-                PlayIssueView(issue: issue) { Task { await model.load(keepingReceipt: true) } }
+                mapPanel { PlayIssueView(issue: issue) { Task { await model.load(keepingReceipt: true) } } }
             } else if let snapshot = model.visibleSnapshot {
                 if snapshot.result.mode == 2 {
                     ScrollView {
@@ -34,10 +34,10 @@ struct PlaySessionView: View {
                             }
                         }.padding(CYSpacing.lg)
                     }.background(CYColor.bgPage).accessibilityIdentifier("playFree.read.overview")
-                } else if snapshot.result.mode == 1 { overview(snapshot) }
+                } else if snapshot.result.mode == 1 { mapPanel { overview(snapshot) } }
                 else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
             } else {
-                PlayIssueView(issue: .init(APIError.malformedResponse)) { Task { await model.load() } }
+                mapPanel { PlayIssueView(issue: .init(APIError.malformedResponse)) { Task { await model.load() } } }
             }
         }
         .privacySensitive()
@@ -61,6 +61,10 @@ struct PlaySessionView: View {
             guard let mode else { return }
             if presentedMode != mode { selectedNodeID = nil; freePackOpen = false; presentedMode = mode }
         }
+    }
+    /// Map-first chrome: static map ground behind a three-detent panel that holds the unchanged content.
+    private func mapPanel<C: View>(@ViewBuilder _ content: () -> C) -> some View {
+        CYMapScaffold(detent: .medium, map: { CYMapPlaceholder() }, controls: { EmptyView() }, floating: { EmptyView() }, panel: content)
     }
     private func overview(_ snapshot: PlaySnapshot) -> some View {
         List {
