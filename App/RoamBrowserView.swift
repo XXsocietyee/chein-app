@@ -503,7 +503,7 @@ struct RoamBrowserView: View {
                     .buttonStyle(.plain)
                     .accessibilityIdentifier("roam.row.\(item.id)")
             }
-        }.cyGroupedSurface()
+        }
         .modifier(RoamMapListStyle(plain: mapMode))
         .listRowBackground(Color.clear)
         .scrollContentBackground(.hidden)

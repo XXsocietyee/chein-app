@@ -250,7 +250,7 @@ import SwiftUI
                 }
                 if case .activity = model.scope { PlayLeadSection(model: model) }
             }
-        }.cyGroupedSurface()
+        }
         .refreshable { if model.available && model.phase != .submitting { await model.load() } }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -461,7 +461,7 @@ import SwiftUI
                 else if PlayNodeTask.resolve(mode: model.snapshot?.result.mode, node: node) != .answer { Text("playx.device.disabled") }
             } else { Text("playx.node.unavailable") }
             if let localIssue { PlayExperienceIssueView(issue: localIssue) }
-        }.cyGroupedSurface()
+        }
         .privacySensitive().navigationTitle("playx.task.title")
         .modifier(JourneyCheckReviewPresentation(model: journey))
         // The optional check initially renders no rows, so its probe belongs to this stable host.

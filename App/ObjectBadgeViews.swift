@@ -75,7 +75,7 @@ struct ObjectBadgeWallLayoutSelection {
                         }
                     }
                 }
-            }.cyGroupedSurface()
+            }
         }.scrollContentBackground(.hidden).cyDomainPageBackground().appNavigationTitle("profile.badges.title")
             // The typed internal badge-path entry is not a player feature and is not offered here.
             .onChange(of: layoutOwner) { _, _ in layoutSelection.retire() }
@@ -194,7 +194,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                     }
                 }
             }
-        }.cyGroupedSurface().appNavigationTitle("profile.badges.detail").privacySensitive()
+        }.appNavigationTitle("profile.badges.detail").privacySensitive()
             .accessibilityIdentifier("objects.badge.detail")
     }
 }
