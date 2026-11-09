@@ -15,6 +15,8 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.cyPalette) private var palette
     @State private var cameraDenied = false
+    @State private var showingPriming = false
+    @State private var primingAllowed = false
     private enum ExchangePhase: Equatable { case idle, working, failed, done(RoamStampExchangeReceipt) }
     @State private var exchangePhase: ExchangePhase = .idle
     @State private var exchangeStarted = Date()
@@ -113,6 +115,11 @@ import UIKit
                     RoamCreatedStampView(target: target, album: album)
                 } else { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.createdStamp.changed") }
             }
+            .sheet(isPresented: $showingPriming, onDismiss: {
+                if primingAllowed { primingAllowed = false; requestCamera(primed: true) }
+            }) {
+                CYPermissionPriming(kind: .camera, onAllow: { primingAllowed = true; showingPriming = false }, onNotNow: { showingPriming = false })
+            }
             .fullScreenCover(isPresented: $showingCamera, onDismiss: {
                 guard scenePhase == .active, cameraEnabled else { return }
                 focusedControl = coordinator?.selection == nil ? .capture : .status
@@ -186,8 +193,9 @@ import UIKit
         captureGeneration += 1; showingCamera = false; focusedControl = nil
         work?.cancel(); work = nil; coordinator?.cancel()
     }
-    private func requestCamera() {
+    private func requestCamera(primed: Bool = false) {
         guard cameraEnabled, purposeAccepted, coordinator?.canCapture == true, !showingCamera else { return }
+        if !primed, AVCaptureDevice.authorizationStatus(for: .video) == .notDetermined { showingPriming = true; return }
         captureGeneration += 1; let ticket = captureGeneration; cameraIssue = false
         work = Task { @MainActor in
             guard let reason = Bundle.main.object(forInfoDictionaryKey: "NSCameraUsageDescription") as? String, !reason.isEmpty,
