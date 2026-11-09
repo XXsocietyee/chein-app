@@ -48,4 +48,14 @@ public enum TemplateAuthoringSyntheticFixtures {
         return d
     }
 }
+/// Synthetic info bodies for the editor readiness model. No account, host, or route.
+public enum TemplateAuthoringPageFixtureData {
+    public static let loadingBody: Data? = nil
+    public static let empty = Data(#"{"code":200,"data":null}"#.utf8)
+    public static let error = Data(#"{"code":500,"msg":"fixture"}"#.utf8)
+    public static let unknown = Data(#"{"data":{"id":901,"title":"Synthetic city question","duration":4,"useNum":2}}"#.utf8)
+    public static let missingCounts = Data(#"{"code":200,"data":{"id":901,"title":"Synthetic city question"}}"#.utf8)
+    public static let zeroCounts = Data(#"{"code":200,"data":{"id":901,"title":"Synthetic city question","duration":0,"useNum":0}}"#.utf8)
+    public static let blankNumbers = Data(#"{"code":200,"data":{"id":901,"title":"Synthetic city question","duration":"","useNum":""}}"#.utf8)
+}
 #endif
