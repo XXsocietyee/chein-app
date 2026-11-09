@@ -93,7 +93,7 @@ extension EnvironmentValues {
                 // Mini-program score card: the points are the one number that matters.
                 VStack(alignment: .leading, spacing: 4) {
                     Text("growth.currentPoints").font(.subheadline).foregroundStyle(.secondary)
-                    GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
+                    GrowthCenterInteger(value: board.me.score).font(.system(size: 52, weight: .heavy, design: .rounded))
                         .lineLimit(1).minimumScaleFactor(0.5)
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
                     .accessibilityElement(children: .ignore)

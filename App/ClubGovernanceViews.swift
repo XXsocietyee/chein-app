@@ -1259,25 +1259,25 @@ struct ClubGovernanceReadView: View {
         } else if operation == .hostStatus {
             // Mini-program club/apply: intro → form; merchant accounts get a blocked state; hosts see the done card.
             if value["accountRole"] == .string("merchant") {
-                Section {
-                    CYEmptyState(systemImage: "storefront", "club.host.merchant.title")
-                    Text("club.gov.hostMerchantBlocked")
-                }.listRowBackground(Color.clear)
+                ContentUnavailableView {
+                    Label("club.host.merchant.title", systemImage: "storefront")
+                } description: { Text("club.gov.hostMerchantBlocked") }
+                    .listRowBackground(Color.clear)
             } else if value["accountRole"] == .string("club") {
-                Section {
-                    CYHeroHeader("club.host.done.title")
-                    CYStatusChip("club.host.done.active", tone: .success, systemImage: "checkmark")
+                Section("club.host.done.title") {
+                    LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(CYColor.successText) }
                     LabeledContent("club.host.done.limitLabel") { Text("club.host.done.limitValue") }
                 }
             } else {
                 Section {
-                    CYHeroHeader("club.host.intro.title")
-                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    Text("club.host.intro.title").font(.title2.weight(.bold))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.vertical, Theme.Space.s2)
                     Label("club.host.intro.instant", systemImage: "checkmark.circle")
                     Label("club.host.intro.limit", systemImage: "person.3")
                 }
                 Section {
-                    edit(.hostApply).buttonStyle(CYPillButtonStyle()).frame(maxWidth: .infinity)
+                    edit(.hostApply).buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
                 }.listRowBackground(Color.clear)
             }
         } else if operation == .roster {
