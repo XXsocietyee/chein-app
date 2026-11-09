@@ -95,6 +95,7 @@ private struct MessagingConversationListView: View {
                     }
                 }
             }
+            .cyGroupedSurface()
             .listStyle(.insetGrouped)
             .toolbar {
                 // Leading on the tab root (no Back button here) so the trailing side keeps two actions.

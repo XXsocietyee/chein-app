@@ -43,7 +43,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // 「类型 · N 名成员」 and the join policy (公开加入 / 需审核加入).
                 Section {
                     VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                        ClubDetailCover(source: club.cover)
+                        ClubDetailCover(source: club.cover, seed: club.name + String(club.id))
                         ClubName(value: club.name).font(.largeTitle.weight(.heavy)).padding(.horizontal, Theme.Space.s4).padding(.top, Theme.Space.s2)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("club.detail.name")
@@ -258,6 +258,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                     }
                 }
             }
+            .cyGroupedSurface()
             .scrollContentBackground(.hidden)
             .cyDomainPageBackground()
             .background {
@@ -337,11 +338,11 @@ private struct ClubDetailManageGrantKey: Hashable {
 /// Club cover hero: the real cover when there is one, a clean text-free placeholder otherwise.
 private struct ClubDetailCover: View {
     let source: String?
+    var seed: String = ""
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         ZStack {
-            Rectangle().fill(.quaternary)
-            Image(systemName: "person.3").font(.largeTitle).foregroundStyle(.tertiary)
+            CYCoverArt(seed: seed, symbolSize: 48)
             if let url = QuestifyCardArtwork.safeURL(source) {
                 AsyncImage(url: url, transaction: Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)) { phase in
                     if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) }

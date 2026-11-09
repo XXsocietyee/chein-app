@@ -84,6 +84,7 @@ import UIKit
                 if let issue { Text(verbatim: issue) }
             }
         }
+        .cyGroupedSurface()
         .navigationTitle(flow.field == .logo ? String(localized: LocalizedStringResource("media.logo", table: "ClubProfileMedia", locale: locale)) : String(localized: LocalizedStringResource("media.cover", table: "ClubProfileMedia", locale: locale)))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button(String(localized: LocalizedStringResource("media.done", table: "ClubProfileMedia", locale: locale))) { dismiss() }.disabled(flow.state == .uploading) } }
         .interactiveDismissDisabled(flow.state == .uploading)

@@ -66,6 +66,7 @@ struct NativeChannelNotificationGlobalNavigation {
         }
         .nativeChannelScreen()
         .tint(Theme.Color.accent(in: domain))
+        .cyGroupedSurface()
         .navigationTitle(NativeChannelNotificationPresentation.localized("notification.global.title", locale: locale))
         .accessibilityIdentifier("notification.global.screen")
         .refreshable { await pullToRefresh(expected: ticket) }

@@ -90,6 +90,7 @@ public enum SocialEditorPurpose: String, Identifiable {
                     .accessibilityIdentifier("social.editor.review")
             }
         }
+        .cyGroupedSurface()
         .appNavigationTitle(key: title).privacySensitive()
         .scrollDismissesKeyboard(.interactively)
         .toolbar {

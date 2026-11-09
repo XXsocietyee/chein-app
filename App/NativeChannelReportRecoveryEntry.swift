@@ -167,6 +167,7 @@ import SwiftUI
         .font(Theme.Font.body)
         .foregroundStyle(Theme.Color.textPrimary(in: domain))
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(Text("d7.channelReport.statusTitle"))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar { ToolbarItem(placement: .cancellationAction) {

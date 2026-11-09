@@ -74,6 +74,7 @@ import SwiftUI
             }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(flow?.source == .lifecycle ? LocalizedStringKey("d7.channelAudit.historyTitle") : LocalizedStringKey("d7.channelAudit.title"))
         .task { await open() }
         .task {
@@ -148,6 +149,7 @@ private struct NativeChannelAuditDetail: View {
             }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(Text(verbatim: row.action))
         .privacySensitive()
     }

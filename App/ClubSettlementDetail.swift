@@ -309,6 +309,7 @@ import UIKit
                 }.disabled(model.loading || model.permit(in: expected) == nil).accessibilityIdentifier("club.settlementDetail.reload")
             }
         }
+        .cyGroupedSurface()
         .navigationTitle("club.settlementDetail.title")
         .task(id: expected) {
             guard sourceIsCurrent(), let permit = model.activate(expected) else { return }

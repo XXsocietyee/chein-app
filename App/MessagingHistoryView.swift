@@ -270,16 +270,7 @@ struct MessagingHistoryView: View {
                                 reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
                                 currentMessage: { history.messages.first { $0.id == message.id } })
                         } label: {
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                CYListRow(
-                                    rowTitle(message, accountID: accountID),
-                                    trailing: .valueChevron(ChatDisplay.stamp(message.createdAt)),
-                                    card: false
-                                ) {
-                                    CYRowIcon(systemImage: rowSymbol(message, accountID: accountID))
-                                }
-                                MessagingBubble(message: message, conversation: conversation, accountID: accountID)
-                            }
+                            MessagingBubble(message: message, conversation: conversation, accountID: accountID)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("messaging.message.\(message.id)")
@@ -383,14 +374,11 @@ private struct MessagingBubble: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: Theme.Space.s2) {
             if !isOwn {
-                Image(systemName: "person.fill")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                CYCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
                     .frame(width: avatarSize, height: avatarSize)
-                    .background(Circle().fill(Color(uiColor: .tertiarySystemFill)))
-                    .accessibilityHidden(true)
+                    .clipShape(Circle())
             }
-            ChatMessageBubble(isOwn: isOwn) {
+            ChatMessageBubble(isOwn: isOwn, timestamp: ChatDisplay.stamp(message.createdAt)) {
                 if isGroup && !isOwn {
                     MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
                 }
@@ -604,6 +592,7 @@ private struct ChatHistoryStatus: View {
     private var statusForm: some View {
         NavigationStack {
             Form { statusContent }
+                .cyGroupedSurface()
                 .navigationTitle(Text("im.safety.title"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {

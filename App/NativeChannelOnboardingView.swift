@@ -91,7 +91,7 @@ import SwiftUI
                                         }.fixedSize(horizontal:false,vertical:true)
                                         Spacer(minLength:Theme.Space.s2)
                                         Image(systemName:selections[prompt.id]?.contains(option.id)==true ? "checkmark.circle.fill":"circle")
-                                            .foregroundStyle(selections[prompt.id]?.contains(option.id)==true ? Color.accentColor : Color.secondary)
+                                            .foregroundStyle(selections[prompt.id]?.contains(option.id)==true ? CYColor.textPrimary : CYColor.textTertiary)
                                             .accessibilityHidden(true)
                                     }.frame(maxWidth:.infinity,minHeight:44,alignment:.leading)
                                 }
@@ -115,6 +115,7 @@ import SwiftUI
         }
         .refreshable { selections=[:];await flow.refresh() }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle("d7.channelOnboarding.title").privacySensitive().task{await flow.activate()}.onDisappear{selections=[:];flow.deactivate()}
     }
     private func choose(_ prompt:NativeOnboardingSnapshot.Prompt,_ option:String,_ selected:Bool){

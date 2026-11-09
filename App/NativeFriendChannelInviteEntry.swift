@@ -199,6 +199,7 @@ import SwiftUI
                 } header: { Text("d7.friendInvite.confirmTitle") }
             }
         }
+        .cyGroupedSurface()
         .formStyle(.grouped)
         .font(Theme.Font.body)
         .appNavigationTitle(key: titleKey)

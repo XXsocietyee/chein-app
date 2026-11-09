@@ -33,6 +33,7 @@ extension EnvironmentValues {
             else if let profit { content(profit) }
             else { ProgressView("cooperation.loading") }
         }
+        .cyGroupedSurface()
         .appNavigationTitle("cooperation.finance.title")
         .modifier(CoopOperationListPresentation())
         .labeledContentStyle(CoopFinancialRowStyle())

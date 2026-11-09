@@ -28,6 +28,7 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
         }
         .formStyle(.grouped)
         .nativeChannelScreen()
+        .cyGroupedSurface()
         .navigationTitle(model.scope?.isAccountDefault == true ? c("accountDefault.title")
             : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale))
         .accessibilityIdentifier("notification.conversation.screen")

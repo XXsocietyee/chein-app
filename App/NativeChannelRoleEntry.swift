@@ -69,7 +69,7 @@ import SwiftUI
                             }
                             .swipeActions(edge:.trailing) {
                                 if !flow.hasPending {
-                                    Button("d7.channelRoles.editMemberRoles") { member=row.id;operation = .memberRoles;flow.cancelReview() }.tint(.accentColor)
+                                    Button("d7.channelRoles.editMemberRoles") { member=row.id;operation = .memberRoles;flow.cancelReview() }.tint(CYColor.textPrimary)
                                     if operation == .roleMembers {
                                         Button("d7.channelRoles.addToList") {
                                             var ids=completeIDs.split(separator:",").map { $0.trimmingCharacters(in:.whitespacesAndNewlines) }
@@ -193,6 +193,7 @@ import SwiftUI
             }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle("d7.channelRoles.title")
         .task { await open() }
         .task { while !Task.isCancelled { if let flow,!flow.isCurrent { close() };do { try await Task.sleep(nanoseconds:500_000_000) } catch { return } } }

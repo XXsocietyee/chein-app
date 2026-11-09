@@ -139,6 +139,7 @@ import SwiftUI
                     }
                     .formStyle(.grouped)
                     .font(Theme.Font.body)
+                    .cyGroupedSurface()
                     .navigationTitle(Text(LocalizedStringKey("friend.confirm." + review.command.action.rawValue), tableName: "NativeFriend"))
                     .navigationBarTitleDisplayMode(.inline)
                     .toolbar {

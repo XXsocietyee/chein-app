@@ -69,6 +69,7 @@ import SwiftUI
         }
         .refreshable { await flow.refresh() }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle("d7.channelWelcome.title").privacySensitive()
          .task { await flow.activate() }
          .onDisappear { flow.deactivate() }
