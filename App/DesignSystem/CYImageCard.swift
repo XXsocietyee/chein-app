@@ -10,12 +10,14 @@ struct CYImageCard: View {
     private var meta: Text?
     private let imageURL: URL?
     private let aspectRatio: CGFloat
+    private var artSeed = ""
 
     @Environment(\.cyPalette) private var palette
 
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
         self.title = Text(title)
+        self.artSeed = String(describing: title)
         self.meta = meta.map { Text($0) }
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
         self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
@@ -25,6 +27,7 @@ struct CYImageCard: View {
     init(title: Text, meta: Text?, imageURL: URL? = nil, style: Style = .hero) {
         self.style = style
         self.title = title
+        self.artSeed = String(describing: title)
         self.meta = meta
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
         self.aspectRatio = style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0
@@ -35,6 +38,7 @@ struct CYImageCard: View {
     init(verbatim title: String, fallback: LocalizedStringKey, meta: String? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
         self.title = title.isEmpty ? Text(fallback) : Text(verbatim: title)
+        self.artSeed = title
         let trimmed = meta?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         self.meta = trimmed.isEmpty ? nil : Text(verbatim: meta ?? "")
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
@@ -84,10 +88,35 @@ struct CYImageCard: View {
             placeholder
         }
     }
-    private var placeholder: some View {
+    @ViewBuilder private var placeholder: some View {
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("--design-fixture") {
+            debugArt
+        } else { neutralPlaceholder }
+        #else
+        neutralPlaceholder
+        #endif
+    }
+    private var neutralPlaceholder: some View {
         LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
             .overlay(Image(systemName: "photo").font(.largeTitle).foregroundStyle(palette.textPlaceholder))
     }
+    #if DEBUG
+    /// DEBUG-only generated cover art so design fixtures are judged with imagery. Never compiled into Release.
+    private var debugArt: some View {
+        let sum = artSeed.unicodeScalars.reduce(0) { ($0 &* 31 &+ Int($1.value)) % 360 }
+        let hue = Double(sum) / 360
+        let symbols = ["sparkles", "map", "figure.walk", "building.2", "leaf", "moon.stars", "camera", "music.note"]
+        return ZStack {
+            LinearGradient(colors: [Color(hue: hue, saturation: 0.62, brightness: 0.62), Color(hue: (hue + 0.12).truncatingRemainder(dividingBy: 1), saturation: 0.75, brightness: 0.22)], startPoint: .topLeading, endPoint: .bottomTrailing)
+            RadialGradient(colors: [.white.opacity(0.22), .clear], center: .topTrailing, startRadius: 4, endRadius: 220)
+            Image(systemName: symbols[sum % symbols.count]).font(.system(size: 64, weight: .light)).foregroundStyle(.white.opacity(0.35))
+        }
+        .overlay(alignment: .topTrailing) {
+            Text(verbatim: "DEBUG ART").font(.system(size: 9, weight: .semibold)).foregroundStyle(.white.opacity(0.5)).padding(8)
+        }
+    }
+    #endif
 }
 
 private struct CYImageCardPreviewBody: View {
