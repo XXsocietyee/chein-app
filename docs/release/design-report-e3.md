@@ -1,4 +1,4 @@
-# Design report e3 (SOCIAL) — second pass (built once, batch 1 reviewed; batch 2 pending)
+# Design report e3 (SOCIAL) — second pass, final
 
 Branch ui/e3, base merged with origin/ui/main 357154584 (clean merge; my duplicate fix commits dropped by the merge, nothing of mine conflicts).
 Builds were held by the owner (LOAD 80) so everything below is parse-checked only (`swiftc -parse`), not built.
@@ -28,3 +28,12 @@ Black row boxes on public profile (per-row page background from SocialReadScreen
 
 ## Self-score (1-10, lenses: delight/interaction/inclusivity/visuals/innovation/social)
 Inbox 7, inbox empty 8, inbox error 7, chat 6, poll 6, social profile 6 (pending re-shoot), coop list 6, club community 6. Under 8: all but empty; reasons: grouped lists remain, no swipe actions / motion layer yet, no real photography in fixtures.
+
+## Final status
+- Last build + batch: BUILD_EXIT=0 at ui/e3 commit "inbox name priority..." ; contact sheets: /Users/fanning/chengyin-refs/design-reports/e3/contact-123413.png (EN/zh inbox, XL inbox, chat, poll detail, coop zh, social zh, club), contact-115821.png (EN + XL: inbox, chat, poll, social, coop), contact-111255.png / contact-103801.png (zh baseline).
+- Verified in shots: single title on messages, no black row boxes on profile, chat without stray row, pill retry, amber owed callout, gradient avatars, EN + zh + AX-XL for inbox/poll/social/coop.
+- Fixed AFTER the last shot (parse-checked only, not re-shot): inbox row flat layout so Official chip / mute mark / time no longer wrap ("10/ 1") and AX name wraps instead of truncating.
+- Fixtures added: e3-poll-detail (direct poll result + vote).
+- Pillow comparison: no mini-program reference screenshots exist for IM / clubs / coop / social in docs/xcx-wechat-review-board-shots, so none done.
+## Pages left / under 8
+Chat (7: fixture has one message; grouping, tails not added), poll (7), social profile (6), coop list (7), club community (6: plain action list on error fixture), inbox (8). Not restyled beyond grouped surface + tokens: club detail/apply/create/calendar/stories/roster, IM expanded cards (file/voice/video/location), coop invite detail, notices, friends. No motion/haptic layer added beyond existing swipe actions.
