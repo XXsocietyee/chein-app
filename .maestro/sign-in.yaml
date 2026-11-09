@@ -1,23 +1,44 @@
 appId: invalid.example.questify.ios
 ---
-# Opens sign-in and the phone sheet. Does not type, and does not tap credential
-# submission, send code, phone sign-in, Apple, or WeChat. No payment and no host URL.
-# Phone identifiers match the committed default market CN.
+# Opens sign-in and the phone sheet. Opens the disclosure once, then agrees.
+# Does not type, and does not tap credential submission, send code, phone
+# sign-in, Apple, or WeChat. No payment and no host URL. Phone identifiers
+# match the committed default market CN.
 - launchApp:
     clearState: true
     clearKeychain: true
     stopApp: true
 - extendedWaitUntil:
     visible:
-      id: "authEntry.gate.body"
+      id: "authEntry.gate.details"
     timeout: 20000
 - tapOn:
+    id: "authEntry.gate.details"
+- extendedWaitUntil:
+    visible:
+      id: "authEntry.gate.body"
+    timeout: 10000
+- scrollUntilVisible:
+    element:
+      id: "authEntry.gate.checkbox"
+    direction: DOWN
+    timeout: 15000
+- tapOn:
     id: "authEntry.gate.checkbox"
+- scrollUntilVisible:
+    element:
+      id: "authEntry.gate.agree"
+    direction: DOWN
+    timeout: 15000
 - tapOn:
     id: "authEntry.gate.agree"
 - extendedWaitUntil:
     visible:
       id: "welcome.player"
+    timeout: 10000
+- extendedWaitUntil:
+    notVisible:
+      id: "authEntry.gate.body"
     timeout: 10000
 - tapOn:
     id: "welcome.player"

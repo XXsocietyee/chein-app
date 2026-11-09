@@ -1,16 +1,23 @@
 appId: invalid.example.questify.ios
 ---
-# Local consent only. Agree writes the on-device choice. Decline is not tapped
-# because it opens guest browsing. Document links are not opened. No typed text,
-# credential entry, payment, or host URL.
+# Local consent only. Opens the disclosure once, then agrees. Agree writes the
+# on-device choice. Decline is not tapped because it opens guest browsing.
+# Document links are not opened. The disclosure is not tapped again. No typed
+# text, credential entry, payment, or host URL.
 - launchApp:
     clearState: true
     clearKeychain: true
     stopApp: true
 - extendedWaitUntil:
     visible:
-      id: "authEntry.gate.body"
+      id: "authEntry.gate.details"
     timeout: 20000
+- tapOn:
+    id: "authEntry.gate.details"
+- extendedWaitUntil:
+    visible:
+      id: "authEntry.gate.body"
+    timeout: 10000
 - assertVisible:
     id: "authEntry.gate.privacyGuide"
 - assertVisible:
@@ -36,6 +43,11 @@ appId: invalid.example.questify.ios
     timeout: 15000
 - assertVisible:
     id: "authEntry.gate.agree"
+- scrollUntilVisible:
+    element:
+      id: "authEntry.gate.checkbox"
+    direction: DOWN
+    timeout: 15000
 - tapOn:
     id: "authEntry.gate.checkbox"
 - tapOn:
