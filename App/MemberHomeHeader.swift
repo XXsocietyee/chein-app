@@ -13,6 +13,7 @@ import SwiftUI
     var avatarAccess: MemberIdentityAvatarAccess? = nil
     @State private var readOwner = MemberIdentityCardReadOwner()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var typeSize
     enum Phase: Equatable { case loading, ready(MemberIdentitySnapshot), failed(signedOut: Bool) }
     @State private var phase: Phase = .loading
     @State private var level: Int?
@@ -21,7 +22,8 @@ import SwiftUI
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            HStack(alignment: .center, spacing: CYSpacing.lg) {
+            // Accessibility sizes put the avatar above the text so the name and level are not squeezed.
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))) {
                 avatar
                 VStack(alignment: .leading, spacing: 6) {
                     name.font(.system(.title2, design: .rounded).weight(.heavy)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
@@ -30,11 +32,12 @@ import SwiftUI
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
                     .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                     .background(CYColor.bgRaised, in: Capsule(style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
-                    HStack(spacing: 10) {
+                    (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
                         Label { city } icon: { Image(systemName: "mappin.and.ellipse") }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {

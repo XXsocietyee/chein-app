@@ -382,6 +382,7 @@ enum WalletPayoutCapability { static let isOn = false }
 @MainActor struct WalletLedgerView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let kind: WalletLedgerKind
@@ -500,7 +501,10 @@ enum WalletPayoutCapability { static let isOn = false }
     /// Mini-program 积分明细 row: reason and time on the left, signed amount on the right.
     private func ledgerRow(_ row: WalletLedgerRow) -> some View {
         let direction = income ? row.incomeDirection : row.assetDirection
-        return HStack(alignment: .firstTextBaseline, spacing: 12) {
+        // Accessibility sizes stack the amount under the reason so neither is squeezed into a one-letter column.
+        let stacked = typeSize.isAccessibilitySize
+        let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+        return layout {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
@@ -518,8 +522,8 @@ enum WalletPayoutCapability { static let isOn = false }
                 else if let date = row.createTime { Text(verbatim: date).font(.caption).foregroundStyle(.secondary) }
                 if points, !income, let after = row.afterPoints { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + format.points(after)).font(.caption).foregroundStyle(.secondary) }
             }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 4) {
+            if !stacked { Spacer(minLength: 8) }
+            VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
                 HStack(spacing: 2) {
                     Text(verbatim: format.signed(row, points: points, income: income))
                     if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }

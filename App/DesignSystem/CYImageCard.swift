@@ -13,6 +13,8 @@ struct CYImageCard: View {
     private let seed: String
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.colorSchemeContrast) private var contrast
 
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
@@ -52,31 +54,60 @@ struct CYImageCard: View {
     }
 
     var body: some View {
+        Group {
+            if typeSize.isAccessibilitySize { stackedCard } else { overlayCard }
+        }
+        .frame(width: style == .shelf ? 280 : nil)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .shadow(color: palette.cardShadowColor.opacity(0.4), radius: 8, x: 0, y: 3)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Default: text sits on the photo over a bottom scrim.
+    private var overlayCard: some View {
         Color.clear
             .aspectRatio(aspectRatio, contentMode: .fit)
             .overlay { cover }
             .overlay(alignment: .bottomLeading) {
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    title
-                        .font(CYTypography.sectionTitle)
-                        .lineLimit(2)
-                    if let meta {
-                        meta.font(CYTypography.meta).monospacedDigit().opacity(0.85).lineLimit(2)
-                    }
-                }
-                .foregroundStyle(.white)
-                .padding(.horizontal, style == .shelf ? CYSpacing.md : CYSpacing.lg)
-                .padding(.bottom, style == .shelf ? CYSpacing.md : CYSpacing.lg)
-                .padding(.top, CYSpacing.jumbo)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black.opacity(0.78), location: 0.7)], startPoint: .top, endPoint: .bottom)
-                )
+                textBlock
+                    .foregroundStyle(.white)
+                    .padding(.top, CYSpacing.jumbo)
+                    .background(
+                        LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black.opacity(contrast == .increased ? 0.92 : 0.78), location: 0.7)], startPoint: .top, endPoint: .bottom)
+                    )
             }
-            .frame(width: style == .shelf ? 280 : nil)
-            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .shadow(color: palette.cardShadowColor.opacity(0.4), radius: 8, x: 0, y: 3)
-            .accessibilityElement(children: .combine)
+    }
+
+    /// Accessibility sizes: the photo keeps its ratio and the text moves below it on a solid surface, so nothing is clipped.
+    private var stackedCard: some View {
+        VStack(spacing: 0) {
+            Color.clear
+                .aspectRatio(aspectRatio, contentMode: .fit)
+                .overlay { cover }
+                .clipped()
+            textBlock
+                .foregroundStyle(palette.textPrimary)
+                .background(palette.bgElevated)
+        }
+    }
+
+    private var textBlock: some View {
+        let stacked = typeSize.isAccessibilitySize
+        return VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            title
+                .font(CYTypography.sectionTitle)
+                .lineLimit(stacked ? nil : 2)
+            if let meta {
+                meta.font(CYTypography.meta).monospacedDigit()
+                    .opacity(stacked || contrast == .increased ? 1 : 0.85)
+                    .lineLimit(stacked ? nil : 2)
+            }
+        }
+        .fixedSize(horizontal: false, vertical: stacked)
+        .padding(.horizontal, style == .shelf ? CYSpacing.md : CYSpacing.lg)
+        .padding(.bottom, style == .shelf ? CYSpacing.md : CYSpacing.lg)
+        .padding(.top, stacked ? (style == .shelf ? CYSpacing.md : CYSpacing.lg) : 0)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder private var cover: some View {

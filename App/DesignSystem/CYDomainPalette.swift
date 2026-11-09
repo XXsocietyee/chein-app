@@ -27,6 +27,12 @@ struct CYDomainPalette {
         return (isDark ? dark : light).swiftUIColor
     }
 
+    /// Dark-domain text colours that the generated token sheet leaves under 4.5:1 on raised surfaces (`#1C1C1E`/`#2A2A2C`)
+    /// or on their own soft fill are lifted here once, so no page needs a local fix. Light domains keep the sheet values.
+    private func legible(_ name: String, darkText: UInt32, dark: CYRGB, light: CYRGB) -> Color {
+        isDark ? CYRGB(hex: darkText).swiftUIColor : token(name, dark: dark, light: light)
+    }
+
     // MARK: Surfaces (--cy-color-bg-*)
 
     /// `--cy-color-bg-page`: `#000000` / `#F3F4F4`.
@@ -67,7 +73,7 @@ struct CYDomainPalette {
     /// `#919191` / `#6B6B6B`.
     var textTertiary: Color { token("--cy-color-text-tertiary", dark: CYRGB(hex: 0x919191), light: CYRGB(hex: 0x6B6B6B)) }
     /// `#868686` / `#6F6F6F`.
-    var textPlaceholder: Color { token("--cy-color-text-placeholder", dark: CYRGB(hex: 0x868686), light: CYRGB(hex: 0x6F6F6F)) }
+    var textPlaceholder: Color { legible("--cy-color-text-placeholder", darkText: 0x929292, dark: CYRGB(hex: 0x868686), light: CYRGB(hex: 0x6F6F6F)) }
     /// `rgba(255,255,255,.40)` / `#737373`.
     var textDisabled: Color { token("--cy-color-text-disabled", dark: CYRGB(hex: 0xFFFFFF, alpha: 0.40), light: CYRGB(hex: 0x737373)) }
     /// `#0A0A0A` / `#FFFFFF` (text on a primary fill).
@@ -99,11 +105,11 @@ struct CYDomainPalette {
     /// `#22C55E` / `#0B7A57`.
     var success: Color { token("--cy-color-status-success", dark: CYRGB(hex: 0x22C55E), light: CYRGB(hex: 0x0B7A57)) }
     /// `#D58300` / `#96610A`.
-    var warning: Color { token("--cy-color-status-warning", dark: CYRGB(hex: 0xD58300), light: CYRGB(hex: 0x96610A)) }
+    var warning: Color { legible("--cy-color-status-warning", darkText: 0xEDA52B, dark: CYRGB(hex: 0xD58300), light: CYRGB(hex: 0x96610A)) }
     /// `#E5484D` / `#D0323B`.
-    var danger: Color { token("--cy-color-status-danger", dark: CYRGB(hex: 0xE5484D), light: CYRGB(hex: 0xD0323B)) }
+    var danger: Color { legible("--cy-color-status-danger", darkText: 0xFF6B70, dark: CYRGB(hex: 0xE5484D), light: CYRGB(hex: 0xD0323B)) }
     /// `#4C86FF` / `#2563EB`.
-    var info: Color { token("--cy-color-status-info", dark: CYRGB(hex: 0x4C86FF), light: CYRGB(hex: 0x2563EB)) }
+    var info: Color { legible("--cy-color-status-info", darkText: 0x7AA5FF, dark: CYRGB(hex: 0x4C86FF), light: CYRGB(hex: 0x2563EB)) }
     var successSoft: Color { token("--cy-color-status-success-soft", dark: CYRGB(hex: 0x22C55E, alpha: 0.14), light: CYRGB(hex: 0x0B7A57, alpha: 0.10)) }
     var warningSoft: Color { token("--cy-color-status-warning-soft", dark: CYRGB(hex: 0xD58300, alpha: 0.18), light: CYRGB(hex: 0x96610A, alpha: 0.12)) }
     var dangerSoft: Color { token("--cy-color-status-danger-soft", dark: CYRGB(hex: 0xE5484D, alpha: 0.14), light: CYRGB(hex: 0xD0323B, alpha: 0.10)) }
