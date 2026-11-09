@@ -37,7 +37,8 @@ import SwiftUI
                             Image(systemName: "rectangle.stack.fill").font(.largeTitle).foregroundStyle(CYColor.textSecondary)
                             Text("playFree.pack.open").font(.system(.title2, design: .rounded).weight(.bold)).foregroundStyle(CYColor.textPrimary)
                         }.frame(maxWidth: .infinity, minHeight: 200)
-                            .cyDomainCard(radius: CYRadius.xl, padding: CYSpacing.xl)
+                            .padding(CYSpacing.xl)
+                            .background { CYCoverArt(seed: snapshot.result.topicName ?? "pack", symbol: "rectangle.stack.fill", cornerRadius: CYRadius.xl) }
                     }.buttonStyle(.plain).accessibilityIdentifier("playFree.pack.open")
                 } else {
                     CYSectionHeader("playFree.stores")

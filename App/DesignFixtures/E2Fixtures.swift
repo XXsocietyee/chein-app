@@ -42,14 +42,20 @@ struct E2Fixture: View {
                     .foregroundStyle(CYColor.textPrimary)
             }.padding(CYSpacing.pageHorizontal)
         case .journey: JourneyContentFixtureHostView()
-        case .chapters:
-            NavigationStack { RoamEnrolledChaptersView(roam: RoamExperienceFixtureReader(scenario: .content), tickets: TicketWalletFixtureReader(scenario: .content)) }
-        case .chaptersEmpty:
-            NavigationStack { RoamEnrolledChaptersView(roam: RoamExperienceFixtureReader(scenario: .content), tickets: TicketWalletFixtureReader(scenario: .empty)) }
+        case .chapters: E2ChaptersHost(empty: false)
+        case .chaptersEmpty: E2ChaptersHost(empty: true)
         case .stampCamera: NavigationStack { RoamStampCameraView() }
         case .badgeDetail: E2BadgeDetailHost()
         }
     }
+}
+
+/// Readers live in @State: a reader rebuilt on every body pass changes the view owner and the list never loads.
+private struct E2ChaptersHost: View {
+    @State private var roam = RoamExperienceFixtureReader(scenario: .content)
+    @State private var tickets: TicketWalletFixtureReader
+    init(empty: Bool) { _tickets = State(initialValue: TicketWalletFixtureReader(scenario: empty ? .empty : .content)) }
+    var body: some View { NavigationStack { RoamEnrolledChaptersView(roam: roam, tickets: tickets) } }
 }
 
 private struct E2BadgeDetailHost: View {

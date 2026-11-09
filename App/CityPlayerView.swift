@@ -89,6 +89,8 @@ struct CityPlayerView: View {
                     // Board header: title, then season state and my membership as status chips.
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         CYHeroHeader(verbatim: snapshot.board.title)
+                            .padding(CYSpacing.lg).padding(.top, CYSpacing.xl)
+                            .background { CYCoverArt(seed: snapshot.board.regionId, symbol: "building.2.fill") }
                         HStack(spacing: CYSpacing.sm) {
                             CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.lifecycle == "OPEN" ? .success : .neutral,
                                          systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
@@ -225,6 +227,7 @@ struct CityPlayerView: View {
                 .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("city.read.point.card.\(point.pointId)")
+                .sensoryFeedback(.selection, trigger: renderedSelection.id)
         }
         CYSectionHeader("city.read.points.list")
         ForEach(context.points) { point in
