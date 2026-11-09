@@ -218,7 +218,7 @@ import SwiftUI
     }
     private func eventLabel(_ event: ClubCalendarEvent, showDate: Bool) -> some View {
         HStack(spacing: CYSpacing.md) {
-            CYCoverArt(seed: event.name ?? String(event.id), systemImage: "calendar", symbolSize: 22)
+            CYIMCoverArt(seed: event.name ?? String(event.id), systemImage: "calendar", symbolSize: 22)
                 .frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 if let name = event.name { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) } else { Text("club.calendar.untitled").font(CYTypography.bodyMedium) }
