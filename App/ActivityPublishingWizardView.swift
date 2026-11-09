@@ -28,7 +28,7 @@ import SwiftUI
                         Text(Self.titleKey(item.key))
                             .font(item.state == "current" ? CYTypography.label : CYTypography.meta)
                             .foregroundStyle(item.state == "todo" ? palette.textTertiary : palette.textPrimary)
-                            .lineLimit(2).multilineTextAlignment(.center)
+                            .lineLimit(2).minimumScaleFactor(0.8).multilineTextAlignment(.center)
                             .fixedSize(horizontal: false, vertical: true)
                     }
                     .frame(maxWidth: .infinity)
@@ -37,6 +37,8 @@ import SwiftUI
                     .accessibilityAddTraits(item.state == "current" ? .isSelected : [])
                 }
             }
+            // Three step columns cannot hold accessibility-size words: cap the labels (the heading below still scales).
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
             if let unownedBlock {
                 Text(verbatim: ActivityPublishingWizardValidationPresentation(locale: locale).message(for: unownedBlock))
                     .font(CYTypography.meta)
@@ -72,14 +74,11 @@ import SwiftUI
     let onBack: () -> Void
     let onNext: () -> Void
     let onReview: () -> Void
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let current = ActivityPublishingWizard.clamp(step)
-        if dynamicTypeSize.isAccessibilitySize {
-            VStack(spacing: CYSpacing.sm) { primary(current); secondary(current) }
-        } else {
-            HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
-        }
+        // Pinned bar chrome: one compact row at every size (type capped), the form above keeps scrolling.
+        HStack(spacing: CYSpacing.md) { secondary(current); primary(current) }
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
     }
     @ViewBuilder private func secondary(_ current: Int) -> some View {
         if current == 0 {

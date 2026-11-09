@@ -56,6 +56,7 @@ struct ClubOperationsEntryButton: View {
 }
 
 struct ClubOperationsWorkspaceView: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let target: ClubOperationsTarget
     let identity: ClubReadIdentity?
     let access: any ClubOperationsAccess
@@ -259,14 +260,43 @@ struct ClubOperationsWorkspaceView: View {
         scenePhase == .active && screenIdentity == identity && !loading && !state.locksForm && !profileDraftBlocked && review == nil &&
             expected.matches(target: target, identity: identity, access: access, profile: snapshot?.profile, sourceRevision: artworkRevision)
     }
+    /// No cover uploaded: one calm identity card (mark, name, city, role) instead of a half-empty photo card.
+    private func clubIdentityHero(_ club: ClubRecord) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
+        return layout {
+            Image(systemName: "person.3.fill")
+                .font(.title2).foregroundStyle(CYColor.textSecondary)
+                .frame(width: 56, height: 56)
+                .background(CYColor.bgSurfaceStrong, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text(verbatim: club.name).font(.title3.weight(.bold)).foregroundStyle(CYColor.textPrimary)
+                if let city = club.city, !city.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    Text(verbatim: city).font(.subheadline).foregroundStyle(CYColor.textSecondary)
+                }
+                CYStatusChip(club.isOwner ? "club.ops.owner" : "club.ops.administrator", systemImage: club.isOwner ? "crown" : "person.badge.key")
+            }
+            if !dynamicTypeSize.isAccessibilitySize { Spacer(minLength: 0) }
+        }
+        .padding(CYSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).stroke(CYColor.borderSubtle))
+        .accessibilityElement(children: .combine)
+        .questifyCardListRow()
+    }
     @ViewBuilder private func content(_ value: ClubOperationsSnapshot) -> some View {
         if let profile = value.profile {
             Section {
+                if QuestifyCardArtwork.safeURL(profile.club.cover) == nil {
+                    clubIdentityHero(profile.club)
+                } else {
                 QuestifyImageEntityCard(imageSource: profile.club.cover, title: profile.club.name, subtitle: profile.club.city, fallbackSymbol: "person.3.fill", minimumHeight: 230,
                     progressiveBlur: .cover, artworkIdentity: identity != nil && screenIdentity == identity && access.identity == identity && access.isConfigured && !loading
                         ? .init(owner: ownerID.uuidString + ":" + String(identity?.accountID ?? 0) + ":" + String(identity?.epoch ?? 0), content: "club:\(profile.club.id)", version: artworkRevision.uuidString) : nil) {
                     Text(profile.club.isOwner ? "club.ops.owner" : "club.ops.administrator")
                 }.questifyCardListRow()
+                }
             }
         }
         if target == .create && !value.canCreate {

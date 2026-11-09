@@ -159,6 +159,7 @@ struct ClubGovernanceReadView: View {
     @Environment(\.clubStoryTemplates) private var storyTemplates
     @Environment(\.clubTerminalSessions) private var terminalSessions
     @Environment(\.clubOwnerFunds) private var ownerFunds
+    @Environment(\.locale) private var locale
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -1133,8 +1134,26 @@ struct ClubGovernanceReadView: View {
         customerTopic = target
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
-        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: { Label(LocalizedStringKey("club.gov." + target.rawValue), systemImage: Self.symbol(target)) }
+        NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: {
+            Label {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(LocalizedStringKey("club.gov." + target.rawValue))
+                    if operation == .access, let line = Self.subline(target) {
+                        Text(verbatim: line).font(.footnote).foregroundStyle(CYColor.textSecondary)
+                    }
+                }
+            } icon: { Image(systemName: Self.symbol(target)) }
+        }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
+    }
+    /// Mini-program settings-sheet rows carry a one-line description under the title (workspace list only).
+    static func subline(_ read: ClubGovernanceRead) -> String? {
+        switch read {
+        case .customers, .stats, .settlement, .eventTopics, .series, .topics, .editions, .leaderboard,
+             .posts, .roles, .bans, .cases, .audienceCounts, .dissolutionBlockers:
+            return String(localized: String.LocalizationValue("club.gov.sub." + read.rawValue))
+        default: return nil
+        }
     }
     /// One meaningful icon per workspace entry instead of the same chevron on every row.
     static func symbol(_ read: ClubGovernanceRead) -> String {
@@ -1210,15 +1229,21 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-            Section("club.gov.workspace") {
+            // Mini-program club settings sheet order: 客户与项目, then 成员与权限.
+            Section("club.gov.section.customers") {
                 if snapshot.permissions?.allows("club:member:list:read", scope: scope) == true { enrollmentLink() }
-                ForEach([ClubGovernanceRead.stats, .customers, .settlement, .eventTopics, .series, .bans, .cases, .roles, .audienceCounts, .topics, .editions, .dissolutionBlockers, .leaderboard, .posts], id: \.rawValue) { read in
+                ForEach([ClubGovernanceRead.customers, .stats, .settlement, .eventTopics, .series, .topics, .editions, .leaderboard, .posts], id: \.rawValue) { read in
                     if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                     if read == .series, ClubOpsEventAccess(permissions: snapshot.permissions, scope: scope).permitted {
                         NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
                             Label { Text("clubOpsEvent.title", tableName: "ClubOpsEvent") } icon: { Image(systemName: "calendar.badge.clock") }
                         }.accessibilityIdentifier("clubOpsEvent.open")
                     }
+                }
+            }
+            Section("club.gov.section.members") {
+                ForEach([ClubGovernanceRead.roles, .bans, .cases, .audienceCounts, .dissolutionBlockers], id: \.rawValue) { read in
+                    if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                 }
             }
             if let events = snapshot.permissions?.eventAccesses, !events.isEmpty {

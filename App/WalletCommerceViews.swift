@@ -78,6 +78,10 @@ extension WalletScreen where Value == WithdrawalBalance {
 }
 /// Additive destination only. Host must keep existing entry gates and reset .id(reader.scope)
 /// whenever deployment/account/epoch changes; no new root navigation entry is installed here.
+/// Withdraw / payout entries are shown only while the payout capability is on. It is off until the backend
+/// grants it, so players never meet a Withdraw button that leads nowhere. Unknown amounts still render as an em dash.
+enum WalletPayoutCapability { static let isOn = false }
+
 @MainActor struct WalletCommerceHomeView: View {
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var earnings = WalletScreen<WithdrawalBalance>()
@@ -87,6 +91,7 @@ extension WalletScreen where Value == WithdrawalBalance {
     @State private var showsMore = false
     @Environment(\.locale) private var locale
     private var format: WalletFormatting { .init(locale: locale) }
+    private func t(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
     let reader: WalletCommerceReader
     let visibility: WalletCommerceVisibility
     let onCooperationFinance: () -> Void
@@ -151,16 +156,16 @@ extension WalletScreen where Value == WithdrawalBalance {
                     ForEach(Array(items.enumerated()), id: \.element.id) { index, item in
                         item.primary(index == 0)
                     }
-                    WalletQuickAction(title: appLocalized("wallet.more", locale: locale), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
+                    WalletQuickAction(title: t("更多", "More"), icon: "ellipsis", id: "wallet.more.open") { showsMore = true }
                 }.frame(maxWidth: .infinity)
             }.listRowBackground(Color.clear).listRowSeparator(.hidden)
         }
     }
     private var quickItems: [WalletQuickAction] {
         var out: [WalletQuickAction] = []
-        if visibility.withdrawalRecords, showsWithdrawalSupport {
+        if WalletPayoutCapability.isOn, visibility.withdrawalRecords, showsWithdrawalSupport {
             out.append(.init(title: "withdrawal.support.title", icon: "arrow.up.right", id: "wallet.withdrawalSupport.open") { AnyView(WithdrawalSupportLandingView(reader: reader)) })
-        } else if visibility.withdrawalRecords {
+        } else if WalletPayoutCapability.isOn, visibility.withdrawalRecords {
             out.append(.init(title: "wallet.withdrawals", icon: "arrow.up.right", id: "wallet.withdrawals.open") { AnyView(WithdrawalHistoryView(reader: reader)) })
         }
         if visibility.income { out.append(.init(title: "wallet.income", icon: "list.bullet.indent", id: "wallet.income.open") { AnyView(incomeDestination) }) }
@@ -188,7 +193,7 @@ extension WalletScreen where Value == WithdrawalBalance {
         Section {
             if monthModel.pager.hasLoadedPage, monthModel.pager.loadedScope == reader.scope {
                 if monthRows.isEmpty {
-                    Text("wallet.analysis.noSources", tableName: "WalletIncomeAnalysis")
+                    Text(verbatim: t("这个月还没有收入", "No income this month"))
                         .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .frame(maxWidth: .infinity, minHeight: 96)
                         .orderCardSurface()
@@ -219,12 +224,12 @@ extension WalletScreen where Value == WithdrawalBalance {
             }
         } header: {
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: appLocalized("wallet.monthIncome.title", locale: locale)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: t("本月收入明细", "Income this month")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 NavigationLink { incomeDestination } label: {
                     HStack(spacing: CYSpacing.xxs) {
-                        Text(verbatim: monthTitle + " " + appLocalized("wallet.all", locale: locale))
+                        Text(verbatim: monthTitle + " " + t("全部", "All"))
                         Image(systemName: "chevron.right").font(.caption2.weight(.semibold)).accessibilityHidden(true)
                     }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }.buttonStyle(.plain).accessibilityIdentifier("wallet.month.all")
@@ -238,15 +243,15 @@ extension WalletScreen where Value == WithdrawalBalance {
             let known = stages?.amountsKnown == true
             NavigationLink { WalletAssetsView(reader: reader) } label: {
                 VStack(spacing: 0) {
-                    assetRow("creditcard", appLocalized("wallet.assets.withdrawableLabel", locale: locale), known ? stages.map { assetAmount($0.withdrawable, $0.currency) } : nil)
+                    assetRow("creditcard", t("可提现", "Withdrawable"), known ? stages.map { assetAmount($0.withdrawable, $0.currency) } : nil)
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("clock.arrow.circlepath", appLocalized("wallet.pendingSettlement", locale: locale), known ? stages.map { assetAmount($0.pendingSettlement, $0.currency) } : nil)
+                    assetRow("clock.arrow.circlepath", t("待结算", "Pending settlement"), known ? stages.map { assetAmount($0.pendingSettlement, $0.currency) } : nil)
                     Divider().overlay(CYColor.borderSubtle).padding(.leading, 40 + CYSpacing.md)
-                    assetRow("exclamationmark.bubble", appLocalized("wallet.assets.disputedLabel", locale: locale), known ? stages.map { assetAmount($0.disputed, $0.currency) } : nil)
+                    assetRow("exclamationmark.bubble", t("争议中", "Disputed"), known ? stages.map { assetAmount($0.disputed, $0.currency) } : nil)
                 }.orderCardSurface(padding: CYSpacing.md)
             }.buttonStyle(.plain).questifyHidesLinkIndicator().accessibilityIdentifier("wallet.assets.open")
         } header: {
-            Text(verbatim: appLocalized("wallet.assets.myAssets", locale: locale)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: t("我的资产", "My assets")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                 .accessibilityAddTraits(.isHeader).textCase(nil)
         }.accessibilityIdentifier("wallet.earnings.stages.home")
             .listRowBackground(Color.clear).listRowSeparator(.hidden)
@@ -279,7 +284,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                     }
                 }
                 if visibility.mall { walletRow("wallet.mall", icon: "bag", id: "wallet.mall.open") { WalletProductsView(reader: reader) } }
-                if visibility.withdrawalRecords {
+                if WalletPayoutCapability.isOn, visibility.withdrawalRecords {
                     walletRow("wallet.withdrawals", icon: "list.bullet.rectangle", id: "wallet.withdrawals.open") { WithdrawalHistoryView(reader: reader) }
                 }
                 if visibility.assets {
@@ -349,7 +354,7 @@ extension WalletScreen where Value == WithdrawalBalance {
                 } else { WalletIssueView(reader: reader, requiresLogin: funds.requiresLogin, unavailable: funds.unavailable) { Task { await load() } } }
             }
             Section {
-                NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) }
+                if WalletPayoutCapability.isOn { NavigationLink("withdrawal.support.title") { WithdrawalSupportLandingView(reader: reader) } }
                 NavigationLink("wallet.balanceLedger") { WalletLedgerView(reader: reader, kind: .balance) }
                     .accessibilityIdentifier("wallet.assets.balanceLedger")
                 NavigationLink("wallet.pointsLedger") { WalletLedgerView(reader: reader, kind: .assetPoints) }

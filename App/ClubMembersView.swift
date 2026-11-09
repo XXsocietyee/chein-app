@@ -73,7 +73,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                                 }
                                 Spacer(minLength: 0)
                                 reportButton(member, directory: directory)
-                            }.buttonStyle(.borderless)
+                            }.buttonStyle(.borderless).multilineTextAlignment(.leading)
                         }
                     } header: { ClubName(value: directory.club.name) }
                 }

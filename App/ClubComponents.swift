@@ -29,6 +29,7 @@ struct ClubRow: View {
     let club: ClubRecord
     @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var subtitle: String {
         [club.style, club.city].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }.joined(separator: " · ")
@@ -58,7 +59,7 @@ struct ClubRow: View {
                 Label { Text(verbatim: ClubMemberCountLocalization.text(club.memberCount, locale: locale)).monospacedDigit() }
                     icon: { Image(systemName: "person.2") }
                     .font(.footnote).foregroundStyle(palette.textTertiary)
-                HStack(spacing: 8) {
+                (dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(spacing: 8))) {
                     if let host = club.leaderName?.trimmingCharacters(in: .whitespacesAndNewlines), !host.isEmpty {
                         HStack(spacing: 8) {
                             Text(verbatim: String(host.prefix(1))).font(.caption.weight(.bold))

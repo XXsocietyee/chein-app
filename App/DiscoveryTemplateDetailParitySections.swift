@@ -9,21 +9,22 @@ import SwiftUI
 struct DiscoveryTemplateDetailParitySections: View {
     let presentation: DiscoveryPlayTemplateDetailPresentation
     @State private var preview: TemplateNodePreviewState?
+    @Environment(\.cyPalette) private var palette
 
     var body: some View {
         Section {
             if showsPublisherRow { publisherRow }
             if let feedback = presentation.reviewFeedback {
                 Text("discovery.templateDetail.reviewFeedback \(feedback)")
-                    .font(.callout).foregroundStyle(CYColor.warningText)
+                    .font(CYTypography.bodyCompact).foregroundStyle(palette.warning)
                     .accessibilityIdentifier("discovery.templateDetail.reviewFeedback")
             }
             if !stats.isEmpty {
                 HStack(alignment: .top) {
                     ForEach(stats, id: \.kind) { stat in
                         VStack(spacing: 2) {
-                            statValue(stat).font(.headline)
-                            Text(statLabel(stat.kind)).font(.caption).foregroundStyle(.secondary)
+                            statValue(stat).font(CYTypography.numericBody).foregroundStyle(palette.textPrimary)
+                            Text(statLabel(stat.kind)).font(CYTypography.caption).foregroundStyle(palette.textTertiary)
                         }
                         .frame(maxWidth: .infinity)
                         .accessibilityElement(children: .combine)
@@ -31,9 +32,9 @@ struct DiscoveryTemplateDetailParitySections: View {
                     }
                 }
             }
-        }
+        }.discoveryCardRow()
         if presentation.verificationMethodText != nil || presentation.questionText != nil {
-            Section("discovery.templateDetail.howVerified") {
+            Section {
                 if let method = presentation.verificationMethodText {
                     LabeledContent("discovery.templateDetail.verificationMethod", value: method)
                 }
@@ -46,14 +47,14 @@ struct DiscoveryTemplateDetailParitySections: View {
                     }
                     .accessibilityIdentifier("discovery.templateDetail.previewNode")
                 }
-            }
+            } header: { DiscoverySectionHeader("discovery.templateDetail.howVerified") }.discoveryCardRow()
         }
         chipSection("discovery.templateDetail.scenes", chips: presentation.sceneChips, id: "discovery.templateDetail.scenes")
         chipSection("discovery.templateDetail.materials", chips: presentation.materialChips, id: "discovery.templateDetail.materials")
         if let rating = presentation.rating {
-            Section("discovery.templateDetail.reviews") {
+            Section {
                 HStack {
-                    Text(verbatim: rating).font(.title.bold())
+                    Text(verbatim: rating).font(CYTypography.dataXL).monospacedDigit()
                     if let count = presentation.commentCount, count > 0 {
                         Text("discovery.templateDetail.reviewCount \(count)")
                     } else {
@@ -62,16 +63,16 @@ struct DiscoveryTemplateDetailParitySections: View {
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("discovery.templateDetail.reviews")
-            }
+            } header: { DiscoverySectionHeader("discovery.templateDetail.reviews") }.discoveryCardRow()
         }
         Section {
             VStack(alignment: .leading, spacing: 4) {
-                Text("discovery.templateDetail.notice.title").font(.subheadline.bold())
-                Text("discovery.templateDetail.notice.body").font(.footnote).foregroundStyle(.secondary)
+                Text("discovery.templateDetail.notice.title").font(CYTypography.label)
+                Text("discovery.templateDetail.notice.body").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
             }
             .accessibilityElement(children: .combine)
             .accessibilityIdentifier("discovery.templateDetail.notice")
-        }
+        }.discoveryCardRow()
         .sheet(item: $preview) { state in
             TemplateNodePreviewSheet(state: state) { preview = nil }
         }
@@ -100,7 +101,7 @@ struct DiscoveryTemplateDetailParitySections: View {
                 officialBadge
             }
         }
-        .font(.subheadline)
+        .font(CYTypography.label)
         .accessibilityElement(children: .combine)
         .accessibilityIdentifier("discovery.templateDetail.publisher")
     }
@@ -111,10 +112,11 @@ struct DiscoveryTemplateDetailParitySections: View {
     }
     @ViewBuilder private func chipSection(_ title: LocalizedStringKey, chips: [String], id: String) -> some View {
         if !chips.isEmpty {
-            Section(title) {
+            Section {
                 Text(verbatim: chips.joined(separator: " · "))
+                    .font(CYTypography.body).foregroundStyle(palette.textSecondary)
                     .accessibilityIdentifier(id)
-            }
+            } header: { DiscoverySectionHeader(title) }.discoveryCardRow()
         }
     }
     @ViewBuilder private func statValue(_ stat: DiscoveryPlayTemplateDetailPresentation.Stat) -> some View {

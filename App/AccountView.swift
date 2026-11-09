@@ -6,6 +6,7 @@ import SwiftUI
     var nativeHomeReturnSelection: NativeHomeReturnSelectionCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
     @Environment(\.merchantRootModeSwitch) private var merchantRootModeSwitch
+    @Environment(\.themeDomain) private var themeDomain
     @EnvironmentObject private var session: AppSession
     @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
@@ -127,6 +128,7 @@ import SwiftUI
                 Section {
                     Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
                         .accessibilityIdentifier("account.cooperation")
+                    if themeDomain != .player { // players never see merchant rows; code stays for the merchant role
                     NavigationLink { SessionMerchantOverviewView(session: session) } label: {
                         Label("account.merchantOverview", systemImage: "chart.bar.doc.horizontal")
                     }.accessibilityIdentifier("account.merchantOverview")
@@ -142,6 +144,7 @@ import SwiftUI
                     Button { showsMerchantApplication=true } label: {
                         Label("merchant.onboarding.openApplication",systemImage:"doc.text")
                     }.accessibilityIdentifier("account.merchantApplication")
+                    }
                 }
                 SupportTicketReadEntry(session: session)
                 Section {

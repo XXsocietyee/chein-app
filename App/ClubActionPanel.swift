@@ -70,7 +70,7 @@ struct ClubActionPanel: View {
             if let value = confirmation {
                 CYConfirmSheet(
                     title: value.action == .leave
-                        ? appLocalized("club.leave.confirmTitle \(value.clubName)", locale: locale)
+                        ? ChannelCopy.text("退出「\(value.clubName)」？", "Leave “\(value.clubName)”?", locale: locale)
                         : String(localized: String.LocalizationValue(actionKey(value.action))),
                     message: value.action == .leave
                         ? String(localized: String.LocalizationValue(confirmationKey(.leave)))
@@ -232,11 +232,11 @@ enum ClubLeaveConsequences {
     static func rows(locale: Locale) -> [CYConfirmConsequence] {
         [
             CYConfirmConsequence(systemImage: "rectangle.portrait.and.arrow.right",
-                                 text: appLocalized("club.leave.removedFromGroup", locale: locale)),
+                                 text: ChannelCopy.text("你会被移出团群，看不到成员专属内容", "You’ll be removed from the group and lose member-only content", locale: locale)),
             CYConfirmConsequence(systemImage: "ticket",
-                                 text: appLocalized("club.leave.memberEventsEnd", locale: locale)),
+                                 text: ChannelCopy.text("会员专属活动的报名资格立即失效，已付款项不随退出自动退回", "Member-only event spots end immediately; payments already made are not refunded automatically", locale: locale)),
             CYConfirmConsequence(systemImage: "exclamationmark.triangle",
-                                 text: appLocalized("club.leave.notKept", locale: locale))
+                                 text: ChannelCopy.text("此操作不可撤销，当前的成员身份与加入时间不会保留", "This can’t be undone; your membership and join date won’t be kept", locale: locale))
         ]
     }
 }

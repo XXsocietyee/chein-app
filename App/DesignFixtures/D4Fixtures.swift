@@ -8,14 +8,14 @@ import QuestifyCore
 /// Reachable with `--design-fixture d4-directory | d4-detail | d4-owner-detail | d4-channels | d4-settings | d4-growth | d4-leaderboard | d4-badges`.
 /// The "synthetic" label lives in the nav bar title area of the host, never over content.
 @MainActor struct D4ClubFixture: View {
-    enum Screen { case directory, detail(owner: Bool), channels(list: Bool), confirm }
+    enum Screen { case directory, detail(owner: Bool), channels(list: Bool), confirm, joinConfirm, tab(ClubDetailTab), members }
     let screen: Screen
     @StateObject private var reader: ClubFixtureReader
     init(_ screen: Screen) {
         self.screen = screen
         let scenario: ClubFixtureScenario
         switch screen {
-        case .detail(owner: true), .channels, .confirm: scenario = .owner
+        case .detail(owner: true), .channels, .confirm, .joinConfirm, .tab, .members: scenario = .owner
         case .detail(owner: false): scenario = .visitor
         case .directory: scenario = .visitor
         }
@@ -26,8 +26,11 @@ import QuestifyCore
             switch screen {
             case .directory: ClubDirectoryView(reader: reader)
             case .detail: ClubDetailView(id: 81, reader: reader)
+            case .tab(let tab): ClubDetailView(id: 81, reader: reader, requestedTab: tab)
+            case .members: ClubMembersView(id: 81, reader: reader)
             case .channels(let list): D4ChannelsHost(reader: reader, startInList: list)
-            case .confirm: D4ConfirmHost(reader: reader)
+            case .confirm: D4ConfirmHost(reader: reader, join: false)
+            case .joinConfirm: D4ConfirmHost(reader: reader, join: true)
             }
         }
         .environment(\.clubEnrollmentProfile, ClubEnrollmentProfileContext(reader: reader.profileReader, squareReader: reader.squareReader))
@@ -37,18 +40,28 @@ import QuestifyCore
 /// Club detail with the quit-club CYConfirmSheet presented (same content as ClubActionPanel's leave flow).
 @MainActor private struct D4ConfirmHost: View {
     @ObservedObject var reader: ClubFixtureReader
+    let join: Bool
     @State private var show = true
     @Environment(\.locale) private var locale
     var body: some View {
         ClubDetailView(id: 81, reader: reader)
             .sheet(isPresented: $show) {
+                if join {
+                    CYConfirmSheet(
+                        title: String(localized: "club.action.join"),
+                        message: ChannelCopy.text("城瘾跑团", "City Run Club", locale: locale) + "\n" + String(localized: "club.action.confirm.join"),
+                        confirmTitle: String(localized: "club.action.join"),
+                        isDestructive: false
+                    ) { show = false }
+                } else {
                 CYConfirmSheet(
                     title: ChannelCopy.text("退出「城瘾跑团」？", "Leave “City Run Club”?", locale: locale),
-                    message: appLocalized("club.action.confirm.leave", locale: locale),
-                    confirmTitle: appLocalized("club.action.leave", locale: locale),
+                    message: String(localized: "club.action.confirm.leave"),
+                    confirmTitle: String(localized: "club.action.leave"),
                     isDestructive: true,
                     consequences: ClubLeaveConsequences.rows(locale: locale)
                 ) { show = false }
+                }
             }
     }
 }
@@ -100,7 +113,7 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
 }
 
 @MainActor struct D4MeFixture: View {
-    enum Screen { case settings, growth, leaderboard, badges }
+    enum Screen { case settings, growth, leaderboard, badges, badgesEmpty, badgesError, stamps, stampsEmpty }
     let screen: Screen
     @State private var growth = GrowthCenterFixtureReader(scenario: .content)
     var body: some View {
@@ -109,6 +122,38 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
         case .growth: NavigationStack { GrowthCenterView(reader: growth) }
         case .leaderboard: NavigationStack { GrowthLeaderboardView(reader: growth) }
         case .badges: NavigationStack { ObjectBadgeWallView(reader: ProfileFixtureReader(.success)) }
+        case .badgesEmpty: NavigationStack { ObjectBadgeWallView(reader: ProfileFixtureReader(.empty)) }
+        case .badgesError: NavigationStack { ObjectBadgeWallView(reader: ProfileFixtureReader(.error)) }
+        case .stamps: NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .content)) }
+        case .stampsEmpty: NavigationStack { RoamStampAlbumView(reader: RoamExperienceFixtureReader(scenario: .empty)) }
+        }
+    }
+}
+
+/// Club enrollment / governance workspace / operations through the existing synthetic access fixtures (labelled, DEBUG only).
+@MainActor struct D4ClubOpsFixture: View {
+    enum Screen { case enroll, governance, operations(create: Bool) }
+    let screen: Screen
+    @State private var access = ClubGovernanceFixtureAccess()
+    @State private var opsAccess = ClubOperationsFixtureAccess(scenario: .owner)
+    @State private var governance: ClubGovernanceCoordinator?
+    @State private var ops: ClubOperationsCoordinator?
+    var body: some View {
+        NavigationStack {
+            if let governance, let ops {
+                switch screen {
+                case .enroll:
+                    ClubEnrollmentView(clubID: 81, focusTopicID: nil, identity: access.identity, access: access, coordinator: governance)
+                case .governance:
+                    ClubGovernanceWorkspaceView(clubID: 81, identity: access.identity, access: access, coordinator: governance)
+                case .operations(let create):
+                    ClubOperationsWorkspaceView(target: create ? .create : .club(81), identity: opsAccess.identity, access: opsAccess, coordinator: ops)
+                }
+            } else { ProgressView() }
+        }
+        .task {
+            governance = ClubGovernanceCoordinator(access: access)
+            ops = ClubOperationsCoordinator(access: opsAccess)
         }
     }
 }

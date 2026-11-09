@@ -167,11 +167,9 @@ struct RoamAlbumReadOwner: Hashable {
                     }
                     .accessibilityIdentifier("roam.experience.album.empty")
                     if allowsCapture {
-                        NavigationLink { captureDestination } label: {
-                            Text("stampAlbum.openCamera")
-                        }
-                        .buttonStyle(CYPillButtonStyle(style: .primary))
-                        .accessibilityIdentifier("roam.experience.album.openCamera")
+                        NavigationLink { captureDestination } label: { Label("stampAlbum.openCamera", systemImage: "camera") }
+                            .buttonStyle(.cyDomainPrimary(fullWidth: false)).frame(maxWidth: .infinity).frame(minHeight: 44)
+                            .accessibilityIdentifier("roam.experience.album.openCamera")
                     }
                 }
                 ForEach(pager.stamps) { stamp in
@@ -192,9 +190,7 @@ struct RoamAlbumReadOwner: Hashable {
                 }
                 } else { RoamStampReadOnlyUnavailable() }
             }.padding()
-        }.navigationTitle("roam.experience.album")
-            .navigationBarTitleDisplayMode(.inline)
-            .themeDomain(.player)
+        }.cyDomainPageBackground().navigationTitle("roam.experience.album")
             .toolbar {
                 if allowsCapture {
                     ToolbarItem(placement: .topBarTrailing) {

@@ -57,7 +57,7 @@ struct CYImageCard: View {
                         .font(CYTypography.sectionTitle)
                         .lineLimit(2)
                     if let meta {
-                        meta.font(CYTypography.meta).opacity(0.85).lineLimit(1)
+                        meta.font(CYTypography.meta).monospacedDigit().opacity(0.85).lineLimit(2)
                     }
                 }
                 .foregroundStyle(.white)

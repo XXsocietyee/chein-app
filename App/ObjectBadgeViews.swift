@@ -40,13 +40,12 @@ struct ObjectBadgeWallLayoutSelection {
         let layout = layoutSelection.value(for: owner)
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.badges", load: { try await reader.profileBadges() }) { wall in
             List {
-                Section { CYHeroHeader("profile.badges.title") }.listRowBackground(Color.clear)
+                ObjectBadgeWallParityHeader(wall: wall, focusBadgeCode: focusBadgeCode)
                 Section {
                     ObjectBadgeWallLayoutControl(selection: Binding(
                         get: { layoutSelection.value(for: layoutOwner) },
                         set: { layoutSelection.choose($0, rendered: owner, current: layoutOwner) }))
                 }
-                ObjectBadgeWallParityHeader(wall: wall, focusBadgeCode: focusBadgeCode)
                 if wall.isPartial {
                     Section {
                         Text("profile.badges.partial")
@@ -115,7 +114,8 @@ struct ObjectBadgeWallLayoutControl: View {
             ForEach(ObjectBadgeWallLayout.allCases, id: \.rawValue) { layout in
                 Text(LocalizedStringKey(layout.titleKey)).tag(layout)
             }
-        }.pickerStyle(.menu).frame(minHeight: 44)
+        }.pickerStyle(.segmented).labelsHidden().frame(minHeight: 44)
+            .accessibilityLabel(Text("objects.badgeLayout.title"))
             .accessibilityIdentifier("objects.badge.layout")
     }
 }

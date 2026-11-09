@@ -112,14 +112,17 @@ struct GrowthLeaderboardExploreSelection {
 }
 private struct GrowthLeaderboardRow: View {
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     let entry: GrowthLeaderboardEntry
     let fallback: LocalizedStringKey
     let metric: GrowthBoardMetric
     var place: Int? = nil
     var isMe = false
     var body: some View {
-        // Mini-program order: rank, name, trailing score + unit. One tappable-height row.
-        HStack(alignment: .center, spacing: 12) {
+        // Mini-program order: rank, name, trailing score + unit. One tappable-height row;
+        // at accessibility sizes the score drops under the name instead of squeezing it.
+        let stacked = dynamicTypeSize.isAccessibilitySize
+        HStack(alignment: stacked ? .top : .center, spacing: 12) {
             Group {
                 if let place { GrowthPodiumMark(place: place) }
                 else if let rank = entry.rank { Text(rank, format: .number).monospacedDigit() }
@@ -128,7 +131,8 @@ private struct GrowthLeaderboardRow: View {
             .font(.headline).foregroundStyle(palette.textTertiary)
             .frame(minWidth: 28, alignment: .leading)
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 8) {
+                let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(spacing: 8))
+                layout {
                     GrowthCenterName(name: entry.nickname, fallback: fallback).font(.headline)
                         .foregroundStyle(palette.textPrimary).lineLimit(2)
                     if isMe { CYStatusChip("growth.board.meTag") }
@@ -136,14 +140,26 @@ private struct GrowthLeaderboardRow: View {
                 if let percentage = GrowthCenterFormatting.nonempty(entry.rankPercentage) {
                     Text(verbatim: percentage).font(.caption).foregroundStyle(palette.textSecondary)
                 }
+                if stacked { score(alignment: .leading) }
             }
-            Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 2) {
-                GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
-                Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
+            if !stacked {
+                Spacer(minLength: 8)
+                score(alignment: .trailing)
             }
         }.accessibilityElement(children: .combine).padding(.vertical, CYSpacing.xs)
             .cyDomainCard(padding: CYSpacing.md)
+    }
+    private func score(alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
+            GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
+            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
+        }
+    }
+    private func score(alignment: HorizontalAlignment) -> some View {
+        VStack(alignment: alignment, spacing: 2) {
+            GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
+            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
+        }
     }
 }
 

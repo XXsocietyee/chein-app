@@ -83,11 +83,11 @@ struct HomeHeroHeaderSectionView: View {
                             HStack(spacing: 8) {
                                 Image(systemName: "magnifyingglass")
                                     .foregroundStyle(CYColor.textSecondary)
-                                Text(verbatim: CoreLoopCopy(locale: locale).tr(GlobalSearchParityPresentation.placeholderCopy))
+                                Text(LocalizedStringResource("searchMap.placeholder.player", defaultValue: "Search topics, activities and clubs")) // player-first: no merchants
                                     .font(CYTypography.bodyCompact)
                                     .foregroundStyle(CYColor.textSecondary)
-                                    .lineLimit(2)
-                                    .minimumScaleFactor(0.85)
+                                    .lineLimit(1) // one line at every size; truncates instead of wrapping
+                                    .truncationMode(.tail)
                                 Spacer(minLength: 0)
                             }
                             .padding(.leading, CYSpacing.md)
@@ -127,6 +127,7 @@ struct HomeHeroHeaderSectionView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Text(LocalizedStringResource("homeFeed.moreWaysToPlay", defaultValue: "More ways to play"))
+                            .lineLimit(1).minimumScaleFactor(0.7)
                         Image(systemName: "chevron.down").font(.caption2.weight(.bold))
                     }
                     .font(CYTypography.label)

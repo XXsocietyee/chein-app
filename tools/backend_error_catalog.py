@@ -318,7 +318,7 @@ def render_catalog():
         strings[catalog_key("message", token)] = {
             "localizations": {"en": _unit(entry["en"]), "zh-Hans": _unit(entry["zh-Hans"])}
         }
-    document = {"sourceLanguage": "en", "strings": strings}
+    document = {"sourceLanguage": "en", "strings": strings, "version": "1.0"}
     return json.dumps(document, ensure_ascii=False, indent=2) + "\n"
 
 

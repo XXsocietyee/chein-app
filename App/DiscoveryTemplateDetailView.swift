@@ -80,7 +80,7 @@ struct DiscoveryTemplateDetailView: View {
                     } else {
                         textSection("discovery.materials", text: item.requiredMaterials)
                         if let verification = item.verification {
-                            Section("discovery.verification") { Text(verification.label) }
+                            Section { Text(verification.label).font(CYTypography.body) } header: { DiscoverySectionHeader("discovery.verification") }.discoveryCardRow()
                         }
                     }
                 }
@@ -107,7 +107,8 @@ struct DiscoveryTemplateDetailView: View {
     }
     @ViewBuilder private func textSection(_ title: LocalizedStringKey, text: String?) -> some View {
         if let text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            Section(title) { Text(text).textSelection(.enabled) }
+            Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary).textSelection(.enabled) } header: { DiscoverySectionHeader(title) }
+                .discoveryCardRow()
         }
     }
     private func reload() async {
@@ -164,6 +165,7 @@ struct DiscoveryTemplateDetailView: View {
 /// Uses only the server's public template projection. Included games are inert previews.
 @MainActor
 struct DiscoveryTopicTemplatePreview: View {
+    @Environment(\.cyPalette) private var palette
     @State private var detail: PublicTopicTemplateCoordinator
     init(coordinator: PublicTopicTemplateCoordinator) { _detail = State(initialValue: coordinator) }
     var body: some View {
@@ -180,18 +182,18 @@ struct DiscoveryTopicTemplatePreview: View {
                     Section {
                         if let image = item.imgUrl, !image.isEmpty { DiscoveryArtwork(source: image, height: 210) }
                         DiscoveryTitle(text: item.name ?? "", fallback: "discovery.untitledTopic")
-                            .font(.system(.largeTitle, design: .default).weight(.heavy)).accessibilityAddTraits(.isHeader)
+                            .font(.system(.largeTitle, design: .default).weight(.heavy)).foregroundStyle(palette.textPrimary).accessibilityAddTraits(.isHeader)
                         optionalText(item.subtitle)
                         TopicTotalStops(count: item.locationCount, identifier: "discovery.publicTotalStops")
                         if let count = item.templateCount { LabeledContent("discovery.publicGames", value: String(count)) }
                         if let seconds = item.totalTime { LabeledContent("discovery.publicSeconds") { TopicXcxDurationText(seconds: seconds) } }
                         // Topic templates have no venue (mini-program topic-detail shows no address) and no version label.
-                    }
-                    if let text = item.description, !text.isEmpty { Section("discovery.introduction") { Text(text) } }
-                    if let text = item.playerPromise, !text.isEmpty { Section("discovery.playerPromise") { Text(text) } }
+                    }.discoveryCardRow()
+                    if let text = item.description, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.introduction") }.discoveryCardRow() }
+                    if let text = item.playerPromise, !text.isEmpty { Section { Text(text).font(CYTypography.body).foregroundStyle(palette.textSecondary) } header: { DiscoverySectionHeader("discovery.playerPromise") }.discoveryCardRow() }
                     ForEach(item.chapters) { chapter in
                         Section {
-                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(.headline)
+                            DiscoveryTitle(text: chapter.name ?? "", fallback: "discovery.publicChapter").font(CYTypography.cardTitle)
                             optionalText(chapter.description)
                             if let count = chapter.nodeCount { LabeledContent("discovery.publicStations", value: String(count)) }
                             if !chapter.routeShape.isEmpty {
@@ -202,7 +204,7 @@ struct DiscoveryTopicTemplatePreview: View {
                             // The public endpoint intentionally withholds node IDs.
                             ForEach(Array(chapter.nodes.enumerated()), id: \.offset) { _, node in
                                 VStack(alignment: .leading, spacing: 6) {
-                                    DiscoveryTitle(text: node.name ?? "", fallback: "discovery.publicStation").font(.subheadline.bold())
+                                    DiscoveryTitle(text: node.name ?? "", fallback: "discovery.publicStation").font(CYTypography.label)
                                     optionalText(node.hookTeaser)
                                     optionalText(node.addressName)
                                     optionalText(node.interactionType)
@@ -210,29 +212,29 @@ struct DiscoveryTopicTemplatePreview: View {
                             }
                             if let status = chapter.recruitStatus {
                                 VStack(alignment: .leading, spacing: 6) {
-                                    Text("discovery.publicRecruitment").font(.headline)
+                                    Text("discovery.publicRecruitment").font(CYTypography.cardTitle)
                                     optionalText(status.state)
                                     if let count = status.remainingMerchantCount {
                                         LabeledContent("discovery.publicRemaining", value: String(count))
                                     }
                                 }.accessibilityIdentifier("discovery.publicRecruitment")
                             }
-                        }
+                        }.discoveryCardRow()
                     }
                     if !item.games.isEmpty {
-                        Section("discovery.publicGames") {
+                        Section {
                             ForEach(item.games) { game in
                                 VStack(alignment: .leading, spacing: 6) {
-                                    DiscoveryTitle(text: game.title ?? "", fallback: "discovery.untitledPlay").font(.headline)
+                                    DiscoveryTitle(text: game.title ?? "", fallback: "discovery.untitledPlay").font(CYTypography.cardTitle)
                                     optionalText(game.players)
                                     optionalText(game.difficulty)
                                     optionalText(game.interactionType)
                                 }
                             }
-                        }
+                        } header: { DiscoverySectionHeader("discovery.publicGames") }.discoveryCardRow()
                     }
                     if item.chapters.isEmpty && item.games.isEmpty {
-                        Section { Text("discovery.publicEmpty") }
+                        Section { Text("discovery.publicEmpty").font(CYTypography.body).foregroundStyle(palette.textSecondary) }.discoveryCardRow()
                     }
                 }
                 .scrollContentBackground(.hidden)
@@ -247,21 +249,45 @@ struct DiscoveryTopicTemplatePreview: View {
         .onDisappear { detail.clear() }
     }
     @ViewBuilder private func optionalText(_ value: String?) -> some View {
-        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).textSelection(.enabled) }
+        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(value).font(CYTypography.meta).foregroundStyle(palette.textSecondary).textSelection(.enabled) }
     }
 }
 
+/// Route silhouette from the public projection (normalised 0...1 points, no coordinates): a quiet street-grid
+/// backdrop, the route with start / end markers. Debug builds label it so it is never mistaken for a live map.
 private struct PublicTemplateSilhouette: View {
     let points: [PublicTemplateShapePoint]
+    @Environment(\.cyPalette) private var palette
     var body: some View {
-        GeometryReader { geometry in
-            Path { path in
-                for (index, point) in points.enumerated() {
-                    let position = CGPoint(x: 12 + point.x * max(0, geometry.size.width - 24),
-                                           y: 12 + point.y * max(0, geometry.size.height - 24))
-                    if index == 0 { path.move(to: position) } else { path.addLine(to: position) }
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(palette.bgSurfaceSubtle)
+            Canvas { context, size in
+                var streets = Path()
+                let step: CGFloat = 28
+                var x = step / 2
+                while x < size.width { streets.move(to: CGPoint(x: x, y: 0)); streets.addLine(to: CGPoint(x: x, y: size.height)); x += step }
+                var y = step / 2
+                while y < size.height { streets.move(to: CGPoint(x: 0, y: y)); streets.addLine(to: CGPoint(x: size.width, y: y)); y += step }
+                context.stroke(streets, with: .color(palette.borderSubtle), lineWidth: 1)
+                let inset: CGFloat = 20
+                let mapped = points.map { CGPoint(x: inset + $0.x * max(0, size.width - inset * 2), y: inset + $0.y * max(0, size.height - inset * 2)) }
+                var route = Path()
+                for (index, position) in mapped.enumerated() { if index == 0 { route.move(to: position) } else { route.addLine(to: position) } }
+                context.stroke(route, with: .color(palette.textPrimary), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
+                if let first = mapped.first {
+                    context.fill(Path(ellipseIn: CGRect(x: first.x - 6, y: first.y - 6, width: 12, height: 12)), with: .color(palette.success))
                 }
-            }.stroke(Color.accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round, lineJoin: .round))
-        }.accessibilityElement(children: .ignore)
+                if mapped.count > 1, let last = mapped.last {
+                    context.fill(Path(ellipseIn: CGRect(x: last.x - 6, y: last.y - 6, width: 12, height: 12)), with: .color(palette.info))
+                }
+            }
+            #if DEBUG
+            Text(verbatim: "ROUTE SHAPE · DEBUG")
+                .font(CYTypography.micro).foregroundStyle(palette.textTertiary)
+                .padding(CYSpacing.sm)
+            #endif
+        }
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityElement(children: .ignore)
     }
 }
