@@ -62,8 +62,16 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             }.accessibilityHidden(true)
                         }
                         .clipped()
-                        Label { Text(verbatim: headerMeta(club)) } icon: { Image(systemName: "person.3") }
-                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).padding(.horizontal, CYSpacing.lg)
+                        HStack(spacing: CYSpacing.sm) {
+                            if club.memberCount > 0 {
+                                E3AvatarStack(seeds: (0..<min(club.memberCount, 4)).map { "\(club.id)-m\($0)" }, extra: club.memberCount > 4 ? club.memberCount - 4 : nil, size: 28)
+                                    .accessibilityHidden(true)
+                            }
+                            Text(verbatim: headerMeta(club)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.horizontal, CYSpacing.lg)
+                        .accessibilityElement(children: .combine)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .listRowInsets(EdgeInsets())

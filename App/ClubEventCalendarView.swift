@@ -193,8 +193,14 @@ import SwiftUI
                 }
                 if let selectedDay {
                     Text(verbatim: selectedDay.id).font(.title3.weight(.semibold)).padding(.top, CYSpacing.sm)
+                        .accessibilityAddTraits(.isHeader)
                     let events = snapshot.events.filter { $0.startDay == selectedDay }
-                    if events.isEmpty { Text("club.calendar.noDayEvents") }
+                    if events.isEmpty {
+                        VStack(spacing: CYSpacing.sm) {
+                            Image(systemName: "calendar.badge.clock").font(.title).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                            Text("club.calendar.noDayEvents").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        }.frame(maxWidth: .infinity).padding(.vertical, CYSpacing.lg)
+                    }
                     ForEach(events) { event in eventRow(event, showDate: false) }
                 } else { Text("club.calendar.pickDay").font(.footnote).foregroundStyle(.secondary) }
             }
@@ -219,7 +225,19 @@ import SwiftUI
     private func eventLabel(_ event: ClubCalendarEvent, showDate: Bool) -> some View {
         HStack(spacing: CYSpacing.md) {
             CYCoverArt(seed: event.name ?? String(event.id), systemImage: "calendar", symbolSize: 22)
-                .frame(width: 56, height: 56).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)).accessibilityHidden(true)
+                .frame(width: 56, height: 56)
+                .overlay {
+                    // Date badge on the generated cover: month over day, so the agenda scans by date.
+                    if let day = event.startDay {
+                        VStack(spacing: 0) {
+                            Text(verbatim: String(format: "%02d", day.month)).font(.caption2.weight(.bold)).foregroundStyle(.white.opacity(0.85))
+                            Text(verbatim: String(day.day)).font(.title3.weight(.bold)).monospacedDigit().foregroundStyle(.white)
+                        }
+                        .padding(.vertical, 4).frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(LinearGradient(colors: [.black.opacity(0.35), .black.opacity(0.55)], startPoint: .top, endPoint: .bottom))
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 3) {
                 if let name = event.name { Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary) } else { Text("club.calendar.untitled").font(CYTypography.bodyMedium) }
                 if showDate {
