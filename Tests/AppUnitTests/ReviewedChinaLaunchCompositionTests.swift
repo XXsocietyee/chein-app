@@ -1,7 +1,7 @@
 import XCTest
 @testable import Questify
 
-/// WIRE-1 composition selection. The shipped property stays `reviewed: nil`.
+/// WIRE-1 composition selection. The default build stays unconfigured. A matching China build selects the reviewed deployment.
 @MainActor final class ReviewedChinaLaunchCompositionTests: XCTestCase {
     private let bundle = "invalid.example.questify.ios"
     private let realm = "cn-prod"

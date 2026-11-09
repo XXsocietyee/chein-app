@@ -111,8 +111,8 @@ public struct RegionalConfiguration {
     }
 }
 
-/// Explicit reviewed hosts. This registry does not replace the shipped composition.
-/// The US market has no approved host and must not be given an invented one.
+/// Explicit reviewed hosts. The shipped composition selects China only through
+/// `admitsShippedChina`. The US market has no approved host and must not be given an invented one.
 public enum ReviewedMarketLaunch {
     public static let chinaProductionBaseURL = "https://www.chengyinhub.com/prod-api/"
     /// China is the only key. A missing US entry is the disabled reviewed path.
@@ -121,6 +121,16 @@ public enum ReviewedMarketLaunch {
     ]
     /// Domestic China phone is verified only for this China deployment.
     public static let chinaVerifiedCapabilities: Set<RegionalCapability> = [.domesticChinaPhone]
+
+    /// True only for the reviewed China host plus a usable bundle and realm.
+    /// A United States market, an empty build, and any other host return false.
+    public static func admitsShippedChina(market: RegionalMarket, baseURL: String, bundleIdentifier: String, realm: String) -> Bool {
+        let base = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        let bundle = bundleIdentifier.trimmingCharacters(in: .whitespacesAndNewlines)
+        let realm = realm.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard market == .china, base == chinaProductionBaseURL else { return false }
+        return (try? storageScope(market: market, baseURL: base, bundleIdentifier: bundle, realm: realm)) != nil
+    }
 
     public static func configuration(market: RegionalMarket, baseURL: String) throws -> RegionalConfiguration {
         let value = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)

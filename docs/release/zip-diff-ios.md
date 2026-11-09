@@ -23,13 +23,13 @@ Routes are quoted only when v3.5 names them. None were added.
 
 | Group | Rows | Existing | Needs change | Waiting backend |
 |---|---:|---:|---:|---:|
-| U02–U08 | 31 | 4 | 9 | 18 |
+| U02–U08 | 31 | 5 | 8 | 18 |
 | UG-01–UG-12 | 12 | 0 | 0 | 12 |
 | P1–P9 | 9 | 0 | 0 | 9 |
 | Chapter 17 | 6 | 0 | 0 | 6 |
 | Chapter 18 | 8 | 0 | 0 | 8 |
 | Chapter 23 | 4 | 0 | 0 | 4 |
-| **Total** | **70** | **4** | **9** | **57** |
+| **Total** | **70** | **5** | **8** | **57** |
 
 ## U02–U08
 
@@ -50,7 +50,7 @@ Routes are quoted only when v3.5 names them. None were added.
 | U04-04 图文音频与阅读恢复 | Needs change | `App/ChapterStoryView.swift` | Text, image, and audio render here; an audio control appears only when a URL exists; body text uses a system text style. v3.5 also requires image zoom and reading-position restore. The artwork view loads, fails, or shows a gated label, and does not zoom or restore a reading position. |
 | U05-01 到达失败原因与恢复动作 | Waiting backend | `Core/PlayExperienceService.swift` | Arrive sends longitude, latitude, and optional accuracy, and keeps the sample time off the wire. v3.5 says the stable reason codes are not connected on the client, and this batch is not HTTP-verified. Missing fact: a verified reason code plus `retryable`, `refreshRequired`, and `newActionIdRequired`. |
 | U05-02 地点关闭与批准替代 | Waiting backend | — | v3.5 marks approved-fallback fields PROPOSED. Missing fact: server-approved substitute nodes. An author `fallbackMode` is not that approval. `Core/CityArrivalEvidenceService.swift` is a separate issue and confirm flow. |
-| U05-03 提交未知与重启恢复 | Needs change | `App/PlayExperienceView.swift` | v3.5 says an unknown or pending receipt shows 待确认, is checked by the original action id, and is not shown as failure. The unknown section reloads and, when allowed, retries the exact branch. `Core/PlayDurableRecovery.swift` is local encrypted play storage and does not read a server receipt. Search found no action-receipt client in `App/` or `Core/`. |
+| U05-03 提交未知与重启恢复 | Existing | `Core/PlayActionReceipt.swift` | An unknown write reads `GET api/play/action-receipt` with the stored `routeActionId`. Code 520 stays pending and the journal stays unknown, not failed. A retry submits that same id. A confirmed receipt is acknowledged only when the returned node matches. The existing unknown section already says the result needs checking. |
 | U05-04 下载与有限离线阅读 | Waiting backend | — | v3.5 section 23.3 says a revision, or a flag that online is not required, does not prove full offline play, and that flag still needs an integrated meaning. Missing fact: which resources of this content version are required, their verified state, and the offline range. `Core/OfflinePackOperation.swift` is a separate pack. |
 | U06-01 邀请、席位与成员分别显示 | Waiting backend | `Core/TeamContracts.swift` | v3.5 chapter 11 marks `seats`, `invite`, and `viewer` PROPOSED for iOS. This team model has joined count, max members, expire time, invite code, and a leader flag. Missing fact: a unified seat payload. v3.5 forbids reintroducing claimable, reserved-application, and unpaid-occupied fields. |
 | U06-02 我的角色与私密线索 | Existing | `App/JourneyRoleViewSection.swift` | The section renders only the validated encounter projection. It does not offer a role picker or fall back to author configuration. |

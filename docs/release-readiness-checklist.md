@@ -4,7 +4,7 @@ Updated: 2026-10-20 UTC
 
 ## 1. Local & Release Signing Configuration (`Config/Local.xcconfig`)
 
-`Config/Base.xcconfig` ships with safe non-routable / empty defaults so CI and unconfigured checkouts remain fail-closed (`PRODUCT_BUNDLE_IDENTIFIER = invalid.example.questify.ios`, `QUESTIFY_MARKET = CN`, empty `QUESTIFY_API_BASE_URL` / `QUESTIFY_SESSION_REALM`). `Base.xcconfig` does not set `CODE_SIGNING_ALLOWED`; `CODE_SIGNING_ALLOWED=NO` is only passed on the `xcodebuild` command line by CI (`.github/workflows/native-ios.yml`). The approved-endpoint registry is a hard-coded empty dictionary in `App/RegionalLaunchConfiguration.swift`, so any non-empty `QUESTIFY_API_BASE_URL` stays unapproved until that registry is reviewed and updated in source.
+`Config/Base.xcconfig` ships with safe non-routable / empty defaults so CI and unconfigured checkouts remain fail-closed (`PRODUCT_BUNDLE_IDENTIFIER = invalid.example.questify.ios`, `QUESTIFY_MARKET = CN`, empty `QUESTIFY_API_BASE_URL` / `QUESTIFY_SESSION_REALM`). `Base.xcconfig` does not set `CODE_SIGNING_ALLOWED`; `CODE_SIGNING_ALLOWED=NO` is only passed on the `xcodebuild` command line by CI (`.github/workflows/native-ios.yml`). `RegionalLaunchConfiguration.configuration` still uses an empty approved-URL dictionary and does not approve a runtime URL. The shipped composition selects only the reviewed China host when the market, that exact URL, the bundle, and the realm all match. The United States market has no host.
 
 Before archiving for **TestFlight** or **App Store Connect**, create an untracked `Config/Local.xcconfig` (copied from `Config/Local.xcconfig.example`, which contains commented placeholders only) with your release coordinates:
 

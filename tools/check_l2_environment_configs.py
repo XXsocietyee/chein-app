@@ -49,6 +49,13 @@ def settings(entry, files):
         return re.sub(r'\$\(([^)]*)\)', replace, value)
     return {key: expand(value) for key, value in values.items()}
 
+def expected_session_realm(market, environment, code):
+    if environment == 'Development':
+        return code.lower() + '-development'
+    if market == 'China' and environment == 'Production':
+        return 'cn-prod'
+    return ''
+
 class L2EnvironmentConfigChecks(unittest.TestCase):
     def setUp(self):
         self.files = tracked_inputs()
@@ -97,7 +104,8 @@ class L2EnvironmentConfigChecks(unittest.TestCase):
                     expected = CHINA_PRODUCTION_API if market == 'China' and environment == 'Production' else ''
                     self.assertEqual(result['QUESTIFY_API_BASE_URL'], expected)
                     self.assertNotEqual(result['QUESTIFY_API_BASE_URL'], 'https://earlier.example.test')
-                    self.assertEqual(result['QUESTIFY_SESSION_REALM'], '')
+                    self.assertEqual(result['QUESTIFY_SESSION_REALM'], expected_session_realm(market, environment, MARKETS[market]))
+                    self.assertNotEqual(result['QUESTIFY_SESSION_REALM'], 'earlier')
 
     def test_environment_local_overrides_are_scoped_and_identity_is_pinned(self):
         for market, code in MARKETS.items():
@@ -137,7 +145,8 @@ class L2EnvironmentConfigChecks(unittest.TestCase):
                     expected = ''
                 self.assertEqual(result['QUESTIFY_API_BASE_URL'], expected)
                 self.assertNotIn('wrong.example.test', result['QUESTIFY_API_BASE_URL'])
-                self.assertEqual(result['QUESTIFY_SESSION_REALM'], code.lower() + '-development' if environment == 'Development' else '')
+                self.assertEqual(result['QUESTIFY_SESSION_REALM'], expected_session_realm(market, environment, code))
+                self.assertNotEqual(result['QUESTIFY_SESSION_REALM'], 'wrong')
 
     def test_empty_override_clears_both_inputs_and_next_evaluation_recovers(self):
         for market in MARKETS:

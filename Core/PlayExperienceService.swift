@@ -286,6 +286,32 @@ public struct PlayExperienceService {
         guard code == 200 else { throw PlayExperienceError.rejected(code, envelope?["msg"].text) }
         return envelope?["data"] ?? .null
     }
+
+    /// Reads the original write. Code 520 stays pending and is not turned into a rejection.
+    @MainActor func originalActionReceipt(scope: PlaySessionScope, nodeID: Int, routeActionID: String, token: String) async throws -> PlayActionReceiptOutcome {
+        guard nodeID > 0, let routeActionID = PlayActionReceiptIdentity.retained(original: routeActionID, proposed: routeActionID) else {
+            throw APIError.invalidRequest
+        }
+        guard enabled.contains(.reads) else { throw PlayExperienceError.disabled }
+        try checkReadLifetime()
+        var query = try scopeFields(scope)
+        query["nodeId"] = String(nodeID)
+        query["routeActionId"] = routeActionID
+        let request = try makeRequest("api/play/action-receipt", query: query, token: token)
+        try Task.checkCancellation()
+        let data: Data
+        let status: Int
+        do {
+            try checkReadLifetime()
+            (data, status) = try await transport.send(request)
+        } catch {
+            try checkReadLifetime()
+            throw error
+        }
+        try checkReadLifetime()
+        try Task.checkCancellation()
+        return try PlayActionReceipt.decode(data, status: status, routeActionID: routeActionID)
+    }
 }
 
 extension PlayExperienceService {
