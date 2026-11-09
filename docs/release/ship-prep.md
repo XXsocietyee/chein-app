@@ -2,7 +2,7 @@
 
 Checked against `origin/rc/20261108` at `a6871477c497c6440ce06417035572d7278ea830` (2026-11-08 PT). This continues the tree record from `origin/train/ui` at `6ba614a5dab10e00988d0bf83145fcf4b84e10a1`. It does not add legal copy, a signing identity, or a route that deletes an account.
 
-Archive signing and App Store upload are owner-only. This branch does not sign and does not upload. `RegionalLaunchConfiguration.composition` stays `makeComposition(reviewed: nil, build: .current)`.
+Archive signing and App Store upload are owner-only. This branch does not sign and does not upload. `RegionalLaunchConfiguration.composition` calls `shippedComposition(build: .current)`. An empty URL or realm still uses `makeComposition(reviewed: nil, build: .current)` and calls no backend. The default target stays on `Config/Base.xcconfig`, whose URL and realm are empty.
 
 ## Present
 
@@ -44,7 +44,7 @@ The settings row may exist. On the unconfigured composition an empty `QUESTIFY_A
 
 Inbound parsers do not delete an account. `NativeNavigationContract` accepts team join, the content source paths, and `/badge`. `NativeEntryLinkPolicy` also accepts `/door`, merchant public-home, and the merchant team-invite path. None of those paths name deregistration.
 
-`POST api/user/deregister/apply` exists in the compliance client. `AccountComplianceCompositionRoute` is accepted in `CompositionHTTPTransport.send` only when a reviewed deployment has `productionGatesEnabled` and the market is China. `isAccountComplianceEnabled` is that same China production-gate condition. The shipped composition is unconfigured, so that allowlist is off. This branch does not add a route that deletes an account.
+`POST api/user/deregister/apply` exists in the compliance client. `AccountComplianceCompositionRoute` is accepted in `CompositionHTTPTransport.send` only when a reviewed deployment has `productionGatesEnabled` and the market is China. `isAccountComplianceEnabled` is that same China production-gate condition. The default build's composition is unconfigured, so that allowlist is off. This branch does not add a route that deletes an account. A lost apply response is recovered by reading `GET api/user/deregister/status` for the same request id. That read does not post apply again.
 
 ## Unsigned archive
 
