@@ -1,0 +1,81 @@
+diff --git a/.github/workflows/ios-ci.yml b/.github/workflows/ios-ci.yml
+--- a/.github/workflows/ios-ci.yml
++++ b/.github/workflows/ios-ci.yml
+@@ -10,7 +10,7 @@
+   cancel-in-progress: false
+ jobs:
+   debug-build:
+-    runs-on: xcode-27
++    runs-on: [self-hosted, macOS, ARM64, questify-xcode-27]
+     timeout-minutes: 90
+     steps:
+       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+@@ -32,7 +32,7 @@
+           if-no-files-found: ignore
+ 
+   core-tests:
+-    runs-on: xcode-27
++    runs-on: [self-hosted, macOS, ARM64, questify-xcode-27]
+     timeout-minutes: 180
+     steps:
+       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+@@ -50,7 +50,7 @@
+           if-no-files-found: ignore
+ 
+   appunit:
+-    runs-on: xcode-27
++    runs-on: [self-hosted, macOS, ARM64, questify-xcode-27]
+     timeout-minutes: 180
+     strategy:
+       fail-fast: false
+@@ -70,19 +70,21 @@
+         run: |
+           set -o pipefail
+           python3 - << 'PY' > only-testing.args
+-          import os, pathlib
++          import os, pathlib, re
+           shard = int(os.environ["SHARD"])
+-          classes = []
++          # Same class pattern as tools/generate_project.py APP_UNIT_CLASS.
++          # The previous split()[1] read the keyword from "final class Name"
++          # and skipped lines that start with an attribute such as @MainActor.
++          pattern = re.compile(
++              r"(?m)^(?:@\w+(?:\([^)\n]*\))?\s+)*(?:(?:public|internal|fileprivate|private|final|open|nonisolated)\s+)*class\s+([A-Za-z_][A-Za-z0-9_]*)\b[^{;\n]*\bXCTestCase\b"
++          )
++          found = []
+           root = pathlib.Path("Tests/AppUnitTests")
+-          for path in root.rglob("*.swift"):
+-              for line in path.read_text(errors="replace").splitlines():
+-                  text = line.strip()
+-                  if "XCTestCase" not in text:
+-                      continue
+-                  if text.startswith("class ") or text.startswith("final class ") or text.startswith("public class ") or text.startswith("internal class "):
+-                      name = text.split()[1].split("(")[0].split(":")[0]
+-                      classes.append(name)
+-          classes = sorted(set(classes))
++          for path in sorted(root.rglob("*.swift")):
++              found.extend(pattern.findall(path.read_text(errors="replace")))
++          if len(found) != len(set(found)):
++              raise SystemExit("duplicate AppUnit class names")
++          classes = sorted(set(found))
+           if not classes:
+               raise SystemExit("no AppUnit classes found")
+           mine = [name for index, name in enumerate(classes) if index % 4 == shard]
+@@ -101,7 +103,7 @@
+           if-no-files-found: ignore
+ 
+   release-gate:
+-    runs-on: ubuntu-24.04
++    runs-on: [self-hosted, questify-python]
+     timeout-minutes: 20
+     steps:
+       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+@@ -113,7 +115,7 @@
+           python3 -B tools/current_ci.py check
+ 
+   design-lint:
+-    runs-on: ubuntu-24.04
++    runs-on: [self-hosted, questify-python]
+     timeout-minutes: 10
+     steps:
+       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
