@@ -5,6 +5,10 @@ With no arguments this checks the tree and does not run xcodebuild.
 `--archive` runs one `xcodebuild archive` with code signing forced off.
 It does not export an IPA and does not call altool, notarytool, or Transporter.
 The owner signs and submits.
+
+The preflight reads MARKETING_VERSION and CURRENT_PROJECT_VERSION from
+Config/Base.xcconfig only. It does not change those numbers. A second
+assignment, including one in gitignored Local.xcconfig, is a failure.
 """
 import json
 import pathlib
@@ -48,6 +52,10 @@ REQUIRED_REASON_APIS = {
     "NSPrivacyAccessedAPICategoryFileTimestamp": ["C617.1"],
     "NSPrivacyAccessedAPICategorySystemBootTime": ["35F9.1"],
 }
+VERSION_KEYS = ("MARKETING_VERSION", "CURRENT_PROJECT_VERSION")
+MARKETING_VALUE = re.compile(r"^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$")
+BUILD_VALUE = re.compile(r"^[1-9][0-9]*$")
+LOCAL_INCLUDE = '#include? "Local.xcconfig"'
 UPLOAD_MARKERS = (
     "altool",
     "notarytool",
@@ -184,6 +192,143 @@ def check_apple_entitlement(failures):
     print("Sign in with Apple entitlement: kept. Capability slot already exists. No other entitlement added.")
 
 
+def xcconfig_version_assignments(text):
+    """Return (key, value, offset) for version assignments. Offset is the line start.
+
+    A // comment ends the line. A # line is an include or a directive, not an assignment.
+    """
+    found = []
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        body = line.split("//", 1)[0].strip()
+        if body and not body.startswith("#"):
+            match = re.match(
+                r"^(MARKETING_VERSION|CURRENT_PROJECT_VERSION)\s*=\s*(.*)$",
+                body,
+            )
+            if match:
+                found.append((match.group(1), match.group(2).strip(), offset))
+        offset += len(line)
+    return found
+
+
+def local_include_offset(text):
+    offset = 0
+    for line in text.splitlines(keepends=True):
+        if line.split("//", 1)[0].strip() == LOCAL_INCLUDE:
+            return offset
+        offset += len(line)
+    return None
+
+
+def version_report(base_text, other_texts, info_text, project_text, generator_text):
+    """Return (failures, marketing, build). Does not print and does not write.
+
+    other_texts is a list of (label, text) for every xcconfig except Base.
+    Values from those files are not copied into failure text.
+    """
+    failures = []
+    include = local_include_offset(base_text)
+    assignments = xcconfig_version_assignments(base_text)
+    if include is not None:
+        late = []
+        for key, _value, offset in assignments:
+            if offset > include and key not in late:
+                late.append(key)
+        if late:
+            failures.append(
+                "version is assigned after the Local.xcconfig include in Config/Base.xcconfig: "
+                + ", ".join(late)
+            )
+    values = {key: [] for key in VERSION_KEYS}
+    for key, value, _offset in assignments:
+        values[key].append(value)
+    for key in VERSION_KEYS:
+        if len(values[key]) != 1:
+            failures.append(key + " must be assigned once in Config/Base.xcconfig")
+    marketing = values["MARKETING_VERSION"][0] if len(values["MARKETING_VERSION"]) == 1 else None
+    build = values["CURRENT_PROJECT_VERSION"][0] if len(values["CURRENT_PROJECT_VERSION"]) == 1 else None
+    if marketing is not None and MARKETING_VALUE.fullmatch(marketing) is None:
+        failures.append("MARKETING_VERSION is not major.minor.patch")
+        marketing = None
+    if build is not None and BUILD_VALUE.fullmatch(build) is None:
+        failures.append("CURRENT_PROJECT_VERSION is not a positive integer")
+        build = None
+    for label, text in other_texts:
+        extra = sorted({key for key, _value, _offset in xcconfig_version_assignments(text)})
+        if extra:
+            failures.append(label + " assigns " + ", ".join(extra))
+    for key in ("CFBundleShortVersionString", "CFBundleVersion"):
+        if key in info_text:
+            failures.append(key + " is present in Config/Info.plist")
+    present = [key for key in VERSION_KEYS if key in project_text]
+    if present:
+        failures.append(
+            "version build setting is present in Questify.xcodeproj/project.pbxproj: "
+            + ", ".join(present)
+        )
+    present = [key for key in VERSION_KEYS if key in generator_text]
+    if present:
+        failures.append(
+            "version build setting is named in tools/generate_project.py: " + ", ".join(present)
+        )
+    if failures:
+        return failures, None, None
+    return [], marketing, build
+
+
+def read_regular_text(path, failures):
+    relative = str(path.relative_to(ROOT))
+    if path.is_symlink():
+        failures.append(relative + " is a symlink")
+        return None
+    if not path.is_file():
+        failures.append(relative + " is not a regular file")
+        return None
+    try:
+        return path.read_text()
+    except OSError:
+        failures.append(relative + " is unreadable")
+        return None
+
+
+def check_version(failures):
+    """Report the committed pair. Refuse a second source. Do not bump the numbers."""
+    before = len(failures)
+    config_dir = ROOT / "Config"
+    if config_dir.is_symlink() or not config_dir.is_dir():
+        failures.append("Config is not a regular directory")
+        return
+    base_text = read_regular_text(config_dir / "Base.xcconfig", failures)
+    other_texts = []
+    for path in sorted(config_dir.iterdir()):
+        if path.name == "Base.xcconfig" or not path.name.endswith(".xcconfig"):
+            continue
+        if path.is_symlink():
+            failures.append(str(path.relative_to(ROOT)) + " is a symlink")
+            continue
+        if not path.is_file():
+            continue
+        text = read_regular_text(path, failures)
+        if text is None:
+            continue
+        other_texts.append((str(path.relative_to(ROOT)), text))
+    info_text = read_regular_text(ROOT / "Config" / "Info.plist", failures)
+    project_text = read_regular_text(ROOT / "Questify.xcodeproj" / "project.pbxproj", failures)
+    generator_text = read_regular_text(ROOT / "tools" / "generate_project.py", failures)
+    if None in (base_text, info_text, project_text, generator_text) or len(failures) != before:
+        return
+    report, marketing, build = version_report(
+        base_text, other_texts, info_text, project_text, generator_text
+    )
+    failures.extend(report)
+    if marketing is None or build is None:
+        return
+    print("marketing version: " + marketing)
+    print("build: " + build)
+    print("version source: Config/Base.xcconfig")
+
+
 def check_composition(failures):
     script = ROOT / "tools/check_account_deletion_path.py"
     result = subprocess.run([sys.executable, "-B", str(script)], cwd=ROOT)
@@ -198,6 +343,7 @@ def preflight():
     check_ats(failures)
     check_apple_entitlement(failures)
     check_composition(failures)
+    check_version(failures)
     if failures:
         return fail(failures)
     print("preflight: ok")
