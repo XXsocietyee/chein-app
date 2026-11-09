@@ -74,6 +74,10 @@ struct UsageConsentGateView: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .padding(.top, CYSpacing.sm)
                                 .accessibilityIdentifier("authEntry.gate.body")
+                            Text("authEntry.gate.localOnly", tableName: "AuthEntry")
+                                .font(.footnote).foregroundStyle(CYColor.textTertiary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .padding(.top, CYSpacing.sm)
                         } label: {
                             Text("authEntry.gate.details", tableName: "AuthEntry")
                                 .font(CYTypography.bodyCompact.weight(.semibold))
@@ -90,40 +94,46 @@ struct UsageConsentGateView: View {
                     .padding(.horizontal, CYSpacing.lg)
                     .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
                     .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact) }
-                            .toggleStyle(.switch)
-                            .tint(CYColor.accent)
-                            .accessibilityIdentifier("authEntry.gate.checkbox")
-                        if showsCheckRequired && !checked {
-                            Label { Text("authEntry.gate.checkRequired", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }
-                                .font(CYTypography.bodyCompact)
-                                .foregroundStyle(CYColor.dangerText)
-                                .accessibilityIdentifier("authEntry.gate.checkRequired")
-                        }
-                    }
-                    VStack(spacing: CYSpacing.sm) {
-                        // One primary action; declining is a quiet text button (guest browsing continues).
-                        Button {
-                            guard checked else { showsCheckRequired = true; return }
-                            onAgree()
-                        } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
-                            .buttonStyle(.cyPrimary)
-                            .disabled(!checked)
-                            .accessibilityIdentifier("authEntry.gate.agree")
-                        Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
-                            .font(CYTypography.bodyCompact)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .accessibilityIdentifier("authEntry.gate.decline")
-                        Text("authEntry.gate.localOnly", tableName: "AuthEntry")
-                            .font(.footnote).foregroundStyle(CYColor.textTertiary)
-                            .multilineTextAlignment(.center)
-                            .frame(maxWidth: .infinity)
-                    }
                 }
                 .padding(CYSpacing.xxl)
             }
+            .safeAreaInset(edge: .bottom) {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact) }
+                        .toggleStyle(.switch)
+                        .tint(CYColor.accent)
+                        .accessibilityIdentifier("authEntry.gate.checkbox")
+                    if showsCheckRequired && !checked {
+                        Label { Text("authEntry.gate.checkRequired", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }
+                            .font(CYTypography.bodyCompact)
+                            .foregroundStyle(CYColor.dangerText)
+                            .accessibilityIdentifier("authEntry.gate.checkRequired")
+                    }
+                }
+                VStack(spacing: CYSpacing.sm) {
+                    // One primary action; declining is a quiet text button (guest browsing continues).
+                    Button {
+                        guard checked else { showsCheckRequired = true; return }
+                        onAgree()
+                    } label: { Text("authEntry.gate.agree", tableName: "AuthEntry") }
+                        .buttonStyle(.cyPrimary)
+                        .disabled(!checked)
+                        .accessibilityIdentifier("authEntry.gate.agree")
+                    Button(action: onDecline) { Text("authEntry.gate.decline", tableName: "AuthEntry").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget) }
+                        .font(CYTypography.bodyCompact)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("authEntry.gate.decline")
+                }
+    
+                }
+                .padding(.horizontal, CYSpacing.xxl)
+                .padding(.top, CYSpacing.md)
+                .padding(.bottom, CYSpacing.md)
+                .background(CYColor.bgPage)
+            }
             .background(CYColor.bgPage)
+            .themeDomain(.player)
             .navigationTitle(Text("authEntry.gate.title", tableName: "AuthEntry"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar(.hidden, for: .navigationBar)

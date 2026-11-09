@@ -8,9 +8,20 @@ Shots: /Users/fanning/chengyin-refs/design-reports/d1/shot-212424.png (zh, first
 - Visible controls: primary player pill, outlined merchant pill, guest text row, menu = 3 besides primary.
 - Compare critique: the only mini-program reference (stub-roles.png) is the "role management unavailable" error state, not a true welcome; it matches in theme (black page, heavy title, white pill) but not in structure. There is no mini-program Welcome counterpart. Our hero has no real imagery yet (placeholders).
 
-## Also in tree (built, NOT yet visually verified)
-Consent gate (UsageConsentGateView), Login / AuthChannelView / WeChat section, role picker restyle; fixed iOS 18-only `toolbarVisibility` -> `.toolbar(.hidden, for: .navigationBar)`. New strings in docs/release/ui-strings-d1.json.
+## Consent gate (UsageConsentGateView) — shot-215243.png (en, dark)
+- Now forced to the player theme at the view root (`.themeDomain(.player)`), so it is dark in the real sheet path too; LoginView got the same.
+- Summary + details disclosure + two document links at the top; toggle, ONE primary pill and quiet "Not now" pinned to the bottom safe area; the "saved on this device" footnote moved under the details disclosure.
+- `authEntry.gate.summary` / `.details` already exist in the catalog on rc/20261108; they are also in docs/release/ui-strings-d1.json. For the screenshot only I injected them into Resources/AuthEntry.xcstrings locally and reverted that file before committing.
 
-## Not done / open
-- ui/kit not on origin; no `--design-fixture` registry, so consent/login/role picker screens are unreachable for screenshots and no compare images exist for them.
-- Menu-open, Dynamic Type XL and zh/en shots for Welcome not captured: design-run.sh shuts the simulator down after one screenshot, so I cannot open the menu. Checklist items 7-9 unverified.
+## Login (LoginView) — shot-220013.png (zh-Hans, Dynamic Type accessibility-extra-large, dark)
+Dark page, #1C1C1E rows, no clipping at XL. The fixture has no auth channels, so it shows the unavailable states (secondary-text rows, not red). Demoted: none removed; language stays in the toolbar globe.
+
+## Fixtures
+App/DesignFixtures/OnboardingFixtures.swift, registered in DesignFixtureRegistry: welcome, welcome-menu (lists the `...` menu entries, since a Menu cannot be opened programmatically), consent, login-player. DEBUG only.
+
+## Welcome tweaks after review
+Brighter centre card, 1px hairline borders, hero ~10% shorter. Not re-screenshotted after the tweak (built, shown in the consent/login runs only via the same target).
+
+## Open
+- Role picker (ClubRoleAssignmentPicker): restyled, builds, but NOT screenshotted: it needs ClubGovernanceAccess + a read model that cannot be built from a synthetic fixture without touching Core. The mini-program reference (stub-roles.png) is the unavailable state.
+- welcome-menu, Welcome XL/zh and role-picker shots not taken; small-phone safe-area check not done. Checklist items 7-9 are verified only for consent (en) and login (zh XL).

@@ -63,6 +63,7 @@ struct LoginView: View {
             }
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
+            .themeDomain(.player)
             .appNavigationTitle("auth.title")
             .toolbar {
                 ToolbarItem(placement:.confirmationAction) { LanguageSwitcher() }
