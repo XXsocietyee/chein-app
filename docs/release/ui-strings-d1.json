@@ -1,0 +1,13 @@
+{
+  "table": "AuthEntry",
+  "strings": {
+    "authEntry.gate.summary": {
+      "en": "We only process the information a feature needs, when you use it. Roam location is used for live position, check-ins and trails, and never collected in the background when you are not using the app.",
+      "zh-Hans": "城瘾只在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。"
+    },
+    "authEntry.gate.details": {
+      "en": "Full details",
+      "zh-Hans": "查看完整说明"
+    }
+  }
+}

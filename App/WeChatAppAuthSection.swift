@@ -40,7 +40,7 @@ struct WeChatAppAuthSection: View {
                     .accessibilityIdentifier("auth.wechat.gate")
             }
             if let issue = model.issue {
-                Text(LocalizedStringKey(issue.localizationKey)).foregroundStyle(.red)
+                Text(LocalizedStringKey(issue.localizationKey)).foregroundStyle(CYColor.dangerText)
                     .accessibilityIdentifier("auth.wechat.error")
             }
         }

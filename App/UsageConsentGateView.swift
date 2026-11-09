@@ -56,6 +56,11 @@ struct UsageConsentGateView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                    Text("authEntry.gate.title", tableName: "AuthEntry")
+                        .font(.system(.largeTitle, design: .rounded).weight(.heavy))
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityAddTraits(.isHeader)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Text("authEntry.gate.summary", tableName: "AuthEntry")
                             .font(CYTypography.body)
@@ -83,7 +88,8 @@ struct UsageConsentGateView: View {
                         documentRow("authEntry.gate.openAgreement", id: "authEntry.gate.agreement", type: .userAgreement)
                     }
                     .padding(.horizontal, CYSpacing.lg)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .shadow(color: .black.opacity(0.18), radius: 10, y: 4)
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact) }
                             .toggleStyle(.switch)
@@ -120,6 +126,7 @@ struct UsageConsentGateView: View {
             .background(CYColor.bgPage)
             .navigationTitle(Text("authEntry.gate.title", tableName: "AuthEntry"))
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarVisibility(.hidden, for: .navigationBar)
             .sheet(item: $document) { sheet in
                 NavigationStack {
                     SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)

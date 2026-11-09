@@ -77,11 +77,11 @@ struct AuthChannelView: View {
                 if let issue = model.state.issue {
                     Section {
                         Text(LocalizedStringKey(issue.localizationKey))
-                            .foregroundStyle(issue == .appleIncomplete ? Color.secondary : Color.red)
+                            .foregroundStyle(issue == .appleIncomplete ? CYColor.textSecondary : CYColor.dangerText)
                             .accessibilityIdentifier("auth.channels.error")
                         if model.state.requiresAppUpdate && issue != .upgradeRequired {
                             Text("auth.channels.upgradeRequired")
-                                .foregroundStyle(Color.red)
+                                .foregroundStyle(CYColor.dangerText)
                                 .accessibilityIdentifier("auth.channels.upgradeRequired")
                         }
                     }
@@ -98,7 +98,7 @@ struct AuthChannelView: View {
                     }
                 }
                 if !model.coordinator.isConfigured {
-                    Section { Label("auth.notConfigured", systemImage: "info.circle") }
+                    Section { Label("auth.notConfigured", systemImage: "info.circle").foregroundStyle(CYColor.textSecondary) }
                 }
                 Section {
                     Text("auth.channels.legalConsent")
@@ -110,6 +110,8 @@ struct AuthChannelView: View {
                         .frame(minHeight: 44)
                 }
             }
+            .scrollContentBackground(.hidden)
+            .background(CYColor.bgPage)
             .appNavigationTitle("auth.channels.title")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
