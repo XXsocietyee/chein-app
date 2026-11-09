@@ -19,6 +19,8 @@ public struct CYConfirmSheet: View {
     private let consequences: [CYConfirmConsequence]
 
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @ScaledMetric(relativeTo: .body) private var iconWidth: CGFloat = 24
 
     public init(title: String, message: String, confirmTitle: String,
                 isDestructive: Bool = false, confirmIdentifier: String? = nil,
@@ -82,7 +84,7 @@ public struct CYConfirmSheet: View {
                             Image(systemName: item.systemImage)
                                 .font(CYTypography.body)
                                 .foregroundStyle(CYColor.textSecondary)
-                                .frame(width: 24)
+                                .frame(width: iconWidth)
                                 .accessibilityHidden(true)
                             Text(item.text)
                                 .font(CYTypography.body)
@@ -121,7 +123,7 @@ public struct CYConfirmSheet: View {
             .padding(CYSpacing.lg)
             .background(CYColor.bgElevated)
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents(dynamicTypeSize.isAccessibilitySize ? [.large] : (consequences.isEmpty ? [.fraction(0.36), .large] : [.medium, .large]))
         .presentationDragIndicator(.visible)
     }
 }

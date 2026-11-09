@@ -159,6 +159,7 @@ struct ClubGovernanceReadView: View {
     @Environment(\.clubStoryTemplates) private var storyTemplates
     @Environment(\.clubTerminalSessions) private var terminalSessions
     @Environment(\.clubOwnerFunds) private var ownerFunds
+    @Environment(\.locale) private var locale
     let operation: ClubGovernanceRead
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
@@ -1210,15 +1211,21 @@ struct ClubGovernanceReadView: View {
                     }
                 }
             }
-            Section("club.gov.workspace") {
+            // Mini-program club settings sheet order: 客户与项目, then 成员与权限.
+            Section(ChannelCopy.text("客户与项目", "Customers & projects", locale: locale)) {
                 if snapshot.permissions?.allows("club:member:list:read", scope: scope) == true { enrollmentLink() }
-                ForEach([ClubGovernanceRead.stats, .customers, .settlement, .eventTopics, .series, .bans, .cases, .roles, .audienceCounts, .topics, .editions, .dissolutionBlockers, .leaderboard, .posts], id: \.rawValue) { read in
+                ForEach([ClubGovernanceRead.customers, .stats, .settlement, .eventTopics, .series, .topics, .editions, .leaderboard, .posts], id: \.rawValue) { read in
                     if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                     if read == .series, ClubOpsEventAccess(permissions: snapshot.permissions, scope: scope).permitted {
                         NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
                             Label { Text("clubOpsEvent.title", tableName: "ClubOpsEvent") } icon: { Image(systemName: "calendar.badge.clock") }
                         }.accessibilityIdentifier("clubOpsEvent.open")
                     }
+                }
+            }
+            Section(ChannelCopy.text("成员与权限", "Members & permissions", locale: locale)) {
+                ForEach([ClubGovernanceRead.roles, .bans, .cases, .audienceCounts, .dissolutionBlockers], id: \.rawValue) { read in
+                    if snapshot.permissions?.allows(read.permission, scope: scope) == true { link(read) }
                 }
             }
             if let events = snapshot.permissions?.eventAccesses, !events.isEmpty {

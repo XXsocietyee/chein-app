@@ -85,13 +85,17 @@ extension EnvironmentValues {
         .onChange(of: ObjectIdentifier(reader)) { _, value in latestReaderID = value; badgePresentationID = UUID() }
     }
     @ViewBuilder private func score(_ overview: GrowthCenterOverview) -> some View {
-        Section("growth.score") {
+        Section { scoreRows(overview) } header: { growthHeader("growth.score") }
+    }
+    @ViewBuilder private func scoreRows(_ overview: GrowthCenterOverview) -> some View {
+        Group {
             if let board = overview.rank.value {
                 // Mini-program score card: the points are the one number that matters.
-                LabeledContent("growth.currentPoints") {
-                    GrowthCenterInteger(value: board.me.score).font(CYTypography.data2XL)
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("growth.currentPoints").font(.subheadline).foregroundStyle(.secondary)
+                    GrowthCenterInteger(value: board.me.score).font(.system(size: 52, weight: .heavy, design: .rounded))
                         .lineLimit(1).minimumScaleFactor(0.5)
-                }
+                }.frame(maxWidth: .infinity, alignment: .leading).padding(.vertical, 6)
                     .accessibilityElement(children: .ignore)
                     .accessibilityLabel(Text("growth.currentPoints"))
                     .accessibilityValue(pointsValue(board.me.score))
@@ -118,6 +122,9 @@ extension EnvironmentValues {
             }.frame(minHeight: 44).accessibilityIdentifier("growth.openLeaderboard")
         }
     }
+    private func growthHeader(_ key: LocalizedStringKey) -> some View {
+        Text(key).font(.title3.weight(.heavy)).textCase(nil).foregroundStyle(Color.primary).padding(.top, 8)
+    }
     @ViewBuilder private func footprint(_ overview: GrowthCenterOverview) -> some View {
         // 我的足迹 in the mini-program order: 探索值, 徽章, 完成主题, 累计距离; level sits in the header.
         Section {
@@ -141,7 +148,7 @@ extension EnvironmentValues {
             }
         } header: {
             HStack {
-                Text("growth.overview")
+                growthHeader("growth.overview")
                 Spacer(minLength: 8)
                 if let level = GrowthCenterFormatting.nonnegative(overview.center.value?.level) {
                     Text("growth.level.value \(max(1, level))").monospacedDigit()
@@ -150,7 +157,10 @@ extension EnvironmentValues {
         }
     }
     @ViewBuilder private func badges(_ overview: GrowthCenterOverview) -> some View {
-        Section("growth.badges") {
+        Section { badgeRows(overview) } header: { growthHeader("growth.badges") }
+    }
+    @ViewBuilder private func badgeRows(_ overview: GrowthCenterOverview) -> some View {
+        Group {
             if let issue = overview.center.issue { GrowthCenterIssueView(issue: issue, retry: reload) }
             else if let center = overview.center.value {
                 if center.badges.isEmpty {

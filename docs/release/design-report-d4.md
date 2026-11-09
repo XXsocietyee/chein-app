@@ -16,7 +16,7 @@ Branch `ui/d4`, rebased on `origin/ui/kit`. Builds: 0 errors (design-run.sh, one
 | Channels | d4-channels | compare-channels.png |
 | Settings | d4-settings | compare-settings.png |
 | Leaderboard | d4-leaderboard | compare-leaderboard.png |
-Growth (d4-growth) and badges (d4-badges) fixtures are registered but not yet captured; stamp album has no fixture.
+Growth/badges/stamps/enrollment/governance/operations/join: see Round 3 below.
 Note: compare left images for detail/settings/channels are nearest-available evidence, not verified 1:1 pairs.
 
 ## Changes
@@ -44,3 +44,39 @@ Compare images (in `/Users/fanning/chengyin-refs/design-reports/d4/`): `compare-
 
 Demoted: sidebar toggle with unread badge (unread now lives in the list screen), bell / flag / member-count buttons (now in the overflow menu), status chip (now caption), mute icon next to the title (now caption).
 Caveats: the "+" attachments menu is visual only (Photo/Link entries disabled; no attachment logic exists). The leave-sheet message keeps the existing localized text ("Rejoining may require approval") rather than the mini-program's "no approval needed", which may be untrue for approval clubs. Consequence-row strings are inline via ChannelCopy (zh/EN) like the channel view; not yet in ui-strings-d4.json. Join confirmation sheet and the channel list at XL not separately captured. The XL zh confirm capture predates the white-label fix on the red button.
+
+## Round 3 (leftover screens) — all through DEBUG fixtures, real views
+Compare images in `/Users/fanning/chengyin-refs/design-reports/d4/` (left = mini-program page from page-map.csv pair, then zh, EN, XL where noted); raw captures in `r3/`.
+| Screen (pair) | Fixture | Compare |
+|---|---|---|
+| Growth center (`growthcenter/index`, ref 038) | d4-growth | compare-growth.png (ref, zh, EN), compare-growth-xl.png |
+| Badge wall (`badge-wall/index`, ref 041) | d4-badges, d4-badges-empty, d4-badges-error | compare-badges.png (ref, zh, EN, error zh), compare-badges-xl.png |
+| Stamp album (`stamp-album/index`, ref 040) | d4-stamps-empty, d4-stamps | compare-stamps.png (ref, empty zh, empty EN, 3 stamps zh) |
+| Club join sheet (`club/detail`, ref 006) dark | d4-join-confirm | compare-join.png (ref, zh, EN, zh XL) |
+| Quit sheet XL zh after white-label fix | d4-confirm | compare-quit-xl.png (ref, zh default, zh XL) |
+| Enrollment (`club/enroll`) | d4-enroll | compare-enrollment.png (ref 010 settings sheet, zh, EN, zh XL) |
+| Governance workspace (`club/detail` settings sheet, ref 010) | d4-gov | compare-governance.png (ref, zh, EN) |
+| Operations / club edit (`club/edit`, ref 011) | d4-ops, d4-ops-create | compare-operations.png (ref, zh, EN) |
+| Composer | d4-channel-chat | compare-composer.png (zh, EN) |
+Fixtures: `D4MeFixture` (+badges empty/error, stamps), `D4ClubOpsFixture` (enroll/governance/operations; reuses the existing `ClubGovernanceFixtureAccess` / `ClubOperationsFixtureAccess` synthetic access), `D4ClubFixture.joinConfirm`. All `#if DEBUG`, registry names above.
+
+### Changes
+- Growth: score card is now a hero (small caption + 52 pt heavy rounded number), heavy section headers; every row, id and the leaderboard link kept (6 footprint rows, mini shows 4, nothing removed).
+- Badges: summary line first (mini order), then a segmented 列表/墙 control (was a menu row); same selection logic.
+- Stamp album: dark domain page background; empty-state camera action is a centred pill under the message (was left-aligned, detached).
+- Governance workspace: single "Manage" list split into the mini-program settings-sheet sections "客户与项目" (customers & projects) and "成员与权限" (members & permissions); same links, ids and permission gates.
+- CYConfirmSheet (kit): confirmations without consequences use a compact detent (0.36) instead of half-screen; accessibility sizes always open at `.large`; consequence icon column scales with Dynamic Type (fixes overlap at XL).
+- Enrollment and operations views were already on kit tokens from earlier rounds; captured as-is, no layout change needed.
+
+### Checklist for Round 3 screens
+1 order: growth ok (score → footprint → badges), badges ok, stamps ok, join ok, governance ok (two sections as mini), enrollment/operations ok as far as the nearest reference goes. 2 one primary: stamps empty = camera pill; join/quit = confirm pill; other screens read-only or pure navigation lists. 3 <=3 other controls: growth = refresh + leaderboard; badges = refresh + segmented; stamps = toolbar camera. 4 dark. 5 no violet. 6 kit tokens. 7 states: badges empty/error, stamps empty/with data captured; growth loading/issue states not re-captured. 8 XL captured for growth, badges, stamps(zh XL raw `r3/stamps-zh-xl.png`), join, quit, enrollment; no clipping seen (sheets scroll). 9 zh+EN for all except badges-empty and stampsfull (zh only). 10 builds 0 errors, no logic changes.
+
+### Composer + attachments menu (screen 5)
+Not made real. The "+" menu stays Photo/Link **disabled**: `ChannelDiscordMessaging` only projects *received* attachments for display; there is no upload/send-with-attachment path in Core or the channel view, so enabling the items would require new logic. The fixture channel (`club-news`, announcement + rules unaccepted) shows the locked composer text, so the open "+" menu itself was not screenshotted; compare-composer.png shows the channel header/rules row/message list only.
+
+### Open issues
+- Mini-program detail rows in the settings sheet carry a sub-line and count chips (e.g. "2 个团"); the native rows have icon + title only (no strings/data for sub-lines without new copy). Not added.
+- Operations (club edit) hero card: the banner/name block has a black lower half in the dark fixture (no cover image); reads as a clipped card.
+- Governance section titles "客户与项目 / 成员与权限" are inline (zh/EN via ChannelCopy), not yet in `ui-strings-d4.json`.
+- Growth: mini shows "总榜第 N 名" under the avatar and a hero subtitle; native shows the existing rank/percentage rows (no avatar data in the fixture).
+- CYConfirmSheet is a shared kit file; the detent/ScaledMetric change affects all callers (compact only when no consequences).
