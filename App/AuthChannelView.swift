@@ -29,9 +29,6 @@ struct AuthChannelView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    Text("auth.channels.phoneTitle")
-                        .font(.system(.largeTitle, weight: .semibold)).foregroundStyle(CYColor.textPrimary)
-                        .accessibilityAddTraits(.isHeader)
                     if domesticPhoneVisible {
                         phoneField
                         codeBoxes

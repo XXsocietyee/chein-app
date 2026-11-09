@@ -63,18 +63,22 @@ struct LoginView: View {
                     if session.operationalMarket == .china && consentGranted {
                         WeChatAppAuthSection(coordinator: session.weChatAuth, context: session.authChannelSnapshot)
                     }
-                    Button(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title")) { session.weChatAuth.cancel(); password="";showsOtherSignIn=true
-#if DEBUG
-                        recordIntegratedLoginPhase("other_action")
-#endif
-                    }
-                    .buttonStyle(.cyPrimary)
-                    .disabled(session.isWorking || !consentGranted)
-                    .accessibilityIdentifier("auth.otherChannels")
                 }
                 .padding(.horizontal, CYSpacing.pageHorizontal).padding(.bottom, CYSpacing.xxl)
             }
             .scrollDismissesKeyboard(.interactively)
+            .safeAreaInset(edge: .bottom) {
+                    Button(LocalizedStringKey(session.operationalMarket == .china ? "auth.channels.phoneTitle" : "auth.channels.title")) { session.weChatAuth.cancel(); password="";showsOtherSignIn=true
+#if DEBUG
+                    recordIntegratedLoginPhase("other_action")
+#endif
+                }
+                .buttonStyle(.cyPrimary)
+                .disabled(session.isWorking || !consentGranted)
+                .accessibilityIdentifier("auth.otherChannels")
+                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
+                .background(CYColor.bgPage)
+            }
             .scrollContentBackground(.hidden)
             .background(CYColor.bgPage)
             .themeDomain(.player)

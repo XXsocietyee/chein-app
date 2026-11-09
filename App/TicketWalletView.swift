@@ -164,6 +164,7 @@ struct TicketStubShape: Shape {
     var notch: CGFloat = 10
     func path(in rect: CGRect) -> Path {
         var p = Path(roundedRect: rect, cornerRadius: radius, style: .continuous)
+        if notchY < 0 { return p }
         let y = min(max(notchY, radius + notch), rect.height - radius - notch)
         p.addEllipse(in: CGRect(x: rect.minX - notch, y: y - notch, width: notch * 2, height: notch * 2))
         p.addEllipse(in: CGRect(x: rect.maxX - notch, y: y - notch, width: notch * 2, height: notch * 2))
@@ -189,6 +190,10 @@ private struct TicketWalletRow: View {
             [Color(red: 0.30, green: 0.34, blue: 0.16), Color(red: 0.08, green: 0.10, blue: 0.05)]]
         return sets[abs(ticket.id) % sets.count]
     }
+    private var hasStub: Bool {
+        (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
+            || (ticket.statusHintKey != nil && ticket.action == .detail) || showsPendingOrderAction
+    }
     var body: some View {
         let dimmed = ticket.status == .cancelled || ticket.status == .expired
         VStack(spacing: 0) {
@@ -207,6 +212,7 @@ private struct TicketWalletRow: View {
             }
             .background(GeometryReader { Color.clear.preference(key: TicketTopHeightKey.self, value: $0.size.height) })
             .overlay(alignment: .bottom) { Rectangle().fill(.clear).frame(height: 0) }
+            if hasStub {
             // Perforation
             Line().stroke(CYColor.textPrimary.opacity(0.22), style: StrokeStyle(lineWidth: 1.5, dash: [5, 5]))
                 .frame(height: 1).padding(.horizontal, 22)
@@ -242,9 +248,10 @@ private struct TicketWalletRow: View {
             }
             .padding(CYSpacing.lg)
             .background(CYColor.bgElevated)
+            }
         }
         .onPreferenceChange(TicketTopHeightKey.self) { topHeight = $0 }
-        .clipShape(TicketStubShape(notchY: topHeight))
+        .clipShape(TicketStubShape(notchY: hasStub ? topHeight : -1), style: FillStyle(eoFill: true))
         .opacity(dimmed ? 0.62 : 1)
         .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
         .padding(.horizontal, CYSpacing.pageHorizontal)

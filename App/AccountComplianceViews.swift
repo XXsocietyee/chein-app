@@ -283,7 +283,8 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
             DeregistrationVerificationUnavailableSection(method: model.state.status?.verificationMethod) { requestCancellationRead() }
         case .review:
             Section {
-                Text("compliance.reviewWarning")
+                Label { Text("compliance.reviewWarning").fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "exclamationmark.triangle.fill").foregroundStyle(CYColor.warningText) }
+                    .font(.body.weight(.semibold)).accessibilityIdentifier("compliance.reviewWarning")
                 Text("c08.display.42", tableName: "AccountDeregistrationPresentation")
                 if let impact = model.state.status?.impact, impact.confirmable {
                     AccountDeregistrationImpactConfirmation(revision: impact.revision) {
