@@ -198,7 +198,12 @@ struct MessagingHistoryView: View {
             }
             ToolbarItem(placement: .principal) {
                 if conversation != nil {
-                    MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
+                    HStack(spacing: CYSpacing.sm) {
+                        CYCoverArt(seed: "\(conversation?.id ?? conversationID)", systemImage: conversation?.kind == .group ? "person.3.fill" : "person.fill", symbolSize: 13)
+                            .frame(width: 28, height: 28).clipShape(Circle())
+                        MessagingConversationName(conversation: conversation).font(.headline).lineLimit(1)
+                    }
+                    .accessibilityElement(children: .combine)
                 } else { Text("messaging.history.title").font(.headline) }
             }
         }
@@ -258,6 +263,7 @@ struct MessagingHistoryView: View {
                 }
                 let dividers = IMInboxTime.dividers(for: history.messages, now: Date())
                 let accountID = loadedIdentity?.accountID ?? 0
+                let positions = ChatGrouping.positions(history.messages)
                 ForEach(history.messages) { message in
                     VStack(spacing: CYSpacing.sm) {
                         // Time is grouped: one divider per burst, not a stamp on every bubble.
@@ -270,11 +276,12 @@ struct MessagingHistoryView: View {
                                 reader: reader, identity: loadedIdentity, mediaReader: mediaReader, expanded: expanded,
                                 currentMessage: { history.messages.first { $0.id == message.id } })
                         } label: {
-                            MessagingBubble(message: message, conversation: conversation, accountID: accountID)
+                            MessagingBubble(message: message, conversation: conversation, accountID: accountID, position: positions[message.id] ?? .single)
                         }
                         .buttonStyle(.plain)
                         .accessibilityIdentifier("messaging.message.\(message.id)")
                     }
+                    .padding(.top, [.middle, .last].contains(positions[message.id] ?? .single) ? -CYSpacing.xs - 1 : 0)
                     .id(message.id)
                 }
             }
@@ -367,6 +374,7 @@ private struct MessagingBubble: View {
     let message: MessagingMessage
     let conversation: MessagingConversation?
     let accountID: Int
+    var position: ChatGroupPosition = .single
     @ScaledMetric(relativeTo: .caption) private var avatarSize: CGFloat = 28
     private var isOwn: Bool { message.senderID == accountID && accountID > 0 }
     /// Received messages show a small avatar beside the bubble; only groups add the sender name.
@@ -374,12 +382,15 @@ private struct MessagingBubble: View {
     var body: some View {
         HStack(alignment: .bottom, spacing: Theme.Space.s2) {
             if !isOwn {
-                CYCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
-                    .frame(width: avatarSize, height: avatarSize)
-                    .clipShape(Circle())
+                // Avatar sits beside the last bubble of a run; earlier ones keep the column empty.
+                if position.showsTail {
+                    CYCoverArt(seed: "\(message.senderID)", systemImage: "person.fill", symbolSize: avatarSize * 0.45)
+                        .frame(width: avatarSize, height: avatarSize)
+                        .clipShape(Circle())
+                } else { Color.clear.frame(width: avatarSize, height: 1) }
             }
-            ChatMessageBubble(isOwn: isOwn, timestamp: ChatDisplay.stamp(message.createdAt) == "—" ? nil : ChatDisplay.stamp(message.createdAt)) {
-                if isGroup && !isOwn {
+            ChatMessageBubble(isOwn: isOwn, timestamp: position.showsTail && ChatDisplay.stamp(message.createdAt) != "—" ? ChatDisplay.stamp(message.createdAt) : nil, position: position) {
+                if isGroup && !isOwn && (position == .first || position == .single) {
                     MessagingSenderName(message: message, conversation: conversation, accountID: accountID)
                 }
             } content: {
@@ -449,6 +460,19 @@ private struct MessagingBubble: View {
 }
 
 /// Unknown chat values render as an em dash. A blank server string is unknown, not zero.
+private enum ChatGrouping {
+    /// Consecutive messages from one sender form a run: first / middle / last.
+    static func positions(_ messages: [MessagingMessage]) -> [Int: ChatGroupPosition] {
+        var out: [Int: ChatGroupPosition] = [:]
+        for (i, m) in messages.enumerated() {
+            let prev = i > 0 && messages[i - 1].senderID == m.senderID
+            let next = i + 1 < messages.count && messages[i + 1].senderID == m.senderID
+            out[m.id] = prev ? (next ? .middle : .last) : (next ? .first : .single)
+        }
+        return out
+    }
+}
+
 private enum ChatDisplay {
     static let unknown = "—"
     static func stamp(_ value: String?) -> String {
