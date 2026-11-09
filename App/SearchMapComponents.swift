@@ -36,12 +36,37 @@ struct SearchMapIssue: View {
 struct SearchMapCard: View {
     let row: GlobalSearchRow
     let offline: Bool
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        QuestifyImageEntityCard(imageSource: offline ? nil : row.imageURL, title: row.title, subtitle: row.detail,
-                               fallbackTitle: "searchMap.untitled", fallbackSymbol: row.kind.symbol, minimumHeight: 230) {
-            Label(row.kind.titleKey, systemImage: row.kind.symbol)
-            if !row.tags.isEmpty { Text(verbatim: row.tags.joined(separator: " · ")) }
-        }.accessibilityElement(children: .combine)
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            if !typeSize.isAccessibilitySize {
+                E1CoverArt(seed: row.title, symbol: row.kind.symbol, imageURL: offline ? nil : row.imageURL, debugLabel: false)
+                    .frame(width: 84, height: 84)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
+                Label(row.kind.titleKey, systemImage: row.kind.symbol)
+                    .font(CYTypography.caption.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                    .padding(.horizontal, CYSpacing.sm + 2).padding(.vertical, 3)
+                    .background(Capsule(style: .continuous).fill(CYColor.bgRaised))
+                Group {
+                    if row.title.isEmpty { Text("searchMap.untitled") } else { Text(verbatim: row.title) }
+                }
+                .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                if let detail = row.detail, !detail.isEmpty {
+                    Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2)
+                }
+                if !row.tags.isEmpty {
+                    Text(verbatim: row.tags.joined(separator: " · ")).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            Image(systemName: "chevron.forward").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+        }
+        .padding(CYSpacing.md)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
+        .accessibilityElement(children: .combine)
     }
 }
 /// Match the source's local secure-storage history rather than writing queries to ordinary defaults.
