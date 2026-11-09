@@ -425,6 +425,172 @@ final class OfflinePackOperationTests: XCTestCase {
         XCTAssertEqual(fullDisk.manifest?.checksum, checksum)
     }
 
+    /// A revision identity, or `onlineRequired=false`, is not full offline play.
+    /// Answers, arrival, points and rewards stay outside this pack.
+    func testRevisionOrOnlineNotRequiredDoesNotProveFullOfflinePlay() throws {
+        let now = Date(timeIntervalSince1970: 1_900_000_000)
+        for version in ["REVISION", "RUN_SNAPSHOT", "ONLINE_LEGACY"] {
+            var fields = [
+                "packID": "pack-a", "operationID": "op-rev", "version": version,
+                "checksum": checksum, "byteSize": String(payload.count),
+                "onlineRequired": "false",
+            ]
+            let decoded = try OfflinePackOperation.decodeManifest(fields, publicPlaceIDs: [11, 22], expiresAt: later)
+            fields.removeValue(forKey: "onlineRequired")
+            let withoutFlag = try OfflinePackOperation.decodeManifest(fields, publicPlaceIDs: [11, 22], expiresAt: later)
+            XCTAssertEqual(decoded, withoutFlag)
+            XCTAssertEqual(decoded.version, version)
+            var pack = OfflinePackOperation()
+            try pack.startDownload(decoded, at: now)
+            try pack.finishDownload(payload: payload)
+            XCTAssertEqual(pack.phase, .ready)
+            var scoring = pack
+            XCTAssertEqual(waiting { try scoring.scoreT41() },
+                           .waitingSource(capability: OfflinePackSourceInventory.t41ScoringWriter))
+            var loop = pack
+            XCTAssertEqual(waiting { try loop.proveT41FullLoop() },
+                           .waitingSource(capability: OfflinePackSourceInventory.t41FullLoop))
+            var writer = pack
+            XCTAssertEqual(waiting { try writer.commitOriginalWriter() },
+                           .waitingSource(capability: OfflinePackSourceInventory.qmodFinalOpsContract))
+            var resume = pack
+            XCTAssertEqual(waiting { try resume.resumeViaVol12Writer() },
+                           .waitingSource(capability: OfflinePackSourceInventory.vol12ResumeWriter))
+            XCTAssertEqual(pack.phase, .ready)
+            XCTAssertEqual(scoring.phase, .waitingSource)
+            XCTAssertFalse(OfflinePackSourceInventory.t41FullLoopProven)
+            let publicJSON = try JSONSerialization.data(withJSONObject: fields)
+            var republish = OfflinePackOperation()
+            try republish.startDownload(decoded, at: now)
+            XCTAssertThrowsError(try republish.finishDownload(payload: publicJSON)) { error in
+                XCTAssertEqual(error as? OfflinePackFailure, .corrupt)
+            }
+            XCTAssertEqual(republish.phase, .corrupt, "公开清单 JSON 重算不是已校验载荷")
+            XCTAssertNotEqual(republish.phase, .ready)
+        }
+    }
+
+    func testMissingChecksumStaysUnverified() throws {
+        XCTAssertThrowsError(try OfflinePackOperation.decodeManifest(
+            ["packID": "pack-a", "operationID": "op-1", "version": "pack-v1", "byteSize": String(payload.count)],
+            publicPlaceIDs: [11], expiresAt: later)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .invalidManifest)
+        }
+        XCTAssertNil(OfflinePackManifest(
+            packID: "pack-a", operationID: "op-1", version: "pack-v1", byteSize: payload.count,
+            checksum: "", publicPlaceIDs: [11], expiresAt: later))
+        XCTAssertNil(OfflinePackManifest(
+            packID: "pack-a", operationID: "op-1", version: "pack-v1", byteSize: payload.count,
+            checksum: String(repeating: "a", count: 63), publicPlaceIDs: [11], expiresAt: later))
+        var pack = OfflinePackOperation()
+        XCTAssertEqual(pack.phase, .idle)
+        XCTAssertNil(pack.operationID)
+    }
+
+    func testExpiredStartDoesNotOccupyThenLaterManifestCanStart() throws {
+        let expired = try XCTUnwrap(OfflinePackManifest(
+            packID: "pack-a", operationID: "op-old", version: "pack-v1", byteSize: payload.count,
+            checksum: checksum, publicPlaceIDs: [11, 22], expiresAt: Date(timeIntervalSince1970: 10)))
+        var pack = OfflinePackOperation()
+        XCTAssertThrowsError(try pack.startDownload(expired, at: Date(timeIntervalSince1970: 10))) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .expired)
+        }
+        XCTAssertEqual(pack.phase, .idle, "过期清单 start 不得占下载")
+        XCTAssertNil(pack.operationID, "过期清单 start 不得占 operationID")
+        XCTAssertNil(pack.manifest)
+        XCTAssertEqual(pack.failure, .expired)
+        try pack.startDownload(try manifest(), at: Date(timeIntervalSince1970: 1_900_000_000))
+        XCTAssertEqual(pack.phase, .downloading)
+        XCTAssertEqual(pack.operationID, "op-1")
+        XCTAssertNil(pack.failure)
+    }
+
+    func testMismatchedContractAndMissingBytesDoNotFinish() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        let wrongChecksum = String(repeating: "b", count: 64)
+        let mismatched = MatchingArtifactSource(contract: try XCTUnwrap(OfflinePackPublishedContract(
+            packID: "pack-b", version: "pack-v9", checksum: wrongChecksum, locator: "approved-handle")), bytes: payload)
+        XCTAssertThrowsError(try OfflinePackPayloadConsumer.accept(&pack, from: mismatched)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .waitingSource(capability: OfflinePackPayloadConsumer.missingArtifact))
+        }
+        XCTAssertEqual(mismatched.reads, 0)
+        XCTAssertEqual(pack.phase, .downloading)
+        XCTAssertEqual(pack.operationID, "op-1")
+        let missingBytes = NilByteArtifactSource(contract: try XCTUnwrap(OfflinePackPublishedContract(
+            packID: "pack-a", version: "pack-v1", checksum: checksum, locator: "approved-handle")))
+        XCTAssertThrowsError(try OfflinePackPayloadConsumer.accept(&pack, from: missingBytes)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .waitingSource(capability: OfflinePackSourceInventory.payloadConsumer))
+        }
+        XCTAssertEqual(missingBytes.byteReads, 1)
+        XCTAssertEqual(pack.phase, .downloading)
+        XCTAssertNotEqual(pack.phase, .ready)
+        XCTAssertEqual(pack.manifest?.version, "pack-v1")
+    }
+
+    func testExpiredOrForeignUpdateDoesNotCoverVerifiedPack() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        let foreign = try XCTUnwrap(OfflinePackManifest(
+            packID: "pack-b", operationID: "op-1", version: "pack-v2", byteSize: payload.count,
+            checksum: checksum, publicPlaceIDs: [11, 22], expiresAt: later))
+        XCTAssertThrowsError(try pack.applyUpdate(foreign, keepOld: true)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .operationMismatch)
+        }
+        XCTAssertEqual(pack.phase, .ready)
+        XCTAssertEqual(pack.manifest?.packID, "pack-a")
+        XCTAssertEqual(pack.manifest?.version, "pack-v1")
+        XCTAssertNil(pack.snapshot?.retainedPriorVersion)
+        let due = Date(timeIntervalSince1970: 1_900_000_000)
+        let stale = try XCTUnwrap(OfflinePackManifest(
+            packID: "pack-a", operationID: "op-1", version: "pack-v2", byteSize: payload.count,
+            checksum: checksum, publicPlaceIDs: [11, 22], expiresAt: due))
+        XCTAssertThrowsError(try pack.applyUpdate(stale, keepOld: false, at: due)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .expired)
+        }
+        XCTAssertEqual(pack.phase, .ready, "过期更新不得覆盖已校验版本")
+        XCTAssertEqual(pack.manifest?.version, "pack-v1")
+        XCTAssertNil(pack.snapshot?.retainedPriorVersion)
+        var short = payload
+        short.removeLast()
+        try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
+        XCTAssertThrowsError(try pack.finishUpdate(payload: short)) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .corrupt)
+        }
+        XCTAssertEqual(pack.phase, .ready)
+        XCTAssertEqual(pack.manifest?.version, "pack-v1")
+    }
+
+    func testFinishUpdateWithoutBytesDoesNotInstall() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        try pack.applyUpdate(try manifest(version: "pack-v2"), keepOld: true)
+        XCTAssertThrowsError(try pack.finishUpdate()) { error in
+            XCTAssertEqual(error as? OfflinePackFailure, .waitingSource(capability: OfflinePackSourceInventory.payloadConsumer))
+        }
+        XCTAssertEqual(pack.phase, .updating)
+        XCTAssertNotEqual(pack.phase, .ready)
+        XCTAssertEqual(pack.manifest?.version, "pack-v2")
+        XCTAssertEqual(pack.snapshot?.retainedPriorVersion, "pack-v1")
+        XCTAssertEqual(pack.operationID, "op-1")
+    }
+
+    func testReadyPackRecordDoesNotCarryServerOutcomes() throws {
+        var pack = OfflinePackOperation()
+        try pack.startDownload(try manifest())
+        try pack.finishDownload(payload: payload)
+        let record = try roundTripRecord(pack)
+        let object = try XCTUnwrap(JSONSerialization.jsonObject(with: JSONEncoder().encode(record)) as? [String: Any])
+        XCTAssertEqual(object["phase"] as? String, "ready")
+        for key in ["answer", "answers", "arrival", "payment", "score", "reward", "settlement",
+                    "onlineRequired", "entitlement", "accountID", "token", "authorization"] {
+            XCTAssertNil(object[key], key)
+        }
+        XCTAssertFalse(object.keys.contains { $0.lowercased().contains("http") })
+    }
+
     // Codable roundtrip only. This does not create, install or prove a retained file.
     private func roundTripRecord(_ operation: OfflinePackOperation) throws -> OfflinePackOperationRecord {
         let record = try XCTUnwrap(operation.operationRecord())
@@ -453,5 +619,16 @@ private final class MatchingArtifactSource: OfflinePackArtifactSource {
     func bytes(matching contract: OfflinePackPublishedContract) -> Data? {
         reads += 1
         return payload
+    }
+}
+
+private final class NilByteArtifactSource: OfflinePackArtifactSource {
+    let contract: OfflinePackPublishedContract
+    var byteReads = 0
+    init(contract: OfflinePackPublishedContract) { self.contract = contract }
+    func publishedContract(operationID: String) -> OfflinePackPublishedContract? { contract }
+    func bytes(matching contract: OfflinePackPublishedContract) -> Data? {
+        byteReads += 1
+        return nil
     }
 }

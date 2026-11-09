@@ -85,4 +85,25 @@ final class RegionalConfigurationTests: XCTestCase {
             XCTAssertFalse(config.availableCapabilities.contains(.usernamePassword))
         }
     }
+    /// An empty URL stays unconfigured. Approvals must not fill in a host or open a request.
+    func testEmptyAPIURLStaysUnconfiguredEvenWhenApprovalsExist() throws {
+        let approvals: [RegionalMarket: Set<String>] = [.china: [cnURL], .unitedStates: [usURL]]
+        for market in RegionalMarket.allCases {
+            let omitted = try RegionalConfiguration(market: market, baseURL: nil, approvedBaseURLs: approvals,
+                                                    verifiedCapabilities: Set(RegionalCapability.allCases))
+            XCTAssertNil(omitted.apiConfiguration)
+            XCTAssertEqual(omitted.availability(of: .domesticChinaPhone), market == .china ? .backendNotConfigured : .notRequested)
+            XCTAssertTrue(omitted.availableCapabilities.isEmpty)
+            for raw in ["", " ", "\n", "\t"] {
+                let empty = try RegionalConfiguration(market: market, baseURL: raw, approvedBaseURLs: approvals,
+                                                      verifiedCapabilities: [.domesticChinaPhone])
+                XCTAssertNil(empty.apiConfiguration)
+                XCTAssertThrowsError(try RegionalSessionStorageScope(
+                    configuration: empty, bundleIdentifier: "com.questify.synthetic", realm: "cn-prod")) { error in
+                    XCTAssertEqual(error as? APIError, .invalidConfiguration)
+                }
+            }
+        }
+        XCTAssertNil(URL(string: ""))
+    }
 }
