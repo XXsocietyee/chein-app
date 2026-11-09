@@ -76,6 +76,7 @@ import SwiftUI
         .onChange(of: to) { _, _ in retireRead() }
         .onChange(of: phase) { _, value in if value != .active { retireRead() } }
         .onChange(of: model.isCurrent) { _, value in if !value { retireRead() } }
+        .cyGroupedSurface()
         .navigationTitle(Text("search.title", tableName: "NativeChannelMessage"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .onDisappear { retireRead() }

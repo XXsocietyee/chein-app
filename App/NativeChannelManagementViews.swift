@@ -131,6 +131,7 @@ private func ncmPageLabel(_ key: String, systemImage: String) -> some View {
             } else { NativeChannelManagementUnavailableView() }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(ncmText("directory"))
         .navigationDestination(item: selection.binding) { id in
             let visit = selection.route(for: id, parentCurrent: parentRouteIsActive)
@@ -312,6 +313,7 @@ private func ncmPageLabel(_ key: String, systemImage: String) -> some View {
             } else { NativeChannelManagementUnavailableView() }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(model.detail?.id == channelID ? Text(verbatim: model.detail?.name ?? "") : ncmText("detail"))
         .task(id: channelID) { await model.loadDetail(channelID) }
         .sheet(isPresented: progressVisit) {
@@ -398,6 +400,7 @@ private func ncmPageLabel(_ key: String, systemImage: String) -> some View {
             } else { NativeChannelManagementUnavailableView() }
         }
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(ncmText(channel == nil ? "create" : "settings"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { ncmText("close") } } }
         .sheet(isPresented: $reviews) {
@@ -469,6 +472,7 @@ private func ncmPageLabel(_ key: String, systemImage: String) -> some View {
         .formStyle(.grouped)
         .font(Theme.Font.body)
         .nativeChannelFlowPage()
+        .cyGroupedSurface()
         .navigationTitle(ncmText("review"))
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { model.cancelPreparation(); dismiss() } label: { ncmText("cancel") } } }
         .interactiveDismissDisabled(model.busy)

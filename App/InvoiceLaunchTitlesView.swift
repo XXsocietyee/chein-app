@@ -12,7 +12,8 @@ import SwiftUI
             }
             if let overview = model.overview {
                 if overview.titles.isEmpty {
-                    ContentUnavailableView { Label { invoiceText("noTitles") } icon: { Image(systemName: "person.text.rectangle") } }
+                    CYEmptyState(systemImage: "person.text.rectangle", "noTitles", tableName: "InvoiceLaunchUI")
+                        .frame(maxWidth: .infinity).listRowBackground(Color.clear)
                 }
                 ForEach(overview.titles, id: \.id) { title in
                     Section {

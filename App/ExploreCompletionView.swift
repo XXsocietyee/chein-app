@@ -81,7 +81,7 @@ struct ExploreCompletionProvider {
                 ExploreCompletionView(target: target.request, reader: provider.reader, identity: provider.owner.readIdentity,
                                       isCurrent: { provider.matches(origin: origin) })
                     .id(target.id)
-            } else { ContentUnavailableView("exploreCompletion.changed", systemImage: "lock") }
+            } else { CYEmptyState(systemImage: "lock", "exploreCompletion.changed") }
         }
     }
     private func retire() { selected = nil; presentationID = UUID() }
@@ -103,8 +103,8 @@ struct ExploreCompletionProvider {
         let renderedPresentation = model.presentationID
         List {
             if !isCurrent() || reader.identity != identity || !reader.isConfigured {
-                ContentUnavailableView("exploreCompletion.changed", systemImage: "lock")
-            } else if model.isLoading { ProgressView("exploreCompletion.loading") }
+                CYEmptyState(systemImage: "lock", "exploreCompletion.changed")
+            } else if model.isLoading { CYSkeleton().accessibilityLabel(Text("exploreCompletion.loading")) }
             else if let error = model.error {
                 Section {
                     if case ExploreCompletionFailure.rejected(_, let message) = error, let message, !message.isEmpty {
@@ -120,10 +120,10 @@ struct ExploreCompletionProvider {
                 }
             } else if let value = model.value {
                 if value.hasTopic { facts(value) }
-                else { ContentUnavailableView("exploreCompletion.noTopic", systemImage: "questionmark.folder") }
-            } else { ProgressView("exploreCompletion.loading") }
-            Section { Text("exploreCompletion.readOnly").font(.footnote).foregroundStyle(.secondary) }
-        }
+                else { CYEmptyState(systemImage: "questionmark.folder", "exploreCompletion.noTopic") }
+            } else { CYSkeleton().accessibilityLabel(Text("exploreCompletion.loading")) }
+            Section { Text("exploreCompletion.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+        }.cyGroupedSurface()
         .navigationTitle("exploreCompletion.title")
         .privacySensitive()
         .onAppear { model.beginPresentation() }
@@ -148,9 +148,14 @@ struct ExploreCompletionProvider {
     }
     @ViewBuilder private func facts(_ value: ExploreCompletionSnapshot) -> some View {
         Section("exploreCompletion.progress") {
-            Text(LocalizedStringKey(value.completed ? "exploreCompletion.completed" : "exploreCompletion.inProgress"))
+            CYStatusChip(LocalizedStringKey(value.completed ? "exploreCompletion.completed" : "exploreCompletion.inProgress"),
+                         tone: value.completed ? .success : .info, systemImage: value.completed ? "checkmark.seal.fill" : "hourglass")
             if value.requiredChapterCount > 0 {
-                LabeledContent("exploreCompletion.collected", value: "\(value.redeemedChapterCount)/\(value.requiredChapterCount)")
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: "\(value.redeemedChapterCount)/\(value.requiredChapterCount)")
+                        .font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                    Text("exploreCompletion.collected").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                }.accessibilityElement(children: .combine)
             }
         }
         Section("exploreCompletion.stamps") {

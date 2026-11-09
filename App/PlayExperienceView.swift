@@ -64,7 +64,7 @@ import SwiftUI
                         }
                     }.frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-            } else { ContentUnavailableView("playMode.unavailable", systemImage: "questionmark.circle") }
+            } else { CYEmptyState(systemImage: "questionmark.circle", "playMode.unavailable") }
         }
         .privacySensitive().appNavigationTitle(key: model.gameplayMode == .freeExploration ? "playFree.title" : "playx.title")
         .navigationBarTitleDisplayMode(.inline)

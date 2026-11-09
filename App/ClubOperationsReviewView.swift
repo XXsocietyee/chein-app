@@ -30,6 +30,7 @@ struct ClubOperationsReviewView: View {
                 }
             }.listRowBackground(canSubmit && !isExample ? Color.clear : nil)
         }
+        .cyGroupedSurface()
         .navigationTitle("club.ops.review")
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

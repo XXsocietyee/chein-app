@@ -93,7 +93,7 @@ import UIKit
                     } else { Text("playx.director.recapPending") }
                 }
             }
-        }.privacySensitive().navigationTitle("playx.director.title").accessibilityIdentifier("playx.director.view")
+        }.cyGroupedSurface().privacySensitive().navigationTitle("playx.director.title").accessibilityIdentifier("playx.director.view")
             .task { await model.load() }
             .sheet(item: $editor) { action in
                 if let projection = model.projection {
@@ -172,7 +172,7 @@ import UIKit
                 if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
                 Button("playx.review") { prepare() }.accessibilityIdentifier("playx.director.review")
             }
-        }.navigationTitle("playx.director.title")
+        }.cyGroupedSurface().navigationTitle("playx.director.title")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }
             .confirmationDialog("playx.review", isPresented: $confirm, titleVisibility: .visible) {
                 Button("playx.submit") { if let draft { submit(draft) } }

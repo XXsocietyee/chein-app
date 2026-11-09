@@ -148,7 +148,7 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                                 if option.enabled, let count = option.count {
                                     ClubOpsJoinNotifyCopy.people(count).monospacedDigit().foregroundStyle(.secondary)
                                 }
-                                Image(systemName: "checkmark").foregroundStyle(Color.accentColor)
+                                Image(systemName: "checkmark").foregroundStyle(CYColor.textPrimary)
                                     .opacity(selection == option.id ? 1 : 0).accessibilityHidden(true)
                             }
                             // Mini-program row-desc: why an event-only audience can't be picked here.

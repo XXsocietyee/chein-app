@@ -19,7 +19,7 @@ struct MessagingHomeView: View {
             if let coopInviteStrip { coopInviteStrip().padding(.horizontal) }
             MessagingConversationListView(reader:reader,mediaReader:mediaReader,senderForConversation:senderForConversation,expanded:expanded,squareDestination:squareDestination).id(identity)
         }.appNavigationTitle("messaging.title")
-        .navigationBarTitleDisplayMode(.inline)
+        .navigationBarTitleDisplayMode(.large)
         .themeDomain(.player)
     }
 }
@@ -49,7 +49,6 @@ private struct MessagingConversationListView: View {
             let summary = IMInboxSummary(conversations: conversations)
             let tab = currentTab
             List {
-                Section { CYHeroHeader("messaging.title") }.listRowBackground(Color.clear)
                 Section {
                     Picker("messaging.scope", selection: Binding(get: { currentTab }, set: { selectedTab = $0 })) {
                         ForEach(MessagingSegment.allCases, id: \.self) { item in
@@ -95,6 +94,7 @@ private struct MessagingConversationListView: View {
                     }
                 }
             }
+            .cyGroupedSurface()
             .listStyle(.insetGrouped)
             .toolbar {
                 // Leading on the tab root (no Back button here) so the trailing side keeps two actions.

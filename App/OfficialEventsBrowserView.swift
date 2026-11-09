@@ -21,8 +21,10 @@ import SwiftUI
                     // Source order: search (hidden on "mine"), chip tabs, then the summary row.
                     if bucket.isSearchable {
                         TextField("official.search", text: $keyword)
-                            .textFieldStyle(.roundedBorder).submitLabel(.search)
-                            .frame(minHeight: 44).accessibilityIdentifier("official.search")
+                            .textFieldStyle(.plain).submitLabel(.search)
+                            .padding(.horizontal, CYSpacing.lg)
+                            .frame(minHeight: 44)
+                            .background(CYColor.bgElevated, in: Capsule()).accessibilityIdentifier("official.search")
                     }
                     Picker("official.filter", selection: $bucket) {
                         ForEach(OfficialEventBucket.allCases) { value in

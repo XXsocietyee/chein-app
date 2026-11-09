@@ -66,6 +66,7 @@ struct ActivityDetailView: View {
     var peopleProfile: ActivityPeopleProfileContext? = nil
     var requiredClubDestination: ((Int, @escaping () -> Bool) -> AnyView)? = nil
     var hostCancelAccess: (any ActivityHostCancelAccess)? = nil
+    @Environment(\.locale) private var locale
     @State private var loadedPeopleSnapshotID: UUID?
     @State private var loadedProfileIdentity: SocialAccountIdentity?
     @State private var profileSelection: ActivityPersonProfileSelection?
@@ -97,7 +98,7 @@ struct ActivityDetailView: View {
         // Group with nil access produces EmptyView, which cannot host the initial task.
         // Keep one concrete root for the task and navigation title through every state.
         ZStack {
-            if loading { ProgressView("activity.loading") }
+            if loading { ScrollView { CYLoadingStateView(rows: 2).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading")) }
             else if failed {
                 ContentUnavailableView {
                     Label {
@@ -123,7 +124,7 @@ struct ActivityDetailView: View {
                 case .allowed(let detail):
                     detailContent(detail)
                 }
-            } else { ProgressView("activity.loading") }
+            } else { ScrollView { CYLoadingStateView(rows: 2).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading")) }
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
@@ -210,7 +211,9 @@ struct ActivityDetailView: View {
     private func detailContent(_ detail:ActivityDetail) -> some View {
         List {
             Section {
-                ActivityDetailHeader(summary:detail.summary)
+                E1ActivityHero(summary:detail.summary)
+                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                E1ActivityInfoCard(detail:detail)
                     .questifyCardListRow()
             }
             if detail.isCancelled {
@@ -227,7 +230,6 @@ struct ActivityDetailView: View {
                 }
             }
             // Source meta block (分类 / 集合点 / 已报名) sits after the cancellation notice.
-            ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))
             if let topicID = detail.summary.linkedTopicID, let topicDestination {
                 Section {
                     NavigationLink { topicDestination(topicID) } label: {
@@ -268,7 +270,7 @@ struct ActivityDetailView: View {
                         .questifyCardListRow()
                 }
             }
-            Section("activity.tickets") {
+            Section {
                 if detail.tickets.isEmpty {
                     // Source empty ticket copy: title plus host explanation.
                     Text("activity.source.noTickets")
@@ -278,7 +280,7 @@ struct ActivityDetailView: View {
                     ActivityTicketCard(ticket:ticket)
                         .questifyCardListRow()
                 }
-            }
+            } header: { E1IconHeader(systemImage: "ticket", title: CoreLoopCopy(locale: locale).t("选择票种", "Tickets")) }
             ActivityReviewsSection(reviews: detail.reviews)
             Section {
                 Button("context.review.title", systemImage: "square.and.pencil") { showsReview = true }.accessibilityIdentifier("activity.openReview")
@@ -372,6 +374,7 @@ struct ActivityDetailView: View {
         .frame(maxWidth:.infinity)
         .padding(.horizontal,Theme.Space.pageX)
         .padding(.vertical,Theme.Space.s2)
+        .background(.bar)
     }
     private func primaryActionLabel(_ action: ActivityPrimaryAction) -> some View {
         Text(LocalizedStringKey(action.titleKey))

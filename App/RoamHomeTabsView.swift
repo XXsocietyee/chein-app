@@ -275,7 +275,7 @@ struct RoamEntryCover: View {
         NavigationStack {
             Group {
                 if !isCurrent() {
-                    ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise")
+                    CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed")
                         .accessibilityIdentifier("roam.home.sheet.stale")
                 } else {
                     List {
@@ -317,7 +317,7 @@ struct RoamEntryCover: View {
         if let destination = card.destination, let eventDestination {
             NavigationLink {
                 if isCurrent() { eventDestination(destination) }
-                else { ContentUnavailableView("roamEvent.changed", systemImage: "arrow.clockwise") }
+                else { CYEmptyState(systemImage: "arrow.clockwise", "roamEvent.changed") }
             } label: { Text(title).bold() }.disabled(!isCurrent()).accessibilityIdentifier(identifier)
         } else {
             Text(title).foregroundStyle(.secondary).accessibilityIdentifier(identifier)

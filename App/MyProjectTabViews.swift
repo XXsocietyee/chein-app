@@ -59,7 +59,8 @@ extension EnvironmentValues {
                     Label("myProject.template.open", systemImage: "square.stack.3d.up")
                 }.accessibilityIdentifier("myProject.template.open")
             } else {
-                Text("myProject.template.unavailable").accessibilityIdentifier("myProject.template.unavailable")
+                CYEmptyState(systemImage: "square.stack.3d.up.slash", "myProject.template.unavailable", messageIdentifier: "myProject.template.unavailable")
+                    .frame(maxWidth: .infinity).listRowBackground(Color.clear)
             }
         }
     }
@@ -80,6 +81,7 @@ extension EnvironmentValues {
             } actions: {
                 if !merchantScopeAccess.isBrowseOnly, let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
                     NavigationLink { entry.make() } label: { Text(LocalizedStringKey(cta)) }
+                        .buttonStyle(.cyPrimary(fullWidth: false))
                         .accessibilityIdentifier("myProject.emptyCTA." + type)
                 }
             }.accessibilityIdentifier("myProject.empty." + type)
@@ -105,8 +107,8 @@ extension EnvironmentValues {
     var body: some View {
         if let notice = merchantScopeAccess.browseOnlyNotice {
             Text(verbatim: notice)
-                .font(.caption)
-                .foregroundStyle(.secondary)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("myProject.merchant.browseOnlyNotice")
         }
     }

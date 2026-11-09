@@ -103,7 +103,7 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier(effectiveReduceMotion ? "roam.motion.status.reduced" : "roam.motion.status.system")
             }
-        }.navigationTitle("roam.experience.title")
+        }.cyGroupedSurface().navigationTitle("roam.experience.title")
             .onAppear { passport.load(reader: reader) }
             .onChange(of: RoamPassportReadOwner(reader: reader)) { _, _ in passport.load(reader: reader) }
             .refreshable { passport.load(reader: reader) }
@@ -241,7 +241,7 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
                 else if !reader.isConfigured { Text("roam.notConfigured") }
                 } else { ProgressView("roam.loading") }
             }
-        }.navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
+        }.cyGroupedSurface().navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
             .refreshable { await refresh() }
             .onAppear { presentation.appear(foreground: scenePhase == .active) }
             .onChange(of: scenePhase) { _, phase in presentation.setForeground(phase == .active) }

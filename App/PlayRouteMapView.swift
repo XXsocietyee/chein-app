@@ -122,7 +122,7 @@ struct RouteActionPageReadRequest {
                 Button("playRoute.back") { selected = nil; dismiss() }
                     .accessibilityIdentifier("playRoute.back")
             }
-        }
+        }.cyGroupedSurface()
         .privacySensitive().appNavigationTitle(key: "playRoute.title")
         .navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playRoute.screen")
         .navigationDestination(item: $selected) { choice in

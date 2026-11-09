@@ -19,6 +19,7 @@ enum DesignFixtureReleaseExclusionAudit {
         "D4MemoryBlockedStore",
         "DesignFixtureRegistry",
         "DesignFixtureReleaseExclusionAudit",
+        "E5Fixtures",
         "KitGalleryFixture",
         "LoginFixture",
         "OrdersWalletFixtures",

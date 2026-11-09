@@ -55,6 +55,14 @@ struct CYHeroHeader<Illustration: View>: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+        .cyHeroScreen()
+    }
+}
+
+extension View {
+    /// A screen that shows its title in `CYHeroHeader` must not repeat it in the bar: one visible title per screen.
+    func cyHeroScreen() -> some View {
+        navigationTitle("").navigationBarTitleDisplayMode(.inline)
     }
 }
 

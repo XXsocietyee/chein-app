@@ -49,6 +49,7 @@ import SwiftUI
             NativeChannelMessageRecoveryView(coordinator: coordinator)
         }
         .nativeChannelScreen().listStyle(.insetGrouped)
+        .cyGroupedSurface()
         .navigationTitle(Text("pins.title", tableName: "NativeChannelMessage"))
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } }

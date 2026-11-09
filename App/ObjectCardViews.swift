@@ -66,7 +66,7 @@ import ImageIO
                     }
                 }
             }
-        }
+        }.cyGroupedSurface()
         .appNavigationTitle("objects.title").navigationBarTitleDisplayMode(.inline)
         .themeDomain(.player).privacySensitive()
         .task(id: scope) {
@@ -135,7 +135,7 @@ import ImageIO
                     }
                 }
             }
-        }.appNavigationTitle("objects.item").privacySensitive()
+        }.cyGroupedSurface().appNavigationTitle("objects.item").privacySensitive()
             .accessibilityIdentifier("objects.detail")
     }
     private func move(_ step: Int) {

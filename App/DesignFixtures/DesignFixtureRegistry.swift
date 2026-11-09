@@ -21,6 +21,11 @@ enum DesignFixtureRegistry {
         case "d2-inbox": return AnyView(D2Fixture(screen: .inbox))
         case "d2-me": return AnyView(D2Fixture(screen: .me))
         case "d2-roam": return AnyView(D2Fixture(screen: .roam))
+        case "e5b-unlock": return AnyView(E5bMomentFixture(kind: .unlock))
+        case "e5b-stamp": return AnyView(E5bMomentFixture(kind: .stamp))
+        case "e5b-checkin": return AnyView(E5bMomentFixture(kind: .checkIn))
+        case "e5b-badge-wall": return AnyView(E5bBadgeWallFixture())
+        case "e5b-join": return AnyView(E5bJoinFixture())
         case "welcome": return AnyView(WelcomeFixture())
         case "welcome-menu": return AnyView(WelcomeMenuFixture())
         case "consent": return AnyView(ConsentFixture())
@@ -63,11 +68,21 @@ enum DesignFixtureRegistry {
         case "d6-live": return AnyView(D6MapFixture(kind: .live))
         // REAL RoamLiveSessionView on the synthetic RoamLiveFixture controller (offline example, no GPS/network).
         case "d6-real-live": return AnyView(D6RealLiveHost())
+        // E2 play / city / stamps / badges (E2Fixtures + aliases of D4 stamp and badge hosts)
+        case let n where n.hasPrefix("e2-") && E2FixtureKind(rawValue: String(n.dropFirst(3))) != nil:
+            return AnyView(E2Fixture(kind: E2FixtureKind(rawValue: String(n.dropFirst(3)))!))
+        case "e2-stamp-album": return AnyView(D4MeFixture(screen: .stamps))
+        case "e2-badges": return AnyView(D4MeFixture(screen: .badges))
+        case "e2-city": return AnyView(D2Fixture(screen: .city))
+        case "e2-npc": return AnyView(D2Fixture(screen: .npc))
         // D7 creator / publish (PublishDesignFixtures)
         case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
+        case let n where n.hasPrefix("e1-") && E1Fixture.make(n) != nil: return E1Fixture.make(n)!
+        case let n where n.hasPrefix("e3-") && E3Fixtures.make(n) != nil: return E3Fixtures.make(n)!
         default:
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }
+            if let e5 = MainActor.assumeIsolated({ E5Fixtures.make(name) }) { return e5 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }

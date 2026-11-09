@@ -62,7 +62,7 @@ struct RoamAreaPicker: View {
                 Section {
                     Text("roam.area.coordinateSystem").font(.footnote).foregroundStyle(.secondary)
                 }
-            }
+            }.cyGroupedSurface()
             .appNavigationTitle("roam.area.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

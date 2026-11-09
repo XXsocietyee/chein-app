@@ -45,8 +45,8 @@ import SwiftUI
                                    source: source,
                                    onClose: onClose)
             } else {
-                Text("h5.launchTicket")
-                    .multilineTextAlignment(.center).padding().frame(maxWidth: .infinity, maxHeight: .infinity)
+                CYEmptyState(systemImage: "hourglass", "h5.launchTicket")
+                    .padding().frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
         .task(id: loadIdentity) { await readBack() }

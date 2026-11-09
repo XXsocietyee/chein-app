@@ -139,7 +139,6 @@ import SwiftUI
                         switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
                     } })
                 })
-                .padding(.horizontal, CYSpacing.lg)
                 .questifyCardListRow()
             }
         }
@@ -172,6 +171,7 @@ import SwiftUI
                             .scrollTargetLayout()
                             .padding(.horizontal, CYSpacing.lg)
                         }
+                        .scrollClipDisabled()
                         .scrollTargetBehavior(.viewAligned)
                         .questifyCardListRow()
                     }

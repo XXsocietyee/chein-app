@@ -75,6 +75,7 @@ import SwiftUI
                     .accessibilityIdentifier("cooperation.loading")
             }
         }
+        .cyGroupedSurface()
         .listStyle(.insetGrouped)
         .cyMiniListScreen()
         .toolbar {

@@ -85,6 +85,7 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("squareReport.retry")
             }
         }
+        .cyGroupedSurface()
         .navigationTitle("squareReport.title").navigationBarTitleDisplayMode(.inline)
         .scrollDismissesKeyboard(.interactively).privacySensitive()
         .toolbar {

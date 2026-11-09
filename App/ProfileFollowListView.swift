@@ -67,6 +67,7 @@ import SwiftUI
                     }
                 }
             }
+            .cyGroupedSurface()
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
