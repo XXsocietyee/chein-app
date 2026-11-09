@@ -31,7 +31,14 @@ class PagesShezhiShezhiTests(unittest.TestCase):
         ]:
             self.assertIn(token, source)
         self.assertIn(DASH, source)
-        self.assertNotIn("api/", source)
+        # CB277 appends the about-page model to this file and names the uninstalled
+        # player-code path. The home model itself still opens no route.
+        home, about = source.split("public enum SettingsAboutMetadataPhase", 1)
+        self.assertNotIn("api/", home)
+        self.assertIn("public static let routeInstalled = false", about)
+        self.assertIn("public static let routeMarkedLive = false", about)
+        self.assertNotIn("routeMarkedLive = true", about)
+        self.assertNotIn("routeInstalled = true", about)
         for forbidden in [
             "showsMerchantChoice = true",
             "paymentEnabled = true",
