@@ -24,6 +24,7 @@ import SwiftUI
 @MainActor struct SettingsSignOutEntry: View {
     @ObservedObject var session: AppSession
     var onSignedOut: () -> Void
+    @Environment(\.locale) private var locale
     @State private var confirms = false
     @State private var confirmation: AuthChannelSessionSnapshot?
     var body: some View {
@@ -41,9 +42,9 @@ import SwiftUI
             }
             .sheet(isPresented: $confirms) {
                 if let expected = confirmation {
-                    CYConfirmSheet(title: String(localized: "auth.signOutConfirm"),
-                                   message: String(localized: "settings.signOut.message"),
-                                   confirmTitle: String(localized: "auth.signOut"),
+                    CYConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale),
+                                   message: appLocalized("settings.signOut.message", locale: locale),
+                                   confirmTitle: appLocalized("auth.signOut", locale: locale),
                                    isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
                         confirmation = nil; confirms = false
                         Task {

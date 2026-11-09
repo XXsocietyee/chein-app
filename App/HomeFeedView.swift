@@ -233,7 +233,7 @@ struct HomeFeedShelfCard: View {
     var body: some View {
         let date = QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone)
         // Currency + 起/From come from the shared price key; unknown price shows an em dash, never 0.
-        let price = QuestifyCardText.amount(item.amount, locale: locale).map { String(localized: "playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
+        let price = QuestifyCardText.amount(item.amount, locale: locale).map { appLocalized("playx.finishRoute.priceFrom \($0)", locale: locale) } ?? "—"
         let line = [QuestifyCardText.metaLine(date: date, place: item.place), price].compactMap { $0 }.joined(separator: " · ")
         CYImageCard(LocalizedStringKey(item.name), metaText: line,
                     imageURL: QuestifyCardArtwork.safeURL(item.imageURL), style: style)

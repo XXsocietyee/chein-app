@@ -194056,6 +194056,22 @@
         }
       }
     },
+    "settings.signOut.message": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You’ll need to sign in again on this device. Your tickets, orders and coupons stay on your account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机登录态将清除，下次进入需要重新登录。已购通行证、订单和券都保留在账号里，不会丢。"
+          }
+        }
+      }
+    },
     "settings.title": {
       "extractionState": "manual",
       "localizations": {

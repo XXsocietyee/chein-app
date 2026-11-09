@@ -270,7 +270,7 @@ extension WalletScreen where Value == WithdrawalBalance {
         NavigationStack {
             List {
                 if visibility.income {
-                    walletRow(LocalizedStringKey(String(localized: "wallet.analysis.title", table: "WalletIncomeAnalysis")), icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }
+                    walletRow(LocalizedStringKey(String(localized: LocalizedStringResource("wallet.analysis.title", table: "WalletIncomeAnalysis"))), icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }
                 }
                 if visibility.income, let invitationHistory {
                     walletRow("social.invites.title", icon: "person.2.badge.plus", id: "wallet.inviteHistory") {
