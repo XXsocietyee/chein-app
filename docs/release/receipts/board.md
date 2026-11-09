@@ -15,4 +15,4 @@
 - wire25 [x] 9b79c45a0. PR 1014. Onboarding reads MerchantOnboardingPage.project. Not merged.
 - wire21 [x] 14e2cfbda. PR 1016. Deregister reads DeregisterIndexPageModel.page. Not merged.
 - wire19 [x] f1868e9dc. PR 1015. Nearby page total reads NearbyMerchantPage.resolve. Distance line restored. Not merged.
-- wire23 sent back. PR 1017. Aftercare detail uses policyVersion as the amount value, and the copy grant defaults to true.
+- wire23 [x] 3236cb774. PR 1017. Aftercare detail reads the refund amount. A missing amount is an em dash. Not merged.
