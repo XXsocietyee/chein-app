@@ -83,14 +83,15 @@ import SwiftUI
             }
         }
         ZStack {
-            Circle().stroke(CYColor.bgRaised, lineWidth: 10)
-            Circle().trim(from: 0, to: clockProgress).stroke(CYColor.textPrimary, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                .rotationEffect(.degrees(-90))
-            Text(verbatim: clockLabel).font(.system(size: 56, weight: .bold, design: .rounded)).monospacedDigit()
+            Circle().stroke(CYColor.bgRaised, lineWidth: 14)
+            Circle().trim(from: 0, to: clockProgress).stroke(timing.phase == .measured ? (resultTone ?? CYColor.textPrimary) : CYColor.textPrimary, style: StrokeStyle(lineWidth: 14, lineCap: .round))
+                .rotationEffect(.degrees(-90)).animation(.linear(duration: 0.05), value: clockProgress)
+            Text(verbatim: clockLabel).font(.system(size: 76, weight: .bold, design: .rounded)).monospacedDigit()
                 .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.5).lineLimit(1).padding(CYSpacing.xl)
         }
-        .frame(maxWidth: 260).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
-        .sensoryFeedback(.success, trigger: timing.phase == .measured)
+        .frame(maxWidth: 300).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
+        .sensoryFeedback(.impact(weight: .medium), trigger: timing.phase == .running)
+        .sensoryFeedback(trigger: timing.phase == .measured) { _, now in now ? (stopwatchOutcome == false ? .warning : .success) : nil }
         .accessibilityElement(children: .ignore)
         .accessibilityValue(Text(verbatim: clockLabel))
         .accessibilityLabel(Text(kind == .stopwatch && running && elapsed >= 1000 ? "playkit.stopwatch.hidden" : "playkit.challenge.clock"))
@@ -103,11 +104,28 @@ import SwiftUI
                 timing.measure(now: ProcessInfo.processInfo.systemUptime); elapsed = timing.elapsedMilliseconds; typingFocused = false
             }.disabled(!enabled).accessibilityIdentifier("playkit.challenge.measure")
         }
+        if timing.phase == .measured, kind == .stopwatch, let card = stopwatchCard { card }
         if timing.phase == .measured {
             CYPillButton("playkit.review") { reviewMeasurement() }
                 .disabled(!enabled || (kind == .typeIn && input.isEmpty)).accessibilityIdentifier("playkit.challenge.submit")
         }
         if !validConfiguration { CYEmptyState(systemImage: "exclamationmark.triangle", "playkit.configurationInvalid") }
+    }
+    /// Local pre-review readout only; the server still grades the submission. Unknown tolerance gives a neutral card, never a verdict.
+    private var stopwatchOutcome: Bool? {
+        guard kind == .stopwatch, timing.phase == .measured, let tolerance = segment["toleranceMs"].integer else { return nil }
+        return abs(timing.elapsedMilliseconds - Int(seconds * 1000)) <= tolerance
+    }
+    private var resultTone: Color? {
+        guard let outcome = stopwatchOutcome else { return nil }
+        return outcome ? CYColor.successText : CYColor.warningText
+    }
+    private var stopwatchCard: PlayTimedResultCard? {
+        let stopped = timing.elapsedMilliseconds, diff = stopped - Int(seconds * 1000)
+        return PlayTimedResultCard(outcome: stopwatchOutcome,
+            value: PlayTimedDisplayLocalization.seconds(Double(stopped) / 1000, locale: locale),
+            target: PlayTimedDisplayLocalization.seconds(seconds, locale: locale),
+            delta: (diff >= 0 ? "+" : "−") + PlayTimedDisplayLocalization.seconds(Double(abs(diff)) / 1000, locale: locale))
     }
     private var validConfiguration: Bool {
         if kind == .reaction { return true }
@@ -136,13 +154,19 @@ import SwiftUI
             Button {
                 reaction.tap(now: ProcessInfo.processInfo.systemUptime); onDirty()
             } label: {
-                VStack(spacing: CYSpacing.md) {
-                    Image(systemName: reaction.phase == .signal ? "hand.tap.fill" : "hourglass")
-                    CYStatusChip(reaction.phase == .signal ? "playkit.reaction.tap" : "playkit.reaction.wait",
-                                 tone: reaction.phase == .signal ? .success : .warning)
-                }.frame(maxWidth: .infinity, minHeight: 240)
+                let go = reaction.phase == .signal
+                ZStack {
+                    Circle().fill(go ? CYColor.successText : CYColor.bgElevated)
+                    Circle().strokeBorder(go ? Color.white.opacity(0.5) : CYColor.borderStrong, lineWidth: 4)
+                    VStack(spacing: CYSpacing.sm) {
+                        Image(systemName: go ? "hand.tap.fill" : "hourglass").font(.system(size: 44, weight: .semibold))
+                        Text(go ? "playkit.reaction.tap" : "playkit.reaction.wait").font(CYTypography.sectionTitle)
+                    }.foregroundStyle(go ? Color.black : CYColor.textSecondary).padding(CYSpacing.lg)
+                }
+                .frame(maxWidth: 300).aspectRatio(1, contentMode: .fit).frame(maxWidth: .infinity)
             }
-            .buttonStyle(CYPillButtonStyle(style: reaction.phase == .signal ? .primary : .secondary))
+            .buttonStyle(.plain)
+            .sensoryFeedback(.impact(weight: .heavy), trigger: reaction.phase == .signal)
             .disabled(!enabled).accessibilityIdentifier("playkit.reaction.target")
         } else if reaction.phase == .early || reaction.phase == .betweenRounds {
             if reaction.phase == .early { CYStatusChip("playkit.reaction.early", tone: .warning, systemImage: "exclamationmark.circle") }
@@ -150,6 +174,13 @@ import SwiftUI
         }
         ForEach(Array(reaction.roundsMilliseconds.enumerated()), id: \.offset) { index, ms in
             HStack { Text(verbatim: PlayTimedDisplayLocalization.count(index + 1, locale: locale)); Spacer(); Text(verbatim: PlayTimedDisplayLocalization.milliseconds(ms, locale: locale)).monospacedDigit() }
+        }
+        if reaction.phase == .measured, !reaction.roundsMilliseconds.isEmpty {
+            let avg = reaction.roundsMilliseconds.reduce(0, +) / reaction.roundsMilliseconds.count
+            let goal = segment["goalMs"].integer.flatMap { $0 > 0 ? $0 : nil }
+            PlayTimedResultCard(outcome: goal.map { avg <= $0 }, value: PlayTimedDisplayLocalization.milliseconds(avg, locale: locale),
+                                target: goal.map { PlayTimedDisplayLocalization.milliseconds($0, locale: locale) }, delta: nil)
+                .sensoryFeedback(.success, trigger: reaction.phase == .measured)
         }
         if reaction.phase == .measured {
             CYPillButton("playkit.review") { requestReview("SUBMIT_REACTION", ["times": .array(reaction.roundsMilliseconds.map(PlayWireValue.int))], {}) }
@@ -187,5 +218,42 @@ enum PlayTimedReactionConfiguration {
     static func makeRun(segment: PlayWireValue) -> PlayKitReactionRun {
         let rounds = segment["rounds"].integer ?? 3
         return PlayKitReactionRun(rounds: rounds > 0 ? rounds : 3)
+    }
+}
+
+
+/// Clear result card shown after a measurement and before review: icon + words + number, so colour is never the only signal.
+/// `outcome == nil` means the pass line is unknown and no verdict is claimed.
+struct PlayTimedResultCard: View {
+    let outcome: Bool?
+    let value: String
+    let target: String?
+    let delta: String?
+    @Environment(\.locale) private var locale
+    private var tone: Color { outcome == true ? CYColor.successText : outcome == false ? CYColor.warningText : CYColor.textSecondary }
+    private var icon: String { outcome == true ? "checkmark.circle.fill" : outcome == false ? "arrow.triangle.2.circlepath.circle.fill" : "stopwatch.fill" }
+    private var headline: String {
+        switch outcome {
+        case true: return ChannelCopy.text("正中目标", "Right on target", locale: locale)
+        case false: return ChannelCopy.text("差一点，再来一次", "So close, try again", locale: locale)
+        case nil: return ChannelCopy.text("你的成绩", "Your result", locale: locale)
+        }
+    }
+    var body: some View {
+        VStack(spacing: CYSpacing.sm) {
+            Image(systemName: icon).font(.system(size: 34, weight: .semibold)).foregroundStyle(tone)
+            Text(verbatim: headline).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value).font(.system(size: 44, weight: .bold, design: .rounded)).monospacedDigit()
+                .minimumScaleFactor(0.5).lineLimit(1).foregroundStyle(CYColor.textPrimary)
+            if target != nil || delta != nil {
+                Text(verbatim: [target.map { ChannelCopy.text("目标 \($0)", "Target \($0)", locale: locale) },
+                                delta.map { ChannelCopy.text("偏差 \($0)", "Off by \($0)", locale: locale) }].compactMap { $0 }.joined(separator: "  ·  "))
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+            }
+        }
+        .frame(maxWidth: .infinity).padding(CYSpacing.xl)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous).stroke(tone.opacity(0.5), lineWidth: 1))
+        .accessibilityElement(children: .combine)
     }
 }

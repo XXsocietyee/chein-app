@@ -126,6 +126,7 @@ import SwiftUI
         let retry = viewModel.readAction(), refresh = viewModel.refreshAction()
         List {
             if viewModel.isVisible {
+            CYCoverHeaderSection("roam.chapters.title", symbol: "book.pages.fill", seed: "chapters")
             Section {
                 if tickets.isOfflineExample { Text("ticketWallet.offlineExample").font(.caption) }
             }
@@ -176,16 +177,21 @@ private struct RoamEnrolledChapterRow: View {
     let ticket: TicketWalletTicket
     var showsActionNotice = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            TicketWalletTitle(title: ticket.title).font(.headline)
-            TicketWalletStatusBadge(status: ticket.status)
-            if let date = ticket.participateDate, !date.isEmpty {
-                LabeledContent("ticketWallet.participateDate", value: date).font(.caption)
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            CYCoverArt(seed: ticket.title ?? "chapter", symbol: "book.pages.fill", cornerRadius: CYRadius.md)
+                .frame(width: 72, height: 72)
+            VStack(alignment: .leading, spacing: 8) {
+                TicketWalletTitle(title: ticket.title).font(CYTypography.cardTitle)
+                TicketWalletStatusBadge(status: ticket.status)
+                if let date = ticket.participateDate, !date.isEmpty {
+                    Label(date, systemImage: "calendar").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                }
+                if showsActionNotice {
+                    Label(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue), systemImage: "info.circle")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
             }
-            if showsActionNotice {
-                Label(LocalizedStringKey("ticketWallet.action." + ticket.action.rawValue), systemImage: "info.circle")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
+            Spacer(minLength: 0)
         }.foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
             .questifyCardSurface()
     }

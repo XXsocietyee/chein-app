@@ -5,6 +5,7 @@ import SwiftUI
 /// Reach with `--design-fixture e2-<name>`. Every screen shows a labelled "DEBUG fixture" strip above the real view.
 enum E2FixtureKind: String {
     case timedStopwatch = "timed-stopwatch", timedReaction = "timed-reaction", dice, journey
+    case npcChat = "npc-chat", badgeLocked = "badge-locked", timedResult = "timed-result"
     case chapters, chaptersEmpty = "chapters-empty", stampCamera = "stamp-camera", badgeDetail = "badge-detail"
 }
 
@@ -41,11 +42,21 @@ struct E2Fixture: View {
                 Text(verbatim: "17").font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
                     .foregroundStyle(CYColor.textPrimary)
             }.padding(CYSpacing.pageHorizontal)
+        case .npcChat: ShopNPCFixtureView(enabled: true, seed: ["Where is the stamp hidden?"])
         case .journey: JourneyContentFixtureHostView()
         case .chapters: E2ChaptersHost(empty: false)
         case .chaptersEmpty: E2ChaptersHost(empty: true)
         case .stampCamera: NavigationStack { RoamStampCameraView() }
-        case .badgeDetail: E2BadgeDetailHost()
+        case .badgeDetail: E2BadgeDetailHost(locked: false)
+        case .badgeLocked: E2BadgeDetailHost(locked: true)
+        case .timedResult:
+            ScrollView {
+                VStack(spacing: CYSpacing.lg) {
+                    PlayTimedResultCard(outcome: true, value: "10.04 s", target: "10.00 s", delta: "+0.04 s")
+                    PlayTimedResultCard(outcome: false, value: "412 ms", target: "300 ms", delta: nil)
+                    PlayTimedResultCard(outcome: nil, value: "9.71 s", target: nil, delta: nil)
+                }.padding(CYSpacing.pageHorizontal)
+            }
         }
     }
 }
@@ -55,22 +66,27 @@ private struct E2ChaptersHost: View {
     @State private var roam = RoamExperienceFixtureReader(scenario: .content)
     @State private var tickets: TicketWalletFixtureReader
     init(empty: Bool) { _tickets = State(initialValue: TicketWalletFixtureReader(scenario: empty ? .empty : .content)) }
-    var body: some View { NavigationStack { RoamEnrolledChaptersView(roam: roam, tickets: tickets) } }
+    /// The nested fixture host can mount before the scene reports .active; the chapters view only reads while foreground, so pin it.
+    var body: some View { NavigationStack { RoamEnrolledChaptersView(roam: roam, tickets: tickets) }.environment(\.scenePhase, .active) }
 }
 
 private struct E2BadgeDetailHost: View {
+    let locked: Bool
     @State private var reader = ProfileFixtureReader(.success)
     @State private var badge: ProfileBadgeSelection?
+    @State private var summary: ObjectBadgeWallSummary?
     var body: some View {
         NavigationStack {
             if let badge {
-                ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: reader.identity)
+                ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: reader.identity, collection: summary)
                     .modifier(ObjectBadgeThreeDEntry(badge: badge, reader: reader, expectedIdentity: reader.identity))
             } else { CYSkeleton().padding(CYSpacing.pageHorizontal) }
         }
         .task {
             guard let wall = try? await reader.profileBadges() else { return }
-            if let medal = wall.medals?.first(where: { !$0.isAchievement }) ?? wall.medals?.first { badge = .medal(medal) }
+            summary = wall.isPartial ? nil : ObjectBadgeWallSummary(wall: wall)
+            if locked, let identity = wall.identities.first(where: { !$0.unlocked }) { badge = .identity(identity) }
+            else if let medal = wall.medals?.first(where: { !$0.isAchievement }) ?? wall.medals?.first { badge = .medal(medal) }
             else if let identity = wall.identities.first { badge = .identity(identity) }
         }
     }

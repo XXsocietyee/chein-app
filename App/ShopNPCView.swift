@@ -21,6 +21,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     private var sending: Bool { coordinator.busy }
     private var showsConversation: Bool { coordinator.active && !coordinator.isSuspended }
     private var canCompose: Bool {
@@ -33,31 +34,33 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 4) {
                 if showsConversation {
                     HStack(spacing: CYSpacing.md) {
-                        CYAvatarView(name: name, size: .md)
-                        Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        CYAvatarView(name: name, size: .md, isOnline: true)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            CYStatusChip(verbatim: ChannelCopy.text("AI 向导", "AI guide", locale: locale), tone: .info, systemImage: "sparkles")
+                        }
                     }.accessibilityElement(children: .combine)
                 }
                 else if coordinator.isSuspended { Text("shopNPC.paused") }
                 else { Text("shopNPC.stale") }
-                Text("shopNPC.disclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("shopNPC.disclosure").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
                     .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
                 SafetyDisclosureBanner(policy: safetyPolicy)
-            }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal).padding(.vertical, 8)
+            }.frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, CYSpacing.lg).padding(.vertical, 8)
+            Divider().overlay(CYColor.borderSubtle)
             ScrollViewReader { proxy in
                 ScrollView {
-                    LazyVStack(alignment: .leading, spacing: 16) {
+                    LazyVStack(alignment: .leading, spacing: 12) {
                         if coordinator.isSuspended { interruptionPanel }
                         if showsConversation {
                             if let scriptedGuide {
                                 ShopNPCScriptedGuideView(source: scriptedGuide, coordinator: coordinator, returnToNode: { dismiss() })
                             }
-                            if let greeting, !greeting.isEmpty { Text(verbatim: greeting) }
+                            if let greeting, !greeting.isEmpty { NPCChatBubble(name: name, isOwn: false) { Text(verbatim: greeting) } }
                             if !coordinator.grants.textAllowed { Text("shopNPC.disabled").accessibilityIdentifier("shopNPC.disabled") }
                             ForEach(coordinator.messages) { message in
                                 VStack(alignment: .leading, spacing: 4) {
-                                    ChatMessageBubble(isOwn: message.mine) {
-                                        Text(message.mine ? "shopNPC.you" : "shopNPC.assistant")
-                                    } content: {
+                                    NPCChatBubble(name: name, isOwn: message.mine) {
                                         if message.voiceTranscriptMissing {
                                             Text("shopNPCQuestionReuse.noTranscript")
                                         } else {
@@ -144,13 +147,16 @@ import SwiftUI
     private var composer: some View {
         VStack(alignment: .leading, spacing: 8) {
             NPCQuickQuestionBar(draft: $draft, context: .gameNode(coordinator.scope), enabled: canCompose)
-                .lineLimit(nil).fixedSize(horizontal: false, vertical: true)
-            TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
-                .lineLimit(1...3).textFieldStyle(.roundedBorder).focused($typing)
-                .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")
-            ViewThatFits(in: .horizontal) {
-                HStack { textReviewButton; voiceButton }
-                VStack(alignment: .leading) { textReviewButton; voiceButton }
+            HStack(alignment: .bottom, spacing: 8) {
+                voiceButton
+                TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
+                    .lineLimit(1...4).focused($typing)
+                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    .padding(.horizontal, 14).padding(.vertical, 10).frame(minHeight: 44)
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(CYColor.borderSubtle, lineWidth: 1))
+                    .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")
+                textReviewButton
             }
             if recording {
                 Button { capture?.cancel(); recording = false } label: {
@@ -158,12 +164,19 @@ import SwiftUI
                 }
                     .accessibilityIdentifier("shopNPC.discard")
             }
-        }.padding().background(.regularMaterial)
+        }.padding(.horizontal, CYSpacing.lg).padding(.top, 10).padding(.bottom, 8)
+            .background(CYColor.bgPage.opacity(0.96).shadow(.drop(color: .black.opacity(0.4), radius: 8, y: -2)))
     }
     private var textReviewButton: some View {
-        Button("shopNPC.reviewText") { typing = false; guardedSend(current: { (draft, nil) }) { attempt { try coordinator.reviewText(draft) } } }
-            .buttonStyle(.questifyPrimary).controlSize(.large)
-            .disabled(!canCompose || draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        let empty = draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        return Button { typing = false; guardedSend(current: { (draft, nil) }) { attempt { try coordinator.reviewText(draft) } } } label: {
+            Image(systemName: "arrow.up").font(.system(size: 17, weight: .bold))
+                .frame(width: 44, height: 44)
+                .foregroundStyle(empty || !canCompose ? CYColor.textDisabled : CYColor.textInverse)
+                .background(empty || !canCompose ? CYColor.bgElevated : CYColor.textPrimary, in: Circle())
+        }
+            .disabled(!canCompose || empty)
+            .accessibilityLabel(Text("shopNPC.reviewText"))
             .accessibilityIdentifier("shopNPC.reviewText")
     }
     private var voiceButton: some View {
@@ -175,9 +188,12 @@ import SwiftUI
                 else { try capture.startAfterExplicitMicrophoneIntent(grants: coordinator.grants, onEnded: { recording = false }); recording = true }
             }
         } label: {
-            Text(recording ? "shopNPC.stopReview" : "shopNPC.record").frame(minHeight: 44).contentShape(Rectangle())
+            Image(systemName: recording ? "stop.fill" : "mic.fill").font(.system(size: 17, weight: .semibold))
+                .frame(width: 44, height: 44).foregroundStyle(CYColor.textPrimary)
+                .background(CYColor.bgElevated, in: Circle())
         }
             .disabled(sending || coordinator.pending != nil || !showsConversation || capture == nil || !coordinator.grants.voiceAllowed || !coordinator.grants.microphone)
+            .accessibilityLabel(Text(recording ? "shopNPC.stopReview" : "shopNPC.record"))
             .accessibilityIdentifier("shopNPC.record")
     }
     private func reviewPanel(_ review: ShopNPCReview) -> some View {
@@ -233,7 +249,7 @@ import SwiftUI
             }
                 .disabled(sending).accessibilityIdentifier("shopNPC.cancel")
         }.padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
     }
     /// The text that would actually leave the device for this review; nil for voice or a stale review.
     private func finalText(of review: ShopNPCReview) -> (String, UUID?)? {
@@ -280,5 +296,33 @@ import SwiftUI
             NavigationLink("shopNPC.open") { ShopNPCOwnedDestination(makeCoordinator: makeCoordinator, name: name, greeting: greeting, makeScriptedGuide: makeScriptedGuide) }
                 .accessibilityIdentifier("shopNPC.open")
         }
+    }
+}
+
+
+/// iMessage-style bubble: NPC replies carry the avatar and a tail corner on the leading side; own messages sit trailing.
+/// Presentation only; sender truth comes from the caller. Spoken as "<sender>: <text>" for VoiceOver.
+struct NPCChatBubble<Content: View>: View {
+    let name: String
+    let isOwn: Bool
+    @ViewBuilder let content: () -> Content
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.themeDomain) private var domain
+    var body: some View {
+        HStack(alignment: .bottom, spacing: 8) {
+            if isOwn { Spacer(minLength: typeSize.isAccessibilitySize ? 0 : 56) }
+            else { CYAvatarView(name: name, size: .sm) }
+            content()
+                .font(CYTypography.body)
+                .multilineTextAlignment(.leading)
+                .fixedSize(horizontal: false, vertical: true)
+                .foregroundStyle(isOwn ? Theme.Color.actionPrimaryForeground(in: domain) : CYColor.textPrimary)
+                .padding(.horizontal, 14).padding(.vertical, 10)
+                .background(isOwn ? Theme.Color.actionPrimaryBackground(in: domain) : CYColor.bgElevated,
+                            in: UnevenRoundedRectangle(topLeadingRadius: 20, bottomLeadingRadius: isOwn ? 20 : 6,
+                                                       bottomTrailingRadius: isOwn ? 6 : 20, topTrailingRadius: 20, style: .continuous))
+            if !isOwn { Spacer(minLength: typeSize.isAccessibilitySize ? 0 : 40) }
+        }
+        .frame(maxWidth: .infinity, alignment: isOwn ? .trailing : .leading)
     }
 }
