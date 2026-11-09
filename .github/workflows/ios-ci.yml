@@ -1,0 +1,125 @@
+name: iOS CI
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: ['rc/**']
+permissions:
+  contents: read
+concurrency:
+  group: ios-ci-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  debug-build:
+    runs-on: xcode-27
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v4
+        with:
+          path: DerivedData
+          key: ios-ci-debug-${{ hashFiles('Questify.xcodeproj/project.pbxproj', 'Package.swift') }}
+      - name: Debug simulator build
+        run: |
+          set -o pipefail
+          xcodebuild -project Questify.xcodeproj -scheme Questify -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 18 Pro' -derivedDataPath DerivedData CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES build | tee debug-build.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: debug-build-log
+          path: debug-build.log
+          if-no-files-found: ignore
+
+  core-tests:
+    runs-on: xcode-27
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Core package tests
+        run: |
+          set -o pipefail
+          swift test --package-path . 2>&1 | tee core-tests.log
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: core-tests-log
+          path: core-tests.log
+          if-no-files-found: ignore
+
+  appunit:
+    runs-on: xcode-27
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [0, 1, 2, 3]
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/cache@v4
+        with:
+          path: DerivedData
+          key: ios-ci-appunit-${{ matrix.shard }}-${{ hashFiles('Questify.xcodeproj/project.pbxproj') }}
+      - name: AppUnit shard
+        env:
+          SHARD: ${{ matrix.shard }}
+        run: |
+          set -o pipefail
+          python3 - << 'PY' > only-testing.args
+          import os, pathlib
+          shard = int(os.environ["SHARD"])
+          classes = []
+          root = pathlib.Path("Tests/AppUnitTests")
+          for path in root.rglob("*.swift"):
+              for line in path.read_text(errors="replace").splitlines():
+                  text = line.strip()
+                  if "XCTestCase" not in text:
+                      continue
+                  if text.startswith("class ") or text.startswith("final class ") or text.startswith("public class ") or text.startswith("internal class "):
+                      name = text.split()[1].split("(")[0].split(":")[0]
+                      classes.append(name)
+          classes = sorted(set(classes))
+          if not classes:
+              raise SystemExit("no AppUnit classes found")
+          mine = [name for index, name in enumerate(classes) if index % 4 == shard]
+          if not mine:
+              raise SystemExit(f"shard {shard} is empty")
+          print(" ".join(f"-only-testing:QuestifyAppUnitTests/{name}" for name in mine))
+          PY
+          xcodebuild -project Questify.xcodeproj -scheme QuestifyAppUnitTests -configuration Debug -sdk iphonesimulator -destination 'platform=iOS Simulator,name=iPhone 18 Pro' -derivedDataPath DerivedData -resultBundlePath "appunit-${SHARD}.xcresult" CODE_SIGNING_ALLOWED=NO ARCHS=arm64 ONLY_ACTIVE_ARCH=YES test $(cat only-testing.args) | tee "appunit-${SHARD}.log"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: appunit-shard-${{ matrix.shard }}
+          path: |
+            appunit-${{ matrix.shard }}.log
+            appunit-${{ matrix.shard }}.xcresult
+          if-no-files-found: ignore
+
+  release-gate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Scaffold and current CI ledger check
+        run: |
+          python3 -B tools/check_scaffold.py
+          python3 -B tools/current_ci.py check
+
+  design-lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - name: Design lint
+        run: |
+          test -f tools/check_design_lint.py
+          python3 -B tools/check_design_lint.py
