@@ -44,8 +44,8 @@ import QuestifyCore
             .sheet(isPresented: $show) {
                 CYConfirmSheet(
                     title: ChannelCopy.text("退出「城瘾跑团」？", "Leave “City Run Club”?", locale: locale),
-                    message: String(localized: "club.action.confirm.leave"),
-                    confirmTitle: String(localized: "club.action.leave"),
+                    message: appLocalized("club.action.confirm.leave", locale: locale),
+                    confirmTitle: appLocalized("club.action.leave", locale: locale),
                     isDestructive: true,
                     consequences: ClubLeaveConsequences.rows(locale: locale)
                 ) { show = false }
