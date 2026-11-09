@@ -86,10 +86,13 @@ struct IMInboxRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
-                .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
-                .clipShape(Circle())
-                .accessibilityHidden(true)
+            // Decorative: dropped at accessibility sizes so the conversation name keeps the whole row width.
+            if !typeSize.isAccessibilitySize {
+                CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+                    .frame(width: avatarSize, height: avatarSize)
+                    .clipShape(Circle())
+                    .accessibilityHidden(true)
+            }
             VStack(alignment: .leading, spacing: 4) {
                 if typeSize.isAccessibilitySize {
                     MessagingConversationName(conversation: conversation)

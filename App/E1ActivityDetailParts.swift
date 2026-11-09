@@ -16,19 +16,21 @@ struct E1ActivityHero: View {
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    HStack(spacing: CYSpacing.xs) {
+                    // Accessibility sizes stack the chips so neither is squeezed or clipped over the photo.
+                    let chipLayout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs)) : AnyLayout(HStackLayout(spacing: CYSpacing.xs))
+                    chipLayout {
                         if let state = E1ActivityState.of(start: summary.startDate, end: summary.endDate) { state.chip(copy) }
                         if let a = summary.minimumAmount, a == 0 { CYStatusChip(verbatim: copy.t("免费", "Free"), tone: .success) }
                         else if let p = E1Money.yuan(summary.minimumAmount, locale: locale) { CYStatusChip(verbatim: copy.t("\(p) 起", "From \(p)")) }
                     }
                     Text(verbatim: ActivityPresentation.nonempty(summary.name) ?? "—")
-                        .font(.system(.largeTitle, design: .default).weight(.bold))
+                        .font(.system(dynamicTypeSize.isAccessibilitySize ? .title : .largeTitle, design: .default).weight(.bold))
                         .foregroundStyle(.white)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("activity.detail.name")
                 }
-                .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, 72)
+                .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, dynamicTypeSize.isAccessibilitySize ? CYSpacing.lg : 72)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black.opacity(0.82), location: 1)], startPoint: .top, endPoint: .bottom))
             }

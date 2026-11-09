@@ -33,11 +33,12 @@ import SwiftUI
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
                     .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                     .background(CYColor.bgRaised, in: Capsule(style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
-                    HStack(spacing: 10) {
+                    (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
                         Label { city } icon: { Image(systemName: "mappin.and.ellipse") }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
