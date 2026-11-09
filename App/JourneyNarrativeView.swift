@@ -8,7 +8,7 @@ import SwiftUI
     var onChanged: (() async -> Void)? = nil
     var body: some View {
         List {
-            if model.busy { ProgressView("journey.working") }
+            if model.busy { CYSkeleton().accessibilityLabel(Text("journey.working")) }
             if let issue = model.issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("journey.record.error") }
             if !model.pending.isEmpty { Text("journey.record.unknown").accessibilityIdentifier("journey.record.pending") }
             if let receipt = model.receipt {
@@ -54,7 +54,7 @@ import SwiftUI
                 }
             }
         case .backpack(let items):
-            Text("journey.record.rewardAuthority").font(.footnote)
+            Text("journey.record.rewardAuthority").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             if items.isEmpty { Text("journey.record.empty") }
             ForEach(items) { item in
                 Section {
@@ -76,12 +76,12 @@ import SwiftUI
             if value.questions.isEmpty { Text("journey.record.empty") }
             ForEach(value.questions) { question in
                 Section {
-                    Text(verbatim: question.question).font(.headline)
+                    Text(verbatim: question.question).font(CYTypography.cardTitle)
                     if question.asked {
                         if let answer = question.answer { Text(verbatim: answer) }
                     } else {
                         Button("journey.record.ask") { model.prepare(question.id) }
-                            .disabled(!model.canAsk || model.pending.contains(question.id)).accessibilityIdentifier("journey.record.ask." + question.id)
+                            .buttonStyle(.cySecondary(fullWidth: false)).disabled(!model.canAsk || model.pending.contains(question.id)).accessibilityIdentifier("journey.record.ask." + question.id)
                     }
                 }
             }
@@ -89,7 +89,11 @@ import SwiftUI
         }
     }
     private func progress(found: Int, total: Int) -> some View {
-        LabeledContent("journey.record.discoveries", value: "\(found) / \(total)")
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: "\(found) / \(total)").font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary)
+            Text("journey.record.discoveries").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+        }.accessibilityElement(children: .combine)
     }
     private func lines(_ key: LocalizedStringKey, _ values: [String]) -> some View {
         Section(key) { if values.isEmpty { Text("journey.record.empty") }; ForEach(Array(values.enumerated()), id: \.offset) { _, text in Text(verbatim: text) } }
@@ -107,8 +111,8 @@ import SwiftUI
         }
     }
     @ViewBuilder private func ending(_ value: JourneyEndingDocument) -> some View {
-        if let title = value.title { Text(verbatim: title).font(.title2.bold()) }
-        if let summary = value.summary { Text(verbatim: summary) }
+        if let title = value.title { CYHeroHeader(verbatim: title) }
+        if let summary = value.summary { Text(verbatim: summary).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
         if let badge = value.badgeTitle { Section("journey.record.badge") { Text(verbatim: badge) } }
         progress(found: value.found, total: value.total)
         relations(value.epilogues); lines("journey.record.exhibits", value.exhibits); lines("journey.record.costs", value.costs)
