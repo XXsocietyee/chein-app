@@ -137,7 +137,7 @@ private actor TopicUnlikeFixtureWire: HTTPTransport {
     @State private var communityGate = AccountCollectionFixtureGate()
     @State private var controller: TopicUnlikeController
     init(scenario: String) {
-        let base = URL(string: "https://fixture.invalid/native")!
+        let base = URL(string: "https://fixture.example/native")!
         let approvals = (try? TopicUnlikeApproval(endpoint: OperationEndpointApproval(baseURL: base, namespace: "fixture", accountID: 81,
             paths: TopicUnlikeApproval.paths), accountID: 81, expiresAt: .distantFuture)).map { [$0] } ?? []
         _controller = State(initialValue: TopicUnlikeController(configuration: try! APIConfiguration(baseURL: base),
