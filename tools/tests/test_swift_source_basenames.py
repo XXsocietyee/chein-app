@@ -25,10 +25,11 @@ class SwiftSourceBasenameTests(unittest.TestCase):
         for folder in ['App', 'Core', 'Tests/AppUITests', 'Tests/AppUnitTests',
                        'Config', 'Resources', 'tools', 'Vendor/GLTFKit2/GLTFKit2.xcodeproj']:
             (self.root / folder).mkdir(parents=True, exist_ok=True)
-        for name in ['generate_project.py', 'check_scaffold.py']:
+        for name in ['generate_project.py', 'check_scaffold.py', 'check_catalog_coverage.py', 'localization_usage_audit.py']:
             shutil.copy2(ROOT / 'tools' / name, self.root / 'tools' / name)
         # Small synthetic project exercises the real generator and scaffold.
         self.write('App/Main.swift', '// preferences.language\n')
+        self.write('App/AppStoreReviewDemoAccountAndFixtureSectionView.swift', '// Release fixture\n')
         self.write('Core/Domain.swift', '// Domain fixture\n')
         self.write('Tests/AppUITests/SharedTests.swift', '// UI target fixture\n')
         self.write('Tests/AppUnitTests/SharedTests.swift', '// App-unit target fixture\n')
@@ -136,7 +137,9 @@ class SwiftSourceBasenameTests(unittest.TestCase):
         generated = self.generate()
         objects = generated['objects']
         phase = objects[generated['src_phase']]
-        phase['files'].append(phase['files'][0])
+        main_build = next(build for build in phase['files']
+                          if objects[objects[build]['fileRef']]['path'] == 'App/Main.swift')
+        phase['files'].append(main_build)
         project = {'archiveVersion': 1, 'classes': {}, 'objectVersion': 56,
                    'objects': objects, 'rootObject': generated['project']}
         self.write('Questify.xcodeproj/project.pbxproj',
