@@ -303,3 +303,253 @@ public struct InvoiceLaunchCommandReceipt: Decodable, Equatable {
         }
     }
 }
+
+/// Read-only page model for `subpackageMember/invoice-apply/index`.
+/// It uses the existing overview (`api/invoice/titles`, `api/invoice/orders/eligible`, `api/invoice/list`).
+/// It does not register a route, mark one live, submit an application, or take payment.
+/// Unknown amounts are an em dash. A literal 0 stays 0. A missing read stays hidden.
+public struct InvoiceLaunchApplyCapability: Equatable {
+    public let readsGranted: Bool
+    public let applyGranted: Bool
+    public init(readsGranted: Bool, applyGranted: Bool) {
+        self.readsGranted = readsGranted
+        self.applyGranted = readsGranted && applyGranted
+    }
+    /// The host's existing switches. This does not turn either switch on.
+    public init(readsEnabled: Bool, mutationsEnabled: Bool) {
+        self.init(readsGranted: readsEnabled, applyGranted: mutationsEnabled)
+    }
+    public static let absent = Self(readsGranted: false, applyGranted: false)
+}
+
+/// A server amount. Unknown is never stored as 0.
+public enum InvoiceLaunchApplyAmount: Equatable {
+    case known(Decimal)
+    case unknown
+    public static let unknownDisplay = "—"
+    /// The server literal, including 0. Unknown is nil.
+    public var literal: Decimal? {
+        if case .known(let value) = self { return value }
+        return nil
+    }
+    /// Unknown, null, a numeric string, and a non-number are an em dash, never 0.
+    public var displayText: String {
+        switch self {
+        case .unknown: return Self.unknownDisplay
+        case .known(let value): return Self.plain(value)
+        }
+    }
+    public static func from(_ value: Decimal) -> Self {
+        value.isNaN ? .unknown : .known(value)
+    }
+    /// JSON number, including 0. Absent, text (including "0"), and a non-number stay unknown.
+    public static func parse(_ input: Input) -> Self {
+        switch input {
+        case .absent, .text, .notANumber: return .unknown
+        case .number(let value): return from(value)
+        }
+    }
+    public enum Input: Equatable {
+        case absent
+        case text(String)
+        case number(Decimal)
+        case notANumber
+    }
+    private static func plain(_ value: Decimal) -> String {
+        if value.isNaN { return unknownDisplay }
+        if value == 0 { return "0" }
+        let text = NSDecimalNumber(decimal: value).description
+        if text.isEmpty || text == "NaN" { return unknownDisplay }
+        return text
+    }
+}
+
+public struct InvoiceLaunchApplyTitleLine: Equatable {
+    public let id: Int64
+    public let name: String
+    public let isDefault: Bool
+    public init(id: Int64, name: String, isDefault: Bool) {
+        self.id = id
+        self.name = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        self.isDefault = isDefault
+    }
+}
+
+public struct InvoiceLaunchApplyOrderLine: Equatable {
+    public let orderID: Int64
+    public let titleText: String
+    public let amount: InvoiceLaunchApplyAmount
+    public var amountText: String { amount.displayText }
+    public init(orderID: Int64, title: String?, amount: InvoiceLaunchApplyAmount) {
+        self.orderID = orderID
+        let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        self.titleText = trimmed.isEmpty ? InvoiceLaunchApplyAmount.unknownDisplay : trimmed
+        if case .known(let value) = amount, !value.isNaN {
+            self.amount = .known(value)
+        } else {
+            self.amount = .unknown
+        }
+    }
+}
+
+public struct InvoiceLaunchApplyPage: Equatable {
+    public enum Phase: Equatable {
+        case loading
+        case empty
+        case error(String)
+        case unknown
+        case ready
+    }
+    public enum Key {
+        public static let loading = "loading"
+        public static let empty = "noOrders"
+        public static let loadFailed = "loadFailed"
+        public static let session = "session"
+        public static let storage = "storage"
+        public static let notSaved = "notSaved"
+        public static let unknown = "unknown"
+        public static let retry = "retry"
+        public static let checkResult = "checkResult"
+        /// Keys this model references. All of them already exist in InvoiceLaunchUI.
+        public static let referenced = [loading, empty, loadFailed, session, storage, notSaved, unknown, retry, checkResult]
+    }
+    public static let unknownDisplay = InvoiceLaunchApplyAmount.unknownDisplay
+    public static let titlesPath = InvoiceLaunchRoute.titles.path
+    public static let eligibleOrdersPath = InvoiceLaunchRoute.eligibleOrders.path
+    public static let listPath = InvoiceLaunchRoute.list.path
+    public static let applyPath = InvoiceLaunchRoute.apply.path
+    public static let routeMarkedLive = false
+    public static let includedInPlayerFirstEntry = false
+    public static let paymentEnabled = false
+    public let readsGranted: Bool
+    public let applyGranted: Bool
+    public let phase: Phase?
+    public let lines: [InvoiceLaunchApplyOrderLine]
+    public let titles: [InvoiceLaunchApplyTitleLine]
+    /// The body stays hidden while loading and when the read was not granted.
+    public var hidden: Bool {
+        switch phase {
+        case .loading, nil: return true
+        case .empty, .error, .unknown, .ready: return false
+        }
+    }
+    public var stateKey: String? {
+        switch phase {
+        case .loading: return Key.loading
+        case .empty: return Key.empty
+        case .error(let key): return key
+        case .unknown: return Key.unknown
+        case .ready, nil: return nil
+        }
+    }
+    public var retryKey: String? {
+        if case .error = phase { return Key.retry }
+        return nil
+    }
+    public var recoveryKey: String? {
+        if case .unknown = phase { return Key.checkResult }
+        return nil
+    }
+    /// Submit stays hidden unless the existing mutation switch is on and the read is ready.
+    public var showsApplyAction: Bool {
+        guard Self.paymentEnabled == false, readsGranted, applyGranted, !lines.isEmpty else { return false }
+        guard case .ready = phase else { return false }
+        return lines.allSatisfy { $0.amount.literal != nil }
+    }
+
+    public static func hidden() -> Self {
+        Self(readsGranted: false, applyGranted: false, phase: nil, lines: [], titles: [])
+    }
+    public static func loading(capability: InvoiceLaunchApplyCapability) -> Self {
+        Self(readsGranted: capability.readsGranted, applyGranted: false, phase: .loading, lines: [], titles: [])
+    }
+
+    public static func project(titles: [InvoiceLaunchTitle], orders: [InvoiceLaunchOrder], unresolved: Bool,
+                               capability: InvoiceLaunchApplyCapability) -> Self {
+        let titleLines = titles.map { InvoiceLaunchApplyTitleLine(id: $0.id, name: $0.titleName, isDefault: $0.isDefault) }
+        let orderLines = orders.map { order in
+            InvoiceLaunchApplyOrderLine(orderID: order.orderId, title: order.orderTitle, amount: .from(order.amount))
+        }
+        return project(lines: orderLines, titles: titleLines, unresolved: unresolved, capability: capability)
+    }
+
+    public static func project(lines: [InvoiceLaunchApplyOrderLine], titles: [InvoiceLaunchApplyTitleLine],
+                               unresolved: Bool, capability: InvoiceLaunchApplyCapability) -> Self {
+        guard capability.readsGranted else { return hidden() }
+        if lines.contains(where: { $0.orderID <= 0 }) || titles.contains(where: { $0.id <= 0 || $0.name.isEmpty }) {
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .error(Key.loadFailed), lines: [], titles: [])
+        }
+        if unresolved || lines.contains(where: { $0.amount.literal == nil }) {
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .unknown, lines: lines, titles: titles)
+        }
+        if lines.isEmpty {
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .empty, lines: [], titles: titles)
+        }
+        return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .ready, lines: lines, titles: titles)
+    }
+
+    /// Reads the existing overview. A missing read does not call the coordinator.
+    /// This never calls `apply` and never starts a payment.
+    @MainActor public static func load(coordinator: InvoiceLaunchCoordinator, capability: InvoiceLaunchApplyCapability) async -> Self {
+        guard capability.readsGranted else { return hidden() }
+        do {
+            let overview = try await coordinator.overview()
+            return project(titles: overview.titles, orders: overview.eligibleOrders,
+                           unresolved: overview.pending != nil, capability: capability)
+        } catch is CancellationError {
+            return loading(capability: capability)
+        } catch let issue as InvoiceLaunchIssue {
+            return from(issue, capability: capability)
+        } catch {
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .error(Key.loadFailed), lines: [], titles: [])
+        }
+    }
+
+    private static func from(_ issue: InvoiceLaunchIssue, capability: InvoiceLaunchApplyCapability) -> Self {
+        switch issue {
+        case .disabled:
+            return hidden()
+        case .outcomeUnknown, .originalReadUnavailable, .pendingConflict:
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .unknown, lines: [], titles: [])
+        case .staleSession, .unauthorized:
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .error(Key.session), lines: [], titles: [])
+        case .storageUnavailable:
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .error(Key.storage), lines: [], titles: [])
+        case .invalid, .rejected:
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .error(Key.notSaved), lines: [], titles: [])
+        case .malformed, .unavailable:
+            return Self(readsGranted: true, applyGranted: capability.applyGranted, phase: .error(Key.loadFailed), lines: [], titles: [])
+        }
+    }
+
+    private init(readsGranted: Bool, applyGranted: Bool, phase: Phase?, lines: [InvoiceLaunchApplyOrderLine], titles: [InvoiceLaunchApplyTitleLine]) {
+        guard readsGranted else {
+            self.readsGranted = false
+            self.applyGranted = false
+            self.phase = nil
+            self.lines = []
+            self.titles = []
+            return
+        }
+        self.readsGranted = true
+        self.applyGranted = applyGranted
+        switch phase {
+        case .loading:
+            self.phase = .loading
+            self.lines = []
+            self.titles = []
+        case nil:
+            self.phase = .unknown
+            self.lines = []
+            self.titles = []
+        case .empty, .unknown, .ready:
+            self.phase = phase
+            self.lines = lines
+            self.titles = titles
+        case .error:
+            self.phase = phase
+            self.lines = []
+            self.titles = []
+        }
+    }
+}
