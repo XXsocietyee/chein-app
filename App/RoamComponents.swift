@@ -81,14 +81,15 @@ enum RoamScreenIssue {
 struct RoamStatusView: View {
     let issue: RoamScreenIssue
     var retry: (() -> Void)? = nil
+    private var canRetry: Bool { if case .failed = issue, retry != nil { return true } else { return false } }
     var body: some View {
-        ContentUnavailableView {
-            Label(issue.title, systemImage: "map")
-        } description: {
-            Text(issue.message)
-        } actions: {
-            if case .failed = issue, let retry { Button("action.retry", action: retry) }
+        // Kit state: icon, one line, one quiet action. Same copy and identifier as before.
+        VStack(spacing: CYSpacing.sm) {
+            CYEmptyState(systemImage: "map", issue.title, actionTitle: canRetry ? "action.retry" : nil, action: retry)
+            Text(issue.message).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                .multilineTextAlignment(.center).padding(.horizontal, CYSpacing.xxl)
         }
+        .frame(maxWidth: .infinity)
         .accessibilityIdentifier("roam.error")
     }
 }

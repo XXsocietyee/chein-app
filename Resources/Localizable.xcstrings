@@ -70370,6 +70370,23 @@
         }
       }
     },
+    "map.panel.size": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Panel size"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "面板高度"
+          }
+        }
+      }
+    },
     "mapActivity.addressUnknown": {
       "localizations": {
         "en": {
@@ -186039,6 +186056,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "搜索当前结果"
+          }
+        }
+      }
+    },
+    "roam.search.clear": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Clear search"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "清除搜索"
           }
         }
       }

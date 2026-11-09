@@ -111,6 +111,8 @@ struct RoamHomeTabPicker: View {
     var onChooseArea: (() -> Void)? = nil
     var onBeginRead: (() -> Void)? = nil
     var onOpenSelection: ((RoamNearbyEventsEntrySelection) -> Void)? = nil
+    /// Loaded card count (nil while loading / failed / unavailable) for the collapsed sheet line.
+    var onCount: ((Int?) -> Void)? = nil
     let onOpen: (RoamEntryActivityCard) -> Void
     @State private var model = RoamNearbyEventsEntryState()
     @State private var retryTask: Task<Void, Never>?
@@ -143,9 +145,14 @@ struct RoamHomeTabPicker: View {
             }
         }
         .task(id: reader.readKey) { await load() }
+        .onChange(of: loadedCount, initial: true) { _, count in onCount?(count) }
         .onDisappear { retryTask?.cancel(); retryTask = nil; model.cancel() }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("roam.home.peek")
+    }
+    private var loadedCount: Int? {
+        if case .loaded(let cards) = model.visibleState(reader: reader) { return cards.count }
+        return nil
     }
     @ViewBuilder private var content: some View {
         switch model.visibleState(reader: reader) {
@@ -207,29 +214,24 @@ struct RoamHomeTabPicker: View {
 struct RoamEntryCardView: View {
     let card: RoamEntryActivityCard
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            RoamEntryCover(source: card.activity.coverURL).frame(width: 180, height: 96).clipShape(RoundedRectangle(cornerRadius: 12))
-            Text(LocalizedStringKey(card.tagKey)).font(.caption2.bold()).foregroundStyle(.tint)
-            title.font(.subheadline.bold()).lineLimit(2)
-            RoamEntryMetaLine(card: card).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-        }
-        .frame(width: 180, alignment: .leading)
-        .accessibilityElement(children: .combine)
+        CYImageCard(title: title, meta: Text(LocalizedStringKey(card.tagKey)) + Text(verbatim: " · ") + RoamEntryMetaLine(card: card).text,
+            imageURL: card.activity.coverURL.flatMap(URL.init(string:)), style: .shelf)
     }
-    @ViewBuilder private var title: some View {
-        if card.activity.title.isEmpty { Text("roam.w208.entry.untitled") } else { Text(verbatim: card.activity.title) }
+    private var title: Text {
+        card.activity.title.isEmpty ? Text("roam.w208.entry.untitled") : Text(verbatim: card.activity.title)
     }
 }
 
 /// `activityView.meta`: 已结束 · 距你 X km · N 支队伍招募, falling back to the address, then 查看活动详情.
 struct RoamEntryMetaLine: View {
     let card: RoamEntryActivityCard
-    var body: some View {
+    var body: some View { text }
+    var text: Text {
         let parts = metaParts
         if parts.isEmpty {
-            if let address = card.activity.addressName { Text(verbatim: address) } else { Text("roam.w208.entry.viewActivity") }
+            if let address = card.activity.addressName { return Text(verbatim: address) } else { return Text("roam.w208.entry.viewActivity") }
         } else {
-            parts.dropFirst().reduce(parts[0]) { $0 + Text(verbatim: " · ") + $1 }
+            return parts.dropFirst().reduce(parts[0]) { $0 + Text(verbatim: " · ") + $1 }
         }
     }
     private var metaParts: [Text] {

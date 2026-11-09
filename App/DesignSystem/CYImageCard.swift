@@ -6,7 +6,7 @@ struct CYImageCard: View {
     /// `.hero` is full-width and tall (16:10); `.shelf` is a compact 3:2 card, 280pt wide, for horizontal shelves.
     enum Style { case hero, shelf }
     private let style: Style
-    private let title: LocalizedStringKey
+    private let title: Text
     private var meta: Text?
     private let imageURL: URL?
     private let aspectRatio: CGFloat
@@ -15,10 +15,19 @@ struct CYImageCard: View {
 
     init(_ title: LocalizedStringKey, meta: LocalizedStringKey? = nil, imageURL: URL? = nil, aspectRatio: CGFloat? = nil, style: Style = .hero) {
         self.style = style
-        self.title = title
+        self.title = Text(title)
         self.meta = meta.map { Text($0) }
         self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
         self.aspectRatio = aspectRatio ?? (style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0)
+    }
+
+    /// Server-supplied title (shown verbatim) and a pre-composed meta `Text`, for real data rows.
+    init(title: Text, meta: Text?, imageURL: URL? = nil, style: Style = .hero) {
+        self.style = style
+        self.title = title
+        self.meta = meta
+        self.imageURL = (imageURL?.scheme?.lowercased() == "https") ? imageURL : nil
+        self.aspectRatio = style == .shelf ? 3.0 / 2.0 : 16.0 / 10.0
     }
 
     /// Pre-formatted (already localized) meta line, shown verbatim.
@@ -33,11 +42,11 @@ struct CYImageCard: View {
             .overlay { cover }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    Text(title)
+                    title
                         .font(CYTypography.sectionTitle)
                         .lineLimit(2)
                     if let meta {
-                        meta.font(CYTypography.meta).monospacedDigit().opacity(0.85).lineLimit(2)
+                        meta.font(CYTypography.meta).opacity(0.85).lineLimit(1)
                     }
                 }
                 .foregroundStyle(.white)
