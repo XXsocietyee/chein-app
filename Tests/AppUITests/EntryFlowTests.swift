@@ -11,7 +11,7 @@ final class EntryFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate();app=nil }
 
     func testPlayerAndMerchantEntryCanBeClosedAndRepeated() {
-        for identifier in ["welcome.player","welcome.player"] {
+        for identifier in ["welcome.player","welcome.merchant","welcome.player"] {
             let entry=app.buttons[identifier]
             XCTAssertTrue(entry.waitForExistence(timeout:10))
             entry.tap()
@@ -39,7 +39,7 @@ final class EntryFlowTests: XCTestCase {
         let account=app.tabBars.buttons["Me"]
         XCTAssertTrue(account.exists);account.tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
-        XCTAssertFalse(app.buttons["welcome.merchant"].exists) // player-first launch: no merchant entry
+        XCTAssertTrue(app.buttons["welcome.merchant"].exists)
         app.buttons["welcome.player"].tap()
         XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout:5))
         app.buttons["Close"].tap()
