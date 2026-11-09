@@ -2,7 +2,9 @@ import Foundation
 
 /// Read-only projection of ViewCouponHistory. Redemption credentials (couponCode, qrcodeUrl)
 /// are deliberately not decoded or retained. These records are never persisted or logged.
+/// The list projection may include a public shop. A missing coordinate stays unknown, never 0.
 public struct AccountCollectionCoupon: Decodable, Equatable, Identifiable {
+    public static let unknownCountText = "—"
     public let id: Int
     public let couponID: Int?
     public let useStatus: Int?
@@ -13,6 +15,23 @@ public struct AccountCollectionCoupon: Decodable, Equatable, Identifiable {
     public let usedTime: String?
     public let startTime: String?
     public let endTime: String?
+    public let shopName: String?
+    public let shopAddress: String?
+    public let shopLatitude: Double?
+    public let shopLongitude: Double?
+    /// Both coordinates are present, including a literal 0. This does not open a map or a route.
+    public var hasShopNavigation: Bool { shopLatitude != nil && shopLongitude != nil }
+    /// A missing number is an em dash. A literal 0 stays 0. Whole numbers stay whole.
+    public static func countText(_ value: Double?) -> String {
+        guard let value, value.isFinite else { return unknownCountText }
+        if value == 0 { return "0" }
+        if value.rounded() == value, value <= Double(Int.max), value >= Double(Int.min) {
+            return String(Int(value))
+        }
+        return String(value)
+    }
+    public var shopLatitudeText: String { Self.countText(shopLatitude) }
+    public var shopLongitudeText: String { Self.countText(shopLongitude) }
     public var displayDescription: String? {
         if let description, !description.isEmpty { return description }
         return note
@@ -28,6 +47,7 @@ public struct AccountCollectionCoupon: Decodable, Equatable, Identifiable {
     }
     private enum CodingKeys: String, CodingKey {
         case id, couponId, useStatus, couponName, couponDescription, note, getTime, useTime, startTime, endTime
+        case shopName, shopAddress, shopLat, shopLng
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -42,6 +62,23 @@ public struct AccountCollectionCoupon: Decodable, Equatable, Identifiable {
         usedTime = try c.decodeIfPresent(String.self, forKey: .useTime)
         startTime = try c.decodeIfPresent(String.self, forKey: .startTime)
         endTime = try c.decodeIfPresent(String.self, forKey: .endTime)
+        shopName = Self.publicText(c, .shopName)
+        shopAddress = Self.publicText(c, .shopAddress)
+        shopLatitude = Self.publicCoordinate(c, .shopLat)
+        shopLongitude = Self.publicCoordinate(c, .shopLng)
+    }
+    /// A blank or non-string shop label is unknown. It is not stored as an empty place.
+    private static func publicText(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> String? {
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
+        guard let raw = try? c.decode(String.self, forKey: key) else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    /// JSON numbers only. Null, a missing key, a numeric string, and a non-finite value stay unknown.
+    private static func publicCoordinate(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Double? {
+        guard c.contains(key), (try? c.decodeNil(forKey: key)) != true else { return nil }
+        guard let value = try? c.decode(Double.self, forKey: key), value.isFinite else { return nil }
+        return value
     }
     /// Presentation only: an unused coupon may have a later business-calendar start day.
     /// This never decides whether the server will issue or accept a redemption code.
