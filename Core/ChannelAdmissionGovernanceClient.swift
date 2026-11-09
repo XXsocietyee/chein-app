@@ -33,6 +33,15 @@ public struct ChannelAdmissionGovernanceClient {
         try ready {
             try admission.submitOriginal(catalog: catalog, kind: kind, spaceID: spaceID, inviteID: inviteID, message: message, requestID: requestID)
         }
+        if kind == ChinaReviewedRouteAdaptation.clubGuildKind, inviteID == nil,
+           ChinaReviewedRouteAdaptation.admits(missing: Self.submitPath, baseURL: configuration.baseURL) {
+            let text = String((message ?? "").trimmingCharacters(in: .whitespacesAndNewlines).prefix(60))
+            guard spaceID > 0, spaceID <= Int64(Int.max) else { throw APIError.invalidRequest }
+            let data = try await post("api/club/join", ["id": Int(spaceID), "joinMessage": text])
+            return try admission.submitOriginal(catalog: catalog, kind: kind, spaceID: spaceID, inviteID: inviteID, message: message, requestID: requestID) {
+                _, _, _, _, _, _ in data
+            }
+        }
         var body: [String: Any] = ["guild_kind": kind, "guild_id": spaceID, "request_id": requestID]
         if let inviteID { body["invite_id"] = inviteID }
         if let message {
@@ -81,6 +90,14 @@ public struct ChannelAdmissionGovernanceClient {
 
     public func leave(kind: Int, spaceID: Int64, requestID: String) async throws -> [String: Any] {
         try ready { try admission.leaveOriginal(kind: kind, spaceID: spaceID, requestID: requestID) }
+        if kind == ChinaReviewedRouteAdaptation.clubGuildKind,
+           ChinaReviewedRouteAdaptation.admits(missing: Self.leavePath, baseURL: configuration.baseURL) {
+            guard spaceID > 0, spaceID <= Int64(Int.max) else { throw APIError.invalidRequest }
+            let envelope = try await postEnvelope("api/club/quit", ["id": Int(spaceID)])
+            let left = envelope.message != "未加入"
+            let shaped: [String: Any] = ["left": left, "guild_kind": kind, "guild_id": String(spaceID)]
+            return try admission.leaveOriginal(kind: kind, spaceID: spaceID, requestID: requestID) { _, _, _, _ in shaped }
+        }
         let data = try await post(Self.leavePath, ["guild_kind": kind, "guild_id": spaceID, "request_id": requestID])
         return try admission.leaveOriginal(kind: kind, spaceID: spaceID, requestID: requestID) { _, _, _, _ in data }
     }
@@ -129,11 +146,26 @@ public struct ChannelAdmissionGovernanceClient {
     }
 
     private func post(_ path: String, _ body: [String: Any]) async throws -> [String: Any] {
+        let envelope = try await postEnvelope(path, body)
+        guard let payload = envelope.data else { throw APIError.malformedResponse }
+        return payload
+    }
+
+    private struct Envelope {
+        let message: String?
+        let data: [String: Any]?
+    }
+
+    private func postEnvelope(_ path: String, _ body: [String: Any]) async throws -> Envelope {
         var request = try make(path)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONSerialization.data(withJSONObject: body)
-        return try await send(request)
+        let (data, status) = try await transport.send(request)
+        guard (200..<300).contains(status) else { throw APIError.httpStatus(status) }
+        let object = try JSONSerialization.jsonObject(with: data) as? [String: Any]
+        guard let code = object?["code"] as? NSNumber, code.intValue == 200 else { throw APIError.malformedResponse }
+        return Envelope(message: object?["msg"] as? String, data: object?["data"] as? [String: Any])
     }
 
     private func get(_ path: String) async throws -> [String: Any] {
