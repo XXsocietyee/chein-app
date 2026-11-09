@@ -100,10 +100,10 @@ public extension ParticipationDetail {
     }
     /// 联系客服 falls back whenever self-service cancellation is unavailable (except 需修改).
     func showsContactService(now: Date = Date()) -> Bool { !sourceCanCancel(now: now) && !needsModification }
-    /// Two source cells; unknown statistics display 0, never a placeholder dash.
-    var pendingText: String { String(pending ?? 0) }
-    var verifiedText: String { String(verified ?? 0) }
-    var totalText: String { String(total ?? 0) }
+    /// Unknown statistics stay an em dash. A literal zero stays "0".
+    var pendingText: String { pending.map(String.init) ?? "—" }
+    var verifiedText: String { verified.map(String.init) ?? "—" }
+    var totalText: String { total.map(String.init) ?? "—" }
 }
 
 /// Source list/detail load-failure copy. Server prose stays verbatim; local fallbacks are keys.

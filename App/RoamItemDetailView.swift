@@ -387,9 +387,9 @@ struct RoamItemDetailView: View {
     @ViewBuilder private func playerContent(_ player: RoamPlayer) -> some View {
         let renderedScope = eventScope
         Section {
-            LabeledContent("roam.exploration") { Text(verbatim: "\(player.explorePct)%") }
-            LabeledContent("roam.shopsVisited") { Text(player.shops, format: .number) }
-            LabeledContent("roam.walkingMinutes") { Text(player.elapsedSec / 60, format: .number) }
+            LabeledContent("roam.exploration") { Text(verbatim: RoamPlayer.exploreText(player.explorePct)) }
+            LabeledContent("roam.shopsVisited") { Text(verbatim: RoamPlayer.shopsText(player.shops)) }
+            LabeledContent("roam.walkingMinutes") { Text(verbatim: RoamPlayer.walkingMinutesText(player.elapsedSec)) }
         }
         if player.id > 0, playerProfileDestination != nil {
         Section {

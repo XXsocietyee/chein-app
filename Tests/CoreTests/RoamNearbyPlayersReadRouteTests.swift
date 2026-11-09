@@ -64,7 +64,7 @@ import FoundationNetworking
     func testProjectionRemainsCoarseAndHasNoLocationPublicationFields() throws {
         let row=try JSONDecoder().decode(RoamPlayer.self,from:Data(#"{"memberId":7,"nickname":"Runner","lat":30.123456,"lng":120.456789,"explorePct":105,"shops":2,"elapsedSec":5,"avatar":"https://unapproved.example/image"}"#.utf8))
         XCTAssertEqual(row.approximateCoordinate?.latitude,30.123);XCTAssertEqual(row.approximateCoordinate?.longitude,120.456)
-        XCTAssertEqual(row.explorePct,99);XCTAssertEqual(row.shops,2);XCTAssertEqual(row.elapsedSec,5)
+        XCTAssertEqual(row.explorePct,.some(99));XCTAssertEqual(row.shops,.some(2));XCTAssertEqual(row.elapsedSec,.some(5))
     }
     func testDedicatedApprovalRevisionRetiresExistingReadAndCameraIdentities() throws {
         let a=RoamReadIdentity(accountID:81,epoch:1,nearbyPlayersApprovalRevision:UUID())

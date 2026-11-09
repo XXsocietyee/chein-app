@@ -16,6 +16,8 @@ import FoundationNetworking
         XCTAssertEqual(card.title, .zone("West Lake"))
         XCTAssertEqual(card.dateShort, "10/19/25")
         XCTAssertEqual(card.distanceText, "2.5")
+        let zero = try records(#"[{"ts":1760857200000,"distance":0,"shops":0,"durSec":0,"photos":[],"pois":[],"track":[]}]"#)[0]
+        XCTAssertEqual(RoamRunCardPresentation(zero, calendar: utc).distanceText, "0")
         XCTAssertEqual(card.shopsText, "3")
         XCTAssertEqual(card.timeText, "02:05")
         XCTAssertEqual(card.stamps, 2)
@@ -26,7 +28,8 @@ import FoundationNetworking
         let row = try records(#"[{"ts":1760857200000,"zone":"这片街区","photos":[],"pois":[],"track":[]}]"#)[0]
         let card = RoamRunCardPresentation(row, calendar: utc)
         XCTAssertEqual(card.title, .city)
-        XCTAssertEqual(card.distanceText, "0", "UI-04: an unread distance renders 0 on the card")
+        XCTAssertEqual(card.distanceText, "—")
+        XCTAssertFalse(card.distanceText.contains("0"))
         XCTAssertEqual(card.shopsText, "—")
         XCTAssertEqual(card.timeText, "—")
         XCTAssertEqual(card.stamps, 0)

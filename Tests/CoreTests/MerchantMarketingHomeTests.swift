@@ -77,7 +77,7 @@ import FoundationNetworking
     }
     func testInvalidAnalyticsKeepsCountsButDropsStages() throws {
         let bad = try MerchantMarketingHome(raw(MerchantMarketingFixtureTransport.badAnalyticsHomeJSON))
-        XCTAssertNil(bad.analytics); XCTAssertEqual(bad.heroValue, "0"); XCTAssertEqual(bad.coupons.couponCount, 3)
+        XCTAssertNil(bad.analytics); XCTAssertEqual(bad.heroValue, "—"); XCTAssertFalse(bad.heroValue.contains("0")); XCTAssertEqual(bad.coupons.couponCount, 3)
         let wrongRate = try MerchantMarketingHome(mutated { root in
             var analytics = root["analytics"] as! [String: Any]; var stages = analytics["stages"] as! [[String: Any]]
             stages[0]["changeRate"] = 0.5; analytics["stages"] = stages; root["analytics"] = analytics
