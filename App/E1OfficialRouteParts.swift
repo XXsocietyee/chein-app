@@ -112,6 +112,7 @@ struct OfficialRouteDetailContent: View {
             stat("figure.walk", t("距离", "Distance"), distance.isEmpty ? "—" : distance)
             stat("mappin.and.ellipse", t("站点", "Stops"), detail.nodes.isEmpty ? "—" : "\(detail.nodes.count)")
         }
+        .fixedSize(horizontal: false, vertical: true)
     }
     private func stat(_ icon: String, _ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
@@ -119,7 +120,7 @@ struct OfficialRouteDetailContent: View {
             Text(verbatim: value).font(CYTypography.cardTitle).monospacedDigit().foregroundStyle(palette.textPrimary).lineLimit(2).minimumScaleFactor(0.8)
             Text(verbatim: label).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.md)
         .accessibilityElement(children: .combine)
     }

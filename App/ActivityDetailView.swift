@@ -374,6 +374,7 @@ struct ActivityDetailView: View {
         .frame(maxWidth:.infinity)
         .padding(.horizontal,Theme.Space.pageX)
         .padding(.vertical,Theme.Space.s2)
+        .background(.bar)
     }
     private func primaryActionLabel(_ action: ActivityPrimaryAction) -> some View {
         Text(LocalizedStringKey(action.titleKey))

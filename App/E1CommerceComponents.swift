@@ -57,7 +57,7 @@ struct E1CoverArt: View {
                 Image(systemName: symbol)
                     .font(.system(size: min(g.size.width, g.size.height) * 0.4, weight: .light))
                     .foregroundStyle(.white.opacity(0.42))
-                    .position(x: g.size.width * 0.5, y: g.size.height * 0.46)
+                    .position(x: g.size.width * 0.5, y: g.size.height * 0.3)
             }
         }
         .overlay(alignment: .topTrailing) {

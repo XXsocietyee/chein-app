@@ -315,7 +315,7 @@ struct RegistrationSheetView: View {
     private var summaryTotalText: String {
         let copy = CoreLoopCopy(locale: locale)
         if flow.quoteEnabled, case .received(let quote) = flow.quoteState,
-           let text = RegistrationUIMoney.display(quote.payAmount, locale: locale, currencyCode: RegistrationUIMoney.yuanCurrencyCode) { return text }
+           let text = E1Money.yuan(quote.payAmount, locale: locale) { return text }
         return ticketPriceText(copy)
     }
     private var showsCheckoutBar: Bool {
