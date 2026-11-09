@@ -28,3 +28,6 @@ Build 5 (design-batch int): BUILD_EXIT=0, six fixtures shot. QuestifyApp fix: `b
 | ui/e4 | de676a0b7 (only a merge of ui/main) |
 | ui/e5 | no branch yet |
 Registry: union (e1, e2, e3 cases); project regenerated each time. design-batch int: BUILD_EXIT=0, 8 fixtures (e1-topics, e1-activity-detail, e2-dice, e2-chapters(loading state), e3-inbox, e3-chat, e4-settings-support, d2-home) render. Note: designers' refs are local branches in the shared repo; origin has no ui/e*.
+
+## Cycle 2 (2026-11-09 ~12:15)
+Merged rc (no new), ui/e1, ui/e3, ui/e4 (ProfileParticipantsView: design side), ui/e5 ec87e4c6a (CreatorContentViews, FreeExploreBundleLaunchView: design side). Title sweep: `View.cyHeroScreen()` applied inside CYHeroHeader (inline + empty nav title); duplicate navigationTitle removed in 7 hero screens. design-batch int BUILD_EXIT=0, 14 shots.
