@@ -363,6 +363,115 @@ final class PWaveCoreTests: XCTestCase {
         XCTAssertTrue(wire.requests.isEmpty)
     }
 
+    func testFractionalAndBooleanNumbersStayUnknown() {
+        XCTAssertNil(PWaveNumberFact.parse(.number(1.5)).literal)
+        XCTAssertEqual(PWaveNumberFact.parse(.number(2)).literal, 2)
+        XCTAssertNil(PWaveNumberFact.parse(.bool(false)).literal)
+        XCTAssertNotEqual(PWaveNumberFact.parse(.number(1.5)).literal, 0)
+        XCTAssertEqual(PWaveNumberFact.parse(.number(1.5)).displayText, "—")
+        XCTAssertEqual(PWaveIdentifierFact.parse(.number(1.5)), .unknown)
+        XCTAssertEqual(PWaveIdentifierFact.parse(.number(4)).literalInteger, 4)
+        XCTAssertEqual(PWaveIdentifierFact.parse(.string("  ")), .unknown)
+    }
+
+    func testReportKeepsPlayInstanceProgressAndDoesNotTreatAnotherElapsedAsKnown() throws {
+        let fact = try readyReport(#"{"playInstanceId":"pi-1","progressScope":"NODE","elapsedSource":"THIS_RUN","rewardsScope":"OTHER","runId":0}"#)
+        XCTAssertEqual(fact.playInstanceID, .text("pi-1"))
+        XCTAssertEqual(fact.progressScope, "NODE")
+        XCTAssertEqual(fact.runID.literalInteger, 0)
+        XCTAssertFalse(fact.elapsedIsUnknown)
+        XCTAssertFalse(PWaveBattleReportFact.elapsedAmountIsKnown)
+        XCTAssertFalse(fact.rewardsAreTopicOrActivityBackpack)
+        XCTAssertFalse(fact.legacyTopicScope)
+        XCTAssertFalse(fact.unattributedRun)
+    }
+
+    func testReferralKeepsAvatarNextActionAndAMissingFreeFlagIsNotFalse() throws {
+        let fact = try readyReferral(#"""
+        {"state":"VALID","inviter":{"nickname":"Ada","avatar":"https://example.test/a.png"},"expiresAt":"2026-11-09T00:00:00Z","nextAction":"VIEW"}
+        """#)
+        XCTAssertEqual(fact.inviterAvatar, "https://example.test/a.png")
+        XCTAssertEqual(fact.nextAction, "VIEW")
+        XCTAssertEqual(fact.expiresAt, "2026-11-09T00:00:00Z")
+        XCTAssertFalse(fact.expiresAtIsUnknown)
+        XCTAssertNil(fact.freeSelfPlay)
+        XCTAssertFalse(fact.freeEntryOpen)
+        XCTAssertEqual(fact.headline, PWaveReferralFact.ordinaryHeadline)
+        XCTAssertFalse(fact.targetPresent)
+    }
+
+    func testExpiredGiftDoesNotOfferReclaim() throws {
+        let fact = try readyGift(#"{"state":"EXPIRED","claimExpiresAt":"2026-11-01T00:00:00Z"}"#)
+        XCTAssertEqual(fact.state, "EXPIRED")
+        XCTAssertFalse(fact.reclaimOffered)
+        XCTAssertFalse(fact.performsClaim)
+        XCTAssertFalse(fact.productPresent)
+        XCTAssertFalse(fact.claimExpiresAtIsUnknown)
+        XCTAssertEqual(fact.claimExpiresAt, "2026-11-01T00:00:00Z")
+    }
+
+    func testAnotherConfigAndANonColumnTeamSourceStayUnfrozen() {
+        let other = PWavePlayMode.decode(data: envelope(#"""
+        {"configState":"DRAFT","choices":[{"id":"a"}],"requiredCapabilities":["theme.runtime"],"teamModeSource":"FROZEN","runtimeScope":1}
+        """#), status: 200, supportedServerCapabilities: ["theme.runtime"])
+        XCTAssertEqual(other.fact, .unknown)
+        XCTAssertTrue(other.serverCapabilitySatisfied)
+        let held = PWavePlayMode.decode(data: envelope(#"""
+        {"configState":"PUBLISHED","choices":[{}],"requiredCapabilities":["theme.runtime"],"teamModeSource":"FROZEN","runtimeScope":1,"worldMode":"CITY","routeMode":"LINEAR"}
+        """#), status: 200, supportedServerCapabilities: ["theme.runtime"])
+        guard case .ready(let fact) = held.fact else { return XCTFail("expected ready") }
+        XCTAssertNil(fact.topicColumnIsFrozen)
+        XCTAssertEqual(fact.teamModeSource, "FROZEN")
+        XCTAssertNil(fact.runtimeScope)
+        XCTAssertEqual(fact.worldMode, "CITY")
+        XCTAssertEqual(fact.routeMode, "LINEAR")
+        XCTAssertEqual(fact.configState, .published)
+        let malformed = PWavePlayMode.decode(data: envelope(#"""
+        {"configState":"PUBLISHED","choices":[{}],"requiredCapabilities":1}
+        """#), status: 200, supportedServerCapabilities: ["theme.runtime"])
+        XCTAssertEqual(malformed.serverCapabilitiesDeclared, Optional(false))
+        XCTAssertFalse(malformed.serverCapabilitySatisfied)
+        guard case .ready(let listed) = malformed.fact else { return XCTFail("expected ready") }
+        XCTAssertTrue(listed.requiredCapabilities.isEmpty)
+        let emptyChoices = PWavePlayMode.decode(data: envelope(#"""
+        {"configState":"PUBLISHED","choices":[],"requiredCapabilities":["theme.runtime"]}
+        """#), status: 200, supportedServerCapabilities: ["theme.runtime"])
+        XCTAssertEqual(emptyChoices.fact, .empty)
+    }
+
+    func testSeatDraftsStayUnsentAndASlashIsRejected() throws {
+        let claim = try PWaveSeatWriteDraft(claim: "landing-credential", requestID: "req-1")
+        XCTAssertEqual(claim.kind, .claim)
+        XCTAssertFalse(claim.available)
+        let cancel = try PWaveSeatWriteDraft(cancel: "inv-1", requestID: "req-1")
+        let release = try PWaveSeatWriteDraft(release: "inv-1", requestID: "req-1")
+        XCTAssertEqual(cancel.kind, .cancel)
+        XCTAssertEqual(cancel.invitationID, "inv-1")
+        XCTAssertEqual(release.kind, .release)
+        XCTAssertFalse(cancel.available)
+        XCTAssertFalse(release.available)
+        XCTAssertFalse(cancel.matchesReplay(of: release))
+        XCTAssertThrowsError(try PWaveSeatWriteDraft(cancel: "inv/1", requestID: "req-1")) { error in
+            XCTAssertEqual(error as? PWaveRefusal, .invalidRequest)
+        }
+        XCTAssertThrowsError(try PWaveSeatWriteDraft(release: "inv/1", requestID: "req-1"))
+        XCTAssertThrowsError(try PWaveSeatWriteDraft(invite: "reg-1", requestID: ""))
+        XCTAssertThrowsError(try PWaveSessionScope(accountID: 7, epoch: 1, namespace: ""))
+    }
+
+    func testSeatInvitationRejectsAPathBeforeSending() async throws {
+        let wire = Wire()
+        let reader = try makeReader(wire, granted: [.ticketSeats])
+        let scope = try PWaveSessionScope(accountID: 7, epoch: 1, namespace: "cn")
+        for id in ["../inv", "a/b", ""] {
+            do {
+                _ = try await reader.seatInvitation(id: id, token: "session-token", scope: scope, currentScope: { scope })
+                XCTFail("path \(id)")
+            } catch PWaveRefusal.invalidRequest {}
+        }
+        XCTAssertTrue(wire.requests.isEmpty)
+    }
+
     func testCoreSourcesDoNotCarryFixturesALiveSessionOrAWallet() throws {
         var root = URL(fileURLWithPath: #filePath).deletingLastPathComponent()
         let files = FileManager.default
