@@ -1,7 +1,6 @@
 import SwiftUI
 #if canImport(UIKit)
 import UIKit
-import UniformTypeIdentifiers
 #endif
 
 @MainActor final class ClubAIDesignFeedbackModel: ObservableObject {
@@ -22,16 +21,15 @@ import UniformTypeIdentifiers
     }
     static func writeClipboard(_ text: String) -> Bool {
         #if canImport(UIKit)
-        let board = UIPasteboard.general, before = boardChangeCount()
-        board.setItems([[UTType.utf8PlainText.identifier: text]], options: [.localOnly: true])
-        return board.changeCount != before && board.hasStrings
+        let board = UIPasteboard.general
+        let before = board.changeCount
+        // changeCount is not pasteboard content. hasStrings would be a content probe.
+        LocalPasteboard.copy(text, to: board)
+        return board.changeCount != before
         #else
         return false
         #endif
     }
-    #if canImport(UIKit)
-    private static func boardChangeCount() -> Int { UIPasteboard.general.changeCount }
-    #endif
 }
 
 @MainActor struct ClubAIDesignIdeaChips: View {
