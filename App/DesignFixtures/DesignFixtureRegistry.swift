@@ -65,6 +65,7 @@ enum DesignFixtureRegistry {
         case "d6-real-live": return AnyView(D6RealLiveHost())
         // D7 creator / publish (PublishDesignFixtures)
         case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
+        case let n where n.hasPrefix("e3-") && E3Fixtures.make(n) != nil: return E3Fixtures.make(n)!
         default:
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }
             return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
