@@ -1,4 +1,4 @@
-# Design report e3 (SOCIAL) — second pass, BLIND (NOT COMPILED, NO SCREENSHOTS)
+# Design report e3 (SOCIAL) — second pass (built once, batch 1 reviewed; batch 2 pending)
 
 Branch ui/e3, base merged with origin/ui/main 357154584 (clean merge; my duplicate fix commits dropped by the merge, nothing of mine conflicts).
 Builds were held by the owner (LOAD 80) so everything below is parse-checked only (`swiftc -parse`), not built.
@@ -17,3 +17,14 @@ e3-inbox, e3-inbox-empty, e3-inbox-error, e3-chat, e3-poll, e3-social (+ `--uite
 - Pillow comparison against mini-program screenshots.
 - Deeper hierarchy work (one primary action, extra buttons removed) on club detail, IM expanded cards, coop invite detail, notices; fixtures for club apply/create/calendar/roster/stories.
 - Contact sheet path: none yet (/Users/fanning/chengyin-refs/design-reports/e3/).
+
+## Benchmarks (Mobbin, ios)
+- Club detail / directory: Partiful (https://mobbin.com/screens/7c595947-0cb2-424d-8dd0-0bd981fdc1b1) gradient cover tile + name + tagline; Cal AI Groups (https://mobbin.com/screens/e9595ac2-f0b8-4b49-93ab-9fe58cb1deea) round cover, title + member count, trailing action. Borrowed: generated gradient cover art (CYCoverArt, deterministic by name) for clubs/conversations without a photo.
+- Inbox: Reddit Inbox (https://mobbin.com/screens/1fdb305e-6646-4ab9-a965-90918b3b8619) tight rows, avatar, name + preview, unread dot; Discord DMs (https://mobbin.com/screens/af9da111-b574-44f9-924c-cb6c9269cc0f) avatar badges. Borrowed: gradient avatars, unread badge.
+- Chat bubbles: stray per-message list row removed; bubble + timestamp + gradient avatar (own = high-contrast fill, received = elevated).
+
+## Round 2 fixes after coordinator review
+Black row boxes on public profile (per-row page background from SocialReadScreen) removed; chat header row removed; retry buttons are CYPillButton secondary with icon; coop owed-deposit red strip -> tinted warning callout with icon.
+
+## Self-score (1-10, lenses: delight/interaction/inclusivity/visuals/innovation/social)
+Inbox 7, inbox empty 8, inbox error 7, chat 6, poll 6, social profile 6 (pending re-shoot), coop list 6, club community 6. Under 8: all but empty; reasons: grouped lists remain, no swipe actions / motion layer yet, no real photography in fixtures.
