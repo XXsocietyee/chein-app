@@ -1,0 +1,1797 @@
+{
+  "sourceLanguage": "en",
+  "strings": {
+    "backendError.unknown": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Something went wrong. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出了点问题，请重试。"
+          }
+        }
+      }
+    },
+    "backendError.status.2": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session has expired. Please sign in again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录已过期，请重新登录。"
+          }
+        }
+      }
+    },
+    "backendError.status.400": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request was not accepted. Check it and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求未被接受，请检查后再试。"
+          }
+        }
+      }
+    },
+    "backendError.status.401": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session has expired. Please sign in again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录已过期，请重新登录。"
+          }
+        }
+      }
+    },
+    "backendError.status.403": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't have permission to do that."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你没有权限执行此操作。"
+          }
+        }
+      }
+    },
+    "backendError.status.404": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That item was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到对应内容。"
+          }
+        }
+      }
+    },
+    "backendError.status.405": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request was refused."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求被拒绝。"
+          }
+        }
+      }
+    },
+    "backendError.status.408": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is still unknown. Please try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确定，请稍后再试。"
+          }
+        }
+      }
+    },
+    "backendError.status.409": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This item changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.status.410": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That item is no longer available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该内容已不可用。"
+          }
+        }
+      }
+    },
+    "backendError.status.413": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request is too large."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求过大。"
+          }
+        }
+      }
+    },
+    "backendError.status.415": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request isn't in a supported format."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求格式不受支持。"
+          }
+        }
+      }
+    },
+    "backendError.status.422": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request was not accepted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求未被接受。"
+          }
+        }
+      }
+    },
+    "backendError.status.426": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This app version is no longer supported. Update the app before continuing."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前应用版本已不受支持，请更新应用后再继续。"
+          }
+        }
+      }
+    },
+    "backendError.status.429": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many attempts. Please wait and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作过于频繁，请稍后再试。"
+          }
+        }
+      }
+    },
+    "backendError.status.500": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service couldn't complete that. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务未能完成此操作，请重试。"
+          }
+        }
+      }
+    },
+    "backendError.status.503": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service is unavailable right now. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务暂不可用，请重试。"
+          }
+        }
+      }
+    },
+    "backendError.status.520": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original result is still unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原命令结果仍未知。"
+          }
+        }
+      }
+    },
+    "backendError.code.BOARD_CURSOR_STALE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This list changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "列表已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.CITY_MAP_CURSOR_STALE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The map changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.CITY_ORDERED_RESET_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The map needs to be reloaded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图需要重新加载。"
+          }
+        }
+      }
+    },
+    "backendError.code.CITY_QUERY_TOO_BROAD": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That map area is too large. Zoom in and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图范围太大，请放大后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.CITY_SNAPSHOT_CHANGED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The map changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "地图已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.DIRECTORY_CHANGED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The friend list changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好友列表已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.DIRECTORY_GROUP_NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That friend group was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该好友分组。"
+          }
+        }
+      }
+    },
+    "backendError.code.FORBIDDEN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't have permission to do that."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你没有权限执行此操作。"
+          }
+        }
+      }
+    },
+    "backendError.code.FRIEND_INVITE_REJECTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This friend invite was declined."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条好友邀请已被拒绝。"
+          }
+        }
+      }
+    },
+    "backendError.code.FRIEND_NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That friend was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该好友。"
+          }
+        }
+      }
+    },
+    "backendError.code.GAME_AUTHORITY_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Play authority changed. Confirm again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "执行权已变化，请重新确认。"
+          }
+        }
+      }
+    },
+    "backendError.code.H5_REJECTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That page was rejected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该页面已被拒绝。"
+          }
+        }
+      }
+    },
+    "backendError.code.H5_TIMEOUT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That page timed out."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该页面已超时。"
+          }
+        }
+      }
+    },
+    "backendError.code.HANGOUT_CLOSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation is closed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此会话已关闭。"
+          }
+        }
+      }
+    },
+    "backendError.code.IM_CONVERSATION_CLOSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This conversation is closed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此会话已关闭。"
+          }
+        }
+      }
+    },
+    "backendError.code.LEDGER_OFF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reservations are temporarily unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预约暂时不可用。"
+          }
+        }
+      }
+    },
+    "backendError.code.LOGIN_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先登录"
+          }
+        }
+      }
+    },
+    "backendError.code.MERCHANT_ENVIRONMENT_EXIT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The original request used the fixed safe exit."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "原请求的固定安全退出"
+          }
+        }
+      }
+    },
+    "backendError.code.MERCHANT_EXITED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The merchant has left this program."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家已退出该活动。"
+          }
+        }
+      }
+    },
+    "backendError.code.MESSAGE_CONTEXT_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That message is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条消息暂不可用。"
+          }
+        }
+      }
+    },
+    "backendError.code.MESSAGE_VERSION_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This message changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这条消息已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.NICKNAME_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That name can't be used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个名字无法使用。"
+          }
+        }
+      }
+    },
+    "backendError.code.NICKNAME_SUFFIX_EXHAUSTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No available name suggestion is left."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可用的名字建议了。"
+          }
+        }
+      }
+    },
+    "backendError.code.NICKNAME_TAKEN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That name is already taken."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个名字已被使用。"
+          }
+        }
+      }
+    },
+    "backendError.code.NOT_YET_VALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This offer is not valid yet."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该优惠尚未生效。"
+          }
+        }
+      }
+    },
+    "backendError.code.NO_AUTHORITY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You don't have permission to do that."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你没有权限执行此操作。"
+          }
+        }
+      }
+    },
+    "backendError.code.NO_BALANCE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You have no available units left."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你没有可用的次数。"
+          }
+        }
+      }
+    },
+    "backendError.code.OFFER_EXPIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This offer has expired."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该优惠已过期。"
+          }
+        }
+      }
+    },
+    "backendError.code.ORIENT_LOGIN_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to your own account to view this round."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请登录本人账号查看对局"
+          }
+        }
+      }
+    },
+    "backendError.code.ORIENT_RECEIPT_NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That receipt was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该回执。"
+          }
+        }
+      }
+    },
+    "backendError.code.OUTCOME_UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is still unknown. Check the original request before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确定，请先核对原请求再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.OUTSIDE_VALIDITY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The chosen time is outside your validity period."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "所选时间不在有效期内。"
+          }
+        }
+      }
+    },
+    "backendError.code.POLICY_CHANGED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service refused the current sharing policy. Sharing stopped and the received location was cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端拒绝当前共享政策。已同步停止采集并清除接收位置。"
+          }
+        }
+      }
+    },
+    "backendError.code.POLICY_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service refused the current sharing policy. Sharing stopped and the received location was cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端拒绝当前共享政策。已同步停止采集并清除接收位置。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_BINDING_MISMATCH": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That check doesn't match this account."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该校验与当前账号不符。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_CONSUMED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That check was already used."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该校验已被使用。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_EXPIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That check expired. Start again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该校验已过期，请重新开始。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_INPUT_INVALID": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That check input is not valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该校验内容无效。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_INTENT_CLOSED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request is closed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该请求已关闭。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_INTENT_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request conflicts with another one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该请求与另一请求冲突。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That check was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该校验。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_REJECTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That check was not accepted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该校验未被接受。"
+          }
+        }
+      }
+    },
+    "backendError.code.PREFLIGHT_STATE_CHANGED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That check changed. Start again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该校验已变化，请重新开始。"
+          }
+        }
+      }
+    },
+    "backendError.code.PRIVACY_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Privacy settings changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "隐私设置已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.PROGRESS_REQUEST_NOT_FOUND": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That progress request was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该进度请求。"
+          }
+        }
+      }
+    },
+    "backendError.code.RELATION_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The service refused this relationship. Sharing stopped and the received location was cleared."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务端拒绝当前关系授权。已同步停止采集并清除接收位置。"
+          }
+        }
+      }
+    },
+    "backendError.code.REQUEST_ID_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request conflicts with an earlier one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此请求与先前的请求冲突。"
+          }
+        }
+      }
+    },
+    "backendError.code.REQUEST_OUTCOME_UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is still unknown. Check the original request before trying again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确定，请先核对原请求再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.REQUEST_REJECTED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That request was not accepted."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请求未被接受。"
+          }
+        }
+      }
+    },
+    "backendError.code.RESERVATION_OFF": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reservations are temporarily unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预约暂时不可用。"
+          }
+        }
+      }
+    },
+    "backendError.code.RESERVED_ELSEWHERE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This unit is already reserved elsewhere."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该次数已预约其他门店。"
+          }
+        }
+      }
+    },
+    "backendError.code.SCREENING_PENDING": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finish the existing rules first. The welcome screen does not replace them and does not resend a message."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先完成原逐条规则。欢迎屏不能替代规则同意，也不触发重发消息。"
+          }
+        }
+      }
+    },
+    "backendError.code.UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The result is still unknown. Please try again later."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结果尚未确定，请稍后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.US_APPLE_INVALID_CHALLENGE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple expired. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过 Apple 登录已过期，请重试。"
+          }
+        }
+      }
+    },
+    "backendError.code.US_APPLE_INVALID_IDENTITY": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple couldn't confirm this sign-in."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 未能确认这次登录。"
+          }
+        }
+      }
+    },
+    "backendError.code.US_APPLE_INVALID_REQUEST": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple couldn't be started. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法开始通过 Apple 登录，请重试。"
+          }
+        }
+      }
+    },
+    "backendError.code.US_APPLE_RATE_LIMITED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Too many sign-in attempts. Please wait and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录尝试过于频繁，请稍后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.US_APPLE_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in with Apple is unavailable right now."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过 Apple 登录暂不可用。"
+          }
+        }
+      }
+    },
+    "backendError.code.US_SESSION_UNAVAILABLE": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in is unavailable right now. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录暂不可用，请重试。"
+          }
+        }
+      }
+    },
+    "backendError.code.VERSION_CONFLICT": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This item changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.code.WEBHOOK_RESULT_UNKNOWN": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The webhook result is still unknown."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "回调结果尚未确定。"
+          }
+        }
+      }
+    },
+    "backendError.code.WELCOME_SCREEN_NOT_CONFIGURED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This space has no welcome screen yet. Joining did not fail, and you do not need to resend the request."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本空间尚未配置或未启用欢迎屏；不是加入失败，不需要重发申请。"
+          }
+        }
+      }
+    },
+    "backendError.code.WITHDRAWAL_CONSENT_REQUIRED": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This withdrawal isn't available."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此提现暂不可用。"
+          }
+        }
+      }
+    },
+    "backendError.message.directoryChanged": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The friend list changed. Refresh and try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "好友列表已变化，请刷新后再试。"
+          }
+        }
+      }
+    },
+    "backendError.message.directoryGroupNotFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That friend group was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该好友分组。"
+          }
+        }
+      }
+    },
+    "backendError.message.friendNotFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That friend was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该好友。"
+          }
+        }
+      }
+    },
+    "backendError.message.orientLoginRequired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in to your own account to view this round."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请登录本人账号查看对局"
+          }
+        }
+      }
+    },
+    "backendError.message.orientReceiptNotFound": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That receipt was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未找到该回执。"
+          }
+        }
+      }
+    },
+    "backendError.message.requestIdConflict": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This request conflicts with an earlier one."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此请求与先前的请求冲突。"
+          }
+        }
+      }
+    },
+    "backendError.message.ownerSplitOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the owner and co-owners can view this split."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅主理人与联席主理人可查看分润"
+          }
+        }
+      }
+    },
+    "backendError.message.publisherPoolOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Only the topic publisher can view this pool."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅主题发布者可查看候选池"
+          }
+        }
+      }
+    },
+    "backendError.message.freeExploreOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This is only available for free exploration."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仅自由探索"
+          }
+        }
+      }
+    },
+    "backendError.message.aiQuotaUsed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today's AI uses are used up."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日AI次数已用完"
+          }
+        }
+      }
+    },
+    "backendError.message.couponStock": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "There isn't enough coupon stock, so redemption did not finish."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "券库存不足,核销失败"
+          }
+        }
+      }
+    },
+    "backendError.message.badParameter": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A parameter is not valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "参数错误"
+          }
+        }
+      }
+    },
+    "backendError.message.storeUnavailable": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This store is unavailable."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "商家不存在或未开放"
+          }
+        }
+      }
+    },
+    "backendError.message.locationAccuracy": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Location accuracy is too low."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "定位精度不足"
+          }
+        }
+      }
+    },
+    "backendError.message.expired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This has expired."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已过期"
+          }
+        }
+      }
+    },
+    "backendError.message.identityUnsupported": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This account can't do that."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前身份暂不支持"
+          }
+        }
+      }
+    },
+    "backendError.message.placeMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That place was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "据点不存在"
+          }
+        }
+      }
+    },
+    "backendError.message.redeemForbidden": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't redeem at this place."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无权核销该据点"
+          }
+        }
+      }
+    },
+    "backendError.message.resourceDenied": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can't access this right now. Please sign in again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法访问系统资源"
+          }
+        }
+      }
+    },
+    "backendError.message.redeemCodeInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That redemption code is not valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销码无效"
+          }
+        }
+      }
+    },
+    "backendError.message.redeemCodeFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That redemption code format is not valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销码格式错误"
+          }
+        }
+      }
+    },
+    "backendError.message.badFormat": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That format is not valid."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "格式错误"
+          }
+        }
+      }
+    },
+    "backendError.message.checkInOrRedeemed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Check in at the store first, or this coupon was already redeemed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "玩家未到店打卡,或该券已核销"
+          }
+        }
+      }
+    },
+    "backendError.message.sessionInvalid": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your session has expired. Please sign in again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录已过期，请重新登录。"
+          }
+        }
+      }
+    },
+    "backendError.message.emptyCode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The redemption code is empty."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "空码"
+          }
+        }
+      }
+    },
+    "backendError.message.signatureMismatch": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The signature does not match."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "签名不匹配"
+          }
+        }
+      }
+    },
+    "backendError.message.orderExpired": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This order has expired."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订单已过期"
+          }
+        }
+      }
+    },
+    "backendError.message.authenticationFailed": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign-in could not be verified. Please sign in again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "认证失败"
+          }
+        }
+      }
+    },
+    "backendError.message.signInFirst": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in first."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请先登录"
+          }
+        }
+      }
+    },
+    "backendError.message.noticeMissing": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That notice was not found."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知不存在"
+          }
+        }
+      }
+    },
+    "backendError.message.notPlaceCode": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "That is not a place redemption code."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "非据点核销码"
+          }
+        }
+      }
+    }
+  }
+}

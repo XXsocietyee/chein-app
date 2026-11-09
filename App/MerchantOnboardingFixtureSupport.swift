@@ -88,7 +88,7 @@ final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnbo
         try await Task.sleep(nanoseconds: 150_000_000)
         try validate(expectedIdentity)
         if name == "submit-rejected" {
-            throw MerchantOnboardingWriteError.rejected(.init(code: 409, message: String(localized: "merchant.onboarding.fixture.rejection")))
+            throw MerchantOnboardingWriteError.rejected(.init(code: 409, message: appLocalized("merchant.onboarding.fixture.rejection", locale: .current)))
         }
         submitted = true
         if name == "submit-unknown" { throw MerchantOnboardingWriteError.outcomeUnknown }
@@ -99,8 +99,8 @@ final class MerchantOnboardingFixture: MerchantOnboardingObserving, MerchantOnbo
             "name": "Example Store", "preference": "Example category", "phone": "2025550100",
             "address": "Example address", "businessTime": "周一至周日 10:00-22:00", "description": "Offline example",
             "businessLicense": "https://fixtures.example/merchant-license.jpg",
-            "reson": String(localized: "merchant.onboarding.fixture.rejection"),
-            "disableReason": String(localized: "merchant.onboarding.fixture.disabled"), "createTime": "2026-01-01 10:00:00"
+            "reson": appLocalized("merchant.onboarding.fixture.rejection", locale: .current),
+            "disableReason": appLocalized("merchant.onboarding.fixture.disabled", locale: .current), "createTime": "2026-01-01 10:00:00"
         ]
         return try JSONDecoder().decode(MerchantOnboardingApplication.self, from: JSONSerialization.data(withJSONObject: fields))
     }
