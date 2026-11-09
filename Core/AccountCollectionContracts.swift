@@ -1,4 +1,5 @@
 import Foundation
+import CoreFoundation
 
 /// Read-only projection of ViewCouponHistory. Redemption credentials (couponCode, qrcodeUrl)
 /// are deliberately not decoded or retained. These records are never persisted or logged.
@@ -157,3 +158,383 @@ public enum AccountCollectionIssue: Equatable {
         }
     }
 }
+
+/// Read-only projection of the favorites page (`pages/mylike/mylike`).
+/// Posts are `POST /api/creativesquare/list` with `favorite_only=1`.
+/// Topics are `POST /api/topic/like_list`. Both paths are already live.
+/// This type does not build a request, open a session, or change a route mark.
+///
+/// `SquarePost` and `TopicSummary` still store a missing count as 0. This projection
+/// does not change those decoders. An omitted count, null, a numeric string, a fraction,
+/// a boolean, or a negative is U+2014. A literal JSON 0 stays "0".
+public enum AccountCollectionFavoritesPageModel {
+    /// Em dash (U+2014). Unknown numbers use this. A literal zero does not.
+    public static let unknownMark = "\u{2014}"
+    public static let postsPath = "/api/creativesquare/list"
+    public static let topicsPath = "/api/topic/like_list"
+    public static let postsEmptyKey = "member.favorites.postsEmpty"
+    public static let topicsEmptyKey = "accountCollection.favorites.empty"
+    public static let postsEndKey = "member.favorites.postsEnd"
+    public static let topicsEndKey = "member.favorites.topicsEnd"
+
+    /// Reads the existing mark. It does not insert a path or flip a mark to live.
+    public static func existingRouteIsLive(_ path: String) -> Bool {
+        ChinaReviewedRouteCapability.mark(for: path) == .liveInProduction
+            && ChinaReviewedRouteCapability.admitsChinaProductionCall(path)
+    }
+
+    public static func countText(_ value: Any?) -> String {
+        guard let number = AccountCollectionFavoritesWire.wholeNumber(value), number >= 0 else { return unknownMark }
+        return String(number)
+    }
+
+    public static func titleKey(for error: Error) -> String {
+        AccountCollectionIssue(error).localizationKey
+    }
+
+    public static func serverMessage(for error: Error) -> String? {
+        guard case .server(let message) = AccountCollectionIssue(error) else { return nil }
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    /// `failure` wins. A present payload wins over `loading`. No payload while loading is `.loading`.
+    /// No payload while idle is `.unknown`, not an empty collection.
+    public static func resolvePosts(loading: Bool, payload: Data?, failure: Error?, pageSize: Int) -> AccountCollectionFavoritesPostsState {
+        switch AccountCollectionFavoritesWire.classify(loading: loading, payload: payload, failure: failure) {
+        case .loading: return .loading
+        case .unknown: return .unknown
+        case .error(let titleKey, let serverMessage): return .error(titleKey: titleKey, serverMessage: serverMessage)
+        case .value(let data): return projectPosts(data, pageSize: pageSize)
+        }
+    }
+
+    public static func resolveTopics(loading: Bool, payload: Data?, failure: Error?, pageSize: Int) -> AccountCollectionFavoritesTopicsState {
+        switch AccountCollectionFavoritesWire.classify(loading: loading, payload: payload, failure: failure) {
+        case .loading: return .loading
+        case .unknown: return .unknown
+        case .error(let titleKey, let serverMessage): return .error(titleKey: titleKey, serverMessage: serverMessage)
+        case .value(let data): return projectTopics(data, pageSize: pageSize)
+        }
+    }
+
+    private static func projectPosts(_ data: Any, pageSize: Int) -> AccountCollectionFavoritesPostsState {
+        guard (1...100).contains(pageSize) else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        if AccountCollectionFavoritesWire.isUnknownToken(data) || data is NSNull { return .unknown }
+        guard let object = data as? [String: Any] else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        guard object.keys.contains("rows") else { return .unknown }
+        return projectPostRows(object["rows"], pageSize: pageSize)
+    }
+
+    private static func projectTopics(_ data: Any, pageSize: Int) -> AccountCollectionFavoritesTopicsState {
+        guard (1...100).contains(pageSize) else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        if AccountCollectionFavoritesWire.isUnknownToken(data) || data is NSNull { return .unknown }
+        if let rows = data as? [Any] { return projectTopicRows(rows, pageSize: pageSize) }
+        guard let object = data as? [String: Any] else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        guard object.keys.contains("rows") else { return .unknown }
+        let rows = object["rows"]
+        if AccountCollectionFavoritesWire.isUnknownToken(rows) || rows == nil || rows is NSNull { return .unknown }
+        guard let list = rows as? [Any] else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        return projectTopicRows(list, pageSize: pageSize)
+    }
+
+    private static func projectPostRows(_ rows: Any?, pageSize: Int) -> AccountCollectionFavoritesPostsState {
+        if AccountCollectionFavoritesWire.isUnknownToken(rows) || rows == nil || rows is NSNull { return .unknown }
+        guard let list = rows as? [Any] else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        guard list.count <= pageSize else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        if list.isEmpty { return .empty }
+        var posts: [AccountCollectionFavoritesPostFacts] = []
+        posts.reserveCapacity(list.count)
+        for row in list {
+            guard let object = row as? [String: Any], !object.keys.contains("post"),
+                  let id = AccountCollectionFavoritesWire.wholeNumber(object["id"]), id > 0 else {
+                return .error(titleKey: "accountCollection.failed", serverMessage: nil)
+            }
+            posts.append(AccountCollectionFavoritesPostFacts(
+                id: id,
+                likeCountText: AccountCollectionFavoritesWire.count(object, keys: ["likeCount", "likeNum"]),
+                commentCountText: AccountCollectionFavoritesWire.count(object, keys: ["commentCount"]),
+                dislikeCountText: AccountCollectionFavoritesWire.count(object, keys: ["nolikeNum"]),
+                nodeTotalText: AccountCollectionFavoritesWire.count(object, keys: ["nodeTotal"]),
+                nodeDoneText: AccountCollectionFavoritesWire.count(object, keys: ["nodeDoneCount"]),
+                memberLevelText: AccountCollectionFavoritesWire.level(object, keys: ["memberLevelId", "member_level_id"]),
+                imageCountText: AccountCollectionFavoritesWire.imageCount(object),
+                bookmarked: AccountCollectionFavoritesWire.bookmark(object["isBookmarked"])
+            ))
+        }
+        return .ready(AccountCollectionFavoritesPostPage(posts: posts, hasMore: list.count >= pageSize))
+    }
+
+    private static func projectTopicRows(_ rows: [Any], pageSize: Int) -> AccountCollectionFavoritesTopicsState {
+        guard rows.count <= pageSize else { return .error(titleKey: "accountCollection.failed", serverMessage: nil) }
+        if rows.isEmpty { return .empty }
+        var topics: [AccountCollectionFavoritesTopicFacts] = []
+        topics.reserveCapacity(rows.count)
+        for row in rows {
+            guard let object = row as? [String: Any],
+                  let id = AccountCollectionFavoritesWire.topicID(object["id"]) else {
+                return .error(titleKey: "accountCollection.failed", serverMessage: nil)
+            }
+            topics.append(AccountCollectionFavoritesTopicFacts(
+                id: id,
+                locationCountText: AccountCollectionFavoritesWire.count(object, keys: ["locationCount"]),
+                likeCountText: AccountCollectionFavoritesWire.count(object, keys: ["likeNum"])
+            ))
+        }
+        return .ready(AccountCollectionFavoritesTopicPage(topics: topics, hasMore: rows.count >= pageSize))
+    }
+}
+
+public enum AccountCollectionFavoritesPostsState: Equatable, Sendable {
+    case loading
+    case empty
+    case error(titleKey: String, serverMessage: String?)
+    case unknown
+    case ready(AccountCollectionFavoritesPostPage)
+}
+
+public enum AccountCollectionFavoritesTopicsState: Equatable, Sendable {
+    case loading
+    case empty
+    case error(titleKey: String, serverMessage: String?)
+    case unknown
+    case ready(AccountCollectionFavoritesTopicPage)
+}
+
+public enum AccountCollectionFavoritesFlag: Equatable, Sendable {
+    case unknown
+    case no
+    case yes
+}
+
+public struct AccountCollectionFavoritesPostFacts: Equatable, Sendable {
+    public let id: Int
+    public let likeCountText: String
+    public let commentCountText: String
+    public let dislikeCountText: String
+    public let nodeTotalText: String
+    public let nodeDoneText: String
+    public let memberLevelText: String
+    public let imageCountText: String
+    public let bookmarked: AccountCollectionFavoritesFlag
+    /// This projection never sends a bookmark, unlike, or share.
+    public var sends: Bool { false }
+    public init(id: Int, likeCountText: String, commentCountText: String, dislikeCountText: String,
+                nodeTotalText: String, nodeDoneText: String, memberLevelText: String, imageCountText: String,
+                bookmarked: AccountCollectionFavoritesFlag) {
+        self.id = id
+        self.likeCountText = likeCountText
+        self.commentCountText = commentCountText
+        self.dislikeCountText = dislikeCountText
+        self.nodeTotalText = nodeTotalText
+        self.nodeDoneText = nodeDoneText
+        self.memberLevelText = memberLevelText
+        self.imageCountText = imageCountText
+        self.bookmarked = bookmarked
+    }
+}
+
+public struct AccountCollectionFavoritesPostPage: Equatable, Sendable {
+    public let posts: [AccountCollectionFavoritesPostFacts]
+    public let hasMore: Bool
+    public var showsEnd: Bool { !posts.isEmpty && !hasMore }
+    public init(posts: [AccountCollectionFavoritesPostFacts], hasMore: Bool) {
+        self.posts = posts
+        self.hasMore = hasMore
+    }
+}
+
+public struct AccountCollectionFavoritesTopicFacts: Equatable, Sendable {
+    public let id: Int
+    public let locationCountText: String
+    public let likeCountText: String
+    /// This projection never sends a topic unlike.
+    public var sends: Bool { false }
+    public init(id: Int, locationCountText: String, likeCountText: String) {
+        self.id = id
+        self.locationCountText = locationCountText
+        self.likeCountText = likeCountText
+    }
+}
+
+public struct AccountCollectionFavoritesTopicPage: Equatable, Sendable {
+    public let topics: [AccountCollectionFavoritesTopicFacts]
+    public let hasMore: Bool
+    public var showsEnd: Bool { !topics.isEmpty && !hasMore }
+    public init(topics: [AccountCollectionFavoritesTopicFacts], hasMore: Bool) {
+        self.topics = topics
+        self.hasMore = hasMore
+    }
+}
+
+private enum AccountCollectionFavoritesWire {
+    enum Kind {
+        case loading
+        case unknown
+        case error(String, String?)
+        case value(Any)
+    }
+
+    static func classify(loading: Bool, payload: Data?, failure: Error?) -> Kind {
+        if let failure {
+            return .error(AccountCollectionFavoritesPageModel.titleKey(for: failure),
+                          AccountCollectionFavoritesPageModel.serverMessage(for: failure))
+        }
+        guard let payload else { return loading ? .loading : .unknown }
+        let trimmed = trim(payload)
+        guard !trimmed.isEmpty else { return loading ? .loading : .unknown }
+        guard let raw = try? JSONSerialization.jsonObject(with: trimmed, options: [.fragmentsAllowed]) else {
+            return .error("accountCollection.failed", nil)
+        }
+        if isUnknownToken(raw) || raw is NSNull { return .unknown }
+        guard let object = raw as? [String: Any] else { return .error("accountCollection.failed", nil) }
+        guard object.keys.contains("code") else { return .error("accountCollection.failed", nil) }
+        switch envelopeCode(object["code"]) {
+        case .malformed:
+            return .error("accountCollection.failed", nil)
+        case .value(200):
+            guard let data = object["data"] else { return .unknown }
+            if isUnknownToken(data) || data is NSNull { return .unknown }
+            return .value(data)
+        case .value(401):
+            return .error("accountCollection.signInRequired", message(object["msg"]))
+        case .value:
+            return .error("accountCollection.failed", message(object["msg"]))
+        }
+    }
+
+    static func count(_ object: [String: Any], keys: [String]) -> String {
+        for key in keys {
+            guard object.keys.contains(key) else { continue }
+            let value = object[key]
+            if value == nil || value is NSNull { continue }
+            return AccountCollectionFavoritesPageModel.countText(value)
+        }
+        return AccountCollectionFavoritesPageModel.unknownMark
+    }
+
+    /// Existing `memberLevelId` integer parse, including a decimal-digit string. A missing level stays unknown.
+    static func level(_ object: [String: Any], keys: [String]) -> String {
+        for key in keys {
+            guard object.keys.contains(key) else { continue }
+            let value = object[key]
+            if value == nil || value is NSNull { continue }
+            if let number = wholeNumber(value) { return number >= 0 ? String(number) : AccountCollectionFavoritesPageModel.unknownMark }
+            if let text = value as? String {
+                let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+                let digits = !trimmed.isEmpty && trimmed.unicodeScalars.allSatisfy { CharacterSet.decimalDigits.contains($0) }
+                if digits, let number = Int(trimmed), number >= 0 { return String(number) }
+            }
+            return AccountCollectionFavoritesPageModel.unknownMark
+        }
+        return AccountCollectionFavoritesPageModel.unknownMark
+    }
+
+    /// Topic ids follow `TopicSummary`: a positive JSON integer, or a string `Int` accepts.
+    static func topicID(_ value: Any?) -> Int? {
+        if let number = wholeNumber(value), number > 0 { return number }
+        guard let text = value as? String, let number = Int(text), number > 0 else { return nil }
+        return number
+    }
+
+    static func bookmark(_ value: Any?) -> AccountCollectionFavoritesFlag {
+        guard let number = wholeNumber(value) else { return .unknown }
+        if number == 1 { return .yes }
+        if number == 0 { return .no }
+        return .unknown
+    }
+
+    static func imageCount(_ row: [String: Any]) -> String {
+        let media = row["media"]
+        if let rows = media as? [Any] {
+            let images = rows.compactMap { item -> String? in
+                guard let object = item as? [String: Any] else { return nil }
+                let kind = (object["media_type"] as? String) ?? (object["mediaType"] as? String) ?? "IMAGE"
+                guard kind == "IMAGE" else { return nil }
+                let key = (object["derived_object_key"] as? String) ?? (object["derivedObjectKey"] as? String)
+                let trimmed = key?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                return trimmed.isEmpty ? nil : trimmed
+            }
+            if !images.isEmpty { return String(images.count) }
+            if !row.keys.contains("pics") { return "0" }
+        } else if media != nil && !(media is NSNull) {
+            return AccountCollectionFavoritesPageModel.unknownMark
+        }
+        guard row.keys.contains("pics") else { return AccountCollectionFavoritesPageModel.unknownMark }
+        let pics = row["pics"]
+        if pics == nil || pics is NSNull { return AccountCollectionFavoritesPageModel.unknownMark }
+        if let count = pictureCount(pics as Any) { return String(count) }
+        return AccountCollectionFavoritesPageModel.unknownMark
+    }
+
+    static func pictureCount(_ value: Any) -> Int? {
+        if let rows = value as? [Any] {
+            return rows.reduce(0) { count, item in
+                guard let text = item as? String else { return count }
+                return text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? count : count + 1
+            }
+        }
+        guard let text = value as? String else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return 0 }
+        if trimmed.hasPrefix("["), let data = trimmed.data(using: .utf8),
+           let rows = try? JSONSerialization.jsonObject(with: data) as? [Any] {
+            return pictureCount(rows)
+        }
+        let parts = trimmed.components(separatedBy: CharacterSet(charactersIn: ";,，；"))
+        return parts.reduce(0) { count, part in
+            part.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? count : count + 1
+        }
+    }
+
+    static func isUnknownToken(_ value: Any?) -> Bool {
+        guard let text = value as? String else { return false }
+        return text.trimmingCharacters(in: .whitespacesAndNewlines) == "UNKNOWN"
+    }
+
+    static func message(_ value: Any?) -> String? {
+        guard let text = value as? String else { return nil }
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+
+    enum Code: Equatable { case malformed, value(Int) }
+
+    static func envelopeCode(_ value: Any?) -> Code {
+        guard let number = wholeNumber(value), number >= 0 else { return .malformed }
+        return .value(number)
+    }
+
+    /// A JSON integer, including 0. Numeric strings, booleans, and fractions are not integers.
+    static func wholeNumber(_ value: Any?) -> Int? {
+        guard let value, !(value is NSNull), !(value is Bool), !(value is String) else { return nil }
+        guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
+        let double = number.doubleValue
+        guard double.isFinite, double.rounded() == double else { return nil }
+        return Int(exactly: double)
+    }
+
+    static func trim(_ data: Data) -> Data {
+        var bytes = data
+        let whitespace = Set(" \n\r\t".utf8)
+        while let first = bytes.first, whitespace.contains(first) { bytes.removeFirst() }
+        while let last = bytes.last, whitespace.contains(last) { bytes.removeLast() }
+        return bytes
+    }
+}
+
+#if DEBUG
+/// Synthetic favorites payloads. No host, token, or transport.
+public enum AccountCollectionFavoritesPageFixtureData {
+    public static let readyPosts = #"{"code":200,"data":{"rows":[{"id":11,"likeNum":12,"commentCount":3,"nolikeNum":0,"memberLevelId":"2","isBookmarked":1,"pics":"a;b","nodeTotal":6,"nodeDoneCount":0}],"total":900}}"#
+    public static let literalZeroPosts = #"{"code":200,"data":{"rows":[{"id":11,"likeCount":0,"commentCount":0,"nolikeNum":0,"nodeTotal":0,"nodeDoneCount":0,"memberLevelId":0,"isBookmarked":0,"pics":""}]}}"#
+    public static let unknownPostCounts = #"{"code":200,"data":{"rows":[{"id":11}]}}"#
+    public static let numericStringCounts = #"{"code":200,"data":{"rows":[{"id":11,"likeCount":"0","commentCount":"4","nodeTotal":1.5,"nolikeNum":true,"pics":null}]}}"#
+    public static let emptyPosts = #"{"code":200,"data":{"rows":[],"total":900}}"#
+    public static let missingPostRows = #"{"code":200,"data":{"total":0}}"#
+    public static let readyTopics = #"{"code":200,"data":{"rows":[{"id":301,"locationCount":0,"likeNum":4},{"id":"302","locationCount":2}]}}"#
+    public static let unknownTopicCounts = #"{"code":200,"data":[{"id":301,"locationCount":"0","likeNum":null}]}"#
+    public static let emptyTopics = #"{"code":200,"data":[]}"#
+    public static let unknownBody = #""UNKNOWN""#
+}
+#endif

@@ -680,3 +680,170 @@ extension AccountCollectionTests {
         XCTAssertTrue(model.postsAllowed(reader: reader, gate: gateB))
     }
 }
+
+final class AccountCollectionFavoritesPageReadyTests: XCTestCase {
+    private let dash = AccountCollectionFavoritesPageModel.unknownMark
+
+    func testUnknownMarkIsAnEmDashAndNotZero() {
+        XCTAssertEqual(dash, "\u{2014}")
+        XCTAssertNotEqual(dash, "0")
+        XCTAssertFalse(dash.contains("0"))
+        XCTAssertEqual(AccountCollectionFavoritesPageModel.postsEmptyKey, "member.favorites.postsEmpty")
+        XCTAssertEqual(AccountCollectionFavoritesPageModel.topicsEmptyKey, "accountCollection.favorites.empty")
+        XCTAssertEqual(AccountCollectionFavoritesPageModel.postsEndKey, "member.favorites.postsEnd")
+        XCTAssertEqual(AccountCollectionFavoritesPageModel.topicsEndKey, "member.favorites.topicsEnd")
+    }
+
+    func testOmittedPostCountsStayUnknownAndLiteralZeroStaysZero() throws {
+        let omitted = try readyPosts(AccountCollectionFavoritesPageFixtureData.unknownPostCounts, pageSize: 10)
+        let row = try XCTUnwrap(omitted.posts.first)
+        XCTAssertEqual(row.id, 11)
+        XCTAssertEqual(row.likeCountText, dash)
+        XCTAssertEqual(row.commentCountText, dash)
+        XCTAssertEqual(row.dislikeCountText, dash)
+        XCTAssertEqual(row.nodeTotalText, dash)
+        XCTAssertEqual(row.nodeDoneText, dash)
+        XCTAssertEqual(row.memberLevelText, dash)
+        XCTAssertEqual(row.imageCountText, dash)
+        XCTAssertEqual(row.bookmarked, .unknown)
+        XCTAssertFalse(row.sends)
+        XCTAssertFalse(omitted.hasMore)
+        XCTAssertTrue(omitted.showsEnd)
+
+        let zero = try readyPosts(AccountCollectionFavoritesPageFixtureData.literalZeroPosts, pageSize: 10)
+        let kept = try XCTUnwrap(zero.posts.first)
+        XCTAssertEqual(kept.likeCountText, "0")
+        XCTAssertEqual(kept.commentCountText, "0")
+        XCTAssertEqual(kept.dislikeCountText, "0")
+        XCTAssertEqual(kept.nodeTotalText, "0")
+        XCTAssertEqual(kept.nodeDoneText, "0")
+        XCTAssertEqual(kept.memberLevelText, "0")
+        XCTAssertEqual(kept.imageCountText, "0")
+        XCTAssertEqual(kept.bookmarked, .no)
+    }
+
+    func testNumericStringFractionAndBooleanCountsStayUnknown() throws {
+        let page = try readyPosts(AccountCollectionFavoritesPageFixtureData.numericStringCounts, pageSize: 10)
+        let row = try XCTUnwrap(page.posts.first)
+        XCTAssertEqual(row.likeCountText, dash)
+        XCTAssertEqual(row.commentCountText, dash)
+        XCTAssertEqual(row.nodeTotalText, dash)
+        XCTAssertEqual(row.dislikeCountText, dash)
+        XCTAssertEqual(row.imageCountText, dash)
+        XCTAssertNotEqual(row.likeCountText, "0")
+        XCTAssertNotEqual(row.commentCountText, "4")
+        XCTAssertNotEqual(row.nodeTotalText, "1")
+    }
+
+    func testReadyPostKeepsLiteralCountsAndIgnoresTotal() throws {
+        let page = try readyPosts(AccountCollectionFavoritesPageFixtureData.readyPosts, pageSize: 10)
+        let row = try XCTUnwrap(page.posts.first)
+        XCTAssertEqual(row.likeCountText, "12")
+        XCTAssertEqual(row.commentCountText, "3")
+        XCTAssertEqual(row.dislikeCountText, "0")
+        XCTAssertEqual(row.nodeTotalText, "6")
+        XCTAssertEqual(row.nodeDoneText, "0")
+        XCTAssertEqual(row.memberLevelText, "2")
+        XCTAssertEqual(row.imageCountText, "2")
+        XCTAssertEqual(row.bookmarked, .yes)
+        XCTAssertFalse(page.hasMore)
+        XCTAssertTrue(page.showsEnd)
+        let full = try readyPosts(AccountCollectionFavoritesPageFixtureData.readyPosts, pageSize: 1)
+        XCTAssertTrue(full.hasMore)
+        XCTAssertFalse(full.showsEnd)
+    }
+
+    func testTopicCountsKeepLiteralZeroAndDoNotReadANumericStringAsZero() throws {
+        let ready = try readyTopics(AccountCollectionFavoritesPageFixtureData.readyTopics, pageSize: 2)
+        XCTAssertEqual(ready.topics.map(\.id), [301, 302])
+        XCTAssertEqual(ready.topics[0].locationCountText, "0")
+        XCTAssertEqual(ready.topics[0].likeCountText, "4")
+        XCTAssertEqual(ready.topics[1].locationCountText, "2")
+        XCTAssertEqual(ready.topics[1].likeCountText, dash)
+        XCTAssertTrue(ready.hasMore)
+        XCTAssertFalse(ready.topics[0].sends)
+
+        let unknown = try readyTopics(AccountCollectionFavoritesPageFixtureData.unknownTopicCounts, pageSize: 10)
+        let row = try XCTUnwrap(unknown.topics.first)
+        XCTAssertEqual(row.locationCountText, dash)
+        XCTAssertEqual(row.likeCountText, dash)
+        XCTAssertNotEqual(row.locationCountText, "0")
+        XCTAssertFalse(unknown.hasMore)
+        XCTAssertTrue(unknown.showsEnd)
+    }
+
+    func testEmptyRowsStayEmptyAndAMissingListStaysUnknown() {
+        XCTAssertEqual(posts(AccountCollectionFavoritesPageFixtureData.emptyPosts), .empty)
+        XCTAssertEqual(topics(AccountCollectionFavoritesPageFixtureData.emptyTopics), .empty)
+        XCTAssertEqual(posts(AccountCollectionFavoritesPageFixtureData.missingPostRows), .unknown)
+        XCTAssertEqual(posts(#"{"code":200,"data":{"rows":null,"total":0}}"#, pageSize: 10), .unknown)
+        XCTAssertEqual(posts(#"{"code":200,"data":"UNKNOWN"}"#, pageSize: 10), .unknown)
+        XCTAssertEqual(topics(#"{"code":200,"data":{"total":0}}"#, pageSize: 10), .unknown)
+        XCTAssertEqual(posts(AccountCollectionFavoritesPageFixtureData.unknownBody), .unknown)
+        XCTAssertNotEqual(posts(AccountCollectionFavoritesPageFixtureData.missingPostRows), .empty)
+        XCTAssertNotEqual(topics(#"{"code":200,"data":{"total":0}}"#, pageSize: 10), .empty)
+    }
+
+    func testFailureLoadingAndRejectedShapesStaySeparate() {
+        XCTAssertEqual(posts(nil, loading: true), .loading)
+        XCTAssertEqual(topics(nil, loading: false), .unknown)
+        let unauthorized = AccountCollectionFavoritesPageModel.resolvePosts(
+            loading: false, payload: Data(AccountCollectionFavoritesPageFixtureData.readyPosts.utf8),
+            failure: APIError.unauthorized, pageSize: 10)
+        XCTAssertEqual(unauthorized, .error(titleKey: "accountCollection.signInRequired", serverMessage: nil))
+        XCTAssertEqual(
+            AccountCollectionFavoritesPageModel.resolveTopics(loading: false, payload: nil, failure: APIError.notConfigured, pageSize: 10),
+            .error(titleKey: "accountCollection.notConfigured", serverMessage: nil))
+        XCTAssertEqual(
+            posts(nil, loading: false, failure: URLError(.notConnectedToInternet)),
+            .error(titleKey: "accountCollection.network", serverMessage: nil))
+        XCTAssertEqual(
+            posts(#"{"code":401,"msg":"sign in"}"#, pageSize: 10),
+            .error(titleKey: "accountCollection.signInRequired", serverMessage: "sign in"))
+        XCTAssertEqual(
+            topics(#"{"code":503,"msg":"  Exact server message  "}"#, pageSize: 10),
+            .error(titleKey: "accountCollection.failed", serverMessage: "Exact server message"))
+        XCTAssertEqual(posts(#"{"code":200,"data":[]}"#, pageSize: 10), .error(titleKey: "accountCollection.failed", serverMessage: nil))
+        XCTAssertEqual(posts(#"{"code":200,"data":{"rows":[{"id":1,"post":{"id":1}}]}}"#, pageSize: 10), .error(titleKey: "accountCollection.failed", serverMessage: nil))
+        XCTAssertEqual(posts(#"{"code":200,"data":{"rows":[{"id":1},{"id":2}]}}"#, pageSize: 1), .error(titleKey: "accountCollection.failed", serverMessage: nil))
+        XCTAssertEqual(topics(#"{"code":200,"data":[{"id":0}]}"#, pageSize: 10), .error(titleKey: "accountCollection.failed", serverMessage: nil))
+        XCTAssertEqual(posts(AccountCollectionFavoritesPageFixtureData.literalZeroPosts, pageSize: 0), .error(titleKey: "accountCollection.failed", serverMessage: nil))
+        XCTAssertEqual(topics(AccountCollectionFavoritesPageFixtureData.emptyTopics, pageSize: 101), .error(titleKey: "accountCollection.failed", serverMessage: nil))
+        let stillReady = AccountCollectionFavoritesPageModel.resolvePosts(
+            loading: true, payload: Data(AccountCollectionFavoritesPageFixtureData.literalZeroPosts.utf8),
+            failure: nil, pageSize: 10)
+        guard case .ready = stillReady else { return XCTFail("a payload is not loading") }
+    }
+
+    func testExistingFavoriteRoutesStayLiveWithoutANewMark() {
+        for path in [AccountCollectionFavoritesPageModel.postsPath, AccountCollectionFavoritesPageModel.topicsPath] {
+            XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: path), .liveInProduction)
+            XCTAssertTrue(ChinaReviewedRouteCapability.admitsChinaProductionCall(path))
+            XCTAssertTrue(AccountCollectionFavoritesPageModel.existingRouteIsLive(path))
+        }
+    }
+
+    private func posts(_ json: String?, loading: Bool = false, failure: Error? = nil, pageSize: Int = 10) -> AccountCollectionFavoritesPostsState {
+        AccountCollectionFavoritesPageModel.resolvePosts(loading: loading, payload: json.map { Data($0.utf8) }, failure: failure, pageSize: pageSize)
+    }
+
+    private func topics(_ json: String?, loading: Bool = false, failure: Error? = nil, pageSize: Int = 10) -> AccountCollectionFavoritesTopicsState {
+        AccountCollectionFavoritesPageModel.resolveTopics(loading: loading, payload: json.map { Data($0.utf8) }, failure: failure, pageSize: pageSize)
+    }
+
+    private func readyPosts(_ json: String, pageSize: Int) throws -> AccountCollectionFavoritesPostPage {
+        guard case .ready(let page) = posts(json, pageSize: pageSize) else {
+            XCTFail("expected a ready post page")
+            throw AccountCollectionReadFailure.unavailable
+        }
+        return page
+    }
+
+    private func readyTopics(_ json: String, pageSize: Int) throws -> AccountCollectionFavoritesTopicPage {
+        guard case .ready(let page) = topics(json, pageSize: pageSize) else {
+            XCTFail("expected a ready topic page")
+            throw AccountCollectionReadFailure.unavailable
+        }
+        return page
+    }
+}
