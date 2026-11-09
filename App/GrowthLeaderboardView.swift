@@ -155,18 +155,6 @@ private struct GrowthLeaderboardRow: View {
             Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
         }
     }
-    private func score(alignment: HorizontalAlignment) -> some View {
-        VStack(alignment: alignment, spacing: 2) {
-            GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
-            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
-        }
-    }
-    private func score(alignment: HorizontalAlignment) -> some View {
-        VStack(alignment: alignment, spacing: 2) {
-            GrowthCenterInteger(value: entry.score).font(.headline).foregroundStyle(palette.textPrimary)
-            Text(LocalizedStringKey("growth.unit." + metric.rawValue)).font(.caption).foregroundStyle(palette.textSecondary)
-        }
-    }
 }
 
 struct GrowthPodiumMark: View {
