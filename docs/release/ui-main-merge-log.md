@@ -12,3 +12,6 @@ Strings: all ui-strings-*.json keys are in Resources/Localizable.xcstrings (chec
 
 Build 1 (design-batch int) failed on kit compile errors, fixed by reading only (not yet rebuilt; builds paused by owner for machine load):
 CYCachedAsyncImage:101, CYConfirmSheet (cancelIdentifier/titleIdentifier missing), CYHeroHeader:48, CYScreenStyle:28 and :150.
+
+Build 2-4 (after GO): cherry-picked e3 5a0e12706 (duplicate score) and e1 f01d48935 (RoamStamp tint); added CYListRow verbatim init without leading (MerchantMarketingView:159, rc error); dropped `?` on earlyAccuse allowed (ContentContractV1:520).
+Remaining: App/QuestifyApp.swift:262 `var body` "failed to produce diagnostic" (file identical to rc cfbc9aa75, so likely an rc error hidden inside the body); no other error lines in the log.
