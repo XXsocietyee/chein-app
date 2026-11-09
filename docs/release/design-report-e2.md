@@ -76,3 +76,9 @@ Defects still open:
 | Roam history | 7 | route sketch is a grey box |
 | Object cards, POI, sticker | 5 | grey boxes, small type |
 Pages under 8 need rework: all of the above. This is not ADA quality yet; it is "clean".
+
+## Final batch (BUILD_EXIT=0, 16 shots, `docs/release/design-report-e2-shots/contact-e2-final.png`)
+Seen and working: city page hero on generated cover art (`CYCoverArt`) with status chips, stat tiles, primary pill; stamp album banner "Stamps: 3" on cover art, stamp cards on cover art, single title; stopwatch is now a large ring timer with a primary Start; zh-Hans fine on all; XL city: no clipping.
+Rescored after the batch: city player/game panel 8, stamp album 8, timed challenges 7 (ring and type are strong, rest of screen still empty), NPC chat 6.5 (bubbles and composer unchanged), badge detail 6 (medal image unavailable placeholder), journey check 5 (grouped list), roam history 7 (grey route box).
+Unverified: after the last batch I changed only the city header chips (they now stack vertically when `ViewThatFits` fails at XL, previously "You have…" truncated). Unfixed: `e2-chapters`/`e2-chapters-empty` still stay on "Loading…" even with readers in `@State`, so the enrolled-chapters page has no valid shot; XL city still shows a very large "CITY ownership and original receipts" line above the hero.
+Not done: pages left in "Pages left" above (city rules/arrival/participation/onsite/neutral, bundle launch, game journal sections, play-kit forms, roam share/passport tools) are restyled only with the page ground; no collection grid with progress ring (the album has no denominator, so a ring would be fake), no NPC bubble rework, no roam-route rework.
