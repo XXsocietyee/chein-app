@@ -48,6 +48,11 @@ struct E1Fixture: View {
         case "e1-participants": return AnyView(E1Fixture(screen: .participants(.success)))
         case "e1-participants-empty": return AnyView(E1Fixture(screen: .participants(.empty)))
         case "e1-discovery": return AnyView(E1Fixture(screen: .discovery))
+        case "e1-bundle-shelf": return AnyView(E1BundleFixture(.shelf))
+        case "e1-bundle-shelf-empty": return AnyView(E1BundleFixture(.shelfEmpty))
+        case "e1-bundle-shelf-error": return AnyView(E1BundleFixture(.shelfError))
+        case "e1-bundle-detail": return AnyView(E1BundleFixture(.detail))
+        case "e1-bundle-detail-off": return AnyView(E1BundleFixture(.detailOff))
         default: return nil
         }
     }
