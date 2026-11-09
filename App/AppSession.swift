@@ -649,7 +649,9 @@ final class AppSession: ObservableObject {
         change()
     }
 
-    @Published private(set) var account: Account? { willSet { if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll() }; if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidatePersonalLocationShare() }; if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
+    @Published private(set) var account: Account? { willSet { noteAccountPersistence(newValue); if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { ownMediaAudioPreviewLifetime.retireAll(); ownMediaModelPreviewLifetime.retireAll(); memberIdentityAvatarLifetime.retireAll() }; if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidatePersonalLocationShare() }; if account?.id != newValue?.id || account?.effectiveRole.data(using: .utf8) != newValue?.effectiveRole.data(using: .utf8) { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }; invalidateOwnerDraftBrowser(); if account?.id != newValue?.id || account?.effectiveRole != newValue?.effectiveRole { invalidateShopNPCConversations(); merchantNPCSessionOwner.invalidate() }; if account?.id != newValue?.id { platformConsumers.invalidate() } } didSet { _ = runtimeDependencies; synchronizeAccountMarketingEntry(); _ = searchMapReader.scope } }
+    /// Survives logout so the next positive id can be classified as a return or a switch. Not a credential.
+    private var rememberedPersistenceAccountID: Int?
     @Published private(set) var isWorking = false { didSet { synchronizeAccountMarketingEntry() } }
     @Published private(set) var errorKey: String?
     let platformConsumers = PlatformConsumerSessionOwner()
@@ -7906,15 +7908,24 @@ extension AppSession {
         )
     }
 
+    private func noteAccountPersistence(_ next: Account?) {
+        let nextID = (next?.id).flatMap { $0 > 0 ? $0 : nil }
+        let transition = AccountPersistenceTransition.classify(
+            rememberedAccountID: rememberedPersistenceAccountID, nextAccountID: nextID)
+        if let nextID { rememberedPersistenceAccountID = nextID }
+        guard let transition, let namespace = storageScope?.service else { return }
+        _ = AccountScopedPersistence.apply(transition, namespace: namespace, defaults: sessionDefaults)
+    }
+
     private static func playContinuationDefaultsKeys(
         namespace: String,
         accountID: Int,
         role: String
     ) -> (scopesKey: String, titlesKey: String)? {
         guard !namespace.isEmpty, accountID > 0,
-              let parsedRole = PlayRecoveryAccountRole(rawValue: role) else { return nil }
-        let prefix = "play.continuation.\(namespace).\(accountID).\(parsedRole.rawValue)"
-        return ("\(prefix).scopes", "\(prefix).titles")
+              let parsedRole = PlayRecoveryAccountRole(rawValue: role),
+              let keys = AccountScopedPersistence.legacyKeys(namespace: namespace, accountID: accountID, role: parsedRole.rawValue) else { return nil }
+        return (keys.scopes, keys.titles)
     }
 
     private func playContinuationDefaultsKeys() -> (scopesKey: String, titlesKey: String)? {
@@ -7984,6 +7995,9 @@ extension AppSession {
             titles[token] = trimmed
             sessionDefaults.set(titles, forKey: keys.titlesKey)
         }
+        _ = AccountScopedPersistence.recordContinuation(
+            namespace: expectedSession.namespace, accountID: expectedSession.accountID,
+            role: expectedSession.role, defaults: sessionDefaults)
     }
 
     func registerPlayContinuationScope(_ scope: PlaySessionScope, title: String? = nil) {
