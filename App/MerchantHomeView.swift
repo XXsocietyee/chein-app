@@ -174,6 +174,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
     @Environment(\.nativeVerificationDestination) private var nativeVerificationDestination
     @State private var quickRoute: MerchantWorkbenchBusinessRoute?
     @State private var showsScan = false
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     private var quickShortcuts: [MerchantWorkbenchBusinessShortcut] {
         guard let businessReader, let businessJournal else { return [] }
@@ -213,18 +214,19 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                     .minimumScaleFactor(0.5)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, CYSpacing.xxl)
+                            .padding(.vertical, CYSpacing.lg)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("merchant.dashboard.revenue")
                         }
                     }
                 }
                 .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+                .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.xs, bottom: CYSpacing.md, trailing: CYSpacing.xs))
             }
             if showsScanAction || !quickShortcuts.isEmpty {
                 Section {
-                    HStack(alignment: .top, spacing: Theme.Space.s2) {
+                    // At accessibility sizes the four circles wrap to two columns instead of clipping.
+                    (dynamicTypeSize.isAccessibilitySize ? AnyLayout(GridFlowLayout()) : AnyLayout(HStackLayout(alignment: .top, spacing: Theme.Space.s2))) {
                         if showsScanAction {
                             MerchantQuickCircleAction(title: "merchant.workbench.scan", systemImage: "qrcode.viewfinder") { showsScan = true }
                                 .accessibilityIdentifier("merchant.workbench.scan")
@@ -388,6 +390,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
         }
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .navigationBarTitleDisplayMode(.inline)
         .listSectionSpacing(CYSpacing.xxl)
         .navigationDestination(item: $quickRoute) { route in
             if let businessReader, let businessJournal,
@@ -657,3 +660,25 @@ struct MerchantWorkbenchBusinessRoute: Hashable {
     static func dismantleUIViewController(_ controller: UIViewController, coordinator: Coordinator) { coordinator.reader?.retire() }
 }
 
+
+/// Two-column flow for the quick circles when text is at an accessibility size.
+private struct GridFlowLayout: Layout {
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let width = proposal.width ?? 320, cell = width / 2
+        let heights = subviews.map { $0.sizeThatFits(.init(width: cell, height: nil)).height }
+        var total: CGFloat = 0
+        for row in stride(from: 0, to: heights.count, by: 2) { total += heights[row..<min(row + 2, heights.count)].max() ?? 0 }
+        return CGSize(width: width, height: total)
+    }
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let cell = bounds.width / 2; var y = bounds.minY
+        for row in stride(from: 0, to: subviews.count, by: 2) {
+            let slice = subviews[row..<min(row + 2, subviews.count)]
+            let height = slice.map { $0.sizeThatFits(.init(width: cell, height: nil)).height }.max() ?? 0
+            for (i, v) in slice.enumerated() {
+                v.place(at: CGPoint(x: bounds.minX + CGFloat(i) * cell, y: y), anchor: .topLeading, proposal: .init(width: cell, height: height))
+            }
+            y += height
+        }
+    }
+}

@@ -11,7 +11,15 @@ enum DesignFixtureRegistry {
         case "kit-2": return AnyView(KitGalleryFixture(domain: .player, lower: true))
         case "kit-merchant-2": return AnyView(KitGalleryFixture(domain: .merchant, lower: true))
         case "kit-merchant": return AnyView(KitGalleryFixture(domain: .merchant))
-        // D1..D5: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
+        // D5 merchant console (synthetic data, light, real views under .roleTheme(.merchant))
+        case "merchant-home": return merchantConsoleFixture(.home)
+        case "merchant-home-unknown": return merchantConsoleFixture(.homeUnknown)
+        case "merchant-orders": return merchantConsoleFixture(.orders)
+        case "merchant-projects": return merchantConsoleFixture(.projects)
+        case "merchant-customers": return merchantConsoleFixture(.customers)
+        case "merchant-finance": return merchantConsoleFixture(.finance)
+        case "merchant-coupons": return merchantCouponFixture()
+        // D1..D4: add cases below, e.g.  case "welcome": return AnyView(WelcomeFixture())
         default: return AnyView(Text(verbatim: "Unknown design fixture: \(name)").padding())
         }
     }

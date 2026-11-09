@@ -111,6 +111,8 @@ import UIKit
                     .accessibilityIdentifier("merchant.ledgerSettlement.refresh")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle(Text("merchant.business.overview"))
         .navigationDestination(item: cover) { item in
             MerchantLedgerBatchDetailView(reader: reader, batchID: item.batchID, owner: item.owner,
@@ -287,6 +289,8 @@ import UIKit
                 detailRows(snapshot.document, id: "adjustments")
             }
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .navigationTitle(Text("merchant.business.batch"))
         .onAppear { model.appear() }
         .onDisappear { model.disappear() }

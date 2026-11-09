@@ -349,6 +349,8 @@ import SwiftUI
                 accessModel.refresh(reader: reader, appearance: visibleAppearance, context: renderedKey)
             }.disabled(accessModel.isLoading(for: reader))
         }
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .appNavigationTitle("merchant.business.title")
         // The destination host remains outside the access-dependent rows. Clearing
         // Home on push does not remove a destination already on the navigation stack.
@@ -629,6 +631,8 @@ import SwiftUI
         // Preserve the outgoing host until its original dismissal consumes the review handoff.
         let presentedEditorID = editor?.id ?? pendingMutationEditorID
         pageContent
+        .scrollContentBackground(.hidden)
+        .background(CYColor.bgPage)
         .appNavigationTitle(key: query.titleKey)
         .modifier(MerchantCustomerContactStablePresentation(owner: model, flow: $customerContactFlow))
         .task(id: reader.scope) { await reload() }

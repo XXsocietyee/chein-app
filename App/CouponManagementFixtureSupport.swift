@@ -33,19 +33,20 @@ import SwiftUI
 }
 @MainActor struct CouponManagementFixtureHost: View {
     @StateObject private var context = CouponManagementFixtureContext()
+    var showsHarness = true
     var body: some View {
         VStack {
-            HStack {
+            if showsHarness { HStack {
                 Button("couponManagement.fixtureReopen") { context.reopen() }.accessibilityIdentifier("couponManagement.fixture.reopen")
                 Button("couponManagement.fixtureSignOut") { context.signOut() }.accessibilityIdentifier("couponManagement.fixture.signOut")
-            }.buttonStyle(.bordered)
+            }.buttonStyle(.bordered) }
             NavigationStack {
                 CouponManagementView(coordinator: context.coordinator, sessionKey: context.session, isSourceVisible: true)
             }.id(context.mount)
         }
         // The launch argument has no "merchant" in it, so the root fixture switch would pick the dark player domain.
-        .background(CYColor.bgPage)
-        .themeDomain(.merchant)
+        .roleTheme(.merchant)
+        .cyDomainPageBackground()
     }
 }
 #endif
