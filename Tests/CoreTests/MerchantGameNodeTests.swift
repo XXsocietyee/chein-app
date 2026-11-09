@@ -174,6 +174,44 @@ final class MerchantGameNodeReceiptTests: XCTestCase {
     }
 }
 
+@MainActor private final class UnusedMerchantContent: MerchantContentServing {
+    let scope = UUID()
+    var isConfigured = false, isAuthenticated = false, permitsWrites = false
+    func load(_ query: MerchantContentQuery) async throws -> MerchantContentSnapshot { throw APIError.notConfigured }
+    func perform(_ command: MerchantContentCommand, baseline: MerchantContentSnapshot) async throws -> MerchantContentReceipt { throw APIError.notConfigured }
+    func pending() throws -> [MerchantContentPendingRecord] { throw APIError.notConfigured }
+    func reconcile(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt { throw APIError.notConfigured }
+    func retryStation(_ record: MerchantContentPendingRecord) async throws -> MerchantContentReceipt { throw APIError.notConfigured }
+}
+
+@MainActor private final class UnconfiguredReceiptService: MerchantGameNodeServing {
+    let scope = UUID()
+    var isAuthenticated = true, permitsWrites = true
+    var submitted: [String] = [], receiptIDs: [String] = []
+    func loadProjection(activityID: Int) async -> MerchantGameNodeLoadResult {
+        do { return .ready(try gameNodeValue(gameNodeProjection())) }
+        catch { return .networkError(.key("merchantGameNode.error.network")) }
+    }
+    func loadEntries() async -> MerchantGameNodeEntriesResult { .failure(.key("merchantGameNode.entries.failed")) }
+    func issueLiveCode(activityID: Int, nodeID: Int) async -> MerchantGameNodeLiveCodeResult { .failure(.key("merchantGameNode.checkin.error")) }
+    func submit(_ command: MerchantGameNodeCommand) async -> MerchantGameNodeWriteResult {
+        submitted.append(command.requestID); return .unknown(nil)
+    }
+    func readReceipt(activityID: Int, requestID: String) async throws -> MerchantGameNodeReceiptResult {
+        receiptIDs.append(requestID); throw APIError.notConfigured
+    }
+    func persistPending(_ index: MerchantGameNodePendingIndex) -> Bool { true }
+    func restorePending(activityID: Int) -> MerchantGameNodePendingIndex? { nil }
+    func clearPending(activityID: Int) {}
+}
+
+private final class PlainGameNodeTransport: HTTPTransport {
+    var requests: [URLRequest] = []
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        requests.append(request); return (Data(), 500)
+    }
+}
+
 private final class GameNodeScriptTransport: MerchantContentOfflineTransport {
     var projection: String = gameNodeProjection()
     var commandReply: ((MerchantContentValue) throws -> String)?
@@ -261,6 +299,88 @@ private final class GameNodeScriptTransport: MerchantContentOfflineTransport {
         await c.start()
         XCTAssertEqual(c.writeState, .unknown); XCTAssertFalse(c.canRetryUnknownWrite)
         XCTAssertFalse(c.openPause(), "every write stays locked until the receipt is read back")
+    }
+    func testUnconfiguredOriginalReceiptFailsBeforeAnyRequest() async throws {
+        let requestID = "game_verify_71_8_cb36"
+        let disabledTransport = GameNodeScriptTransport()
+        let disabled = try service(disabledTransport, execution: .disabled)
+        do {
+            _ = try await disabled.readReceipt(activityID: 71, requestID: requestID)
+            XCTFail("a disabled client must not query the original receipt")
+        } catch let error as APIError {
+            XCTAssertEqual(error, .notConfigured)
+        }
+        XCTAssertTrue(disabledTransport.requests.isEmpty)
+        let invalid = try await disabled.readReceipt(activityID: 0, requestID: "short")
+        XCTAssertEqual(invalid, .businessError(.key("merchantGameNode.error.receiptParameters"), reasonCode: nil, receipt: nil))
+        XCTAssertTrue(disabledTransport.requests.isEmpty)
+
+        let missingTransport = GameNodeScriptTransport()
+        session = try MerchantGameNodeSession(accountID: 1, epoch: 1, storageScope: "tests", token: "token")
+        let missing = MerchantGameNodeHTTPService(configuration: nil, transport: missingTransport,
+            currentSession: { [unowned self] in self.session }, journal: MerchantGameNodeMemoryJournal(),
+            execution: .injectedOfflineHarness)
+        do {
+            _ = try await missing.readReceipt(activityID: 71, requestID: requestID)
+            XCTFail("a client without configuration must not send")
+        } catch let error as APIError {
+            XCTAssertEqual(error, .notConfigured)
+        }
+        XCTAssertTrue(missingTransport.requests.isEmpty)
+
+        let plain = PlainGameNodeTransport()
+        session = try MerchantGameNodeSession(accountID: 1, epoch: 1, storageScope: "tests", token: "token")
+        let liveHarness = MerchantGameNodeHTTPService(configuration: try APIConfiguration(baseURL: XCTUnwrap(URL(string: "https://game-node.example"))),
+            transport: plain, currentSession: { [unowned self] in self.session }, journal: MerchantGameNodeMemoryJournal(),
+            execution: .injectedOfflineHarness)
+        do {
+            _ = try await liveHarness.readReceipt(activityID: 71, requestID: requestID)
+            XCTFail("a harness without the offline transport must not send")
+        } catch let error as APIError {
+            XCTAssertEqual(error, .notConfigured)
+        }
+        XCTAssertTrue(plain.requests.isEmpty)
+
+        let reader = MerchantGameNodeContentReader(service: UnusedMerchantContent())
+        do {
+            _ = try await reader.readReceipt(activityID: 71, requestID: requestID)
+            XCTFail("the production reader has no receipt route")
+        } catch let error as APIError {
+            XCTAssertEqual(error, .notConfigured)
+        }
+
+        let harnessTransport = GameNodeScriptTransport()
+        let harness = try service(harnessTransport)
+        let first = try await harness.readReceipt(activityID: 71, requestID: requestID)
+        let second = try await harness.readReceipt(activityID: 71, requestID: requestID)
+        XCTAssertEqual(first, .pending); XCTAssertEqual(second, .pending)
+        XCTAssertEqual(harnessTransport.requests.count, 2)
+        let ids = harnessTransport.requests.map { request -> String in
+            XCTAssertEqual(request.httpMethod, "GET")
+            XCTAssertEqual(request.url?.path, "/api/game/session/receipt")
+            XCTAssertNil(request.httpBody)
+            let items = request.url.flatMap { URLComponents(url: $0, resolvingAgainstBaseURL: false)?.queryItems } ?? []
+            return items.first { $0.name == "requestId" }?.value ?? ""
+        }
+        XCTAssertEqual(ids, [requestID, requestID])
+    }
+    func testUnknownWriteStaysLockedWhenOriginalReceiptIsNotConfigured() async throws {
+        let service = UnconfiguredReceiptService()
+        let c = MerchantGameNodeCoordinator(service: service, activityID: 71)
+        await c.start()
+        XCTAssertTrue(c.openVerify(submissionID: "42"))
+        await c.submitVerify()
+        let original = try XCTUnwrap(service.submitted.first)
+        XCTAssertEqual(c.writeState, .unknown)
+        await c.confirmUnknownWrite()
+        XCTAssertEqual(c.writeState, .unknown)
+        XCTAssertEqual(c.writeMessage, .key("merchantGameNode.write.notConfirmed"))
+        XCTAssertEqual(service.receiptIDs, [original])
+        await c.confirmUnknownWrite()
+        XCTAssertEqual(service.receiptIDs, [original, original])
+        await c.retryUnknownWrite()
+        XCTAssertEqual(service.submitted, [original, original])
+        XCTAssertEqual(c.writeState, .unknown)
     }
     func testMissingActivityAndFocusPause() async throws {
         let missing = MerchantGameNodeCoordinator(service: try service(GameNodeScriptTransport()), activityID: nil)

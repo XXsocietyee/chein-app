@@ -167,7 +167,7 @@ public enum MerchantGameNodeResults {
     func loadEntries() async -> MerchantGameNodeEntriesResult
     func issueLiveCode(activityID: Int, nodeID: Int) async -> MerchantGameNodeLiveCodeResult
     func submit(_ command: MerchantGameNodeCommand) async -> MerchantGameNodeWriteResult
-    func readReceipt(activityID: Int, requestID: String) async -> MerchantGameNodeReceiptResult
+    func readReceipt(activityID: Int, requestID: String) async throws -> MerchantGameNodeReceiptResult
     func persistPending(_ index: MerchantGameNodePendingIndex) -> Bool
     func restorePending(activityID: Int) -> MerchantGameNodePendingIndex?
     func clearPending(activityID: Int)
@@ -278,12 +278,25 @@ public struct MerchantGameNodeSession: Equatable {
             return MerchantGameNodeResults.command(code: reply.code, message: reply.message, data: reply.data, command: command)
         } catch { return .unknown(nil) }
     }
-    public func readReceipt(activityID: Int, requestID: String) async -> MerchantGameNodeReceiptResult {
+    public func readReceipt(activityID: Int, requestID: String) async throws -> MerchantGameNodeReceiptResult {
         guard activityID > 0, MerchantGameNodeRequestID.isValid(requestID) else { return .businessError(.key("merchantGameNode.error.receiptParameters"), reasonCode: nil, receipt: nil) }
+        // An unknown write keeps its original request ID. Query that receipt only when this client
+        // is configured for the route; otherwise fail before any request is built or sent.
+        guard originalReceiptConfigured else { throw APIError.notConfigured }
         do {
             let reply = try await send(Self.receiptPath, query: ["activityId": String(activityID), "requestId": requestID], body: .none)
             return MerchantGameNodeResults.receipt(code: reply.code, message: reply.message, data: reply.data, activityID: activityID, requestID: requestID)
+        } catch let error as APIError where error == .notConfigured {
+            throw error
         } catch { return .networkError }
+    }
+    /// Offline harnesses may read the original receipt. Production stays closed unless the reviewed
+    /// station-command gate names this exact path. A missing configuration never reaches `send`.
+    private var originalReceiptConfigured: Bool {
+        guard configuration != nil else { return false }
+        if execution == .injectedOfflineHarness && transport is any MerchantContentOfflineTransport { return true }
+        guard gates.stationCommands, let market else { return false }
+        return gates.allows(Self.receiptPath, market: market)
     }
     public func persistPending(_ index: MerchantGameNodePendingIndex) -> Bool {
         guard let journal, let session = currentSession(), index.isValid else { return false }
@@ -351,8 +364,9 @@ public struct MerchantGameNodeSession: Equatable {
     public func submit(_ command: MerchantGameNodeCommand) async -> MerchantGameNodeWriteResult {
         .businessError(.key("merchantGameNode.writesDisabled"), reasonCode: nil, receipt: nil)
     }
-    public func readReceipt(activityID: Int, requestID: String) async -> MerchantGameNodeReceiptResult {
-        .businessError(.key("merchantGameNode.writesDisabled"), reasonCode: nil, receipt: nil)
+    public func readReceipt(activityID: Int, requestID: String) async throws -> MerchantGameNodeReceiptResult {
+        guard activityID > 0, MerchantGameNodeRequestID.isValid(requestID) else { throw APIError.notConfigured }
+        throw APIError.notConfigured
     }
     public func persistPending(_ index: MerchantGameNodePendingIndex) -> Bool { false }
     public func restorePending(activityID: Int) -> MerchantGameNodePendingIndex? { nil }
