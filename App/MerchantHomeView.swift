@@ -191,7 +191,7 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
             Section {
                 VStack(spacing: CYSpacing.md) {
                     Text(access.merchantName.flatMap { $0.isEmpty ? nil : $0 } ?? appLocalized("merchant.store",locale:locale))
-                        .font(CYTypography.sectionTitle)
+                        .font(CYTypography.pageTitle)
                         .foregroundStyle(CYColor.textPrimary)
                         .lineLimit(2)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -204,8 +204,9 @@ private struct MerchantWorkbench<Reader: MerchantReading>: View {
                                 Text("merchant.revenue")
                                     .font(CYTypography.meta)
                                     .foregroundStyle(CYColor.textSecondary)
+                                // Unknown revenue is an em dash (MerchantMoney.display), never a fake zero.
                                 Text(MerchantMoney.display(value.revenue))
-                                    .font(CYTypography.data2XL)
+                                    .font(CYTypography.display)
                                     .monospacedDigit()
                                     .foregroundStyle(CYColor.textPrimary)
                                     .lineLimit(1)
@@ -522,8 +523,9 @@ private struct MerchantQuickCircleAction: View {
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(CYColor.textPrimary)
                     .frame(width: diameter, height: diameter)
-                    .background(CYColor.bgSurface, in: Circle())
-                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+                    .background(CYColor.bgElevated, in: Circle())
+                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 0.5))
+                    .shadow(color: .black.opacity(0.06), radius: 8, y: 3)
                 Text(title)
                     .font(CYTypography.caption)
                     .foregroundStyle(CYColor.textSecondary)

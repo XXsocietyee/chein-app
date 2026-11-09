@@ -43,6 +43,9 @@ import SwiftUI
                 CouponManagementView(coordinator: context.coordinator, sessionKey: context.session, isSourceVisible: true)
             }.id(context.mount)
         }
+        // The launch argument has no "merchant" in it, so the root fixture switch would pick the dark player domain.
+        .background(CYColor.bgPage)
+        .themeDomain(.merchant)
     }
 }
 #endif
