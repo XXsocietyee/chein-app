@@ -30,20 +30,28 @@ import SwiftUI
         if session.account != nil {
         if let accountID = session.account?.id {
             Section {
-                Button("auth.signOut") {
+                Button {
                     confirmation = session.signOutConfirmation(accountID: accountID)
                     confirms = confirmation != nil
+                } label: {
+                    Label("auth.signOut", systemImage: "rectangle.portrait.and.arrow.right")
+                        .frame(maxWidth: .infinity).foregroundStyle(CYColor.dangerText)
                 }
                     .accessibilityIdentifier("settings.signOut")
             }
-            .confirmationDialog("auth.signOutConfirm", isPresented: $confirms, titleVisibility: .visible, presenting: confirmation) { expected in
-                Button("auth.signOut") {
-                    confirmation = nil; confirms = false
-                    Task {
-                        if await session.logout(matching: expected) { onSignedOut() }
+            .sheet(isPresented: $confirms) {
+                if let expected = confirmation {
+                    CYConfirmSheet(title: String(localized: "auth.signOutConfirm"),
+                                   message: String(localized: "settings.signOut.message"),
+                                   confirmTitle: String(localized: "auth.signOut"),
+                                   isDestructive: true, confirmIdentifier: "settings.signOut.confirm") {
+                        confirmation = nil; confirms = false
+                        Task {
+                            if await session.logout(matching: expected) { onSignedOut() }
+                        }
                     }
+                    .presentationDetents([.height(300)])
                 }
-                Button("action.cancel", role: .cancel) { confirmation = nil }
             }
             .onChange(of: confirms) { _, visible in if !visible { confirmation = nil } }
             .onChange(of: session.authChannelSnapshot) { _, _ in

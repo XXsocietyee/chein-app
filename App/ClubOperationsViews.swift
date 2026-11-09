@@ -177,6 +177,7 @@ struct ClubOperationsWorkspaceView: View {
             }
             status
         }
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
         .navigationTitle(title)
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.18), value: loading)
         .toolbar {
