@@ -77,7 +77,7 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             if issue.needsSignIn, let onSignIn {
                 Button("club.signIn", action: onSignIn).accessibilityIdentifier(accessibilityPrefix + ".signIn")
             } else if issue.canRetry {
-                Button("action.retry") { Task { await reload() } }.accessibilityIdentifier(accessibilityPrefix + ".retry")
+                CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false) { Task { await reload() } }.accessibilityIdentifier(accessibilityPrefix + ".retry")
             }
         }
     }

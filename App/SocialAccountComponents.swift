@@ -19,7 +19,7 @@ struct SocialIssueView: View {
         VStack(alignment: .leading, spacing: 8) {
             Label(message, systemImage: "exclamationmark.circle")
             if case SocialAccountFailure.rejected(_, let text) = error, let text { Text(verbatim: text).font(.footnote) }
-            if let retry { Button("action.retry", action: retry) }
+            if let retry { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry) }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("social.issue")
     }
 }

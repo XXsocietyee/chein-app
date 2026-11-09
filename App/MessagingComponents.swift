@@ -46,7 +46,7 @@ struct MessagingIssueView: View {
             else { Text(LocalizedStringKey(issue.detailKey)) }
         } actions: {
             if issue.canRetry {
-                Button("messaging.retry", action: retry).accessibilityIdentifier(identifier + ".retry")
+                CYPillButton("messaging.retry", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: retry).accessibilityIdentifier(identifier + ".retry")
             }
         }
     }
