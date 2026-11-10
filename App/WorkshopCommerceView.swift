@@ -80,9 +80,9 @@ import SwiftUI
                 if let message = controller.messageKey, ["error.catalogUnavailable", "error.offerUnavailable"].contains(message) {
                     WorkshopCommerceLibraryNotice(text: commerceText(message), symbol: "exclamationmark.triangle", isError: true)
                 }
-                Button { Task { await controller.loadOffers() } } label: { commerceText("refreshCatalog") }.disabled(controller.busy)
+                CYPillButton(LocalizedStringKey("workshopCommerce.refreshCatalog"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadOffers() } }.disabled(controller.busy)
                 if controller.hasMoreOffers {
-                    Button { Task { await controller.loadOffers(more: true) } } label: { commerceText("moreOffers") }.disabled(controller.busy)
+                    CYPillButton(LocalizedStringKey("workshopCommerce.moreOffers"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadOffers(more: true) } }.disabled(controller.busy)
                 }
             } header: { commerceText("approvedOffer") }
             if let offer = controller.offer {
@@ -113,11 +113,11 @@ import SwiftUI
                         .disabled(controller.busy)
                     }
                     if controller.canPay { Button { Task { await controller.pay() } } label: { commerceText("continuePayment").frame(maxWidth: .infinity) }.modifier(WorkshopLibraryPrimaryAction()) }
-                    if controller.canCancel { Button { confirmingCancellation = true } label: { commerceText("requestCancellation") }.disabled(controller.busy) }
+                    if controller.canCancel { CYPillButton(LocalizedStringKey("workshopCommerce.requestCancellation"), style: .secondary, tableName: "WorkshopCommerce") { confirmingCancellation = true }.disabled(controller.busy) }
                 } header: { commerceText("serverOrder") }
             }
             if controller.order == nil && controller.canCancel {
-                Button { Task { await controller.cancel() } } label: { commerceText("requestCancellation") }
+                CYPillButton(LocalizedStringKey("workshopCommerce.requestCancellation"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.cancel() } }
             }
             if let message = controller.messageKey, !["error.catalogUnavailable", "error.offerUnavailable"].contains(message) { WorkshopCommerceLibraryNotice(text: commerceText(message), symbol: "exclamationmark.circle", isError: true) }
             Section {
@@ -159,9 +159,9 @@ import SwiftUI
                 }
                 if controller.licenses.isEmpty { WorkshopCommerceLibraryNotice(text: commerceText("licensesEmpty"), symbol: "tray") }
                 if let message = controller.licensesMessageKey { WorkshopCommerceLibraryNotice(text: commerceText(message), symbol: "exclamationmark.triangle", isError: true) }
-                Button { Task { await controller.loadLicenses() } } label: { commerceText("refreshLicenses") }.disabled(controller.busy)
+                CYPillButton(LocalizedStringKey("workshopCommerce.refreshLicenses"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadLicenses() } }.disabled(controller.busy)
                 if controller.hasMoreLicenses {
-                    Button { Task { await controller.loadLicenses(more: true) } } label: { commerceText("moreLicenses") }.disabled(controller.busy)
+                    CYPillButton(LocalizedStringKey("workshopCommerce.moreLicenses"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadLicenses(more: true) } }.disabled(controller.busy)
                 }
             } header: { commerceText("ownedLicenses") }
 
@@ -236,7 +236,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
-            if controller.licenseSnapshotLoading { ProgressView { commerceText("loadingLicense") }.padding(.vertical, Theme.Space.s3) }
+            if controller.licenseSnapshotLoading { CYLoadingStateView(rows: 1).accessibilityLabel(commerceText("loadingLicense")) }
             else if let snapshot = controller.licenseSnapshot, snapshot.license.licenseId == licenseId, controller.isCurrent {
                 let item = snapshot.license
                 Section {
@@ -303,9 +303,9 @@ import SwiftUI
                 }
 
             } else { WorkshopCommerceLibraryNotice(text: commerceText(controller.licenseSnapshotMessageKey ?? "error.licenseUnavailable"), symbol: "exclamationmark.triangle", isError: true) }
-            Button { Task { await controller.loadLicenseSnapshot(licenseId) } } label: { commerceText("refreshLicense") }
+            CYPillButton(LocalizedStringKey("workshopCommerce.refreshLicense"), style: .secondary, tableName: "WorkshopCommerce") { Task { await controller.loadLicenseSnapshot(licenseId) } }
                 .disabled(controller.licenseSnapshotLoading || !controller.isCurrent)
-            Button { dismiss() } label: { commerceText("returnToCatalog") }
+            CYPillButton(LocalizedStringKey("workshopCommerce.returnToCatalog"), style: .secondary, tableName: "WorkshopCommerce") { dismiss() }
         }
         .modifier(WorkshopLibrarySurface())
         .navigationTitle(commerceString("originalLicense", locale: locale))

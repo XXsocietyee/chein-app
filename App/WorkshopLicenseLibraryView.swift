@@ -64,7 +64,7 @@ enum WorkshopLicenseLibraryPresentation {
                     }
                     Section {
                         if controller.busy || !hasReadLicenses {
-                            ProgressView { licenseLibraryText("library.loading") }.padding(.vertical, Theme.Space.s3)
+                            CYLoadingStateView(rows: 1).accessibilityLabel(licenseLibraryText("library.loading"))
                                 .accessibilityIdentifier("workshopLicenseLibrary.loading")
                         }
                         if let message = controller.licensesMessageKey {
@@ -80,17 +80,17 @@ enum WorkshopLicenseLibraryPresentation {
                                                                          count: controller.licenses.count, message: controller.licensesMessageKey) {
                             WorkshopCommerceLibraryNotice(text: licenseLibraryText("library.empty"), symbol: "tray")
                         }
-                        Button { Task { await read() } } label: { licenseLibraryText("library.refresh") }
+                        CYPillButton(LocalizedStringKey("workshopCommerce.library.refresh"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read() } }
                             .disabled(controller.busy)
                         if controller.hasMoreLicenses {
-                            Button { Task { await read(more: true) } } label: { licenseLibraryText("library.nextPage") }
+                            CYPillButton(LocalizedStringKey("workshopCommerce.library.nextPage"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read(more: true) } }
                                 .disabled(controller.busy)
                         }
                     } header: { licenseLibraryText("library.readState") }
                 } else {
                     Section {
                         WorkshopCommerceLibraryNotice(text: licenseLibraryText("library.unavailable"), symbol: "icloud.slash")
-                        Button { Task { await read() } } label: { licenseLibraryText("library.reopen") }
+                        CYPillButton(LocalizedStringKey("workshopCommerce.library.reopen"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read() } }
                     }
                 }
             }

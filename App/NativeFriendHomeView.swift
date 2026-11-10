@@ -28,6 +28,8 @@ import SwiftUI
     }
     var body: some View {
         List {
+            CYHeroHeader(verbatim: localized("friend.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if directoryFactory != nil || groupsFactory != nil || blacklistFactory != nil || removalFactory != nil {
                 Section {
                     if let directoryFactory {
@@ -56,7 +58,7 @@ import SwiftUI
             if flow.phase == .closed {
                 Section { text("friend.closed") }.accessibilityIdentifier("friend.closed")
             }
-            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friend.loading") }
+            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friend.loading") }
             if let issue = flow.issue {
                 Section { Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) } }
             }
@@ -122,11 +124,10 @@ import SwiftUI
             }
             if flow.phase == .ready && flow.friends.isEmpty {
                 Section {
-                    ContentUnavailableView {
-                        Label { text("friend.emptyFriends") } icon: { Image(systemName: "person.2") }
-                    } actions: {
-                        Button { addingFriend = true } label: { text("friend.new") }
-                            .buttonStyle(.bordered).disabled(!flow.canWrite)
+                    VStack(spacing: Theme.Space.s3) {
+                        CYEmptyState(systemImage: "person.2", "friend.emptyFriends", tableName: "NativeFriend")
+                        CYPillButton("friend.new", style: .secondary, tableName: "NativeFriend") { addingFriend = true }
+                            .disabled(!flow.canWrite)
                     }
                 }
             } else if flow.groups.isEmpty {
@@ -150,7 +151,7 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
         .cyGroupedSurface()
-        .navigationTitle(localized("friend.title"))
+        .cyHeroScreen()
         .accessibilityIdentifier("friend.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }
@@ -192,6 +193,8 @@ import SwiftUI
         }) {
             NavigationStack {
                 Form {
+                    CYHeroHeader(verbatim: localized("friend.new"))
+                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                     Section {
                         TextField(localized("friend.peer"), text: $peer).keyboardType(.numberPad)
                             .accessibilityIdentifier("friend.peer")
@@ -201,8 +204,7 @@ import SwiftUI
                 }
                 .formStyle(.grouped)
                 .cyGroupedSurface()
-                .navigationTitle(localized("friend.new"))
-                .navigationBarTitleDisplayMode(.inline)
+                .cyHeroScreen()
                 .toolbar {
                     ToolbarItem(placement: .confirmationAction) {
                         Button {
@@ -221,6 +223,8 @@ import SwiftUI
             if let review = flow.actionReview {
                 NavigationStack {
                     Form {
+                        CYHeroHeader(verbatim: localized("friend.confirm." + review.command.action.rawValue))
+                            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                         Section {
                             if review.displayName.isEmpty {
                                 LabeledContent { Text(verbatim: String(review.command.peerID)) } label: { text("friend.peer") }
@@ -236,8 +240,7 @@ import SwiftUI
                     .formStyle(.grouped)
                     .font(Theme.Font.body)
                     .cyGroupedSurface()
-                    .navigationTitle(localized("friend.confirm." + review.command.action.rawValue))
-                    .navigationBarTitleDisplayMode(.inline)
+                    .cyHeroScreen()
                     .accessibilityIdentifier("friend.confirmation")
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
@@ -246,7 +249,7 @@ import SwiftUI
                         }
                     }
                     .questifyBottomAction {
-                        Button { Task { await flow.confirmReview(expected: review) } } label: { text("friend.confirmContinue") }
+                        CYPillButton("friend.confirmContinue", tableName: "NativeFriend") { Task { await flow.confirmReview(expected: review) } }
                             .disabled(!flow.canWrite).accessibilityIdentifier("friend.confirmContinue")
                     }
                 }

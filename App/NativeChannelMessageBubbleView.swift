@@ -102,7 +102,7 @@ import SwiftUI
                         GroupPollOriginalResultView(owner: owner, reference: reference, current: isCurrent)
                     } label: { Text("poll.results", tableName: "NativeChannelMessage") }.accessibilityIdentifier("ncm47.originalPollResult")
                 }
-                if snapshot.editedAt != nil { Label { Text("message.edited", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pencil").accessibilityHidden(true) }.font(Theme.Font.caption).foregroundStyle(.secondary) }
+                if snapshot.editedAt != nil { CYStatusChip(verbatim: String(localized: LocalizedStringResource("message.edited", table: "NativeChannelMessage", locale: locale)), systemImage: "pencil") }
             }
         }
         .font(Theme.Font.body)

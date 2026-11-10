@@ -75,17 +75,18 @@ import Combine
     init(model: TemplateAuthoringModel) { self.model = model; _editor = StateObject(wrappedValue: .init(model: model)) }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateLegacyQuiz.title") }.e1HeroRow()
             Section {
                 if editor.needsReload {
-                    Text("templateLegacyQuiz.changed").font(.caption)
-                    Button("templateLegacyQuiz.reload") { editor.reload() }.disabled(!editor.canReload)
-                } else if !editor.isConfigured { Text("templateLegacyQuiz.incomplete").font(.caption) }
+                    Text("templateLegacyQuiz.changed").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    CYPillButton("templateLegacyQuiz.reload", style: .secondary, systemImage: "arrow.clockwise") { editor.reload() }.disabled(!editor.canReload).e1ActionRow()
+                } else if !editor.isConfigured { Text("templateLegacyQuiz.incomplete").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             }
             if editor.canRead {
                 Section("templateLegacyQuiz.question") {
-                    Text(verbatim: editor.question).font(.headline)
+                    Text(verbatim: editor.question).font(CYTypography.sectionTitle)
                     if editor.state == .completed {
-                        Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").accessibilityIdentifier("templateLegacyQuiz.completed")
+                        Label("templateLegacyQuiz.completed", systemImage: "checkmark.circle").foregroundStyle(CYColor.successText).accessibilityIdentifier("templateLegacyQuiz.completed")
                     } else {
                         if editor.method == .text {
                             TextField("templateLegacyQuiz.answer", text: editor.answerInput(), axis: .vertical).textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -106,13 +107,13 @@ import Combine
                         }
                         if editor.state == .wrong { Text("templateLegacyQuiz.wrong").foregroundStyle(CYColor.dangerText).accessibilityIdentifier("templateLegacyQuiz.wrong") }
                         if let hint = editor.visibleHint { Text(verbatim: hint).accessibilityIdentifier("templateLegacyQuiz.hintText") }
-                        else if editor.canRevealHint { Button("templateLegacyQuiz.hint", action: editor.hintAction()).accessibilityIdentifier("templateLegacyQuiz.hint") }
-                        Button("templateLegacyQuiz.submit", action: editor.submitAction()).disabled(!editor.canAttempt).accessibilityIdentifier("templateLegacyQuiz.submit")
+                        else if editor.canRevealHint { CYPillButton("templateLegacyQuiz.hint", style: .secondary, systemImage: "lightbulb", action: editor.hintAction()).accessibilityIdentifier("templateLegacyQuiz.hint").e1ActionRow() }
+                        CYPillButton("templateLegacyQuiz.submit", action: editor.submitAction()).disabled(!editor.canAttempt).accessibilityIdentifier("templateLegacyQuiz.submit").e1ActionRow()
                     }
                 }
-                Section { Button("templateLegacyQuiz.restart", action: editor.restartAction()).disabled(!editor.canInteract).accessibilityIdentifier("templateLegacyQuiz.restart") }
+                Section { CYPillButton("templateLegacyQuiz.restart", style: .tertiary, action: editor.restartAction()).disabled(!editor.canInteract).accessibilityIdentifier("templateLegacyQuiz.restart").e1ActionRow() }
             }
-        }.navigationTitle("templateLegacyQuiz.title")
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .onDisappear { editor.retire() }
             .onChange(of: model.canEdit) { _, allowed in if !allowed { editor.suspend() } }
             .onChange(of: scenePhase) { _, phase in if phase != .active { editor.suspend() } }

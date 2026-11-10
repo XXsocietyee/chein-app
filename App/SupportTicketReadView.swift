@@ -14,6 +14,7 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
     var body: some View {
         let rendered = readIntent()
         Form {
+            Section { CYHeroHeader("title", tableName: "SupportTicketRead").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section { supportTicketReadText("boundary").font(.footnote) }
             if let flow, flow.isCurrent {
                 if let ticket = flow.ticket {
@@ -38,8 +39,8 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                             }
                         }
                         if flow.loaded && flow.messages.isEmpty { supportTicketReadText("messagesEmpty") }
-                        if flow.hasMoreMessages { Button { run(rendered) { await $0.reloadDetail($1, next: true) } } label: { supportTicketReadText("messagesMore") }.disabled(flow.busy) }
-                        Button { run(rendered) { await $0.reloadDetail($1) } } label: { supportTicketReadText("reloadDetail") }.disabled(flow.busy)
+                        if flow.hasMoreMessages { CYPillButton("messagesMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.reloadDetail($1, next: true) } }.disabled(flow.busy) }
+                        CYPillButton("reloadDetail", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.reloadDetail($1) } }.disabled(flow.busy)
                     } header: { supportTicketReadText("messages") }
                     Section {
                         supportTicketReadText("timelineBoundary").font(.footnote)
@@ -56,8 +57,8 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                             }
                         }
                         if flow.timelineLoaded && flow.events.isEmpty { supportTicketReadText("eventsEmpty") }
-                        Button { run(rendered) { await $0.loadTimeline($1) } } label: { supportTicketReadText("loadTimeline") }.disabled(flow.busy || !flow.reader.allows(.timeline))
-                        if flow.hasMoreEvents { Button { run(rendered) { await $0.loadTimeline($1, next: true) } } label: { supportTicketReadText("eventsMore") }.disabled(flow.busy) }
+                        CYPillButton("loadTimeline", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.loadTimeline($1) } }.disabled(flow.busy || !flow.reader.allows(.timeline))
+                        if flow.hasMoreEvents { CYPillButton("eventsMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.loadTimeline($1, next: true) } }.disabled(flow.busy) }
                     } header: { supportTicketReadText("timeline") }
                 } else {
                     Section {
@@ -71,15 +72,15 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                             .accessibilityIdentifier("support.read.row." + row.ticket_no)
                         }
                         if flow.loaded && flow.tickets.isEmpty { supportTicketReadText("empty") }
-                        if flow.hasMoreTickets { Button { run(rendered) { await $0.loadHistory($1, next: true) } } label: { supportTicketReadText("listMore") }.disabled(flow.busy) }
+                        if flow.hasMoreTickets { CYPillButton("listMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.loadHistory($1, next: true) } }.disabled(flow.busy) }
                     } header: { supportTicketReadText("list") }
                 }
-                if flow.busy { ProgressView() }
+                if flow.busy { CYLoadingStateView(rows: 1) }
                 if let failure = flow.failure { supportTicketReadText("error.\(failure)").accessibilityIdentifier("support.read.error") }
-                Button { resumeNumber = nil; run(rendered) { await $0.loadHistory($1) } } label: { supportTicketReadText("reloadList") }.disabled(flow.busy || !flow.reader.allows(.history))
+                CYPillButton("reloadList", style: .secondary, tableName: "SupportTicketRead") { resumeNumber = nil; run(rendered) { await $0.loadHistory($1) } }.disabled(flow.busy || !flow.reader.allows(.history))
             } else { supportTicketReadText("error.disabled") }
         }
-        .navigationTitle(supportTicketReadText("title")).privacySensitive().accessibilityIdentifier("support.read.screen")
+        .cyGroupedSurface().privacySensitive().accessibilityIdentifier("support.read.screen")
         .onAppear { visible = true; if identity == nil { identity = session.supportTicketReadIdentity }; start() }
         .onDisappear { visible = false; retire(preserveSelection: true) }
         .onChange(of: scene) { _, phase in retire(preserveSelection: true); if phase == .active { start() } }

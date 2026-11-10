@@ -175,6 +175,8 @@ struct IMExpandedSubmission: Equatable {
     private var displayedMuted: Bool? { acknowledgedMuted ?? isMuted }
     var body: some View {
         Form {
+            CYHeroHeader("im.full.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if hasPendingState {
                 Section { pendingRows }
             }
@@ -253,7 +255,7 @@ struct IMExpandedSubmission: Equatable {
             }
         }
         .cyGroupedSurface()
-        .navigationTitle(Text("im.full.title")).privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
@@ -415,6 +417,8 @@ struct IMMutationSummary: View {
     }
     var body: some View {
         Form {
+            CYHeroHeader("d7.newChat.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if model.owner.writer.isConfigured {
                 Section {
                     TextField("d7.newChat.memberID", text: $target).keyboardType(.numberPad)
@@ -425,7 +429,7 @@ struct IMMutationSummary: View {
                 case .reviewing(let mutation):
                     Section {
                         IMMutationSummary(mutation: mutation)
-                        Button("d7.newChat.start") { Task { await model.owner.confirm() } }.imFlowPrimaryAction()
+                        CYPillButton("d7.newChat.start") { Task { await model.owner.confirm() } }
                     }
                 case .submitting: Section { ProgressView("im.full.submitting") }
                 case .outcomeUnknown:
@@ -441,7 +445,7 @@ struct IMMutationSummary: View {
             }
         }.disabled(identity != model.owner.identity || !model.owner.writer.isConfigured)
         .cyGroupedSurface()
-        .navigationTitle(Text("d7.newChat.title")).privacySensitive().accessibilityIdentifier("im.full.start")
+        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.start")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
         .onChange(of: identity) { _, _ in target = ""; model.state = model.owner.visibleState }
@@ -505,6 +509,8 @@ struct IMUploadSubmission: Equatable {
     }
     var body: some View {
         Form {
+            CYHeroHeader("d7.imPhoto.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if model.owner.isConfigured {
                 Section {
                     switch model.state {
@@ -515,7 +521,7 @@ struct IMUploadSubmission: Equatable {
                         Button { submit(.select) } label: { Label("d7.imPhoto.choose", systemImage: "photo") }
                     case .selected(let selection):
                         LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: selection.bytes.count) }
-                        Button("d7.imCompose.upload") { submit(.upload) }.imFlowPrimaryAction()
+                        CYPillButton("d7.imCompose.upload") { submit(.upload) }
                         Button("action.cancel", role: .cancel) { model.invalidateQueued(); model.owner.clear() }
                     case .selecting: ProgressView()
                     case .uploading: ProgressView("d7.imCompose.uploading")
@@ -532,7 +538,7 @@ struct IMUploadSubmission: Equatable {
             }
         }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
         .cyGroupedSurface()
-        .navigationTitle(Text("d7.imPhoto.title")).privacySensitive().accessibilityIdentifier("im.full.imageCompose")
+        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.imageCompose")
         .onAppear { model.observe() }
         .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
         .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
@@ -570,6 +576,8 @@ private extension IMOutgoingPayload {
     private var available: Bool { phase == .active && current() && model.owner.isCurrent }
     var body: some View {
         Form {
+            CYHeroHeader("d7.imLocation.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if available {
                 switch model.state {
                 case .idle:
@@ -599,7 +607,7 @@ private extension IMOutgoingPayload {
                     if isLocation(mutation) {
                         Section { IMMutationSummary(mutation:mutation) }
                         Section {
-                            Button("d7.imLocation.send") { submit(.confirm) }.imFlowPrimaryAction()
+                            CYPillButton("d7.imLocation.send") { submit(.confirm) }
                             Button("action.cancel",role:.cancel) { model.owner.cancelReview() }
                         }
                     } else { Text("d7.imCompose.otherPending") }
@@ -627,7 +635,7 @@ private extension IMOutgoingPayload {
                 case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
             } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
-        }.imFlowForm().navigationTitle(Text("d7.imLocation.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
          .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
          .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
          .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
@@ -678,6 +686,8 @@ private extension IMOutgoingPayload {
     private var canShare:Bool { model.owner.writer.canReadRouteShareSource && model.owner.writer.canSendRoute }
     var body:some View {
         Form {
+            CYHeroHeader("d7.imRoute.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if available {
                 switch model.state {
                 case .idle:
@@ -693,7 +703,7 @@ private extension IMOutgoingPayload {
                         }
                         if selected != nil {
                             Section {
-                                Button("d7.imCompose.continue") { reviewSelectedSource() }.imFlowPrimaryAction()
+                                CYPillButton("d7.imCompose.continue") { reviewSelectedSource() }
                             }
                         }
                     } else {
@@ -703,7 +713,7 @@ private extension IMOutgoingPayload {
                     if isRoute(mutation),let source=model.owner.selectedRouteShareSource {
                         Section { Label { Text(verbatim:source.name) } icon: { Image(systemName:"map") } }
                         Section {
-                            Button("d7.imRoute.send") { submit(.confirm) }.imFlowPrimaryAction()
+                            CYPillButton("d7.imRoute.send") { submit(.confirm) }
                             Button("action.cancel",role:.cancel) { model.owner.cancelReview() }
                         }
                     } else { Text("d7.imCompose.otherPending") }
@@ -728,7 +738,7 @@ private extension IMOutgoingPayload {
                 case .closed:IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
             } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
-        }.imFlowForm().navigationTitle(Text("d7.imRoute.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
         .sheet(isPresented:$picking) {
             if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
@@ -789,6 +799,8 @@ private extension IMOutgoingPayload {
     var body:some View {
         NavigationStack {
             Form {
+                CYHeroHeader("d7.imMap.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
                 else if !consented {
                     // Loading tiles sends the browsed area to the map service; the consent gate stays explicit.
@@ -833,7 +845,7 @@ private extension IMOutgoingPayload {
                         }
                     }
                 }
-            }.imFlowForm().navigationTitle(Text("d7.imMap.title")).privacySensitive()
+            }.imFlowForm().cyHeroScreen().privacySensitive()
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.cancel") { dismiss() } } }
             .onDisappear { retire() }
             .onChange(of:available) { _,valid in if !valid { retire() } }

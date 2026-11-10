@@ -35,24 +35,24 @@ import SwiftUI
                 Text(verbatim: String(sample.steps)).font(CYTypography.data2XL).accessibilityIdentifier("nativePlatform.steps.count")
                 LabeledContent("nativePlatform.steps.day") { Text(verbatim: challenge.dayKey) }
                 Text("nativePlatform.steps.sharePurpose").font(.footnote)
-                Button("nativePlatform.steps.send") { Task { await stage.submitReviewed(); await refresh() } }
-                    .buttonStyle(.questifyPrimary).disabled(!advanced.isCurrent)
+                CYPillButton("nativePlatform.steps.send") { Task { await stage.submitReviewed(); await refresh() } }
+                    .disabled(!advanced.isCurrent)
                     .accessibilityIdentifier("nativePlatform.steps.send")
-                Button("nativePlatform.cancel", role: .cancel) { stage.interrupt() }
+                CYPillButton("nativePlatform.cancel", style: .tertiary) { stage.interrupt() }
             } else if stage.phase == "unknown" {
                 Text("nativePlatform.steps.unknownBoundary").font(.footnote)
-                Button("nativePlatform.steps.retryExact") { Task { await stage.retryExact(); await refresh() } }
+                CYPillButton("nativePlatform.steps.retryExact", style: .secondary) { Task { await stage.retryExact(); await refresh() } }
                     .disabled(!advanced.isCurrent).accessibilityIdentifier("nativePlatform.steps.retry")
             } else if ["reading", "signing", "submitting"].contains(stage.phase) {
-                ProgressView().accessibilityLabel(Text("nativePlatform.working"))
-                Button("nativePlatform.cancel", role: .cancel) { stage.interrupt() }
+                CYSkeleton()
+                CYPillButton("nativePlatform.cancel", style: .tertiary) { stage.interrupt() }
             } else {
                 if let receipt = stage.receipt {
                     if let baseline = receipt["baselineSteps"].integer { LabeledContent("nativePlatform.steps.baseline") { Text(verbatim: String(baseline)) } }
                     if let delta = receipt["acceptedDelta"].integer { LabeledContent("nativePlatform.steps.delta") { Text(verbatim: String(delta)) } }
                 }
-                Button("nativePlatform.steps.read") { purpose = true }
-                    .buttonStyle(.questifyPrimary).disabled(!advanced.canInteract || !stage.supported)
+                CYPillButton("nativePlatform.steps.read") { purpose = true }
+                    .disabled(!advanced.canInteract || !stage.supported)
                     .accessibilityIdentifier("nativePlatform.steps.read")
                 if !stage.supported { Text("nativePlatform.issue.unsupported").font(.footnote) }
             }
@@ -60,17 +60,19 @@ import SwiftUI
         .sheet(isPresented: $purpose) {
             NavigationStack {
                 Form {
-                    Section("nativePlatform.steps.purposeTitle") {
+                    CYHeroHeader("nativePlatform.steps.purposeTitle")
+                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                    Section {
                         Text("nativePlatform.steps.purpose")
                         Text("nativePlatform.steps.integrity")
                         if let privacyURL { Link("nativePlatform.privacy", destination: privacyURL) }
                     }
-                    Button("nativePlatform.steps.continue") {
+                    CYPillButton("nativePlatform.steps.continue") {
                         purpose = false
                         guard let state = advanced.state else { return }
                         Task { await stage.read(sessionID: state.sessionID, version: state.version); await refresh() }
                     }.disabled(!advanced.canInteract).accessibilityIdentifier("nativePlatform.steps.consent")
-                }.navigationTitle("nativePlatform.steps.purposeTitle")
+                }.cyHeroScreen()
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("nativePlatform.cancel") { purpose = false } } }
             }
         }

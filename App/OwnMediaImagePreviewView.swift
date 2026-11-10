@@ -160,6 +160,7 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 16) {
+                    CYHeroHeader("title", tableName: "OwnMediaImagePreview")
                     Text("privateOnly", tableName: "OwnMediaImagePreview").font(.footnote).foregroundStyle(.secondary)
                     if model.available, model.presentation == offered {
                         if let image = model.image {
@@ -167,11 +168,11 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
                                 .accessibilityIdentifier("member.media.imagePreview.image")
                         } else {
                             switch model.phase {
-                            case .loading: ProgressView { Text("loading", tableName: "OwnMediaImagePreview") }
+                            case .loading: CYSkeleton()
                             case .failed, .expired:
                                 Text(LocalizedStringKey(model.phase == .expired ? "expired" : "failed"), tableName: "OwnMediaImagePreview")
-                                Button { model.retry(offered) } label: { Text("retry", tableName: "OwnMediaImagePreview") }
-                                    .frame(minHeight: 44).accessibilityIdentifier("member.media.imagePreview.retry")
+                                CYPillButton("retry", style: .secondary, tableName: "OwnMediaImagePreview") { model.retry(offered) }
+                                    .accessibilityIdentifier("member.media.imagePreview.retry")
                             case .idle, .ready: Text("unavailable", tableName: "OwnMediaImagePreview")
                             }
                         }
@@ -179,7 +180,7 @@ private struct OwnMediaImagePreviewViewIdentity: Hashable {
                     Text("limitations", tableName: "OwnMediaImagePreview").font(.footnote).foregroundStyle(.secondary)
                 }.padding().frame(maxWidth: .infinity, alignment: .leading)
             }
-            .navigationTitle(Text("title", tableName: "OwnMediaImagePreview"))
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { model.close(offered) } label: { Text("close", tableName: "OwnMediaImagePreview") }
                     .frame(minWidth: 44, minHeight: 44).accessibilityIdentifier("member.media.imagePreview.close")

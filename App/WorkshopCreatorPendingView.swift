@@ -41,7 +41,7 @@ import SwiftUI
                             Text(creatorString("workshopCreator.unknown")).fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    if controller.phase == .loading || controller.phase == .submitting { ProgressView(creatorString("workshopCreator.loading")) }
+                    if controller.phase == .loading || controller.phase == .submitting { CYLoadingStateView(rows: 1).accessibilityLabel(Text(verbatim: creatorString("workshopCreator.loading"))) }
                     if let issue = controller.issue { Text(creatorString(issueKey(issue))).accessibilityIdentifier("workshopPending.issue") }
                     if let pending = controller.pending {
                         Section(creatorString("workshopPending.saved")) {
@@ -49,7 +49,7 @@ import SwiftUI
                             Text(creatorString("workshopPending.recovery"))
                             // The exact saved text remains reviewable; edits cannot replace this attempt.
                             Text(verbatim: pending.termsDocument).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                            Button(creatorString("workshopPending.retry")) { run(controller.offerRetry(appearance)) }
+                            CYPillButton(verbatim: creatorString("workshopPending.retry"), style: .secondary) { run(controller.offerRetry(appearance)) }
                                 .disabled(!controller.canRetry).accessibilityIdentifier("workshopPending.retry")
                         }
                     }
@@ -57,7 +57,7 @@ import SwiftUI
                         Section(creatorString("workshopPending.recorded")) {
                             Text(verbatim: receipt.targetId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             Text(creatorString("workshopPending.historic"))
-                            Button(creatorString("workshopPending.another")) { run(controller.offerAnotherProposal(appearance)) }
+                            CYPillButton(verbatim: creatorString("workshopPending.another"), style: .secondary) { run(controller.offerAnotherProposal(appearance)) }
                                 .disabled(controller.phase == .submitting || controller.phase == .loading)
                                 .accessibilityIdentifier("workshopPending.another")
                         }
@@ -96,12 +96,12 @@ import SwiftUI
                                     .accessibilityIdentifier("workshopPending.target." + item.targetId)
                             }
                             if controller.hasMore {
-                                Button(creatorString("workshopPending.more")) { run(controller.offerMore(appearance)) }
+                                CYPillButton(verbatim: creatorString("workshopPending.more"), style: .secondary) { run(controller.offerMore(appearance)) }
                                     .disabled(controller.phase != .editing).accessibilityIdentifier("workshopPending.more")
                             }
                         }
                     }
-                    Button(creatorString("workshopPending.refresh")) { run(controller.offerLoad(appearance)) }
+                    CYPillButton(verbatim: creatorString("workshopPending.refresh"), style: .secondary) { run(controller.offerLoad(appearance)) }
                         .disabled(controller.phase == .loading || controller.phase == .submitting)
                         .accessibilityIdentifier("workshopPending.refresh")
                 }
@@ -148,7 +148,7 @@ import SwiftUI
         Section(creatorString("workshopPending.required")) {
             Text(creatorString("workshopPending.fixedRestrictions")).fixedSize(horizontal: false, vertical: true)
             Text(creatorString("workshopPending.reviewRequired")).foregroundStyle(.secondary)
-            Button(creatorString("workshopPending.author")) { run(controller.offerAuthor(appearance)) }
+            CYPillButton(verbatim: creatorString("workshopPending.author"), style: .secondary) { run(controller.offerAuthor(appearance)) }
                 .disabled(!controller.canSubmit).accessibilityIdentifier("workshopPending.author")
         }
     }

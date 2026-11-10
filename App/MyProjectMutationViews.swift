@@ -18,7 +18,7 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             switch model.state {
             case .working:
-                ProgressView().accessibilityIdentifier("myProject.mutation.working")
+                CYSkeleton().accessibilityIdentifier("myProject.mutation.working")
             case .done:
                 Label(W8Text.t("已完成", "Done"), systemImage: "checkmark.circle.fill")
                     .foregroundStyle(CYColor.successText)

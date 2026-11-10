@@ -11,7 +11,7 @@ import SwiftUI
     var body:some View {
         Group {
             if let flow { NativeChannelWelcomeView(flow:flow,selectChannel:{ if parentRouteIsActive() { selection.selected=$0 } }) }
-            else { ContentUnavailableView { Label("d7.channelWelcome.unavailable",systemImage:"signpost.right") } }
+            else { CYEmptyState(systemImage:"signpost.right","d7.channelWelcome.unavailable") }
         }.task { reopen() }
          .onDisappear { close() }
          .onChange(of:scene) { _,value in if value == .active { reopen() } else { close() } }
@@ -36,9 +36,11 @@ import SwiftUI
     let selectChannel:(NativeChannelManagementID)->Void
     var body:some View {
         List {
+            CYHeroHeader("d7.channelWelcome.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if flow.isCurrent {
                 if let issue=flow.issue { NativeChannelFlowNotice(title:Text(verbatim:issue),symbol:"exclamationmark.circle") }
-                if flow.busy { ProgressView().frame(maxWidth:.infinity) }
+                if flow.busy { CYSkeleton() }
                 if let value=flow.snapshot {
                     Section {
                         VStack(alignment:.leading,spacing:Theme.Space.s2) {
@@ -61,16 +63,16 @@ import SwiftUI
                             }
                         }
                     }
-                    Section { Button("d7.channelWelcome.enter") { select(value.entryChannelID) }.nativeChannelFlowAction().disabled(flow.busy) }
+                    Section { CYPillButton("d7.channelWelcome.enter") { select(value.entryChannelID) }.disabled(flow.busy) }.listRowBackground(Color.clear)
                 }
             } else {
-                ContentUnavailableView { Label("d7.channelWelcome.expired",systemImage:"lock.shield") }
+                CYEmptyState(systemImage:"lock.shield","d7.channelWelcome.expired")
             }
         }
         .refreshable { await flow.refresh() }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .navigationTitle("d7.channelWelcome.title").privacySensitive()
+        .cyHeroScreen().privacySensitive()
          .task { await flow.activate() }
          .onDisappear { flow.deactivate() }
 

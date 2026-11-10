@@ -64,10 +64,7 @@ import Combine
     }
     var body: some View {
         Form {
-            Section {
-                Text("templateLocalCategories.scope", tableName: "TemplateLocalCategoryRemoval")
-                    .font(.caption).foregroundStyle(.secondary)
-            }
+            Section { CYHeroHeader("templateLocalCategories.title", subtitle: "templateLocalCategories.scope", tableName: "TemplateLocalCategoryRemoval") }.e1HeroRow()
             if controller.canRead {
                 Section {
                     if let raw = controller.visibleRaw {
@@ -82,7 +79,7 @@ import Combine
                 }
                 ForEach(controller.visibleIDs, id: \.self) { id in
                     HStack {
-                        Text(verbatim: "#" + String(id))
+                        Text(verbatim: "#" + String(id)).font(CYTypography.numericBody)
                         Spacer()
                         Button(action: controller.removeAction(id)) {
                             Text("templateLocalCategories.remove", tableName: "TemplateLocalCategoryRemoval")
@@ -95,14 +92,13 @@ import Combine
             } else {
                 Section {
                     Text("templateLocalCategories.changed", tableName: "TemplateLocalCategoryRemoval")
-                    Button(action: controller.reload) {
-                        Text("templateLocalCategories.reload", tableName: "TemplateLocalCategoryRemoval")
-                    }.disabled(!controller.canReload)
-                        .accessibilityIdentifier("templateLocalCategories.reload")
+                    CYPillButton("templateLocalCategories.reload", style: .secondary, systemImage: "arrow.clockwise", tableName: "TemplateLocalCategoryRemoval", action: controller.reload)
+                        .disabled(!controller.canReload)
+                        .accessibilityIdentifier("templateLocalCategories.reload").e1ActionRow()
                 }
             }
         }
-        .navigationTitle(Text("templateLocalCategories.title", tableName: "TemplateLocalCategoryRemoval"))
+        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
         .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onDisappear { controller.viewDisappeared() }
         .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }

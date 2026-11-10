@@ -67,28 +67,29 @@ import SwiftUI
         let scope = context
         List {
             Section {
-                Text("club.projectLaunch.localHint")
-                Text(verbatim: club.name).font(.headline)
+                CYHeroHeader("club.projectLaunch.title").listRowBackground(Color.clear)
+                Text("club.projectLaunch.localHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text(verbatim: club.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 LabeledContent("club.ops.clubID", value: String(club.id))
             }
-            if !scope.canRead || model.phase == .denied { Text("club.projectLaunch.ownerRequired") }
+            if !scope.canRead || model.phase == .denied { CYStatusChip("club.projectLaunch.ownerRequired", tone: .warning, systemImage: "lock") }
             else {
                 if model.phase == .loading { ProgressView("club.loading") }
-                if model.phase == .failed { Text("club.projectLaunch.failed") }
-                if model.phase == .editorUnavailable { Text("club.projectLaunch.editorUnavailable") }
+                if model.phase == .failed { CYStatusChip("club.projectLaunch.failed", tone: .danger, systemImage: "exclamationmark.triangle") }
+                if model.phase == .editorUnavailable { CYStatusChip("club.projectLaunch.editorUnavailable", tone: .warning, systemImage: "slash.circle") }
                 if model.phase == .ready && model.target == nil {
                     Section("club.projectLaunch.chooseMode") {
-                        Button("club.projectLaunch.city") { choose(.city, scope: scope) }.accessibilityIdentifier("club.projectLaunch.city")
-                        Button("club.projectLaunch.freeExplore") { choose(.freeExplore, scope: scope) }.accessibilityIdentifier("club.projectLaunch.freeExplore")
+                        CYPillButton("club.projectLaunch.city", systemImage: "building.2") { choose(.city, scope: scope) }.accessibilityIdentifier("club.projectLaunch.city")
+                        CYPillButton("club.projectLaunch.freeExplore", style: .secondary, systemImage: "figure.walk") { choose(.freeExplore, scope: scope) }.accessibilityIdentifier("club.projectLaunch.freeExplore")
                     }
                 }
-                Button(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh")) { reload(scope) }
+                CYPillButton(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"), style: .tertiary) { reload(scope) }
                     .disabled(model.phase == .loading || presented != nil || model.permit(in: scope) == nil)
                     .accessibilityIdentifier("club.projectLaunch.reload")
             }
         }
         .cyGroupedSurface()
-        .navigationTitle("club.projectLaunch.title")
+        .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.leave(); dismiss() }.accessibilityIdentifier("club.projectLaunch.cancel") } }
         .task(id: scope) {
             guard !Task.isCancelled else { return }

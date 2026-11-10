@@ -18,8 +18,8 @@ import SwiftUI
             .environment(\.clubOwnerRefundCoordinator, refund)
             .safeAreaInset(edge: .bottom) {
                 VStack(spacing: 8) {
-                    Button("club.refund.fixtureRecord") { access.markRefundRecorded() }.accessibilityIdentifier("club.refund.fixtureRecord")
-                    Button("club.gov.switchAccount") { access.identity = .init(accountID: 799, epoch: 2); access.governance.readFailure = .forbidden; identity = access.identity }.accessibilityIdentifier("club.refund.fixtureSwitch")
+                    CYPillButton("club.refund.fixtureRecord", style: .secondary) { access.markRefundRecorded() }.accessibilityIdentifier("club.refund.fixtureRecord")
+                    CYPillButton("club.gov.switchAccount", style: .secondary) { access.identity = .init(accountID: 799, epoch: 2); access.governance.readFailure = .forbidden; identity = access.identity }.accessibilityIdentifier("club.refund.fixtureSwitch")
                 }
                 .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity)

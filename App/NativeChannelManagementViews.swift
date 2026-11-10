@@ -54,7 +54,7 @@ private func ncmPageLabel(_ key: String, systemImage: String) -> some View {
                         Section { QuestifyHeroValue(value: Text(verbatim: spaceName)) }
                             .listRowBackground(Color.clear)
                     }
-                    if model.busy { Section { ProgressView().frame(maxWidth: .infinity) } }
+                    if model.busy { Section { CYSkeleton() } }
                     NativeChannelManagementIssueView(issue: model.issue)
                     NativeChannelManagementRecoveryView(model: model)
                     NativeChannelManagementOutcomeView(outcome: model.outcome)
@@ -208,7 +208,7 @@ private func ncmPageLabel(_ key: String, systemImage: String) -> some View {
         Group {
             if model.isCurrent {
                 Form {
-                    if model.busy { Section { ProgressView().frame(maxWidth: .infinity) } }
+                    if model.busy { Section { CYSkeleton() } }
                     NativeChannelManagementIssueView(issue: model.issue)
                     NativeChannelManagementRecoveryView(model: model)
                     NativeChannelManagementOutcomeView(outcome: model.outcome)
@@ -351,7 +351,7 @@ private func ncmPageLabel(_ key: String, systemImage: String) -> some View {
         Group {
             if model.isCurrent {
                 Form {
-                    if model.busy { Section { ProgressView().frame(maxWidth: .infinity) } }
+                    if model.busy { Section { CYSkeleton() } }
                     NativeChannelManagementIssueView(issue: localIssue ?? model.issue)
                     Section {
                         TextField(text: $draft.name, prompt: ncmText("name")) { ncmText("name") }

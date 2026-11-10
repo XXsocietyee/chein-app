@@ -18,20 +18,20 @@ import SwiftUI
     private func rows(_ key: String) -> [[String: TemplateAuthoringJSON]] { (fields[key]?.array ?? []).compactMap(\.object) }
     var body: some View {
         Form {
+            Section { CYHeroHeader(LocalizedStringKey(family.labelKey), subtitle: LocalizedStringKey("creator.localOnly")) }.e1HeroRow()
             Section {
-                Text("creator.localOnly").font(.headline)
-                Text(LocalizedStringKey(family.providerKey)).font(.footnote)
-                if !text("title").isEmpty { Text(verbatim: text("title")).font(.title2) }
+                Text(LocalizedStringKey(family.providerKey)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                if !text("title").isEmpty { Text(verbatim: text("title")).font(CYTypography.sectionTitle) }
             }
             Section("creator.rehearse") { interaction }
             if rehearsal.result != .ready { Section { Text(LocalizedStringKey("creator.result." + rehearsal.result.rawValue)) } }
             Section {
-                Button("creator.reset") { guard family != .branch || branchAdmission() else { return }; rehearsal.reset(); input = ""; selected = []; startedAt = nil; sampleIndex = 0; profileAnswers = [:] }
+                CYPillButton("creator.reset", style: .tertiary) { guard family != .branch || branchAdmission() else { return }; rehearsal.reset(); input = ""; selected = []; startedAt = nil; sampleIndex = 0; profileAnswers = [:] }.e1ActionRow()
                 if showsReview { DisclosureGroup("creator.review") {
                     TemplateCreatorReviewFields(value: .object(fields), fields: TemplateCreatorSchema.fields(family))
                 } }
             }
-        }.navigationTitle(LocalizedStringKey(family.labelKey))
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .accessibilityIdentifier("creator.rehearsal." + family.rawValue)
     }
     @ViewBuilder private var interaction: some View {

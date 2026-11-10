@@ -115,6 +115,7 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateReaction.rehearse").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 if controller.mode == .sourceExample { Text("templateReaction.exampleOnly").font(.footnote) }
             }
@@ -155,15 +156,15 @@ import Combine
                         Text(LocalizedStringKey(matched ? "templateReaction.matched" : "templateReaction.missed"))
                     }
                 }
-                Button("creator.reset", action: controller.action(.reset)).accessibilityIdentifier("templateReaction.reset")
+                CYPillButton("creator.reset", style: .secondary, action: controller.action(.reset)).accessibilityIdentifier("templateReaction.reset")
             } else {
                 Section {
                     Text("templateReaction.unavailable")
-                    Button("templateReaction.reload") { controller.reload() }.disabled(!controller.canReload)
+                    CYPillButton("templateReaction.reload", style: .secondary) { controller.reload() }.disabled(!controller.canReload)
                         .accessibilityIdentifier("templateReaction.reload")
                 }
             }
-        }.navigationTitle("templateReaction.rehearse").privacySensitive()
+        }.cyGroupedSurface().privacySensitive()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.close", action: controller.closeAction { dismiss() }).accessibilityIdentifier("templateReaction.close")
             } }

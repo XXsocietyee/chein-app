@@ -75,7 +75,7 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
                     Text(verbatim: snapshot.saved.snapshotJson).font(.caption.monospaced()).textSelection(.enabled)
                 }
             } header: { Text(text("savedFields")) }
-            Button(text("start")) { rehearsal.start() }.disabled(!rehearsal.available)
+            CYPillButton(verbatim: text("start")) { rehearsal.start() }.listRowBackground(Color.clear).disabled(!rehearsal.available)
                 .accessibilityIdentifier("installedRehearsal.start")
         }.accessibilityIdentifier("installedRehearsal.review")
     }

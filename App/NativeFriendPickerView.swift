@@ -36,8 +36,7 @@ import SwiftUI
                 }.disabled(!flow.canWrite || row.alreadyMember || (!flow.selected.contains(row) && flow.selected.count >= 10) || flow.hasPickerReview)
             }
             if visible.isEmpty && !flow.busy { Text("d7.friendPicker.empty").foregroundStyle(.secondary) }
-            Button { flow.prepareCreate() } label: { Text("d7.friendPicker.next").frame(maxWidth: .infinity) }
-                .buttonStyle(.questifyPrimary)
+            CYPillButton("d7.friendPicker.next") { flow.prepareCreate() }
                 .listRowBackground(Color.clear)
                 .disabled(!flow.canWrite || flow.selected.isEmpty || flow.hasPickerReview)
         } header: {

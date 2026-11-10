@@ -171,6 +171,8 @@ extension EnvironmentValues {
     private var reportSheet: some View {
         NavigationStack {
             Form {
+                CYHeroHeader(verbatim: c.t("举报队伍", "Report team"))
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 if reportState == .submitted {
                     Section {
                         CYStatusChip(verbatim: c.t("举报已记录，平台将核查处理", "Report recorded. Platform support will review it."),
@@ -209,8 +211,7 @@ extension EnvironmentValues {
                     }
                 }
             }
-            .navigationTitle(c.t("举报队伍", "Report team"))
-            .navigationBarTitleDisplayMode(.inline)
+            .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(c.t("关闭", "Close")) {

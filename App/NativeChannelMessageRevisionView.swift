@@ -14,6 +14,8 @@ import SwiftUI
     @State private var generation = 0
     var body: some View {
         List {
+            CYHeroHeader("revisions.title", tableName: "NativeChannelMessage")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if phase == .active && identity != nil && client.identity == identity && client.allows(.revisions) {
                 ForEach(rows) { row in
                     VStack(alignment: .leading, spacing: Theme.Space.s1) {
@@ -27,16 +29,16 @@ import SwiftUI
                     ContentUnavailableView { Label("d7.channelRevisions.empty", systemImage: "clock.arrow.circlepath") }
                 }
             }
-            if loading { ProgressView().frame(maxWidth: .infinity) }
+            if loading { CYSkeleton().frame(maxWidth: .infinity) }
             if failed {
                 Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
-                Button { Task { await load() } } label: { Text("messaging.retry") }
+                CYPillButton("messaging.retry", style: .secondary) { Task { await load() } }
                     .disabled(phase != .active || loading || identity == nil || client.identity != identity || !client.allows(.revisions))
                     .accessibilityIdentifier("ncm47.revisions.retry")
             }
         }.nativeChannelScreen().listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .navigationTitle(Text("revisions.title", tableName: "NativeChannelMessage"))
+        .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .task(id: phase) {
             clear()

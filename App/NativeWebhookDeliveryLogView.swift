@@ -7,6 +7,8 @@ import SwiftUI
     @State private var includePayload = false
     var body: some View {
         List {
+            CYHeroHeader(verbatim: nativeWebhookLocalized("d7.webhook.deliveries.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let coordinator = model.coordinator, model.available, let resource = coordinator.selected {
                 Section {
                     Picker(nativeWebhookLocalized("d7.webhook.field.status"), selection: $filter) {
@@ -21,7 +23,7 @@ import SwiftUI
                 NativeWebhookStatusSection(model: model)
                 Section {
                     if coordinator.deliveries.isEmpty && !coordinator.busy {
-                        ContentUnavailableView(nativeWebhookLocalized("d7.webhook.deliveries.empty"), systemImage: "tray")
+                        CYEmptyState(systemImage: "tray", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.deliveries.empty")))
                             .accessibilityIdentifier("webhook.deliveryLogs.empty")
                     }
                     ForEach(coordinator.deliveries) { delivery in
@@ -49,7 +51,7 @@ import SwiftUI
                                 }.accessibilityIdentifier("webhook.delivery.payload.\(delivery.id.rawValue)")
                             }
                             if delivery.offersExplicitRetry {
-                                Button(nativeWebhookLocalized("d7.webhook.deliveries.retry")) {
+                                CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.deliveries.retry"), style: .secondary) {
                                     model.action(.retry(deliveryID: delivery.deliveryID), resource: resource, delivery: delivery)
                                 }
                                 .disabled(!model.canMutate || resource.status != .active)
@@ -60,21 +62,20 @@ import SwiftUI
                         .accessibilityIdentifier("webhook.delivery.\(delivery.id.rawValue)")
                     }
                     if coordinator.hasMoreLogs {
-                        Button(nativeWebhookLocalized("d7.webhook.loadMore")) { Task { await read(nextPage: true) } }
+                        CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.loadMore"), style: .secondary) { Task { await read(nextPage: true) } }
                             .disabled(coordinator.busy).accessibilityIdentifier("webhook.deliveryLogs.more")
                     }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("d7.webhook.reload")) { Task { await read() } }
+                    CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.reload"), style: .secondary) { Task { await read() } }
                         .disabled(coordinator.busy).accessibilityIdentifier("webhook.deliveryLogs.refresh")
                 }
             } else {
-                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.detail.loadFailed"), systemImage: "exclamationmark.circle",
-                    description: Text(verbatim: nativeWebhookLocalized("d7.webhook.goBack")))
+                CYEmptyState(systemImage: "exclamationmark.circle", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.detail.loadFailed")), detail: LocalizedStringKey(nativeWebhookLocalized("d7.webhook.goBack")))
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("d7.webhook.deliveries.title"))
+        .cyHeroScreen()
         .task { await read() }
         .onChange(of: filter) { _ in Task { await read() } }
         .onChange(of: includePayload) { _ in Task { await read() } }

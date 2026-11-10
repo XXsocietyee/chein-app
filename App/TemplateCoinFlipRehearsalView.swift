@@ -90,12 +90,10 @@ import Combine
     }
     var body: some View {
         Form {
-            Section {
-                if controller.mode == .sourceExample { Text("templateCoin.exampleOnly").font(.footnote) }
-            }
+            Section { CYHeroHeader("templateCoin.rehearse", subtitle: controller.mode == .sourceExample ? "templateCoin.exampleOnly" : nil) }.e1HeroRow()
             if let state = controller.visibleState {
                 Section {
-                    Text(verbatim: state.kicker).font(.title2).accessibilityIdentifier("templateCoin.kicker")
+                    Text(verbatim: state.kicker).font(CYTypography.sectionTitle).accessibilityIdentifier("templateCoin.kicker")
                     side(state.heads, key: "templateCoin.heads")
                     side(state.tails, key: "templateCoin.tails")
                 }
@@ -104,28 +102,28 @@ import Combine
                         ForEach(TemplateCoinFlipRehearsal.Face.allCases) { face in Text(LocalizedStringKey(face.labelKey)).tag(face) }
                     }.pickerStyle(.segmented).accessibilityIdentifier("templateCoin.selection")
                     if state.result == nil {
-                        Button("templateCoin.show", action: controller.showAction()).accessibilityIdentifier("templateCoin.show")
+                        CYPillButton("templateCoin.show", systemImage: "circle.lefthalf.filled", action: controller.showAction()).accessibilityIdentifier("templateCoin.show").e1ActionRow()
                     } else {
-                        Button("templateCoin.again", action: controller.showAction()).accessibilityIdentifier("templateCoin.again")
+                        CYPillButton("templateCoin.again", systemImage: "arrow.clockwise", action: controller.showAction()).accessibilityIdentifier("templateCoin.again").e1ActionRow()
                     }
                 }
                 if let result = state.result {
                     Section("templateCoin.result") {
-                        Text(LocalizedStringKey(result.face.labelKey)).font(.caption)
-                        Text(verbatim: result.side.label).font(.largeTitle).accessibilityIdentifier("templateCoin.result.label")
+                        Text(LocalizedStringKey(result.face.labelKey)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        Text(verbatim: result.side.label).font(CYTypography.dataXL).accessibilityIdentifier("templateCoin.result.label")
                         if result.side.action.isEmpty { Text("templateCoin.emptyAction") }
                         else { Text(verbatim: result.side.action).accessibilityIdentifier("templateCoin.result.action") }
                     }
                 }
-                Button("creator.reset", action: controller.resetAction()).accessibilityIdentifier("templateCoin.reset")
+                CYPillButton("creator.reset", style: .tertiary, action: controller.resetAction()).accessibilityIdentifier("templateCoin.reset").e1ActionRow()
             } else {
                 Section {
                     Text("templateCoin.unavailable")
-                    Button("templateCoin.reload") { controller.reload() }.disabled(!controller.canReload)
-                        .accessibilityIdentifier("templateCoin.reload")
+                    CYPillButton("templateCoin.reload", style: .secondary, systemImage: "arrow.clockwise") { controller.reload() }.disabled(!controller.canReload)
+                        .accessibilityIdentifier("templateCoin.reload").e1ActionRow()
                 }
             }
-        }.navigationTitle("templateCoin.rehearse").privacySensitive()
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.close", action: controller.closeAction { dismiss() }).accessibilityIdentifier("templateCoin.close")
             } }
@@ -134,9 +132,9 @@ import Combine
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
     }
     private func side(_ side: TemplateCoinFlipRehearsal.Side, key: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(LocalizedStringKey(key)).font(.caption)
-            Text(verbatim: side.label).font(.headline)
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: side.label).font(CYTypography.cardTitle)
             if side.action.isEmpty { Text("templateCoin.emptyAction").foregroundStyle(.secondary) }
             else { Text(verbatim: side.action) }
         }

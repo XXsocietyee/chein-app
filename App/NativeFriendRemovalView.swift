@@ -23,6 +23,8 @@ import SwiftUI
     private var flow: NativeFriendRemovalFlow { model.flow }
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: localized("friendRemoval.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let item = flow.presentationItem {
                 Section {
                     HStack(spacing: Theme.Space.s3) {
@@ -33,7 +35,7 @@ import SwiftUI
                     }
                 }
             }
-            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendRemoval.loading") }
+            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friendRemoval.loading") }
             if flow.phase == .closed { text("friendRemoval.closed") }
             if let issue = flow.issue {
                 Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
@@ -42,13 +44,13 @@ import SwiftUI
             if flow.pending != nil {
                 Section {
                     text("friendRemoval.unknown")
-                    Button { perform { await flow.recover() } } label: { text("friendRemoval.recover") }
+                    CYPillButton("friendRemoval.recover", style: .secondary, tableName: "NativeFriendRemoval") { perform { await flow.recover() } }
                         .disabled(!flow.canRecover).accessibilityIdentifier("friendRemoval.recover")
                     Button { retryCommand = flow.pendingCommand; confirmingRetry = true } label: { text("friendRemoval.retryOriginal") }
                         .disabled(!flow.canRetryOriginal).accessibilityIdentifier("friendRemoval.retryOriginal")
                 }
             } else if flow.item == nil && flow.result == nil && flow.phase == .ready {
-                ContentUnavailableView { Label { text("friendRemoval.noPending") } icon: { Image(systemName: "checkmark.circle") } }
+                CYEmptyState(systemImage: "checkmark.circle", "friendRemoval.noPending", tableName: "NativeFriendRemoval")
             }
             if let result = flow.result {
                 Section {
@@ -77,7 +79,7 @@ import SwiftUI
         .formStyle(.grouped)
         .font(Theme.Font.body)
         .cyGroupedSurface()
-        .navigationTitle(localized("friendRemoval.title"))
+        .cyHeroScreen()
         .accessibilityIdentifier("friendRemoval.home")
         .task { await flow.load() }
         .onDisappear { suspend() }

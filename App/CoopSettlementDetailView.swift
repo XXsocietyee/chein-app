@@ -72,14 +72,15 @@ import SwiftUI
 
     var body: some View {
         List {
+            CYHeroHeader("cooperation.settlement.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if id <= 0 { missingParameter }
-            else if reader.session == nil { Text("cooperation.login").accessibilityIdentifier("cooperation.settlement.login") }
+            else if reader.session == nil { CYStatusChip("cooperation.login", tone: .neutral, systemImage: "person.crop.circle.badge.questionmark").accessibilityIdentifier("cooperation.settlement.login") }
             else if let detail {
                 if loading { notice("cooperation.settlement.refreshing", "cooperation.settlement.refreshing.detail", id: "refreshing") }
                 if case .failed(let message)? = issue {
                     Section {
                         notice("cooperation.settlement.staleError", nil, verbatim: message, id: "stale")
-                        Button("cooperation.refresh") { refresh = UUID() }.accessibilityIdentifier("cooperation.settlement.retry")
+                        CYPillButton("cooperation.refresh", style: .secondary) { refresh = UUID() }.accessibilityIdentifier("cooperation.settlement.retry")
                     }
                 }
                 content(detail)
@@ -88,7 +89,7 @@ import SwiftUI
         }
         .cyGroupedSurface()
         .cyMiniListScreen()
-        .appNavigationTitle("cooperation.settlement.title")
+        .cyHeroScreen()
         .task(id: ReadTask(reader: ObjectIdentifier(reader), account: reader.session?.accountID, epoch: reader.session?.epoch, source: source.rawValue, recordID: id, refresh: refresh)) { await load() }
         .refreshable { await load() }
         .onDisappear { model.invalidate() }
@@ -140,7 +141,7 @@ import SwiftUI
     private var missingParameter: some View {
         Section {
             notice("cooperation.settlement.missingParam", "cooperation.settlement.missingParam.detail", id: "missingParam")
-            Button("cooperation.settlement.back") { dismiss() }
+            CYPillButton("cooperation.settlement.back", style: .secondary) { dismiss() }
         }
     }
     @ViewBuilder private func failure(_ issue: Issue) -> some View {
@@ -148,12 +149,12 @@ import SwiftUI
             switch issue {
             case .missingRecord:
                 notice("cooperation.settlement.missingRecord", "cooperation.settlement.missingRecord.detail", id: "missingRecord")
-                Button("cooperation.settlement.backToList") { dismiss() }.accessibilityIdentifier("cooperation.settlement.backToList")
+                CYPillButton("cooperation.settlement.backToList", style: .secondary) { dismiss() }.accessibilityIdentifier("cooperation.settlement.backToList")
             case .permission(let message):
                 notice("cooperation.settlement.failed", message == nil ? "cooperation.settlement.reload" : nil, verbatim: message, id: "permission")
             case .failed(let message):
                 notice("cooperation.settlement.failed", message == nil ? "cooperation.settlement.failed.detail" : nil, verbatim: message, id: "failed")
-                Button("cooperation.refresh") { refresh = UUID() }.accessibilityIdentifier("cooperation.settlement.retry")
+                CYPillButton("cooperation.refresh", style: .secondary) { refresh = UUID() }.accessibilityIdentifier("cooperation.settlement.retry")
             }
         }
     }

@@ -13,6 +13,7 @@ struct TemplateRootRehearsalView: View {
     private var nodes: [Int] { Set(conditions.filter { $0.op == "NODE_COMPLETED" }.compactMap { $0.value["nodeId"]?.integer }).sorted() }
     var body: some View {
         Form {
+            Section { CYHeroHeader("creatorRoot.rehearse").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section { Text("creator.localOnly").font(.headline); Text("creatorRoot.rehearsalLimit").font(.footnote) }
             if let tier = draft.value["mistakeTier"]?.string { Section("creatorRoot.mistakeTier") { Text(LocalizedStringKey("creator.choice." + tier)); Text("creatorRoot.damageServer").font(.footnote) } }
             if !draft.rootVariants.isEmpty {
@@ -22,7 +23,7 @@ struct TemplateRootRehearsalView: View {
                     }
                     ForEach(tags, id: \.self) { tag in Toggle(tag, isOn: Binding(get: { sample.tags.contains(tag) }, set: { if $0 { sample.tags.insert(tag) } else { sample.tags.remove(tag) }; evaluated = false })) }
                     ForEach(nodes, id: \.self) { node in Toggle("\(node)", isOn: Binding(get: { sample.completedNodes.contains(node) }, set: { if $0 { sample.completedNodes.insert(node) } else { sample.completedNodes.remove(node) }; evaluated = false })) }
-                    Button("creator.evaluate") { evaluate() }
+                    CYPillButton("creator.evaluate", style: .primary) { evaluate() }
                 }
                 if evaluated {
                     Section("creatorRoot.snapshot") {
@@ -45,8 +46,8 @@ struct TemplateRootRehearsalView: View {
                     }
                 }
             }
-            Button("creator.reset") { sample = .init(); role = "A"; applied = nil; changes = [:]; evaluated = false }
-        }.navigationTitle("creatorRoot.rehearse")
+            CYPillButton("creator.reset", style: .secondary) { sample = .init(); role = "A"; applied = nil; changes = [:]; evaluated = false }
+        }.cyGroupedSurface()
     }
     private func evaluate() {
         for key in variables where sample.values[key] == nil { sample.values[key] = 0 }
@@ -63,12 +64,13 @@ struct TemplateD20RehearsalView: View {
     @State private var sample: TemplateD20Rehearsal?
     var body: some View {
         Form {
+            Section { CYHeroHeader("creatorRoot.d20Preview").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section { Text("creator.localOnly"); Text("creatorRoot.d20RuntimeLimit").font(.footnote) }
             Section("creatorRoot.d20") {
                 LabeledContent("creatorRoot.dc", value: draft.text("diceRoll", "dc"))
                 LabeledContent("creatorRoot.modifier", value: draft.text("diceRoll", "modifier"))
                 Text(LocalizedStringKey("creatorRoot.roll." + draft.text("diceRoll", "rollMode")))
-                Button("creatorRoot.showSample") { sample = try? TemplateD20Rehearsal(draft: draft) }
+                CYPillButton("creatorRoot.showSample", style: .secondary) { sample = try? TemplateD20Rehearsal(draft: draft) }
                 if let sample {
                     LabeledContent("creatorRoot.pips", value: sample.values.map(String.init).joined(separator: ", "))
                     LabeledContent("creatorRoot.kept", value: String(sample.kept)); LabeledContent("creatorRoot.total", value: String(sample.total))
@@ -76,7 +78,7 @@ struct TemplateD20RehearsalView: View {
                     Text(verbatim: sample.text)
                 }
             }
-            Button("creator.reset") { sample = nil }
-        }.navigationTitle("creatorRoot.d20Preview")
+            CYPillButton("creator.reset", style: .secondary) { sample = nil }
+        }.cyGroupedSurface()
     }
 }

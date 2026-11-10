@@ -23,6 +23,8 @@ struct MessagingMessageDetailView: View {
         Group {
             if identity != nil, reader.identity == identity, let message = currentSnapshot {
                 List {
+                    CYHeroHeader("messaging.message.title")
+                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                     Section("messaging.message.content") {
                         MessagingMessageContent(message: message).textSelection(.enabled)
                     }
@@ -153,11 +155,12 @@ struct MessagingMessageDetailView: View {
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
                     List {
+                        CYHeroHeader("im.full.reviewResult")
+                            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                         MessagingOptionalRow(title: "messaging.card.outcome", value: result.outcome)
                         MessagingOptionalRow(title: "messaging.card.reason", value: result.reason)
                         MessagingOptionalRow(title: "messaging.card.followUp", value: result.followUp)
-                    }.navigationTitle(Text("im.full.reviewResult"))
-                    .navigationBarTitleDisplayMode(.inline)
+                    }.cyHeroScreen()
                     .toolbar { Button("action.done") { selectedReview = nil } }
                 }.privacySensitive()
                 .presentationDetents([.medium, .large])
@@ -167,8 +170,7 @@ struct MessagingMessageDetailView: View {
         .onChange(of: currentSnapshot) { _, _ in selectedTopicID = nil; selectedReview = nil }
         .onChange(of: reader.identity) { _, _ in selectedTopicID = nil; selectedReview = nil }
         .privacySensitive()
-        .appNavigationTitle("messaging.message.title")
-        .navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
     }
 }
 

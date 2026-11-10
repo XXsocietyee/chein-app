@@ -14,6 +14,8 @@ import CryptoKit
     var body: some View {
         let _ = revision
         Form {
+            CYHeroHeader("d7.imFile.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -26,7 +28,7 @@ import CryptoKit
                         }
                         if case .draft(let file) = owner.visibleState {
                             LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: file.name) }
-                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }
                             Button("d7.imCompose.discard", role: .destructive) { owner.discardDraft() }
                         }
                     case .uploading: ProgressView("d7.imCompose.uploading")
@@ -45,7 +47,7 @@ import CryptoKit
                         IMFlowStateMessage(text: Text("d7.imCompose.approved"), symbol: "checkmark.seal", tone: .success)
                         LabeledContent { IMByteCountText(bytes: file.size) } label: { Text(verbatim: file.name) }
                         if owner.expanded.writer.canSendFile && owner.canRecover {
-                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }
                         }
                     case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                     }
@@ -56,7 +58,7 @@ import CryptoKit
                     case .reviewing(.send(let intent)):
                         if case .file = intent.payload {
                             IMMutationSummary(mutation: .send(intent))
-                            Button("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }
                             Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
                         }
                     case .submitting: ProgressView("d7.imCompose.sending")
@@ -77,7 +79,7 @@ import CryptoKit
                     }
                 }
             }
-        }.imFlowForm().navigationTitle(Text("d7.imFile.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         .fileImporter(isPresented: $picking, allowedContentTypes: IMFilePicker.types, allowsMultipleSelection: false) { result in
             guard available else { return }
@@ -105,6 +107,8 @@ import CryptoKit
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMFileReference.read(message) != nil }
     var body: some View {
         Form {
+            CYHeroHeader("d7.imFile.previewTitle")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let reference = IMFileReference.read(message), available {
                 Section {
                     LabeledContent { IMByteCountText(bytes: reference.size) } label: {
@@ -123,7 +127,7 @@ import CryptoKit
             } else { IMFlowStateMessage(text: Text("d7.imFile.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imFile.previewFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().navigationTitle(Text("d7.imFile.previewTitle"))
+        }.imFlowForm().privacySensitive().cyHeroScreen()
         .onDisappear { stop() }
         .onChange(of: available) { _, value in if !value { stop() } }
         .onChange(of: scenePhase) { _, value in if value != .active { stop() } }

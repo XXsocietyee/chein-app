@@ -23,7 +23,7 @@ import SwiftUI
 
     var body: some View {
         Form {
-            Section { CYHeroHeader(verbatim: W8Text.t("提交申诉", "Appeal a voucher"), subtitle: W8Text.t("商家忘记核销时，可提交审核。", "If the merchant forgot to scan your voucher, send it for review.")) }.e1HeroRow()
+            Section { CYHeroHeader(verbatim: W8Text.t("核销申诉", "Appeal a voucher"), subtitle: W8Text.t("商家忘记核销时，可提交审核。", "If the merchant forgot to scan your voucher, send it for review.")) }.e1HeroRow()
             Section {
                 Picker(selection: $reason) {
                     text("商家忘记核销", "Merchant forgot to scan").tag(BundleAppealReason.merchantForgotScan)

@@ -34,19 +34,20 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                Text("publicTopics.scope", tableName: "ClubPublicTopics").font(.footnote).foregroundStyle(.secondary)
+                CYHeroHeader("publicTopics.title", tableName: "ClubPublicTopics").listRowBackground(Color.clear)
+                Text("publicTopics.scope", tableName: "ClubPublicTopics").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 if !session.clubIdentity.isSignedIn {
-                    Text("publicTopics.guestHandoff", tableName: "ClubPublicTopics").font(.footnote).foregroundStyle(.secondary)
+                    Text("publicTopics.guestHandoff", tableName: "ClubPublicTopics").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }
             }
             if selectedUnavailable {
-                Text("publicTopics.removed", tableName: "ClubPublicTopics")
+                CYStatusChip(verbatim: String(localized: "publicTopics.removed", table: "ClubPublicTopics"), tone: .warning, systemImage: "exclamationmark.circle")
                     .accessibilityIdentifier("club.publicTopics.selectionRevoked")
             }
             if scope == nil {
                 Section {
-                    Text("publicTopics.unavailable", tableName: "ClubPublicTopics")
-                        .accessibilityIdentifier("club.publicTopics.unavailable")
+                    CYEmptyState(systemImage: "lock", "publicTopics.unavailable", tableName: "ClubPublicTopics",
+                                 messageIdentifier: "club.publicTopics.unavailable")
                 }
             } else if model.loading {
                 ProgressView("club.loading").accessibilityIdentifier("club.publicTopics.loading")
@@ -57,17 +58,17 @@ import SwiftUI
                 })
             } else if model.issueScope == scope, let issue = model.issue {
                 Section {
-                    Text(LocalizedStringKey(issue.titleKey)).accessibilityIdentifier("club.publicTopics.error")
-                    if let message = issue.message { Text(verbatim: message) }
-                    else { Text(LocalizedStringKey(issue.hintKey)) }
-                    if issue.needsSignIn, let onSignIn { Button("club.signIn", action: onSignIn) }
-                    Button("action.retry") { Task { await refresh() } }
+                    CYStatusChip(LocalizedStringKey(issue.titleKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.publicTopics.error")
+                    if let message = issue.message { Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    else { Text(LocalizedStringKey(issue.hintKey)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                    if issue.needsSignIn, let onSignIn { CYPillButton("club.signIn", action: onSignIn) }
+                    CYPillButton("action.retry", style: .secondary) { Task { await refresh() } }
                         .accessibilityIdentifier("club.publicTopics.retry")
                 }
             }
         }
         .cyGroupedSurface()
-        .navigationTitle(Text("publicTopics.title", tableName: "ClubPublicTopics"))
+        .cyHeroScreen()
         .refreshable { await refresh() }
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
@@ -83,7 +84,7 @@ import SwiftUI
                     // A list response is not a content-read or purchase entitlement.
                     SessionTopicDetailView(id: target.topicID, session: session)
                     if !session.clubIdentity.isSignedIn, let onSignIn {
-                        Button("club.signIn", action: onSignIn).padding()
+                        CYPillButton("club.signIn", action: onSignIn).padding()
                             .accessibilityIdentifier("club.publicTopics.detail.signIn")
                     }
                 }.id(target.id)

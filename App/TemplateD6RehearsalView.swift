@@ -75,12 +75,12 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { Text("templateD6.sampleOnly").font(.callout).accessibilityIdentifier("templateD6.boundary") }
+            Section { CYHeroHeader("templateD6.preview", subtitle: "templateD6.sampleOnly") }.e1HeroRow()
             if let configuration = controller.visibleConfiguration {
                 Section("templateD6.configuration") {
                     if !configuration.kicker.isEmpty { Text(verbatim: configuration.kicker) }
                     Text(LocalizedStringKey(configuration.diceCount == 1 ? "templateD6.oneDie" : "templateD6.twoDice"))
-                    if configuration.diceCount == 2 { Text("templateD6.sumOnly").font(.caption).foregroundStyle(.secondary) }
+                    if configuration.diceCount == 2 { Text("templateD6.sumOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                 }
                 Section("templateD6.exampleValues") {
                     ForEach(0..<configuration.diceCount, id: \.self) { index in
@@ -89,8 +89,8 @@ import Combine
                         } label: { Text("templateD6.dieNumber \(index + 1)") }
                             .accessibilityIdentifier("templateD6.pip.\(index)")
                     }
-                    Button("templateD6.showSample", action: controller.sampleAction())
-                        .accessibilityIdentifier("templateD6.showSample")
+                    CYPillButton("templateD6.showSample", systemImage: "dice", action: controller.sampleAction())
+                        .accessibilityIdentifier("templateD6.showSample").e1ActionRow()
                 }
                 if let sample = controller.visibleSample {
                     Section("templateD6.sampleResult") {
@@ -100,20 +100,20 @@ import Combine
                                     .accessibilityLabel(Text(verbatim: String(value)))
                             }
                         }
-                        LabeledContent("playkit.dice.total", value: String(sample.total)).accessibilityIdentifier("templateD6.total")
+                        LabeledContent("playkit.dice.total", value: String(sample.total)).monospacedDigit().accessibilityIdentifier("templateD6.total")
                         if let action = sample.action { Text(verbatim: action).accessibilityIdentifier("templateD6.action") }
-                        else { Text("templateD6.sumOnly").font(.caption) }
+                        else { Text("templateD6.sumOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                     }
                 }
-                Button("creator.reset", action: controller.resetAction()).accessibilityIdentifier("templateD6.reset")
+                CYPillButton("creator.reset", style: .tertiary, action: controller.resetAction()).accessibilityIdentifier("templateD6.reset").e1ActionRow()
             } else {
                 Section {
                     Text("templateD6.configurationChanged").accessibilityIdentifier("templateD6.unavailable")
-                    Button("templateD6.reload") { controller.reload() }.disabled(!controller.canReload)
-                        .accessibilityIdentifier("templateD6.reload")
+                    CYPillButton("templateD6.reload", style: .secondary, systemImage: "arrow.clockwise") { controller.reload() }.disabled(!controller.canReload)
+                        .accessibilityIdentifier("templateD6.reload").e1ActionRow()
                 }
             }
-        }.navigationTitle("templateD6.preview").privacySensitive()
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive()
             .onAppear { controller.reload() }
             .onDisappear { controller.retire() }
     }

@@ -9,8 +9,8 @@ import SwiftUI
     var body: some View {
         Group {
             if let flow { NativeChannelCheckinView(flow: flow, current: current, reminderDate: reminderDate) }
-            else if attempted { ContentUnavailableView("d7.checkin.unavailable", systemImage: "calendar.badge.checkmark") }
-            else { ProgressView() }
+            else if attempted { CYEmptyState(systemImage: "calendar.badge.checkmark", "d7.checkin.unavailable") }
+            else { CYSkeleton() }
         }.task { guard !attempted else { return }; attempted = true; if current() { flow = makeFlow() } }
     }
 }
@@ -24,21 +24,23 @@ import SwiftUI
     private var available: Bool { current() && scene == .active }
     var body: some View {
         Form {
-            if !flow.isCurrent { ContentUnavailableView("d7.checkin.unavailable", systemImage: "calendar.badge.checkmark") }
+            CYHeroHeader("d7.checkin.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            if !flow.isCurrent { CYEmptyState(systemImage: "calendar.badge.checkmark", "d7.checkin.unavailable") }
             else {
                 notice
                 if let reminderDate { LabeledContent("d7.checkin.reminderDate", value: reminderDate) }
                 if let pending = flow.pending {
                     Section("d7.checkin.pending.title") {
                         LabeledContent("d7.checkin.date", value: pending.checkinDate)
-                        Button("d7.checkin.pending.check") { run { current in await flow.recover(); guard current() else { return }; await refreshSettled() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover)
-                        Button("d7.checkin.pending.retry") { retry = true }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover || !flow.service.canWrite)
+                        CYPillButton("d7.checkin.pending.check", style: .secondary) { run { current in await flow.recover(); guard current() else { return }; await refreshSettled() } }.disabled(flow.busy || !flow.service.canRecover)
+                        CYPillButton("d7.checkin.pending.retry", style: .secondary) { retry = true }.disabled(flow.busy || !flow.service.canRecover || !flow.service.canWrite)
                     }
                 }
                 if let review = flow.review {
                     Section("d7.checkin.review.title") {
                         LabeledContent("d7.checkin.date", value: review.checkinDate)
-                        Button("d7.checkin.review.confirm") { run { current in await flow.confirm(); guard current() else { return }; await refreshSettled() } }.nativeChannelPrimaryAction().disabled(flow.busy)
+                        CYPillButton("d7.checkin.review.confirm") { run { current in await flow.confirm(); guard current() else { return }; await refreshSettled() } }.disabled(flow.busy)
                         Button("d7.channelActivity.cancel", role: .cancel) { flow.cancelReview() }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy)
                     }
                 }
@@ -59,9 +61,9 @@ import SwiftUI
                             LabeledContent("d7.checkin.checkedAt") { Text(Date(timeIntervalSince1970: Double(fact.checkedAt) / 1000), style: .time) }
                         }
                         if !status.checked, flow.review == nil, flow.pending == nil {
-                            Button("d7.checkin.checkIn") { flow.prepare() }.nativeChannelPrimaryAction().disabled(!flow.canCheckin)
+                            CYPillButton("d7.checkin.checkIn") { flow.prepare() }.disabled(!flow.canCheckin)
                         }
-                        Button("d7.channelActivity.refresh") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil)
+                        CYPillButton("d7.channelActivity.refresh", style: .secondary) { run { _ in await flow.refresh() } }.disabled(flow.busy || flow.review != nil)
                     }
                     if status.makeupPolicy.configured, status.makeupPolicy.enabled, let days = status.makeupPolicy.windowDays, status.makeupPolicy.version != nil {
                         Section { Text("d7.checkin.makeup \(days)").fixedSize(horizontal: false, vertical: true) }
@@ -78,7 +80,7 @@ import SwiftUI
                     ContentUnavailableView {
                         Label("d7.checkin.loadFailed", systemImage: "calendar.badge.exclamationmark")
                     } actions: {
-                        Button("d7.channelActivity.retry") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.service.canRead || flow.review != nil)
+                        CYPillButton("d7.channelActivity.retry", style: .secondary) { run { _ in await flow.refresh() } }.disabled(!flow.service.canRead || flow.review != nil)
                     }
                 }
                 if flow.service.canRank {
@@ -90,7 +92,7 @@ import SwiftUI
         .font(Theme.Font.body)
         .nativeChannelScreen()
         .cyGroupedSurface()
-        .navigationTitle("d7.checkin.title").privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .task(id: available) { if available { await flow.activate(current: current) } else { stop() } }
         .onChange(of: current()) { _, valid in if !valid { stop() } }
         .onChange(of: scene) { _, value in if value != .active { stop() } }
@@ -102,8 +104,8 @@ import SwiftUI
     }
     @ViewBuilder private var notice: some View {
         switch flow.phase {
-        case .reading: ProgressView("d7.channelActivity.loading").font(Theme.Font.body)
-        case .submitting: ProgressView("d7.checkin.submitting").font(Theme.Font.body)
+        case .reading: CYSkeleton()
+        case .submitting: CYSkeleton()
         case .unknown: Text("d7.checkin.notice.unknown").nativeChannelNotice(systemImage: "clock")
         case .applied: Text("d7.checkin.notice.applied").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
         case .redacted: Text("d7.checkin.notice.redacted").nativeChannelNotice(systemImage: "checkmark.seal")
@@ -132,21 +134,21 @@ import SwiftUI
     private var available: Bool { current() && service.isCurrent && scene == .active }
     var body: some View {
         List {
-            if !available { ContentUnavailableView("d7.checkinRank.unavailable", systemImage: "list.number") }
+            if !available { CYEmptyState(systemImage: "list.number", "d7.checkinRank.unavailable") }
             else {
-                if busy { ProgressView("d7.channelActivity.loading") }
-                if failed { ContentUnavailableView("d7.checkinRank.loadFailed", systemImage: "exclamationmark.circle") }
+                if busy { CYSkeleton() }
+                if failed { CYEmptyState(systemImage: "exclamationmark.circle", "d7.checkinRank.loadFailed") }
                 if let page {
                     Section("d7.checkinRank.me") { row(page.me) }
                     if page.othersVisible {
                         Section("d7.checkinRank.top \(page.limit)") {
                             ForEach(page.list) { row($0) }
                             if page.list.isEmpty { Text("d7.checkin.history.empty").foregroundStyle(.secondary) }
-                            if page.hasMore { Button("d7.checkinRank.showTop50") { Task { await load(50) } }.font(Theme.Font.button).frame(minHeight: 44).disabled(busy) }
+                            if page.hasMore { CYPillButton("d7.checkinRank.showTop50", style: .secondary) { Task { await load(50) } }.disabled(busy) }
                         }
                     }
                 }
-                Button("d7.channelActivity.refresh") { Task { await load(10) } }.font(Theme.Font.button).frame(minHeight: 44).disabled(busy)
+                CYPillButton("d7.channelActivity.refresh", style: .secondary) { Task { await load(10) } }.disabled(busy)
             }
         }.font(Theme.Font.body).nativeChannelScreen().listStyle(.insetGrouped).navigationTitle("d7.checkinRank.title").privacySensitive()
         .task(id: available) { if available { active = true; await load(10) } else { stop() } }

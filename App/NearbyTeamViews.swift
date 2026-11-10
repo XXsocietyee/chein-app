@@ -69,7 +69,7 @@ import SwiftUI
                     }
                     if discoverySources == nil || discoveryFilter.includesTeams {
                     NearbyTeamCountLine(loaded: discoverySources == nil ? coordinator.context != nil : nearbyCurrentReadSucceeded, count: visibleTeams.count)
-                    if model.running { ProgressView("nearby.loading") }
+                    if model.running { CYSkeleton().accessibilityLabel(Text("nearby.loading")) }
                     if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
                         NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
                     } else if !model.running && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
@@ -331,7 +331,7 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 16) {
             switch joinedTeamsStatus {
             case .loading:
-                ProgressView("team.loading").accessibilityIdentifier("nearby.mine.owned.loading")
+                CYSkeleton().accessibilityLabel(Text("team.loading")).accessibilityIdentifier("nearby.mine.owned.loading")
             case .failed(let key):
                 CYStatusChip(LocalizedStringKey(key), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("nearby.mine.owned.error")
                 if let retryJoinedTeams {
@@ -340,8 +340,8 @@ import SwiftUI
                 }
             case .loaded: EmptyView()
             }
-            if mine.loading { ProgressView("nearby.w208.mine.loading") }
-            else if model.running { ProgressView("nearby.loading") }
+            if mine.loading { CYSkeleton().accessibilityLabel(Text("nearby.w208.mine.loading")) }
+            else if model.running { CYSkeleton().accessibilityLabel(Text("nearby.loading")) }
             if mine.failed && !model.running, let mineIssue = NearbyLoadIssue(messageKey: coordinator.messageKey), !mineIssue.offersRetry {
                 NearbyLoadIssueCard(issue: mineIssue, onSignIn: nil) {}
             } else if mine.failed && !model.running {

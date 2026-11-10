@@ -37,6 +37,8 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
     private func text(_ key: String) -> String { modSettlementText(key, locale: locale) }
     var body: some View {
         List {
+            CYHeroHeader(verbatim: text("modSettlement.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Text(text("modSettlement.boundary")).font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 Text(text("modSettlement.noPaymentAction")).font(Theme.Font.label).fixedSize(horizontal: false, vertical: true)
@@ -46,7 +48,7 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
                     Label(locale.language.languageCode?.identifier == "zh" ? "读取原 MOD 交易分配与退款/拒付事实" : "Read original MOD allocations and reversal facts", systemImage: "doc.text.magnifyingglass")
                 }.accessibilityIdentifier("modCreatorIncome.open")
             }
-            if model.loading { ProgressView(text("modSettlement.loading")) }
+            if model.loading { CYSkeleton() }
             if let issue = model.issue { ModSettlementIssueView(issue: issue) { await model.refresh() } }
             if let overview = model.visibleOverview {
                 Section(text("modSettlement.qualification.title")) {
@@ -78,7 +80,7 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
                             Task { await model.loadMore() }
                         }.disabled(model.loading || model.loadingMore)
                     }
-                    if model.loadingMore { ProgressView() }
+                    if model.loadingMore { CYSkeleton() }
                 }
                 Section {
                     LabeledContent(text("modSettlement.lastRead")) { Text(overview.readAt, style: .time) }
@@ -86,7 +88,7 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
             }
         }
         .walletContentList()
-        .navigationTitle(text("modSettlement.title"))
+        .cyHeroScreen()
         .privacySensitive()
         .task { await model.refresh() }
         .refreshable { await model.refresh() }
@@ -118,7 +120,9 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
     private func text(_ key: String) -> String { modSettlementText(key, locale: locale) }
     var body: some View {
         List {
-            if model.loading { ProgressView(text("modSettlement.loading")) }
+            CYHeroHeader(verbatim: text("modSettlement.detail"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            if model.loading { CYSkeleton() }
             if model.reader.scope != model.selection.scope {
                 Text(text("modSettlement.issue.stale")).accessibilityIdentifier("modSettlement.stale")
             } else if let issue = model.issue { ModSettlementIssueView(issue: issue) { await model.refresh() } }
@@ -155,7 +159,7 @@ func modSettlementText(_ key: String, locale: Locale) -> String {
             }
         }
         .walletContentList()
-        .navigationTitle(text("modSettlement.detail"))
+        .cyHeroScreen()
         .privacySensitive()
         .task { await model.refresh() }
         .refreshable { await model.refresh() }

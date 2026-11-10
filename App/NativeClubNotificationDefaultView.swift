@@ -21,6 +21,8 @@ import SwiftUI
     private func copy(_ zh: String, _ en: String) -> String { locale.pick(zh, en) }
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: copy("俱乐部共同通知默认", "Club Shared Notification Default"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if sourceCurrent(), let model, model.isCurrent {
                 if let row = model.clubDefault {
                     Section(copy("俱乐部共同默认，不是我的个人设置", "Club shared default, not your personal setting")) {
@@ -30,7 +32,7 @@ import SwiftUI
                             Text(copy("所有消息", "All messages")).tag(NativeChannelNotificationLevel.all)
                             Text(copy("仅提及我", "Only @mentions")).tag(NativeChannelNotificationLevel.mentions)
                         }.disabled(!model.canSaveClubDefault)
-                        Button(copy("核对并保存", "Review and save")) {
+                        CYPillButton(verbatim: copy("核对并保存", "Review and save")) {
                             review = Review(club: row.clubID, version: row.version, level: selection)
                         }.disabled(!model.canSaveClubDefault)
                         Text(copy("只在成员自己的频道、分类和俱乐部偏好继承时使用；不会取消任何人的静音、免打扰或系统权限。", "Used only when a member inherits channel, category, and club preferences; never overrides personal mutes, DND, or system permissions."))
@@ -38,7 +40,7 @@ import SwiftUI
                     }
                 }
                 Section(copy("原请求与当前状态", "Original request & current status")) {
-                    if model.isBusy { ProgressView(copy("正在读取原服务", "Reading service state")) }
+                    if model.isBusy { CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在读取原服务", "Reading service state"))) }
                     if let request = model.pendingRequestID {
                         Text(copy("原请求：", "Original request: ") + request).fixedSize(horizontal: false, vertical: true).textSelection(.enabled)
                         Text(copy("结果未确定时只回读原请求，不重发，也不会另建请求覆盖它。", "While the outcome is pending, only the original request is read back; it is not resent or overwritten."))
@@ -49,7 +51,7 @@ import SwiftUI
                             : copy("原请求已明确拒绝；不会自动重试。请核对最新政策后重新确认。", "Original request was rejected and will not auto-retry. Please review the latest policy and confirm again."))
                     }
                     Text(status(model.state)).fixedSize(horizontal: false, vertical: true)
-                    Button(model.pendingRequestID == nil ? copy("重新读取当前政策", "Reload current policy") : copy("回读原请求", "Read back original request")) {
+                    CYPillButton(verbatim: model.pendingRequestID == nil ? copy("重新读取当前政策", "Reload current policy") : copy("回读原请求", "Read back original request"), style: .secondary) {
                         review = nil
                         Task { await model.refresh() }
                     }.disabled(model.isBusy || (model.pendingRequestID != nil && !model.canCheckReceipt))
@@ -57,14 +59,14 @@ import SwiftUI
             } else if attempted {
                 ContentUnavailableView(copy("共同默认当前不可用", "Shared default unavailable"), systemImage: "bell.slash",
                     description: Text(copy("需要原俱乐部管理权限及独立通知操作授权；本页不会授予权限。", "Requires club management permission and notification operation grant; this page does not grant permissions.")))
-            } else { ProgressView(copy("正在读取原权限", "Reading permissions")) }
+            } else { CYSkeleton().accessibilityLabel(Text(verbatim: copy("正在读取原权限", "Reading permissions"))) }
         }
         .font(Theme.Font.body)
         .scrollContentBackground(Theme.Generated.color("--cy-color-bg-page", in: domain) != nil ? .hidden : .automatic)
         .background {
             if let background = Theme.Generated.color("--cy-color-bg-page", in: domain) { background }
         }
-        .navigationTitle(copy("俱乐部共同通知默认", "Club Shared Notification Default")).privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .task { await reopen() }
         .onChange(of: phase) { _, value in
             if value == .active { Task { await reopen() } } else { clear() }
@@ -79,7 +81,7 @@ import SwiftUI
                 Text(copy("修改所有继承此政策的俱乐部频道默认通知", "Update default notifications for all club channels inheriting this policy")).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 Text(item.level == .all ? copy("所有消息", "All messages") : copy("仅提及我", "Only @mentions"))
                 Text(copy("基于原版本 \(item.version)，不修改成员自己的偏好。", "Based on version \(item.version); does not modify members' personal preferences."))
-                Button(copy("确认保存共同默认", "Confirm saving shared default")) {
+                CYPillButton(verbatim: copy("确认保存共同默认", "Confirm saving shared default")) {
                     guard sourceCurrent(), let model, model.canSaveClubDefault,
                           model.clubDefault?.clubID == item.club, model.clubDefault?.version == item.version else { review = nil; return }
                     review = nil

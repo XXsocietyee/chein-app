@@ -70,7 +70,7 @@ import SwiftUI
             Section {
                 NavigationLink {
                     ClubLeadProgressView(club: club, clubReader: clubReader, reader: reader, access: access, projects: projects, destinations: destinations)
-                } label: { Label("club.leadProgress.title", systemImage: "list.bullet.indent") }
+                } label: { CYListRow("club.leadProgress.title", trailing: .none) { CYRowIcon(systemImage: "list.bullet.indent") } }
                     .accessibilityIdentifier("club.leadProgress.entry")
             }
         }
@@ -91,14 +91,15 @@ import SwiftUI
         let scope = context
         let _ = model.bind(scope)
         List {
-            if !scope.canRead || model.phase == .denied { Text("club.leadProgress.ownerRequired").accessibilityIdentifier("club.leadProgress.denied") }
+            CYHeroHeader("club.leadProgress.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            if !scope.canRead || model.phase == .denied { CYStatusChip("club.leadProgress.ownerRequired", tone: .warning, systemImage: "lock").accessibilityIdentifier("club.leadProgress.denied") }
             else {
                 if model.phase == .loading { ProgressView("club.leadProgress.loading").accessibilityIdentifier("club.leadProgress.loading") }
-                if model.phase == .failed { Text("club.leadProgress.failed").accessibilityIdentifier("club.leadProgress.failed") }
+                if model.phase == .failed { CYStatusChip("club.leadProgress.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.leadProgress.failed") }
                 if let snapshot = model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects) {
                     Section {
-                        Text(LocalizedStringKey(snapshot.stage.titleKey)).font(.headline).accessibilityIdentifier("club.leadProgress.stage")
-                        if snapshot.hasPartialProjects { Text("club.leadProgress.partial").accessibilityIdentifier("club.leadProgress.partial") }
+                        Text(LocalizedStringKey(snapshot.stage.titleKey)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("club.leadProgress.stage")
+                        if snapshot.hasPartialProjects { CYStatusChip("club.leadProgress.partial", tone: .warning, systemImage: "hourglass").accessibilityIdentifier("club.leadProgress.partial") }
                         LabeledContent("club.leadProgress.topicCount", value: String(snapshot.topicCount))
                         LabeledContent("club.leadProgress.sentCount", value: String(snapshot.sentCount))
                         LabeledContent("club.leadProgress.pendingCount", value: String(snapshot.pendingCount))
@@ -108,8 +109,8 @@ import SwiftUI
                             DisclosureGroup("club.leadProgress.timeline", isExpanded: $expanded) {
                                 ForEach(snapshot.nodes) { node in
                                     VStack(alignment: .leading, spacing: 6) {
-                                        Text(LocalizedStringKey(node.titleKey)).font(.headline)
-                                        Text(LocalizedStringKey(node.stateKey))
+                                        Text(LocalizedStringKey(node.titleKey)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                                        Text(LocalizedStringKey(node.stateKey)).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                                         if node.id == 1, let time = snapshot.invitationTimeText {
                                             LabeledContent("club.leadProgress.invitationTime", value: time)
                                         }
@@ -129,12 +130,12 @@ import SwiftUI
                         await model.load(permit, clubReader: clubReader, reader: reader, access: access, projects: projects)
                         return model.accepted(scope, clubReader: clubReader, reader: reader, access: access, projects: projects)
                     }, onReturn: { reload(scope) })
-                Button(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh")) { reload(scope) }
+                CYPillButton(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"), style: .secondary) { reload(scope) }
                     .disabled(model.phase == .loading || model.permit(in: scope) == nil).accessibilityIdentifier("club.leadProgress.reload")
             }
         }
         .cyGroupedSurface()
-        .navigationTitle("club.leadProgress.title")
+        .cyHeroScreen()
         .task(id: scope) {
             guard let permit = model.activate(scope) else { return }
             await model.load(permit, clubReader: clubReader, reader: reader, access: access, projects: projects)

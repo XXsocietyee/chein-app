@@ -19,6 +19,8 @@ import SwiftUI
     private var title: String { recipientId == nil ? "personalLocationShare.title.management" : "personalLocationShare.title.person" }
     var body: some View {
         Form {
+            CYHeroHeader(LocalizedStringKey(title), tableName: "PersonalLocationShare")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Label(localized("personalLocationShare.overview"), systemImage: "location.circle")
                     .font(.headline).accessibilityAddTraits(.isHeader)
@@ -32,9 +34,10 @@ import SwiftUI
             if let recipientId {
                 Section(localized("personalLocationShare.recipient")) {
                     LabeledContent(localized("personalLocationShare.memberID"), value: String(recipientId))
-                    if coordinator.isLoading { ProgressView(localized("personalLocationShare.loadingEligibility")) }
+                    if coordinator.isLoading { CYSkeleton() }
                     Text(localized("personalLocationShare.eligibilityNotice"))
-                    Button(localized("personalLocationShare.recheck")) { Task { await coordinator.prepare(recipientId: recipientId) } }
+                    CYPillButton(verbatim: localized("personalLocationShare.recheck"), style: .secondary) { Task { await coordinator.prepare(recipientId: recipientId) } }
+                        .listRowBackground(Color.clear)
                         .disabled(coordinator.isLoading)
                 }
                 if coordinator.recipientId == recipientId, let policy = coordinator.context?.policy {
@@ -62,7 +65,7 @@ import SwiftUI
                         Toggle(localized("personalLocationShare.firstPermission"), isOn: Binding(get: { allowsFirstPermissionRequest }, set: { allowed in
                             cancelConfirmation(); allowsFirstPermissionRequest = allowed
                         }))
-                        Button(localized("personalLocationShare.start")) {
+                        CYPillButton(verbatim: localized("personalLocationShare.start")) {
                             confirmationTicket = coordinator.makeConfirmationTicket(displayedRecipientId: recipientId,
                                 presentationId: presentationId, allowsFirstPermissionRequest: allowsFirstPermissionRequest)
                         }
@@ -153,7 +156,7 @@ import SwiftUI
         }
         // Native Form/navigation preserve safe areas and Dynamic Type; no fixed-height content cards.
         .buttonStyle(.borderless)
-        .navigationTitle(Text(LocalizedStringKey(title), tableName: "PersonalLocationShare"))
+        .cyHeroScreen()
         .task(id: recipientId) {
             if let recipientId { await coordinator.prepare(recipientId: recipientId) }
             else { await coordinator.openManagement() }
