@@ -413,6 +413,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
                                     .fixedSize(horizontal: false, vertical: true)
                             }
                         }
+                        .tint(SettingsTint.green)
                         .disabled(!designModeAllowsToggles && model.coordinator.reviewMarketing(row, channel: channel, optedIn: !row.value(channel)) == nil)
                         .accessibilityIdentifier("compliance.marketing.\(row.id).\(channel.rawValue)")
                     }
