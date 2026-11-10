@@ -1,0 +1,14 @@
+[
+  {
+    "key": "score.mine.loading",
+    "table": "MemberScoreAppealList",
+    "en": "Loading appeals",
+    "zh-Hans": "正在加载申诉"
+  },
+  {
+    "key": "score.detail.loading",
+    "table": "MemberScoreAppealList",
+    "en": "Loading appeal",
+    "zh-Hans": "正在加载申诉详情"
+  }
+]
