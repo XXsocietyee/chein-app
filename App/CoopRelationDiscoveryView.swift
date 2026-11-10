@@ -258,18 +258,17 @@ extension EnvironmentValues {
                 .accessibilityLabel(Text("cooprelation.image"))
         }
     }
+    private func trimmed(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
     private func relationLabel(_ row: CoopRelationDiscoveryRow) -> String {
-        let parts = [row.name, row.category, row.address ?? row.city].compactMap { value -> String? in
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? nil : trimmed
-        }
+        let parts = [trimmed(row.name), trimmed(row.category), trimmed(row.address ?? row.city)].compactMap { $0 }
         return parts.isEmpty ? "—" : parts.joined(separator: ", ")
     }
     private func metaLine(_ row: CoopRelationDiscoveryRow) -> String? {
-        let parts = [row.category, row.address ?? row.city].compactMap { value -> String? in
-            let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-            return trimmed.isEmpty ? nil : trimmed
-        }
+        let parts = [trimmed(row.category), trimmed(row.address ?? row.city)].compactMap { $0 }
         return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
     private func card(_ row: CoopRelationDiscoveryRow) -> some View {
