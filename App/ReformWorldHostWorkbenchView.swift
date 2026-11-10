@@ -104,7 +104,7 @@ public struct ReformWorldHostWorkbenchView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Text(verbatim: "Wave 1–5 Unified Master Parity Inventory")
-                    .font(.headline)
+                    .font(.headline).accessibilityAddTraits(.isHeader)
                 Spacer()
                 Text(verbatim: readinessVerdictBadgeText)
                     .font(.caption2.weight(.semibold))
@@ -149,7 +149,7 @@ public struct ReformWorldHostWorkbenchView: View {
     private var highRiskSwitchesCard: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(verbatim: "Fail-Closed Switch Evaluation")
-                .font(.headline)
+                .font(.headline).accessibilityAddTraits(.isHeader)
 
             Text(verbatim: failClosedSwitchesSummaryText)
                 .font(.footnote.monospaced())

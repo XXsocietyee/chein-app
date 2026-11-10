@@ -127,7 +127,7 @@ import SwiftUI
                 Label { Text(max(0, post.likeCount), format: .number) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
             }
             .tint(post.isLiked == 1 ? .red : .primary)
-            .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))")).accessibilityIdentifier("square.detail.like")
+            .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))")).accessibilityAddTraits(post.isLiked == 1 ? .isSelected : []).accessibilityIdentifier("square.detail.like")
             if post.viewerCanComment {
                 Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
                     Label { Text(max(0, post.commentCount), format: .number) } icon: { Image(systemName: "bubble.right") }

@@ -20,7 +20,7 @@ import SwiftUI
         let _ = revision
         Form {
             Section {
-                Text(verbatim: node.name).font(.headline)
+                Text(verbatim: node.name).font(.headline).accessibilityAddTraits(.isHeader)
                 Text("media.poster.purpose")
                 if availability != .available { Text(LocalizedStringKey(availabilityKey)) }
                 if !cameraEnabled || coordinator?.available != true { Label("media.poster.disabled", systemImage: "lock.shield") }

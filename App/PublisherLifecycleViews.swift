@@ -161,7 +161,7 @@ import SwiftUI
             if topicID <= 0 || row.partnerID <= 0 || !["club", "merchant"].contains(row.type) {
                 // Source invalid-link state.
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(text("publisherPricing.thisPartnerLinkIsNoLonger")).font(.headline)
+                    Text(text("publisherPricing.thisPartnerLinkIsNoLonger")).font(.headline).accessibilityAddTraits(.isHeader)
                     Text(text("publisherPricing.goBackAndOpenItAgain")).font(.footnote)
                 }.accessibilityIdentifier("publisher.partner.invalid")
             } else {

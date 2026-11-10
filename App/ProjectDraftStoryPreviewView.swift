@@ -87,8 +87,8 @@ import SwiftUI
                         Color.clear.frame(height: 0).id("storyPreviewTop")
                         if controller.isCurrent(original) {
                             VStack(alignment: .leading, spacing: 8) {
-                                if projection.title.isEmpty { text("untitledTopic").font(.title.bold()) }
-                                else { Text(verbatim: projection.title).font(.title.bold()) }
+                                if projection.title.isEmpty { text("untitledTopic").font(.title.bold()).accessibilityAddTraits(.isHeader) }
+                                else { Text(verbatim: projection.title).font(.title.bold()).accessibilityAddTraits(.isHeader) }
                                 if !projection.subtitle.isEmpty { Text(verbatim: projection.subtitle).font(.subheadline) }
                                 text("scope").font(.footnote)
                                 text("mediaScope").font(.footnote).foregroundStyle(.secondary)

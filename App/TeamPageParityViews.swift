@@ -11,8 +11,8 @@ struct TeamPageHeader: View {
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     @ViewBuilder private var teamTitle: some View {
         let title = detail.team.title.trimmingCharacters(in: .whitespacesAndNewlines)
-        if title.isEmpty { Text("team.untitled").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary) }
-        else { Text(verbatim: title).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+        if title.isEmpty { Text("team.untitled").font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
+        else { Text(verbatim: title).font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
     }
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {

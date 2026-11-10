@@ -28,7 +28,7 @@ struct OrderVerificationPreviewView: View {
         List {
             Section { CYHeroHeader("orderLifecycle.pass.verification") }.e1HeroRow()
             Section {
-                Text("orderLifecycle.verification.preview").font(CYTypography.sectionTitle)
+                Text("orderLifecycle.verification.preview").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
                 Text(LocalizedStringKey("orderLifecycle.verification." + receipt.outcome.rawValue))
                     .accessibilityIdentifier("orderLifecycle.verification.outcome")
                 if let message = receipt.message, !message.isEmpty { Text(verbatim: message) }

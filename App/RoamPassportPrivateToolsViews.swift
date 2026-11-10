@@ -726,7 +726,7 @@ extension RoamGoalState {
             (Text(detail.metric.titleKey) + Text(verbatim: " · ") + Text(detail.state.titleKey)).font(.caption).foregroundStyle(.secondary)
             (Text(verbatim: "\(detail.progress)").font(Theme.Font.dataXL) + Text(verbatim: " / \(detail.target)").font(.title2))
                 .monospacedDigit().accessibilityIdentifier("roam.goals.detail.progress")
-            ProgressView(value: Double(detail.percent), total: 100)
+            ProgressView(value: Double(detail.percent), total: 100).accessibilityLabel(Text(detail.metric.titleKey))
             Text("roam.goals.range \(detail.startDate) \(detail.endDateExclusive)").font(.caption).foregroundStyle(.secondary)
             Button("roam.goals.collapse") { model.closeDetail() }.accessibilityIdentifier("roam.goals.collapse")
             if detail.state.isCancellable && model.canWrite {

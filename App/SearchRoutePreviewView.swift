@@ -46,7 +46,7 @@ import Observation
                     SearchMapCanvas(area: RoamSearchArea(coordinate: origin, label: ""),
                         pins: [SearchMapPin(id: "destination", title: name, coordinate: destination, symbol: "mappin")],
                         polyline: route.coordinates, offline: offline)
-                    Text("searchMap.roadRoute").font(CYTypography.sectionTitle)
+                    Text("searchMap.roadRoute").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("searchMap.route.kind")
                     LabeledContent("searchMap.distance") { Text(Measurement(value: route.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated)) }
                     if let eta = route.etaSeconds { LabeledContent("searchMap.etaMinutes") { Text(max(1, (eta / 60).rounded()), format: .number.precision(.fractionLength(0))) } }

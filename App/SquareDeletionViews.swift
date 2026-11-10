@@ -19,12 +19,12 @@ struct SquareDeletionConfirmView: View {
             Section {
                 switch target {
                 case .post:
-                    if let excerpt { Text("square.xcx.delete.postTitle \(excerpt)").font(.headline) }
-                    else { Text("square.xcx.delete.postTitleImageOnly").font(.headline) }
+                    if let excerpt { Text("square.xcx.delete.postTitle \(excerpt)").font(.headline).accessibilityAddTraits(.isHeader) }
+                    else { Text("square.xcx.delete.postTitleImageOnly").font(.headline).accessibilityAddTraits(.isHeader) }
                     Label("square.xcx.delete.postCascade", systemImage: "bubble.left.and.exclamationmark.bubble.right")
                     Label("square.xcx.delete.postIrreversible", systemImage: "exclamationmark.triangle")
                 case .comment:
-                    Text("square.xcx.delete.commentTitle").font(.headline)
+                    Text("square.xcx.delete.commentTitle").font(.headline).accessibilityAddTraits(.isHeader)
                     Label("square.xcx.delete.commentIrreversible", systemImage: "exclamationmark.triangle")
                 }
             }

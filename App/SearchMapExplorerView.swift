@@ -70,7 +70,7 @@ import SwiftUI
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
                 if reader.isOfflineExample { Text("searchMap.offline").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary) }
-                if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline) }
+                if let area, !area.label.isEmpty { Text(verbatim: area.label).font(.headline).accessibilityAddTraits(.isHeader) }
                 if mode == .city {
                     TextField("searchMap.cityPlaceholder", text: $filter.keyword)
                         .textFieldStyle(.roundedBorder).accessibilityIdentifier("searchMap.cityKeyword")
@@ -253,7 +253,7 @@ import SwiftUI
     }
     private var layerControls: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("mapLayers.title").font(.headline)
+            Text("mapLayers.title").font(.headline).accessibilityAddTraits(.isHeader)
             Toggle("searchMap.kind.activity", isOn: Binding(get: { mapLayers.shows(.activities) },
                 set: { mapLayers.set(.activities, visible: $0) }))
                 .accessibilityIdentifier("mapLayers.activities")
@@ -377,7 +377,7 @@ import SwiftUI
     }
     @ViewBuilder private func failure(_ failure: SearchMapFailure?, layer: LocalizedStringKey) -> some View {
         if let failure {
-            Label(layer, systemImage: "exclamationmark.circle").font(.headline)
+            Label(layer, systemImage: "exclamationmark.circle").font(.headline).accessibilityAddTraits(.isHeader)
             SearchMapIssue(key: failure == .unauthorized ? "searchMap.partialSignIn" : "searchMap.layerFailed") { startLoad() }
             if failure == .unauthorized, let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
         }
