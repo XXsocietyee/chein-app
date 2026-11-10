@@ -23,55 +23,126 @@ import SwiftUI
     @State private var revokeID: String?
     @State private var sending = false
     @State private var message = ""
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
 
     var body: some View {
-        Form {
-            CYHeroHeader("admission.title")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            Section("admission.space") {
-                Text(verbatim: String(spaceID))
-                TextField("admission.reason", text: $reason)
-                TextField("admission.note", text: $note)
-                TextField("admission.invite", text: $inviteID)
-                TextField("admission.application", text: $applicationID)
-                TextField("admission.reasonCode", text: $reasonCode)
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                CYHeroHeader("admission.title")
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Text("admission.space")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textSecondary)
+                        .accessibilityHidden(true)
+                    Text(verbatim: String(spaceID))
+                        .font(CYTypography.dataXL)
+                        .foregroundStyle(palette.textPrimary)
+                        .monospacedDigit()
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityLabel(Text("admission.space"))
+                        .accessibilityValue(Text(verbatim: String(spaceID)))
+                    field("admission.reason", text: $reason)
+                    field("admission.note", text: $note)
+                    field("admission.invite", text: $inviteID)
+                    field("admission.application", text: $applicationID)
+                    field("admission.reasonCode", text: $reasonCode)
+                }
+                .cyDomainCard()
+
+                CYPillButton("admission.submit", systemImage: "paperplane.fill") { Task { await submit() } }
+                    .disabled(catalog == nil || sending)
+                    .accessibilityLabel(Text("admission.submit"))
+
+                Menu {
+                    Button("admission.cancel") { Task { await cancel() } }
+                    Button("admission.approve") { Task { await approve() } }
+                    Button("admission.reject") { Task { await reject() } }
+                    Button("admission.leave") { Task { await leave() } }
+                    Button("admission.pause") { Task { await pause(true) } }
+                    Button("admission.unpause") { Task { await pause(false) } }
+                    Button("admission.revokeInvite") { Task { await revoke() } }
+                    Divider()
+                    recoverButton("admission.recoverSubmit", submitID)
+                    recoverButton("admission.recoverCancel", cancelID)
+                    recoverButton("admission.recoverApprove", approveID)
+                    recoverButton("admission.recoverReject", rejectID)
+                    recoverButton("admission.recoverLeave", leaveID)
+                    recoverButton("admission.recoverPause", lastPauseID)
+                    recoverButton("admission.recoverInvite", revokeID)
+                } label: {
+                    HStack(spacing: CYSpacing.sm) {
+                        Text(verbatim: moreTitle)
+                            .font(CYTypography.body.weight(.semibold))
+                        Image(systemName: "chevron.up.chevron.down")
+                            .font(.footnote.weight(.semibold))
+                            .accessibilityHidden(true)
+                    }
+                    .foregroundStyle(palette.textSecondary)
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                }
+                .disabled(sending)
+                .accessibilityLabel(Text(verbatim: moreTitle))
+
+                if sending {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYSkeleton()
+                        ProgressView("admission.sending")
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(Text("admission.sending"))
+                }
+                if !message.isEmpty {
+                    Text(LocalizedStringKey(message))
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                ForEach([submitID, cancelID, approveID, rejectID, leaveID, lastPauseID, revokeID].compactMap { $0 }, id: \.self) { id in
+                    Text(verbatim: shownID(id))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .textSelection(.enabled)
+                }
             }
-            Section {
-                CYPillButton("admission.submit") { Task { await submit() } }
-                    .listRowBackground(Color.clear)
-                    .disabled(catalog == nil)
-                Button("admission.cancel") { Task { await cancel() } }
-                Button("admission.approve") { Task { await approve() } }
-                Button("admission.reject") { Task { await reject() } }
-                Button("admission.leave") { Task { await leave() } }
-                Button("admission.pause") { Task { await pause(true) } }
-                Button("admission.unpause") { Task { await pause(false) } }
-                Button("admission.revokeInvite") { Task { await revoke() } }
-            }
-            .disabled(sending)
-            Section {
-                recoverButton("admission.recoverSubmit", submitID)
-                recoverButton("admission.recoverCancel", cancelID)
-                recoverButton("admission.recoverApprove", approveID)
-                recoverButton("admission.recoverReject", rejectID)
-                recoverButton("admission.recoverLeave", leaveID)
-                recoverButton("admission.recoverPause", lastPauseID)
-                recoverButton("admission.recoverInvite", revokeID)
-            }
-            .disabled(sending)
-            if sending { ProgressView("admission.sending") }
-            if !message.isEmpty { CYStatusChip(LocalizedStringKey(message), tone: .info, systemImage: "info.circle") }
-            ForEach([submitID, cancelID, approveID, rejectID, leaveID, lastPauseID, revokeID].compactMap { $0 }, id: \.self) { id in
-                Text(verbatim: id).font(.footnote)
-            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.top, CYSpacing.lg)
+            .padding(.bottom, CYSpacing.xxl)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
+        .scrollDismissesKeyboard(.interactively)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
         .cyHeroScreen()
+        .cyAnimation(value: sending)
         .privacySensitive()
+    }
+
+    /// Menu title. Catalog key `ui.cloud05.admission.more` (docs/release/ui-strings-cloud-05.json).
+    private var moreTitle: String {
+        let key = "ui.cloud05.admission.more"
+        let resolved = String(localized: String.LocalizationValue(stringLiteral: key))
+        if resolved == key || resolved.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            return CYKitCopy(locale: locale)("More actions", "更多操作")
+        }
+        return resolved
+    }
+
+    private func field(_ key: LocalizedStringKey, text: Binding<String>) -> some View {
+        TextField(key, text: text)
+            .font(CYTypography.body)
+            .cyField()
     }
 
     private func recoverButton(_ title: LocalizedStringKey, _ requestID: String?) -> some View {
         Button(title) { Task { await recover(requestID) } }
             .disabled(requestID == nil)
+    }
+
+    private func shownID(_ id: String) -> String {
+        if id.range(of: #"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$"#, options: .regularExpression) != nil { return "—" }
+        return id
     }
 
     private func submit() async {
@@ -146,10 +217,26 @@ import SwiftUI
         defer { sending = false }
         do {
             let row = try await client.recover(requestID: requestID)
-            message = row["state"] as? String ?? "admission.recovered"
+            message = Self.displayMessage(row["state"] as? String ?? "admission.recovered")
         } catch {
             message = "admission.unknown"
         }
+    }
+
+    /// A server state that is not a catalogued admission key must not render as a dotted key.
+    private static func displayMessage(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return "admission.unknown" }
+        let known = [
+            "admission.invalid", "admission.submitted", "admission.cancelled", "admission.approved",
+            "admission.rejected", "admission.left", "admission.paused", "admission.unknown",
+            "admission.revoked", "admission.recovered"
+        ]
+        if known.contains(trimmed) { return trimmed }
+        if trimmed.range(of: #"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$"#, options: .regularExpression) != nil {
+            return "admission.unknown"
+        }
+        return trimmed
     }
 
     private func remember(_ current: String?, store: (String) -> Void) -> String {
