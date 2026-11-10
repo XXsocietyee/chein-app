@@ -67,7 +67,7 @@ import SwiftUI
             Form {
                 if original.flow.isCurrent {
                     if model.isWorking {
-                        ProgressView().accessibilityIdentifier("topicReview.loading")
+                        CYLoadingStateView(rows: 2).accessibilityIdentifier("topicReview.loading")
                     } else { content }
                 } else {
                     Text(String(localized: LocalizedStringResource("topicReview.changed", defaultValue: "This review context is no longer current. Any saved request is retained.", locale: locale)))
@@ -97,8 +97,8 @@ import SwiftUI
         case .ready(let capture):
             ApprovedTopicReviewSummarySection(coverSource: original.coverSource, coverSession: flow.session, coverContextCurrent: { flow.isCurrent && flow.state == .ready(capture) }, capture: capture)
             Section {
-                Button(String(localized: LocalizedStringResource("topicReview.review", defaultValue: "Review this exact request", locale: locale))) { model.review(capture) }
-                    .buttonStyle(.borderless).disabled(!flow.canConfirm(capture)).accessibilityIdentifier("topicReview.review")
+                CYPillButton(verbatim: String(localized: LocalizedStringResource("topicReview.review", defaultValue: "Review this exact request", locale: locale)), style: .primary) { model.review(capture) }
+                    .disabled(!flow.canConfirm(capture)).accessibilityIdentifier("topicReview.review")
             }
         case .known(let receipt):
             Section {
@@ -117,8 +117,8 @@ import SwiftUI
             if !flow.isReceiptForThisSubmission {
                 Section {
                     Text(String(localized: LocalizedStringResource("topicReview.previousDraft", defaultValue: "This recovered receipt belongs to an earlier submitted draft. You can now capture the current acknowledged draft.", locale: locale)))
-                    Button(String(localized: LocalizedStringResource("topicReview.captureCurrent", defaultValue: "Capture this draft", locale: locale))) { Task { await model.load() } }
-                        .buttonStyle(.borderless).accessibilityIdentifier("topicReview.captureCurrent")
+                    CYPillButton(verbatim: String(localized: LocalizedStringResource("topicReview.captureCurrent", defaultValue: "Capture this draft", locale: locale)), style: .secondary) { Task { await model.load() } }
+                        .accessibilityIdentifier("topicReview.captureCurrent")
                 }
             }
         case .unconfirmed:
@@ -132,12 +132,12 @@ import SwiftUI
             Section {
                 Text(String(localized: LocalizedStringResource("topicReview.failed", defaultValue: "The current capture or saved local request could not be verified. Retrying reads saved state first and does not invent a replacement request.", locale: locale)))
                     .accessibilityIdentifier("topicReview.failed")
-                Button(String(localized: LocalizedStringResource("topicReview.reload", defaultValue: "Read saved state and retry", locale: locale))) { Task { await model.load() } }
-                    .buttonStyle(.borderless).frame(minHeight: 44).accessibilityIdentifier("topicReview.reload")
+                CYPillButton(verbatim: String(localized: LocalizedStringResource("topicReview.reload", defaultValue: "Read saved state and retry", locale: locale)), style: .secondary) { Task { await model.load() } }
+                    .accessibilityIdentifier("topicReview.reload")
             }
         case .unauthorized:
             Text(String(localized: LocalizedStringResource("topicReview.unauthorized", defaultValue: "Sign in again before reading this review request.", locale: locale))).accessibilityIdentifier("topicReview.unauthorized")
-        case .idle, .loading, .sending: ProgressView().accessibilityIdentifier("topicReview.loading")
+        case .idle, .loading, .sending: CYLoadingStateView(rows: 2).accessibilityIdentifier("topicReview.loading")
         case .closed: EmptyView()
         }
     }
@@ -150,11 +150,11 @@ import SwiftUI
                         .font(.footnote).fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("topicReview.recoveryUnavailable")
                 }
-                Button(String(localized: LocalizedStringResource("topicReview.check", defaultValue: "Check saved request", locale: locale))) { model.check(captured) }
-                    .buttonStyle(.borderless).frame(minHeight: 44).disabled(!flow.canReadStatus).accessibilityIdentifier("topicReview.check")
+                CYPillButton(verbatim: String(localized: LocalizedStringResource("topicReview.check", defaultValue: "Check saved request", locale: locale)), style: .secondary) { model.check(captured) }
+                    .disabled(!flow.canReadStatus).accessibilityIdentifier("topicReview.check")
                 if captured.current?.receipt == nil {
-                    Button(String(localized: LocalizedStringResource("topicReview.retryExact", defaultValue: "Retry the exact saved request", locale: locale))) { model.retry(captured) }
-                        .buttonStyle(.borderless).frame(minHeight: 44).disabled(!flow.canRetryExact).accessibilityIdentifier("topicReview.retryExact")
+                    CYPillButton(verbatim: String(localized: LocalizedStringResource("topicReview.retryExact", defaultValue: "Retry the exact saved request", locale: locale)), style: .secondary) { model.retry(captured) }
+                        .disabled(!flow.canRetryExact).accessibilityIdentifier("topicReview.retryExact")
                 }
             }
         }
@@ -180,8 +180,8 @@ import SwiftUI
                 ApprovedTopicReviewSummarySection(capture: original.capture, prefix: "topicReview.confirm")
                 Section {
                     Text(String(localized: LocalizedStringResource("topicReview.confirmation", defaultValue: "Send exactly this captured version for review. This action does not approve the content or create an immutable release.", locale: locale)))
-                    Button(String(localized: LocalizedStringResource("topicReview.submit", defaultValue: "Request review of this capture", locale: locale)), action: confirm)
-                        .buttonStyle(.borderless).accessibilityIdentifier("topicReview.confirm.submit")
+                    CYPillButton(verbatim: String(localized: LocalizedStringResource("topicReview.submit", defaultValue: "Request review of this capture", locale: locale)), style: .primary, action: confirm)
+                        .accessibilityIdentifier("topicReview.confirm.submit")
                 }
             }
             .p04LifecycleSurface()

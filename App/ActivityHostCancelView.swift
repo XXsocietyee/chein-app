@@ -134,29 +134,23 @@ import SwiftUI
                 switch model.phase {
                 case .loading:
                     Section {
-                        HStack(spacing: CYSpacing.sm) {
-                            ProgressView()
-                            Text(c.t("正在核对已付款人数…", "Checking paid attendee count…"))
-                                .foregroundStyle(.secondary)
-                        }
-                        .frame(minHeight: 44)
-                        .accessibilityIdentifier("activity.hostCancel.loading")
+                        CYLoadingStateView(rows: 2)
+                            .accessibilityLabel(Text(c.t("正在核对已付款人数…", "Checking paid attendee count…")))
+                            .accessibilityIdentifier("activity.hostCancel.loading")
                     }
                 case .blocked(let msg):
                     Section {
-                        Label(
-                            msg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+                        CYStatusChip(
+                            verbatim: msg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
                                 ? c.tr(msg!)
                                 : c.t("当前无法取消", "Cannot cancel right now"),
-                            systemImage: "exclamationmark.triangle.fill"
+                            tone: .warning, systemImage: "exclamationmark.triangle.fill"
                         )
-                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("activity.hostCancel.blocked")
 
-                        Button(c.t("重新检查", "Check again")) {
+                        CYPillButton(verbatim: c.t("重新检查", "Check again"), style: .secondary) {
                             Task { await model.loadPreview() }
                         }
-                        .frame(minHeight: 44)
                         .accessibilityIdentifier("activity.hostCancel.recheck")
                     }
                 case .unknownCount, .networkError:
@@ -174,9 +168,7 @@ import SwiftUI
                     readyContent(paidCount: paidCount)
                 case .cancelled(let serverMsg):
                     Section {
-                        Label(c.t("活动已取消", "Event cancelled"), systemImage: "checkmark.circle.fill")
-                            .font(.headline)
-                            .foregroundStyle(CYColor.successText)
+                        CYStatusChip(verbatim: c.t("活动已取消", "Event cancelled"), tone: .success, systemImage: "checkmark.circle.fill")
                         Text(
                             ActivityHostCancelRules.completionNotice(serverMessage: serverMsg).map { c.tr($0) }
                                 ?? c.t("已提交全额退款，到账时间以微信通知为准",
@@ -186,10 +178,9 @@ import SwiftUI
                         .accessibilityIdentifier("activity.hostCancel.notice")
                         .foregroundStyle(.secondary)
 
-                        Button(c.t("完成", "Done")) {
+                        CYPillButton(verbatim: c.t("完成", "Done"), style: .primary) {
                             Task { await onCompleted() }
                         }
-                        .frame(minHeight: 44)
                         .accessibilityIdentifier("activity.hostCancel.done")
                     }
                     .accessibilityIdentifier("activity.hostCancel.cancelled")

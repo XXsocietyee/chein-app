@@ -21,22 +21,18 @@ private struct ActivityListDestination: Hashable { let id: Int }
         NavigationStack(path: $path) {
             ZStack {
                 if !reader.activityListIsConfigured {
-                    ContentUnavailableView("activity.unavailable",systemImage:"network.slash",
-                        description:Text(LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured")))
+                    CYEmptyState(systemImage: "network.slash", "activity.unavailable",
+                        detail: LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured"))
                 } else if model.identity != identity || (model.isLoading && model.items.isEmpty) {
                     ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading"))
                         .transition(.opacity)
                 } else if model.failed && model.items.isEmpty {
-                    ContentUnavailableView {
-                        Label { Text("activity.loadFailed").accessibilityIdentifier("activity.list.error") } icon: { Image(systemName:"wifi.exclamationmark") }
-                    } actions: {
-                        Button("action.retry") { loads.start { await model.load(reader: reader, reset: true, keyword: query) } }
-                            .accessibilityIdentifier("activity.list.retry")
+                    CYEmptyState(systemImage: "wifi.exclamationmark", "activity.loadFailed", messageIdentifier: "activity.list.error",
+                        actionTitle: "action.retry", actionIdentifier: "activity.list.retry") {
+                        loads.start { await model.load(reader: reader, reset: true, keyword: query) }
                     }
                 } else if model.items.isEmpty {
-                    ContentUnavailableView {
-                        Label { Text("activity.empty").accessibilityIdentifier("activity.list.empty") } icon: { Image(systemName:"map") }
-                    } description: { Text("activity.emptyHint") }
+                    CYEmptyState(systemImage: "map", "activity.empty", detail: "activity.emptyHint", messageIdentifier: "activity.list.empty")
                 } else {
                     List {
                         ForEach(Array(model.items.enumerated()), id: \.element.id) { index, item in
@@ -50,9 +46,9 @@ private struct ActivityListDestination: Hashable { let id: Int }
                                 .accessibilityIdentifier("activity.row.\(item.id)")
                         }
                         if model.hasMore || model.failed {
-                            Button(model.failed ? LocalizedStringKey("action.retry") : LocalizedStringKey("activity.loadMore")) {
+                            CYPillButton(model.failed ? LocalizedStringKey("action.retry") : LocalizedStringKey("activity.loadMore"), style: .secondary) {
                                 loads.start { await model.load(reader: reader, reset: false, keyword: query) }
-                            }.frame(minHeight:44).disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
+                            }.disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
                         }
                         if model.isLoading { ProgressView() }
                     }
