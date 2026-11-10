@@ -62,7 +62,7 @@ import SwiftUI
                     } }.disabled(busy).accessibilityIdentifier("creatorApplication.confirm")
                 }
             }
-            Text(message).accessibilityIdentifier("creatorApplication.message")
+            if !message.isEmpty { Text(message).accessibilityIdentifier("creatorApplication.message") }
             Button(zh ? "刷新状态" : "Refresh status") { Task { await refresh() } }.buttonStyle(CYPillButtonStyle(style: .tertiary))
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets()).disabled(busy)
         }.navigationTitle(zh ? "申请成为创作者" : "Apply as a creator").navigationBarTitleDisplayMode(.inline)
