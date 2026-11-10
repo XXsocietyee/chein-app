@@ -1,1 +1,1 @@
-UI-CLOUD-12 46d7d2bfbd0bf85a3a40a2b65cf93e602380f432 PASS App/ClubManagementView.swift, App/ClubMemberReportView.swift, App/ClubMembersView.swift, App/ClubNotificationAudienceView.swift, App/ClubOperationsReviewView.swift
+UI-CLOUD-17 94a6e8eb60c2ba9f2ab5aec6557bf15e64db6673 Build PASS restyled App/CoopWithdrawShellViews.swift App/CooperationBrowserView.swift App/CooperationDirectoryViews.swift App/CreatorCropExportView.swift App/DeregistrationParityViews.swift
