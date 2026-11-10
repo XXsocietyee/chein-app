@@ -52,3 +52,42 @@ Not viewed (older, superseded): `d4`, `e1`, `int` newest sheets and the other 63
 ## D. Verification
 
 `e1c` batch: 16 EN + 16 zh shots of the same 16 fixtures (messages empty, orders empty, favorites empty, notices empty, projects empty, offline, error, location/camera/notification permission, search home, tabs, about, privacy, profile-edit error, wallet income). Launch args `-preferences.language en|zh-Hans -AppleLanguages … -AppleLocale …`, one build. Outputs: `chengyin-refs/design-reports/e1c/batch-*.png` and the contact sheets.
+
+## E. Round 2 (DES-e2, 2026-11-09)
+
+### E1. Fixed in this branch (strings only)
+
+| Issue | Where | Fix |
+|---|---|---|
+| Chinese passed as `verbatim:` / `Text(verbatim:)`, so it never localised and showed Chinese in EN (the catalogue already had the EN) | `CityOrderedMapView` (3 buttons/chip), `CityParticipationFormView` (5 buttons), `CityNodeRedeemView` (5 sentences), `MerchantCityNodeCreateView` ("去登录") | switched to localised initialisers |
+| Status helpers returned plain `String` literals, never looked up (`可用/已暂停/不可用`, `尚无归属/本队/其他队伍/保留审核/尚未核定`) | `CityCurrentSnapshotView` | `String(localized:)` |
+| Interpolated zh-only keys with no EN (剩余额度, 每次消耗, 骰子, 骰面, 坐标系, 纬度, 经度, 状态, 归属 …) | `CityActionBudgetView`, `CityCurrentSnapshotView`, `CityParticipationFormView` | 31 new keys EN + zh in `Localizable.xcstrings`, listed in `ui-strings-e1.json` |
+| Share lockup `城瘾 · CityFog` in EN and zh | `roam.medalShare.brand`, `roamSub.w208.share.brand` | → `城瘾` |
+| zh `EXP`; zh `Logo · 1:1` | `growth.unit.exp`, `media.logo` | → 经验; → 标志 · 1:1 |
+| Missing catalogue key | `rewards.pledge.title` | added (Reward pledges / 奖励承诺) |
+
+Lint after: `tools/check_catalog_coverage.py` → gaps 8 (all pre-existing, from other lanes: 8 `W8Text.t("zh","en")` inline literals in `BundleWalletView`, `BundleReviewComposeView`, `BundleTransferClaimView`, `RoamItemDetailView`: "我的预约", "提交申诉", "次卡钱包", "正在提交…", "评价", "转赠", "领取转赠", "商家忘记核销时，可提交审核。"). These render correctly in both languages through `W8Text`, but are not in the catalogue; owner e1/bundle lane should move them to keys.
+
+### E2. Still open (owners)
+
+1. **309 `Text(verbatim: "中文…")` literals** remain, nearly all in engineering/diagnostic `*SectionView.swift` panels (`WeChatAndAppleSignInNonce…`, `PerformanceSignpost…`, `CommerceOrderLifecycle…`, `ThreeDocumentMasterCrosswalk…`, `Reform…W02ToW20…`, `ProductionSigning…`, `FinalReleaseSignoff…` …). None of these views is referenced from a player route (checked by grep). They must stay unreachable in release (or `#if DEBUG`); if any is exposed, it is a ship-blocker for EN.
+2. **Player-reachable but still jargon-heavy** (words like 原请求 / 原回执 / 权限代次 / 票轮 / UNKNOWN, `原 status 0`, `required`): `PlaySharedPlanLifecycleView` (10 interpolated zh-only keys with no EN: lines 18, 19, 33, 39, 72, 75, 76, 88, 102, 149), `MerchantOfferWithdrawalOriginalView` (lines 24, 35–39, 76, 85, 98–99 use `\(…)` with raw field names), `MerchantAuthoringView:57` (`权威回读`). Owner: team plan / merchant tools. Rewrite per glossary rule 6.
+3. **Source keys that are Chinese sentences** (`Text("…")`) mean the zh text is the key; editing the sentence orphans the EN. New work should use dotted keys.
+4. `#城瘾CityFog` hashtag (`RoamShareAlbumGuideView:45`) is pinned by `RoamShareAlbumGuideFlowTests`; change both together when marketing decides.
+5. `SettingsView:83,258` `Text(verbatim: "简体中文")` is intentional (endonym).
+
+### E3. Contact-sheet findings (newly viewed, 2026-11-09)
+
+| File (`design-reports/…`) | Language | Visible problem |
+|---|---|---|
+| `d2/contact-063932.png` | zh | EN `Hi, Mia!`, `More ways to play`, `Sample neighborhood route · Sample district · From ¥12.5`, `Synthetic journey`, `Synthetic topic`, `Fixture conversation 1…7`, `Synthetic fixture · debug only`, `Synthetic pending/upcoming/completed`, `Fixture NPC`; `CITY 经营权与原回执` (jargon), `Unknown design fixture: d6-real-live` |
+| `d2/contact-064651.png` | EN | Welcome header still `Questify`; `Live roaming` card `Example content`; `Synthetic …`/`Fixture …` fixtures (DEBUG-labelled `debug only`); `CITY ownership and original receipts` (jargon); tab `Actions left this round` fine |
+| `d2/contact-063254.png`, `d2/contact-063643.png`, `d2/contact-065406.png` | – | Home-screen shots (app not in foreground); no usable copy. Re-shoot. |
+| `e1/contact-151511.png` | zh | EN `Old Town Lantern Walk (o…`, `Lantern Market Quest (fixture)`, category chip `Synthet…`, `Sample native order`, `Fixture club 81`, `Fixture type`, `Fixture received message`, `Synthetic debit / Synthetic missing amount`, `Fixture identity`, `Synthetic city stamp`; shows 示例内容 banner (fine) |
+| `e3/contact-211604.png` | zh | EN `Fixture club 81`, `Offline sample club description.`, `Fixture creator`, `Synthetic club story`, `Weekend walks`, `East Gate, Riverside Park`, buttons `Refresh source / Switch account / Replace reader / Finish detail` inside a zh screen (DEBUG fixture chips: confirm they are `#if DEBUG`) |
+| `e4/contact-214521.png` | zh | zh settings/consent screens clean; zh sign-in sheet fine. Overlay toast `Synthetic sign out` over the complaints form (DEBUG). `Welcome back` EN body consistent. |
+| `int/contact-tail.png` | EN | `A synthetic city walk / 一次示例城市漫步` bilingual title; `Example walker`; `Sample Person (debug fixture)` in invoice rows (DEBUG-labelled but lives in a release screen layout); `Official Routes` Title Case (glossary: sentence case → `Official routes`); `All —`, `Channels —` tab counts show a dash (correct: unknown). `Fixture NPC`, `Fixture club` |
+
+Sheets with only older duplicates or empty home-screen captures (not re-read): `d2` ×4, `d4` ×5, `d7` ×5, `e1` first 11, `e2` first 9, `e3` first 11, `e4` first 11, `e5` ×2, `e5b` ×4, `e5c` ×1, `int` ×6. A mechanical scan was not possible without OCR; owners should re-shoot zh with `-preferences.language zh-Hans` and re-check the rows above.
+
+Pattern across all workers: the zh runs show **EN fixture names** because DEBUG fixtures are English-only. Ask: give `E*Fixtures` a zh set keyed by `-preferences.language`, so a zh contact sheet is honest.

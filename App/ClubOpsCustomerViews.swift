@@ -5,7 +5,7 @@ struct ClubOpsFailureSection: View {
     let retry: () -> Void
     var body: some View {
         Section {
-            Text(LocalizedStringKey(copy.titleKey), tableName: "ClubOpsCustomer").font(.headline)
+            Text(LocalizedStringKey(copy.titleKey), tableName: "ClubOpsCustomer").font(.headline).accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("clubOps.failure.title")
             if let detail = copy.detailKey { Text(LocalizedStringKey(detail), tableName: "ClubOpsCustomer").foregroundStyle(.secondary) }
             if let key = copy.retryKey {
@@ -75,6 +75,7 @@ struct ClubOpsCustomerRowView: View {
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .padding(.vertical, CYSpacing.xs)
+        .accessibilityElement(children: .combine)
     }
     private var initial: String {
         guard let first = row.displayName?.trimmingCharacters(in: .whitespacesAndNewlines).first else { return "—" }
@@ -99,8 +100,8 @@ struct ClubOpsCustomerRowView: View {
     let editButton: AnyView?
     var body: some View {
         Section {
-            if let name = detail.displayName { Text(verbatim: name).font(.title2.bold()).accessibilityIdentifier("club.gov.fact.displayName") }
-            else { Text("clubOps.customers.noName", tableName: "ClubOpsCustomer").font(.title2.bold()) }
+            if let name = detail.displayName { Text(verbatim: name).font(.title2.bold()).accessibilityAddTraits(.isHeader).accessibilityIdentifier("club.gov.fact.displayName") }
+            else { Text("clubOps.customers.noName", tableName: "ClubOpsCustomer").font(.title2.bold()).accessibilityAddTraits(.isHeader) }
             interaction.font(.subheadline).foregroundStyle(.secondary)
             LabeledContent {
                 if let amount = detail.paidAmountText { Text(verbatim: amount) }

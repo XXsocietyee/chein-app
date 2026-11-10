@@ -115,7 +115,7 @@ import SwiftUI
     @ViewBuilder private func recoveryRow(_ index: Int, draft: NativeSharedRecoveryAuthorDraft) -> some View {
         let editorID = capture?.id, editRevision = bufferRevision
         VStack(alignment:.leading,spacing:8) {
-            Text("恢复方式 \(index + 1)").font(.headline)
+            Text("恢复方式 \(index + 1)").font(.headline).accessibilityAddTraits(.isHeader)
             TextField("明确填写原恢复标识",text:binding(index,"recoveryKey")).textInputAutocapitalization(.never).autocorrectionDisabled()
             Picker("原恢复种类",selection:binding(index,"kind")) {
                 Text("请选择，不预设").tag(""); Text("休整 REST").tag("REST"); Text("救助 RESCUE").tag("RESCUE")

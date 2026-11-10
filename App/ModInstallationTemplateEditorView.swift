@@ -100,7 +100,7 @@ import SwiftUI
                     // Owner sees the complete current audit snapshot before factual confirmation or review submission.
                     Text(verbatim: original.reviewedSnapshotJson).font(.caption.monospaced()).textSelection(.enabled)
                     ForEach(original.command.fields.keys.sorted(), id: \.self) { key in
-                        Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").font(.headline)
+                        Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").font(.headline).accessibilityAddTraits(.isHeader)
                         Text(verbatim: original.command.fields[key] ?? "").textSelection(.enabled)
                     }
                     Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation")

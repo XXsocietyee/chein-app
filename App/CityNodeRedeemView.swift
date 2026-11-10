@@ -108,12 +108,12 @@ extension EnvironmentValues {
                             .accessibilityIdentifier("merchant.cityRedeem.serverMessage")
                     }
                     if let unverified = result.unverifiedServerMessage, !unverified.isEmpty {
-                        Text(verbatim: "服务返回（尚未确认为本次回执）").font(.caption).foregroundStyle(.secondary)
+                        Text("服务返回（尚未确认为本次回执）").font(.caption).foregroundStyle(.secondary)
                         Text(verbatim: unverified).accessibilityIdentifier("merchant.cityRedeem.unverifiedMessage")
                     }
                     if !model.blocksAllTargets {
                         Button { raw = ""; model.next() } label: {
-                            if model.coordinator.pendingScope != nil { Text(verbatim: "核销其他玩家或节点") }
+                            if model.coordinator.pendingScope != nil { Text("核销其他玩家或节点") }
                             else { Text("merchant.cityRedeem.next") }
                         }.accessibilityIdentifier("merchant.cityRedeem.next")
                     }
@@ -122,14 +122,14 @@ extension EnvironmentValues {
             if let pending = model.coordinator.pendingScope {
                 Section {
                     if let result = model.coordinator.result, !result.isUnknown {
-                        Text(verbatim: "服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。")
+                        Text("服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。")
                     } else if pending == .legacy {
                         Text(verbatim: CityNodeRedemptionResult.legacyGuidance)
                     } else if pending == .storage {
-                        Text(verbatim: "本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。")
+                        Text("本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。")
                     } else {
                         Text(verbatim: CityNodeRedemptionResult.unknownGuidance)
-                        Text(verbatim: "可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。")
+                        Text("可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。")
                             .font(.footnote).foregroundStyle(.secondary)
                     }
                 }.accessibilityIdentifier("merchant.cityRedeem.pendingGuidance")

@@ -88,6 +88,7 @@ struct MapPublicStoryNodeDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(verbatim: node.name.isEmpty ? destination.nodeName : node.name)
                         .font(.title2.bold())
+                        .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("mapPublicLayers.storyNode.title")
 
                     HStack(spacing: 8) {

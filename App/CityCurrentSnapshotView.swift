@@ -78,15 +78,15 @@ import SwiftUI
             .accessibilityIdentifier("city.currentSnapshot.refresh")
     }
     private func availability(_ value: String) -> String {
-        switch value { case "AVAILABLE": "可用"; case "PAUSED": "已暂停"; default: "不可用" }
+        switch value { case "AVAILABLE": String(localized: "可用"); case "PAUSED": String(localized: "已暂停"); default: String(localized: "不可用") }
     }
     private func ownership(_ value: String) -> String {
         switch value {
-        case "UNOWNED": "尚无归属"
-        case "OUR_TEAM": "本队"
-        case "OTHER_TEAM": "其他队伍"
-        case "RETAINED_REVIEW": "保留审核"
-        default: "尚未核定"
+        case "UNOWNED": String(localized: "尚无归属")
+        case "OUR_TEAM": String(localized: "本队")
+        case "OTHER_TEAM": String(localized: "其他队伍")
+        case "RETAINED_REVIEW": String(localized: "保留审核")
+        default: String(localized: "尚未核定")
         }
     }
 }

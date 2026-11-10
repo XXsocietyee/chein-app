@@ -16,6 +16,7 @@ import SwiftUI
                 }
                 Label(NativeNotificationPermissionStatusPresentation.project(authorization: model.snapshot?.authorization, busy: model.busy, hasIssue: model.issue != nil).title(locale: locale), systemImage: "bell.badge")
                     .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("notification.permission.status")
                 if let snapshot = model.snapshot {

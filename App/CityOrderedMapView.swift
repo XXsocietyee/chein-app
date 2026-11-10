@@ -62,7 +62,7 @@ struct CityOrderedMapContent: View {
         CYCardPage {
             CYArtCoverHeader(title: Text("城市地图更新"), subtitle: Text(verbatim: snapshot.board.title), symbol: "map.fill", seed: "ordered") {
                 HStack(spacing: CYSpacing.sm) {
-                    CYStatusChip(verbatim: "\(snapshot.points.count) 个点位", systemImage: "mappin.and.ellipse")
+                    CYStatusChip("\(snapshot.points.count) 个点位", systemImage: "mappin.and.ellipse")
                     CYStatusChip(verbatim: snapshot.datum)
                 }
             }
@@ -88,10 +88,10 @@ struct CityOrderedMapContent: View {
                     CYFactRow(label: Text("纬度"), value: NSDecimalNumber(decimal: point.latitude).stringValue)
                     CYFactRow(label: Text("经度"), value: NSDecimalNumber(decimal: point.longitude).stringValue)
                     CYFactRow(label: Text("坐标系"), value: point.datum)
-                    CYPillButton(verbatim: "关闭详情", style: .tertiary) { select(nil) }
+                    CYPillButton("关闭详情", style: .tertiary) { select(nil) }
                 }
             }
-            CYPillButton(verbatim: "重新读取", style: .secondary, systemImage: "arrow.clockwise", action: refresh)
+            CYPillButton("重新读取", style: .secondary, systemImage: "arrow.clockwise", action: refresh)
                 .disabled(!canRefresh).accessibilityIdentifier("city.orderedMap.refresh")
         }
     }

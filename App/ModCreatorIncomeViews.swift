@@ -11,7 +11,7 @@ import SwiftUI
         List {
             Section { CYHeroHeader(verbatim: text("MOD 原收入事实", "Original MOD income facts")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             ModCreatorIncomeBoundary()
-            if model.loading { ProgressView() }
+            if model.loading { ProgressView().accessibilityLabel(Text(verbatim: text("加载中", "Loading"))) }
             if let issue = model.issue {
                 Section {
                     Text(modSettlementText(issue.localizationKey, locale: locale))
@@ -39,7 +39,7 @@ import SwiftUI
                         CYPillButton(verbatim: text("读取下一页原事实", "Read next original page"), style: .secondary) { Task { await model.more() } }
                             .disabled(model.loading || model.loadingMore)
                     }
-                    if model.loadingMore { ProgressView() }
+                    if model.loadingMore { ProgressView().accessibilityLabel(Text(verbatim: text("加载中", "Loading"))) }
                     if let at = model.readAt { LabeledContent(text("本机最近读取时间", "Last local read")) { Text(at, style: .time) } }
                 }
             }
@@ -74,7 +74,7 @@ import SwiftUI
         List {
             Section { CYHeroHeader(verbatim: text("原单收入事实", "Original income fact")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             ModCreatorIncomeBoundary()
-            if model.loading { ProgressView() }
+            if model.loading { ProgressView().accessibilityLabel(Text(verbatim: text("加载中", "Loading"))) }
             if !model.isCurrentScope {
                 Text(modSettlementText(ModSettlementIssue.stale.localizationKey, locale: locale))
             } else {
@@ -103,7 +103,7 @@ import SwiftUI
                         if model.nextBeforeRevision != nil {
                             CYPillButton(verbatim: text("读取更早原修订", "Read earlier original revisions"), style: .secondary) { Task { await model.moreHistory() } }.disabled(model.loading || model.loadingMore)
                         }
-                        if model.loadingMore { ProgressView() }
+                        if model.loadingMore { ProgressView().accessibilityLabel(Text(verbatim: text("加载中", "Loading"))) }
                         Text(text("刷新原单会重新取得当前原事实；历史页面不把旧累计数当作现在状态。", "Refreshing the order obtains its current original fact. History does not treat older totals as current state."))
                             .font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }

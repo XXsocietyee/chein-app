@@ -99,9 +99,9 @@ struct CityParticipationContent: View {
             if let prepared = display.prepared {
                 CYInfoCard(title: Text("确认操作：\(CityParticipationDisplay.label(prepared))"), symbol: "checkmark.shield.fill") {
                     Text("使用刚读取的原队伍与版本；结果不明时只查询原请求。").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                    CYPillButton(verbatim: "确认提交", action: confirm).disabled(!display.canPrepare || display.busy)
+                    CYPillButton("确认提交", action: confirm).disabled(!display.canPrepare || display.busy)
                         .accessibilityIdentifier("city.participation.confirmOriginal")
-                    CYPillButton(verbatim: "取消", style: .tertiary, action: cancel).disabled(display.busy)
+                    CYPillButton("取消", style: .tertiary, action: cancel).disabled(display.busy)
                 }
             } else {
                 if display.kinds.contains(.join) {
@@ -111,7 +111,7 @@ struct CityParticipationContent: View {
                             .disabled(display.busy).onChange(of: inviteCode) { _, _ in inviteChanged() }
                             .accessibilityIdentifier("city.participation.inviteCode")
                         if let count = display.invitationMembers { Text("邀请队伍人数：\(count)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                        CYPillButton(verbatim: "读取邀请", style: .secondary, action: readInvite).disabled(display.busy)
+                        CYPillButton("读取邀请", style: .secondary, action: readInvite).disabled(display.busy)
                     }
                 }
                 ForEach(display.kinds, id: \.rawValue) { kind in
@@ -126,7 +126,7 @@ struct CityParticipationContent: View {
                     switch display.recovery {
                     case .unknown:
                         Text("结果尚未确认，不会重复提交。").font(CYTypography.bodyCompact)
-                        CYPillButton(verbatim: "查询原结果", style: .secondary, action: recheck).disabled(display.recoveryBusy || display.busy)
+                        CYPillButton("查询原结果", style: .secondary, action: recheck).disabled(display.recoveryBusy || display.busy)
                     case .done: Text("原请求已完成，请重新读取参与信息。").font(CYTypography.bodyCompact)
                     case .rejected: Text("原请求未获接受，请重新读取参与信息。").font(CYTypography.bodyCompact)
                     case .blocked: Text("无法核实原记录，不会发起新请求。").font(CYTypography.bodyCompact)
@@ -135,7 +135,7 @@ struct CityParticipationContent: View {
                     }
                 }
             }
-            CYPillButton(verbatim: "重新读取参与信息", style: .tertiary, systemImage: "arrow.clockwise", action: reload).disabled(display.busy)
+            CYPillButton("重新读取参与信息", style: .tertiary, systemImage: "arrow.clockwise", action: reload).disabled(display.busy)
         }
     }
 }

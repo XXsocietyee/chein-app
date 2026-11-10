@@ -65330,7 +65330,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "EXP"
+            "value": "经验"
           }
         }
       }
@@ -185287,13 +185287,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾 · CityFog"
+            "value": "城瘾"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾 · CityFog"
+            "value": "城瘾"
           }
         }
       }
@@ -190316,13 +190316,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾 · CityFog"
+            "value": "城瘾"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾 · CityFog"
+            "value": "城瘾"
           }
         }
       }
@@ -239319,6 +239319,516 @@
           "stringUnit": {
             "state": "translated",
             "value": "城瘾"
+          }
+        }
+      }
+    },
+    "%lld 个点位": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld places"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个点位"
+          }
+        }
+      }
+    },
+    "确认操作：%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认操作：%@"
+          }
+        }
+      }
+    },
+    "邀请队伍人数：%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Members in this team: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请队伍人数：%lld"
+          }
+        }
+      }
+    },
+    "剩余额度：%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Remaining: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余额度：%lld"
+          }
+        }
+      }
+    },
+    "每次消耗：%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cost per roll: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每次消耗：%lld"
+          }
+        }
+      }
+    },
+    "骰子：%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dice: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骰子：%@"
+          }
+        }
+      }
+    },
+    "骰面：%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Face: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骰面：%lld"
+          }
+        }
+      }
+    },
+    "消耗：%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cost: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消耗：%lld"
+          }
+        }
+      }
+    },
+    "剩余：%lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Left: %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "剩余：%lld"
+          }
+        }
+      }
+    },
+    "消耗 %lld 行动额度，仅记录服务器结果。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Uses %lld action points. Only the server's result is recorded."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "消耗 %lld 行动额度，仅记录服务器结果。"
+          }
+        }
+      }
+    },
+    "坐标系：%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coordinate system: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "坐标系：%@"
+          }
+        }
+      }
+    },
+    "状态：%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Status: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态：%@"
+          }
+        }
+      }
+    },
+    "归属：%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Owner: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "归属：%@"
+          }
+        }
+      }
+    },
+    "纬度：%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Latitude: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纬度：%@"
+          }
+        }
+      }
+    },
+    "经度：%@": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Longitude: %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "经度：%@"
+          }
+        }
+      }
+    },
+    "服务返回（尚未确认为本次回执）": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Server reply (not yet confirmed as this receipt)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务返回（尚未确认为本次回执）"
+          }
+        }
+      }
+    },
+    "核销其他玩家或节点": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Redeem for another player or place"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核销其他玩家或节点"
+          }
+        }
+      }
+    },
+    "服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The server gave a clear answer, but a pending item on this device couldn't be cleared, so it stays blocked. Don't redeem again; contact support."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。"
+          }
+        }
+      }
+    },
+    "本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This device couldn't read or save its pending redemption, so nothing was submitted. Check your device storage and contact support. Existing pending items aren't cleared automatically."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。"
+          }
+        }
+      }
+    },
+    "可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can redeem for another player or place. Refreshing the code, scanning again or signing in again won't resend the same target."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。"
+          }
+        }
+      }
+    },
+    "可用": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Available"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用"
+          }
+        }
+      }
+    },
+    "已暂停": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Paused"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已暂停"
+          }
+        }
+      }
+    },
+    "不可用": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unavailable"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不可用"
+          }
+        }
+      }
+    },
+    "尚无归属": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No owner yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚无归属"
+          }
+        }
+      }
+    },
+    "本队": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本队"
+          }
+        }
+      }
+    },
+    "其他队伍": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Another team"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "其他队伍"
+          }
+        }
+      }
+    },
+    "保留审核": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Held for review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留审核"
+          }
+        }
+      }
+    },
+    "尚未核定": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not confirmed yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "尚未核定"
+          }
+        }
+      }
+    },
+    "去登录": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去登录"
+          }
+        }
+      }
+    },
+    "rewards.pledge.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reward pledges"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "奖励承诺"
           }
         }
       }

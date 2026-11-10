@@ -1,0 +1,9 @@
+{
+  "table": "A11yAM",
+  "strings": {
+    "a11y.am.loading": {
+      "en": "Loading",
+      "zh-Hans": "加载中"
+    }
+  }
+}
