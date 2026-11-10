@@ -7,6 +7,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
 @MainActor struct NativeChannelManagementPermissionsView: View {
     let model: NativeChannelManagementCoordinator
     let channelID: NativeChannelManagementID
+    @Environment(\.cyPalette) private var palette
     @State private var target = "1:0"
     @State private var allow: UInt64 = 0
     @State private var deny: UInt64 = 0
@@ -19,14 +20,30 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
             if model.isCurrent {
                 if model.permissions?.channelID == channelID {
                     Form {
-                        if model.busy { Section { ProgressView().frame(maxWidth: .infinity) } }
+                        Section {
+                            permissionHero
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.sm, trailing: CYSpacing.lg))
+                                .listRowSeparator(.hidden)
+                        }
+                        if model.busy {
+                            CYSkeleton()
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text("cy.state.loading"))
+                                .listRowBackground(Color.clear)
+                        }
                         NativeChannelManagementIssueView(issue: localIssue ?? model.issue)
                         Section {
                             Picker(selection: $target) {
                                 ncmPermissionText("everyone").tag("1:0")
-                                ForEach(model.roles) { role in Text(role.name).fixedSize(horizontal: false, vertical: true).tag("2:\(role.id)") }
-                            } label: { ncmPermissionText("permissionTarget") }
-                            TextField(text: $note, prompt: ncmPermissionText("note"), axis: .vertical) { ncmPermissionText("note") }.lineLimit(2...5)
+                                ForEach(model.roles) { role in
+                                    Text(verbatim: role.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : role.name)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .tag("2:\(role.id)")
+                                }
+                            } label: { ncmPermissionText("permissionTarget").fixedSize(horizontal: false, vertical: true) }
+                            TextField(text: $note, prompt: ncmPermissionText("note"), axis: .vertical) { ncmPermissionText("note") }
+                                .lineLimit(2...)
                         }
                         Section {
                             ForEach(NativeChannelManagementCapability.allCases.filter(\.available)) { capability in
@@ -38,37 +55,73 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                                     ncmPermissionText("deny").tag(2)
                                 } label: { ncmPermissionText("capability.\(capability.rawValue)").fixedSize(horizontal: false, vertical: true) }
                             }
-                        } header: { ncmPermissionText("permissions") }
-                        Section { TextField(text: $reason, prompt: ncmPermissionText("reason"), axis: .vertical) { ncmPermissionText("reason") }.lineLimit(2...5) }
+                        }
+                        Section { TextField(text: $reason, prompt: ncmPermissionText("reason"), axis: .vertical) { ncmPermissionText("reason") }.lineLimit(2...) }
                         Section {
-                            Button { prepare(remove: false) } label: { ncmPermissionText("review") }.nativeChannelFlowAction()
+                            CYPillButton("review", tableName: "NativeChannelManagement") { prepare(remove: false) }
+                                .listRowBackground(Color.clear)
                         }.disabled(model.busy || model.pending != nil)
                         if original != nil {
                             Section {
                                 Button(role: .destructive) { prepare(remove: true) } label: { ncmPermissionText("removeOverwrite") }
+                                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                                    .listRowBackground(Color.clear)
                             }.disabled(model.busy || model.pending != nil)
                         }
                         if let effective = model.effectivePermissions {
                             Section {
-                                ForEach(effective.names, id: \.self) { ncmPermissionText("capability.\($0)") }
-                            } header: { ncmPermissionText("myEffectivePermissions") }
+                                ForEach(effective.names, id: \.self) { name in
+                                    HStack(spacing: CYSpacing.md) {
+                                        CYRowIcon(systemImage: "checkmark.shield")
+                                        ncmPermissionText("capability.\(name)")
+                                            .font(CYTypography.body)
+                                            .foregroundStyle(palette.textPrimary)
+                                            .fixedSize(horizontal: false, vertical: true)
+                                    }
+                                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                                    .accessibilityElement(children: .combine)
+                                }
+                            } header: { permissionHeader("myEffectivePermissions") }
                         }
                     }
                     .refreshable { await model.loadPermissions(channelID); selectOriginal() }
                 } else if model.busy {
-                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    ContentUnavailableView {
-                        Label { ncmPermissionText("d7.channelManage.permissionsLoadFailed") } icon: { Image(systemName: "lock.shield") }
-                    } actions: {
-                        Button { Task { await model.loadPermissions(channelID); selectOriginal() } } label: { ncmPermissionText("refresh") }
+                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                        permissionHero
+                        CYSkeleton()
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text("cy.state.loading"))
                     }
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                } else {
+                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                        permissionHero
+                        CYEmptyState(systemImage: "lock.shield", "d7.channelManage.permissionsLoadFailed", tableName: "NativeChannelManagement", kind: .failure)
+                        CYPillButton("refresh", tableName: "NativeChannelManagement") {
+                            Task { await model.loadPermissions(channelID); selectOriginal() }
+                        }
+                    }
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 }
-            } else { NativeChannelManagementUnavailableView() }
+            } else {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    permissionHero
+                    CYEmptyState(systemImage: "lock.shield", "unavailable", tableName: "NativeChannelManagement")
+                    ncmPermissionText("entryUnavailable")
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            }
         }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .navigationTitle(ncmPermissionText("permissions"))
+        .cyHeroScreen()
         .task(id: channelID) { await model.loadPermissions(channelID); selectOriginal() }
         .onChange(of: target) { _, _ in selectOriginal() }
         .sheet(isPresented: $reviews) {
@@ -76,6 +129,16 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
+    }
+    private var permissionHero: some View {
+        CYHeroHeader("permissions", tableName: "NativeChannelManagement")
+    }
+    private func permissionHeader(_ key: String) -> some View {
+        ncmPermissionText(key)
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(palette.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .textCase(nil)
     }
     private var original: NativeChannelManagementOverwrite? { model.permissions?.overrides.first { $0.id == target } }
     private func state(for capability: NativeChannelManagementCapability) -> Binding<Int> {
