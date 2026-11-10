@@ -11,7 +11,7 @@ import SwiftUI
     var body: some View {
         Group {
             if let host { PlaySharedPlanR5HostView(host: host) }
-            else { ContentUnavailableView("原题组暂不可用", systemImage: "lock", description: Text("需要真实方案票据、读取批准及安全恢复存储。")) }
+            else { CYEmptyState(systemImage: "lock", "原题组暂不可用", detail: "需要真实方案票据、读取批准及安全恢复存储。") }
         }
         .onAppear { activate() }
         .onChange(of: session.sessionRevision) { _, _ in retire(); activate() }
@@ -33,12 +33,12 @@ import SwiftUI
     var body: some View {
         Form {
             if host.approvalMissing {
-                Section { Label("等待原始回执合同与写权限批准", systemImage: "lock") }
+                Section { CYStatusChip("等待原始回执合同与写权限批准", tone: .warning, systemImage: "lock") }
             }
             if let recovery = host.recovery { PlaySharedPlanR5CheckSection(model: recovery) }
             else {
                 Section {
-                    if host.busy { ProgressView() }
+                    if host.busy { CYSkeleton() }
                     switch host.phase {
                     case "unknownStart": Text("原启动结果尚未确认。保留原日志，不会重新启动或猜测场次。")
                     case "otherOriginalPending": Text("此节点另有原请求待确认，请返回原入口恢复。")
@@ -46,10 +46,10 @@ import SwiftUI
                     case "blocked", "stale": Text("账号、方案或授权已变化，请返回后重新核对。")
                     default: Text("开始当前方案的原高级题组")
                     }
-                    Button("开始原题组") { startConfirmation = true }.disabled(!host.canStart)
+                    CYPillButton("开始原题组") { startConfirmation = true }.listRowBackground(Color.clear).disabled(!host.canStart)
                 }
             }
-            Button("核对原记录") { Task { await host.load() } }.disabled(host.busy)
+            CYPillButton("核对原记录", style: .tertiary) { Task { await host.load() } }.listRowBackground(Color.clear).disabled(host.busy)
         }.cyGroupedSurface()
         .navigationTitle("原题组")
         .task { await host.load() }

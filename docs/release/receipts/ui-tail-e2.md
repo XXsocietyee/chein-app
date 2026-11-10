@@ -40,3 +40,6 @@ Order switched to REVERSE (last file first) per coordinator: Cursor ui/cloud-* l
 ## Batch 7 (reverse)
 - done: RoamExplorationExportView (CYPillButton, CYSkeleton, CYEmptyState), RoamExperienceHubView (CYListRow+CYRowIcon x13, CYSkeleton, CYPillButton, CYEmptyState)
 - done: ProjectStoryImageAuthorView, ProjectStoryAudioAuthorView (CYPillButton, CYSkeleton; creator surface = player/dark), ProjectDraftStoryPreviewView (CYPillButton, CYEmptyState)
+
+## Batch 8 (reverse)
+- done: ProjectChapterAudioAuthorView (CYPillButton, CYSkeleton), ProfileBadgesView (CYStatusChip x3), PlayerTaskEvidenceView (CYPillButton x8, CYStatusChip, CYSkeleton), PlayTaskSummaryView (CYPillButton), PlaySharedPlanR5HostView (CYEmptyState, CYStatusChip, CYSkeleton, CYPillButton)
