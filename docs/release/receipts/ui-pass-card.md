@@ -27,8 +27,3 @@ Inline `CoreLoopCopy.t(zh, en)` like the neighbouring ticket views; existing key
 - `python3 tools/check_scaffold.py`: pass. `python3 tools/check_design_lint.py`: pass. `python3 tools/check_design_fixture_release_exclusion.py`: pass.
 - Not run: build, tests, simulator. The integrator compiles; the Build lane is the gate.
 - Risks to check on compile: `CYPhase<TicketWalletSnapshot, Error>` use, `navigationDestination(item:)` with `Int`, `CYStateContent.empty` call sites.
-
-## Fixture routing fix (follow-up)
-Cause: `DesignFixtureRegistry.make` routes by prefix (`e1-` to `E1Fixture.make`); the new `ui-pass-card*` names matched no prefix and fell to "Unknown design fixture". Fix: explicit `ui-pass-card` prefix case in the registry (before `default`), cases stay in `E1Fixtures.swift`. Also rebased the W1-5 commit onto current `ui/main` (it was not yet in it).
-Self-review vs the wallet pass: added the cover-art band with title on a scrim (same `E1CoverArt` as the wallet card); notched pass shape, perforation, corner ribbon, 240 pt QR/number tile on white kept; AX sizes shrink the band and move the title below it.
-Re-run: swiftc -parse, check_scaffold, check_design_lint, check_design_fixture_release_exclusion all pass. No build.

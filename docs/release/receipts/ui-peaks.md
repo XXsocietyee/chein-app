@@ -23,3 +23,6 @@ Briefs: W2-3 and W2-4 in `/Users/fanning/chengyin-refs/specs/ux-strategy.md`; `d
 
 ## Not verified
 No build, simulator, haptic, VoiceOver or motion run in this lane. Cloud: commit 30f49c2fe got no Build or Test check run, only the combined status `Questify / chein - 城瘾` = failure / cancelled (same as the base commits), so there is no Build error count to read; not cloud-verified. Build before merging.
+
+## Follow-up: roam summary layout redesign
+Layout only, in `CYRoamSummaryView` (new `CYRoamRouteCard`, `CYRollingStat.Emphasis`): hero km, route card with a no-route fog placeholder, two supporting tiles, voice line, pinned buttons. Merged origin/ui/main first; two unrelated conflicts (`App/TicketPassSheet.swift`, `docs/release/receipts/ui-pass-card.md`) were resolved by taking ui/main's version. No engine, haptic, fixture or gate change. Parse, scaffold and design lint pass; not built or run, no screenshot taken.
