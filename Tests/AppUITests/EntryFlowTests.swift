@@ -115,9 +115,10 @@ final class EntryFlowTests: XCTestCase {
     /// The sign-in sheet and its "More ways to sign in" sheet both carry a Close button and neither has a
     /// navigation title; the sheet on top is the only one whose Close button is hittable.
     private func closeTopSheet(file:StaticString=#filePath,line:UInt=#line) {
-        let predicate=NSPredicate(format:"label == 'Close' AND hittable == true")
-        let close=app.buttons.matching(predicate).firstMatch
-        XCTAssertTrue(close.waitForExistence(timeout:5),app.debugDescription,file:file,line:line)
+        // `hittable` is not a valid XCUIElementQuery predicate key path: filter on `isHittable` in code.
+        let closeButtons=app.buttons.matching(NSPredicate(format:"label == 'Close'"))
+        XCTAssertTrue(closeButtons.firstMatch.waitForExistence(timeout:5),app.debugDescription,file:file,line:line)
+        let close=closeButtons.allElementsBoundByIndex.first(where:{$0.isHittable}) ?? closeButtons.firstMatch
         close.tap()
     }
 
