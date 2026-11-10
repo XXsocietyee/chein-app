@@ -34,8 +34,8 @@ final class RoamExperienceFlowTests: XCTestCase {
         let app = app("empty"); open("history", in: app)
         XCTAssertTrue(app.otherElements["roam.experience.history.empty"].waitForExistence(timeout: 5))
         XCTAssertFalse(app.otherElements["roam.experience.error"].exists)
-        // Mini-program scene-roam-history empty-state title (还没有漫游记录).
-        XCTAssertTrue(app.staticTexts["No roaming records yet"].exists)
+        // Empty-state title: voice table "Empty passport" (第一枚章在等你).
+        XCTAssertTrue(app.staticTexts["Your first stamp is waiting"].exists)
     }
     func testRecoveryNeedsIDAndOnlyDisplaysServerResultAfterRead() {
         let app = app(); open("recovery", in: app)
@@ -69,7 +69,7 @@ final class RoamExperienceFlowTests: XCTestCase {
         app.buttons["roam.experience.tiles.load"].tap()
         XCTAssertTrue(app.staticTexts["All returned tile pages loaded"].waitForExistence(timeout: 5))
         XCTAssertEqual(app.alerts.count, 0)
-        XCTAssertFalse(app.buttons["Start roaming"].exists)
+        XCTAssertFalse(app.buttons["Go"].exists)
     }
     func testMemoryRemainsReachableWithLiveDestinationAndOnReopen() {
         let app = app("liveSession"); open("tiles", in: app)

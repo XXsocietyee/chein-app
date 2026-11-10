@@ -481,11 +481,11 @@ struct RoamLiveCoverageCopy {
     init(locale: Locale) {
         if locale.language.languageCode?.identifier == "zh" {
             title = "本地片区探索度"
-            unknown = "暂无可靠数据"
+            unknown = "—"
             hint = "仅反映当前内存保留的局部片区，不代表全城覆盖或服务器确认结果。恢复记录不能还原这一比例。"
         } else {
             title = "Local area explored"
-            unknown = "Unavailable"
+            unknown = "—"
             hint = "Based on the local area retained in memory, not citywide coverage or a server-confirmed result. Recovery records cannot reconstruct this percentage."
         }
     }
@@ -519,7 +519,7 @@ struct RoamLiveElapsedCopy {
     let locale: Locale
     private var chinese: Bool { locale.languageCode == "zh" }
     var title: String { chinese ? "本次前台用时" : "Foreground time" }
-    var unknown: String { chinese ? "暂无可靠数据" : "Unavailable" }
+    var unknown: String { "—" }
     var hint: String {
         chinese ? "仅累计本次打开期间的前台漫游时间，暂停或进入后台即停止。恢复记录无法还原用时，也不代表服务器确认的成绩。"
             : "Counts this walk's foreground time while open. Pausing or backgrounding stops the clock. Recovery cannot restore this value; it is not a server-confirmed result."
