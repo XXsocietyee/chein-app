@@ -1,0 +1,1 @@
+UI-CLOUD-28 41ca30cd62acd988a340ac84bbf9b6be6f45950a PASS restyled App/NativeChannelManagementViews.swift, App/NativeChannelMessageAttachmentView.swift, App/NativeChannelMessageBubbleView.swift, App/NativeChannelMessageContextView.swift, App/NativeChannelMessagePinsView.swift; skipped none
