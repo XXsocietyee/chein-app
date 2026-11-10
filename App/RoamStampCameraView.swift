@@ -77,6 +77,9 @@ import UIKit
                         CYPillButton("media.stamp.create") { run { await coordinator.create() } }
                             .disabled(!coordinator.canCreate)
                     }
+                    if case .created = coordinator.phase {
+                        RoamStampCreatedMark()
+                    }
                     if case .created(let stampID) = coordinator.phase, let exchange { exchangeRows(stampID: stampID, exchange: exchange) }
                     if case .created = coordinator.phase, let album {
                         CYPillButton("roam.createdStamp.open", style: exchange == nil ? .primary : .secondary, systemImage: "rectangle.stack") {
@@ -263,5 +266,26 @@ import UIKit
         }
         guard let jpeg = rendered.jpegData(compressionQuality: 0.9) else { throw RetainedImageFailure.invalid }
         return try RetainedImageSanitizer.sanitize(jpeg)
+    }
+}
+
+/// Stamp created: the scan-success mark completes with orbit dots; VoiceOver hears the result once.
+@MainActor private struct RoamStampCreatedMark: View {
+    @State private var landed = false
+    var body: some View {
+        ZStack {
+            CYScanMark(kind: .success, size: 72)
+            CYOrbitDots(fire: landed)
+        }
+        .frame(maxWidth: .infinity, minHeight: 96)
+        .cyHaptic(.success, trigger: landed) { _, new in new }
+        .task {
+            try? await Task.sleep(for: .milliseconds(350))
+            landed = true
+            AccessibilityNotification.Announcement(String(localized: LocalizedStringResource("scan.stamp.created"))).post()
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("scan.stamp.created"))
+        .listRowBackground(Color.clear)
     }
 }

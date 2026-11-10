@@ -55,6 +55,7 @@ import SwiftUI
                         CYBadgeMedal(seed: value.club.name.isEmpty ? "club" : value.club.name, symbol: "person.3.fill", size: 116)
                             .cyStampSlam(trigger: true)
                             .overlay { CYConfettiBurst(fireOnAppear: true).frame(height: 200) }
+                            .overlay { CYOrbitDots(fire: arrived, radius: 70, spread: 22) }
                             .padding(.top, CYSpacing.lg)
                         Text("welcome.title", tableName: "ClubMemberWelcome")
                             .font(.system(.largeTitle, design: .rounded).weight(.heavy))
