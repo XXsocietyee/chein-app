@@ -15,3 +15,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - MapCoreEntryHubView: done (CYHeroHeader, CYPillButton)
 - MapPublicLayerCallerView: done (CYHeroHeader, CYPillButton, CYStatusChip)
 - MasterReleaseSignoffDashboardView: done (CYStatusChip, AX stacking)
+
+## Batch 3 (reverse order from here, per coordinator: cloud lanes own the front of the list; no ui/cloud-* branch touched any of these at fetch time)
+- Wave2AllPartialAndMissingRowsClosureView: done (CYStatusChip)
+- WalkingNavigationView: done (CYPillButton, CYEmptyState, CYStatusChip)
+- VerificationCodeView: done (CYHeroHeader, CYPillButton, CYSkeleton, CYStatusChip)
+- UnifiedReleaseAuditHubView: done (CYStatusChip, AX stacking)
+- UltimateReleaseReadinessExecutiveSummaryView: done (CYStatusChip, AX stacking)

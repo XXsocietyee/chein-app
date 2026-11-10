@@ -123,6 +123,10 @@ public struct UltimateReleaseExecutiveSnapshot: Sendable, Equatable {
 @MainActor
 public struct UltimateReleaseReadinessExecutiveSummaryView: View {
     public let snapshot: UltimateReleaseExecutiveSnapshot
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var rowLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout())
+    }
 
     public init(snapshot: UltimateReleaseExecutiveSnapshot = .defaultReady) {
         self.snapshot = snapshot
@@ -144,34 +148,22 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
     }
 
     private var headerView: some View {
-        HStack(spacing: 8) {
+        rowLayout {
             Text(verbatim: snapshot.sectionTitle)
                 .font(.headline)
                 .accessibilityIdentifier("ultimateExecutiveSummary.title")
             Spacer()
-            Text(verbatim: snapshot.releaseTagText)
-                .font(.caption.monospaced())
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Capsule().fill(Color.accentColor.opacity(0.15)))
+            CYStatusChip(verbatim: snapshot.releaseTagText, tone: .neutral, systemImage: "tag")
                 .accessibilityIdentifier("ultimateExecutiveSummary.releaseTag")
         }
     }
 
     private var executiveBannerView: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Text(verbatim: snapshot.isAllExecutiveMetricsReady ? "EXECUTIVE_GO_FOR_LAUNCH" : "EXECUTIVE_ACTION_REQUIRED")
-                    .font(.caption2.monospaced().weight(.bold))
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(
-                        Capsule().fill(
-                            snapshot.isAllExecutiveMetricsReady
-                                ? CYColor.successText.opacity(0.2)
-                                : CYColor.warningText.opacity(0.22)
-                        )
-                    )
+            rowLayout {
+                CYStatusChip(verbatim: snapshot.isAllExecutiveMetricsReady ? "EXECUTIVE_GO_FOR_LAUNCH" : "EXECUTIVE_ACTION_REQUIRED",
+                             tone: snapshot.isAllExecutiveMetricsReady ? .success : .warning,
+                             systemImage: snapshot.isAllExecutiveMetricsReady ? "checkmark.circle" : "exclamationmark.triangle")
                     .accessibilityIdentifier("ultimateExecutiveSummary.bannerState")
 
                 Text(verbatim: snapshot.executiveHeadlineText)
@@ -200,9 +192,9 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
                 .accessibilityIdentifier("ultimateExecutiveSummary.metricsHeader")
 
             ForEach(snapshot.cards) { card in
-                HStack(alignment: .top, spacing: 8) {
+                rowLayout {
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: 6) {
+                        rowLayout {
                             Text(verbatim: card.metricTitle)
                                 .font(.caption.weight(.semibold))
                                 .accessibilityIdentifier("ultimateExecutiveSummary.card.\(card.id).title")
@@ -219,11 +211,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
 
                     Spacer()
 
-                    Text(verbatim: card.badgeText)
-                        .font(.caption2.weight(.semibold))
-                        .padding(.horizontal, 6)
-                        .padding(.vertical, 2)
-                        .background(Capsule().fill(Color.accentColor.opacity(0.14)))
+                    CYStatusChip(verbatim: card.badgeText, tone: .info)
                         .accessibilityIdentifier("ultimateExecutiveSummary.card.\(card.id).badge")
                 }
                 .padding(.vertical, 3)
