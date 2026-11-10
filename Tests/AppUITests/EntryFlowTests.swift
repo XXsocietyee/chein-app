@@ -12,16 +12,18 @@ final class EntryFlowTests: XCTestCase {
     override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate();app=nil }
 
     func testPlayerAndMerchantEntryCanBeClosedAndRepeated() {
-        for identifier in ["welcome.player","welcome.merchant","welcome.player"] {
-            let entry=app.buttons[identifier]
+        // Launch is player-first (WelcomeView.showsMerchantChoice == false): the merchant role button is hidden.
+        XCTAssertFalse(app.buttons["welcome.merchant"].exists)
+        for _ in 0..<3 {
+            let entry=app.buttons["welcome.player"]
             XCTAssertTrue(entry.waitForExistence(timeout:10))
             entry.tap()
-            XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout:5))
+            // The sign-in sheet has no navigation title; identify it by its controls.
+            XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
             XCTAssertFalse(app.buttons["auth.signIn"].exists)
             XCTAssertFalse(app.secureTextFields.firstMatch.exists)
-            XCTAssertTrue(app.buttons["auth.otherChannels"].exists)
-            app.buttons["Close"].tap()
-            XCTAssertTrue(app.buttons["welcome.settings"].waitForExistence(timeout:5))
+            closeTopSheet()
+            XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
         }
     }
 
@@ -36,14 +38,14 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Home","Roam","Publish","Clubs","Me"])
         XCTAssertFalse(app.tabBars.buttons["Activities"].exists)
         publish.tap()
-        XCTAssertTrue(app.navigationBars["Browse templates"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.navigationBars["Templates"].waitForExistence(timeout:5))
         let account=app.tabBars.buttons["Me"]
         XCTAssertTrue(account.exists);account.tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
-        XCTAssertTrue(app.buttons["welcome.merchant"].exists)
+        XCTAssertFalse(app.buttons["welcome.merchant"].exists)
         app.buttons["welcome.player"].tap()
-        XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout:5))
-        app.buttons["Close"].tap()
+        XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
+        closeTopSheet()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
     }
 
@@ -59,13 +61,13 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["auth.channels.phoneSignIn"].exists)
         XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
         XCTAssertFalse(app.buttons["auth.channels.appleSignIn"].exists)
-        app.navigationBars["More ways to sign in"].buttons["Close"].tap()
+        closeTopSheet()
         XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
     }
 
     func testUnconfiguredBuildHidesUnsupportedPasswordAndKeepsPhoneDisabledAfterInput() {
         app.buttons["welcome.player"].tap()
-        XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout:5))
+        XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout:5))
         XCTAssertFalse(app.textFields["Username"].exists)
         XCTAssertFalse(app.secureTextFields.firstMatch.exists)
         XCTAssertFalse(app.buttons["auth.signIn"].exists)
@@ -78,15 +80,15 @@ final class EntryFlowTests: XCTestCase {
         code.tap();code.typeText("123456")
         XCTAssertFalse(app.buttons["auth.channels.sendCode"].isEnabled)
         XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
-        app.navigationBars["More ways to sign in"].buttons["Close"].tap()
+        closeTopSheet()
         XCTAssertTrue(phoneEntry.waitForExistence(timeout:5))
         phoneEntry.tap()
         XCTAssertTrue(phone.waitForExistence(timeout:5))
         XCTAssertTrue((phone.value as? String) == "" || (phone.value as? String) == phone.placeholderValue)
         XCTAssertTrue((code.value as? String) == "" || (code.value as? String) == code.placeholderValue)
         XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
-        app.navigationBars["More ways to sign in"].buttons["Close"].tap()
-        app.navigationBars["Sign in"].buttons["Close"].tap()
+        closeTopSheet()
+        closeTopSheet()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
     }
 
@@ -96,18 +98,27 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(chinese.waitForExistence(timeout:5),app.debugDescription);chinese.tap()
         let done=app.buttons["完成"]
         XCTAssertTrue(done.waitForExistence(timeout:5));done.tap()
-        XCTAssertTrue(app.buttons["welcome.player"].label.contains("玩家注册"))
+        XCTAssertTrue(app.buttons["welcome.player"].label.contains("创建账号"))
         app.terminate()
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"]
         app.launch()
         skipOnboardingIfPresent(in: app)
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:10))
-        XCTAssertTrue(app.buttons["welcome.player"].label.contains("玩家注册"))
+        XCTAssertTrue(app.buttons["welcome.player"].label.contains("创建账号"))
         openSettings(title:"设置")
         let english=app.buttons["English"]
         XCTAssertTrue(english.waitForExistence(timeout:5),app.debugDescription);english.tap()
         XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout:5));app.buttons["Done"].tap()
-        XCTAssertTrue(app.buttons["welcome.player"].label.contains("Register as a player"))
+        XCTAssertTrue(app.buttons["welcome.player"].label.contains("Create account"))
+    }
+
+    /// The sign-in sheet and its "More ways to sign in" sheet both carry a Close button and neither has a
+    /// navigation title; the sheet on top is the only one whose Close button is hittable.
+    private func closeTopSheet(file:StaticString=#filePath,line:UInt=#line) {
+        let predicate=NSPredicate(format:"label == 'Close' AND hittable == true")
+        let close=app.buttons.matching(predicate).firstMatch
+        XCTAssertTrue(close.waitForExistence(timeout:5),app.debugDescription,file:file,line:line)
+        close.tap()
     }
 
     private func openSettings(title:String,file:StaticString=#filePath,line:UInt=#line) {
