@@ -47,3 +47,10 @@
 - ut-d4-confirm [x] e321bcefc. PR 1038. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
 - ut-d4-badges-error [x] 6d0fce572. PR 1039. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
 - ut-d4-growth [x] 5fec205dd. PR 1040. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-badges-empty [x] 42fba1c3c. PR 1041. Fixture test only. Not merged.
+- ut-d4-badges [x] 0e8ce43f1. PR 1042. Test plus a 12-line project registration. Not merged.
+- ut-d4-directory [x] ebaaf04fd. PR 1043. Test plus a 12-line project registration. Not merged.
+- ut-d4-tab-events [x] 877fa1446. PR 1044. Test plus a 12-line project registration. Not merged.
+- ut-e1-bundle-shelf-empty [x] f1e7470f4. PR 1045. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d2-city [x] fae32fdc2. PR 1046. Fixture test only. Not merged.
+- ut-d4-owner-detail [x] 496b22302. PR 1047. Fixture test only. Not merged.
