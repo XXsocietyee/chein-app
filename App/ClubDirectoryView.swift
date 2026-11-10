@@ -27,7 +27,6 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
                                     .cyHeroDestination(club.id, in: hero)
                             } label: { EmptyView() }.opacity(0)
                         }
-                        .cyPressTracking()
                         .cyStaggeredAppear(index: index, gate: stagger)
                         .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
