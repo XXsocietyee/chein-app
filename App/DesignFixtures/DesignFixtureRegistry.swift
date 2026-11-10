@@ -27,6 +27,10 @@ enum DesignFixtureRegistry {
         case "e5b-checkin": return AnyView(E5bMomentFixture(kind: .checkIn))
         case "e5b-badge-wall": return AnyView(E5bBadgeWallFixture())
         case "e5b-join": return AnyView(E5bJoinFixture())
+        // Activity detail collapse (W3-3): synthetic ActivityFixtureReader data, pinned pill on.
+        case "activity-collapsed": return AnyView(NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .reviews), registrationEnabled: true) })
+        case "activity-expanded": return AnyView(NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .reviews), registrationEnabled: true, startsWithMoreInfoOpen: true) })
+        case "activity-unknown": return AnyView(NavigationStack { ActivityDetailView(id: 101, reader: ActivityFixtureReader(scenario: .tickets), registrationEnabled: true) })
         case "welcome": return AnyView(WelcomeFixture())
         case "welcome-menu": return AnyView(WelcomeMenuFixture())
         case "onboarding-1": return AnyView(OnboardingFixture(step: .welcome))
