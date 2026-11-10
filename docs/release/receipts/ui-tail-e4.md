@@ -77,3 +77,5 @@ Embedded editor sections (no own screen/title): kit buttons only. Confirm-save i
 
 ## Summary
 38 files in list: 37 restyled, 1 skipped (SessionBankWithdrawalView: pure wrapper, no UI). No merchant-only files in the list. No cloud-owned files (no origin/ui/cloud-* branches existed). No new string keys (all existing keys reused); `docs/release/ui-strings-e4-tail.json` is `[]`. No local builds; cloud results below.
+
+Cloud result for 13ad8ea2f (all 8 batches): Build - iOS success. Test - iOS reports `action_required` (not run; no red). Earlier per-batch runs were superseded/cancelled by the next push.
