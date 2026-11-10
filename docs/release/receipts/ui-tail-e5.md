@@ -71,3 +71,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - OpsSafetyViews: done (CYPillButton for contact support; other blocks already structured)
 - ObjectCardFixtureHostView: done (DEBUG fixture, CYPillButton)
 - NonCashRewardViews: done (CYHeroHeader, CYEmptyState, CYSkeleton, CYPillButton)
+
+## Batch 11 (reverse)
+- NativeWebhookOneTimeCredentialView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeWebhookManagementView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeWebhookInboundLogView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeWebhookDeliveryLogView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeVerificationView: SKIPPED (merchant staff voucher verification, merchant-only surface)

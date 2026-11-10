@@ -10,6 +10,8 @@ import UniformTypeIdentifiers
     @State private var shownRequestID: NativeWebhookRequestID?
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: nativeWebhookLocalized("d7.webhook.secret.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let credential = model.coordinator?.credential, model.available {
                 Section {
                     NativeChannelFlowNotice(title:Text(verbatim:nativeWebhookLocalized("d7.webhook.secret.once")),message:Text(verbatim:nativeWebhookLocalized("d7.webhook.secret.once.message")),symbol:"key.horizontal")
@@ -35,19 +37,18 @@ import UniformTypeIdentifiers
                     Section { NativeWebhookTimeRow(label: nativeWebhookLocalized("d7.webhook.secret.oldExpires"), time: time) }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("d7.webhook.done")) { model.dismissSheet() }.nativeChannelFlowAction()
+                    CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.done")) { model.dismissSheet() }.nativeChannelFlowAction()
                         .accessibilityIdentifier("webhook.credential.clear")
                 }
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets())
             } else {
-                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.secret.gone"), systemImage: "key.horizontal",
-                    description: Text(verbatim: nativeWebhookLocalized("d7.webhook.secret.gone.message")))
-                Button(nativeWebhookLocalized("d7.webhook.close")) { model.dismissSheet() }
+                CYEmptyState(systemImage: "key.horizontal", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.secret.gone")), detail: LocalizedStringKey(nativeWebhookLocalized("d7.webhook.secret.gone.message")))
+                CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.close"), style: .secondary) { model.dismissSheet() }
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("d7.webhook.secret.title"))
+        .cyHeroScreen()
         .privacySensitive()
         .onAppear { shownRequestID = model.coordinator?.credential?.requestID }
         .onDisappear {
