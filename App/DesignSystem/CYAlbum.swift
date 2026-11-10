@@ -23,6 +23,11 @@ enum CYAlbumMotion {
     static let amber = Color(red: 0.95, green: 0.62, blue: 0.20)
 }
 
+/// Copy shared by the album surfaces. Unknown values are a dash, never a fake zero.
+enum CYAlbumCopy {
+    static let unknownMark = "—"
+}
+
 // MARK: - Recency and "seen" memory
 
 /// "New" means collected within the last seven days by the server date string ("yyyy-MM-dd HH:mm[:ss]" or an ISO prefix).
@@ -110,7 +115,7 @@ struct CYAlbumProgressRing: View {
                         .font(.system(size: size * 0.14, weight: .semibold, design: .rounded)).monospacedDigit()
                         .foregroundStyle(CYColor.textTertiary)
                 } else {
-                    Text(verbatim: ObjectBadgePresentation.unknownMark)
+                    Text(verbatim: CYAlbumCopy.unknownMark)
                         .font(.system(size: size * 0.30, weight: .bold, design: .rounded))
                         .foregroundStyle(CYColor.textTertiary)
                 }

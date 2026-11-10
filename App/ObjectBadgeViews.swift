@@ -32,6 +32,9 @@ struct ObjectBadgeWallLayoutSelection {
     var focusBadgeCode: String? = nil
     @State private var layoutSelection = ObjectBadgeWallLayoutSelection()
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+    @Namespace private var hero
+    @CYAlbumSeen private var seen
     private var layoutOwner: ObjectBadgeWallLayoutOwner {
         .init(readerID: ObjectIdentifier(reader), identity: reader.identity, isConfigured: reader.isConfigured)
     }
@@ -45,6 +48,15 @@ struct ObjectBadgeWallLayoutSelection {
                     ObjectBadgeWallLayoutControl(selection: Binding(
                         get: { layoutSelection.value(for: layoutOwner) },
                         set: { layoutSelection.choose($0, rendered: owner, current: layoutOwner) }))
+                }
+                if layout == .wall {
+                    let showcase = ObjectBadgeAlbumItem.showcase(wall: wall)
+                    if !showcase.isEmpty {
+                        Section {
+                            ObjectBadgeShowcase(items: showcase, seen: seen)
+                                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
+                        }
+                    }
                 }
                 if wall.isPartial {
                     Section {
@@ -84,24 +96,155 @@ struct ObjectBadgeWallLayoutSelection {
         if layout == .wall {
             LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                 ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
-                    link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall).buttonStyle(.plain)
+                    link(badge, identifier: "\(accessibilityPrefix).\(index)", albumID: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall).buttonStyle(.plain)
                 }
             }.padding(.vertical, 4)
         } else {
             ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
-                link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall)
+                link(badge, identifier: "\(accessibilityPrefix).\(index)", albumID: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall)
             }
         }
     }
-    private func link(_ badge: ProfileBadgeSelection, identifier: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
+    private func link(_ badge: ProfileBadgeSelection, identifier: String, albumID: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
         let capturedIdentity = reader.identity
+        let isNew = ObjectBadgeAlbumItem.isNew(badge) && !seen.contains(ObjectBadgeAlbumItem.seenKey(badge))
         return NavigationLink {
             ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,
                                   collection: wall.isPartial ? nil : ObjectBadgeWallSummary(wall: wall))
                 .modifier(ObjectBadgeThreeDEntry(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media))
+                .cyHeroDestination(albumID, in: hero)
         } label: {
-            ObjectBadgeWallBadgeLabel(badge: badge, layout: layout)
+            ObjectBadgeWallBadgeLabel(badge: badge, layout: layout, isNew: isNew)
+                .cyHeroSource(albumID, in: hero)
         }.accessibilityIdentifier(identifier)
+    }
+}
+
+/// Album identity for a badge: the badge code or medal template, so the "seen" memory and the showcase survive reloads.
+/// Rows without any code share a family fallback and are simply never remembered as seen.
+struct ObjectBadgeAlbumItem: Identifiable {
+    let id: String
+    let badge: ProfileBadgeSelection
+    static func seenKey(_ badge: ProfileBadgeSelection) -> String {
+        switch badge {
+        case .identity(let value): return value.badgeCode.isEmpty ? "" : "identity.\(value.badgeCode)"
+        case .medal(let value):
+            if let template = value.templateID { return "medal.\(template)" }
+            return value.badgeCode.isEmpty ? "" : "medal.\(value.badgeCode)"
+        }
+    }
+    static func obtainedRaw(_ badge: ProfileBadgeSelection) -> String? {
+        switch badge {
+        case .identity(let value): return value.unlocked ? value.unlockTime : nil
+        case .medal(let value): return value.getTime
+        }
+    }
+    /// Unlocked within the last seven days. Locked badges are never new.
+    static func isNew(_ badge: ProfileBadgeSelection) -> Bool {
+        !badge.isLocked && CYAlbumRecency.isNew(obtainedRaw(badge))
+    }
+    /// Unlocked pieces, newest first, at most eight, with unique ids for the pager.
+    static func showcase(wall: ProfileBadgeWall) -> [ObjectBadgeAlbumItem] {
+        var candidates: [ProfileBadgeSelection] = wall.identities.filter(\.unlocked).map { .identity($0) }
+        candidates += (wall.medals ?? []).map { .medal($0) }
+        candidates.sort { (CYAlbumRecency.date(obtainedRaw($0)) ?? .distantPast) > (CYAlbumRecency.date(obtainedRaw($1)) ?? .distantPast) }
+        var used: Set<String> = []
+        var items: [ObjectBadgeAlbumItem] = []
+        for (index, badge) in candidates.prefix(8).enumerated() {
+            var id = seenKey(badge)
+            if id.isEmpty || used.contains(id) { id = "showcase.\(index)" }
+            used.insert(id)
+            items.append(ObjectBadgeAlbumItem(id: id, badge: badge))
+        }
+        return items
+    }
+}
+
+/// Unlocked badges as album pages that turn on their spine. Each page flips: medal in front, how it was earned on the back.
+private struct ObjectBadgeShowcase: View {
+    let items: [ObjectBadgeAlbumItem]
+    let seen: Set<String>
+    @Environment(\.locale) private var locale
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: ChannelCopy.text("已点亮", "Lit up", locale: locale))
+                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .accessibilityAddTraits(.isHeader)
+            CYAlbumPager(items: items, height: 312, pageLabel: { page, count in
+                Text(verbatim: ChannelCopy.text("第 \(page) 页，共 \(count) 页", "Page \(page) of \(count)", locale: locale))
+            }) { item in
+                ObjectBadgeShowcasePage(badge: item.badge, isNew: ObjectBadgeAlbumItem.isNew(item.badge) && !seen.contains(ObjectBadgeAlbumItem.seenKey(item.badge)))
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+            }
+        }
+        .padding(.vertical, CYSpacing.sm)
+        .accessibilityIdentifier("objects.badge.showcase")
+    }
+}
+
+private struct ObjectBadgeShowcasePage: View {
+    let badge: ProfileBadgeSelection
+    let isNew: Bool
+    @State private var flipped = false
+    @Environment(\.locale) private var locale
+    private var name: String { badge.name.isEmpty ? ChannelCopy.text("徽章", "Badge", locale: locale) : badge.name }
+    private var obtained: String? { ObjectBadgePresentation.date(ObjectBadgeAlbumItem.obtainedRaw(badge)) }
+    private var requirement: String {
+        switch badge {
+        case .identity(let value): return value.unlockHint.isEmpty ? value.statement : value.unlockHint
+        case .medal(let value): return value.displayCondition
+        }
+    }
+    var body: some View {
+        CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
+            front
+        } back: {
+            back
+        }
+        .cyNewPulse(isNew, text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
+    }
+    private var front: some View {
+        VStack(spacing: CYSpacing.md) {
+            CYFoilMedal(unlocked: true, size: 150) {
+                ZStack {
+                    LinearGradient(colors: [Color(hue: 0.12, saturation: 0.7, brightness: 0.9).opacity(0.9), Color(hue: 0.08, saturation: 0.7, brightness: 0.4)], startPoint: .top, endPoint: .bottom)
+                    Image(systemName: "medal.fill").font(CYTypography.display).foregroundStyle(.white.opacity(0.92))
+                }
+            }
+            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                .multilineTextAlignment(.center).lineLimit(2).fixedSize(horizontal: false, vertical: true)
+            if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained, tone: .success, systemImage: "checkmark.seal.fill") }
+            else { CYStatusChip("profile.badges.unlocked", tone: .success, systemImage: "checkmark.seal.fill") }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .cyAlbumCard(padding: CYSpacing.lg)
+        .cyFoilSheen(trigger: flipped ? 0 : 1)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text(verbatim: ChannelCopy.text("双击翻面查看获得条件", "Double-tap to flip for how it was earned", locale: locale)))
+    }
+    private var back: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack {
+                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Spacer(minLength: CYSpacing.sm)
+                Image(systemName: "medal.fill").foregroundStyle(CYAlbumMotion.gold).accessibilityHidden(true)
+            }
+            Divider()
+            Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            if let obtained, !obtained.isEmpty {
+                CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
+            }
+            Text(verbatim: ChannelCopy.text("获得条件", "How it was earned", locale: locale))
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
+                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
+                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .cyAlbumCard(padding: CYSpacing.lg)
     }
 }
 
@@ -121,6 +264,9 @@ struct ObjectBadgeWallLayoutControl: View {
 struct ObjectBadgeWallBadgeLabel: View {
     let badge: ProfileBadgeSelection
     let layout: ObjectBadgeWallLayout
+    /// Unlocked within seven days and not opened yet: gold "new" pulse on the tile.
+    var isNew = false
+    @Environment(\.locale) private var locale
     var body: some View {
         if layout == .wall {
             VStack(spacing: CYSpacing.sm) {
@@ -133,7 +279,11 @@ struct ObjectBadgeWallBadgeLabel: View {
                 description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
             }.frame(maxWidth: .infinity, minHeight: 72)
                 .cyDomainCard(padding: CYSpacing.md)
+                .cyFoilSheen(active: !badge.isLocked)
+                .cyLockedSilhouette(badge.isLocked, showsLock: false)
+                .cyNewPulse(isNew, text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
                 .accessibilityElement(children: .combine)
+                .accessibilityValue(Text(verbatim: isNew ? ChannelCopy.text("新获得", "New", locale: locale) : ""))
         } else {
             HStack(spacing: CYSpacing.md) {
                 CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 48)
@@ -163,6 +313,9 @@ struct ObjectBadgeWallBadgeLabel: View {
     @State private var mediaScope = UUID()
     @State private var expiredScope = UUID()
     @State private var celebrate = false
+    @State private var flipped = false
+    @State private var unlockMoment = 0
+    @CYAlbumSeen private var seen
     private var valid: Bool { expectedIdentity != nil && reader.identity == expectedIdentity }
     private var track: Int {
         switch badge { case .identity(let value): return ObjectBadgePresentation.track(category: value.category); case .medal: return 1 }
@@ -215,18 +368,42 @@ struct ObjectBadgeWallBadgeLabel: View {
         .background(CYColor.bgPage.ignoresSafeArea())
         .appNavigationTitle("profile.badges.detail").privacySensitive()
         .sensoryFeedback(.success, trigger: celebrate)
-        .onAppear { if valid, !badge.isLocked { celebrate = true } }
+        .onAppear { arrive() }
         .accessibilityIdentifier("objects.badge.detail")
     }
-    /// Large foil medal. No ring or percentage: the API has no per-badge progress, so the page only says collected or locked.
+    /// First open of a badge unlocked in the last seven days plays the unlock moment once (confetti, ring, success haptic);
+    /// every other unlocked badge keeps the quiet success tick. Locked badges arrive silently.
+    private func arrive() {
+        guard valid, !badge.isLocked else { return }
+        let key = ObjectBadgeAlbumItem.seenKey(badge)
+        if ObjectBadgeAlbumItem.isNew(badge), !key.isEmpty, !seen.contains(key) {
+            $seen.mark(key)
+            Task { @MainActor in
+                try? await Task.sleep(for: .milliseconds(350))
+                unlockMoment += 1
+            }
+        } else {
+            celebrate = true
+        }
+    }
+    /// Large foil medal that flips to its facts. No ring or percentage: the API has no per-badge progress, so the page only says collected or locked.
     private var stage: some View {
+        CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
+            medal
+        } back: {
+            stageBack
+        }
+        .frame(maxWidth: .infinity)
+        .cyUnlockCelebration(trigger: unlockMoment)
+    }
+    private var medal: some View {
         ZStack {
             CYFoilMedal(unlocked: !badge.isLocked, size: 168, tint: tint) {
                 if media == nil || badge.image.isEmpty {
                     ZStack {
                         LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
                         Image(systemName: "medal.fill").font(.system(size: 76, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
-                            .symbolEffect(.bounce, value: celebrate && !reduceMotion)
+                            .symbolEffect(.bounce, value: (celebrate || unlockMoment > 0) && !reduceMotion)
                     }
                 } else {
                     ObjectCardArtwork(url: badge.image, label: badge.name, media: media,
@@ -238,6 +415,33 @@ struct ObjectBadgeWallBadgeLabel: View {
         .frame(maxWidth: .infinity)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text(verbatim: displayName))
+        .accessibilityHint(Text(verbatim: ChannelCopy.text("双击翻面查看详情", "Double-tap to flip for details", locale: locale)))
+    }
+    private var stageBack: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack {
+                Text(badge.familyKey).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Spacer(minLength: CYSpacing.sm)
+                Image(systemName: badge.isLocked ? "lock.fill" : "medal.fill")
+                    .foregroundStyle(badge.isLocked ? CYColor.textTertiary : CYAlbumMotion.gold).accessibilityHidden(true)
+            }
+            Divider()
+            Text(verbatim: displayName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            if let obtained, !obtained.isEmpty {
+                CYFactRow(label: Text(verbatim: ChannelCopy.text("获得日期", "Earned on", locale: locale)), value: obtained)
+            }
+            CYFactRow(label: Text(verbatim: ChannelCopy.text("状态", "Status", locale: locale)),
+                      value: ChannelCopy.text(badge.isLocked ? "未解锁" : "已点亮", badge.isLocked ? "Locked" : "Unlocked", locale: locale))
+            Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Text(verbatim: requirement.isEmpty ? CYAlbumCopy.unknownMark : requirement)
+                .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
+                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 212, alignment: .topLeading)
+        .cyAlbumCard(padding: CYSpacing.lg)
     }
     @ViewBuilder private var statusChips: some View {
         CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",

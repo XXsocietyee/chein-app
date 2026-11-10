@@ -132,6 +132,8 @@ struct RoamAlbumReadOwner: Hashable {
     let album: RoamStampAlbumView
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
+    @Namespace private var hero
     @StateObject private var presentation: RoamAlbumReadPresentation
     init(album: RoamStampAlbumView) {
         self.album = album
@@ -149,8 +151,11 @@ struct RoamAlbumReadOwner: Hashable {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: CYSpacing.lg) {
                 if canShowAlbum {
-                CYHeroHeader("roam.experience.album")
+                RoamStampAlbumCover(total: pager.total, loaded: pager.loaded)
                 RoamExperienceNotice(offline: reader.isOfflineExample)
+                if !pager.stamps.isEmpty {
+                    RoamStampAlbumPages(stamps: Array(pager.stamps.prefix(6)), offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages)
+                }
                 if let total = pager.total { StampAlbumTotalHeader(total: total) }
                 if let error = pager.error {
                     switch StampAlbumErrorPresentation.resolve(error: error, hasStamps: !pager.stamps.isEmpty) {
@@ -175,8 +180,14 @@ struct RoamAlbumReadOwner: Hashable {
                 }
                 LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                     ForEach(pager.stamps) { stamp in
-                        NavigationLink { RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages) } label: {
+                        NavigationLink {
+                            RoamStampDetailView(stamp: stamp, offline: reader.isOfflineExample, readOnlyScope: readOnlyScope, allowsRemoteImages: allowsRemoteImages)
+                                .cyHeroDestination(stamp.id, in: hero)
+                        } label: {
                             RoamStampCard(stamp: stamp, offline: reader.isOfflineExample, allowsRemoteImages: allowsRemoteImages, kit: true)
+                                .cyFoilSheen()
+                                .cyNewPulse(CYAlbumRecency.isNew(stamp.createTime), text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
+                                .cyHeroSource(stamp.id, in: hero)
                         }.buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("roam.experience.album.stamp")
                     }
                 }
@@ -208,6 +219,122 @@ struct RoamAlbumReadOwner: Hashable {
             .accessibilityIdentifier("roam.experience.album")
     }
 }
+/// Album cover: gold seal ring counting up to the collection size, the one visible title, one honest line.
+/// Every stamp in the album is already earned, so the seal is full once the total is known and a dash before that.
+private struct RoamStampAlbumCover: View {
+    let total: Int?
+    let loaded: Bool
+    @Environment(\.locale) private var locale
+    private var sentence: String {
+        if let total, total > 0 { return ChannelCopy.text("已集齐 \(total) 枚城市印章", "\(total) city stamps collected", locale: locale) }
+        if loaded { return ChannelCopy.text("还没有印章，去城市里盖第一枚吧", "No stamps yet. Go collect the first one.", locale: locale) }
+        return ChannelCopy.text("正在翻开集章册", "Opening the album", locale: locale)
+    }
+    var body: some View {
+        HStack(alignment: .center, spacing: CYSpacing.lg) {
+            CYAlbumProgressRing(value: total ?? 0, total: total, size: 88, accessibilityLabel: Text(verbatim: sentence))
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("roam.experience.album")
+                    .font(CYTypography.display).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityAddTraits(.isHeader)
+                Text(verbatim: sentence)
+                    .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cyHeroScreen()
+    }
+}
+
+/// "Recently collected": the newest stamps as album pages that turn on their spine; each page flips to its details.
+private struct RoamStampAlbumPages: View {
+    let stamps: [RoamAlbumStamp]
+    let offline: Bool
+    let allowsRemoteImages: Bool
+    @Environment(\.locale) private var locale
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: ChannelCopy.text("最近集到", "Recently collected", locale: locale))
+                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+            CYAlbumPager(items: stamps, height: 300, pageLabel: { page, count in
+                Text(verbatim: ChannelCopy.text("第 \(page) 页，共 \(count) 页", "Page \(page) of \(count)", locale: locale))
+            }) { stamp in
+                RoamStampAlbumPage(stamp: stamp, offline: offline, allowsRemoteImages: allowsRemoteImages)
+            }
+        }
+        .accessibilityIdentifier("roam.experience.album.pages")
+    }
+}
+
+/// One album page. Front: the stamp picture with its caption over a bottom gradient. Back: number, date, caption.
+private struct RoamStampAlbumPage: View {
+    let stamp: RoamAlbumStamp
+    let offline: Bool
+    let allowsRemoteImages: Bool
+    @State private var flipped = false
+    @Environment(\.locale) private var locale
+    private var number: String { String(format: "NO. %04d", stamp.id % 10000) }
+    private var day: String? { stamp.createTime.map { String($0.prefix(10)) } }
+    var body: some View {
+        CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
+            front
+        } back: {
+            back
+        }
+        .cyNewPulse(CYAlbumRecency.isNew(stamp.createTime), text: Text(verbatim: ChannelCopy.text("新", "New", locale: locale)))
+    }
+    private var front: some View {
+        ZStack(alignment: .bottomLeading) {
+            Group {
+                if offline { CYCoverArt(seed: String(stamp.id), symbol: "seal.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg) }
+                else if allowsRemoteImages { RoamStampImage(source: stamp.picUrl) }
+                else { Label("roam.experience.imageUnavailable", systemImage: "photo").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(CYColor.bgElevated)
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityLabel(Text("roam.experience.sampleArt"))
+            LinearGradient(colors: [.clear, .black.opacity(0.68)], startPoint: .center, endPoint: .bottom)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .allowsHitTesting(false)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                if let caption = stamp.caption, !caption.isEmpty {
+                    Text(verbatim: caption).font(CYTypography.cardTitle).foregroundStyle(.white).lineLimit(2).multilineTextAlignment(.leading)
+                }
+                Text(verbatim: number).font(CYTypography.caption.monospaced()).foregroundStyle(.white.opacity(0.82))
+            }
+            .padding(CYSpacing.lg)
+        }
+        .cyFoilSheen(trigger: flipped ? 0 : 1)
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(Text(verbatim: ChannelCopy.text("双击翻面查看详情", "Double-tap to flip for details", locale: locale)))
+    }
+    private var back: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack {
+                CYStatusChip("roam.experience.cityStamp", systemImage: "seal.fill")
+                Spacer(minLength: CYSpacing.sm)
+                Text(verbatim: number).font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
+            }
+            Divider()
+            if let day { CYFactRow(label: Text(verbatim: ChannelCopy.text("盖章日期", "Collected on", locale: locale)), value: day) }
+            CYFactRow(label: Text(verbatim: ChannelCopy.text("编号", "Number", locale: locale)), value: number)
+            if let caption = stamp.caption, !caption.isEmpty {
+                Text(verbatim: caption).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
+                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .cyAlbumCard(padding: CYSpacing.lg)
+    }
+}
+
 struct RoamStampCard: View {
     let stamp: RoamAlbumStamp
     let offline: Bool

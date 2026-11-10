@@ -7,6 +7,8 @@ import ImageIO
     let reader: any ObjectCardReading
     var media: (any ObjectCardImageLoading)? = nil
     @State private var model = ObjectCardCollectionModel()
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Namespace private var hero
     private var scope: UUID { reader.scope }
     var body: some View {
         List {
@@ -43,25 +45,24 @@ import ImageIO
                             ObjectCardsEmptyTitle(isAllCategories: model.category == .all)
                                 .accessibilityIdentifier("objects.empty")
                         }
-                        // Preserve duplicate source rows safely rather than accidentally conflating IDs.
-                        ForEach(Array(collection.cards.enumerated()), id: \.offset) { _, card in
-                            let capturedScope = model.loadedScope ?? scope
-                            NavigationLink {
-                                ObjectCardDetailView(card: card, reader: reader, expectedScope: capturedScope, media: media)
-                            } label: {
-                                QuestifyImageEntityCard(imageSource: nil, title: card.title, subtitle: card.caption,
-                                    fallbackTitle: "objects.item", minimumHeight: 210) {
-                                    Text(verbatim: card.category.isEmpty ? "—" : card.category)
-                                    if card.generating { CYStatusChip("objects.generating", tone: .info, systemImage: "hourglass") }
-                                    if !card.place.isEmpty { Text(verbatim: card.place) }
+                    }
+                    if !collection.cards.isEmpty {
+                        Section {
+                            // Collection grid (one grid for every collection). Duplicate source rows keep their offset identity.
+                            LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
+                                ForEach(Array(collection.cards.enumerated()), id: \.offset) { offset, card in
+                                    let capturedScope = model.loadedScope ?? scope
+                                    NavigationLink {
+                                        ObjectCardDetailView(card: card, reader: reader, expectedScope: capturedScope, media: media)
+                                            .cyHeroDestination(offset, in: hero)
+                                    } label: {
+                                        ObjectCardTile(card: card, media: media, expectedScope: capturedScope, currentScope: { reader.scope })
+                                            .cyHeroSource(offset, in: hero)
+                                    }.buttonStyle(QuestifyCardButtonStyle())
+                                        .accessibilityIdentifier("objects.card.\(card.id)")
                                 }
-                                .overlay(alignment: .topLeading) {
-                                    ObjectCardArtwork(url: card.thumbnail, label: card.title, media: media,
-                                        expectedScope: capturedScope, currentScope: { reader.scope })
-                                        .frame(width: 96, height: 96).padding(16)
-                                }
-                            }.buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
-                                .accessibilityIdentifier("objects.card.\(card.id)")
+                            }
+                            .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
                         }
                     }
                 }
@@ -88,25 +89,22 @@ import ImageIO
     var media: (any ObjectCardImageLoading)? = nil
     @State private var frame = 0
     @State private var drag: CGFloat = 0
+    @State private var flipped = false
+    @Environment(\.locale) private var locale
+    private var isFoil: Bool { card.cardStyle != "plain" }
     var body: some View {
         List {
             if reader.scope != expectedScope || !reader.isAuthenticated { Text("objects.sessionChanged") }
             else {
                 Section {
-                    ObjectCardArtwork(url: card.frame(at: frame), label: card.title, media: media,
-                        expectedScope: expectedScope, currentScope: { reader.scope })
-                        .frame(maxWidth: .infinity, minHeight: 240)
-                        .accessibilityValue(card.hasRotationFrames ? "\(frame + 1) / \(card.frames.count)" : "")
-                        .accessibilityAdjustableAction { direction in
-                            guard card.hasRotationFrames else { return }
-                            switch direction { case .increment: move(1); case .decrement: move(-1); @unknown default: break }
-                        }
-                        .gesture(DragGesture().onChanged { value in
-                            guard card.hasRotationFrames else { return }
-                            let delta = value.translation.width - drag
-                            let steps = Int(delta / 8)
-                            if steps != 0 { drag += CGFloat(steps * 8); move(steps) }
-                        }.onEnded { _ in drag = 0 })
+                    // Front: the artwork (drag still turns the frames). Back: the card's facts. Foil cards catch the light.
+                    CYFlipCard(flipped: $flipped, flipActionTitle: Text(verbatim: ChannelCopy.text("翻面", "Flip", locale: locale))) {
+                        artwork
+                    } back: {
+                        facts
+                    }
+                    .cyFoilSheen(active: isFoil, trigger: flipped ? 0 : 1)
+                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
                     if card.hasRotationFrames {
                         HStack {
                             Button("objects.previous") { move(-1) }.accessibilityIdentifier("objects.frame.previous")
@@ -138,9 +136,83 @@ import ImageIO
         }.cyGroupedSurface().appNavigationTitle("objects.item").privacySensitive()
             .accessibilityIdentifier("objects.detail")
     }
+    private var artwork: some View {
+        ObjectCardArtwork(url: card.frame(at: frame), label: card.title, media: media,
+            expectedScope: expectedScope, currentScope: { reader.scope })
+            .frame(maxWidth: .infinity, minHeight: 240)
+            .padding(CYSpacing.md)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityValue(card.hasRotationFrames ? "\(frame + 1) / \(card.frames.count)" : "")
+            .accessibilityAdjustableAction { direction in
+                guard card.hasRotationFrames else { return }
+                switch direction { case .increment: move(1); case .decrement: move(-1); @unknown default: break }
+            }
+            .gesture(DragGesture().onChanged { value in
+                guard card.hasRotationFrames else { return }
+                let delta = value.translation.width - drag
+                let steps = Int(delta / 8)
+                if steps != 0 { drag += CGFloat(steps * 8); move(steps) }
+            }.onEnded { _ in drag = 0 })
+    }
+    private var facts: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            HStack {
+                Text(card.cardStyle == "plain" ? "objects.plain" : "objects.foil").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                Spacer(minLength: CYSpacing.sm)
+                Image(systemName: isFoil ? "sparkles" : "rectangle.portrait").foregroundStyle(isFoil ? CYAlbumMotion.gold : CYColor.textTertiary).accessibilityHidden(true)
+            }
+            Divider()
+            Text(verbatim: card.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            if !card.category.isEmpty {
+                CYFactRow(label: Text("objects.category"), value: card.category)
+            }
+            if !card.place.isEmpty { CYFactRow(label: Text("objects.place"), value: card.place) }
+            if !card.caption.isEmpty {
+                Text(verbatim: card.caption).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+            Text(verbatim: ChannelCopy.text("轻点翻回正面", "Tap to turn back", locale: locale))
+                .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 240, alignment: .topLeading)
+        .cyAlbumCard(padding: CYSpacing.lg)
+    }
     private func move(_ step: Int) {
         guard card.hasRotationFrames else { return }
         frame = ((frame + step) % card.frames.count + card.frames.count) % card.frames.count
+    }
+}
+
+/// Collection tile: artwork on a raised plate, title, one state chip, place. Foil cards catch the light; a generating card says so.
+@MainActor struct ObjectCardTile: View {
+    let card: ObjectCard
+    var media: (any ObjectCardImageLoading)? = nil
+    let expectedScope: UUID
+    let currentScope: () -> UUID
+    private var isFoil: Bool { card.cardStyle != "plain" }
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            ZStack {
+                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).fill(CYColor.bgRaised)
+                ObjectCardArtwork(url: card.thumbnail, label: card.title, media: media, expectedScope: expectedScope, currentScope: currentScope)
+                    .padding(CYSpacing.sm)
+            }
+            .frame(height: 132)
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            .cyFoilSheen(active: isFoil, cornerRadius: CYRadius.md)
+            Text(verbatim: card.title)
+                .font(CYTypography.bodyCompact.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                .lineLimit(2).multilineTextAlignment(.leading).fixedSize(horizontal: false, vertical: true)
+            if card.generating { CYStatusChip("objects.generating", tone: .info, systemImage: "hourglass") }
+            else if isFoil { CYStatusChip("objects.foil", tone: .info, systemImage: "sparkles") }
+            else { CYStatusChip("objects.plain") }
+            if !card.place.isEmpty {
+                Text(verbatim: card.place).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cyAlbumCard()
+        .accessibilityElement(children: .combine)
     }
 }
 
