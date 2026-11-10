@@ -85,3 +85,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - NativeMotionReminderViews: done (CYPillButton primary send/read, CYSkeleton, CYHeroHeader on purpose sheet)
 - NativeEnrollmentView: done (CYHeroHeader, CYPillButton, CYSkeleton)
 - NativeChannelWelcomeView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
+
+## Batch 13 (reverse)
+- NativeChannelScreenPresentation: SKIPPED (ViewModifiers only, no visible view)
+- NativeChannelProgressOwnHistoryView: done (CYHeroHeader, CYSkeleton)
+- NativeChannelProgressBoardView: done (CYHeroHeader, CYSkeleton)
+- NativeChannelOnboardingView: done (CYHeroHeader, CYEmptyState, CYSkeleton)
+- NativeChannelManagementViews: partial (CYSkeleton for busy states; directory/detail keep their own navigation titles and ncmText empty states, untouched to avoid behaviour risk in a 567-line admin screen)
