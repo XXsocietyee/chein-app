@@ -567,22 +567,26 @@ struct CYScanStage<Preview: View>: View {
     @QuestifyReduceMotion private var reduceMotion
 
     var body: some View {
-        ZStack {
-            if state.showsCard {
-                CYScanResultCard(state: state, content: card, onDone: onDone)
-                    .frame(maxWidth: 340)
-                    .modifier(CYScanMatched(namespace: namespace, enabled: !reduceMotion))
-                    .transition(.opacity)
-            } else {
-                CYViewfinder(state: state, preview: preview)
-                    .modifier(CYScanMatched(namespace: namespace, enabled: !reduceMotion))
-                    .transition(.opacity)
-            }
+        let animation: Animation = reduceMotion ? CYMotion.reduced : .spring(response: 0.42, dampingFraction: 0.86)
+        let key = state.phaseKey
+        return stageContent
+            .animation(animation, value: state.showsCard)
+            .cyHaptic(.impactMedium, trigger: key) { _, new in new == .detected }
+            .cyHaptic(.warning, trigger: key) { _, new in new == .failure }
+            .cyHaptic(.impactLight, trigger: key) { old, new in old == .idle && new == .scanning }
+    }
+
+    @ViewBuilder private var stageContent: some View {
+        if state.showsCard {
+            CYScanResultCard(state: state, content: card, onDone: onDone)
+                .frame(maxWidth: 340)
+                .modifier(CYScanMatched(namespace: namespace, enabled: !reduceMotion))
+                .transition(.opacity)
+        } else {
+            CYViewfinder(state: state, preview: preview)
+                .modifier(CYScanMatched(namespace: namespace, enabled: !reduceMotion))
+                .transition(.opacity)
         }
-        .animation(reduceMotion ? CYMotion.reduced : .spring(response: 0.42, dampingFraction: 0.86), value: state.showsCard)
-        .cyHaptic(.impactMedium, trigger: state.phaseKey) { _, new in new == .detected }
-        .cyHaptic(.warning, trigger: state.phaseKey) { _, new in new == .failure }
-        .cyHaptic(.impactLight, trigger: state.phaseKey) { old, new in old == .idle && new == .scanning }
     }
 }
 
