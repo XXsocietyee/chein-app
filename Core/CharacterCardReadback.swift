@@ -138,20 +138,20 @@ public struct CharacterCardPageModel: Equatable {
     public init(isCurrent: Bool, availability: WorldFactAvailability, card: CharacterCard?, issue: PlayExperienceError?) {
         switch issue {
         case .malformed:
-            self.init(blank: .unknown)
+            self = Self(blank: .unknown)
             return
         case .unknownResult, .rejected, .unauthorized, .staleSession, .unsupported, .persistenceUnavailable, .busy, .invalidAction:
-            self.init(blank: .error)
+            self = Self(blank: .error)
             return
         case .disabled, nil:
             break
         }
         if availability == .unknown {
-            self.init(blank: .unknown)
+            self = Self(blank: .unknown)
             return
         }
         guard isCurrent, availability == .ready, let card else {
-            self.init(blank: .loading)
+            self = Self(blank: .loading)
             return
         }
         let values = card.attributes.map { String($0.value) }
