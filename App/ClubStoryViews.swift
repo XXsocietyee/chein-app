@@ -72,7 +72,7 @@ struct ClubStoryEmptyState: View {
     let detail: LocalizedStringKey
     var body: some View {
         // Mini-program cy-empty: title only; the explanatory detail line is no longer shown.
-        Text(title).foregroundStyle(.secondary).padding(.vertical, 8)
+        CYEmptyState(systemImage: "map", title)
     }
 }
 struct ClubStoryChapterTitle: View {
@@ -89,11 +89,11 @@ struct ClubStoryChapterHeader: View {
     let chapter: ClubStoryChapter
     var body: some View {
         VStack(alignment: .leading, spacing: 5) {
-            ClubStoryChapterTitle(chapter: chapter).font(.headline)
-            if chapter.stops.isEmpty { Text("club.story.awaitingMerchants") }
+            ClubStoryChapterTitle(chapter: chapter).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+            if chapter.stops.isEmpty { CYStatusChip("club.story.awaitingMerchants", tone: .neutral, systemImage: "hourglass") }
             else {
-                Text("club.story.stopCount \(chapter.stops.count)")
-                if let minutes = chapter.totalTime { Text("club.story.minutes \(minutes.formatted(.number.precision(.fractionLength(0...2))))") }
+                Text("club.story.stopCount \(chapter.stops.count)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                if let minutes = chapter.totalTime { Text("club.story.minutes \(minutes.formatted(.number.precision(.fractionLength(0...2))))").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             }
         }.textCase(nil)
     }
@@ -121,21 +121,20 @@ struct ClubStoryChapterHeader: View {
             if let minutes = stop.estimatedWalkingMinutes {
                 VStack(alignment: .leading, spacing: 4) {
                     LabeledContent("topic.itinerary.estimatedWalkMinutes") { Text(minutes, format: .number) }
-                    Text("topic.itinerary.estimateNotice").font(.caption).foregroundStyle(.secondary)
+                    Text("topic.itinerary.estimateNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }.accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.story.walk.\(stop.id)")
             }
             ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader, seed: stop.name ?? String(stop.id))
                 .overlay(alignment: .topLeading) {
-                    Label("club.story.stop \(stop.sequence)", systemImage: "mappin.circle.fill").font(.caption.weight(.semibold)).foregroundStyle(.white)
-                        .padding(.horizontal, 10).frame(minHeight: 28).background(.black.opacity(0.55), in: Capsule()).padding(CYSpacing.sm)
+                    CYStatusChip("club.story.stop \(stop.sequence)", tone: .neutral, systemImage: "mappin.circle.fill").padding(CYSpacing.sm)
                 }
             if let name = stop.name { Text(verbatim: name).font(CYTypography.sectionTitle) }
-            else { Text("club.story.unnamedStop").font(.headline) }
+            else { Text("club.story.unnamedStop").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
             if let time = stop.businessTime { Label { Text(verbatim: time) } icon: { Image(systemName: "clock") } }
-            else { Text("club.story.hoursUnavailable").foregroundStyle(.secondary) }
+            else { CYStatusChip("club.story.hoursUnavailable", tone: .neutral, systemImage: "clock") }
             if let address = stop.address { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") } }
-            else { Text("club.story.addressUnavailable").foregroundStyle(.secondary) }
+            else { CYStatusChip("club.story.addressUnavailable", tone: .neutral, systemImage: "mappin.slash") }
         }.padding(.vertical, 6).fixedSize(horizontal: false, vertical: true)
             .accessibilityElement(children: .contain).accessibilityIdentifier("club.story.stop.\(stop.id)")
     }
@@ -150,15 +149,15 @@ struct ClubStoryChapterHeader: View {
                 if let code = play.validationMethod, let method = TemplateAuthoringMethod(rawValue: code) { Text(LocalizedStringKey(method.labelKey)) }
                 else if let label = play.validationMethodLabel { Text(verbatim: label) }
                 else { Text("club.story.play") }
-                if !play.isAnswerable { Text("club.story.noAnswer").foregroundStyle(.secondary) }
-            }.font(.caption.weight(.semibold))
+                if !play.isAnswerable { CYStatusChip("club.story.noAnswer", tone: .neutral, systemImage: "nosign") }
+            }.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
             Group {
                 if let title = play.title { Text(verbatim: title) }
                 else { Text("discovery.untitledPlay") }
-            }.font(.headline).accessibilityIdentifier("club.gov.fact.title")
-            Text("club.story.stop \(play.sequence)").font(.subheadline)
+            }.font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("club.gov.fact.title")
+            Text("club.story.stop \(play.sequence)").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("club.story.play.\(play.id)")
-            if let name = play.nodeName { Text(verbatim: name).font(.subheadline) }
+            if let name = play.nodeName { Text(verbatim: name).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
             if let players = play.players { Label { Text(verbatim: players) } icon: { Image(systemName: "person.2") } }
             if let duration = play.duration { Label { Text("club.story.minutes \(duration.formatted(.number.precision(.fractionLength(0...2))))") } icon: { Image(systemName: "clock") } }
             if let difficulty = play.difficulty { Text("club.story.difficulty \(difficulty)") }
