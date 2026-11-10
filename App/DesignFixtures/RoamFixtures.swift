@@ -28,13 +28,37 @@ enum RoamFixtures {
         }
     }
 
-    static let items: [CYRoamNearbyItem] = [
-        CYRoamNearbyItem(id: "a", title: "Dongmen Night Market", meta: "Market · 240 m", symbol: "cart"),
-        CYRoamNearbyItem(id: "b", title: "Laojie Teahouse", meta: "Tea · 380 m", symbol: "cup.and.saucer"),
-        CYRoamNearbyItem(id: "c", title: "Binjiang Park Stage", meta: "Event tonight · 520 m", symbol: "music.note"),
-        CYRoamNearbyItem(id: "d", title: "Lane 9 Bookshop", meta: "Books · 610 m", symbol: "book"),
-        CYRoamNearbyItem(id: "e", title: "Harbor Roof", meta: "Viewpoint · 790 m", symbol: "binoculars"),
+    private static let rows: [(id: String, title: String, category: String, meters: Double, symbol: String)] = [
+        ("a", "Dongmen Night Market", "market", 240, "cart"),
+        ("b", "Laojie Teahouse", "tea", 380, "cup.and.saucer"),
+        ("c", "Binjiang Park Stage", "event", 520, "music.note"),
+        ("d", "Lane 9 Bookshop", "books", 610, "book"),
+        ("e", "Harbor Roof", "viewpoint", 790, "binoculars"),
     ]
+
+    private static func category(_ id: String, locale: Locale) -> String {
+        switch id {
+        case "market": return appLocalized("roam.nearby.cat.market", locale: locale)
+        case "tea": return appLocalized("roam.nearby.cat.tea", locale: locale)
+        case "event": return appLocalized("roam.nearby.cat.event", locale: locale)
+        case "books": return appLocalized("roam.nearby.cat.books", locale: locale)
+        default: return appLocalized("roam.nearby.cat.viewpoint", locale: locale)
+        }
+    }
+
+    /// Category and distance are localized for the in-app language (catalog keys + a locale-aware `MeasurementFormatter`).
+    static func items(locale: Locale) -> [CYRoamNearbyItem] {
+        let formatter = MeasurementFormatter()
+        formatter.locale = locale
+        formatter.unitStyle = .medium
+        formatter.unitOptions = .providedUnit
+        formatter.numberFormatter.maximumFractionDigits = 0
+        return rows.map { row in
+            let category = Self.category(row.category, locale: locale)
+            let distance = formatter.string(from: Measurement(value: row.meters, unit: UnitLength.meters))
+            return CYRoamNearbyItem(id: row.id, title: row.title, meta: appLocalized("roam.nearby.meta \(category) \(distance)", locale: locale), symbol: row.symbol)
+        }
+    }
 
     @MainActor private static func wrap<V: View>(_ view: V) -> AnyView {
         AnyView(view.preferredColorScheme(.dark).background(Color.black.ignoresSafeArea()))
@@ -53,6 +77,8 @@ private struct RoamFixtureStage: View {
     @State private var tick = 0
     @State private var percent: Int? = 38
     @QuestifyReduceMotion private var reduceMotion
+    @Environment(\.locale) private var locale
+    private var items: [CYRoamNearbyItem] { RoamFixtures.items(locale: locale) }
 
     init(initial: RoamPhase, sheet: CYRoamSheetDetent = .peek, selected: String? = nil, loopReveal: Bool = false) {
         self.initial = initial; self.sheet = sheet; self.selected = selected; self.loopReveal = loopReveal
@@ -71,7 +97,7 @@ private struct RoamFixtureStage: View {
                 CYFogLayer(explored: 0.38, trail: [CGPoint(x: 0.34, y: 0.62), CGPoint(x: 0.42, y: 0.74), CGPoint(x: 0.6, y: 0.7)],
                            revealTick: tick, radiusScale: phase.fogRadiusScale, animated: phase.animatesFog)
                     .ignoresSafeArea()
-                ForEach(RoamFixtures.items) { item in
+                ForEach(items) { item in
                     if let spot = pinSpots[item.id] {
                         CYRoamPin(symbol: item.symbol, selected: selectedID == item.id)
                             .position(x: geo.size.width * spot.x, y: geo.size.height * spot.y)
@@ -92,11 +118,11 @@ private struct RoamFixtureStage: View {
                 goButton.position(x: geo.size.width * 0.5, y: geo.size.height * (sheet == .peek ? 0.74 : 0.30))
                     .opacity(detent == .peek ? 1 : 0)
                 CYRoamNearbySheet(detent: $detent) {
-                    Text(verbatim: "Nearby · \(RoamFixtures.items.count)").font(.headline).foregroundStyle(CYColor.textPrimary)
+                    Text(verbatim: appLocalized("roam.nearby.header \(items.count)", locale: locale)).font(.headline).foregroundStyle(CYColor.textPrimary)
                 } content: {
                     ScrollView {
                         LazyVStack(spacing: CYSpacing.sm) {
-                            ForEach(RoamFixtures.items) { item in
+                            ForEach(items) { item in
                                 CYRoamNearbyCard(item: item, selected: selectedID == item.id) { selectedID = item.id }
                             }
                         }.padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)
