@@ -88,3 +88,6 @@ No file of 66-88 is on a ui/cloud-* branch.
 
 ## Summary (second worker, items 66-88)
 23 files: 21 restyled (some partially, as noted), 2 skipped (TemplatePreferencePreviewView fragment; none merchant-only, none on ui/cloud-*). No new string keys (all existing keys reused); `docs/release/ui-strings-e1-tail.json` is `[]`. Items 1-41 were duplicated work and dropped in favour of ui/main; 42-65 belong to e1.
+
+## Coordinator follow-up: Favorites > Posts
+App/AccountCollectionFavoritesView.swift: each post is now its own elevated card (16 padding, 16 radius, hairline border, 12pt gap via the existing card row); the offline "Example content" header is a one-line CYStatusChip (was a clipped caption row); App/SquareComponents.swift: compact post text limited to 3 lines (was 5). Not done: the mixed zh/en synthetic post text comes from Core/SquareSyntheticFixtures.swift (Core is off limits for this task); em dash for unknown like/comment counts needs an optional count in the model, not a presentation change.
