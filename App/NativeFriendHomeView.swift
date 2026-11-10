@@ -170,7 +170,7 @@ import SwiftUI
             if flow.phase == .ready && flow.friends.isEmpty {
                 Section {
                     CYEmptyState(systemImage: "person.2", "friend.emptyFriends", tableName: "NativeFriend")
-                    CYPillButton("friend.new", tableName: "NativeFriend", systemImage: "person.badge.plus") { addingFriend = true }
+                    CYPillButton("friend.new", systemImage: "person.badge.plus", tableName: "NativeFriend") { addingFriend = true }
                         .disabled(!flow.canWrite)
                 }
             } else if flow.groups.isEmpty {
