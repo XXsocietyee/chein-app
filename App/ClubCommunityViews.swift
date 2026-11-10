@@ -613,7 +613,7 @@ struct ClubCommunityComposer: View {
             Form {
                 TextEditor(text: $content).frame(minHeight: 150).accessibilityLabel(Text("club.community.content"))
                     .accessibilityIdentifier("club.community.content")
-                Text("\(content.count)/300").font(CYTypography.meta).monospacedDigit().foregroundStyle(content.count > 300 ? CYColor.danger : CYColor.textTertiary)
+                Text("\(content.count)/300").font(CYTypography.meta).monospacedDigit().foregroundStyle(content.count > 300 ? CYColor.dangerText : CYColor.textTertiary)
                 ClubPostImageSectionView(
                     bridge: imageBridge,
                     images: $images,
