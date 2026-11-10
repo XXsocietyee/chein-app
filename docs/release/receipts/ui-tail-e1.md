@@ -40,3 +40,6 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 ## Batch 10
 - DONE ShopNPCScriptedGuideView (tokens + pill), SquareRelatedTopicView (secondary pill link), SupportTicketReadView (hero, kit list rows, empty state, pills, skeleton), TemplateAdditionalSampleBrowserView (hero, CYListRow sample links, pills, tabular dice numbers).
 - SKIPPED ShopNPCFixtureView: DEBUG-only synthetic fixture host (no production UI).
+
+## Batch 11
+- TemplateAdvancedGameConfigurationView (hero, rehearse links -> CYListRow), TemplateAuthoringLaunchView (hero, primary pill + kit rows), TemplateAuthoringMineView (hero, kit rows/pills, skeleton, read-state copy), TemplateAuthoringView (hero for editor/review/preview, pills for secondary actions; existing questifyPrimary publish/continue kept), TemplateCoinFlipRehearsalView (hero, pills, data numerals). Creator/authoring = player surface, dark.

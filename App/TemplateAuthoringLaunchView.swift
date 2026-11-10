@@ -28,22 +28,22 @@ extension AppSession {
     @State private var editorVisit: UUID?
     var body: some View {
         List {
+            Section { CYHeroHeader("templateAuthor.title") }.e1HeroRow()
             Section {
-                Button { editorVisit = UUID() } label: {
-                    Label("templateAuthor.title", systemImage: "square.and.pencil")
-                }.accessibilityIdentifier("templateAuthor.openEditor")
+                CYPillButton("templateAuthor.title", systemImage: "square.and.pencil") { editorVisit = UUID() }
+                    .accessibilityIdentifier("templateAuthor.openEditor").e1ActionRow()
                 NavigationLink {
                     TemplateAuthoringMineView(coordinator: session.templateShelfCoordinator(), sessionRevision: session.sessionRevision, memberDetail: { AnyView(SessionOwnedMemberTemplateDetailView(id: $0)) }, ownerConfiguration: { AnyView(SessionOwnedTemplateConfigurationView(id: $0)) }, creatorConsent: { AnyView(SessionWorkshopCreatorConsentView(selection: $0)) })
                         .id(session.templateShelfViewIdentity)
-                } label: { Label("templateAuthor.mine", systemImage: "square.stack") }
+                } label: { CYListRow("templateAuthor.mine", trailing: .none) { CYRowIcon(systemImage: "square.stack") } }
                     .accessibilityIdentifier("templateAuthor.openMine")
                 NavigationLink {
                     PrefabPreviewView(store: session.prefabPreviewStore, identity: .preview,
                                       sessionRevision: session.sessionRevision, currentSession: { session.currentTemplateAuthoringSession })
-                } label: { Label("templateAuthor.prefab.title", systemImage: "book.pages") }
+                } label: { CYListRow("templateAuthor.prefab.title", trailing: .none) { CYRowIcon(systemImage: "book.pages") } }
                     .accessibilityIdentifier("templateAuthor.openPrefab")
             }
-        }.appNavigationTitle("templateAuthor.title")
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
             .onChange(of: session.templateAuthoringViewIdentity) { _, _ in editorVisit = nil }
             .navigationDestination(item: $editorVisit) { visit in
                 TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor() },
@@ -90,7 +90,7 @@ extension AppSession {
                     library: owner.completion.library)
                     .modifier(TemplateAuthoringPublishCompletion(coordinator: owner.coordinator,
                         library: owner.completion.library))
-            } else { Text("discovery.templateSessionChanged") }
+            } else { CYEmptyState(systemImage: "arrow.clockwise", "discovery.templateSessionChanged") }
         }.accessibilityIdentifier("templateAuthor.entryFlow")
     }
 }
