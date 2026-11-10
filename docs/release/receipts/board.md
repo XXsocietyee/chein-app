@@ -65,3 +65,11 @@
 - ut-d4-ops-create [x] 79a606663. PR 1056. Fixture test only. Not merged.
 - ut-d4-tab-overview [x] 7ee572702. PR 1057. Fixture test only. Not merged.
 - ut-d2-search-results [x] 934f276fc. PR 1058. Fixture test only. Not merged.
+- ut-d2-home [x] c9a502b76. PR 1059. Fixture test only. Not merged.
+- ut-d4-members [x] 23be11f35. PR 1060. Fixture test only. Not merged.
+- ut-e1-discovery [x] c77a48de9. PR 1061. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d4-stamps-empty [x] bcab2d80f. PR 1062. Fixture test only. Not merged.
+- ut-d4-channels [x] 778bae2ed. PR 1063. Test plus a 12-line project registration. Not merged.
+- ut-e1-bundle-detail [x] cc4a7fb1c. PR 1064. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-live [x] b200cb770. PR 1065. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d2-npc [x] ee582e7c4. PR 1066. Fixture test only. Not merged.
