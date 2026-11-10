@@ -101,7 +101,7 @@ extension EnvironmentValues {
                 // Mini-program sub line: 「俱乐部名 · N 个团 · 报名费由平台担保托管」.
                 Section {
                     teamCountRow.accessibilityIdentifier("club.enroll.headerLine")
-                    Label("club.enroll.escrow", systemImage: "lock.shield").foregroundStyle(.secondary)
+                    Label("club.enroll.escrow", systemImage: "lock.shield").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("club.enroll.escrow")
                 } header: {
                     if let name = reader.clubName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name) }
@@ -114,7 +114,11 @@ extension EnvironmentValues {
                     Section {
                         Button { Task { if canRead { await reader.toggle(topicID: team.id) } } } label: {
                             HStack(alignment: .top) {
-                                if let image = team.image { SquareImage(source: image).frame(width: 52, height: 52).clipped().accessibilityHidden(true) }
+                                Group {
+                                    if let image = team.image { SquareImage(source: image) }
+                                    else { CYIMCoverArt(seed: "\(clubID)-\(team.id)", systemImage: "flag.fill", symbolSize: 20) }
+                                }
+                                .frame(width: 52, height: 52).clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous)).accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: 4) {
                                     title(team.name, fallback: "club.enroll.unnamedTeam").font(.headline)
                                     HStack(spacing: 4) {

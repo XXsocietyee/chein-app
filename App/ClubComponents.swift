@@ -350,7 +350,7 @@ struct E3FileCard: View {
             Image(systemName: "arrow.down.circle").font(.title3).opacity(0.8)
         }
         .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
-        .padding(CYSpacing.md).frame(maxWidth: 260)
+        .padding(CYSpacing.md).frame(maxWidth: typeSize.isAccessibilitySize ? 340 : 260, alignment: .leading)
         .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
         .accessibilityElement(children: .combine)
     }
