@@ -198,7 +198,29 @@ func imShownName(_ name: String) -> String {
     private var hasPendingState: Bool { if case .idle = model.state { return false }; return true }
     private var displayedMuted: Bool? { acknowledgedMuted ?? isMuted }
     var body: some View {
-        Form {
+        Form { controlsSections }
+        .disabled(identity != model.owner.scope.identity || !isConversationCurrent())
+        .sheet(isPresented: $showingTopics) {
+            if permitsReply, let topicReader {
+                let appearance = model.appearance
+                NavigationStack { ContextualTopicPicker(reader: topicReader) { row in
+                    guard let appearance, model.appearance == appearance, permitsReply else { return }; selectedTopic = row
+                } }
+                .presentationDetents([.large])
+                .presentationDragIndicator(.visible)
+            }
+        }
+        .cyGroupedSurface()
+        .cyHeroScreen().privacySensitive()
+        .accessibilityIdentifier("im.full.controls")
+        .onAppear { model.observe() }
+        .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
+        .onChange(of: identity) { _, _ in clearDrafts(); acknowledgedMuted = nil; model.invalidateQueued(); model.state = model.owner.visibleState }
+        .onChange(of: permitsReply) { _, allowed in if !allowed { clearDrafts(); model.invalidateQueued() } }
+        .onChange(of: isConversationCurrent()) { _, current in if !current { clearDrafts(); model.invalidateQueued() } }
+        .onDisappear { clearDrafts(); model.retire() }
+    }
+    @ViewBuilder private var controlsSections: some View {
             Section { IMScreenTitle(title: "im.full.title") }
             if hasPendingState {
                 Section { pendingRows }
@@ -266,27 +288,6 @@ func imShownName(_ name: String) -> String {
                 CYEmptyState(systemImage: "bubble.left.and.exclamationmark.bubble.right", "d7.chatInfo.unavailable", kind: .inbox)
             }
         }
-        .disabled(identity != model.owner.scope.identity || !isConversationCurrent())
-        .sheet(isPresented: $showingTopics) {
-            if permitsReply, let topicReader {
-                let appearance = model.appearance
-                NavigationStack { ContextualTopicPicker(reader: topicReader) { row in
-                    guard let appearance, model.appearance == appearance, permitsReply else { return }; selectedTopic = row
-                } }
-                .presentationDetents([.large])
-                .presentationDragIndicator(.visible)
-            }
-        }
-        .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive()
-        .accessibilityIdentifier("im.full.controls")
-        .onAppear { model.observe() }
-        .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
-        .onChange(of: identity) { _, _ in clearDrafts(); acknowledgedMuted = nil; model.invalidateQueued(); model.state = model.owner.visibleState }
-        .onChange(of: permitsReply) { _, allowed in if !allowed { clearDrafts(); model.invalidateQueued() } }
-        .onChange(of: isConversationCurrent()) { _, current in if !current { clearDrafts(); model.invalidateQueued() } }
-        .onDisappear { clearDrafts(); model.retire() }
-    }
     @ViewBuilder private var pendingRows: some View {
         switch model.state {
         case .reviewing(let mutation):
@@ -485,7 +486,15 @@ struct IMMutationSummary: View {
         _model = StateObject(wrappedValue: IMStartViewModel(owner)); self.identity = identity; self.onStarted = onStarted
     }
     var body: some View {
-        Form {
+        Form { startSections }.disabled(identity != model.owner.identity || !model.owner.writer.isConfigured)
+        .cyGroupedSurface()
+        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.start")
+        .onAppear { model.observe() }
+        .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
+        .onChange(of: identity) { _, _ in target = ""; model.state = model.owner.visibleState }
+        .onDisappear { target = ""; model.owner.cancelReview() }
+    }
+    @ViewBuilder private var startSections: some View {
             Section { IMScreenTitle(title: "d7.newChat.title") }
             if model.owner.writer.isConfigured {
                 Section {
@@ -511,14 +520,7 @@ struct IMMutationSummary: View {
             } else {
                 CYEmptyState(systemImage: "bubble.left.and.bubble.right", "d7.newChat.unavailable", kind: .inbox)
             }
-        }.disabled(identity != model.owner.identity || !model.owner.writer.isConfigured)
-        .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.start")
-        .onAppear { model.observe() }
-        .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
-        .onChange(of: identity) { _, _ in target = ""; model.state = model.owner.visibleState }
-        .onDisappear { target = ""; model.owner.cancelReview() }
-    }
+        }
 }
 struct IMUploadSubmission: Equatable {
     enum Operation: Equatable { case select, upload }
@@ -576,7 +578,15 @@ struct IMUploadSubmission: Equatable {
         _model = StateObject(wrappedValue: IMUploadViewModel(owner)); self.identity = identity; self.canReply = canReply; self.onReviewImage = onReviewImage
     }
     var body: some View {
-        Form {
+        Form { photoSections }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
+        .cyGroupedSurface()
+        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.imageCompose")
+        .onAppear { model.observe() }
+        .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
+        .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
+        .onDisappear { model.retire() }
+    }
+    @ViewBuilder private var photoSections: some View {
             Section { IMScreenTitle(title: "d7.imPhoto.title") }
             if model.owner.isConfigured {
                 Section {
@@ -603,14 +613,7 @@ struct IMUploadSubmission: Equatable {
             } else {
                 CYEmptyState(systemImage: "photo", "d7.imPhoto.unavailable", kind: .photos)
             }
-        }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
-        .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.imageCompose")
-        .onAppear { model.observe() }
-        .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
-        .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
-        .onDisappear { model.retire() }
-    }
+        }
     private func submit(_ operation: IMUploadSubmission.Operation) {
         guard identity == model.owner.scope.identity,
               let token = model.prepare(operation, canReply: canReply()) else { return }
@@ -642,7 +645,24 @@ private extension IMOutgoingPayload {
     init(owner: IMExpandedCoordinator,current:@escaping ()->Bool) { _model=StateObject(wrappedValue:IMExpandedViewModel(owner));self.current=current }
     private var available: Bool { phase == .active && current() && model.owner.isCurrent }
     var body: some View {
-        Form {
+        Form { locationSections }.imFlowForm().cyHeroScreen().privacySensitive()
+         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
+         .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
+         .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
+         .sheet(isPresented:$pickingMap) {
+             IMStaticPlaceMapPicker(current:{ available && model.appearance != nil }) { place in
+                 guard available,model.appearance != nil else{return}
+                 name=place.name;address=place.address;latitude=String(place.lat);longitude=String(place.lng)
+                 pickedMapSignature=latitude+"|"+longitude;confirmedDatum=true
+             }
+             .presentationDetents([.large])
+             .presentationDragIndicator(.visible)
+         }
+         .onAppear { if available { model.observe() } }
+         .onDisappear { stopOperation();model.retire();clear() }
+         .onChange(of:available) { _,valid in if !valid { stopOperation();model.retire();clear() } else if model.appearance == nil { model.observe() } }
+    }
+    @ViewBuilder private var locationSections: some View {
             Section { IMScreenTitle(title: "d7.imLocation.title") }
             if available {
                 switch model.state {
@@ -701,23 +721,7 @@ private extension IMOutgoingPayload {
                 case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
             } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
-        }.imFlowForm().cyHeroScreen().privacySensitive()
-         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
-         .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
-         .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
-         .sheet(isPresented:$pickingMap) {
-             IMStaticPlaceMapPicker(current:{ available && model.appearance != nil }) { place in
-                 guard available,model.appearance != nil else{return}
-                 name=place.name;address=place.address;latitude=String(place.lat);longitude=String(place.lng)
-                 pickedMapSignature=latitude+"|"+longitude;confirmedDatum=true
-             }
-             .presentationDetents([.large])
-             .presentationDragIndicator(.visible)
-         }
-         .onAppear { if available { model.observe() } }
-         .onDisappear { stopOperation();model.retire();clear() }
-         .onChange(of:available) { _,valid in if !valid { stopOperation();model.retire();clear() } else if model.appearance == nil { model.observe() } }
-    }
+        }
     private func submit(_ operation: IMExpandedSubmission.Operation) {
         let permits: (IMMutation) -> Bool = { available && isLocation($0) }
         guard operationTask == nil, let token = model.prepare(operation, permits: permits) else { return }
@@ -751,7 +755,20 @@ private extension IMOutgoingPayload {
     private var available:Bool { phase == .active && current() && model.owner.isCurrent }
     private var canShare:Bool { model.owner.writer.canReadRouteShareSource && model.owner.writer.canSendRoute }
     var body:some View {
-        Form {
+        Form { routeSections }.imFlowForm().cyHeroScreen().privacySensitive()
+        .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
+        .sheet(isPresented:$picking) {
+            if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
+                guard available,model.appearance != nil else{return};selected=row
+            } }
+            .presentationDetents([.large])
+            .presentationDragIndicator(.visible) }
+        }
+        .onAppear { if available { model.observe() } }
+        .onDisappear { stopOperation();model.retire();selected=nil;picking=false }
+        .onChange(of:available) { _,value in if !value { stopOperation();model.retire();selected=nil;picking=false } else if model.appearance == nil { model.observe() } }
+    }
+    @ViewBuilder private var routeSections: some View {
             Section { IMScreenTitle(title: "d7.imRoute.title") }
             if available {
                 switch model.state {
@@ -803,19 +820,7 @@ private extension IMOutgoingPayload {
                 case .closed:IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
             } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
-        }.imFlowForm().cyHeroScreen().privacySensitive()
-        .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
-        .sheet(isPresented:$picking) {
-            if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
-                guard available,model.appearance != nil else{return};selected=row
-            } }
-            .presentationDetents([.large])
-            .presentationDragIndicator(.visible) }
         }
-        .onAppear { if available { model.observe() } }
-        .onDisappear { stopOperation();model.retire();selected=nil;picking=false }
-        .onChange(of:available) { _,value in if !value { stopOperation();model.retire();selected=nil;picking=false } else if model.appearance == nil { model.observe() } }
-    }
     private func reviewSelectedSource() {
         guard operationTask == nil, available, let appearance = model.appearance, let selected else { return }
         let id = UUID(); operationID = id
@@ -864,7 +869,13 @@ private extension IMOutgoingPayload {
     }
     var body:some View {
         NavigationStack {
-            Form {
+            Form { mapSections }.imFlowForm().cyHeroScreen().privacySensitive()
+            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.cancel") { dismiss() } } }
+            .onDisappear { retire() }
+            .onChange(of:available) { _,valid in if !valid { retire() } }
+        }
+    }
+    @ViewBuilder private var mapSections: some View {
                 Section { IMScreenTitle(title: "d7.imMap.title") }
                 if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
                 else if !consented {
@@ -913,12 +924,7 @@ private extension IMOutgoingPayload {
                         }
                     }
                 }
-            }.imFlowForm().cyHeroScreen().privacySensitive()
-            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.cancel") { dismiss() } } }
-            .onDisappear { retire() }
-            .onChange(of:available) { _,valid in if !valid { retire() } }
-        }
-    }
+            }
     private func choose(_ coordinate:CLLocationCoordinate2D) {
         guard available,consented,CLLocationCoordinate2DIsValid(coordinate),
               let coarse=try? IMStaticLocation(name:"地图选点",address:"",latitude:coordinate.latitude,

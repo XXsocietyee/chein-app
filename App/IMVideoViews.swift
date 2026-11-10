@@ -19,7 +19,19 @@ import CryptoKit
     }
     var body: some View {
         let _ = revision
-        Form {
+        Form { videoSections }.imFlowForm().cyHeroScreen().privacySensitive()
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
+        .fileImporter(isPresented: $picking, allowedContentTypes: IMVideoPicker.types, allowsMultipleSelection: false) { result in
+            guard available else { return }
+            do { let urls = try result.get(); guard urls.count == 1 else { throw IMVideoFailure.invalid }; guard let policy = owner.selectionPolicy else { throw IMVideoFailure.unavailable }; try owner.select(IMVideoPicker.read(urls[0], policy: policy)); failed = false }
+            catch { failed = true }
+        }
+        .onAppear { owner.onChange = { revision += 1 }; owner.expanded.onChange = { revision += 1 } }
+        .onDisappear { owner.invalidate(); owner.onChange = nil; owner.expanded.onChange = nil; picking = false }
+        .onChange(of: available) { _, value in if !value { picking = false; owner.invalidate() } }
+        .onChange(of: scenePhase) { _, value in if value != .active { picking = false; owner.invalidate() } }
+    }
+    @ViewBuilder private var videoSections: some View {
             Section { IMScreenTitle(title: "d7.imVideo.title") }
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
@@ -93,18 +105,7 @@ import CryptoKit
                     }
                 }
             }
-        }.imFlowForm().cyHeroScreen().privacySensitive()
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
-        .fileImporter(isPresented: $picking, allowedContentTypes: IMVideoPicker.types, allowsMultipleSelection: false) { result in
-            guard available else { return }
-            do { let urls = try result.get(); guard urls.count == 1 else { throw IMVideoFailure.invalid }; guard let policy = owner.selectionPolicy else { throw IMVideoFailure.unavailable }; try owner.select(IMVideoPicker.read(urls[0], policy: policy)); failed = false }
-            catch { failed = true }
         }
-        .onAppear { owner.onChange = { revision += 1 }; owner.expanded.onChange = { revision += 1 } }
-        .onDisappear { owner.invalidate(); owner.onChange = nil; owner.expanded.onChange = nil; picking = false }
-        .onChange(of: available) { _, value in if !value { picking = false; owner.invalidate() } }
-        .onChange(of: scenePhase) { _, value in if value != .active { picking = false; owner.invalidate() } }
-    }
 }
 
 @MainActor struct IMVideoPlaybackView: View {
@@ -123,7 +124,16 @@ import CryptoKit
     @ScaledMetric(relativeTo: .title) private var mediaHeight: CGFloat = 240
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMVideoReference.read(message) != nil }
     var body: some View {
-        Form {
+        Form { playbackSections }.imFlowForm().privacySensitive().cyHeroScreen()
+        .onDisappear { stop() }
+        .onChange(of: available) { _, value in if !value { stop() } }
+        .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
+        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)) { _ in stop() }
+        .onReceive(NotificationCenter.default.publisher(for: IMVideoCoordinator.consumptionRetiredNotification)) { event in
+            if let retired = event.object as? IMVideoCoordinator, retired === owner { stop() }
+        }
+    }
+    @ViewBuilder private var playbackSections: some View {
             Section { IMScreenTitle(title: "d7.imVideo.message") }
             if let reference = IMVideoReference.read(message), available {
                 Section {
@@ -163,15 +173,7 @@ import CryptoKit
             } else { IMFlowStateMessage(text: Text("d7.imVideo.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imVideo.playFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().cyHeroScreen()
-        .onDisappear { stop() }
-        .onChange(of: available) { _, value in if !value { stop() } }
-        .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
-        .onReceive(NotificationCenter.default.publisher(for: AVAudioSession.interruptionNotification)) { _ in stop() }
-        .onReceive(NotificationCenter.default.publisher(for: IMVideoCoordinator.consumptionRetiredNotification)) { event in
-            if let retired = event.object as? IMVideoCoordinator, retired === owner { stop() }
         }
-    }
     private func load() {
         guard available, !loading else { return }
         stop(); let stamp = generation; loading = true; failed = false

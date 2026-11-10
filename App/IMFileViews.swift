@@ -18,7 +18,19 @@ import CryptoKit
     }
     var body: some View {
         let _ = revision
-        Form {
+        Form { fileSections }.imFlowForm().cyHeroScreen().privacySensitive()
+        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
+        .fileImporter(isPresented: $picking, allowedContentTypes: IMFilePicker.types, allowsMultipleSelection: false) { result in
+            guard available else { return }
+            do { let urls = try result.get(); guard urls.count == 1 else { throw IMFileFailure.invalid }; try owner.select(IMFilePicker.read(urls[0])); failed = false }
+            catch { failed = true }
+        }
+        .onAppear { owner.onChange = { revision += 1 }; owner.expanded.onChange = { revision += 1 } }
+        .onDisappear { owner.invalidate(); owner.onChange = nil; owner.expanded.onChange = nil; picking = false }
+        .onChange(of: available) { _, value in if !value { picking = false; owner.invalidate() } }
+        .onChange(of: scenePhase) { _, value in if value != .active { picking = false; owner.invalidate() } }
+    }
+    @ViewBuilder private var fileSections: some View {
             Section { IMScreenTitle(title: "d7.imFile.title") }
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
@@ -83,18 +95,7 @@ import CryptoKit
                     }
                 }
             }
-        }.imFlowForm().cyHeroScreen().privacySensitive()
-        .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
-        .fileImporter(isPresented: $picking, allowedContentTypes: IMFilePicker.types, allowsMultipleSelection: false) { result in
-            guard available else { return }
-            do { let urls = try result.get(); guard urls.count == 1 else { throw IMFileFailure.invalid }; try owner.select(IMFilePicker.read(urls[0])); failed = false }
-            catch { failed = true }
         }
-        .onAppear { owner.onChange = { revision += 1 }; owner.expanded.onChange = { revision += 1 } }
-        .onDisappear { owner.invalidate(); owner.onChange = nil; owner.expanded.onChange = nil; picking = false }
-        .onChange(of: available) { _, value in if !value { picking = false; owner.invalidate() } }
-        .onChange(of: scenePhase) { _, value in if value != .active { picking = false; owner.invalidate() } }
-    }
 }
 
 @MainActor struct IMFilePreviewView: View {
@@ -111,7 +112,15 @@ import CryptoKit
     @ScaledMetric(relativeTo: .title) private var previewHeight: CGFloat = 360
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMFileReference.read(message) != nil }
     var body: some View {
-        Form {
+        Form { previewSections }.imFlowForm().privacySensitive().cyHeroScreen()
+        .onDisappear { stop() }
+        .onChange(of: available) { _, value in if !value { stop() } }
+        .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
+        .onReceive(NotificationCenter.default.publisher(for: IMFileCoordinator.consumptionRetiredNotification)) { event in
+            if let retired = event.object as? IMFileCoordinator, retired === owner { stop() }
+        }
+    }
+    @ViewBuilder private var previewSections: some View {
             Section { IMScreenTitle(title: "d7.imFile.previewTitle") }
             if let reference = IMFileReference.read(message), available {
                 Section {
@@ -134,14 +143,7 @@ import CryptoKit
             } else { IMFlowStateMessage(text: Text("d7.imFile.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imFile.previewFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().cyHeroScreen()
-        .onDisappear { stop() }
-        .onChange(of: available) { _, value in if !value { stop() } }
-        .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
-        .onReceive(NotificationCenter.default.publisher(for: IMFileCoordinator.consumptionRetiredNotification)) { event in
-            if let retired = event.object as? IMFileCoordinator, retired === owner { stop() }
         }
-    }
     private func load() {
         guard available, !loading else { return }
         stop(); let stamp = generation; loading = true; failed = false

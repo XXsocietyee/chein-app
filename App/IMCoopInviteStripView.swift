@@ -35,27 +35,31 @@ import SwiftUI
         }
     }
 
-    private var header: some View {
-        let title = Text(verbatim: copy("合作邀请", "Cooperation invites"))
+    private var stripTitle: some View {
+        Text(verbatim: copy("合作邀请", "Cooperation invites"))
             .font(CYTypography.sectionTitle)
             .foregroundStyle(palette.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
             .accessibilityAddTraits(.isHeader)
-        let picker = Picker(copy("邀请方向", "Invite direction"), selection: $direction) {
+    }
+
+    private var directionPicker: some View {
+        Picker(copy("邀请方向", "Invite direction"), selection: $direction) {
             Text(verbatim: copy("收到", "Received")).tag(CooperationDirection.received)
             Text(verbatim: copy("发出", "Sent")).tag(CooperationDirection.sent)
         }
         .pickerStyle(.segmented)
         .accessibilityIdentifier("im.coopStrip.direction")
-        return Group {
-            if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) { title; picker }
-            } else {
-                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
-                    title
-                    Spacer(minLength: CYSpacing.sm)
-                    picker.frame(maxWidth: 220)
-                }
+    }
+
+    @ViewBuilder private var header: some View {
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) { stripTitle; directionPicker }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
+                stripTitle
+                Spacer(minLength: CYSpacing.sm)
+                directionPicker.frame(maxWidth: 220)
             }
         }
     }
@@ -103,58 +107,68 @@ import SwiftUI
     }
 
     private func cardView(_ card: IMCoopInviteCard) -> some View {
-        let topic = card.topicName ?? copy("未命名主题", "Untitled project")
-        let partner = (card.key.direction == .received ? copy("来自 ", "From ") : copy("发给 ", "To "))
-            + (card.partnerName ?? copy("合作方", "Partner"))
-        let stacked = typeSize.isAccessibilitySize
+        cardChrome(card) {
+            cardCopy(card)
+        }
+    }
+
+    private func cardChrome<Content: View>(_ card: IMCoopInviteCard, @ViewBuilder content: () -> Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
         return VStack(alignment: .leading, spacing: 0) {
             Color.clear
                 .aspectRatio(3.0 / 2.0, contentMode: .fit)
                 .overlay { cover(card) }
                 .clipped()
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                CYStatusChip(verbatim: card.statusText(chinese: chinese), tone: chipTone(card.tone), systemImage: chipSymbol(card.tone))
-                Text(verbatim: topic)
-                    .font(CYTypography.cardTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .lineLimit(stacked ? nil : 2)
-                    .fixedSize(horizontal: false, vertical: true)
-                Text(verbatim: partner)
-                    .font(CYTypography.meta)
-                    .foregroundStyle(palette.textTertiary)
-                    .lineLimit(stacked ? nil : 1)
-                    .fixedSize(horizontal: false, vertical: true)
-                if let line = card.message ?? card.termsLine(chinese: chinese) {
-                    Text(verbatim: line)
-                        .font(CYTypography.bodyCompact)
-                        .foregroundStyle(palette.textSecondary)
-                        .lineLimit(stacked ? nil : 2)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                if card.awaitsMyAnswer {
-                    Label(copy("点开处理", "Open to respond"), systemImage: "arrow.right.circle")
-                        .font(CYTypography.caption.weight(.semibold))
-                        .foregroundStyle(palette.textPrimary)
-                        .labelStyle(.titleAndIcon)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .padding(CYSpacing.lg)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            content()
+                .padding(CYSpacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(width: stacked ? nil : 280)
-        .frame(maxWidth: stacked ? .infinity : nil, alignment: .leading)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-                .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                .allowsHitTesting(false)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .modifier(IMInviteCardWidth(accessibility: typeSize.isAccessibilitySize))
+        .background(palette.bgElevated, in: shape)
+        .overlay { shape.strokeBorder(palette.borderSubtle, lineWidth: 1).allowsHitTesting(false) }
+        .clipShape(shape)
         .accessibilityElement(children: .combine)
-        .accessibilityLabel(Text(verbatim: copy("合作邀请：", "Cooperation invite: ")
-            + (card.partnerName ?? card.topicName ?? "—") + "，" + card.statusText(chinese: chinese)))
+        .accessibilityLabel(Text(verbatim: inviteLabel(card)))
         .accessibilityHint(Text(verbatim: copy("打开邀请详情", "Opens invite details")))
+    }
+
+    private func cardCopy(_ card: IMCoopInviteCard) -> some View {
+        let topic = card.topicName ?? copy("未命名主题", "Untitled project")
+        let partner = (card.key.direction == .received ? copy("来自 ", "From ") : copy("发给 ", "To "))
+            + (card.partnerName ?? copy("合作方", "Partner"))
+        let lines = typeSize.isAccessibilitySize ? 8 : 2
+        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYStatusChip(verbatim: card.statusText(chinese: chinese), tone: chipTone(card.tone), systemImage: chipSymbol(card.tone))
+            Text(verbatim: topic)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(palette.textPrimary)
+                .lineLimit(lines)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: partner)
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textTertiary)
+                .lineLimit(lines)
+                .fixedSize(horizontal: false, vertical: true)
+            if let line = card.message ?? card.termsLine(chinese: chinese) {
+                Text(verbatim: line)
+                    .font(CYTypography.bodyCompact)
+                    .foregroundStyle(palette.textSecondary)
+                    .lineLimit(lines)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if card.awaitsMyAnswer {
+                Label(copy("点开处理", "Open to respond"), systemImage: "arrow.right.circle")
+                    .font(CYTypography.caption.weight(.semibold))
+                    .foregroundStyle(palette.textPrimary)
+                    .labelStyle(.titleAndIcon)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func inviteLabel(_ card: IMCoopInviteCard) -> String {
+        let who = card.partnerName ?? card.topicName ?? "—"
+        return copy("合作邀请：", "Cooperation invite: ") + who + "，" + card.statusText(chinese: chinese)
     }
 
     @ViewBuilder private func cover(_ card: IMCoopInviteCard) -> some View {
@@ -225,6 +239,18 @@ import SwiftUI
         } catch {
             guard !Task.isCancelled, requested == direction else { return }
             phase = .failed(CooperationIssue(error))
+        }
+    }
+}
+
+/// Shelf width grows with accessibility sizes. Kept out of the card expression so the type checker stays bounded.
+private struct IMInviteCardWidth: ViewModifier {
+    let accessibility: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if accessibility {
+            content.frame(maxWidth: .infinity, alignment: .leading)
+        } else {
+            content.frame(width: 280, alignment: .leading)
         }
     }
 }
