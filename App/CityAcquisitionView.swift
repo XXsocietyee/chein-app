@@ -81,7 +81,7 @@ import SwiftUI
         return interactive && controller.canWrite && quote.writeApproved && quote.unexpired
     }
     private var leadQuoteID: String? {
-        controller.snapshot?.candidates.first { interactive && controller.allows($0) }?.id
+        controller.snapshot?.candidates.first(where: { interactive && controller.allows($0) })?.id
     }
     private var lead: Lead {
         if reviewReady { return .review }
@@ -91,107 +91,126 @@ import SwiftUI
     }
     init(controller: CityAcquisitionController) { _controller = State(initialValue: controller) }
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
-                CYHeroHeader("cityAcquire.title", subtitle: "cityAcquire.boundary", tableName: table)
-                CYNoteBanner(text: keyed(controller.messageKey), symbol: controller.busy ? "hourglass" : "info.circle")
-                if controller.busy {
-                    CYSkeleton().accessibilityHidden(true)
-                }
-                CYPillButton("cityAcquire.refresh", style: lead == .refresh ? .primary : .secondary, systemImage: "arrow.clockwise", tableName: table) {
-                    guard interactive else { return }
-                    readID = UUID()
-                }
+        ScrollView { pageColumn }
+            .scrollDismissesKeyboard(.interactively)
+            .cyDomainPageBackground()
+            .cyHeroScreen()
+            .roleTheme(.player)
+            .accessibilityIdentifier("city.acquisition.screen")
+            .sheet(item: confirmationBinding) { captured in confirmationSheet(captured) }
+            .task(id: readID) { guard visible, scenePhase == .active, !Task.isCancelled else { return }; await controller.open(activity: controller.activityID) }
+            .onAppear { visible = true; controller.activate(); readID = UUID() }
+            .onChange(of: scenePhase) { _, phase in
+                controller.suspend()
+                if visible, phase == .active { controller.activate(); readID = UUID() }
+            }
+            .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
+            .onDisappear { visible = false; controller.suspend() }
+    }
+    private var confirmationBinding: Binding<CityAcquisitionQuote?> {
+        Binding(get: { controller.confirmation }, set: { if $0 == nil { controller.cancelConfirmation() } })
+    }
+    private var pageColumn: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+            CYHeroHeader("cityAcquire.title", subtitle: "cityAcquire.boundary", tableName: table)
+            statusBanner
+            refreshControl
+            recoverControl
+            selectedQuoteControl
+            if let receipt = controller.receipt { receiptBlock(receipt) }
+            if let snapshot = controller.snapshot { tasksBlock(snapshot) }
+            titlesBlock
+            Text("cityAcquire.lifecycleBoundary", tableName: table)
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.vertical, CYSpacing.lg)
+    }
+    private var statusBanner: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYNoteBanner(text: keyed(controller.messageKey), symbol: controller.busy ? "hourglass" : "info.circle")
+            if controller.busy { CYSkeleton().accessibilityHidden(true) }
+        }
+    }
+    private var refreshControl: some View {
+        CYPillButton("cityAcquire.refresh", style: lead == .refresh ? .primary : .secondary, systemImage: "arrow.clockwise", tableName: table) {
+            guard interactive else { return }
+            readID = UUID()
+        }
+        .disabled(controller.busy || !interactive)
+        .accessibilityLabel(Text("cityAcquire.refresh", tableName: table))
+    }
+    @ViewBuilder private var recoverControl: some View {
+        if controller.current, controller.originalRequestID != nil {
+            CYNoteBanner(text: Text(controller.pendingRequestID == nil ? "cityAcquire.original.hint" : "cityAcquire.pending.hint", tableName: table), symbol: "clock.arrow.circlepath")
+            CYPillButton("cityAcquire.recover", style: lead == .recover ? .primary : .secondary, tableName: table, action: recoverOriginal)
                 .disabled(controller.busy || !interactive)
-                .accessibilityLabel(Text("cityAcquire.refresh", tableName: table))
-                if controller.current, controller.originalRequestID != nil {
-                    CYNoteBanner(text: Text(controller.pendingRequestID == nil ? "cityAcquire.original.hint" : "cityAcquire.pending.hint", tableName: table), symbol: "clock.arrow.circlepath")
-                    CYPillButton("cityAcquire.recover", style: lead == .recover ? .primary : .secondary, tableName: table, action: recoverOriginal)
-                        .disabled(controller.busy || !interactive)
-                        .accessibilityLabel(Text("cityAcquire.recover", tableName: table))
-                }
-                if let quote = controller.selectedQuote {
-                    quoteContent(quote)
-                    CYPillButton("cityAcquire.reviewConfirmation", style: lead == .review ? .primary : .secondary, tableName: table) {
-                        guard interactive else { return }
-                        controller.prepareConfirmation()
-                    }
-                    .disabled(!interactive || !controller.canWrite || !quote.writeApproved || !quote.unexpired)
-                    .accessibilityLabel(Text("cityAcquire.reviewConfirmation", tableName: table))
-                }
-                if let receipt = controller.receipt {
-                    receiptBlock(receipt)
-                }
-                if let snapshot = controller.snapshot {
-                    Text("cityAcquire.tasks.title", tableName: table)
-                    .font(CYTypography.sectionTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    if snapshot.candidates.isEmpty {
-                        CYEmptyState(systemImage: "flag", "cityAcquire.tasks.none", tableName: table)
-                    }
-                    ForEach(snapshot.candidates) { candidate in
-                        candidateCard(candidate)
-                    }
-                }
-                Text("cityAcquire.titles.title", tableName: table)
-                    .font(CYTypography.sectionTitle)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityAddTraits(.isHeader)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                ForEach(controller.titles) { title in titleContent(title) }
-                Text("cityAcquire.lifecycleBoundary", tableName: table)
-                    .font(CYTypography.meta)
-                    .foregroundStyle(palette.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel(Text("cityAcquire.recover", tableName: table))
+        }
+    }
+    @ViewBuilder private var selectedQuoteControl: some View {
+        if let quote = controller.selectedQuote {
+            quoteContent(quote)
+            CYPillButton("cityAcquire.reviewConfirmation", style: lead == .review ? .primary : .secondary, tableName: table) {
+                guard interactive else { return }
+                controller.prepareConfirmation()
             }
-            .padding(.horizontal, CYSpacing.pageHorizontal)
-            .padding(.vertical, CYSpacing.lg)
+            .disabled(!interactive || !controller.canWrite || !quote.writeApproved || !quote.unexpired)
+            .accessibilityLabel(Text("cityAcquire.reviewConfirmation", tableName: table))
         }
-        .scrollDismissesKeyboard(.interactively)
-        .cyDomainPageBackground()
-        .cyHeroScreen()
-        .roleTheme(.player)
-        .accessibilityIdentifier("city.acquisition.screen")
-        .sheet(item: Binding(get: { controller.confirmation }, set: { if $0 == nil { controller.cancelConfirmation() } })) { captured in
-            NavigationStack {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                        CYHeroHeader("cityAcquire.confirm.title", tableName: table)
-                        quoteContent(captured)
-                        Text("cityAcquire.confirm.hint", tableName: table)
-                            .font(CYTypography.body)
-                            .foregroundStyle(palette.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        Button(role: .destructive) { confirm(captured) } label: {
-                            Text("cityAcquire.confirm.pay", tableName: table)
-                        }
-                        .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
-                        .disabled(!interactive || !controller.canWrite || !captured.unexpired)
-                        .accessibilityLabel(Text("cityAcquire.confirm.pay", tableName: table))
-                        CYPillButton("cityAcquire.confirm.cancel", style: .secondary, tableName: table) { controller.cancelConfirmation() }
-                            .accessibilityLabel(Text("cityAcquire.confirm.cancel", tableName: table))
-                    }
-                    .padding(.horizontal, CYSpacing.pageHorizontal)
-                    .padding(.vertical, CYSpacing.lg)
-                }
-                .scrollDismissesKeyboard(.interactively)
-                .cyDomainPageBackground()
-                .cyHeroScreen()
-                .roleThemedPresentation()
+    }
+    private func tasksBlock(_ snapshot: CityAcquisitionSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            sectionTitle("cityAcquire.tasks.title")
+            if snapshot.candidates.isEmpty {
+                CYEmptyState(systemImage: "flag", "cityAcquire.tasks.none", tableName: table)
             }
+            ForEach(snapshot.candidates) { candidate in candidateCard(candidate) }
         }
-        .task(id: readID) { guard visible, scenePhase == .active, !Task.isCancelled else { return }; await controller.open(activity: controller.activityID) }
-        .onAppear { visible = true; controller.activate(); readID = UUID() }
-        .onChange(of: scenePhase) { _, phase in
-            controller.suspend()
-            if visible, phase == .active { controller.activate(); readID = UUID() }
+    }
+    private var titlesBlock: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            sectionTitle("cityAcquire.titles.title")
+            ForEach(controller.titles) { title in titleContent(title) }
         }
-        .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
-        .onDisappear { visible = false; controller.suspend() }
+    }
+    private func sectionTitle(_ key: LocalizedStringKey) -> some View {
+        Text(key, tableName: table)
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(palette.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private func confirmationSheet(_ captured: CityAcquisitionQuote) -> some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    CYHeroHeader("cityAcquire.confirm.title", tableName: table)
+                    quoteContent(captured)
+                    Text("cityAcquire.confirm.hint", tableName: table)
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Button(role: .destructive) { confirm(captured) } label: {
+                        Text("cityAcquire.confirm.pay", tableName: table)
+                    }
+                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                    .disabled(!interactive || !controller.canWrite || !captured.unexpired)
+                    .accessibilityLabel(Text("cityAcquire.confirm.pay", tableName: table))
+                    CYPillButton("cityAcquire.confirm.cancel", style: .secondary, tableName: table) { controller.cancelConfirmation() }
+                        .accessibilityLabel(Text("cityAcquire.confirm.cancel", tableName: table))
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
+            }
+            .scrollDismissesKeyboard(.interactively)
+            .cyDomainPageBackground()
+            .cyHeroScreen()
+            .roleThemedPresentation()
+        }
     }
     private func requestQuote(_ candidate: CityAcquisitionCandidate) {
         guard interactive else { return }; let activity = controller.activityID

@@ -59,9 +59,7 @@ import SwiftUI
         .cyHeroScreen()
     }
     private var unavailable: some View {
-        let reopen: (title: String, action: () -> Void)? = canReopen
-            ? (title: copy("重新打开", "Open again"), action: { Task { await model.open() } })
-            : nil
+        let reopen = reopenAction
         return ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 CYHeroHeader(verbatim: copy("行动额度", "Action budget"))
@@ -176,7 +174,14 @@ import SwiftUI
         .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
     }
-    private func units(_ value: Int?) -> String { value.map(String.init) ?? "—" }
+    private var reopenAction: (title: String, action: () -> Void)? {
+        guard canReopen else { return nil }
+        return (title: copy("重新打开", "Open again"), action: { Task { await model.open() } })
+    }
+    private func units(_ value: Int?) -> String {
+        if let number = value { return String(number) }
+        return "—"
+    }
     private func copy(_ zh: String, _ en: String) -> String { ChannelCopy.text(zh, en, locale: locale) }
     private func status(_ value: String) -> String {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
