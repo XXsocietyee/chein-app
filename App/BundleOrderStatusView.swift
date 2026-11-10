@@ -80,7 +80,7 @@ enum BundleOrderStatusPresentation {
                     Section {
                         text(key).accessibilityIdentifier("bundle.order.receiptBanner")
                         if poller.state == .stillUnconfirmed || poller.state == .readUnavailable {
-                            Button { poller.poller.start() } label: { text("order.receipt.recheck") }
+                            CYPillButton("order.receipt.recheck", style: .secondary, tableName: table) { poller.poller.start() }
                         }
                     }
                 }
@@ -98,6 +98,7 @@ enum BundleOrderStatusPresentation {
                 }
             }
         }
+        .cyGroupedSurface()
         .onDisappear { poller?.poller.stop() }
     }
 }

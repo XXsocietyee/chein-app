@@ -10,15 +10,16 @@ import SwiftUI
 
     var body: some View {
         List {
+            Section { CYHeroHeader("bundle.redeem.title", tableName: table).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             switch model.redeemState {
             case .idle, .loading:
-                Section { ProgressView { text("bundle.redeem.loading") } }
+                Section { CYLoadingStateView(rows: 2).accessibilityLabel(text("bundle.redeem.loading")) }
             case .unavailable:
                 Section { text("bundle.redeem.unavailable").accessibilityIdentifier("bundleRedeem.unavailable") }
             case .failed:
                 Section {
                     text("bundle.redeem.error")
-                    Button { Task { await model.loadRedeemResult(unitID: unitID) } } label: { text("bundle.redeem.retry") }
+                    CYPillButton("bundle.redeem.retry", style: .secondary, tableName: table) { Task { await model.loadRedeemResult(unitID: unitID) } }
                 }
             case .loaded(let presentation, let result):
                 Section {
@@ -30,7 +31,7 @@ import SwiftUI
                 }
             }
         }
-        .navigationTitle(Text("bundle.redeem.title", tableName: table))
+        .cyGroupedSurface()
         .task { await model.loadRedeemResult(unitID: unitID) }
     }
 

@@ -43,10 +43,10 @@ import SwiftUI
             }
             statusSection
             Section {
-                Button {
+                CYPillButton(verbatim: W8Text.t("提交申诉", "Submit appeal"), style: .primary) {
                     Task { await model.submit(registrationID: registrationID, unitID: unitID, reason: reason,
                                               note: note, evidenceRefs: evidenceRefs) }
-                } label: { text("提交申诉", "Submit appeal") }
+                }
                 .disabled(locked)
             }
         }
@@ -56,7 +56,7 @@ import SwiftUI
     @ViewBuilder private var statusSection: some View {
         switch model.state {
         case .idle: EmptyView()
-        case .submitting: Section { ProgressView() }
+        case .submitting: Section { CYLoadingStateView(rows: 1) }
         case .submitted(let appeal):
             let shown = model.presentation(for: appeal)
             Section {
@@ -66,13 +66,13 @@ import SwiftUI
         case .awaitingReadback:
             Section {
                 text("未能确认是否已提交，请先查询结果。", "We couldn't confirm whether it was submitted. Check the result first.")
-                Button { Task { await model.recover() } } label: { text("查询提交结果", "Check result") }.disabled(busy)
+                CYPillButton(verbatim: W8Text.t("查询提交结果", "Check result"), style: .secondary) { Task { await model.recover() } }.disabled(busy)
             }
         case .readbackNotFound:
             Section {
                 text("暂未查到该申诉。可以再次查询，或使用同一申请重新提交。", "No record yet. Check again, or send the same appeal again.")
-                Button { Task { await model.recover() } } label: { text("再次查询", "Check again") }
-                Button { Task { await model.retryOriginal() } } label: { text("重新提交同一申诉", "Send the same appeal again") }
+                CYPillButton(verbatim: W8Text.t("再次查询", "Check again"), style: .secondary) { Task { await model.recover() } }
+                CYPillButton(verbatim: W8Text.t("重新提交同一申诉", "Send the same appeal again"), style: .tertiary) { Task { await model.retryOriginal() } }
             }
         case .blocked(let code):
             Section {

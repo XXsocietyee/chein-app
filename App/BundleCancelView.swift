@@ -13,45 +13,46 @@ import SwiftUI
 
     var body: some View {
         Form {
+            Section { CYHeroHeader(verbatim: W8Text.t("取消预约", "Cancel reservation")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             switch model.state {
             case .idle:
                 Section {
                     Toggle(isOn: $useWaiver) { Text(verbatim: W8Text.t("使用本月豁免次数", "Use this month's waiver")) }
-                    Button { Task { await model.requestQuote(reservationID: reservationID, useWaiver: useWaiver) } } label: {
-                        Text(verbatim: W8Text.t("查看取消结果", "Check cancellation"))
+                    CYPillButton(verbatim: W8Text.t("查看取消结果", "Check cancellation"), style: .primary) {
+                        Task { await model.requestQuote(reservationID: reservationID, useWaiver: useWaiver) }
                     }
                 }
             case .quoting, .cancelling:
-                ProgressView()
+                CYLoadingStateView(rows: 2)
             case .awaitingConfirmation(_, _, let quote):
                 Section {
                     Text(verbatim: quote.message)
                     Button(role: .destructive) { Task { await canceler.confirm(on: model) } } label: {
                         Text(verbatim: W8Text.t("确认取消", "Confirm cancellation"))
                     }
-                    Button { model.dismiss() } label: { Text(verbatim: W8Text.t("返回", "Back")) }
+                    CYPillButton(verbatim: W8Text.t("返回", "Back"), style: .tertiary) { model.dismiss() }
                 }
             case .cancelled(let status):
                 Section { Text(verbatim: W8Text.t("预约已取消（\(status)）", "Reservation cancelled (\(status)).")) }
             case .failed(let message):
                 Section {
                     Text(verbatim: message)
-                    Button { model.dismiss() } label: { Text(verbatim: W8Text.t("返回", "Back")) }
+                    CYPillButton(verbatim: W8Text.t("返回", "Back"), style: .secondary) { model.dismiss() }
                 }
             case .awaitingServerConfirmation:
                 Section {
                     Text(verbatim: W8Text.t("正在等待服务器确认，请勿重复提交", "Waiting for the server to confirm. Please don't submit again."))
-                    Button {
+                    CYPillButton(verbatim: W8Text.t("刷新状态", "Refresh status"), style: .secondary) {
                         Task {
                             await canceler.readBack(model: model, service: service,
                                                     registrationID: registrationID, reservationID: reservationID)
                         }
-                    } label: { Text(verbatim: W8Text.t("刷新状态", "Refresh status")) }
+                    }
                 }
             case .unavailable:
                 Section { Text(verbatim: W8Text.t("暂未开放", "Not available yet")) }
             }
         }
-        .navigationTitle(Text(verbatim: W8Text.t("取消预约", "Cancel reservation")))
+        .cyGroupedSurface()
     }
 }

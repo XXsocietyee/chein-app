@@ -14,6 +14,7 @@ struct BundleRefundQuoteView: View {
 
     var body: some View {
         List {
+            Section { CYHeroHeader("title", tableName: table).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 Text(LocalizedStringKey(presentation.routeTitleKey), tableName: table)
                     .font(.headline)
@@ -42,14 +43,14 @@ struct BundleRefundQuoteView: View {
                 Text(verbatim: presentation.policyVersion).font(.footnote).foregroundStyle(.secondary)
             }
         }
-        .navigationTitle(Text("title", tableName: table))
+        .cyGroupedSurface()
     }
 
     private func row(_ labelKey: String, _ value: String) -> some View {
         HStack {
             Text(LocalizedStringKey(labelKey), tableName: table)
             Spacer()
-            Text(verbatim: value).foregroundStyle(.secondary)
+            Text(verbatim: value).monospacedDigit().foregroundStyle(.secondary)
         }
     }
 }
