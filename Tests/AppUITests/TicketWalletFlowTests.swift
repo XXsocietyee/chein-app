@@ -22,7 +22,11 @@ final class TicketWalletFlowTests: XCTestCase {
     private func revealText(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
         let element = element(labelContaining: text)
         _ = element.waitForExistence(timeout: 5)
-        for _ in 0..<8 { if element.exists { break }; app.swipeUp() }
+        // Drag from the lower half: a swipe that starts on the pass card is taken by its tilt gesture and never scrolls the list.
+        for _ in 0..<10 {
+            if element.exists { break }
+            app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.85)).press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.3)))
+        }
         XCTAssertTrue(element.exists, "Missing copy: \(text)\n\(app.debugDescription)", file: file, line: line)
     }
     func testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment() {
@@ -32,6 +36,9 @@ final class TicketWalletFlowTests: XCTestCase {
         attachFixtureScreenshot(self,app:app,name:"Ticket wallet initial content")
         row.tap()
         XCTAssertTrue(app.navigationBars["Ticket details"].waitForExistence(timeout: 5))
+        // The Benefits section shows the pending count row and one row per chapter (title rendered by TicketWalletEntitlementRow).
+        revealText("Chapters awaiting redemption")
+        XCTAssertTrue(app.descendants(matching: .any)["ticketWallet.pendingChapters"].exists)
         revealText("Sample pending chapter")
         attachFixtureScreenshot(self,app:app,name:"Ticket detail entitlements")
         revealText("Redemption codes are not available in this native version yet")
