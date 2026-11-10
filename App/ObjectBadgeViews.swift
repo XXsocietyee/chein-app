@@ -296,7 +296,7 @@ struct ObjectBadgeWallBadgeLabel: View {
         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
             // Titles wrap on word boundaries only (one column at accessibility sizes keeps the width generous).
             Group { if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) } }
-                .allowsTightening(true).lineBreakStrategy(.standard)
+                .allowsTightening(true)
             CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success).singleLine()
         }
     }

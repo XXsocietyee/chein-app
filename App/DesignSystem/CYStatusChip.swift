@@ -8,7 +8,7 @@ struct CYStatusChip: View {
     private let verbatim: String?
     private let tone: CYStatusTone
     private let systemImage: String?
-    private var singleLine = false
+    private var forcesSingleLine = false
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.dynamicTypeSize) private var typeSize
@@ -30,7 +30,7 @@ struct CYStatusChip: View {
     }
 
     /// One short status word (Locked / Unlocked): never wraps or hyphenates, shrinks a little instead, at any text size.
-    func singleLine() -> CYStatusChip { var copy = self; copy.singleLine = true; return copy }
+    func singleLine() -> CYStatusChip { var copy = self; copy.forcesSingleLine = true; return copy }
 
     var body: some View {
         HStack(spacing: CYSpacing.xs) {
@@ -44,8 +44,8 @@ struct CYStatusChip: View {
         .padding(.vertical, CYSpacing.xs + 1)
         .background(Capsule(style: .continuous).fill(background))
         // Accessibility sizes may wrap to a second line instead of truncating a status word.
-        .lineLimit(singleLine ? 1 : (typeSize.isAccessibilitySize ? 3 : 1))
-        .minimumScaleFactor(singleLine ? 0.7 : 1)
+        .lineLimit(forcesSingleLine ? 1 : (typeSize.isAccessibilitySize ? 3 : 1))
+        .minimumScaleFactor(forcesSingleLine ? 0.7 : 1)
         .fixedSize(horizontal: false, vertical: true)
         .accessibilityElement(children: .combine)
     }
