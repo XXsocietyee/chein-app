@@ -49,7 +49,7 @@ import SwiftUI
                         LabeledContent("playx.prefab.dice") { Text(verbatim: check.dice.map(String.init).joined(separator: " + ")) }
                         LabeledContent("playx.prefab.score") { Text(verbatim: "\(check.score) / \(check.dc)") }
                         Text(LocalizedStringKey(check.ok ? "playx.prefab.check.success" : "playx.prefab.check.failure"))
-                        Button("playx.prefab.continue") { scene.closeCheck(); save() }
+                        CYPillButton("playx.prefab.continue") { scene.closeCheck(); save() }.listRowBackground(Color.clear)
                     }
                 }
             }
@@ -85,22 +85,22 @@ import SwiftUI
         switch scene.story.scene {
         case .prologue:
             Text("playx.prefab.prologue")
-            Button("playx.prefab.continue") { act { try scene.next() } }
+            CYPillButton("playx.prefab.continue") { act { try scene.next() } }.listRowBackground(Color.clear)
         case .register:
             TextField("templateAuthor.field.profileName", text: $profile.name)
             TextField("templateAuthor.field.profilePlace", text: $profile.place)
             TextField("playx.prefab.gender", text: $profile.gender)
             TextField("templateAuthor.field.profileDream", text: $profile.dream)
             if scene.story.step != 5 {
-                Button("playx.prefab.register") { act { try scene.register(profile: profile) } }
-            } else { Button("playx.prefab.continue") { act { try scene.next() } } }
+                CYPillButton("playx.prefab.register") { act { try scene.register(profile: profile) } }.listRowBackground(Color.clear)
+            } else { CYPillButton("playx.prefab.continue") { act { try scene.next() } }.listRowBackground(Color.clear) }
         case .boot:
             Text("playx.prefab.boot.instructions")
             Text(verbatim: PlayPrefabSceneMachine.bootTarget).font(.title3.monospaced())
             TextField("playx.prefab.boot.input", text: Binding(get: { scene.bootText }, set: { scene.typeBoot($0, now: now); if scene.bootDone { try? scene.next(); save() } }))
                 .textInputAutocapitalization(.never).autocorrectionDisabled().accessibilityIdentifier("playx.prefab.boot.input")
             if scene.bootFailed { Text("playx.prefab.boot.retry") }
-            if scene.bootDone { Button("playx.prefab.continue") { act { try scene.next() } } }
+            if scene.bootDone { CYPillButton("playx.prefab.continue") { act { try scene.next() } }.listRowBackground(Color.clear) }
         case .walk:
             Text("playx.prefab.walk.local")
             ProgressView(value: Double(scene.story.walkProgress), total: 100)
@@ -149,9 +149,9 @@ import SwiftUI
             } else { Text("playx.prefab.phone.privacy"); photoButton("phone", label: "playx.prefab.phone.photo") }
         case .flow:
             Text("playx.prefab.flow")
-            if model.record?.story.synced == true { Label("playx.prefab.synced", systemImage: "checkmark.seal") }
-            else { Button("playx.prefab.sync") { confirmSync = true }.disabled(model.record?.hallPhotoURL == nil || model.phase != "ready") }
-            Text("playx.prefab.endings.guide").font(.headline)
+            if model.record?.story.synced == true { CYStatusChip("playx.prefab.synced", tone: .success, systemImage: "checkmark.seal") }
+            else { CYPillButton("playx.prefab.sync") { confirmSync = true }.listRowBackground(Color.clear).disabled(model.record?.hallPhotoURL == nil || model.phase != "ready") }
+            CYSectionHeader("playx.prefab.endings.guide")
             Text("playx.prefab.endings.fixed").font(.caption)
             ForEach(0..<6, id: \.self) { index in
                 VStack(alignment: .leading, spacing: 4) {
@@ -165,16 +165,16 @@ import SwiftUI
     private var holdControl: some View {
         VStack {
             ProgressView(value: scene.holdProgress).accessibilityLabel(Text("playx.prefab.hold.progress"))
-            Button(LocalizedStringKey(scene.holding ? "playx.prefab.hold.cancel" : "playx.prefab.hold.start")) {
+            CYPillButton(LocalizedStringKey(scene.holding ? "playx.prefab.hold.cancel" : "playx.prefab.hold.start"), style: .secondary) {
                 if scene.holding { scene.stopHold() } else { scene.beginHold(now: now) }
             }
             Text(LocalizedStringKey(scene.story.scene.isDream ? "playx.prefab.hold.dream" : "playx.prefab.hold.birth")).font(.caption)
         }
     }
     private func photoButton(_ key: String, label: String) -> some View {
-        Button(LocalizedStringKey(label)) { photoKey = key; confirmPhoto = true }.disabled(key == "hall" ? !model.canCapture : !model.canCapturePhoto)
+        CYPillButton(LocalizedStringKey(label), style: .secondary, systemImage: "camera") { photoKey = key; confirmPhoto = true }.listRowBackground(Color.clear).disabled(key == "hall" ? !model.canCapture : !model.canCapturePhoto)
     }
-    private func choice(_ key: String, action: @escaping () throws -> Void) -> some View { Button(LocalizedStringKey(key)) { act(action) }.disabled(scene.check != nil) }
+    private func choice(_ key: String, action: @escaping () throws -> Void) -> some View { CYPillButton(LocalizedStringKey(key), style: .secondary) { act(action) }.listRowBackground(Color.clear).disabled(scene.check != nil) }
     private func act(_ action: () throws -> Void) { do { try action(); save(); localIssue = nil } catch { localIssue = .invalidAction } }
     private func save() { guard loaded, model.phase == "ready" else { return }; do { try model.updateStory(scene.story) } catch { localIssue = .staleSession } }
     private func restoreIfAvailable() {

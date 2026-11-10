@@ -5,8 +5,10 @@ import SwiftUI
     @StateObject private var actions = NativeChannelProgressActionLifetime()
     var body: some View {
         List {
+            CYHeroHeader("d7.channelProgress.historyTitle", tableName: "NativeChannelProgress")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !model.isCurrent { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") }
-            if model.busy { ProgressView() }
+            if model.busy { CYSkeleton() }
             Section {
                 if let best = model.best { NativeChannelProgressRowView(row: best) }
                 else if !model.busy && model.issue("best") == nil { Text(verbatim: "—").foregroundStyle(.secondary) }
@@ -23,7 +25,7 @@ import SwiftUI
                 }
                 NativeChannelProgressIssueView(model: model, part: "recent")
             } header: { Text("d7.channelProgress.recent", tableName: "NativeChannelProgress") }
-        }.nativeChannelScreen().navigationTitle(Text("d7.channelProgress.historyTitle", tableName: "NativeChannelProgress")).privacySensitive()
+        }.nativeChannelScreen().cyHeroScreen().privacySensitive()
         .onAppear { actions.activate() }
         .onDisappear { actions.retire() }
         .onChange(of: model.isCurrent) { _, current in if !current { actions.retire() } }

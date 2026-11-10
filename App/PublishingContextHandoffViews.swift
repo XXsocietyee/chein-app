@@ -168,6 +168,8 @@ struct PublishingFormSurface: ViewModifier {
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader("contextPublish.mode.choose")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Picker("contextPublish.mode.choose", selection: $selection) {
                     Text("projectEdit.city").tag(ProjectEditProduct.city)
                     Text("projectEdit.freeExplore").tag(ProjectEditProduct.freeExplore)
@@ -179,7 +181,7 @@ struct PublishingFormSurface: ViewModifier {
                     .font(Theme.Font.body).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     .fixedSize(horizontal: false, vertical: true)
             }.modifier(PublishingFormSurface()).font(Theme.Font.body).tint(Theme.Color.accent(in: domain))
-                .navigationTitle("contextPublish.mode.choose")
+                .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } }
                 ToolbarItem(placement: .confirmationAction) { Button("contextPublish.mode.use") { confirm(selection) } }
@@ -217,8 +219,7 @@ struct PublishingFormSurface: ViewModifier {
                     Text(verbatim: receipt.title).font(Theme.Font.sectionTitle)
                         .fixedSize(horizontal: false, vertical: true)
                     ProjectSubmissionEvidenceView(acknowledgment: acknowledgment, currentVerificationConfigured: canVerifyRelease)
-                    Button("action.done") { if let capture { lifecycle.finish(capture, action: close) } }.buttonStyle(.questifyPrimary)
-                        .frame(minHeight: 44)
+                    CYPillButton("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
                         .disabled(capture == nil)
                         .accessibilityIdentifier("projectSubmission.done")
                 }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)
@@ -238,9 +239,7 @@ struct PublishingFormSurface: ViewModifier {
             Text("contextPublish.result.readStatus").font(Theme.Font.body)
                 .foregroundStyle(Theme.Color.textSecondary(in: domain)).fixedSize(horizontal: false, vertical: true)
             if !canNavigate {
-                Button("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(minHeight: 44)
+                CYPillButton("action.done") { if let capture { lifecycle.finish(capture, action: close) } }
                     .disabled(capture == nil)
             }
         }.frame(maxWidth: .infinity, alignment: .leading).padding(Theme.Space.pageX)

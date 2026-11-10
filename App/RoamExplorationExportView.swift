@@ -311,9 +311,10 @@ private struct RoamExportFileSaveLink: View {
             }
         }.disabled(model.isBusy)
         Section {
-            Button("roam.export.prepare") { saveResult = nil; owner.prepare(startDate: startDate, endDate: endDate) }
+            CYPillButton("roam.export.prepare") { saveResult = nil; owner.prepare(startDate: startDate, endDate: endDate) }
+                .listRowBackground(Color.clear)
                 .disabled(!owner.active || model.isBusy || !RoamExportContract.isValidRange(start: startDate, end: endDate)).accessibilityIdentifier("roam.export.prepare")
-            if model.phase == .preparing { ProgressView() }
+            if model.phase == .preparing { CYSkeleton() }
         }
     }
     @ViewBuilder private var progress: some View {
@@ -326,37 +327,39 @@ private struct RoamExportFileSaveLink: View {
             ProgressView(value: Double(model.percent), total: 100)
         }
         if model.phase == .complete && model.expected == 0 {
-            Section { Text("roam.export.noRecords").accessibilityIdentifier("roam.export.noRecords") }
+            Section { CYEmptyState(systemImage: "doc", "roam.export.noRecords").accessibilityIdentifier("roam.export.noRecords") }
         }
         if let file = model.fileForDelivery(foreground: scenePhase == .active) {
             Section {
                 LabeledContent { Text("roam.export.rows \(file.rows)") } label: {
                     Label { Text(verbatim: file.fileName) } icon: { Text(verbatim: "JSONL").font(.caption2.bold()) }
                 }.accessibilityIdentifier("roam.export.file")
-                Button("roam.export.share") {
+                CYPillButton("roam.export.share") {
                     if owner.active, let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {
                         shareOffer = RoamExportShareOffer(file: file, lease: lease, token: UUID())
                     } else if model.isFileExpired { model.discardExpired() }
-                }.accessibilityIdentifier("roam.export.share")
-                Button("roam.export.save") {
+                }.listRowBackground(Color.clear).accessibilityIdentifier("roam.export.share")
+                CYPillButton("roam.export.save", style: .secondary) {
                     saveResult = nil
                     // The exporter asks for bytes later. That write reads the clock again.
                     if owner.active, let lease = model.deliveryLease, model.fileForDelivery(foreground: scenePhase == .active) != nil {
                         saveTicket = RoamExportSaveTicket(file: file, lease: lease)
                     } else if model.isFileExpired { model.discardExpired() }
-                }.accessibilityIdentifier("roam.export.save")
+                }.listRowBackground(Color.clear).accessibilityIdentifier("roam.export.save")
             }
         } else if model.phase == .complete && model.isFileExpired {
             Section { Button("roam.export.expired") { model.discardExpired() } }
         }
         Section {
             if model.phase == .reading {
-                ProgressView("roam.export.reading").accessibilityIdentifier("roam.export.reading")
+                CYSkeleton().accessibilityLabel(Text("roam.export.reading")).accessibilityIdentifier("roam.export.reading")
             } else if model.phase != .complete {
-                Button(LocalizedStringKey(model.read > 0 ? "roam.export.readNext" : "roam.export.startReading")) { owner.readNext() }
+                CYPillButton(LocalizedStringKey(model.read > 0 ? "roam.export.readNext" : "roam.export.startReading")) { owner.readNext() }
+                    .listRowBackground(Color.clear)
                     .accessibilityIdentifier("roam.export.readNext")
             }
-            Button("roam.export.restart") { saveTicket = nil; shareOffer = nil; saveResult = nil; owner.restart() }
+            CYPillButton("roam.export.restart", style: .tertiary) { saveTicket = nil; shareOffer = nil; saveResult = nil; owner.restart() }
+                .listRowBackground(Color.clear)
                 .disabled(!owner.active || model.isBusy).accessibilityIdentifier("roam.export.restart")
         }
     }

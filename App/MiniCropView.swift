@@ -45,16 +45,12 @@ import UIKit
                 }
             }.frame(maxWidth: .infinity, maxHeight: .infinity)
             HStack(spacing: CYSpacing.md) {
-                Button("publishParity.crop.cancel", role: .cancel, action: onCancel)
-                    .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                CYPillButton("publishParity.crop.cancel", style: .tertiary, fullWidth: false, action: onCancel)
                     .accessibilityIdentifier("miniCrop.cancel")
                 Spacer(minLength: CYSpacing.sm)
-                Button("publishParity.crop.useOriginal") { if session.useOriginal() { afterAdvance() } }
-                    .font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
-                    .frame(minHeight: CYSpacing.minTouchTarget)
+                CYPillButton("publishParity.crop.useOriginal", style: .tertiary, fullWidth: false) { if session.useOriginal() { afterAdvance() } }
                     .accessibilityIdentifier("miniCrop.useOriginal")
-                Button("publishParity.crop.confirm") { confirm() }.buttonStyle(.cyPrimary(fullWidth: false))
+                CYPillButton("publishParity.crop.confirm", fullWidth: false) { confirm() }
                     .accessibilityIdentifier("miniCrop.confirm")
             }
             .padding(.horizontal, CYSpacing.lg).padding(.vertical, CYSpacing.sm)

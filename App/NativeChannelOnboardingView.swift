@@ -12,11 +12,8 @@ import SwiftUI
         Group {
             if let flow { NativeChannelOnboardingView(flow:flow,openWelcome:{welcomeVisit.wrappedValue=true}) }
             else {
-                ContentUnavailableView {
-                    Label("d7.channelOnboarding.unavailable",systemImage:"list.bullet.clipboard")
-                } actions: {
-                    Button("d7.channelOnboarding.skip"){welcomeVisit.wrappedValue=true}.disabled(!parentRouteIsActive() || !channels.isCurrent)
-                }
+                CYEmptyState(systemImage:"list.bullet.clipboard","d7.channelOnboarding.unavailable",actionTitle:"d7.channelOnboarding.skip"){welcomeVisit.wrappedValue=true}
+                    .disabled(!parentRouteIsActive() || !channels.isCurrent)
             }
         }.task{reopen()}.onDisappear{close()}
          .onChange(of:scene){_,value in if value == .active{reopen()}else{close()}}
@@ -39,12 +36,14 @@ import SwiftUI
     @State private var selections:[String:Set<String>]=[:]
     var body:some View {
         Form {
+            CYHeroHeader("d7.channelOnboarding.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if flow.isCurrent {
                 if flow.confirmed != nil || flow.issue != nil || flow.busy {
                     Section {
                         if let confirmed=flow.confirmed{NativeChannelFlowNotice(title:Text(verbatim:confirmed),symbol:"checkmark.circle")}
                         if let issue=flow.issue{NativeChannelFlowNotice(title:Text(verbatim:issue),symbol:"exclamationmark.circle")}
-                        if flow.busy{ProgressView().frame(maxWidth:.infinity)}
+                        if flow.busy{CYSkeleton()}
                     }
                 }
                 if flow.pending != nil {
@@ -110,13 +109,13 @@ import SwiftUI
                 }
                 Section { Button("d7.channelOnboarding.skip",action:openWelcome) }
             } else {
-                ContentUnavailableView { Label("d7.channelOnboarding.expired",systemImage:"lock.shield") }
+                CYEmptyState(systemImage:"lock.shield","d7.channelOnboarding.expired")
             }
         }
         .refreshable { selections=[:];await flow.refresh() }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .navigationTitle("d7.channelOnboarding.title").privacySensitive().task{await flow.activate()}.onDisappear{selections=[:];flow.deactivate()}
+        .cyHeroScreen().privacySensitive().task{await flow.activate()}.onDisappear{selections=[:];flow.deactivate()}
     }
     private func choose(_ prompt:NativeOnboardingSnapshot.Prompt,_ option:String,_ selected:Bool){
         guard flow.canPrepare else{return}

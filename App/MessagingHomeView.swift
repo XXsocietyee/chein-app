@@ -52,7 +52,7 @@ private struct MessagingConversationListView: View {
                 Section {
                     Picker("messaging.scope", selection: Binding(get: { currentTab }, set: { selectedTab = $0 })) {
                         ForEach(MessagingSegment.allCases, id: \.self) { item in
-                            item.label(badge: item.badge(summary)).tag(item)
+                            item.label(badgeText: item.badgeText(conversations)).tag(item)
                         }
                     }
                     .pickerStyle(.segmented)
@@ -341,15 +341,27 @@ enum MessagingSegment: String, CaseIterable, Hashable {
         case .direct: return summary.badge(for: .direct) + summary.badge(for: .system)
         }
     }
+    /// Reads IMListPageReady.unreadTotalText per tab: an unknown unread is an em dash, a real 0 shows no badge.
+    func badgeText(_ conversations: [MessagingConversation]) -> String? {
+        let tabs: [IMInboxTab]
+        switch self {
+        case .all: tabs = [.direct, .system, .group]
+        case .channels: tabs = [.group]
+        case .direct: tabs = [.direct, .system]
+        }
+        let texts = tabs.map { IMListPageReady.unreadTotalText(conversations, tab: $0) }
+        if texts.contains(IMListPageReady.unknownMark) { return IMListPageReady.unknownMark }
+        return IMInboxSummary.badgeText(texts.compactMap(Int.init).reduce(0, +))
+    }
     /// A single Text: segmented pickers only render Text/Image segment labels.
-    func label(badge: Int) -> Text {
+    func label(badgeText text: String?) -> Text {
         let title: Text
         switch self {
         case .all: title = Text("messaging.segment.all")
         case .channels: title = Text("messaging.segment.channels")
         case .direct: title = Text("messaging.segment.direct")
         }
-        guard let text = IMInboxSummary.badgeText(badge) else { return title }
+        guard let text else { return title }
         return title + Text(verbatim: " \(text)")
     }
 }

@@ -16,7 +16,7 @@ struct ClubDirectoryView<Reader: ClubReading & ObservableObject>: View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.directory", onSignIn: onSignIn,
                        load: { try await reader.clubDirectory(name: submittedName.isEmpty ? nil : submittedName) }) { rows in
             if rows.isEmpty {
-                ClubEmptyState(title: "club.emptyDirectory", hint: "club.emptyDirectoryHint", identifier: "club.directory.empty")
+                CYEmptyState(systemImage: "person.3", "club.emptyDirectory", detail: "club.emptyDirectoryHint", messageIdentifier: "club.directory.empty")
             } else {
                 List {
                     ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
@@ -82,7 +82,7 @@ struct ClubOwnedView<Reader: ClubReading & ObservableObject>: View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.owned", requiresSignIn: true,
                        onSignIn: onSignIn, load: { try await reader.clubOwned() }) { rows in
             if rows.isEmpty {
-                ClubEmptyState(title: "club.emptyOwned", hint: "club.emptyOwnedHint", identifier: "club.owned.empty")
+                CYEmptyState(systemImage: "person.badge.shield.checkmark", "club.emptyOwned", detail: "club.emptyOwnedHint", messageIdentifier: "club.owned.empty")
             } else {
                 List {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, club in

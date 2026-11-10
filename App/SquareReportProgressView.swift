@@ -18,6 +18,8 @@ struct MemberReportProgressTimeView: View {
     var body: some View {
         let rendered = readIntent()
         List {
+            CYHeroHeader("report.history.title", tableName: "MemberReportProgress")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             memberReportProgressText("report.read.boundary").font(.footnote)
             if let flow, flow.isCurrent {
                 Picker(selection: Binding(get: { flow.filter }, set: { value in
@@ -41,19 +43,20 @@ struct MemberReportProgressTimeView: View {
                     }.disabled(flow.busy || !flow.reader.allows(.detail))
                     .accessibilityIdentifier("report.progress.row.\(record.id)")
                 }
-                if flow.loaded && flow.records.isEmpty { memberReportProgressText("report.history.empty") }
+                if flow.loaded && flow.records.isEmpty { CYEmptyState(systemImage: "doc.text.magnifyingglass", "report.history.empty", tableName: "MemberReportProgress") }
                 if flow.hasMore {
                     Button {
                         guard let (original, intent) = rendered else { return }; original.showMore(intent: intent)
                     } label: { memberReportProgressText("report.history.more") }.disabled(flow.busy)
                 }
-                if flow.busy { ProgressView() }
+                if flow.busy { CYSkeleton() }
                 if let failure = flow.failure { memberReportProgressText("report.error.\(failure)").accessibilityIdentifier("report.progress.error") }
             } else { memberReportProgressText("report.error.disabled") }
-            Button { load(rendered) } label: { memberReportProgressText("report.refresh") }.disabled(rendered == nil || flow?.busy == true)
+            CYPillButton("report.refresh", style: .secondary, tableName: "MemberReportProgress") { load(rendered) }
+                .listRowBackground(Color.clear).disabled(rendered == nil || flow?.busy == true)
         }
         .cyGroupedSurface()
-        .navigationTitle(memberReportProgressText("report.history.title")).privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .accessibilityIdentifier("report.progress.history")
         .navigationDestination(item: $selection) { MemberReportProgressDetailView(selection: $0, session: session) }
         .onAppear { visible = true; start() }

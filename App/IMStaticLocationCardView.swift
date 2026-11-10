@@ -16,13 +16,12 @@ struct IMStaticLocationCardView: View {
                 // The map service only sees this place once the person asks for the map: a drawn tile stands in until then.
                 Button { showMap=true } label: {
                     ZStack {
-                        LinearGradient(colors: [Color(red: 0.13, green: 0.30, blue: 0.27), Color(red: 0.07, green: 0.14, blue: 0.20)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        CYCoverArt(seed: place.name, symbol: "map", showsDebugLabel: false, showsGlyph: false)
                         Image(systemName: "mappin.circle.fill").font(.system(size: 34)).symbolRenderingMode(.palette).foregroundStyle(.white, Color.red)
-                        Label("d7.imLocationCard.showMap", systemImage: "map").font(.caption.weight(.semibold)).foregroundStyle(.white)
-                            .padding(.horizontal, 10).frame(minHeight: 28).background(.black.opacity(0.5), in: Capsule())
+                        CYStatusChip("d7.imLocationCard.showMap", tone: .neutral, systemImage: "map")
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing).padding(CYSpacing.sm)
                     }.frame(height: 110).contentShape(Rectangle())
-                }.buttonStyle(.plain)
+                }.buttonStyle(.plain).accessibilityLabel(Text("d7.imLocationCard.showMap"))
             }
             VStack(alignment: .leading, spacing: 2) {
                 Text(verbatim: place.name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
@@ -30,8 +29,8 @@ struct IMStaticLocationCardView: View {
             }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(maxWidth: 280)
-        .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .privacySensitive().onDisappear { showMap=false }
     }
 }

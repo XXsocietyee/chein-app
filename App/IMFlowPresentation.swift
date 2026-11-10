@@ -35,22 +35,30 @@ struct IMFlowStateMessage: View {
     let text: Text
     var symbol = "info.circle"
     var tone: Tone = .neutral
-    @Environment(\.themeDomain) private var domain
+    @Environment(\.cyPalette) private var palette
     private var color: Color {
         switch tone {
-        case .neutral: return Theme.Color.textSecondary(in: domain)
-        case .attention: return Theme.Color.danger(in: domain)
-        case .success: return Theme.Color.success(in: domain)
+        case .neutral: return palette.textSecondary
+        case .attention: return palette.danger
+        case .success: return palette.success
+        }
+    }
+    private var fill: Color {
+        switch tone {
+        case .neutral: return palette.actionSecondaryBg
+        case .attention: return palette.dangerSoft
+        case .success: return palette.successSoft
         }
     }
     var body: some View {
         Label { text.fixedSize(horizontal: false, vertical: true) } icon: {
             Image(systemName: symbol).accessibilityHidden(true)
         }
-        .font(Theme.Font.body)
+        .font(CYTypography.bodyCompact)
         .foregroundStyle(color)
-        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-        .padding(.vertical, Theme.Space.s1)
+        .padding(CYSpacing.md)
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .background(fill, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityElement(children: .combine)
     }
 }

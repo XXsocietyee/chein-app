@@ -101,6 +101,7 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
         let flow = original.flow, local = flow.localReview, selection = flow.selectionReview, saved = flow.snapshot
         NavigationStack {
             Form {
+                Section { CYHeroHeader(verbatim: text("ownedCover.title","Author cover")) }.e1HeroRow()
                 Section {
                     Text(text("ownedCover.scope","Choose a cover for a future reviewed release. Picking a photo stays local. Uploading and selecting are separate explicit actions; existing releases keep their original image."))
                         .accessibilityIdentifier("ownedCover.scope")
@@ -112,28 +113,28 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
                         if current.selection == .stale { Text(text("ownedCover.stale","The saved cover selection belongs to an earlier content or ownership revision. Review an explicit replacement before applying it.")) }
                         if current.availability == .unavailable { Text(text("ownedCover.savedUnavailable","The current cover bytes are unavailable. The saved selection has not been cleared.")) }
                         if let asset = current.asset {
-                            Button(text("ownedCover.readSaved","Read the saved cover image")) { Task { await model.read(asset) } }
-                                .buttonStyle(.borderless).disabled(flow.isBusy).accessibilityIdentifier("ownedCover.readSaved")
+                            CYPillButton(verbatim: text("ownedCover.readSaved","Read the saved cover image"), style: .secondary) { Task { await model.read(asset) } }
+                                .disabled(flow.isBusy).accessibilityIdentifier("ownedCover.readSaved").e1ActionRow()
                         }
                     }
-                    Button(text("ownedCover.reload","Read current cover details")) { Task { await model.loadCurrentDetails() } }
-                        .buttonStyle(.borderless).disabled(!flow.canReadCurrentDetails).accessibilityIdentifier("ownedCover.reload")
+                    CYPillButton(verbatim: text("ownedCover.reload","Read current cover details"), style: .secondary) { Task { await model.loadCurrentDetails() } }
+                        .disabled(!flow.canReadCurrentDetails).accessibilityIdentifier("ownedCover.reload").e1ActionRow()
                 }
                 if !mayChange() {
                     Text(text("ownedCover.editBeforeChange","An unresolved review or release must be recovered first. After requesting review, continue editing and save a new server version before changing its cover."))
                         .accessibilityIdentifier("ownedCover.editBeforeChange")
                 }
                 Section {
-                    Button(text("ownedCover.choose","Choose an image")) { Task { await model.choose() } }
-                        .buttonStyle(.borderless).disabled(!flow.canPick).accessibilityIdentifier("ownedCover.choose")
+                    CYPillButton(verbatim: text("ownedCover.choose","Choose an image")) { Task { await model.choose() } }
+                        .disabled(!flow.canPick).accessibilityIdentifier("ownedCover.choose").e1ActionRow()
                     if let local {
-                        if let image = UIImage(data:local.image.jpeg) { Image(uiImage:image).resizable().scaledToFit().accessibilityIdentifier("ownedCover.localPreview") }
+                        if let image = UIImage(data:local.image.jpeg) { Image(uiImage:image).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).accessibilityIdentifier("ownedCover.localPreview") }
                         Text(text("ownedCover.localOnly","This preview uses only the selected, sanitized image on this device. It has not been uploaded."))
                             .accessibilityIdentifier("ownedCover.localOnly")
-                        Button(text("ownedCover.upload","Upload this image for checks")) { model.upload(local) }
-                            .buttonStyle(.borderless).disabled(!flow.canUpload(local)).accessibilityIdentifier("ownedCover.upload")
-                        Button(text("ownedCover.cancelLocal","Cancel this local image")) { model.cancelPicked(local) }
-                            .buttonStyle(.borderless).disabled(flow.isBusy).accessibilityIdentifier("ownedCover.cancelLocal")
+                        CYPillButton(verbatim: text("ownedCover.upload","Upload this image for checks"), style: .secondary) { model.upload(local) }
+                            .disabled(!flow.canUpload(local)).accessibilityIdentifier("ownedCover.upload").e1ActionRow()
+                        CYPillButton(verbatim: text("ownedCover.cancelLocal","Cancel this local image"), style: .secondary) { model.cancelPicked(local) }
+                            .disabled(flow.isBusy).accessibilityIdentifier("ownedCover.cancelLocal").e1ActionRow()
                     }
                     if let count = saved?.unresolvedUploadCount, count > 0, !flow.hasUnstoredUploadReceipt {
                         Text(text("ownedCover.uploadUnknown","An upload has no saved asset receipt. It may have reached the server, and no upload-status API is available. Choosing and uploading another image creates a separate upload; no automatic retry will occur."))
@@ -141,18 +142,18 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
                     }
                     if flow.hasUnstoredUploadReceipt {
                         Text(text("ownedCover.receiptUnstored","The server returned an asset receipt, but this device could not save it. Keep this screen open and retry saving the receipt before selecting the cover."))
-                        Button(text("ownedCover.saveReceipt","Save the received asset receipt")) { model.persistReceipt() }
-                            .buttonStyle(.borderless).disabled(!flow.canPersistUploadReceipt).accessibilityIdentifier("ownedCover.saveReceipt")
+                        CYPillButton(verbatim: text("ownedCover.saveReceipt","Save the received asset receipt"), style: .secondary) { model.persistReceipt() }
+                            .disabled(!flow.canPersistUploadReceipt).accessibilityIdentifier("ownedCover.saveReceipt").e1ActionRow()
                     }
                     if let asset = flow.uploadedAsset {
                         assetFields(asset,prefix:"ownedCover.uploaded")
-                        Button(text("ownedCover.readUploaded","Read the checked uploaded image")) { Task { await model.read(asset) } }
-                            .buttonStyle(.borderless).disabled(flow.isBusy).accessibilityIdentifier("ownedCover.readUploaded")
+                        CYPillButton(verbatim: text("ownedCover.readUploaded","Read the checked uploaded image"), style: .secondary) { Task { await model.read(asset) } }
+                            .disabled(flow.isBusy).accessibilityIdentifier("ownedCover.readUploaded").e1ActionRow()
                     }
                 }
                 if let image = model.image, let asset = model.renderedAsset, flow.isCurrent {
                     Section {
-                        Image(uiImage:image).resizable().scaledToFit().accessibilityIdentifier("ownedCover.serverPreview")
+                        Image(uiImage:image).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).accessibilityIdentifier("ownedCover.serverPreview")
                         Text(text("ownedCover.verifiedBytes","These bytes were read through this account's exact asset reference and matched its SHA-256. This does not approve or publish the topic."))
                         if flow.current == nil {
                             if flow.hasUnstoredReceipt {
@@ -162,34 +163,34 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
                                 Text(text("ownedCover.currentRequired","Read current cover details before reviewing this image. No content or ownership revision has been inferred."))
                                     .accessibilityIdentifier("ownedCover.currentRequired")
                             }
-                            Button(text("ownedCover.reload","Read current cover details")) { Task { await model.loadCurrentDetails() } }
-                                .buttonStyle(.borderless).disabled(!flow.canReadCurrentDetails).accessibilityIdentifier("ownedCover.readForSelection")
+                            CYPillButton(verbatim: text("ownedCover.reload","Read current cover details"), style: .secondary) { Task { await model.loadCurrentDetails() } }
+                                .disabled(!flow.canReadCurrentDetails).accessibilityIdentifier("ownedCover.readForSelection").e1ActionRow()
                         }
-                        Button(text("ownedCover.reviewSelection","Review this cover selection")) { model.review(asset) }
-                            .buttonStyle(.borderless).disabled(!flow.canReviewSelection(asset)).accessibilityIdentifier("ownedCover.reviewSelection")
+                        CYPillButton(verbatim: text("ownedCover.reviewSelection","Review this cover selection")) { model.review(asset) }
+                            .disabled(!flow.canReviewSelection(asset)).accessibilityIdentifier("ownedCover.reviewSelection").e1ActionRow()
                     }
                 }
                 if flow.hasUnstoredSelectionReceipt {
                     Section {
                         Text(text("ownedCover.selectionReceiptUnstored","The server confirmed this selection, but its receipt could not be saved on this device. Save that exact receipt before continuing to review."))
-                        Button(text("ownedCover.saveSelectionReceipt","Save the received selection receipt")) { model.persistSelectionReceipt() }
-                            .buttonStyle(.borderless).disabled(!flow.canPersistSelectionReceipt).accessibilityIdentifier("ownedCover.saveSelectionReceipt")
+                        CYPillButton(verbatim: text("ownedCover.saveSelectionReceipt","Save the received selection receipt"), style: .secondary) { model.persistSelectionReceipt() }
+                            .disabled(!flow.canPersistSelectionReceipt).accessibilityIdentifier("ownedCover.saveSelectionReceipt").e1ActionRow()
                     }
                 } else if !flow.hasUnstoredReceipt, flow.hasUnknownSelection, let saved {
                     Section {
                         Text(text("ownedCover.selectionUnknown","The cover selection is unconfirmed. Its original request is saved. A different current revision does not prove it failed."))
                             .accessibilityIdentifier("ownedCover.selectionUnknown")
-                        Button(text("ownedCover.checkSelection","Check the original selection request")) { model.check(saved) }
-                            .buttonStyle(.borderless).disabled(flow.isBusy).accessibilityIdentifier("ownedCover.checkSelection")
-                        Button(text("ownedCover.retrySelection","Retry exactly the original selection")) { model.retry(saved) }
-                            .buttonStyle(.borderless).disabled(flow.isBusy || !mayChange()).accessibilityIdentifier("ownedCover.retrySelection")
+                        CYPillButton(verbatim: text("ownedCover.checkSelection","Check the original selection request"), style: .secondary) { model.check(saved) }
+                            .disabled(flow.isBusy).accessibilityIdentifier("ownedCover.checkSelection").e1ActionRow()
+                        CYPillButton(verbatim: text("ownedCover.retrySelection","Retry exactly the original selection"), style: .secondary) { model.retry(saved) }
+                            .disabled(flow.isBusy || !mayChange()).accessibilityIdentifier("ownedCover.retrySelection").e1ActionRow()
                     }
                 }
-                if flow.isWorking { ProgressView().accessibilityIdentifier("ownedCover.working") }
+                if flow.isWorking { CYSkeletonBlock(height: 18).accessibilityLabel(Text("cy.state.loading")).accessibilityIdentifier("ownedCover.working") }
                 if case .failed = flow.state { Text(text("ownedCover.failed","The action could not be verified. Existing cover and submission records are retained.")) }
                 if flow.state == .unauthorized { Text(text("ownedCover.unauthorized","Sign in again before reading or changing the cover.")) }
             }
-            .navigationTitle(text("ownedCover.title","Author cover"))
+            .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .toolbar { ToolbarItem(placement:.cancellationAction) {
                 Button(text("ownedCover.close","Close")) { model.close();close() }.accessibilityIdentifier("ownedCover.close")
             } }
@@ -207,16 +208,17 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
     private func selectionConfirmation(_ captured:OwnedTopicCoverAuthorFlow.SelectionReview) -> some View {
         NavigationStack {
             Form {
+                Section { CYHeroHeader(verbatim: text("ownedCover.confirmTitle","Confirm cover selection")) }.e1HeroRow()
                 Text(text("ownedCover.confirmScope","Apply exactly this asset to the captured topic, content revision and CONTENT ownership record. This changes the next review input, not existing releases."))
                 assetFields(captured.command.asset,prefix:"ownedCover.confirm")
                 LabeledContent(text("ownedCover.topic","Saved topic"),value:String(captured.command.topicID))
                 LabeledContent(text("ownedCover.contentSlot","Captured CONTENT ownership record"),value:String(captured.command.expectedContentSlotID))
                 LabeledContent(text("ownedCover.config","Current content revision"),value:String(captured.command.expectedConfigVersion))
                 LabeledContent(text("ownedCover.selectionRevision","Current cover revision"),value:String(captured.command.expectedSelectionVersion))
-                Button(text("ownedCover.confirm","Apply this exact cover selection")) { model.confirm(captured) }
-                    .buttonStyle(.borderless).accessibilityIdentifier("ownedCover.confirm")
+                CYPillButton(verbatim: text("ownedCover.confirm","Apply this exact cover selection")) { model.confirm(captured) }
+                    .accessibilityIdentifier("ownedCover.confirm").e1ActionRow()
             }
-            .navigationTitle(text("ownedCover.confirmTitle","Confirm cover selection"))
+            .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .toolbar { ToolbarItem(placement:.cancellationAction) {
                 Button(text("ownedCover.cancel","Cancel")) { model.cancel(captured) }.accessibilityIdentifier("ownedCover.cancel")
             } }

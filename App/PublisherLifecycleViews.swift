@@ -22,6 +22,8 @@ import SwiftUI
     private func text(_ key: String) -> String { appLocalized(String.LocalizationValue(key), locale: locale) }
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: text("publisherPricing.confirmFinalPrice"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 // Source chip tabs 有人带 / 无人带.
                 Picker(text("publisherPricing.format"), selection: $subtype) {
@@ -39,8 +41,8 @@ import SwiftUI
                 }
             }
             Section {
-                Button(subtype == .guided ? text("publisherPricing.recalculateMinimum") : text("publisherPricing.refreshMinimumPrice")) { Task { await load() } }
-                    .disabled(busy).accessibilityIdentifier("publisher.preview")
+                CYPillButton(verbatim: subtype == .guided ? text("publisherPricing.recalculateMinimum") : text("publisherPricing.refreshMinimumPrice"), style: .secondary) { Task { await load() } }
+                    .listRowBackground(Color.clear).disabled(busy).accessibilityIdentifier("publisher.preview")
                 if busy { Text(text("publisherPricing.checkingTheLatestPricing")).font(.caption) }
             }
             if let preview {
@@ -89,8 +91,8 @@ import SwiftUI
                         Text(text("publisherPricing.youCanSetThePriceOnce")).font(.caption).foregroundStyle(.orange)
                             .accessibilityIdentifier("publisher.phaseBlocked")
                     }
-                    Button(text("publisherPricing.confirmFinalPriceAndSubmitFor")) { Task { await prepare() } }
-                        .disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
+                    CYPillButton(verbatim: text("publisherPricing.confirmFinalPriceAndSubmitFor")) { Task { await prepare() } }
+                        .listRowBackground(Color.clear).disabled(busy || preview.canConfirm == false).accessibilityIdentifier("publisher.reviewPrice")
                 }
             }
             if let review {
@@ -102,7 +104,7 @@ import SwiftUI
             }
             if !message.isEmpty { Text(message).accessibilityIdentifier("publisher.message") }
         }
-        .navigationTitle(text("publisherPricing.confirmFinalPrice"))
+        .cyHeroScreen()
         .task(id: preview?.lineup.map(\.id) ?? []) { await loadPartnerNames() }
         // Mini-program pages/topic/pricing calls preview() in onLoad: load the floor without a manual tap.
         .task { if preview == nil, !busy, subtype == .selfPlay { await load() } }
@@ -154,6 +156,8 @@ import SwiftUI
     private var isClub: Bool { row.type == "club" }
     var body: some View {
         List {
+            CYHeroHeader(verbatim: isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if topicID <= 0 || row.partnerID <= 0 || !["club", "merchant"].contains(row.type) {
                 // Source invalid-link state.
                 VStack(alignment: .leading, spacing: 4) {
@@ -162,7 +166,7 @@ import SwiftUI
                 }.accessibilityIdentifier("publisher.partner.invalid")
             } else {
                 Section {
-                    if loading { ProgressView(text("publisherPricing.loadingPartnerInformation")) }
+                    if loading { CYSkeleton() }
                     else if let result {
                         let profile = result.profile.object ?? [:]
                         Text(profile["name"]?.text ?? "—").font(.headline)
@@ -186,7 +190,7 @@ import SwiftUI
             }
             if !message.isEmpty { Text(message) }
         }.accessibilityIdentifier("publisher.partner")
-        .navigationTitle(isClub ? text("publisherPricing.partnerClub") : text("publisherPricing.hostingMerchant"))
+        .cyHeroScreen()
         .task {
             guard topicID > 0, row.partnerID > 0 else { loading = false; return }
             do { result = try await client.partner(topicID: topicID, type: row.type, id: row.partnerID) } catch { message = PublisherLifecycleCopy.error(error, zh: zh) }
@@ -235,9 +239,11 @@ import SwiftUI
     private var zh: Bool { locale.language.languageCode?.identifier == "zh" }
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: zh ? "取消并退款" : "Cancel and refund")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Text(zh ? "主办方取消并退款，无法撤销。原因将展示给玩家。" : "Organizer cancellation and refunds are irreversible. The reason is shown to players.")
             TextField(zh ? "取消原因" : "Cancellation reason", text: $reason, axis: .vertical).accessibilityIdentifier("publisher.cancelReason")
-            Button(zh ? "查看退款影响" : "Preview refund impact") { Task {
+            CYPillButton(verbatim: zh ? "查看退款影响" : "Preview refund impact", style: .secondary) { Task {
                 busy = true; defer { busy = false }
                 do { review = try await coordinator.prepare(.cancel(resource, reason: reason, scope: nil)); message = "" }
                 catch { message = PublisherLifecycleCopy.error(error, zh: zh) }
@@ -252,7 +258,7 @@ import SwiftUI
                 } }.disabled(busy).accessibilityIdentifier("publisher.confirmRefund")
             }
             Text(message)
-        }.navigationTitle(zh ? "取消并退款" : "Cancel and refund")
+        }.cyHeroScreen()
         .onChange(of: reason) { _, _ in clear() }.onDisappear { clear() }
         .onChange(of: phase) { _, value in if value != .active { clear() } }
     }

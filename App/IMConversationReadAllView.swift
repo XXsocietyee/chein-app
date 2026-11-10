@@ -74,6 +74,8 @@ struct IMConversationReadAllButtonToken: Equatable {
         let appearance = model.appearance
         NavigationStack {
             List {
+                CYHeroHeader("im.readAll.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 if model.batch.isCurrent {
                     Section {
                         LabeledContent("d7.readAll.count") { Text(verbatim: String(model.items.count)) }
@@ -82,7 +84,7 @@ struct IMConversationReadAllButtonToken: Equatable {
                         switch model.phase {
                         case .reviewing:
                             if model.batch.canConfirm {
-                                Button("d7.readAll.confirm") {
+                                CYPillButton("d7.readAll.confirm") {
                                     guard let token = model.prepare(appearance: appearance) else { return }
                                     Task { await model.perform(token) }
                                 }
@@ -117,8 +119,7 @@ struct IMConversationReadAllButtonToken: Equatable {
                 } else { Text("messaging.signInHint") }
             }
             .cyGroupedSurface()
-            .navigationTitle(Text("im.readAll.title"))
-            .navigationBarTitleDisplayMode(.inline)
+            .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(model.phase == .reviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }

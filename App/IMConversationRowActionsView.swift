@@ -99,6 +99,8 @@ struct IMConversationRowButtonToken: Equatable {
         let appearance = model.appearance
         NavigationStack {
             Form {
+                CYHeroHeader(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title"))
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 if model.actions.isCurrent {
                     Section {
                         MessagingConversationName(conversation: model.actions.conversation).lineLimit(1)
@@ -106,17 +108,17 @@ struct IMConversationRowButtonToken: Equatable {
                     Section {
                         switch model.state {
                         case .reviewing:
-                            Button {
+                            CYPillButton(LocalizedStringKey(model.actions.action?.titleKey ?? "im.full.confirm")) {
                                 guard let token = model.prepare(.confirm, appearance: appearance) else { return }
                                 Task { _ = await model.perform(token) }
-                            } label: { Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.full.confirm")) }
+                            }
                             .disabled(model.isActionPending)
                             .accessibilityIdentifier("im.row.confirm")
                         case .submitting:
                             ProgressView("im.full.submitting").accessibilityIdentifier("im.row.submitting")
                         case .outcomeUnknown:
                             Text("d7.rowActions.unknown")
-                            Button("d7.rowActions.retry") {
+                            CYPillButton("d7.rowActions.retry", style: .secondary) {
                                 guard let token = model.prepare(.retryUnchanged, appearance: appearance) else { return }
                                 Task { _ = await model.perform(token) }
                             }
@@ -138,8 +140,7 @@ struct IMConversationRowButtonToken: Equatable {
                 } else { Text("messaging.signInHint") }
             }
             .cyGroupedSurface()
-            .navigationTitle(Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title")))
-            .navigationBarTitleDisplayMode(.inline)
+            .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(isReviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }

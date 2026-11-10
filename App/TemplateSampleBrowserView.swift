@@ -105,6 +105,7 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateSamples.open").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 NavigationLink("templateSampleCoverage.open") { TemplateAdditionalSampleBrowserView(model: model) }
                     .accessibilityIdentifier("templateSampleCoverage.open")
@@ -117,7 +118,7 @@ import Combine
                         VStack(alignment: .leading, spacing: 8) {
                             Text(LocalizedStringKey(choice.labelKey)).font(.headline)
                             HStack {
-                                Button("templateSamples.preview", action: controller.openAction(choice))
+                                CYPillButton("templateSamples.preview", style: .secondary, action: controller.openAction(choice))
                                     .disabled(!controller.canBrowse || controller.presentation != nil)
                                     .accessibilityIdentifier("templateSamples.preview." + choice.rawValue)
                                 Spacer()
@@ -129,7 +130,7 @@ import Combine
                     }
                 }
             }
-        }.navigationTitle("templateSamples.open")
+        }.cyGroupedSurface()
             .sheet(item: controller.presentationBinding) { item in
                 NavigationStack { TemplateSamplePresentationView(controller: controller, presentationID: item.id) }
             }

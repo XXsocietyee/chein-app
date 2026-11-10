@@ -10,7 +10,7 @@ import SwiftUI
             if owner.isCurrent, let controller = owner.controller {
                 CityArrivalEvidenceView(controller: controller)
             } else {
-                Text("cityArrival.status.disabled", tableName: "CityArrivalEvidence")
+                CYEmptyState(systemImage: "mappin.slash", "cityArrival.status.disabled", tableName: "CityArrivalEvidence")
             }
         }
         .onAppear { owner.synchronize() }
@@ -28,7 +28,7 @@ import SwiftUI
         Group {
             if let owner = session.makeCityArrivalEvidenceRuntimeOwner(audience: .merchant(merchantID: merchantID), board: nil), owner.isCurrent {
                 CityArrivalEvidenceRuntimeHostView(owner: owner, revision: session.cityArrivalEvidenceRuntimeRevision)
-            } else { Text("cityArrival.status.disabled", tableName: "CityArrivalEvidence") }
+            } else { CYEmptyState(systemImage: "mappin.slash", "cityArrival.status.disabled", tableName: "CityArrivalEvidence") }
         }
     }
 }

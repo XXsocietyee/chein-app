@@ -285,7 +285,7 @@ struct RoamPrivatePageScope: Hashable {
                     Text("roam.capsule.openedMeta \(opened.unlockDateText ?? "—") \(opened.createdDateText ?? "—")").font(.caption).foregroundStyle(.secondary)
                     Text(verbatim: opened.body ?? "").font(.body).textSelection(.enabled).accessibilityIdentifier("roam.capsule.body")
                     if let photo = opened.photoURL, let url = URL(string: photo), url.scheme == "https" {
-                        AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: { ProgressView() }
+                        AsyncImage(url: url) { image in image.resizable().scaledToFit() } placeholder: { CYSkeleton() }
                             .accessibilityLabel(Text("roam.capsule.photo"))
                     }
                     Button("roam.capsule.keep") { page.read { await model.closeOpened() } }.accessibilityIdentifier("roam.capsule.keep")
@@ -467,7 +467,7 @@ struct RoamPrivatePageScope: Hashable {
     }
     @ViewBuilder private var list: some View {
         Section {
-            if model.isBusy && model.items.isEmpty { ProgressView("roam.private.loading") }
+            if model.isBusy && model.items.isEmpty { CYSkeleton().accessibilityLabel(Text("roam.private.loading")) }
             ForEach(model.items) { item in
                 if item.state == .open {
                     Button { page.read { await model.open(item) } } label: {
@@ -589,7 +589,7 @@ extension RoamGoalState {
             if let detail = model.detail { detailSection(detail) }
             if creating { form }
             Section {
-                if model.isBusy && model.rows.isEmpty { ProgressView("roam.private.loading") }
+                if model.isBusy && model.rows.isEmpty { CYSkeleton().accessibilityLabel(Text("roam.private.loading")) }
                 ForEach(model.rows) { row in
                     Button { page.read { await model.open(row.id) } } label: {
                         VStack(alignment: .leading, spacing: 6) {

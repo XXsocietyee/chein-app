@@ -89,7 +89,7 @@ import SwiftUI
             if model.busy { ProgressView() }
         }
         .confirmationDialog("确认原检定动作", isPresented: $actionConfirmation, titleVisibility: .visible) {
-            if let offered { Button(String(localized: "确认") + title(offered.action)) { Task { await model.commit(offered); self.offered = nil } } }
+            if let offered { Button("确认" + title(offered.action)) { Task { await model.commit(offered); self.offered = nil } } }
             Button("取消", role: .cancel) { offered = nil }
         } message: { Text("使用当前服务器检定和原版本，不在设备上生成骰点或通过结果。") }
         .confirmationDialog("重试同一原请求？", isPresented: $retryConfirmation, titleVisibility: .visible) {

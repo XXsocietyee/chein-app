@@ -4,6 +4,7 @@ import SwiftUI
 struct ClubTabTagLine: View {
     let club: ClubRecord
     let section: ClubTabPresentation.Section
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         let tags = ClubTabPresentation.tags(club, in: section)
         let level = ClubTabPresentation.levelKey(club.level)
@@ -12,7 +13,7 @@ struct ClubTabTagLine: View {
                 if let key = level.key { Text(LocalizedStringKey(key)) } else if let fallback = level.fallback { Text(verbatim: fallback) }
                 ForEach(tags.labels.prefix(3), id: \.self) { Text(verbatim: $0) }
                 if tags.freeToJoin { Text("club.tab.freeToJoin") }
-            }.font(.caption2.weight(.semibold)).foregroundStyle(.secondary).lineLimit(1)
+            }.font(CYTypography.caption).foregroundStyle(palette.textSecondary).lineLimit(1)
                 .accessibilityElement(children: .combine).accessibilityIdentifier("clubTab.tags.\(club.id)")
         }
     }
@@ -23,7 +24,6 @@ struct ClubTabEmptyState: View {
     var body: some View {
         // Mini-program cy-empty shows only the title here; the create action sits in the row above.
         let keys = ClubTabPresentation.emptyKeys(merchant: merchant)
-        ContentUnavailableView(LocalizedStringKey(keys.title), systemImage: "person.3")
-            .accessibilityIdentifier("clubTab.empty")
+        CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title), messageIdentifier: "clubTab.empty")
     }
 }

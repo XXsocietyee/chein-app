@@ -22,6 +22,8 @@ import SwiftUI
     private func text(_ zh: String, _ en: String) -> String { locale.language.languageCode?.identifier == "zh" ? zh : en }
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: text("原版本举报", "Original-version report"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Text(verbatim: reference.moduleId).font(Theme.Font.cardTitle).fixedSize(horizontal: false, vertical: true); Text(verbatim: reference.releaseId).font(Theme.Font.label.monospaced()).fixedSize(horizontal: false, vertical: true)
                 Text(verbatim: reference.contentHash).font(Theme.Font.label.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
@@ -65,14 +67,14 @@ import SwiftUI
                     Text(text("本次读取或提交未确认。保留原请求和已读回执；先重读原结果。身份或批准失效时会清除本页展示。",
                               "This read or submission is unconfirmed. The original request and prior receipt are retained; reread the original result. Identity or approval loss clears this page.")).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
                 }
-                Button(text("重读目标与原回执", "Reread target and original receipt")) { Task { await controller.refresh() } }
+                CYPillButton(verbatim: text("重读目标与原回执", "Reread target and original receipt"), style: .secondary) { Task { await controller.refresh() } }
                     .disabled(controller.busy)
             } else {
                 Text(text("原版本举报读取未配置或当前身份 / 批准已失效。没有发送举报；原请求只在同账号同域恢复。",
                           "Original-version report reading is unconfigured or identity/approval expired. No report is sent; the original request is recoverable only in the same account and realm.")).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
             }
         }
-        .navigationTitle(text("原版本举报", "Original-version report"))
+        .cyHeroScreen()
         .confirmationDialog(text("向原审核提交该版本举报？", "Submit this version report to the original audit service?"), isPresented: $confirming) {
             Button(text("确认提交原请求", "Confirm original request")) { if let controller { Task { await controller.submit(reason: reason) } } }
             Button(text("取消", "Cancel"), role: .cancel) { }

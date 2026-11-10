@@ -42,7 +42,7 @@ import SwiftUI
             Section {
                 Text(creatorString("workshopCreator.boundary")).foregroundStyle(.secondary)
             }
-            if controller.phase == .loading || controller.phase == .submitting { ProgressView(creatorString("workshopCreator.loading")) }
+            if controller.phase == .loading || controller.phase == .submitting { CYLoadingStateView(rows: 1).accessibilityLabel(Text(verbatim: creatorString("workshopCreator.loading"))) }
             if let issue = controller.issue { Text(creatorString(issueKey(issue))).foregroundStyle(.red).accessibilityIdentifier("workshopCreator.issue") }
             if let pending = controller.pending {
                 Section(creatorString("workshopCreator.request")) { Text(verbatim: pending.requestId).font(.caption).textSelection(.enabled) }
@@ -110,7 +110,7 @@ import SwiftUI
                                 set: { controller.acknowledge(index, value: $0, appearance: appearance) }))
                                 .disabled(controller.phase != .reviewing).accessibilityIdentifier("workshopCreator.confirm.\(index)")
                         }
-                        Button(creatorString("workshopCreator.declare")) { run(controller.offerConfirm(appearance)) }
+                        CYPillButton(verbatim: creatorString("workshopCreator.declare"), style: .primary) { run(controller.offerConfirm(appearance)) }
                             .disabled(!controller.canConfirm).accessibilityIdentifier("workshopCreator.declare")
                     }
                 }
@@ -122,12 +122,12 @@ import SwiftUI
                     LabeledContent(creatorString("workshopCreator.version"), value: receipt.consentReference.versionId)
                     LabeledContent(creatorString("workshopCreator.record"), value: receipt.consentReference.consentId)
                     Text(verbatim: receipt.declaredAt).font(.caption)
-                    Button(creatorString("workshopCreator.another")) { run(controller.offerAnotherReview(appearance)) }
+                    CYPillButton(verbatim: creatorString("workshopCreator.another"), style: .secondary) { run(controller.offerAnotherReview(appearance)) }
                         .accessibilityIdentifier("workshopCreator.another")
                 }
             }
             if controller.phase != .submitting && controller.phase != .loading && controller.phase != .recorded {
-                Button(creatorString(controller.pending == nil ? "workshopCreator.refresh" : "workshopCreator.checkStatus")) { run(controller.offerLoad(appearance)) }
+                CYPillButton(verbatim: creatorString(controller.pending == nil ? "workshopCreator.refresh" : "workshopCreator.checkStatus"), style: .secondary) { run(controller.offerLoad(appearance)) }
                     .accessibilityIdentifier("workshopCreator.refresh")
             }
         }.navigationTitle(creatorString("workshopCreator.title")).navigationBarTitleDisplayMode(.inline)

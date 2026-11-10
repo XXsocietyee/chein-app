@@ -7,6 +7,7 @@ struct TeamPageHeader: View {
     let kind: TeamPageKind
     var confirmedJoinMode: TeamJoinMode? = nil
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     private var chinese: Bool { locale.language.languageCode?.identifier == "zh" }
     @ViewBuilder private var teamTitle: some View {
         let title = detail.team.title.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -22,10 +23,9 @@ struct TeamPageHeader: View {
                     .accessibilityIdentifier("teamPage.inviteExplainer")
             } else {
                 // Mini `.team-status(.live)`: brand-soft pill while recruiting, neutral pill otherwise.
-                Text(LocalizedStringKey(detail.team.status.key)).font(CYTypography.label)
-                    .foregroundStyle(TeamPagePresentation.statusIsLive(detail.team.status) ? CYColor.accentText : CYColor.textSecondary)
-                    .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                    .background(TeamPagePresentation.statusIsLive(detail.team.status) ? CYColor.accentSoft : CYColor.bgElevated, in: Capsule())
+                CYStatusChip(LocalizedStringKey(detail.team.status.key),
+                             tone: TeamPagePresentation.statusIsLive(detail.team.status) ? .success : .neutral,
+                             systemImage: TeamPagePresentation.statusIsLive(detail.team.status) ? "dot.radiowaves.left.and.right" : nil)
                     .accessibilityIdentifier("teamPage.status")
                 teamTitle
                 HStack(spacing: 4) {
@@ -36,7 +36,10 @@ struct TeamPageHeader: View {
                     .accessibilityIdentifier("teamPage.subtitle")
             }
             // Mini `.team-meta`: two equal columns, bold value over caption key (members / start or method).
-            HStack(alignment: .top, spacing: CYSpacing.xl) {
+            let metaLayout = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.lg))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.xl))
+            metaLayout {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     if let joined = detail.team.joinedCount, let max = detail.team.maxMembers { Text(verbatim: "\(joined) / \(max)").font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary) }
                     else { Text(verbatim: "—").font(CYTypography.numericBody).foregroundStyle(CYColor.textPrimary) }
@@ -62,18 +65,17 @@ struct TeamPageStateView: View {
     var reload: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     var body: some View {
-        VStack(spacing: CYSpacing.md) {
-            Image(systemName: state.kind == .signIn ? "person.crop.circle.badge.questionmark" : "exclamationmark.triangle")
-                .font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-            Text(LocalizedStringKey(state.titleKey)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
-                .accessibilityIdentifier("teamPage.state.title")
-            Text(LocalizedStringKey(state.detailKey)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
-            if let key = state.actionKey, let action = handler {
-                Button(LocalizedStringKey(key), action: action).buttonStyle(.cyPrimary)
-                    .accessibilityIdentifier("teamPage.state.action")
-            }
-        }.padding().frame(maxWidth: .infinity)
+        CYEmptyState(
+            systemImage: state.kind == .signIn ? "person.crop.circle.badge.questionmark" : "exclamationmark.triangle",
+            LocalizedStringKey(state.titleKey),
+            detail: LocalizedStringKey(state.detailKey),
+            messageIdentifier: "teamPage.state.title",
+            actionTitle: state.actionKey.map { LocalizedStringKey($0) },
+            actionIdentifier: "teamPage.state.action",
+            actionStyle: .primary,
+            action: handler
+        )
+        .frame(maxWidth: .infinity)
     }
     private var handler: (() -> Void)? {
         switch state.action {
@@ -102,8 +104,8 @@ struct TeamStaleBanner: View {
 struct TeamClosedInvitationButton: View {
     let cta: TeamInvitationCTA
     var body: some View {
-        Button {} label: { Text(LocalizedStringKey(cta.key)) }
-            .buttonStyle(.cySecondary(fullWidth: true)).disabled(true).accessibilityIdentifier("teamPage.closedInvitation")
+        CYPillButton(LocalizedStringKey(cta.key), style: .secondary) {}
+            .disabled(true).accessibilityIdentifier("teamPage.closedInvitation")
     }
 }
 

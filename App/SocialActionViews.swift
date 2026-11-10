@@ -36,8 +36,9 @@ public enum SocialEditorPurpose: String, Identifiable {
     var body: some View {
         Form {
             Section {
-                if coordinator.availability == .syntheticOnly { Text("social.offline").font(.footnote) }
-                else if coordinator.availability(for: command(), target: target) == .disabled { Text("social.writesDisabled").font(.footnote) }
+                CYHeroHeader(LocalizedStringKey(title)).listRowBackground(Color.clear)
+                if coordinator.availability == .syntheticOnly { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
+                else if coordinator.availability(for: command(), target: target) == .disabled { CYStatusChip("social.writesDisabled", tone: .warning, systemImage: "lock") }
                 if coordinator.identity.accountID == nil { SocialIssueView(error: SocialActionBlock.signIn) }
                 if let memberID = target.memberID { LabeledContent("social.targetMember", value: String(memberID)) }
                 if let postID = target.postID { LabeledContent("social.targetPost", value: String(postID)) }
@@ -65,10 +66,10 @@ public enum SocialEditorPurpose: String, Identifiable {
                     Toggle("social.actionEnabled", isOn: $enabled).disabled(state.locksForm)
                 }
             }
-            if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").font(.footnote) } }
-            if purpose == .toggleFollow { Section { Text("social.followToggleHint").font(.footnote) } }
-            if purpose == .startChat { Section { Text("social.startChatHint").font(.footnote) } }
-            if purpose == .commentLike && contentGeneration != .communityV1 { Section { Text("social.toggleHint").font(.footnote) } }
+            if purpose == .like && contentGeneration == .legacySquare { Section { Text("squareReport.legacyLikeHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .toggleFollow { Section { Text("social.followToggleHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .startChat { Section { Text("social.startChatHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
+            if purpose == .commentLike && contentGeneration != .communityV1 { Section { Text("social.toggleHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) } }
             if purpose == .report {
                 Section {
                     if needsLegacyReason {
@@ -78,20 +79,20 @@ public enum SocialEditorPurpose: String, Identifiable {
                                 Text(LocalizedStringKey("squareReport.legacyReason." + String(index))).tag(Optional(label))
                             }
                         }.accessibilityIdentifier("social.editor.legacyReportReason")
-                        Text("squareReport.legacyHint").font(.footnote)
-                    } else { Text("social.reportHint").font(.footnote) }
+                        Text("squareReport.legacyHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    } else { Text("social.reportHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                 }
             }
             if let issue { SocialIssueView(error: issue) }
             SocialActionStateView(state: state)
             Section {
-                Button("social.review") { textFocused = false; Task { await prepare() } }
+                CYPillButton("social.review") { textFocused = false; Task { await prepare() } }
                     .disabled(preparing || commentTooLong || state.locksForm || coordinator.identity.accountID == nil || (hasText && SocialText.nonempty(text) == nil) || (needsLegacyReason && legacyReportReason == nil))
                     .accessibilityIdentifier("social.editor.review")
             }
         }
         .cyGroupedSurface()
-        .appNavigationTitle(key: title).privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .scrollDismissesKeyboard(.interactively)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
@@ -173,6 +174,7 @@ public enum SocialEditorPurpose: String, Identifiable {
     private var state: SocialActionState { _ = revision; return coordinator.state(target: review.target, generation: review.command.requiredGeneration) }
     var body: some View {
         List {
+            CYHeroHeader("social.review").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if !current { SocialIssueView(error: SocialActionBlock.changed) }
             else {
                 Section("social.reviewTarget") {
@@ -206,7 +208,7 @@ public enum SocialEditorPurpose: String, Identifiable {
                 }
                 SocialActionStateView(state: state)
                 if coordinator.availability == .syntheticOnly {
-                    Button("social.simulate") {
+                    CYPillButton("social.simulate") {
                         busy = true
                         Task { await coordinator.confirm(review);
 #if DEBUG
@@ -215,15 +217,15 @@ public enum SocialEditorPurpose: String, Identifiable {
                             busy = false; revision += 1 }
                     }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")
                 } else if coordinator.availability(for: review.command, target: review.target) == .approved {
-                    Button("social.submit") {
+                    CYPillButton("social.submit") {
                         busy = true
                         Task { await coordinator.confirm(review); busy = false; revision += 1 }
                     }.disabled(busy || state != .reviewing).accessibilityIdentifier("social.review.confirm")
                 } else {
-                    Button("social.submit") {}.disabled(true).accessibilityIdentifier("social.review.disabled")
+                    CYPillButton("social.submit") {}.disabled(true).accessibilityIdentifier("social.review.disabled")
                 }
             }
-        }.appNavigationTitle("social.review")
+        }.cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close", action: onClose).disabled(busy).accessibilityIdentifier("social.review.close")
 #if DEBUG
                 .modifier(SocialReviewFixtureDiagnostic(coordinator: coordinator, review: review, busy: busy))
@@ -269,13 +271,13 @@ private struct SocialActionStateView: View {
         Group {
             switch state {
             case .idle, .reviewing: EmptyView()
-            case .preparing, .preflighting, .submitting: ProgressView("social.loading")
-            case .notSent: Text("social.notSent").accessibilityIdentifier("social.state.notSent")
-            case .rejected: Text("social.rejected").accessibilityIdentifier("social.state.rejected")
-            case .outcomeUnknown: Text("social.unknown").accessibilityIdentifier("social.state.unknown")
+            case .preparing, .preflighting, .submitting: CYSkeleton().accessibilityLabel(Text("social.loading"))
+            case .notSent: CYStatusChip("social.notSent", tone: .neutral, systemImage: "paperplane").accessibilityIdentifier("social.state.notSent")
+            case .rejected: CYStatusChip("social.rejected", tone: .danger, systemImage: "xmark.circle").accessibilityIdentifier("social.state.rejected")
+            case .outcomeUnknown: CYStatusChip("social.unknown", tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("social.state.unknown")
             case .acknowledged(let receipt):
-                Text(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged")).accessibilityIdentifier("social.state.acknowledged")
+                CYStatusChip(LocalizedStringKey(receipt.synthetic ? "social.simulated" : "social.acknowledged"), tone: .success, systemImage: "checkmark").accessibilityIdentifier("social.state.acknowledged")
             }
-        }.font(.footnote).accessibilityElement(children: .combine)
+        }.accessibilityElement(children: .combine)
     }
 }

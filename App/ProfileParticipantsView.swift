@@ -53,7 +53,8 @@ struct ProfileParticipantsView: View {
                               snapshotIdentity = identity
                               return rows
                           }) { participants in
-            if participants.isEmpty {
+            let page = ProfileParticipantListCoordinator.project(list: .success(ProfileParticipantListFacts(rows: participants, total: nil)))
+            if page.phase == .empty {
                 ProfileEmptyState(title: "profile.participants.empty", hint: "profile.participants.emptyHint", symbol: "person.2", identifier: "profile.participants.empty")
             } else {
                 List {
@@ -69,7 +70,8 @@ struct ProfileParticipantsView: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     if participant.fullName.isEmpty { Text("profile.participants.unnamed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                                     else { Text(verbatim: participant.fullName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                                    if !participant.mobilePhone.isEmpty { Text(verbatim: participant.mobilePhone).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
+                                    // Blank phone shows the model's em dash, never an empty line.
+                                    if let card = page.cards.first(where: { $0.id == participant.id }) { Text(verbatim: card.phoneText).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
                                     // Mini-program pages/address row caption: 用于报名联系和到场核验.
                                     Text("profile.participants.rowPurpose").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 }

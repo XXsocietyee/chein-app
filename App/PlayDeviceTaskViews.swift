@@ -21,14 +21,15 @@ import SwiftUI
                 Text(LocalizedStringKey("playx.device." + kind.rawValue)).font(.headline)
                 if unsupportedPhotoSubtype { Text("playhost.photo.unsupported") }
                 if !model.supports(kind) { Text("playx.device.disabled") }
-                Button("playx.device.capture") { Task { await model.capture(kind, photoFilter: photoFilter, interaction: interaction) } }
+                CYPillButton("playx.device.capture", style: .secondary) { Task { await model.capture(kind, photoFilter: photoFilter, interaction: interaction) } }
+                    .listRowBackground(Color.clear)
                     .disabled(model.busy || !model.supports(kind) || unsupportedPhotoSubtype).accessibilityIdentifier("playx.device.capture")
-                if model.busy { ProgressView("playx.loading") }
+                if model.busy { CYSkeleton().accessibilityLabel(Text("playx.loading")) }
                 if let output = model.output {
                     switch output {
                     case .scan(let code):
                         Text("playx.device.scanCaptured")
-                        Button("playx.review") { onEvidence(.scan(code), outputContext) }.disabled(!model.canReviewOutput).accessibilityIdentifier("playx.device.review")
+                        CYPillButton("playx.review") { onEvidence(.scan(code), outputContext) }.listRowBackground(Color.clear).disabled(!model.canReviewOutput).accessibilityIdentifier("playx.device.review")
                     case .location(let longitude, let latitude, let coordinateSystem, let accuracyMeters, let measuredAt):
                         Text("playx.device.locationCaptured")
                         Text(verbatim: coordinateSystem).font(.caption)
@@ -43,7 +44,8 @@ import SwiftUI
                         LabeledContent("playx.media.size") { Text(verbatim: "\(bytes.count) · \(mime)") }
                         if let image = UIImage(data: bytes) { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel(Text("playhost.photo.preview")) }
                         Text("playhost.photo.notice")
-                        Button("playhost.photo.upload") { Task { await model.uploadPhoto(expectedOutputID: outputID) } }
+                        CYPillButton("playhost.photo.upload") { Task { await model.uploadPhoto(expectedOutputID: outputID) } }
+                            .listRowBackground(Color.clear)
                             .disabled(!model.canUpload).accessibilityIdentifier("playhost.photo.upload")
                         if model.uploadedPhoto != nil {
                             Button("playx.review") { if let evidence = model.reviewedPhoto(expectedOutputID: outputID) { onEvidence(evidence, outputContext) } }
@@ -110,7 +112,8 @@ import SwiftUI
                 PlayRuntimePhaseText(phase: model.machine.phase.rawValue)
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 if !model.available { Text("playx.device.disabled") }
-                Button("playx.stillness.start") { Task { await model.start() } }
+                CYPillButton("playx.stillness.start") { Task { await model.start() } }
+                    .listRowBackground(Color.clear)
                     .disabled(!model.available || model.running || model.machine.phase == .completed || model.machine.phase == .failed)
                     .accessibilityIdentifier("playx.stillness.start")
                 if model.running { Button("playx.run.pause") { model.pause() } }

@@ -5,6 +5,7 @@ import SwiftUI
     let squareReader: any SquareReading
     var actions: SocialActionCoordinator? = nil
     @StateObject private var model = SocialInviteHistoryModel()
+    @Environment(\.cyPalette) private var palette
     private var groups: [(String, [SocialInvitedMember])] {
         (model.timeline(reader)?.months ?? []).map { ($0.id, $0.members) }
     }
@@ -12,10 +13,11 @@ import SwiftUI
         let binding = model.bind(reader)
         let permit = model.permit(reader)
         List {
-            if reader.isOfflineExample { Text("social.offline").font(.caption) }
+            CYHeroHeader("social.invites.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            if reader.isOfflineExample { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
             if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if !model.matches(reader) { ProgressView("social.loading") }
+            else if !model.matches(reader) { CYSkeleton().accessibilityLabel(Text("social.loading")) }
             else if model.accessDenied, let error = model.error {
                 ProfileInviteHistoryIssueView(error: error)
             }
@@ -24,7 +26,7 @@ import SwiftUI
                 Section {
                     ProfileInviteHistorySummaryLine(total: model.pagination.total)
                     SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
-                    if model.scan?.isComplete != true { Text("social.invites.partial").font(.footnote).accessibilityIdentifier("social.invites.partial") }
+                    if model.scan?.isComplete != true { CYStatusChip("social.invites.partial", tone: .warning, systemImage: "hourglass").accessibilityIdentifier("social.invites.partial") }
                 }
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)
@@ -46,13 +48,13 @@ import SwiftUI
                     }
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
-                if model.loading { ProgressView("social.loading") }
-                if model.pagination.continuationInvalid { Text("social.invites.continuationInvalid") }
+                if model.loading { CYSkeleton().accessibilityLabel(Text("social.loading")) }
+                if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
-                    Button("square.loadMore") { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
+                    CYPillButton("square.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
                 }
             }
-        }.appNavigationTitle("social.invites.title").privacySensitive()
+        }.cyHeroScreen().privacySensitive()
             .onAppear { model.appear(reader) }
             .onChange(of: binding) { _, _ in model.replaceReader(reader) }
             .refreshable { await model.refresh(reader, permit: permit) }
@@ -60,15 +62,16 @@ import SwiftUI
             .accessibilityIdentifier("social.invites")
     }
     private func memberRow(_ member: SocialInvitedMember) -> some View {
-        VStack(alignment: .leading, spacing: 5) {
-            if let nickname = member.nickname { Text(verbatim: nickname).font(.headline) }
-            else { Text("profile.inviteHistory.nicknameUnknown").font(.headline) }
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            if let nickname = member.nickname { Text(verbatim: nickname).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
+            else { Text("profile.inviteHistory.nicknameUnknown").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
             ProfileInviteTimelineDates(invitationTime: member.createdAt,
                 reward: model.scan?.rewards[String(member.id)])
             if let reward = model.scan?.rewards[String(member.id)] {
-                Text("social.invites.earned").font(.subheadline)
+                CYStatusChip("social.invites.earned", tone: .success, systemImage: "checkmark")
                 LabeledContent("social.invites.points", value: NSDecimalNumber(decimal: reward.points).stringValue)
-            } else { Text(LocalizedStringKey(model.scan?.isComplete == true ? "social.invites.pending" : "social.invites.synchronizing")).font(.subheadline) }
+                    .font(CYTypography.numericBody).monospacedDigit()
+            } else { CYStatusChip(LocalizedStringKey(model.scan?.isComplete == true ? "social.invites.pending" : "social.invites.synchronizing"), tone: .neutral, systemImage: "clock") }
         }.accessibilityElement(children: .combine)
     }
 }

@@ -30,7 +30,7 @@ import SwiftUI
                         destinationOwner = renderedOwner; destination = $0
                     }
                     .id(session.teamViewIdentity)
-            } else { ProgressView("team.loading") }
+            } else { CYSkeleton().accessibilityLabel(Text("team.loading")) }
         }
             .task(id: session.teamViewIdentity) {
                 guard !Task.isCancelled else { return }
@@ -40,7 +40,7 @@ import SwiftUI
             }
             .navigationDestination(isPresented: Binding(get: { destination != nil }, set: { if !$0 { destination = nil } })) {
                 if let destination, destinationOwner == session.teamViewIdentity { destinationView(destination) }
-                else { ContentUnavailableView("nearby.stale", systemImage: "arrow.clockwise") }
+                else { CYEmptyState(systemImage: "arrow.clockwise", "nearby.stale") }
             }
             .onChange(of: session.teamViewIdentity) { _, _ in destination = nil; destinationOwner = nil }
     }

@@ -46,14 +46,14 @@ import UIKit
                             AnyView(PlayRewardBadgeCollectionView(target: target, reader: session.profileReader,
                                 growthReader: session.growthCenterReader, isCurrent: { model.identity != nil }).id(session.profileReader.identity))
                         })
-                } else { Text("playx.disabled") }
+                } else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
                 }
             case .director(let activityID):
                 if let model = session.playDirector(activityID: activityID) { PlayDirectorView(model: model) }
-                else { Text("playx.disabled") }
+                else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
             case .prefab(let scope):
                 if let model = session.playPrefab(scope: scope) { PlayPrefabRuntimeView(model: model) }
-                else { Text("playx.disabled") }
+                else { CYEmptyState(systemImage: "gamecontroller", "playx.disabled") }
             }
         }.id(session.sessionRevision).privacySensitive()
         .environment(\.nativePlatformRuntime, session.nativePlatformRuntime)

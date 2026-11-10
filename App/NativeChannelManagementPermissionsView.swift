@@ -19,7 +19,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
             if model.isCurrent {
                 if model.permissions?.channelID == channelID {
                     Form {
-                        if model.busy { Section { ProgressView().frame(maxWidth: .infinity) } }
+                        if model.busy { Section { CYSkeleton() } }
                         NativeChannelManagementIssueView(issue: localIssue ?? model.issue)
                         Section {
                             Picker(selection: $target) {
@@ -56,7 +56,7 @@ private func ncmPermissionText(_ key: String) -> Text { Text(LocalizedStringKey(
                     }
                     .refreshable { await model.loadPermissions(channelID); selectOriginal() }
                 } else if model.busy {
-                    ProgressView().frame(maxWidth: .infinity, maxHeight: .infinity)
+                    CYSkeleton().padding(CYSpacing.lg)
                 } else {
                     ContentUnavailableView {
                         Label { ncmPermissionText("d7.channelManage.permissionsLoadFailed") } icon: { Image(systemName: "lock.shield") }

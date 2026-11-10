@@ -18,7 +18,8 @@ import SwiftUI
                     Text(verbatim: original.opening.chapterName)
                     Text("projectChapterAudio.selectionScope", tableName: "ProjectChapterAudio")
                     Text(verbatim: original.opening.savedReference).textSelection(.enabled)
-                    Button("projectStoryAudio.choose") { Task { await model.choose() } }
+                    CYPillButton("projectStoryAudio.choose", style: .secondary) { Task { await model.choose() } }
+                        .listRowBackground(Color.clear)
                         .disabled(!flow.canPick).accessibilityIdentifier("projectChapterAudio.choose")
                     if !flow.matchesCapturedDraft && !flow.alreadyApplied { Text("projectChapterAudio.changed", tableName: "ProjectChapterAudio") }
                     if model.selectionFailed { Text("projectStoryAudio.selectionFailed") }
@@ -28,15 +29,15 @@ import SwiftUI
                         Text(verbatim: review.audio.filename)
                         LabeledContent("projectStoryAudio.bytes", value: String(review.audio.bytes.count))
                         Text("projectStoryAudio.inspection")
-                        Button("projectStoryAudio.upload") { model.upload(review) }.disabled(!flow.canUpload(review))
+                        CYPillButton("projectStoryAudio.upload") { model.upload(review) }.listRowBackground(Color.clear).disabled(!flow.canUpload(review))
                             .accessibilityIdentifier("projectChapterAudio.upload")
-                        Button("projectStoryAudio.cancelLocal") { model.cancel(review) }.disabled(flow.busy)
+                        CYPillButton("projectStoryAudio.cancelLocal", style: .tertiary) { model.cancel(review) }.listRowBackground(Color.clear).disabled(flow.busy)
                     }
                 }
                 if flow.hasUnstoredReceipt {
                     Section {
                         Text("projectStoryAudio.unstored")
-                        Button("projectStoryAudio.saveReceipt") { model.persistReceipt() }.disabled(!flow.canPersistReceipt)
+                        CYPillButton("projectStoryAudio.saveReceipt", style: .secondary) { model.persistReceipt() }.listRowBackground(Color.clear).disabled(!flow.canPersistReceipt)
                     }
                 }
                 if let receipt = flow.receipt {
@@ -45,7 +46,8 @@ import SwiftUI
                         Text(verbatim: receipt.reference).textSelection(.enabled)
                         Text("projectStoryAudio.referenceScope")
                         if !flow.referenceFitsTarget { Text("projectChapterAudio.receiptTooLong", tableName: "ProjectChapterAudio") }
-                        Button { model.apply() } label: { Text("projectChapterAudio.apply", tableName: "ProjectChapterAudio") }
+                        CYPillButton("projectChapterAudio.apply", tableName: "ProjectChapterAudio") { model.apply() }
+                            .listRowBackground(Color.clear)
                             .disabled(!flow.canApply).accessibilityIdentifier("projectChapterAudio.apply")
                     }
                 }
@@ -53,7 +55,7 @@ import SwiftUI
                 if flow.state == .localSaveFailed { Text("projectStoryAudio.localFailed") }
                 if flow.state == .failed { Text("projectStoryAudio.failed") }
                 if flow.state == .unauthorized { Text("projectStoryAudio.unauthorized") }
-                if flow.state == .uploading { ProgressView() }
+                if flow.state == .uploading { CYSkeleton() }
             }
             .navigationTitle(Text("projectChapterAudio.title", tableName: "ProjectChapterAudio"))
             .toolbar { ToolbarItem(placement: .cancellationAction) {

@@ -172,24 +172,23 @@ struct RoamShareLinkDormantNotice: View {
             VStack(alignment: .leading, spacing: 20) {
                 switch outcome {
                 case nil:
-                    ProgressView("roamSub.w208.shared.loading").frame(maxWidth: .infinity)
+                    CYSkeleton().accessibilityLabel(Text("roamSub.w208.shared.loading"))
                         .accessibilityIdentifier("roamSub.w208.shared.loading")
                 case .error?:
-                    ContentUnavailableView {
-                        Label("roamSub.w208.shared.errorTitle", systemImage: "wifi.exclamationmark")
-                    } description: { Text("roamSub.w208.shared.errorHint") } actions: {
-                        Button("roamSub.w208.shared.retry") { Task { await load() } }
-                            .accessibilityIdentifier("roamSub.w208.shared.retry")
-                    }.accessibilityIdentifier("roamSub.w208.shared.error")
+                    CYEmptyState(systemImage: "wifi.exclamationmark", "roamSub.w208.shared.errorTitle",
+                                 detail: "roamSub.w208.shared.errorHint",
+                                 actionTitle: "roamSub.w208.shared.retry", actionIdentifier: "roamSub.w208.shared.retry",
+                                 action: { Task { await load() } })
+                        .accessibilityIdentifier("roamSub.w208.shared.error")
                 case .gone?:
-                    ContentUnavailableView {
-                        Label("roamSub.w208.shared.goneTitle", systemImage: "eye.slash")
-                    } description: { Text("roamSub.w208.shared.goneHint") } actions: {
-                        if let onOpenRoam { Button("roamSub.w208.shared.goRoam", action: onOpenRoam) }
-                    }.accessibilityIdentifier("roamSub.w208.shared.gone")
+                    CYEmptyState(systemImage: "eye.slash", "roamSub.w208.shared.goneTitle",
+                                 detail: "roamSub.w208.shared.goneHint",
+                                 actionTitle: onOpenRoam == nil ? nil : "roamSub.w208.shared.goRoam",
+                                 action: onOpenRoam)
+                        .accessibilityIdentifier("roamSub.w208.shared.gone")
                 case .unavailable?:
-                    ContentUnavailableView("roamSub.w208.shared.unavailable", systemImage: "lock",
-                                           description: Text("roamSub.w208.shared.unavailableHint"))
+                    CYEmptyState(systemImage: "lock", "roamSub.w208.shared.unavailable",
+                                 detail: "roamSub.w208.shared.unavailableHint")
                         .accessibilityIdentifier("roamSub.w208.shared.unavailable")
                 case .ready(let snapshot)?:
                     snapshotCard(snapshot)
@@ -277,11 +276,10 @@ struct RoamShareLinkDormantNotice: View {
 struct RoamPOIUnavailableView: View {
     var onBack: (() -> Void)? = nil
     var body: some View {
-        ContentUnavailableView {
-            Label("roamSub.w208.poi.unavailable", systemImage: "mappin.slash")
-        } description: { Text("roamSub.w208.poi.unavailableHint") } actions: {
-            if let onBack { Button("roamSub.w208.poi.backToMap", action: onBack) }
-        }.accessibilityIdentifier("roamSub.w208.poi.unavailable")
+        CYEmptyState(systemImage: "mappin.slash", "roamSub.w208.poi.unavailable",
+                     detail: "roamSub.w208.poi.unavailableHint",
+                     actionTitle: onBack == nil ? nil : "roamSub.w208.poi.backToMap", action: onBack)
+            .accessibilityIdentifier("roamSub.w208.poi.unavailable")
     }
 }
 
@@ -289,11 +287,10 @@ struct RoamPOIUnavailableView: View {
 struct RoamPOIMissingView: View {
     var onBack: (() -> Void)? = nil
     var body: some View {
-        ContentUnavailableView {
-            Label("roamSub.w208.poi.missing", systemImage: "questionmark.circle")
-        } description: { Text("roamSub.w208.poi.missingHint") } actions: {
-            if let onBack { Button("roamSub.w208.poi.backToMap", action: onBack) }
-        }.accessibilityIdentifier("roamSub.w208.poi.missing")
+        CYEmptyState(systemImage: "questionmark.circle", "roamSub.w208.poi.missing",
+                     detail: "roamSub.w208.poi.missingHint",
+                     actionTitle: onBack == nil ? nil : "roamSub.w208.poi.backToMap", action: onBack)
+            .accessibilityIdentifier("roamSub.w208.poi.missing")
     }
 }
 
@@ -310,16 +307,16 @@ struct RoamPOIMissingView: View {
                 VerificationCodeView(model: codeFactory(.init(kind: .cityVoucher, id: poiID)),
                                      title: RoamCityVoucherCopy.displayName(name), autoIssue: true)
             } else {
-                ContentUnavailableView("roamSub.w208.voucher.disabled", systemImage: "lock",
-                                       description: Text("roamSub.w208.voucher.desc"))
+                CYEmptyState(systemImage: "lock", "roamSub.w208.voucher.disabled",
+                             detail: "roamSub.w208.voucher.desc")
                     .accessibilityIdentifier("roamSub.w208.voucher.disabled")
             }
         } else {
-            ContentUnavailableView {
-                Label("roamSub.w208.voucher.missing", systemImage: "qrcode")
-            } description: { Text("roamSub.w208.voucher.missingHint") } actions: {
-                Button("roamSub.w208.voucher.back") { dismiss() }.accessibilityIdentifier("roamSub.w208.voucher.back")
-            }.accessibilityIdentifier("roamSub.w208.voucher.missing")
+            CYEmptyState(systemImage: "qrcode", "roamSub.w208.voucher.missing",
+                         detail: "roamSub.w208.voucher.missingHint",
+                         actionTitle: "roamSub.w208.voucher.back", actionIdentifier: "roamSub.w208.voucher.back",
+                         action: { dismiss() })
+                .accessibilityIdentifier("roamSub.w208.voucher.missing")
         }
     }
 }
@@ -530,7 +527,7 @@ struct RoamStampSlipPhotoView: View {
                 AsyncImage(url: url) { phase in
                     if let image = phase.image { image.resizable().scaledToFill() }
                     else if phase.error != nil { Label("roam.experience.imageUnavailable", systemImage: "photo.badge.exclamationmark") }
-                    else { ProgressView("roam.loading") }
+                    else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
                 }
             } else {
                 Label("roam.experience.imageUnavailable", systemImage: "photo")

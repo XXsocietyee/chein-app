@@ -26,6 +26,8 @@ import SwiftUI
 
     var body: some View {
         Form {
+            CYHeroHeader("admission.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section("admission.space") {
                 Text(verbatim: String(spaceID))
                 TextField("admission.reason", text: $reason)
@@ -35,7 +37,8 @@ import SwiftUI
                 TextField("admission.reasonCode", text: $reasonCode)
             }
             Section {
-                Button("admission.submit") { Task { await submit() } }
+                CYPillButton("admission.submit") { Task { await submit() } }
+                    .listRowBackground(Color.clear)
                     .disabled(catalog == nil)
                 Button("admission.cancel") { Task { await cancel() } }
                 Button("admission.approve") { Task { await approve() } }
@@ -57,12 +60,12 @@ import SwiftUI
             }
             .disabled(sending)
             if sending { ProgressView("admission.sending") }
-            if !message.isEmpty { Text(LocalizedStringKey(message)).font(.footnote) }
+            if !message.isEmpty { CYStatusChip(LocalizedStringKey(message), tone: .info, systemImage: "info.circle") }
             ForEach([submitID, cancelID, approveID, rejectID, leaveID, lastPauseID, revokeID].compactMap { $0 }, id: \.self) { id in
                 Text(verbatim: id).font(.footnote)
             }
         }
-        .navigationTitle(Text("admission.title"))
+        .cyHeroScreen()
         .privacySensitive()
     }
 

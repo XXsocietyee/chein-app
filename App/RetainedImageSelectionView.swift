@@ -60,10 +60,10 @@ import UIKit
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("image.retained.boundary").font(.footnote)
-            Button("image.retained.select") { Task { await model.select() } }
+            CYPillButton("image.retained.select", style: .secondary) { Task { await model.select() } }
                 .disabled(!model.current || !model.context.picker.enabled || !model.context.uploads.uploader.isConfigured || model.selecting || model.context.uploads.locked)
                 .accessibilityIdentifier("image.retained.select")
-            if model.selecting { ProgressView("image.retained.loading") }
+            if model.selecting { CYSkeleton() }
             if model.current {
                 if let draft = model.cropDraft {
                     MerchantImageCropView(draft: draft, confirm: model.confirmCrop, cancel: model.cancelCrop).id(draft.id)
@@ -76,19 +76,19 @@ import UIKit
                     Text(verbatim: review.scope.realm)
                     Text("image.retained.byteCount \(review.selection.jpeg.count)").font(.caption)
                         .accessibilityIdentifier("image.retained.byteCount")
-                    Button("image.retained.confirmUpload") { Task { await model.context.uploads.confirm(review) } }
+                    CYPillButton("image.retained.confirmUpload") { Task { await model.context.uploads.confirm(review) } }
                         .accessibilityIdentifier("image.retained.confirmUpload")
-                    Button("image.retained.cancel", role: .cancel) { model.context.uploads.clear() }
-                case .uploading: ProgressView("image.retained.loading")
+                    CYPillButton("image.retained.cancel", style: .tertiary) { model.context.uploads.clear() }
+                case .uploading: CYSkeleton()
                 case .uploaded(let image):
-                    Text("image.retained.uploaded")
-                    Button("image.retained.use") {
+                    CYStatusChip("image.retained.uploaded", tone: .success, systemImage: "checkmark.circle")
+                    CYPillButton("image.retained.use") {
                         guard model.current, image.scope == model.context.scope else { return }
                         model.context.uploads.applyLocally(image, consume: apply)
                     }.accessibilityIdentifier("image.retained.use")
                 case .unknown: Text("image.retained.unknown").accessibilityIdentifier("image.retained.unknown")
                 case .failed(let failure):
-                    Text("image.retained.failed")
+                    CYStatusChip("image.retained.failed", tone: .danger, systemImage: "exclamationmark.triangle")
                     if case .rejected(_, let message) = failure, let message { Text(verbatim: message) }
                 case .idle: EmptyView()
                 }

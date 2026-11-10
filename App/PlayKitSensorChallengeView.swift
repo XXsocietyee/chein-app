@@ -34,36 +34,36 @@ import SwiftUI
             if kind == .quietHold || kind == .shout { Text("playkit.sensor.audioPrivacy").font(.footnote).foregroundStyle(.secondary) }
             if kind == .compass { Text("playkit.compass.caution").font(.footnote).foregroundStyle(.secondary) }
             if let error = stage.issue {
-                Label(LocalizedStringKey("playkit.sensor.error." + error.rawValue), systemImage: "exclamationmark.triangle")
+                CYStatusChip(LocalizedStringKey("playkit.sensor.error." + error.rawValue), tone: .danger, systemImage: "exclamationmark.triangle")
                     .accessibilityIdentifier("playkit.sensor.issue")
             }
             sensorBoard
             Text(LocalizedStringKey("playkit.sensor.phase." + stage.phase.rawValue))
                 .font(.headline).accessibilityIdentifier("playkit.sensor.phase")
             if stage.phase == .calibrating {
-                ProgressView().accessibilityLabel(Text("playkit.sensor.calibrating"))
+                CYSkeleton().accessibilityLabel(Text("playkit.sensor.calibrating"))
                 Text(LocalizedStringKey(kind == .ballShake ? "playkit.ball.calibration" : "playkit.audio.calibration"))
             }
             if stage.phase == .measured {
-                Button("playkit.review") {
+                CYPillButton("playkit.review") {
                     guard let payload = stage.payload else { return }
                     requestReview(stage.submitAction, payload, {})
-                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active || stage.payload == nil)
+                }.disabled(!enabled || !active || stage.payload == nil)
                     .accessibilityIdentifier("playkit.sensor.review")
             } else if stage.phase == .ready {
-                Button("playkit.sensor.reviewStart") {
+                CYPillButton("playkit.sensor.reviewStart") {
                     let token = stage.attempt
                     requestReview("START_CHALLENGE", ["game": .string(kind.rawValue)]) {
                         // The parent calls only after a successful, current server
                         // acknowledgement. A stale callback cannot restart sensors.
                         if stage.startAfterAcknowledgement(attempt: token, revisionIdentity: currentRevisionIdentity?() ?? revisionIdentity) { onDirty() }
                     }
-                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active)
+                }.disabled(!enabled || !active)
                     .accessibilityIdentifier("playkit.sensor.start")
             } else if stage.phase == .idle || stage.phase == .interrupted {
-                Button(LocalizedStringKey(kind == .compass ? "playkit.compass.begin" : "playkit.sensor.calibrate")) {
+                CYPillButton(LocalizedStringKey(kind == .compass ? "playkit.compass.begin" : "playkit.sensor.calibrate")) {
                     onDirty(); stage.begin(active: active)
-                }.buttonStyle(.questifyPrimary).disabled(!enabled || !active || !stage.supported)
+                }.disabled(!enabled || !active || !stage.supported)
                     .accessibilityIdentifier("playkit.sensor.calibrate")
             }
             if [.authorizing, .calibrating, .running, .ready].contains(stage.phase) {

@@ -22,8 +22,9 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             switch coordinator.state {
             case .loading:
-                ProgressView(LocalizedStringKey("playx.poi.loading"))
-                    .frame(maxWidth: .infinity, minHeight: 160)
+                CYSkeleton()
+                    .padding(CYSpacing.lg)
+                    .accessibilityLabel(Text("playx.poi.loading"))
 
             case .error:
                 CYErrorStateView(
@@ -84,11 +85,11 @@ import QuestifyCore
                         .accessibilityAddTraits(.isHeader)
                     Spacer(minLength: CYSpacing.sm)
                     if let dist = coordinator.distanceMeters {
-                        Group {
-                            if coordinator.withinRange { Text("playx.poi.inRange \(dist)") } else { Text("playx.poi.distance \(dist)") }
+                        if coordinator.withinRange {
+                            CYStatusChip("playx.poi.inRange \(dist)", tone: .success, systemImage: "location.fill")
+                        } else {
+                            CYStatusChip("playx.poi.distance \(dist)", tone: .warning, systemImage: "location")
                         }
-                        .font(CYTypography.caption)
-                        .foregroundStyle(coordinator.withinRange ? CYColor.successText : CYColor.warningText)
                     }
                 }
                 if !node.description.isEmpty {
@@ -125,9 +126,7 @@ import QuestifyCore
     private var photoCard: some View {
         CYCard {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                Text("playx.poi.photoStep")
-                    .font(CYTypography.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
+                CYSectionHeader("playx.poi.photoStep")
                 TextField(LocalizedStringKey("playx.poi.photoUrlPlaceholder"), text: $coordinator.uploadedPhotoUrl)
                     .font(CYTypography.body)
                     .textContentType(.URL)
@@ -137,10 +136,9 @@ import QuestifyCore
                     .padding(.horizontal, CYSpacing.md)
                     .frame(minHeight: CYSpacing.minTouchTarget)
                     .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                Button(LocalizedStringKey("playx.poi.confirmPhoto")) {
+                CYPillButton("playx.poi.confirmPhoto", style: .secondary) {
                     coordinator.confirmPhotoUploaded(coordinator.uploadedPhotoUrl)
                 }
-                .buttonStyle(.cySecondary(fullWidth: true))
             }
         }
     }
@@ -211,18 +209,16 @@ import QuestifyCore
                     .accessibilityIdentifier("playx.poi.readyBlocked")
             }
 
-            Button(LocalizedStringKey("playx.poi.submit")) {
+            CYPillButton("playx.poi.submit") {
                 Task { await onSubmit() }
             }
-            .buttonStyle(.cyPrimary(fullWidth: true))
             .disabled(coordinator.submitting || coordinator.unknownSubmission)
             .accessibilityIdentifier("playx.poi.submit")
 
             if coordinator.unknownSubmission {
-                Button(LocalizedStringKey("playx.poi.verifyReceipt")) {
+                CYPillButton("playx.poi.verifyReceipt", style: .secondary) {
                     Task { await onRefresh() }
                 }
-                .buttonStyle(.cySecondary(fullWidth: true))
             }
         }
     }
@@ -271,6 +267,8 @@ import QuestifyCore
     var body: some View {
         ScrollView {
             if let coordinator {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                CYHeroHeader(verbatim: W8Text.t("地标挑战", "Landmark challenge"))
                 ChallengePOIView(
                     coordinator: coordinator,
                     onRefresh: {
@@ -291,15 +289,15 @@ import QuestifyCore
                     submitFeedback: feedback,
                     readyButBlocked: readyButBlocked
                 )
+                }
                 .padding(.horizontal, CYSpacing.pageHorizontal)
                 .padding(.vertical, CYSpacing.lg)
             } else {
-                ProgressView().frame(maxWidth: .infinity, minHeight: 120)
+                CYSkeleton().padding(CYSpacing.lg)
             }
         }
         .background(CYColor.bgPage.ignoresSafeArea())
-        .navigationTitle(W8Text.t("地标挑战", "Landmark challenge"))
-        .navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .task {
             guard coordinator == nil else { return }
             let model = ChallengePOICoordinator(nodeId: node.poiId)

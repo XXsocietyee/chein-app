@@ -75,6 +75,7 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateReasoning.title", tableName: "TemplateReasoningRehearsal").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 Text("templateReasoning.localOnly", tableName: "TemplateReasoningRehearsal").font(.callout)
             }
@@ -92,19 +93,17 @@ import Combine
                             .accessibilityIdentifier("templateReasoning.result")
                     }
                 }
-                Button(action: controller.resetAction()) {
-                    Text("templateReasoning.retry", tableName: "TemplateReasoningRehearsal")
-                }.accessibilityIdentifier("templateReasoning.retry")
+                CYPillButton("templateReasoning.retry", style: .secondary, tableName: "TemplateReasoningRehearsal", action: controller.resetAction())
+                    .accessibilityIdentifier("templateReasoning.retry")
             } else {
                 Section {
                     Text("templateReasoning.unavailable", tableName: "TemplateReasoningRehearsal")
-                    Button(action: { controller.reload() }) {
-                        Text("templateReasoning.reload", tableName: "TemplateReasoningRehearsal")
-                    }.disabled(!controller.canReload).accessibilityIdentifier("templateReasoning.reload")
+                    CYPillButton("templateReasoning.reload", style: .secondary, tableName: "TemplateReasoningRehearsal") { controller.reload() }
+                        .disabled(!controller.canReload).accessibilityIdentifier("templateReasoning.reload")
                 }
             }
         }
-        .navigationTitle(Text("templateReasoning.title", tableName: "TemplateReasoningRehearsal"))
+        .cyGroupedSurface()
         .privacySensitive()
         .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onDisappear { controller.viewDisappeared() }

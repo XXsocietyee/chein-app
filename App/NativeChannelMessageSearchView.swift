@@ -24,6 +24,8 @@ import SwiftUI
     }
     var body: some View {
         List {
+            CYHeroHeader("search.title", tableName: "NativeChannelMessage")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 TextField("", text: $author, prompt: Text("search.author", tableName: "NativeChannelMessage")).keyboardType(.numberPad)
                     .accessibilityLabel(Text("search.author", tableName: "NativeChannelMessage"))
@@ -34,8 +36,7 @@ import SwiftUI
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityLabel(Text("search.to", tableName: "NativeChannelMessage"))
                 if invalidFilter { Text("search.invalid", tableName: "NativeChannelMessage").font(.footnote).foregroundStyle(Theme.Color.danger(in: domain)) }
-                Button { search() } label: { Text("search.run", tableName: "NativeChannelMessage").frame(maxWidth: .infinity) }
-                    .nativeChannelPrimaryAction()
+                CYPillButton("search.run", tableName: "NativeChannelMessage") { search() }
             } header: { Text("d7.channelSearch.filters") }
             if model.isCurrent {
                 if let oldest = model.oldestSearchableAt {
@@ -56,12 +57,12 @@ import SwiftUI
                 if model.rows.isEmpty && model.query != nil && !model.loading && !model.failed { ContentUnavailableView.search(text: keyword) }
                 if model.hasMore { Button { more() } label: { Text("search.more", tableName: "NativeChannelMessage") }.disabled(model.loading) }
             } else { ContentUnavailableView { Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") } } }
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+            if model.loading { CYSkeleton().frame(maxWidth: .infinity) }
             if model.failed {
                 Section {
                     Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
                         .foregroundStyle(Theme.Color.danger(in: domain))
-                    Button("messaging.retry") { search() }
+                    CYPillButton("messaging.retry", style: .secondary) { search() }
                         .disabled(!model.isCurrent || model.loading || phase != .active)
                 }
             }
@@ -77,7 +78,7 @@ import SwiftUI
         .onChange(of: phase) { _, value in if value != .active { retireRead() } }
         .onChange(of: model.isCurrent) { _, value in if !value { retireRead() } }
         .cyGroupedSurface()
-        .navigationTitle(Text("search.title", tableName: "NativeChannelMessage"))
+        .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .onDisappear { retireRead() }
         .privacySensitive()

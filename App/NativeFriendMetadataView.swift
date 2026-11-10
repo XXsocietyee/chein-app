@@ -34,13 +34,15 @@ import SwiftUI
     private var flow: NativeFriendMetadataFlow { model.flow }
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: localized(flow.peerID == 0 ? "friendMeta.recoveryEntry" : "friendMeta.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if flow.canPresentPeer { Section {
                 HStack(spacing: Theme.Space.s3) {
                     Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
                     Text(verbatim: nickname.isEmpty ? "—" : nickname).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 }
             } }
-            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendMeta.loading") }
+            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friendMeta.loading") }
             if !flow.isCurrent { text("friendMeta.closed") }
             if let issue = flow.issue {
                 Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
@@ -63,7 +65,7 @@ import SwiftUI
             if let command = flow.review {
                 Section {
                     reviewDetails(command)
-                    Button { performPresented { await flow.confirm(expected: command) } } label: { text("friendMeta.confirm") }.disabled(!flow.canConfirm)
+                    CYPillButton("friendMeta.confirm", tableName: "NativeFriendMetadata") { performPresented { await flow.confirm(expected: command) } }.disabled(!flow.canConfirm)
                         .accessibilityIdentifier("friendMeta.confirm")
                     Button { flow.cancelReview() } label: { text("friendMeta.cancel") }.disabled(flow.busy)
                 } header: { text("friendMeta.reviewTitle") }
@@ -140,7 +142,7 @@ import SwiftUI
         .formStyle(.grouped)
         .font(Theme.Font.body)
         .cyGroupedSurface()
-        .navigationTitle(localized(flow.peerID == 0 ? "friendMeta.recoveryEntry" : "friendMeta.title"))
+        .cyHeroScreen()
         .accessibilityIdentifier("friendMeta.editor").privacySensitive()
         .onAppear { visible = true; if scenePhase == .active { visit = UUID(); performPresented { await flow.load() } } }
         .onChange(of: flow.metadata) { _, _ in synchronize() }

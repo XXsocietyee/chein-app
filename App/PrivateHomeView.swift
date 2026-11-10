@@ -6,8 +6,8 @@ import SwiftUI
     var body: some View {
         NavigationLink {
             if let coordinator { PrivateHomeView(model: coordinator, mapAdapter: mapAdapter) }
-            else { ContentUnavailableView("privateHome.disabled", systemImage: "house", description: Text("privateHome.gate")) }
-        } label: { Label("privateHome.title", systemImage: "house") }
+            else { CYEmptyState(systemImage: "house", "privateHome.disabled", detail: "privateHome.gate") }
+        } label: { CYListRow("privateHome.title", trailing: .none) { CYRowIcon(systemImage: "house") } }
         .accessibilityIdentifier("account.privateHome")
     }
 }
@@ -37,12 +37,12 @@ import SwiftUI
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("privateHome.title", subtitle: "privateHome.boundary") }.e1HeroRow()
             Section {
-                Text("privateHome.boundary").font(.footnote)
                 Text(LocalizedStringKey("privateHome.phase." + model.phase.rawValue)).accessibilityIdentifier("privateHome.phase")
                 if let home = model.home {
                     Text(LocalizedStringKey(home.status == .active ? "privateHome.active" : "privateHome.empty"))
-                    if let label = home.label { Text(verbatim: label).font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true).privacySensitive() }
+                    if let label = home.label { Text(verbatim: label).font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true).privacySensitive() }
                 }
                 if let decision = model.decision { Text(LocalizedStringKey("privateHome.decision." + decision.rawValue)) }
                 if model.issue != nil { Text("privateHome.issue").accessibilityIdentifier("privateHome.issue") }
@@ -50,8 +50,8 @@ import SwiftUI
                     Text(LocalizedStringKey("privateHome.map.issue." + issue.rawValue))
                         .accessibilityIdentifier("privateHome.map.confirmationIssue")
                 }
-                Button("privateHome.refresh") { Task { await model.load() } }
-                    .disabled(model.isBusy || model.phase == .review).accessibilityIdentifier("privateHome.refresh")
+                CYPillButton("privateHome.refresh", style: .secondary, systemImage: "arrow.clockwise") { Task { await model.load() } }
+                    .disabled(model.isBusy || model.phase == .review).accessibilityIdentifier("privateHome.refresh").e1ActionRow()
             }
             if model.canEdit {
                 Section("privateHome.set") {
@@ -60,8 +60,8 @@ import SwiftUI
                     TextField("privateHome.longitude", text: $longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("privateHome.longitude")
                     Text("privateHome.datum").font(.footnote)
                     Text("privateHome.gamePoint").font(.footnote)
-                    Button("privateHome.map.open") { picker.open() }.accessibilityIdentifier("privateHome.map.open")
-                    Button("privateHome.reviewSet") { prepare() }.accessibilityIdentifier("privateHome.reviewSet")
+                    CYPillButton("privateHome.map.open", style: .secondary, systemImage: "map") { picker.open() }.accessibilityIdentifier("privateHome.map.open").e1ActionRow()
+                    CYPillButton("privateHome.reviewSet") { prepare() }.accessibilityIdentifier("privateHome.reviewSet").e1ActionRow()
                     if invalidInput { Text("privateHome.invalid") }
                     if model.home?.status == .active {
                         Button("privateHome.reviewDelete", role: .destructive) { model.prepareDelete(); clearInput() }
@@ -77,20 +77,20 @@ import SwiftUI
                        let point = try? PrivateHomePoint(latitude: lat, longitude: lon) {
                         PrivateHomeCoordinateReview(point: point)
                     }
-                    Button("privateHome.confirm") {
+                    CYPillButton("privateHome.confirm") {
                         clearInput()
                         Task {
                             guard picker.authorizeOwnerConfirmation() else { return }
                             await model.confirm()
                         }
-                    }.accessibilityIdentifier("privateHome.confirm")
-                    Button("privateHome.cancel") { model.cancelReview(); clearInput() }.accessibilityIdentifier("privateHome.cancel")
+                    }.accessibilityIdentifier("privateHome.confirm").e1ActionRow()
+                    CYPillButton("privateHome.cancel", style: .tertiary) { model.cancelReview(); clearInput() }.accessibilityIdentifier("privateHome.cancel").e1ActionRow()
                 }
             }
             if model.canRetry {
                 Section {
                     Text("privateHome.unknownPurpose")
-                    Button("privateHome.retry") { Task { await model.retryExact() } }.accessibilityIdentifier("privateHome.retry")
+                    CYPillButton("privateHome.retry", style: .secondary, systemImage: "arrow.clockwise") { Task { await model.retryExact() } }.accessibilityIdentifier("privateHome.retry").e1ActionRow()
                 }
             }
             if let nativeHomeReturnSelection {
@@ -99,7 +99,7 @@ import SwiftUI
                 HomeReturnSection(model: homeReturn, home: model.home)
             }
         }
-        .navigationTitle("privateHome.title").privacySensitive().accessibilityIdentifier("privateHome.host")
+        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive().accessibilityIdentifier("privateHome.host")
         .task { await model.load() }
         .task { await nativeHomeReturnSelection?.load() }
         .sheet(isPresented: Binding(get: { picker.isPresented }, set: { if !$0 { picker.close() } })) {

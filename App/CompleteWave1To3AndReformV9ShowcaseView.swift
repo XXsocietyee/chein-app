@@ -123,6 +123,11 @@ public struct CompleteWaveShowcaseSnapshot: Equatable, Sendable {
 @MainActor
 public struct CompleteWave1To3AndReformV9ShowcaseView: View {
     public let snapshot: CompleteWaveShowcaseSnapshot
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var rowLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout())
+    }
 
     public init(snapshot: CompleteWaveShowcaseSnapshot = .defaultComplete) {
         self.snapshot = snapshot
@@ -158,13 +163,13 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
+            rowLayout {
                 Text(verbatim: "Wave 1–3 & Reform Plan v9 Master Showcase")
                     .font(.headline)
                 Spacer()
-                Text(verbatim: headerBadgeText)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.isShowcaseComplete ? CYColor.successText : CYColor.warningText)
+                CYStatusChip(verbatim: headerBadgeText,
+                             tone: snapshot.isShowcaseComplete ? .success : .warning,
+                             systemImage: snapshot.isShowcaseComplete ? "checkmark.circle" : "exclamationmark.triangle")
                     .accessibilityIdentifier("completeWaveShowcase.statusBadge")
             }
 
@@ -184,13 +189,13 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(snapshot.batches) { item in
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+                    rowLayout {
                         Text(verbatim: "Batch \(item.batchNumber) · \(item.laneRangeText)")
                             .font(.subheadline.weight(.semibold))
                         Spacer()
-                        Text(verbatim: item.statusBadgeText)
-                            .font(.caption2.monospaced())
-                            .foregroundStyle(item.isCompleted ? CYColor.successText : CYColor.warningText)
+                        CYStatusChip(verbatim: item.statusBadgeText,
+                                     tone: item.isCompleted ? .success : .warning,
+                                     systemImage: item.isCompleted ? "checkmark.circle" : "exclamationmark.triangle")
                             .accessibilityIdentifier("completeWaveShowcase.batchStatus.\(item.id)")
                     }
 

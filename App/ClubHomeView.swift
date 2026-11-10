@@ -67,18 +67,18 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                     NavigationLink {
                         ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-                    } label: { Label("club.directory", systemImage: "magnifyingglass") }
+                    } label: { CYListRow("club.directory") { CYRowIcon(systemImage: "magnifyingglass") } }
                         .accessibilityIdentifier("club.openDirectory")
                     if !discoveryScope.isMerchantViewer {
                         NavigationLink {
                             ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-                        } label: { Label("club.owned", systemImage: "person.crop.circle") }
+                        } label: { CYListRow("club.owned") { CYRowIcon(systemImage: "person.crop.circle") } }
                             .accessibilityIdentifier("club.openOwned")
                     }
                 }
                 Section("club.events") {
                     if home.events.isEmpty {
-                        Text("club.emptyEvents").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.home.events.empty")
+                        CYEmptyState(systemImage: "flag.checkered", "club.emptyEvents", messageIdentifier: "club.home.events.empty").listRowBackground(Color.clear)
                     }
                     ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
                         if let topicDestination, event.id > 0 {
@@ -114,10 +114,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             }
         case .unavailable:
             Section {
-                Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(CYColor.warningText)
+                CYStatusChip("club.locality.unavailable", tone: .warning, systemImage: "exclamationmark.triangle")
                     .accessibilityIdentifier("club.home.locality.unavailable")
-                Button("action.retry") { Task { await loadLocality() } }
+                CYPillButton("action.retry", style: .secondary) { Task { await loadLocality() } }
                     .accessibilityIdentifier("club.home.locality.retry")
             }
         case .ready:
@@ -127,8 +126,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private func merchantNearbySection(_ rows: [ClubRecord]) -> some View {
         Section {
             if rows.isEmpty {
-                Text(locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby")
-                    .foregroundStyle(.secondary).accessibilityIdentifier("club.home.nearby.empty")
+                CYEmptyState(systemImage: "person.3", locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby",
+                             messageIdentifier: "club.home.nearby.empty").listRowBackground(Color.clear)
             }
             clubRows(rows, identifier: "club.home.nearby", section: .nearby)
         } header: {
@@ -164,10 +163,12 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
     }
     private func eventRow(_ event: ClubHomeEvent) -> some View {
-        Label {
-            if event.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitledEvent") }
-            else { Text(verbatim: event.title) }
-        } icon: { Image(systemName: "flag.checkered") }
-        .foregroundStyle(.primary)
+        Group {
+            if event.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                CYListRow("club.untitledEvent", trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+            } else {
+                CYListRow(verbatim: event.title, trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+            }
+        }
     }
 }

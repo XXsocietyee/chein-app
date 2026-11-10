@@ -315,6 +315,8 @@ import SwiftUI
         let submissionIncarnation = model.editorIncarnation
         let copiedTarget = copiedCoordinator
         Form {
+            CYHeroHeader("projectEdit.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if model.coordinator.isReadOnly {
                 Section {
                     Label("projectEdit.viewOnly", systemImage: "lock.fill")
@@ -457,11 +459,10 @@ import SwiftUI
                 Section { Text(LocalizedStringKey(key)).accessibilityIdentifier("projectEdit.status") }
             }
             if model.coordinator.state == .blocked || (model.coordinator.isReadOnly && model.coordinator.acknowledgedContinuation == nil) { Button("projectEdit.reload") { Task { await model.load(force: true) } }.accessibilityIdentifier("projectEdit.reload") }
-            if model.busy { ProgressView("projectEdit.loading").accessibilityIdentifier("projectEdit.loading") }
+            if model.busy { CYSkeleton().accessibilityIdentifier("projectEdit.loading") }
         }
         .disabled(model.busy)
-        .appNavigationTitle("projectEdit.title")
-        .navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .toolbar { EditButton().disabled(!model.fullEdit) }
         .scrollDismissesKeyboard(.interactively)
         .safeAreaInset(edge: .bottom) {

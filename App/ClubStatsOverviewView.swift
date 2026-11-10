@@ -95,37 +95,38 @@ import SwiftUI
         let _ = model.bind(expected)
         let permit = model.permit(in: expected)
         List {
+            CYHeroHeader("club.statsOverview.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if model.loading || permit == nil {
                 ProgressView("club.loading").accessibilityIdentifier("club.statsOverview.loading")
             }
             if permit != nil, let failure = model.failure {
-                Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.statsOverview.error")
+                CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.statsOverview.error")
             }
             if let overview = model.accepted(expected, access: governance.access) {
                 summary(overview)
                 Section("club.statsOverview.projects") {
                     if overview.projects.isEmpty {
-                        Text("club.statsOverview.empty").accessibilityIdentifier("club.statsOverview.empty")
+                        CYEmptyState(systemImage: "chart.bar", "club.statsOverview.empty", messageIdentifier: "club.statsOverview.empty").listRowBackground(Color.clear)
                     }
                     ForEach(overview.projects) { project in
                         VStack(alignment: .leading, spacing: 8) {
-                            if let name = project.name { Text(verbatim: name).font(.headline) }
-                            else { Text("club.statsOverview.unnamed").font(.headline) }
+                            if let name = project.name { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            else { Text("club.statsOverview.unnamed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                             LabeledContent("club.statsOverview.participants") { count(project.participants) }
                             LabeledContent("club.statsOverview.completed") { count(project.completed) }
                             LabeledContent("club.statsOverview.rate") { rate(project.completion) }
                         }.padding(.vertical, 4).accessibilityIdentifier("club.statsOverview.project.\(project.id)")
                     }
-                    if overview.hasMoreProjects { Text("club.statsOverview.firstFive").font(.footnote).foregroundStyle(.secondary) }
+                    if overview.hasMoreProjects { Text("club.statsOverview.firstFive").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                 }
             }
-            Button(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry")) {
+            CYPillButton(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry"), style: .secondary) {
                 guard let permit else { return }
                 Task { await model.load(permit, access: governance.access) }
             }.disabled(model.loading || permit == nil).accessibilityIdentifier("club.statsOverview.reload")
         }
         .cyGroupedSurface()
-        .navigationTitle("club.statsOverview.title")
+        .cyHeroScreen()
         .task(id: expected) {
             guard let permit = model.activate(expected) else { return }
             await model.load(permit, access: governance.access)
@@ -145,14 +146,14 @@ import SwiftUI
                 metric("club.statsOverview.completed") { count(overview.completed) }
                 metric("club.statsOverview.rate") { rate(overview.completion) }
             }.accessibilityIdentifier("club.statsOverview.summary")
-            Text("club.statsOverview.scope").font(.footnote).foregroundStyle(.secondary)
-            Text("club.statsOverview.rateScope").font(.footnote).foregroundStyle(.secondary)
+            Text("club.statsOverview.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("club.statsOverview.rateScope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         }
     }
     private func metric<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
         VStack(alignment: .leading, spacing: 4) {
-            value().font(.title2.bold())
-            Text(title).font(.subheadline)
+            value().font(CYTypography.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            Text(title).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
         }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
     }
     @ViewBuilder private func count(_ value: Int?) -> some View {

@@ -13,9 +13,9 @@ import SwiftUI
                     VStack {
                         Text("objects.offline").font(.caption)
                         HStack {
-                            Button("Fail next read") { reader.failNext = true }.accessibilityIdentifier("objects.fixture.fail")
-                            Button("Change session") { reader.rotateScope(); revision += 1 }.accessibilityIdentifier("objects.fixture.session")
-                            Button("Deny next read") { reader.denyNext = true }.accessibilityIdentifier("objects.fixture.deny")
+                            CYPillButton(verbatim: "Fail next read", style: .tertiary, fullWidth: false) { reader.failNext = true }.accessibilityIdentifier("objects.fixture.fail")
+                            CYPillButton(verbatim: "Change session", style: .tertiary, fullWidth: false) { reader.rotateScope(); revision += 1 }.accessibilityIdentifier("objects.fixture.session")
+                            CYPillButton(verbatim: "Deny next read", style: .tertiary, fullWidth: false) { reader.denyNext = true }.accessibilityIdentifier("objects.fixture.deny")
                         }.font(.caption)
                     }.padding(8).background(.regularMaterial)
                 }

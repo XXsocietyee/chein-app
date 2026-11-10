@@ -34,9 +34,9 @@ import SwiftUI
             if let deletion { SquareDeletionStatusView(coordinator: deletion) { Task { await verifyDeletion() } } }
             if reader.isOfflineExample { Text("square.offlineExample").font(.caption) }
             if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
-            else if loadedKey != key { ProgressView("square.loading") }
+            else if loadedKey != key { CYSkeleton() }
             else {
-                if detailLoading { ProgressView("square.loading") }
+                if detailLoading { CYSkeleton() }
                 if let detailIssue { SquareIssueView(error: detailIssue) { Task { await reload() } } }
                 if let post {
                     Section {
@@ -59,13 +59,13 @@ import SwiftUI
                         ForEach(SquareComment.threaded(comments.items)) { comment in
                             commentRow(comment).accessibilityIdentifier("square.comment.\(comment.id)")
                         }
-                        if commentsLoading { ProgressView("square.commentsLoading") }
+                        if commentsLoading { CYSkeleton() }
                         else if comments.items.isEmpty && commentIssue == nil {
                             // Source empty comments: 还没有评论 / 说说你对这条动态的想法吧.
                             Text("square.xcx.noCommentsTitle").foregroundStyle(.secondary).accessibilityIdentifier("square.noComments")
                         }
                         if !commentsLoading && comments.hasMore && commentIssue == nil {
-                            Button("square.moreComments") { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
+                            CYPillButton("square.moreComments", style: .secondary) { Task { await loadComments(operation: generation, captured: key) } }.accessibilityIdentifier("square.moreComments")
                         }
                     }
                 }

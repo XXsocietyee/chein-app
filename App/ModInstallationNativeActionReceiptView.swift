@@ -16,7 +16,8 @@ import SwiftUI
             LabeledContent(zh ? "回执版本" : "Receipt version") { Text(verbatim: String(receipt.version)) }
             if qa {
                 if let passed = segment["passed"].bool {
-                    Text(verbatim: zh ? (passed ? "服务端判定：答对" : "服务端判定：未答对") : (passed ? "Server verdict: correct" : "Server verdict: not correct"))
+                    CYStatusChip(verbatim: zh ? (passed ? "服务端判定：答对" : "服务端判定：未答对") : (passed ? "Server verdict: correct" : "Server verdict: not correct"),
+                                 tone: passed ? .success : .warning, systemImage: passed ? "checkmark.circle" : "xmark.circle")
                 }
                 if let finished = segment["finished"].bool {
                     Text(verbatim: zh ? (finished ? "本题已结束" : "本题尚未结束") : (finished ? "Question finished" : "Question not finished"))

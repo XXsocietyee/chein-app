@@ -10,28 +10,29 @@ import Combine
     private var configurationFields: [TemplateCreatorField] { TemplateCreatorSchema.fields(family).filter { (!usesHotspotPlacement || $0.id != "hotspots") && (!usesPredictionPlan || !TemplatePredictionPlan.managedFields.contains($0.id)) } }
     var body: some View {
         Form {
+            Section { CYHeroHeader(LocalizedStringKey(family.labelKey)) }.e1HeroRow()
             Section {
                 Toggle("templateAuthor.moduleEnabled", isOn: Binding(get: { model.draft.advanced.enabled(family.rawValue) }, set: { model.draft.advanced.setCreatorEnabled(family, $0) }))
-                Text(LocalizedStringKey(family.providerKey)).font(.footnote).foregroundStyle(.secondary)
+                Text(LocalizedStringKey(family.providerKey)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             }
             if model.draft.advanced.enabled(family.rawValue) {
                 if family == .check {
                     Section { NavigationLink { TemplateCheckPresetView(model: model) } label: { TemplateCheckPresetEntryLabel() } }
                 }
                 if family == .scan && TemplateScanResponseConfiguration(model.draft.advanced).isSupported {
-                    Section { NavigationLink("templateScan.title") { TemplateScanResponseEditor(model: model) } }
+                    Section { NavigationLink { TemplateScanResponseEditor(model: model) } label: { CYListRow("templateScan.title", trailing: .none) { CYRowIcon(systemImage: "viewfinder") } } }
                     TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields.filter { !TemplateScanResponseConfiguration.managedFields.contains($0.id) }, path: [])
                 } else {
                 TemplateCreatorFieldsView(model: model, family: family, fields: configurationFields, path: [])
                 }
                 if usesHotspotPlacement {
-                    Section { NavigationLink("templateHotspots.title") { TemplateHotspotPlacementView(model: model) } }
+                    Section { NavigationLink { TemplateHotspotPlacementView(model: model) } label: { CYListRow("templateHotspots.title", trailing: .none) { CYRowIcon(systemImage: "scope") } } }
                 }
                 if usesPredictionPlan {
-                    Section { NavigationLink("templatePrediction.title") { TemplatePredictionPlanEditor(model: model) } }
+                    Section { NavigationLink { TemplatePredictionPlanEditor(model: model) } label: { CYListRow("templatePrediction.title", trailing: .none) { CYRowIcon(systemImage: "chart.line.uptrend.xyaxis") } } }
                 }
                 Section("creator.review") {
-                    NavigationLink("creator.rehearse") { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) }.disabled(!issues.isEmpty)
+                    NavigationLink { TemplateCreatorRehearsalView(draft: model.draft.advanced, family: family) } label: { CYListRow("creator.rehearse", trailing: .none) { CYRowIcon(systemImage: "play.circle") } }.disabled(!issues.isEmpty)
                 }
                 if !issues.isEmpty {
                     Section("templateAuthor.validationTitle") {
@@ -41,7 +42,7 @@ import Combine
                     }
                 }
             }
-        }.navigationTitle(LocalizedStringKey(family.labelKey)).disabled(!model.canEdit)
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().disabled(!model.canEdit)
             .accessibilityIdentifier("creator.form." + family.rawValue)
     }
 }
@@ -510,7 +511,8 @@ enum TemplateCheckPresetText {
     }
     var body: some View {
         Form {
-            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).font(.footnote) }
+            Section { CYHeroHeader(verbatim: text(.title), subtitle: text(.scope)) }.e1HeroRow()
+            Section { Text(verbatim: text(.retained)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             if controller.visibleConfiguration?.isSupported == true {
                 Section {
                     Picker(text(.luck), selection: controller.luckBinding) {
@@ -530,15 +532,15 @@ enum TemplateCheckPresetText {
                         }
                     }.accessibilityIdentifier("templateCheckPresets.preview")
                 } else { Text(verbatim: text(.unsupported)) }
-                Button(text(.apply), action: controller.applyAction()).disabled(!controller.canApply)
-                    .accessibilityIdentifier("templateCheckPresets.apply")
+                CYPillButton(verbatim: text(.apply), action: controller.applyAction()).disabled(!controller.canApply)
+                    .accessibilityIdentifier("templateCheckPresets.apply").e1ActionRow()
                 if controller.didApply { Text(verbatim: text(.applied)).accessibilityIdentifier("templateCheckPresets.applied") }
             } else {
                 Text(verbatim: text(.unsupported))
-                Button(text(.reload), action: controller.reloadAction()).accessibilityIdentifier("templateCheckPresets.reload")
+                CYPillButton(verbatim: text(.reload), style: .secondary, action: controller.reloadAction()).accessibilityIdentifier("templateCheckPresets.reload").e1ActionRow()
             }
-            Button(text(.cancel), action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateCheckPresets.cancel")
-        }.navigationTitle(text(.title))
+            CYPillButton(verbatim: text(.cancel), style: .tertiary, action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateCheckPresets.cancel").e1ActionRow()
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.viewDisappeared() }
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }

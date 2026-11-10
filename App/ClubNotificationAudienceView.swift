@@ -152,10 +152,10 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                                     .opacity(selection == option.id ? 1 : 0).accessibilityHidden(true)
                             }
                             // Mini-program row-desc: why an event-only audience can't be picked here.
-                            if option.needsActivity { Text("club.audience.chooseEvent").font(.footnote).foregroundStyle(.secondary) }
+                            if option.needsActivity { Text("club.audience.chooseEvent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                             else if !option.enabled {
-                                if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied").font(.footnote).foregroundStyle(.secondary) }
-                                else { Text("club.gov.denied").font(.footnote).foregroundStyle(.secondary) }
+                                if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                                else { Text("club.gov.denied").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                             }
                         }.contentShape(Rectangle())
                     }
@@ -165,12 +165,12 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
                 }
             }
             if isCurrent(), permit != nil, let failure = model.failure, failure != .forbidden {
-                Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.audience.error")
+                CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.audience.error")
             }
             if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }
-            if model.countsUnavailable, isCurrent() { Text("club.audience.countsUnavailable").foregroundStyle(.secondary).accessibilityIdentifier("club.audience.countsUnavailable") }
+            if model.countsUnavailable, isCurrent() { CYStatusChip("club.audience.countsUnavailable", tone: .neutral, systemImage: "number").accessibilityIdentifier("club.audience.countsUnavailable") }
             if model.failure != .forbidden {
-                Button(LocalizedStringKey(model.failure == nil && !model.countsUnavailable ? "club.gov.refresh" : "action.retry")) {
+                CYPillButton(LocalizedStringKey(model.failure == nil && !model.countsUnavailable ? "club.gov.refresh" : "action.retry"), style: .tertiary) {
                     guard canEdit(), isCurrent(), let permit else { return }
                     Task { await model.load(permit, access: access, isCurrent: isCurrent) }
                 }.disabled(!canEdit() || model.loading || permit == nil).accessibilityIdentifier("club.audience.reload")

@@ -1,0 +1,125 @@
+# ui-tail-e5 receipt (NOT COMPILED locally; cloud Build+Test is the check)
+
+No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tail.json` holds new ones).
+
+## Batch 1
+- ApprovedReleasePreparationView: done (CYHeroHeader, CYSkeleton, CYPillButton)
+- ApprovedReleasePublicationConfirmationView: done (CYHeroHeader, one CYPillButton primary)
+- ApprovedReleaseSummaryResultView: done (CYHeroHeader, CYStatusChip)
+- ChannelAdmissionGovernanceView: done (CYHeroHeader, CYPillButton, CYStatusChip)
+- CompleteWave1To3AndReformV9ShowcaseView: done (CYStatusChip, AX stacking)
+
+## Batch 2
+- ComputedLocalizationFixtureView: done (DEBUG fixture, CYPillButton)
+- DoorReferralViews: done (CYHeroHeader, CYPillButton, CYStatusChip, CYSkeleton)
+- MapCoreEntryHubView: done (CYHeroHeader, CYPillButton)
+- MapPublicLayerCallerView: done (CYHeroHeader, CYPillButton, CYStatusChip)
+- MasterReleaseSignoffDashboardView: done (CYStatusChip, AX stacking)
+
+## Batch 3 (reverse order from here, per coordinator: cloud lanes own the front of the list; no ui/cloud-* branch touched any of these at fetch time)
+- Wave2AllPartialAndMissingRowsClosureView: done (CYStatusChip)
+- WalkingNavigationView: done (CYPillButton, CYEmptyState, CYStatusChip)
+- VerificationCodeView: done (CYHeroHeader, CYPillButton, CYSkeleton, CYStatusChip)
+- UnifiedReleaseAuditHubView: done (CYStatusChip, AX stacking)
+- UltimateReleaseReadinessExecutiveSummaryView: done (CYStatusChip, AX stacking)
+
+## Batch 4 (reverse)
+- SquareWorkspaceView: done (CYHeroHeader, CYPillButton primary review, CYSkeleton)
+- SquareReportView: done (CYHeroHeader, CYPillButton, CYSkeleton, CYStatusChip)
+- SquareReportProgressView: done (CYHeroHeader, CYEmptyState, CYSkeleton, CYPillButton)
+- SquarePostVideoViews: done (CYStatusChip, CYSkeleton, CYPillButton)
+- SquareGovernanceViews: done (CYHeroHeader, CYPillButton, CYSkeleton)
+
+## Batch 5 (reverse)
+- SquareDetailView: done (CYSkeleton, CYPillButton)
+- SquareDeletionViews: done (CYPillButton, CYStatusChip; destructive confirm keeps system destructive role)
+- SquareBrowserView: done (CYSkeleton, CYPillButton)
+- SessionSquareBrowserView: SKIPPED (pure session host, no visible UI)
+- SessionPublishingModesView: SKIPPED (pure session host, no visible UI)
+
+## Batch 6 (reverse)
+- SessionPublisherLifecycleView: done (CYHeroHeader, CYSkeleton)
+- SessionObjectCardsView: done (CYListRow, CYRowIcon, CYEmptyState)
+- RewardPledgeViews: done for RewardPledgeClaimView (player; CYHeroHeader, CYPillButton primary, CYSkeleton, CYEmptyState). RewardPledgeMerchantView left unchanged (merchant-only). New key rewards.pledge.title in ui-strings-e5-tail.json
+- RetainedImageSelectionView: done (CYPillButton, CYSkeleton, CYStatusChip)
+- RetainedImageFixtureView: done (DEBUG fixture, CYPillButton)
+
+## Batch 7 (reverse)
+- ReformWorldHostWorkbenchView: done (CYHeroHeader)
+- ReferenceMapCardFixtureView: done (fixture, CYPillButton)
+- PublishingContextHandoffViews: done (CYHeroHeader on mode sheet, CYPillButton primary Done)
+- PublisherLifecycleViews: done (CYHeroHeader x3, CYPillButton, CYSkeleton)
+- ProjectSubmissionEvidenceViews: done (CYStatusChip)
+
+## Batch 8 (reverse)
+- ProjectOwnedContentViews: done (CYEmptyState for stale destination; browser itself is hosted elsewhere)
+- ProjectEditView: done (CYHeroHeader, CYSkeleton)
+- ProjectEditLaunchView: done (CYHeroHeader, CYListRow, CYRowIcon)
+- PrefabPreviewView: done (CYHeroHeader, CYPillButton primary next)
+- PlatformConsumerViews: done (CYPillButton, CYSkeleton)
+
+## Batch 9 (reverse)
+- PersonalLocationShareView: done (CYHeroHeader, CYPillButton primary start, CYSkeleton)
+- ParticipationSupportView: done (CYHeroHeader)
+- ParticipationParityViews: done (CYPillButton retry)
+- OwnerDraftBrowserView: done (CYEmptyState, CYSkeleton, CYPillButton)
+- OwnMediaModelPreviewView: done (CYHeroHeader, CYPillButton, CYSkeleton)
+
+## Batch 10 (reverse)
+- OwnMediaImagePreviewView: done (CYHeroHeader, CYSkeleton, CYPillButton)
+- OwnMediaAudioPreviewView: done (CYHeroHeader, CYSkeleton, CYPillButton)
+- OpsSafetyViews: done (CYPillButton for contact support; other blocks already structured)
+- ObjectCardFixtureHostView: done (DEBUG fixture, CYPillButton)
+- NonCashRewardViews: done (CYHeroHeader, CYEmptyState, CYSkeleton, CYPillButton)
+
+## Batch 11 (reverse)
+- NativeWebhookOneTimeCredentialView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeWebhookManagementView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeWebhookInboundLogView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeWebhookDeliveryLogView: done (CYHeroHeader, CYEmptyState, CYPillButton)
+- NativeVerificationView: SKIPPED (merchant staff voucher verification, merchant-only surface)
+
+## Batch 12 (reverse)
+- NativeVerificationFixtureView: SKIPPED (merchant redemption fixture, merchant-only)
+- NativeNavigationFixtureView: SKIPPED (DEBUG routing harness with no chrome of its own; it only hosts screens restyled elsewhere)
+- NativeMotionReminderViews: done (CYPillButton primary send/read, CYSkeleton, CYHeroHeader on purpose sheet)
+- NativeEnrollmentView: done (CYHeroHeader, CYPillButton, CYSkeleton)
+- NativeChannelWelcomeView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
+
+## Batch 13 (reverse)
+- NativeChannelScreenPresentation: SKIPPED (ViewModifiers only, no visible view)
+- NativeChannelProgressOwnHistoryView: done (CYHeroHeader, CYSkeleton)
+- NativeChannelProgressBoardView: done (CYHeroHeader, CYSkeleton)
+- NativeChannelOnboardingView: done (CYHeroHeader, CYEmptyState, CYSkeleton)
+- NativeChannelManagementViews: partial (CYSkeleton for busy states; directory/detail keep their own navigation titles and ncmText empty states, untouched to avoid behaviour risk in a 567-line admin screen)
+
+## Batch 14 (reverse)
+- NativeChannelManagementPermissionsView: done (CYSkeleton only; admin permission editor keeps destructive role button and own title)
+- NativeChannelHistoryView: done (CYSkeleton only; message list already structured)
+- NativeChannelCheckinView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
+- NativeChannelChainView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
+- NativeBlacklistView: done (CYHeroHeader, CYSkeleton)
+
+## Batch 15 (reverse, forward-region files 20..24)
+- MyProjectMutationViews: done (CYSkeleton)
+- ModVenueOperationsView: SKIPPED (venue operator console, merchant-only)
+- ModUpgradeView: done (CYHeroHeader)
+- ModSettlementViews: done (CYHeroHeader x2, CYSkeleton)
+- ModOwnedContentReportView: done (CYHeroHeader, CYPillButton)
+
+## Batch 16 (forward-region files 15..19)
+- ModInstalledTextReadView: done (CYHeroHeader, CYSkeleton)
+- ModInstallationView: done (CYHeroHeader on main sheet, CYSkeleton); secondary routes (review/facts/recovery screens) keep their titles
+- ModInstallationSavedRehearsalView: done (CYPillButton primary start)
+- ModInstallationQaEditorView: done (CYHeroHeader, CYSkeleton)
+- ModInstallationNativeActionReceiptView: done (CYStatusChip verdict)
+
+## Batch 17 (remaining four)
+- MasterSevenDayLaunchCommandCenterView: done (CYStatusChip)
+- MasterThreeDocument312LaneCommandHubView: done (CYHeroHeader)
+- MiniCropView: done (CYPillButton primary confirm, tertiary cancel/use original)
+- ModCompositionInstallationReceiptView: done (CYStatusChip)
+
+## Summary
+All 84 files in tail-e5.txt handled: 72 restyled, 6 skipped with reason (SessionSquareBrowserView, SessionPublishingModesView, NativeVerificationView, NativeVerificationFixtureView, NativeNavigationFixtureView, ModVenueOperationsView, NativeChannelScreenPresentation) and NativeChannelManagementViews partial. Cloud lanes (ui/cloud-*) touched none of these files at any fetch.
+Cloud check on 4358447: Build - iOS has 1 error, `App/CityActionBudgetView.swift:10 Failed to produce diagnostic for expression` (file from UI-e2 tail batch 1 f5ce49c17, not in this list; same error is on ui/main head db7f300e6). Test - iOS: 2 errors in vendored GLTFKit2 ("unsupported Swift architecture"), identical on ui/main. No error names a file from this tail.
