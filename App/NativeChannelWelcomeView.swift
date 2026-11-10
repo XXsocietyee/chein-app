@@ -1,81 +1,141 @@
 import SwiftUI
 
 /// No member-side editor; destinations reopen the original channel host and its current authority.
-@MainActor struct NativeChannelWelcomeEntry:View {
-    @ObservedObject var session:AppSession
-    let channels:NativeChannelManagementCoordinator
+@MainActor struct NativeChannelWelcomeEntry: View {
+    @ObservedObject var session: AppSession
+    let channels: NativeChannelManagementCoordinator
     var parentRouteIsActive: () -> Bool = { false }
-    @State private var flow:NativeChannelWelcomeFlow?
+    @State private var flow: NativeChannelWelcomeFlow?
     @StateObject private var selection = NativeChannelManagementSelectionState<NativeChannelManagementID>()
     @Environment(\.scenePhase) private var scene
-    var body:some View {
+    var body: some View {
         Group {
-            if let flow { NativeChannelWelcomeView(flow:flow,selectChannel:{ if parentRouteIsActive() { selection.selected=$0 } }) }
-            else { CYEmptyState(systemImage:"signpost.right","d7.channelWelcome.unavailable") }
-        }.task { reopen() }
-         .onDisappear { close() }
-         .onChange(of:scene) { _,value in if value == .active { reopen() } else { close() } }
-         .onChange(of:channels.isCurrent) { _,current in if !current { close() } }
-         .onChange(of:parentRouteIsActive()) { _,current in if !current { selection.selected=nil;close() } }
-         .navigationDestination(item:selection.binding) { id in
-             let visit = selection.route(for:id,parentCurrent:parentRouteIsActive)
-             NativeChannelMessageHostDestination(session:session,channels:channels.service,channelID:id,routeIsPresented:visit)
-                 .id(selection.visitID)
-         }
+            if let flow {
+                NativeChannelWelcomeView(flow: flow, selectChannel: { if parentRouteIsActive() { selection.selected = $0 } })
+            } else {
+                List {
+                    Section {
+                        CYHeroHeader("d7.channelWelcome.title")
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                    }
+                    CYEmptyState(systemImage: "signpost.right", "d7.channelWelcome.unavailable")
+                }
+                .listStyle(.insetGrouped)
+                .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
+                .cyGroupedSurface()
+                .cyHeroScreen()
+            }
+        }
+        .task { reopen() }
+        .onDisappear { close() }
+        .onChange(of: scene) { _, value in if value == .active { reopen() } else { close() } }
+        .onChange(of: channels.isCurrent) { _, current in if !current { close() } }
+        .onChange(of: parentRouteIsActive()) { _, current in if !current { selection.selected = nil; close() } }
+        .navigationDestination(item: selection.binding) { id in
+            let visit = selection.route(for: id, parentCurrent: parentRouteIsActive)
+            NativeChannelMessageHostDestination(session: session, channels: channels.service, channelID: id, routeIsPresented: visit)
+                .id(selection.visitID)
+        }
     }
-    private func close() { flow?.deactivate();flow=nil }
+    private func close() { flow?.deactivate(); flow = nil }
     private func reopen() {
         close()
         let parent = parentRouteIsActive, owner = channels
-        guard scene == .active,parent(),owner.isCurrent else{return}
-        flow=session.makeNativeChannelWelcome(scope:owner.scope,sourceCurrent:{ [weak owner] in parent() && owner?.isCurrent == true })
+        guard scene == .active, parent(), owner.isCurrent else { return }
+        flow = session.makeNativeChannelWelcome(scope: owner.scope, sourceCurrent: { [weak owner] in parent() && owner?.isCurrent == true })
     }
 }
-@MainActor struct NativeChannelWelcomeView:View {
-    let flow:NativeChannelWelcomeFlow
-    let selectChannel:(NativeChannelManagementID)->Void
-    var body:some View {
+
+@MainActor struct NativeChannelWelcomeView: View {
+    let flow: NativeChannelWelcomeFlow
+    let selectChannel: (NativeChannelManagementID) -> Void
+    var body: some View {
         List {
-            CYHeroHeader("d7.channelWelcome.title")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            Section { hero.listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if flow.isCurrent {
-                if let issue=flow.issue { NativeChannelFlowNotice(title:Text(verbatim:issue),symbol:"exclamationmark.circle") }
-                if flow.busy { CYSkeleton() }
-                if let value=flow.snapshot {
-                    Section {
-                        VStack(alignment:.leading,spacing:Theme.Space.s2) {
-                            Text(value.title).font(Theme.Font.sheetTitle).fixedSize(horizontal:false,vertical:true)
-                            if !value.description.isEmpty { Text(value.description).foregroundStyle(.secondary).fixedSize(horizontal:false,vertical:true) }
-                        }
-                        .padding(.vertical,Theme.Space.s2)
-                    }
+                if let issue = flow.issue {
+                    NativeChannelFlowNotice(title: Text(verbatim: issue), symbol: "exclamationmark.circle")
+                        .accessibilityLabel(Text(verbatim: issue))
+                }
+                if flow.busy { NativeChannelWelcomeLoading() }
+                if let value = flow.snapshot {
                     if !value.signposts.isEmpty {
-                        Section("d7.channelWelcome.getStarted") {
+                        Section {
                             ForEach(value.signposts) { item in
-                                Button { select(item.id) } label: {
-                                    HStack(alignment:.top,spacing:Theme.Space.s3) {
-                                        Text(item.emoji).accessibilityHidden(true)
-                                        Text(item.label).foregroundStyle(.primary).fixedSize(horizontal:false,vertical:true)
-                                        Spacer(minLength:Theme.Space.s2)
-                                        Image(systemName:"chevron.right").font(Theme.Font.label).foregroundStyle(.tertiary).accessibilityHidden(true)
-                                    }.frame(minHeight:44,alignment:.leading)
-                                }.disabled(flow.busy)
+                                Button { select(item.id) } label: { signpostRow(item) }
+                                    .buttonStyle(.cyPressable)
+                                    .disabled(flow.busy)
+                                    .accessibilityLabel(Text(verbatim: item.label))
                             }
+                        } header: {
+                            CYSectionHeader("d7.channelWelcome.getStarted")
+                                .textCase(nil)
                         }
                     }
-                    Section { CYPillButton("d7.channelWelcome.enter") { select(value.entryChannelID) }.disabled(flow.busy) }.listRowBackground(Color.clear)
+                    Section {
+                        CYPillButton("d7.channelWelcome.enter") { select(value.entryChannelID) }
+                            .disabled(flow.busy)
+                            .accessibilityLabel(Text("d7.channelWelcome.enter"))
+                    }
                 }
             } else {
-                CYEmptyState(systemImage:"lock.shield","d7.channelWelcome.expired")
+                CYEmptyState(systemImage: "lock.shield", "d7.channelWelcome.expired")
             }
         }
+        .listStyle(.insetGrouped)
+        .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
+        .listSectionSpacing(CYSpacing.xxl)
         .refreshable { await flow.refresh() }
         .nativeChannelFlowPage()
         .cyGroupedSurface()
-        .cyHeroScreen().privacySensitive()
-         .task { await flow.activate() }
-         .onDisappear { flow.deactivate() }
-
+        .cyHeroScreen()
+        .privacySensitive()
+        .task { await flow.activate() }
+        .onDisappear { flow.deactivate() }
+        .cyAnimation(value: flow.snapshot?.version)
     }
-    private func select(_ id:NativeChannelManagementID) { guard flow.permits(id) else{return};selectChannel(id) }
+
+    @ViewBuilder private var hero: some View {
+        let snapshot = flow.isCurrent ? flow.snapshot : nil
+        let trimmed = snapshot?.title.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let detail = snapshot?.description.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if trimmed.isEmpty {
+            CYHeroHeader("d7.channelWelcome.title")
+            if !detail.isEmpty {
+                Text(verbatim: detail)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        } else {
+            CYHeroHeader(verbatim: trimmed, subtitle: detail.isEmpty ? nil : detail) {
+                NativeChannelCoverBanner(seed: trimmed, symbol: "signpost.right")
+            }
+        }
+    }
+
+    private func signpostRow(_ item: NativeChannelWelcomeSnapshot.Signpost) -> some View {
+        CYListRow(verbatim: item.label, trailing: .chevron) {
+            Text(verbatim: item.emoji)
+                .font(CYTypography.sectionTitle)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                .accessibilityHidden(true)
+        }
+    }
+
+    private func select(_ id: NativeChannelManagementID) {
+        guard flow.permits(id) else { return }
+        selectChannel(id)
+    }
+}
+
+private struct NativeChannelWelcomeLoading: View {
+    var body: some View {
+        CYSkeleton()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("cy.state.loading"))
+            .listRowBackground(Color.clear)
+    }
 }
