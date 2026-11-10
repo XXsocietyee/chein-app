@@ -207,7 +207,7 @@ struct NearbyMapDiscoveryControls: View {
                 } else {
                     HStack {
                         Text(verbatim: filter.tag)
-                        Button { filter.tag = "" } label: { Text("nearby.map.allTags", tableName: "NearbyMapDiscovery") }
+                        CYPillButton("nearby.map.allTags", style: .tertiary, fullWidth: false, tableName: "NearbyMapDiscovery") { filter.tag = "" }
                     }
                     Text("nearby.map.selectedCondition", tableName: "NearbyMapDiscovery").font(.caption)
                 }
@@ -232,8 +232,8 @@ struct NearbyMapDiscoveryStatusView: View {
     @ViewBuilder private func status(_ phase: NearbyMapDiscoveryModel.Phase, issue: RoamScreenIssue?, events: Bool) -> some View {
         switch phase {
         case .loading:
-            if events { ProgressView { Text("nearby.map.eventsLoading", tableName: "NearbyMapDiscovery") } }
-            else { ProgressView { Text("nearby.map.poisLoading", tableName: "NearbyMapDiscovery") } }
+            if events { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.map.eventsLoading", tableName: "NearbyMapDiscovery")) }
+            else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.map.poisLoading", tableName: "NearbyMapDiscovery")) }
         case .failed:
             if events { Text("nearby.map.eventsFailed", tableName: "NearbyMapDiscovery") }
             else { Text("nearby.map.poisFailed", tableName: "NearbyMapDiscovery") }

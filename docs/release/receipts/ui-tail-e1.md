@@ -39,3 +39,12 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/DiscoveryHomeView.swift | done: CYEmptyState (unavailable/empty), CYLoadingStateView; root keeps nav title |
 | App/DiscoveryPlayTemplatePresentationView.swift | done: monospaced use count (Section fragment, no own chrome) |
 | App/DiscoveryTemplateBrowserView+Port.swift | done: CYLoadingStateView, CYPillButton empty refresh; cover thumb left (private fallback tile, no behaviour change) |
+
+## Batch 5
+| File | Result |
+| --- | --- |
+| App/MemberTemplateDetailView.swift | done: CYLoadingStateView, CYStatusChip draft/published, CYPillButton retry; keeps nav title (content title is the template's own) |
+| App/ModInstallationTemplateEditorView.swift | done: CYHeroHeader, cyGroupedSurface, CYPillButton (save primary, others secondary/tertiary), confirm primary in review sheet |
+| App/NearbyMapDiscoveryView.swift | done: CYLoadingStateView status, CYPillButton clear-tag; map/model code untouched |
+| App/OfficialActionViews.swift | done: hero in publish/broadcast/invite editors, CYPillButton review/confirm (one primary each), CYLoadingStateView |
+| App/OfficialEventsBrowserView.swift | done: CYEmptyState empty list; search/filter untouched |

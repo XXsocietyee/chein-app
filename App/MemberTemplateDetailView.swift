@@ -29,11 +29,11 @@ import SwiftUI
     @State private var generation = UUID()
     var body: some View {
         List {
-            if loading { ProgressView("memberTemplate.loading") }
+            if loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("memberTemplate.loading")) }
             if let failure {
                 Section {
                     if let message { Text(verbatim: message) } else { Text(LocalizedStringKey(failure)) }
-                    Button("action.retry") { Task { await load() } }.disabled(loading)
+                    CYPillButton("action.retry", style: .secondary) { Task { await load() } }.disabled(loading)
                 }
             }
             if let detail {
@@ -43,8 +43,8 @@ import SwiftUI
                     else { Text("discovery.untitledPlay").font(.title2.bold()) }
                     DiscoveryPlayMetadata(item: item)
                     if let draft = detail.draftStatus {
-                        if draft == 0 { Text("memberTemplate.draft") }
-                        else if draft == 1 { Text("memberTemplate.published") }
+                        if draft == 0 { CYStatusChip("memberTemplate.draft", tone: .neutral, systemImage: "pencil") }
+                        else if draft == 1 { CYStatusChip("memberTemplate.published", tone: .success, systemImage: "checkmark.circle") }
                     }
                     if let feedback = detail.reviewFeedback {
                         Text("discovery.templateDetail.reviewFeedback \(feedback)").foregroundStyle(CYColor.warningText)
@@ -77,6 +77,7 @@ import SwiftUI
                 textSection("discovery.creator", value: item.publisher)
             }
         }.navigationTitle("memberTemplate.title").navigationBarTitleDisplayMode(.inline)
+        .cyGroupedSurface()
         .privacySensitive().accessibilityIdentifier("memberTemplate.detail")
         .task(id: reader.scope) { detail = nil; await load() }
         .refreshable { await load() }
