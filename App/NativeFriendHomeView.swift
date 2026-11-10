@@ -2,7 +2,6 @@ import SwiftUI
 
 /// Normal user entry, not an audit hub. Its injected service independently retains closed production grants.
 @MainActor struct NativeFriendHomeView: View {
-    @Environment(\.themeDomain) private var domain
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
@@ -28,68 +27,98 @@ import SwiftUI
     }
     var body: some View {
         List {
-            CYHeroHeader(verbatim: localized("friend.title"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            Section {
+                CYHeroHeader(verbatim: localized("friend.title")) {
+                    CYCoverArt(seed: "friend-home", symbol: "person.2.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .accessibilityHidden(true)
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            }
             if directoryFactory != nil || groupsFactory != nil || blacklistFactory != nil || removalFactory != nil {
                 Section {
                     if let directoryFactory {
                         NavigationLink {
                             NativeFriendDirectoryView(flow: directoryFactory(), metadataFactory: metadataFactory,
                                 removalFactory: removalFactory, publicProfile: publicProfile, progressCard: progressCard, conversation: conversation)
-                        } label: { entryLabel(Text("friendDirectory.title", tableName: "NativeFriendDirectory"), systemImage: "person.crop.rectangle.stack") }
-                            .accessibilityIdentifier("friendDirectory.entry")
+                        } label: {
+                            CYListRow(verbatim: tableString("friendDirectory.title", table: "NativeFriendDirectory"), trailing: .none) {
+                                CYRowIcon(systemImage: "person.crop.rectangle.stack")
+                            }
+                        }
+                        .accessibilityIdentifier("friendDirectory.entry")
                     }
                     if let groupsFactory {
-                        Button { model.openGroups(using:groupsFactory) } label: { entryButtonLabel(Text("friendMeta.recoveryEntry", tableName: "NativeFriendMetadata"), systemImage: "folder") }
-                            .accessibilityIdentifier("friendMeta.recoveryEntry")
+                        Button { model.openGroups(using:groupsFactory) } label: {
+                            CYListRow(verbatim: tableString("friendMeta.recoveryEntry", table: "NativeFriendMetadata"), trailing: .chevron) {
+                                CYRowIcon(systemImage: "folder")
+                            }
+                        }
+                        .accessibilityIdentifier("friendMeta.recoveryEntry")
                     }
                     if let blacklistFactory {
-                        Button { model.openBlacklist(using: blacklistFactory) } label: { entryButtonLabel(Text("blacklist.title", tableName: "NativeBlacklist"), systemImage: "hand.raised") }
-                            .accessibilityIdentifier("blacklist.entry")
+                        Button { model.openBlacklist(using: blacklistFactory) } label: {
+                            CYListRow(verbatim: tableString("blacklist.title", table: "NativeBlacklist"), trailing: .chevron) {
+                                CYRowIcon(systemImage: "hand.raised")
+                            }
+                        }
+                        .accessibilityIdentifier("blacklist.entry")
                     }
                     if let removalFactory {
                         NavigationLink {
                             NativeFriendRemovalView(flow: removalFactory(nil), onResolved: { Task { await flow.load() } })
-                        } label: { entryLabel(Text("friendRemoval.recoveryEntry", tableName: "NativeFriendRemoval"), systemImage: "person.badge.clock") }
-                            .accessibilityIdentifier("friendRemoval.recoveryEntry")
+                        } label: {
+                            CYListRow(verbatim: tableString("friendRemoval.recoveryEntry", table: "NativeFriendRemoval"), trailing: .none) {
+                                CYRowIcon(systemImage: "person.badge.clock")
+                            }
+                        }
+                        .accessibilityIdentifier("friendRemoval.recoveryEntry")
                     }
                 }
             }
             if flow.phase == .closed {
-                Section { text("friend.closed") }.accessibilityIdentifier("friend.closed")
+                Section { CYStatusChip(verbatim: localized("friend.closed"), tone: .neutral, systemImage: "lock") }
+                    .accessibilityIdentifier("friend.closed")
             }
-            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friend.loading") }
+            if flow.busy {
+                Section {
+                    CYSkeleton()
+                        .accessibilityIdentifier("friend.loading")
+                        .accessibilityLabel(Text("cloud31.loading.friends"))
+                }
+            }
             if let issue = flow.issue {
-                Section { Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) } }
+                Section { CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(issue), tableName: "NativeFriend", kind: .failure) }
             }
             if flow.pending != nil {
                 Section {
-                    text("friend.unknown")
-                    if !flow.isCurrent { text("friend.closed") }
-                    Button { Task { await flow.recover() } } label: { text("friend.recover") }
+                    CYStatusChip(verbatim: localized("friend.unknown"), tone: .warning, systemImage: "questionmark.circle")
+                    if !flow.isCurrent { CYStatusChip(verbatim: localized("friend.closed"), tone: .neutral, systemImage: "lock") }
+                    CYPillButton(verbatim: localized("friend.recover"), style: .secondary, systemImage: "arrow.clockwise") { Task { await flow.recover() } }
                         .disabled(!flow.canRecover).accessibilityIdentifier("friend.recover")
-                    Button { Task { await flow.retryOriginal() } } label: { text("friend.retryOriginal") }
+                    CYPillButton(verbatim: localized("friend.retryOriginal"), style: .tertiary) { Task { await flow.retryOriginal() } }
                         .disabled(!flow.canRetryOriginal).accessibilityIdentifier("friend.retryOriginal")
                 }
             }
             if let relationship = flow.relationship {
                 Section {
-                    if let review = flow.lastReview { text("friend.review." + review.state.rawValue) }
-                    else { text(stateKey(relationship.state)).accessibilityIdentifier("friend.relationship") }
-                } header: { text("friend.result") }
+                    if let review = flow.lastReview {
+                        CYStatusChip(verbatim: localized("friend.review." + review.state.rawValue), tone: reviewTone(review.state), systemImage: "clock")
+                    } else {
+                        CYStatusChip(verbatim: localized(stateKey(relationship.state)), tone: relationTone(relationship.state), systemImage: "person")
+                            .accessibilityIdentifier("friend.relationship")
+                    }
+                } header: { CYSectionHeader(LocalizedStringKey(localized("friend.result"))) }
             }
             if !flow.incoming.isEmpty {
                 Section {
                     ForEach(flow.incoming) { item in
-                        let responseLayout = dynamicTypeSize.isAccessibilitySize
-                            ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s3))
-                            : AnyLayout(HStackLayout(spacing: Theme.Space.s3))
-                        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                        VStack(alignment: .leading, spacing: CYSpacing.md) {
                             row(item)
-                            responseLayout {
-                                action("friend.accept", .accept, item)
-                                action("friend.reject", .reject, item)
-                            }
+                            action("friend.accept", .accept, item)
+                            action("friend.reject", .reject, item)
                         }
                     }
                 } header: { Text("d7.friends.received \(flow.incoming.count)", tableName: "NativeFriend") }
@@ -97,7 +126,14 @@ import SwiftUI
             if !flow.outgoing.isEmpty || flow.requestCursor != nil {
                 Section {
                     ForEach(flow.outgoing) { item in
-                        HStack { row(item); Spacer(); action("friend.withdraw", .cancel, item) }
+                        let stacked = dynamicTypeSize.isAccessibilitySize
+                        let layout = stacked
+                            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+                            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
+                        layout {
+                            row(item)
+                            action("friend.withdraw", .cancel, item)
+                        }
                     }
                     if flow.requestCursor != nil {
                         Button { Task { await flow.loadMore(requests: true) } } label: { text("friend.more") }.disabled(flow.busy)
@@ -107,31 +143,38 @@ import SwiftUI
             if !flow.reviews.isEmpty {
                 Section {
                     ForEach(flow.reviews) { review in
-                        HStack(alignment: .firstTextBaseline) {
-                            VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                                Text(verbatim: review.message).fixedSize(horizontal: false, vertical: true)
-                                text("friend.review." + review.state.rawValue).font(Theme.Font.label).foregroundStyle(.secondary)
+                        let stacked = dynamicTypeSize.isAccessibilitySize
+                        let layout = stacked
+                            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+                            : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: CYSpacing.md))
+                        layout {
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                Text(verbatim: review.message)
+                                    .font(CYTypography.body)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                CYStatusChip(verbatim: localized("friend.review." + review.state.rawValue), tone: reviewTone(review.state), systemImage: "clock")
                             }
-                            Spacer()
                             if review.state == .pending {
-                                Button { flow.reviewCancellation(review) } label: { text("friend.withdraw") }
-                                    .buttonStyle(.bordered).disabled(!flow.canWrite)
+                                CYPillButton(verbatim: localized("friend.withdraw"), style: .tertiary, fullWidth: stacked) {
+                                    flow.reviewCancellation(review)
+                                }
+                                .disabled(!flow.canWrite)
                             }
-                        }.accessibilityIdentifier("friend.review.\(review.id)")
+                        }
+                        .accessibilityIdentifier("friend.review.\(review.id)")
                     }
                     if flow.reviewCursor != nil { Button { Task { await flow.loadMoreReviews() } } label: { text("friend.more") }.disabled(flow.busy) }
-                } header: { text("friend.review.title") }
+                } header: { CYSectionHeader(LocalizedStringKey(localized("friend.review.title"))) }
             }
             if flow.phase == .ready && flow.friends.isEmpty {
                 Section {
-                    VStack(spacing: Theme.Space.s3) {
-                        CYEmptyState(systemImage: "person.2", "friend.emptyFriends", tableName: "NativeFriend")
-                        CYPillButton("friend.new", style: .secondary, tableName: "NativeFriend") { addingFriend = true }
-                            .disabled(!flow.canWrite)
-                    }
+                    CYEmptyState(systemImage: "person.2", "friend.emptyFriends", tableName: "NativeFriend")
+                    CYPillButton("friend.new", tableName: "NativeFriend", systemImage: "person.badge.plus") { addingFriend = true }
+                        .disabled(!flow.canWrite)
                 }
             } else if flow.groups.isEmpty {
-                Section { friendRows(flow.friends) } header: { text("friend.friends") }
+                Section { friendRows(flow.friends) } header: { CYSectionHeader(LocalizedStringKey(localized("friend.friends"))) }
             } else {
                 ForEach(flow.groups) { group in
                     let members = flow.friends.filter { group.isDefault == 1 ? $0.groupID == nil : $0.groupID == group.id }
@@ -139,7 +182,12 @@ import SwiftUI
                         Section {
                             friendRows(members)
                         } header: {
-                            if group.isDefault == 1 { text("friend.defaultGroup") } else { Text(verbatim:group.name) }
+                            if group.isDefault == 1 {
+                                CYSectionHeader(LocalizedStringKey(localized("friend.defaultGroup")))
+                            } else {
+                                let name = group.name.trimmingCharacters(in: .whitespacesAndNewlines)
+                                CYSectionHeader(LocalizedStringKey(name.isEmpty ? "—" : name))
+                            }
                         }
                     }
                 }
@@ -149,9 +197,10 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .font(Theme.Font.body)
+        .font(CYTypography.body)
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyAnimation(value: flow.phase)
         .accessibilityIdentifier("friend.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }
@@ -193,28 +242,27 @@ import SwiftUI
         }) {
             NavigationStack {
                 Form {
-                    CYHeroHeader(verbatim: localized("friend.new"))
-                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                    Section {
+                        CYHeroHeader(verbatim: localized("friend.new"))
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                    }
                     Section {
                         TextField(localized("friend.peer"), text: $peer).keyboardType(.numberPad)
                             .accessibilityIdentifier("friend.peer")
                         TextField(localized("friend.message"), text: $message, axis: .vertical)
                             .accessibilityIdentifier("friend.message")
+                        CYPillButton(verbatim: localized("friend.apply"), systemImage: "paperplane.fill") {
+                            guard let id = Int64(peer) else { return }
+                            queuedPeer = id; addingFriend = false
+                        }
+                        .disabled(!canSendRequest)
+                        .accessibilityIdentifier("friend.apply")
                     }
                 }
                 .formStyle(.grouped)
                 .cyGroupedSurface()
                 .cyHeroScreen()
-                .toolbar {
-                    ToolbarItem(placement: .confirmationAction) {
-                        Button {
-                            guard let id = Int64(peer) else { return }
-                            queuedPeer = id; addingFriend = false
-                        } label: { text("friend.apply") }
-                            .disabled(!canSendRequest)
-                            .accessibilityIdentifier("friend.apply")
-                    }
-                }
             }
             .presentationDetents([.medium])
             .presentationDragIndicator(.visible)
@@ -223,22 +271,37 @@ import SwiftUI
             if let review = flow.actionReview {
                 NavigationStack {
                     Form {
-                        CYHeroHeader(verbatim: localized("friend.confirm." + review.command.action.rawValue))
-                            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                        Section {
+                            CYHeroHeader(verbatim: localized("friend.confirm." + review.command.action.rawValue))
+                                .listRowBackground(Color.clear)
+                                .listRowInsets(EdgeInsets())
+                        }
                         Section {
                             if review.displayName.isEmpty {
-                                LabeledContent { Text(verbatim: String(review.command.peerID)) } label: { text("friend.peer") }
+                                CYListRow(verbatim: localized("friend.peer"), trailing: .value(String(review.command.peerID)))
                                     .accessibilityIdentifier("friend.confirmPeer")
                             } else {
-                                Text(verbatim: review.displayName).font(Theme.Font.sectionTitle).accessibilityIdentifier("friend.confirmPeer")
+                                Text(verbatim: review.displayName)
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("friend.confirmPeer")
                             }
                             if !review.message.isEmpty {
-                                Text(verbatim: review.message).accessibilityIdentifier("friend.confirmMessage")
+                                Text(verbatim: review.message)
+                                    .font(CYTypography.body)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                    .accessibilityIdentifier("friend.confirmMessage")
                             }
+                            CYPillButton(verbatim: localized("friend.confirmContinue"), systemImage: "checkmark.circle") {
+                                Task { await flow.confirmReview(expected: review) }
+                            }
+                            .disabled(!flow.canWrite)
+                            .accessibilityIdentifier("friend.confirmContinue")
                         }
                     }
                     .formStyle(.grouped)
-                    .font(Theme.Font.body)
+                    .font(CYTypography.body)
                     .cyGroupedSurface()
                     .cyHeroScreen()
                     .accessibilityIdentifier("friend.confirmation")
@@ -248,32 +311,32 @@ import SwiftUI
                                 .accessibilityIdentifier("friend.confirmCancel")
                         }
                     }
-                    .questifyBottomAction {
-                        CYPillButton("friend.confirmContinue", tableName: "NativeFriend") { Task { await flow.confirmReview(expected: review) } }
-                            .disabled(!flow.canWrite).accessibilityIdentifier("friend.confirmContinue")
-                    }
                 }
                 .presentationDetents([.medium])
                 .presentationDragIndicator(.visible)
             }
         }
-        .tint(Theme.Color.accent(in: domain))
     }
     private func localized(_ key: String) -> String {
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "NativeFriend", locale: locale))
     }
+    private func tableString(_ key: String, table: String) -> String {
+        String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: table, locale: locale))
+    }
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "NativeFriend") }
     @ViewBuilder private func friendRows(_ items: [NativeFriendItem]) -> some View {
         ForEach(items) { item in
-            HStack(spacing: Theme.Space.s3) {
+            HStack(spacing: CYSpacing.md) {
                 Button { Task { await model.openConversation(item) } } label: {
-                    HStack { row(item); Spacer(minLength: 0) }.frame(minHeight: 44).contentShape(Rectangle())
+                    row(item).frame(minHeight: CYSpacing.minTouchTarget).contentShape(Rectangle())
                 }
                     .buttonStyle(.borderless).foregroundStyle(.primary)
                     .disabled(flow.busy).accessibilityIdentifier("friend.chat.\(item.peerID)")
                 if let metadataFactory {
                     Button { model.openMetadata(item,using:metadataFactory) } label: {
-                        Image(systemName: "info.circle").accessibilityLabel(Text("friendMeta.title",tableName:"NativeFriendMetadata"))
+                        Image(systemName: "info.circle")
+                            .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                            .accessibilityLabel(Text("friendMeta.title", tableName: "NativeFriendMetadata"))
                     }
                         .buttonStyle(.borderless)
                         .disabled(flow.busy).accessibilityIdentifier("friendMeta.entry.\(item.peerID)")
@@ -282,7 +345,7 @@ import SwiftUI
             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                 if let removalFactory {
                     Button { model.openRemoval(item,using:removalFactory) } label: {
-                        Label { Text("friendRemoval.title",tableName:"NativeFriendRemoval") } icon: { Image(systemName: "person.badge.minus") }
+                        Label { Text("friendRemoval.title", tableName: "NativeFriendRemoval") } icon: { Image(systemName: "person.badge.minus") }
                     }
                         .tint(.red)
                         .disabled(flow.busy).accessibilityIdentifier("friendRemoval.entry.\(item.peerID)")
@@ -291,33 +354,42 @@ import SwiftUI
         }
     }
     private func row(_ item: NativeFriendItem) -> some View {
-        HStack(spacing: Theme.Space.s3) {
-            Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                HStack(spacing: Theme.Space.s1) {
-                    Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
-                    if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(CYColor.warningText).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
+        let name = item.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        let meta: String? = (item.state != .friend && !item.message.isEmpty) ? item.message : nil
+        return CYListRow(verbatim: name.isEmpty ? "—" : name, meta: meta, trailing: .none) {
+            HStack(spacing: CYSpacing.sm) {
+                CYCoverArt(seed: name.isEmpty ? String(item.peerID) : name, symbol: "person.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                    .frame(width: 40, height: 40)
+                    .accessibilityHidden(true)
+                if item.starred == 1 {
+                    Image(systemName: "star.fill")
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.warningText)
+                        .accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata"))
                 }
-                if item.state != .friend && !item.message.isEmpty { Text(verbatim: item.message).font(Theme.Font.label).fixedSize(horizontal: false, vertical: true).foregroundStyle(.secondary) }
             }
-        }.accessibilityIdentifier("friend.row.\(item.peerID)")
-    }
-    private func entryLabel(_ title: Text, systemImage: String) -> some View {
-        Label { title } icon: { Image(systemName: systemImage) }
-    }
-    private func entryButtonLabel(_ title: Text, systemImage: String) -> some View {
-        HStack {
-            Label { title.foregroundStyle(.primary) } icon: { Image(systemName: systemImage) }
-            Spacer()
-            Image(systemName: "chevron.right").font(Theme.Font.label.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
         }
+        .accessibilityIdentifier("friend.row.\(item.peerID)")
     }
-    private func action(_ key: String, _ action: NativeFriendAction, _ item: NativeFriendItem) -> some View {
-        Button { flow.reviewAction(action, item: item) } label: { text(key) }
-            .buttonStyle(.bordered).controlSize(.small).disabled(!flow.canWrite)
-            .accessibilityIdentifier("friend.\(action.rawValue).\(item.peerID)")
+    private func action(_ key: String, _ kind: NativeFriendAction, _ item: NativeFriendItem) -> some View {
+        let fills = dynamicTypeSize.isAccessibilitySize || kind == .accept || kind == .reject
+        return CYPillButton(verbatim: localized(key), style: kind == .accept ? .secondary : .tertiary, fullWidth: fills) {
+            flow.reviewAction(kind, item: item)
+        }
+        .disabled(!flow.canWrite)
+        .accessibilityIdentifier("friend.\(kind.rawValue).\(item.peerID)")
     }
     private func stateKey(_ state: NativeFriendRelation) -> String {
         switch state { case .none: return "friend.none"; case .friend: return "friend.accepted"; case .pendingIncoming: return "friend.incomingState"; case .pendingOutgoing: return "friend.outgoingState" }
+    }
+    private func relationTone(_ state: NativeFriendRelation) -> CYStatusTone {
+        switch state { case .friend: return .success; case .none: return .neutral; case .pendingIncoming, .pendingOutgoing: return .info }
+    }
+    private func reviewTone(_ state: NativeFriendReviewState) -> CYStatusTone {
+        switch state {
+        case .applied: return .success
+        case .rejected, .cancelled, .expired, .invalidated: return .danger
+        case .pending: return .warning
+        }
     }
 }

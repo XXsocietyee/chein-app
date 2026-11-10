@@ -15,9 +15,20 @@ import SwiftUI
     }
     var body: some View {
         List {
-            Section { CYHeroHeader("nativeCondition.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section {
+                CYHeroHeader("nativeCondition.title") {
+                    CYCoverArt(seed: "nativeCondition.title", symbol: "arrow.triangle.branch", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .accessibilityHidden(true)
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            }
             if let document = model.document {
-                if !model.canEdit { Section { Text("nativeCondition.readOnly") } }
+                if !model.canEdit {
+                    Section { CYStatusChip("nativeCondition.readOnly", tone: .neutral, systemImage: "lock") }
+                }
                 if document.surface == .routeGraph {
                     branches("edges", fallback: false)
                     branches("fallbacks", fallback: true)
@@ -27,37 +38,57 @@ import SwiftUI
                     NativeConditionAuthorExpressionSection(model: model, path: .init(), effect: document.surface == .templateEffects || document.surface == .componentEffects)
                 }
                 Section {
-                    NavigationLink("nativeCondition.preview") { NativeConditionAuthorPreview(model: model, authoritative: false) }
+                    NavigationLink { NativeConditionAuthorPreview(model: model, authoritative: false) } label: {
+                        CYListRow("nativeCondition.preview", trailing: .none) { CYRowIcon(systemImage: "eye") }
+                    }
                     if reader != nil {
-                        Button("nativeCondition.readAuthoritative") { if let reader { Task { await model.read(using: reader) } } }
+                        CYPillButton("nativeCondition.readAuthoritative", style: .secondary) { if let reader { Task { await model.read(using: reader) } } }
                             .disabled(document.hasChanges)
                     }
                     if model.session?.authoritative != nil {
-                        NavigationLink("nativeCondition.authoritative") { NativeConditionAuthorPreview(model: model, authoritative: true) }
+                        NavigationLink { NativeConditionAuthorPreview(model: model, authoritative: true) } label: {
+                            CYListRow("nativeCondition.authoritative", trailing: .none) { CYRowIcon(systemImage: "checkmark.seal") }
+                        }
                     }
                 }
                 if !model.issues.isEmpty {
-                    Section("nativeCondition.validation") {
+                    Section {
                         ForEach(model.issues) { issue in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(LocalizedStringKey("nativeCondition.issue." + issue.code))
-                                Text(verbatim: issue.path).font(.caption).textSelection(.enabled)
-                                if !issue.detail.isEmpty { Text(verbatim: issue.detail).font(.caption).foregroundStyle(.secondary) }
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                CYStatusChip(LocalizedStringKey("nativeCondition.issue." + issue.code), tone: .warning, systemImage: "exclamationmark.triangle")
+                                Text(verbatim: issue.path.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : issue.path)
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textSecondary)
+                                    .textSelection(.enabled)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if !issue.detail.isEmpty {
+                                    Text(verbatim: issue.detail)
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(CYColor.textTertiary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                }
                             }.accessibilityElement(children: .combine)
                         }
-                    }
+                    } header: { CYSectionHeader("nativeCondition.validation") }
                 }
                 Section {
                     CYPillButton("nativeCondition.saveDraft", action: model.save)
                         .disabled(!model.canEdit || model.issues.count > 0 || !document.hasChanges)
                         .accessibilityIdentifier("nativeCondition.saveOriginalDraft")
-                    if model.session?.state == .localSaved { Text("nativeCondition.localSaved").foregroundStyle(.secondary) }
+                    if model.session?.state == .localSaved {
+                        CYStatusChip("nativeCondition.localSaved", tone: .success, systemImage: "checkmark.circle")
+                    }
                 } footer: { Text("nativeCondition.originalFlow") }
-            } else { Section { Text("nativeCondition.unavailable") } }
-            if let key = model.errorKey { Section { Text(LocalizedStringKey(key)).foregroundStyle(CYColor.dangerText) } }
+            } else {
+                Section { CYEmptyState(systemImage: "doc.text", "nativeCondition.unavailable", kind: .projects) }
+            }
+            if let key = model.errorKey {
+                Section { CYStatusChip(LocalizedStringKey(key), tone: .danger, systemImage: "exclamationmark.triangle") }
+            }
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyAnimation(value: model.revision)
         .toolbar {
             ToolbarItem { EditButton().disabled(!model.canEdit) }
             if close != nil {
@@ -84,16 +115,20 @@ import SwiftUI
     @ViewBuilder private func branches(_ key: String, fallback: Bool) -> some View {
         let path = NativeConditionAuthorPath().field(key)
         let rows = model.value(path)?.nativeConditionArray ?? []
-        Section(LocalizedStringKey(fallback ? "nativeCondition.fallbacks" : "nativeCondition.branches")) {
+        Section {
             ForEach(Array(rows.enumerated()), id: \.offset) { index, row in
                 NavigationLink {
                     NativeConditionAuthorBranchView(model: model, path: path.index(index), fallback: fallback)
                 } label: {
                     let fields = row.nativeConditionObject ?? [:]
-                    VStack(alignment: .leading) {
-                        Text(verbatim: fields["id"]?.nativeConditionText ?? String(index + 1))
-                        Text(verbatim: "\(fields["fromNodeId"]?.nativeConditionInteger.map(String.init) ?? "?") → \(fields["toNodeId"]?.nativeConditionInteger.map(String.init) ?? "?")")
-                            .font(.caption).foregroundStyle(.secondary)
+                    let raw = fields["id"]?.nativeConditionText ?? String(index + 1)
+                    let shown = raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw
+                    let from = fields["fromNodeId"]?.nativeConditionInteger.map(String.init) ?? "—"
+                    let to = fields["toNodeId"]?.nativeConditionInteger.map(String.init) ?? "—"
+                    CYListRow(verbatim: shown, meta: "\(from) → \(to)", trailing: .none) {
+                        CYCoverArt(seed: shown, symbol: "arrow.triangle.branch", showsDebugLabel: false, cornerRadius: CYRadius.sm)
+                            .frame(width: 40, height: 40)
+                            .accessibilityHidden(true)
                     }
                 }
             }.onDelete { model.remove($0, from: path) }.onMove { model.move($0, to: $1, in: path) }
@@ -101,6 +136,8 @@ import SwiftUI
                 let row: ProjectEditJSON = .object(fallback ? [:] : ["id": .string(""), "trigger": .object(["type": .string(""), "outcomeCode": .string("")]), "conditions": .array([]), "effects": .array([])])
                 if model.value(path) == nil { model.setField(key, at: .init(), to: .array([row])) } else { model.append(row, to: path) }
             }.disabled(!model.canEdit || rows.count >= 1024)
+        } header: {
+            CYSectionHeader(LocalizedStringKey(fallback ? "nativeCondition.fallbacks" : "nativeCondition.branches"))
         }
         .deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
     }
@@ -112,8 +149,13 @@ import SwiftUI
     let fallback: Bool
     var body: some View {
         Form {
+            Section {
+                CYHeroHeader("nativeCondition.branch")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
             if let value = model.value(path), let row = value.nativeConditionObject {
-                Section("nativeCondition.branch") {
+                Section {
                     if !fallback { TextField("nativeCondition.field.id", text: text("id", row)) }
                     selection("fromNodeId", row, options: model.catalog?.nodes ?? [], integer: true)
                     selection("toNodeId", row, options: model.catalog?.nodes ?? [], integer: true)
@@ -140,8 +182,11 @@ import SwiftUI
                 if row["effects"] == nil {
                     Button("nativeCondition.addEffect") { model.setField("effects", at: path, to: .array([])) }.disabled(!model.canEdit)
                 } else { NativeConditionAuthorExpressionSection(model: model, path: path.field("effects"), effect: true) }
-            } else { Text("nativeCondition.unavailable") }
-        }.navigationTitle("nativeCondition.branch").toolbar { EditButton().disabled(!model.canEdit) }
+            } else { CYEmptyState(systemImage: "doc.text", "nativeCondition.unavailable", kind: .projects) }
+        }
+        .cyGroupedSurface()
+        .cyHeroScreen()
+        .toolbar { EditButton().disabled(!model.canEdit) }
     }
     private func text(_ key: String, _ row: [String: ProjectEditJSON], integer: Bool = false) -> Binding<String> {
         Binding(get: { row[key]?.nativeConditionText ?? row[key]?.nativeConditionNumber.map { NSDecimalNumber(decimal: $0).stringValue } ?? "" }, set: { value in
@@ -170,7 +215,7 @@ import SwiftUI
     let path: NativeConditionAuthorPath
     let effect: Bool
     var body: some View {
-        Section(LocalizedStringKey(effect ? "nativeCondition.effects" : "nativeCondition.conditions")) {
+        Section {
             if let value = model.value(path) {
                 if let array = value.nativeConditionArray {
                     ForEach(Array(array.enumerated()), id: \.offset) { index, value in link(value, at: path.index(index)) }
@@ -180,13 +225,23 @@ import SwiftUI
                     }.disabled(!model.canEdit)
                 } else { link(value, at: path) }
             }
-        }.deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
+        } header: {
+            CYSectionHeader(LocalizedStringKey(effect ? "nativeCondition.effects" : "nativeCondition.conditions"))
+        }
+        .deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
     }
     private func link(_ value: ProjectEditJSON, at path: NativeConditionAuthorPath) -> some View {
         let op = value.nativeConditionArray != nil ? "ALL_OF_ARRAY" : value.nativeConditionObject?["op"]?.nativeConditionText ?? "UNKNOWN"
+        let symbol = effect ? "sparkles" : "line.3.horizontal.decrease.circle"
         return NavigationLink {
             NativeConditionAuthorNodeView(model: model, path: path, effect: effect)
-        } label: { if let title = NativeComponentAuthorLabels.operations[op] { Text(verbatim: title) } else { Text(LocalizedStringKey("nativeCondition.op." + op)) } }
+        } label: {
+            if let title = NativeComponentAuthorLabels.operations[op] {
+                CYListRow(verbatim: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : title, trailing: .none) { CYRowIcon(systemImage: symbol) }
+            } else {
+                CYListRow(LocalizedStringKey("nativeCondition.op." + op), trailing: .none) { CYRowIcon(systemImage: symbol) }
+            }
+        }
     }
 }
 
@@ -199,6 +254,11 @@ import SwiftUI
     private var op: String { model.value(path)?.nativeConditionObject?["op"]?.nativeConditionText ?? "" }
     var body: some View {
         Form {
+            Section {
+                CYHeroHeader(LocalizedStringKey(effect ? "nativeCondition.effect" : "nativeCondition.condition"))
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
             if let value = model.value(path) {
                 if value.nativeConditionArray != nil {
                     NativeConditionAuthorExpressionSection(model: model, path: path, effect: effect)
@@ -223,10 +283,17 @@ import SwiftUI
                     } else if op == "RANDOM_CHOICE" {
                         choices(value)
                     }
-                    Section { Text(verbatim: NativeConditionAuthorPresentation.json(value)).font(.caption).textSelection(.enabled) }
+                    Section {
+                        Text(verbatim: NativeConditionAuthorPresentation.json(value))
+                            .font(.system(.footnote, design: .monospaced))
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-            } else { Text("nativeCondition.unavailable") }
-        }.navigationTitle(LocalizedStringKey(effect ? "nativeCondition.effect" : "nativeCondition.condition"))
+            } else { CYEmptyState(systemImage: "doc.text", "nativeCondition.unavailable", kind: .projects) }
+        }
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .toolbar { EditButton().disabled(!model.canEdit) }
         .sheet(isPresented: $showFields) {
             if let value = model.value(path), let revision = model.document?.revision {
@@ -243,15 +310,18 @@ import SwiftUI
     }
     @ViewBuilder private func choices(_ value: ProjectEditJSON) -> some View {
         let choicesPath = path.field("choices"), rows = value.nativeConditionObject?["choices"]?.nativeConditionArray ?? []
-        Section("nativeCondition.choices") {
+        Section {
             ForEach(Array(rows.enumerated()), id: \.offset) { i, _ in
                 NavigationLink {
                     NativeConditionAuthorChoiceView(model: model, path: choicesPath.index(i))
-                } label: { Text("nativeCondition.choice") + Text(verbatim: " \(i + 1)") }
+                } label: {
+                    CYListRow("nativeCondition.choice", trailing: .value(String(i + 1))) { CYRowIcon(systemImage: "square.grid.2x2") }
+                }
             }.onDelete { model.remove($0, from: choicesPath) }.onMove { model.move($0, to: $1, in: choicesPath) }
             Button("nativeCondition.addChoice") { model.append(.object(["weight": .number(1), "effects": .array([])]), to: choicesPath) }
                 .disabled(!model.canEdit || rows.count >= 32)
-        }.deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
+        } header: { CYSectionHeader("nativeCondition.choices") }
+        .deleteDisabled(!model.canEdit).moveDisabled(!model.canEdit)
     }
 }
 
@@ -261,12 +331,20 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
+                CYHeroHeader("nativeCondition.choice")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
+            Section {
                 TextField("nativeCondition.field.weight", text: Binding(get: {
                     model.value(path)?.nativeConditionObject?["weight"]?.nativeConditionText ?? model.value(path)?.nativeConditionObject?["weight"]?.nativeConditionInteger.map(String.init) ?? ""
                 }, set: { model.setField("weight", at: path, to: Int64($0).map { .number(Decimal($0)) } ?? .string($0)) })).keyboardType(.numberPad)
             }.disabled(!model.canEdit)
             NativeConditionAuthorExpressionSection(model: model, path: path.field("effects"), effect: true)
-        }.navigationTitle("nativeCondition.choice").toolbar { EditButton().disabled(!model.canEdit) }
+        }
+        .cyGroupedSurface()
+        .cyHeroScreen()
+        .toolbar { EditButton().disabled(!model.canEdit) }
     }
 }
 
@@ -283,9 +361,21 @@ enum NativeConditionAuthorPresentation {
     var body: some View {
         List {
             if model.isCurrent, let document = authoritative ? model.session?.authoritative : model.document {
-                Section { Text(LocalizedStringKey(authoritative ? "nativeCondition.authoritative" : "nativeCondition.declarationPreview")) }
-                Section { Text(verbatim: (try? document.serialized()) ?? document.original).font(.system(.footnote, design: .monospaced)).textSelection(.enabled) }
-            } else { Text("nativeCondition.unavailable") }
-        }.navigationTitle("nativeCondition.preview")
+                Section {
+                    CYHeroHeader("nativeCondition.preview")
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets())
+                    CYStatusChip(authoritative ? "nativeCondition.authoritative" : "nativeCondition.declarationPreview", tone: authoritative ? .info : .neutral, systemImage: authoritative ? "checkmark.seal" : "doc.text")
+                }
+                Section {
+                    Text(verbatim: (try? document.serialized()) ?? document.original)
+                        .font(.system(.footnote, design: .monospaced))
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } else { CYEmptyState(systemImage: "doc.text", "nativeCondition.unavailable", kind: .projects) }
+        }
+        .cyGroupedSurface()
+        .cyHeroScreen()
     }
 }

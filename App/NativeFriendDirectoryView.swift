@@ -24,7 +24,6 @@ import SwiftUI
     }
 }
 @MainActor struct NativeFriendDirectoryView: View {
-    @Environment(\.themeDomain) private var domain
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -43,8 +42,16 @@ import SwiftUI
     private var filterActive: Bool { flow.filter.groupID != nil || flow.filter.starredOnly }
     var body: some View {
         List {
-            CYHeroHeader(verbatim: localized("friendDirectory.title"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            Section {
+                CYHeroHeader(verbatim: localized("friendDirectory.title")) {
+                    CYCoverArt(seed: "friend-directory", symbol: "person.2.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 120)
+                        .accessibilityHidden(true)
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
+            }
             Section {
                 Picker(localized("friendDirectory.partition"), selection: Binding(get: { flow.filter.section }, set: { value in
                     var filter = flow.filter; filter.section = value; Task { await flow.select(filter) }
@@ -55,15 +62,27 @@ import SwiftUI
                 }
                 .pickerStyle(.segmented).labelsHidden()
                 .accessibilityIdentifier("friendDirectory.partition")
-                .listRowInsets(EdgeInsets(top: Theme.Space.s2, leading: Theme.Space.pageX, bottom: Theme.Space.s2, trailing: Theme.Space.pageX)).listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)).listRowBackground(Color.clear)
             }
-            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friendDirectory.loading") }
-            if flow.phase == .closed { text("friendDirectory.closed") }
+            if flow.busy {
+                Section {
+                    CYSkeleton()
+                        .accessibilityIdentifier("friendDirectory.loading")
+                        .accessibilityLabel(Text("cloud31.loading.friends"))
+                }
+            }
+            if flow.phase == .closed {
+                Section { CYStatusChip(verbatim: localized("friendDirectory.closed"), tone: .neutral, systemImage: "lock") }
+            }
             if let issue = flow.issue {
                 Section {
-                    Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
-                        .accessibilityIdentifier("friendDirectory.issue")
-                    CYPillButton(LocalizedStringKey(flow.paginationFailed ? "friendDirectory.retryPage" : "friendDirectory.refresh"), style: .secondary, tableName: "NativeFriendDirectory") { Task { await flow.retry() } }.disabled(flow.busy)
+                    CYErrorState(
+                        LocalizedStringKey(localized(issue)),
+                        retryTitle: LocalizedStringKey(localized(flow.paginationFailed ? "friendDirectory.retryPage" : "friendDirectory.refresh")),
+                        onRetry: { Task { await flow.retry() } }
+                    )
+                    .disabled(flow.busy)
+                    .accessibilityIdentifier("friendDirectory.issue")
                 }
             }
             Section {
@@ -72,33 +91,34 @@ import SwiftUI
                 }
                 ForEach(flow.items) { item in
                     Button { model.open(item) } label: {
-                        HStack(spacing: Theme.Space.s3) {
-                            E3Avatar(seed: item.displayName.isEmpty ? String(item.peerID) : item.displayName, size: 48).accessibilityHidden(true)
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                                // Remark shown with the original nickname so a renamed friend stays recognisable.
-                                if let remark = item.friendRemark, !remark.isEmpty, !item.nickname.isEmpty, remark != item.nickname {
-                                    Text(verbatim: item.nickname).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        CYListRow(verbatim: friendName(item), meta: remarkLine(item), trailing: .chevron) {
+                            HStack(spacing: CYSpacing.sm) {
+                                CYCoverArt(seed: item.displayName.isEmpty ? String(item.peerID) : item.displayName, symbol: "person.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                                    .frame(width: 40, height: 40)
+                                    .accessibilityHidden(true)
+                                if item.starred == 1 {
+                                    Image(systemName: "star.fill")
+                                        .font(CYTypography.caption)
+                                        .foregroundStyle(CYColor.warningText)
+                                        .accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata"))
                                 }
                             }
-                            if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(CYColor.warningText).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
-                            Spacer()
-                            Image(systemName: "chevron.right").font(Theme.Font.label.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
                         }
                     }.disabled(flow.busy).accessibilityIdentifier("friendDirectory.peer.\(item.peerID)")
                 }
                 if flow.nextCursor != nil {
-                    CYPillButton("friendDirectory.more", style: .tertiary, tableName: "NativeFriendDirectory") { Task { await flow.loadMore() } }
+                    Button { Task { await flow.loadMore() } } label: { text("friendDirectory.more") }
                         .disabled(flow.busy).accessibilityIdentifier("friendDirectory.more")
                 }
             } header: {
-                Text(verbatim: localized("friendDirectory." + flow.filter.section.rawValue) + (flow.counts[flow.filter.section.rawValue].map { " · \($0)" } ?? ""))
+                CYSectionHeader(LocalizedStringKey(sectionHeading))
             }
         }
-        .listStyle(.plain)
-        .font(Theme.Font.body)
+        .listStyle(.insetGrouped)
+        .font(CYTypography.body)
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyAnimation(value: flow.phase)
         .accessibilityIdentifier("friendDirectory.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }
@@ -112,7 +132,7 @@ import SwiftUI
                     })) {
                         text("friendDirectory.allGroups").tag(Int64?.none)
                         ForEach(flow.groups) { group in
-                            Text(verbatim: group.isDefault == 1 ? localized("friendDirectory.defaultGroup") : group.name).tag(Optional(group.id ?? 0))
+                            Text(verbatim: group.isDefault == 1 ? localized("friendDirectory.defaultGroup") : (group.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : group.name)).tag(Optional(group.id ?? 0))
                         }
                     }.accessibilityIdentifier("friendDirectory.group")
                     Toggle(isOn: Binding(get: { flow.filter.starredOnly }, set: { value in
@@ -132,7 +152,21 @@ import SwiftUI
                     removalFactory: removalFactory, publicProfile: publicProfile, progressCard: progressCard, conversation: conversation).id(detail.id)
             }
         }
-        .tint(Theme.Color.accent(in: domain))
+    }
+    /// A stored count stays as written, including 0. A missing count is unknown.
+    private var sectionHeading: String {
+        let name = localized("friendDirectory." + flow.filter.section.rawValue)
+        if let count = flow.counts[flow.filter.section.rawValue] { return "\(name) · \(count)" }
+        return "\(name) · —"
+    }
+    private func friendName(_ item: NativeFriendItem) -> String {
+        let name = item.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "—" : name
+    }
+    /// Remark shown with the original nickname so a renamed friend stays recognisable.
+    private func remarkLine(_ item: NativeFriendItem) -> String? {
+        guard let remark = item.friendRemark, !remark.isEmpty, !item.nickname.isEmpty, remark != item.nickname else { return nil }
+        return item.nickname
     }
     private var detailBinding: Binding<Bool> {
         let captured = model.selection
@@ -213,7 +247,6 @@ import SwiftUI
     }
 }
 @MainActor private struct NativeFriendDirectoryDetailView: View {
-    @Environment(\.themeDomain) private var domain
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
@@ -231,49 +264,60 @@ import SwiftUI
     private var flow: NativeFriendDirectoryDetailFlow { model.flow }
     var body: some View {
         List {
-            CYHeroHeader(verbatim: localized("friendDirectory.detail"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
-                VStack(spacing: Theme.Space.s3) {
-                    Image(systemName: "person.crop.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(.secondary).accessibilityHidden(true)
-                    if let item = flow.detail?.item {
-                        QuestifyHeroValue(value: Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName))
-                            .accessibilityIdentifier("friendDirectory.detailName")
-                    } else if flow.busy {
-                        CYSkeleton()
+                if let item = flow.detail?.item {
+                    let name = item.displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+                    CYImageCard(verbatim: name.isEmpty ? "—" : name, fallback: "friendDirectory.detail", meta: localized("friendDirectory.detail"), style: .hero)
+                        .accessibilityIdentifier("friendDirectory.detailName")
+                        .accessibilityAddTraits(.isHeader)
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                } else if flow.busy {
+                    CYSkeleton()
+                        .accessibilityLabel(Text("cloud31.loading.friends"))
+                } else {
+                    CYCoverArt(seed: "friend-detail", symbol: "person.fill", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 160)
+                        .accessibilityHidden(true)
+                        .listRowBackground(Color.clear)
+                }
+                if let detail = flow.detail {
+                    if detail.conversationID != nil {
+                        CYPillButton("d7.friendProfile.message", style: .primary, systemImage: "message.fill") { Task { await model.openConversation() } }
+                            .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.chat")
                     }
-                    if let detail = flow.detail {
-                        HStack(alignment: .top, spacing: Theme.Space.s2) {
-                            if detail.conversationID != nil {
-                                QuestifyRoundAction(title: "d7.friendProfile.message", systemImage: "message.fill") { Task { await model.openConversation() } }
-                                    .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.chat")
-                            }
-                            if publicProfile != nil {
-                                QuestifyRoundAction(title: "d7.friendProfile.profile", systemImage: "person.text.rectangle") { Task { await model.openProfile() } }
-                                    .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.profile")
-                            }
-                            if let metadataFactory {
-                                QuestifyRoundAction(title: "d7.friendProfile.settings", systemImage: "slider.horizontal.3") { model.openMetadata(using: metadataFactory) }
-                                    .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.metadata")
-                            }
-                        }
+                    if publicProfile != nil {
+                        CYPillButton("d7.friendProfile.profile", style: detail.conversationID == nil ? .primary : .secondary, systemImage: "person.text.rectangle") { Task { await model.openProfile() } }
+                            .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.profile")
+                    }
+                    if let metadataFactory {
+                        let leading = detail.conversationID != nil || publicProfile != nil
+                        CYPillButton("d7.friendProfile.settings", style: leading ? .secondary : .primary, systemImage: "slider.horizontal.3") { model.openMetadata(using: metadataFactory) }
+                            .disabled(!flow.canOpen).accessibilityIdentifier("friendDirectory.metadata")
                     }
                 }
-                .frame(maxWidth: .infinity)
-                .listRowBackground(Color.clear)
             }
             if let issue = flow.issue {
                 Section {
-                    Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
-                        .accessibilityIdentifier("friendDirectory.detailIssue")
-                    CYPillButton("friendDirectory.refresh", style: .secondary, tableName: "NativeFriendDirectory") { Task { await flow.load() } }.disabled(flow.busy)
+                    CYErrorState(
+                        LocalizedStringKey(localized(issue)),
+                        retryTitle: LocalizedStringKey(localized("friendDirectory.refresh")),
+                        onRetry: { Task { await flow.load() } }
+                    )
+                    .disabled(flow.busy)
+                    .accessibilityIdentifier("friendDirectory.detailIssue")
                 }
             }
             if let detail = flow.detail {
                 let item = detail.item
                 Section {
                     LabeledContent {
-                        text(item.starred == 1 ? "friendDirectory.starred" : "friendDirectory.notStarred")
+                        CYStatusChip(
+                            verbatim: localized(item.starred == 1 ? "friendDirectory.starred" : "friendDirectory.notStarred"),
+                            tone: item.starred == 1 ? .warning : .neutral,
+                            systemImage: item.starred == 1 ? "star.fill" : "star"
+                        )
                     } label: { Text("friendMeta.starred", tableName: "NativeFriendMetadata") }
                 }
                 if let progressCard, flow.canOpen {
@@ -290,9 +334,10 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .font(Theme.Font.body)
+        .font(CYTypography.body)
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyAnimation(value: flow.busy)
         .accessibilityIdentifier("friendDirectory.detail")
         .task { await flow.load() }
         .refreshable { await flow.load() }
@@ -310,7 +355,6 @@ import SwiftUI
                 }
             }
         }
-        .tint(Theme.Color.accent(in: domain))
     }
     private var childBinding: Binding<Bool> {
         let captured = model.routeGeneration
