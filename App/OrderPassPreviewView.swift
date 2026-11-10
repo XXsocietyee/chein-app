@@ -56,7 +56,7 @@ struct OrderVerificationPreviewView: View {
             Section {
                 Text("orderLifecycle.verification.role")
                 Text("orderLifecycle.hardOff").font(.footnote).foregroundStyle(.secondary)
-                Button("orderLifecycle.verification.disabled", action: {}).disabled(true)
+                CYPillButton("orderLifecycle.verification.disabled", style: .secondary, action: {}).disabled(true)
                     .accessibilityIdentifier("orderLifecycle.verification.disabled")
             }
         }.appNavigationTitle("orderLifecycle.pass.verification")

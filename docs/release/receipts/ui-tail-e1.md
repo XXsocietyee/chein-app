@@ -48,3 +48,12 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/NearbyMapDiscoveryView.swift | done: CYLoadingStateView status, CYPillButton clear-tag; map/model code untouched |
 | App/OfficialActionViews.swift | done: hero in publish/broadcast/invite editors, CYPillButton review/confirm (one primary each), CYLoadingStateView |
 | App/OfficialEventsBrowserView.swift | done: CYEmptyState empty list; search/filter untouched |
+
+## Batch 6
+| File | Result |
+| --- | --- |
+| App/OrderPassPreviewView.swift | done: CYPillButton disabled verification action; kept ContentUnavailableView (two accessibility identifiers on its label/description would be lost with CYEmptyState) |
+| App/OwnedTemplateConfigurationView.swift | done: CYHeroHeader on both forms (one title each), CYLoadingStateView, CYPillButton story/retry, cyGroupedSurface |
+| App/OwnedTemplateSensorConfigurationView.swift | skipped: a value-only Section fragment inside the owner host, no title/buttons/states of its own, already tokens |
+| App/OwnedTopicCoverAuthorView.swift | done: CYHeroHeader in main + confirm sheets, 13 buttons to CYPillButton (choose/review/confirm primary, rest secondary), CYLoadingStateView |
+| App/OwnedTopicCoverImageView.swift | done: CYLoadingStateView, CYPillButton retry; inline nav title kept (image sheet) |

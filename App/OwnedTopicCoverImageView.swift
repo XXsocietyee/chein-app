@@ -71,13 +71,13 @@ import UIKit
                             .accessibilityLabel(String(localized: LocalizedStringResource("ownedCover.authorImage", defaultValue: "Verified selected cover", locale: locale)))
                             .accessibilityIdentifier("ownedCover.image.content")
                     } else if original.flow.state == .loading || original.flow.state == .idle {
-                        ProgressView().accessibilityIdentifier("ownedCover.image.loading")
+                        CYLoadingStateView(rows: 2).accessibilityIdentifier("ownedCover.image.loading")
                     } else {
                         Text(String(localized: LocalizedStringResource("ownedCover.imageUnavailable", defaultValue: "This exact image is unavailable. No other version or image URL will be substituted.", locale: locale)))
                             .accessibilityIdentifier("ownedCover.image.unavailable")
                         if original.flow.isCurrent {
-                            Button(String(localized: LocalizedStringResource("ownedCover.retryImage", defaultValue: "Read this exact image again", locale: locale))) { Task { await model.load() } }
-                                .buttonStyle(.borderless).accessibilityIdentifier("ownedCover.image.retry")
+                            CYPillButton(verbatim: String(localized: LocalizedStringResource("ownedCover.retryImage", defaultValue: "Read this exact image again", locale: locale)), style: .secondary) { Task { await model.load() } }
+                                .accessibilityIdentifier("ownedCover.image.retry")
                         }
                     }
                     Text(verbatim: original.flow.asset.assetID).textSelection(.enabled).accessibilityIdentifier("ownedCover.image.asset")
