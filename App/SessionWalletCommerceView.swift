@@ -142,7 +142,7 @@ import SwiftUI
         Group {
             if association.walletIsCurrent {
                 ProfilePersonalToolsAssociation.earningsHome(reader: reader)
-            } else { Text("social.changed") }
+            } else { CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "social.changed") }
         }
         .environment(\.bankWithdrawalDestination, nil)
         .environment(\.withdrawalSupportReader, nil)
@@ -162,7 +162,7 @@ import SwiftUI
             if association.complaintIsCurrent {
                 ProfileComplaintPreparationView(reader: reader,
                     isCurrent: { association.complaintIsCurrent })
-            } else { Text("social.changed") }
+            } else { CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "social.changed") }
         }.id(session.sessionRevision)
     }
 }

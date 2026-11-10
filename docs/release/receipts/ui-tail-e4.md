@@ -21,3 +21,12 @@ Order change (coordinator): remaining files processed in reverse list order; no 
 | App/WithdrawalHistoryView.swift | done: hero, CYLoadingStateView, CYEmptyState (empty + error states, retry), CYStatusChip status |
 | App/UsageConsentReadView.swift | done: hero, CYPillButton |
 | App/SettingsPrivacyLocationView.swift | done: hero, CYEmptyState media states, CYPillButton |
+
+## Batch 3 (reverse order)
+| File | Result |
+| --- | --- |
+| App/SessionWalletCommerceView.swift | done: CYEmptyState for the stale-session fallback (host wrappers otherwise have no UI) |
+| App/SessionBankWithdrawalView.swift | skipped: pure wrapper around BankWithdrawalView (restyled in batch 1), no UI of its own |
+| App/QmodAuthorImportView.swift | done: hero, CYPillButton actions (one primary), token colours |
+| App/ProjectNodeImageAuthorView.swift | done: hero, CYPillButton actions (one primary), cyGroupedSurface |
+| App/ProfileReadScreen.swift | done: CYEmptyState sign-in/unavailable states, CYPillButton retry |
