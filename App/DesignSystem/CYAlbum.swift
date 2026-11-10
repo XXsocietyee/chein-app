@@ -143,11 +143,11 @@ extension View {
     /// Metallic highlight that sweeps once across an unlocked collectible on appear and whenever `trigger` changes.
     /// Reduce Motion: a static soft highlight in the top-left corner. `active` false (locked) draws nothing.
     func cyFoilSheen(active: Bool = true, trigger: Int = 0, cornerRadius: CGFloat = CYRadius.lg) -> some View {
-        modifier(CYFoilSheen(active: active, trigger: trigger, cornerRadius: cornerRadius))
+        modifier(CYAlbumFoilSheen(active: active, trigger: trigger, cornerRadius: cornerRadius))
     }
 }
 
-private struct CYFoilSheen: ViewModifier {
+private struct CYAlbumFoilSheen: ViewModifier {
     let active: Bool
     let trigger: Int
     let cornerRadius: CGFloat

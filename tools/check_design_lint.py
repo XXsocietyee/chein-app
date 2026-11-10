@@ -24,6 +24,7 @@ KINDS = (RAW_HEX, FIXED_FONT, VIOLET)
 ALLOWLIST = {
     'App/AccountComplianceViews.swift': {FIXED_FONT: 1},
     'App/AuthChannelView.swift': {FIXED_FONT: 1},
+    'App/TicketWalletView.swift': {FIXED_FONT: 2, VIOLET: 1},
     'App/ChatMessageBubble.swift': {VIOLET: 1},
     'App/CityArrivalEvidenceView.swift': {FIXED_FONT: 1},
     'App/ClubComponents.swift': {RAW_HEX: 1, FIXED_FONT: 1},

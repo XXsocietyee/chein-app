@@ -197,10 +197,10 @@ private struct CYPassTilt: ViewModifier {
 extension View {
     /// A diagonal silver highlight sweeps across the view (0.6 s) every time `trigger` changes.
     /// Reduce Motion: a 0.18 s glow instead of a sweep. Apply before the clip shape so the band stays inside the pass.
-    func cyFoilSheen<T: Equatable>(trigger: T) -> some View { modifier(CYFoilSheen(trigger: trigger)) }
+    func cyFoilSheen<T: Equatable>(trigger: T) -> some View { modifier(CYTicketFoilSheen(trigger: trigger)) }
 }
 
-private struct CYFoilSheen<T: Equatable>: ViewModifier {
+private struct CYTicketFoilSheen<T: Equatable>: ViewModifier {
     let trigger: T
     @State private var phase: CGFloat = -1
     @State private var glow: Double = 0

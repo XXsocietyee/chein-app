@@ -569,11 +569,14 @@ struct CYScanStage<Preview: View>: View {
     var body: some View {
         let animation: Animation = reduceMotion ? CYMotion.reduced : .spring(response: 0.42, dampingFraction: 0.86)
         let key = state.phaseKey
-        return stageContent
-            .animation(animation, value: state.showsCard)
-            .cyHaptic(.impactMedium, trigger: key) { _, new in new == .detected }
-            .cyHaptic(.warning, trigger: key) { _, new in new == .failure }
-            .cyHaptic(.impactLight, trigger: key) { old, new in old == .idle && new == .scanning }
+        let animated = stageContent.animation(animation, value: state.showsCard)
+        return hapticStage(animated, key: key)
+    }
+
+    private func hapticStage<V: View>(_ content: V, key: CYScanPhaseKey) -> some View {
+        let detected = content.cyHaptic(.impactMedium, trigger: key) { (_: CYScanPhaseKey, new: CYScanPhaseKey) in new == .detected }
+        let failed = detected.cyHaptic(.warning, trigger: key) { (_: CYScanPhaseKey, new: CYScanPhaseKey) in new == .failure }
+        return failed.cyHaptic(.impactLight, trigger: key) { (old: CYScanPhaseKey, new: CYScanPhaseKey) in old == .idle && new == .scanning }
     }
 
     @ViewBuilder private var stageContent: some View {
