@@ -27,14 +27,21 @@ extension EnvironmentValues {
 
     var body: some View {
         List {
+            Section {
+                CYHeroHeader("cooperation.finance.title")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+            }
             if reader.session == nil { failure(.authRequired) }
-            else if loadedSession != reader.session { ProgressView("cooperation.loading").padding(.vertical, Theme.Space.s3).accessibilityIdentifier("cooperation.finance.loading") }
+            else if loadedSession != reader.session { loadingRow.accessibilityIdentifier("cooperation.finance.loading") }
             else if let issue { failure(issue) }
             else if let profit { content(profit) }
-            else { ProgressView("cooperation.loading") }
+            else { loadingRow }
         }
         .cyGroupedSurface()
-        .appNavigationTitle("cooperation.finance.title")
+        .cyHeroScreen()
+        .themeDomain(.player)
         .modifier(CoopOperationListPresentation())
         .labeledContentStyle(CoopFinancialRowStyle())
         .cyMiniListScreen()
@@ -44,6 +51,12 @@ extension EnvironmentValues {
         .onChange(of: reader.session) { _, _ in showsSupport = false }
         .sheet(isPresented: $showsSupport) { WithdrawalSupportContactView() }
         .accessibilityIdentifier("cooperation.finance")
+    }
+
+    private var loadingRow: some View {
+        CYSkeleton()
+            .padding(.vertical, CYSpacing.md)
+            .accessibilityLabel(Text("cooperation.loading"))
     }
 
     @ViewBuilder private func content(_ profit: CoopFinanceProfit) -> some View {
@@ -70,20 +83,20 @@ extension EnvironmentValues {
         }
         if profit.isOwner, let walletReader { CoopFinanceFundsStagesSection(reader: walletReader) }
         Section {
-            // Mini puts 提现 beside the hero total as the one solid action.
-            Button { if profit.canWithdraw, loadedSession == reader.session { showsSupport = true } } label: {
-                Text("cooperation.finance.withdraw")
+            // Mini puts 提现 beside the hero total as the one solid action. It only opens support; it does not pay out.
+            CYPillButton("cooperation.finance.withdraw", systemImage: "arrow.up.circle") {
+                if profit.canWithdraw, loadedSession == reader.session { showsSupport = true }
             }
-            .buttonStyle(.cyPrimary).listRowBackground(Color.clear).disabled(!profit.canWithdraw)
+            .listRowBackground(Color.clear)
+            .disabled(!profit.canWithdraw)
             .accessibilityLabel(Text(LocalizedStringKey(withdrawAccessibilityKey(profit.withdrawState))))
             .accessibilityIdentifier("cooperation.finance.withdraw")
-            if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-            else if profit.withdrawState == .zero { Text("cooperation.finance.withdraw.zero").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
+            else if profit.withdrawState == .zero { Text("cooperation.finance.withdraw.zero").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true) }
         }
         if profit.topics.isEmpty {
             Section {
-                ContentUnavailableView("cooperation.finance.empty", systemImage: "tray")
-                    .accessibilityIdentifier("cooperation.finance.empty")
+                CYEmptyState(systemImage: "tray", "cooperation.finance.empty", messageIdentifier: "cooperation.finance.empty")
             }
         } else {
             Section {
@@ -93,49 +106,45 @@ extension EnvironmentValues {
                             .accessibilityIdentifier("coopflow.settlement.finance.\(id)")
                     } else { row(topic).accessibilityIdentifier("cooperation.finance.topic.unavailable.\(index)") }
                 }
-            } header: { Text("cooperation.finance.topics") } footer: { Text("cooperation.finance.explainer") }
+            } header: { CYSectionHeader("cooperation.finance.topics") } footer: { Text("cooperation.finance.explainer") }
         }
         Section { CoopFlowSafetyNotice() }
     }
 
     private func row(_ topic: CoopFinanceProfit.Topic) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                    Text(verbatim: topicName(topic)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                    topicAmount(topic)
-                }
-            } else {
-                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
-                    Text(verbatim: topicName(topic)).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                    Spacer(minLength: Theme.Space.s2)
-                    topicAmount(topic)
-                }
+        let settled = topic.status != .unsettled && topic.status != .settlementUnknown
+        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYListRow(verbatim: topicName(topic), trailing: .none) {
+                CYCoverArt(seed: topicName(topic), symbol: "yensign.circle", showsDebugLabel: false)
+                    .frame(width: 40, height: 40)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                    .accessibilityHidden(true)
             }
             if dynamicTypeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: Theme.Space.s2) {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    topicAmount(topic)
                     topicStatus(topic)
-                    CoopFinanceBadge(settled: topic.status != .unsettled && topic.status != .settlementUnknown, status: topic.status)
+                    CoopFinanceBadge(settled: settled, status: topic.status)
                 }
-            } else { ViewThatFits(in: .horizontal) {
-                HStack(alignment: .firstTextBaseline, spacing: Theme.Space.s3) {
+            } else {
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.md) {
                     topicStatus(topic)
-                    Spacer(minLength: Theme.Space.s2)
-                    CoopFinanceBadge(settled: topic.status != .unsettled && topic.status != .settlementUnknown, status: topic.status)
+                    Spacer(minLength: CYSpacing.sm)
+                    VStack(alignment: .trailing, spacing: CYSpacing.sm) {
+                        topicAmount(topic)
+                        CoopFinanceBadge(settled: settled, status: topic.status)
+                    }
                 }
-                VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                    topicStatus(topic)
-                    CoopFinanceBadge(settled: topic.status != .unsettled && topic.status != .settlementUnknown, status: topic.status)
-                }
-            }}
-        }.padding(.vertical, Theme.Space.s2)
+            }
+        }
+        .padding(.vertical, CYSpacing.sm)
     }
     private func topicAmount(_ topic: CoopFinanceProfit.Topic) -> some View {
         Text(verbatim: topic.status != .unsettled && topic.status != .settlementUnknown ? topic.income.map { "¥" + CoopFinanceProfit.plainText($0) } ?? "—" : "—")
             .font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
     }
     private func topicStatus(_ topic: CoopFinanceProfit.Topic) -> some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s1) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(LocalizedStringKey("cooperation.finance.status." + topic.status.rawValue)).font(CYTypography.label).foregroundStyle(CYColor.textSecondary)
             Text(LocalizedStringKey("cooperation.finance.merchant." + topic.merchantStatus.rawValue))
                 .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
@@ -144,14 +153,28 @@ extension EnvironmentValues {
 
     @ViewBuilder private func failure(_ issue: CoopFinanceProfit.ReadIssue) -> some View {
         let key: String = issue == .authRequired ? "auth" : issue == .accessDenied ? "denied" : "failed"
+        // Sign-in is owned by the account entry; this page never presents credentials itself.
+        let canRetry = issue != .authRequired || reader.session != nil
         Section {
-            VStack(alignment: .leading, spacing: 6) {
-                Label(LocalizedStringKey("cooperation.finance.issue." + key + ".title"), systemImage: issue == .accessDenied ? "lock" : "exclamationmark.circle").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Text(LocalizedStringKey("cooperation.finance.issue." + key + ".detail")).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-            }.padding(.vertical, Theme.Space.s2).accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.finance.issue.\(key)")
-            // Sign-in is owned by the account entry; this page never presents credentials itself.
-            if issue != .authRequired || reader.session != nil {
-                Button("cooperation.refresh") { refresh = UUID() }.accessibilityIdentifier("cooperation.finance.retry")
+            if canRetry {
+                CYEmptyState(
+                    systemImage: issue == .accessDenied ? "lock" : "exclamationmark.triangle",
+                    LocalizedStringKey("cooperation.finance.issue." + key + ".title"),
+                    detail: LocalizedStringKey("cooperation.finance.issue." + key + ".detail"),
+                    messageIdentifier: "cooperation.finance.issue.\(key)",
+                    actionTitle: "cooperation.refresh",
+                    actionIdentifier: "cooperation.finance.retry",
+                    actionStyle: .primary,
+                    kind: .failure
+                ) { refresh = UUID() }
+            } else {
+                CYEmptyState(
+                    systemImage: "exclamationmark.triangle",
+                    LocalizedStringKey("cooperation.finance.issue." + key + ".title"),
+                    detail: LocalizedStringKey("cooperation.finance.issue." + key + ".detail"),
+                    messageIdentifier: "cooperation.finance.issue.\(key)",
+                    kind: .failure
+                )
             }
         }
     }
@@ -188,10 +211,11 @@ struct CoopFinanceBadge: View {
     let status: CoopFinanceProfit.TopicStatus
     var body: some View {
         let badge: CoopFinanceProfit.Badge = settled ? .success : status.badge
-        Text(LocalizedStringKey(settled ? "cooperation.finance.settled" : "cooperation.finance.status." + status.rawValue))
-            .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 3)
-            .foregroundStyle(badge == .success ? CYColor.successText : badge == .warning ? CYColor.warningText : CYColor.textSecondary)
-            .background(Capsule().fill(badge == .success ? CYColor.successSoft : badge == .warning ? CYColor.warningSoft : CYColor.bgSurfaceSubtle))
+        let key = settled ? "cooperation.finance.settled" : "cooperation.finance.status." + status.rawValue
+        let tone: CYStatusTone = badge == .success ? .success : badge == .warning ? .warning : .neutral
+        let symbol = badge == .success ? "checkmark.circle" : badge == .warning ? "clock" : "minus.circle"
+        CYStatusChip(LocalizedStringKey(key), tone: tone, systemImage: symbol)
+            .accessibilityLabel(Text(LocalizedStringKey(key)))
     }
 }
 
@@ -208,15 +232,27 @@ struct CoopFinanceBadge: View {
             if let stages, loadedScope == reader.scope {
                 if stages.pendingSettlement.value > 0 { LabeledContent("cooperation.finance.stages.pending", value: amount(stages.pendingSettlement, stages.currency)) }
                 ForEach(Array(stages.complaintPeriod.enumerated()), id: \.offset) { _, item in
-                    LabeledContent { Text(verbatim: amount(item.amount, stages.currency)) } label: { Text("wallet.complaintPeriod"); Text(verbatim: item.availableDate) }
+                    LabeledContent { Text(verbatim: amount(item.amount, stages.currency)).monospacedDigit() } label: { Text("wallet.complaintPeriod"); Text(verbatim: item.availableDate) }
                 }
                 if stages.disputed.value > 0 { LabeledContent("cooperation.finance.stages.disputed", value: amount(stages.disputed, stages.currency)) }
-                if !stages.amountsKnown { Text("cooperation.finance.stages.unknown").font(.footnote).foregroundStyle(.secondary) }
+                if !stages.amountsKnown {
+                    Text("cooperation.finance.stages.unknown")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             } else if failed {
                 Text("cooperation.finance.stages.failed")
-                Button("cooperation.refresh") { Task { await load() } }.accessibilityIdentifier("cooperation.finance.stages.retry")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                CYPillButton("cooperation.refresh", style: .secondary, fullWidth: false) { Task { await load() } }
+                    .accessibilityLabel(Text("cooperation.refresh"))
+                    .accessibilityIdentifier("cooperation.finance.stages.retry")
             } else if reader.scope != nil {
-                ProgressView("cooperation.loading").font(.subheadline).padding(.vertical, Theme.Space.s2)
+                CYSkeleton()
+                    .padding(.vertical, CYSpacing.sm)
+                    .accessibilityLabel(Text("cooperation.loading"))
             }
         }
         .task(id: reader.scope) { await load() }
