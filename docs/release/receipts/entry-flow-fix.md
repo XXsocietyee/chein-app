@@ -36,3 +36,12 @@ Read-only fixes, not re-run.
 | RegionalEntryFlowTests | stale | launch waits on `welcome.player`; settings opened via the helper |
 
 Not changed (same Menu assumption, outside this task): SettingsSignedOutProfileRowFlowTests, NativeSettingsReuseFlowTests, RetainedImageUITests.
+
+## Follow-up 2 (language row, code field)
+
+| test | verdict | change |
+|---|---|---|
+| testChinesePreferenceSurvivesRelaunchAndSwitchesBack | stale | Settings language is a menu Picker row; new `selectLanguage(in:option:)` opens the row then picks the option |
+| testChinaDefaultsChineseAndLanguagePersistsWithoutChangingMarket | stale | same helper |
+| testUSCanChooseChineseWithoutEnablingDomesticPhone | stale | same helper |
+| testUnconfiguredBuild...KeepsPhoneDisabledAfterInput | stale | `codeSection` is only rendered after a code is sent, so the code field never exists unconfigured; typing and the empty-value check are now conditional on existence |

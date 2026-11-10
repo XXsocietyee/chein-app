@@ -193,3 +193,17 @@ func revealWelcomeSettings(in app: XCUIApplication, timeout: TimeInterval = 10) 
     _ = item.waitForExistence(timeout: 5)
     return item
 }
+
+/// Settings shows language as a menu-style Picker row ("Language" / "语言"), not a flat list of option buttons:
+/// open the row, then pick the option (`English` / `简体中文`) from the menu that appears.
+@discardableResult
+func selectLanguage(in app: XCUIApplication, option: String, timeout: TimeInterval = 5) -> Bool {
+    let row = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Language' OR label CONTAINS '语言'")).firstMatch
+    guard row.waitForExistence(timeout: timeout) else { return false }
+    if !row.isHittable { app.swipeUp() }
+    row.tap()
+    let choice = app.buttons[option]
+    guard choice.waitForExistence(timeout: timeout) else { return false }
+    choice.tap()
+    return true
+}

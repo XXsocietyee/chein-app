@@ -76,8 +76,8 @@ final class EntryFlowTests: XCTestCase {
         phoneEntry.tap()
         let phone=app.textFields["auth.channels.phone"]
         XCTAssertTrue(phone.waitForExistence(timeout:5));phone.tap();phone.typeText("10000000000")
-        // The code field is a near-transparent overlay behind the digit boxes (and disabled while the channel is
-        // locked), so match it by identifier on any element type and only type when it is actually enabled.
+        // The code section (a near-transparent field behind the digit boxes) only appears once a code was sent, which
+        // an unconfigured build never allows; match by identifier on any element type and type only if it is usable.
         let code=app.descendants(matching:.any)["auth.channels.code"]
         if code.waitForExistence(timeout:2),code.isEnabled,code.isHittable { code.tap();code.typeText("123456") }
         XCTAssertFalse(app.buttons["auth.channels.sendCode"].isEnabled)
@@ -87,7 +87,7 @@ final class EntryFlowTests: XCTestCase {
         phoneEntry.tap()
         XCTAssertTrue(phone.waitForExistence(timeout:5))
         XCTAssertTrue((phone.value as? String) == "" || (phone.value as? String) == phone.placeholderValue)
-        XCTAssertTrue(((code.value as? String) ?? "") == "" || (code.value as? String) == code.placeholderValue)
+        if code.exists { XCTAssertTrue(((code.value as? String) ?? "") == "" || (code.value as? String) == code.placeholderValue) }
         XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
         closeTopSheet()
         closeTopSheet()
@@ -96,8 +96,7 @@ final class EntryFlowTests: XCTestCase {
 
     func testChinesePreferenceSurvivesRelaunchAndSwitchesBack() {
         openSettings(title:"Settings")
-        let chinese=app.buttons["简体中文"]
-        XCTAssertTrue(chinese.waitForExistence(timeout:5),app.debugDescription);chinese.tap()
+        XCTAssertTrue(selectLanguage(in:app,option:"简体中文"),app.debugDescription)
         let done=app.buttons["完成"]
         XCTAssertTrue(done.waitForExistence(timeout:5));done.tap()
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("创建账号"))
@@ -108,8 +107,7 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:10))
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("创建账号"))
         openSettings(title:"设置")
-        let english=app.buttons["English"]
-        XCTAssertTrue(english.waitForExistence(timeout:5),app.debugDescription);english.tap()
+        XCTAssertTrue(selectLanguage(in:app,option:"English"),app.debugDescription)
         XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout:5));app.buttons["Done"].tap()
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("Create account"))
     }
