@@ -2,8 +2,6 @@ import SwiftUI
 
 @MainActor struct NativeChannelMessageBubbleView: View {
     @Environment(\.locale) private var locale
-    @Environment(\.themeDomain) private var domain
-    @Environment(\.dynamicTypeSize) private var typeSize
     let snapshot: NativeChannelMessageSnapshot
     let isCurrent: () -> Bool
     let locateOriginal: (NativeChannelMessageID) -> Void
@@ -17,106 +15,210 @@ import SwiftUI
     var checkinCoordinator: ((Int) -> NativeChannelCheckinFlow?)? = nil
     var openExistingType: ((NativeChannelMessageSnapshot) -> Void)?
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s1_5) {
-            if !isCurrent() { Text("message.unavailable", tableName: "NativeChannelMessage") }
-            else if snapshot.status == 1 { Text("message.recalled", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
-            else if snapshot.status != 0 { Text("message.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            if !isCurrent() { unavailable("message.unavailable") }
+            else if snapshot.status == 1 { unavailable("message.recalled", symbol: "arrow.uturn.backward", tone: .warning) }
+            else if snapshot.status != 0 { unavailable("message.unavailable") }
             else {
-                if let quote = snapshot.reply {
-                    Button { if isCurrent(), quote.state == "VISIBLE" { locateOriginal(quote.id) } } label: {
-                        Text(quote.summary ?? placeholder(quote.state))
-                            .font(Theme.Font.label)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .padding(.leading, Theme.Space.s3)
-                            .frame(minHeight: 44, alignment: .leading)
-                            .overlay(alignment: .leading) { Rectangle().fill(Theme.Color.borderSubtle(in: domain)).frame(width: 2).accessibilityHidden(true) }
-                    }.disabled(quote.state != "VISIBLE")
-                    .accessibilityIdentifier("ncm47.quote")
-                }
+                if let quote = snapshot.reply { quoteRow(quote) }
                 switch snapshot.kind {
                 case .image:
-                    MessagingMessageContent(message: snapshot.message)
+                    imageBody
                     if let attachmentPreview {
-                        NavigationLink { NativeChannelAttachmentPreviewEntry(flow:attachmentPreview,current:isCurrent) } label: { Text("attachment.open", tableName: "NativeChannelMessage") }
-                    } else { Text("attachment.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                        openLink("attachment.open", identifier: nil) {
+                            NativeChannelAttachmentPreviewEntry(flow: attachmentPreview, current: isCurrent)
+                        }
+                    } else { note("attachment.unavailable") }
                 case .text, .poll:
                     MessagingMessageContent(message: snapshot.message)
                 case .card:
                     if let day = NativeChannelCheckinReminder.day(in: snapshot) {
-                        Label { Text("checkin.day \(day)", tableName: "NativeChannelMessage") } icon: { Image(systemName: "calendar.badge.checkmark") }
+                        Label { Text("checkin.day \(day)", tableName: "NativeChannelMessage") } icon: { Image(systemName: "calendar.badge.checkmark").accessibilityHidden(true) }
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                         if let checkinCoordinator {
-                            NavigationLink {
+                            openLink("checkin.open") {
                                 NativeChannelCheckinLaunchView(makeFlow: { checkinCoordinator(snapshot.message.conversationID) },
                                     current: isCurrent, reminderDate: day)
-                            } label: { Text("checkin.open", tableName: "NativeChannelMessage") }
-                        } else { Text("checkin.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                            }
+                        } else { note("checkin.unavailable") }
                     } else { MessagingMessageContent(message: snapshot.message) }
                 case .joined, .left, .renamed, .pinned, .pollResult:
-                    Text(snapshot.content ?? String(localized: LocalizedStringResource("message.system", table: "NativeChannelMessage", locale: locale)))
-                        .font(Theme.Font.label).foregroundStyle(.secondary).frame(maxWidth: .infinity)
+                    systemLine
                 case .location:
-                    if let place=IMStaticLocation.read(snapshot.message) { IMStaticLocationCardView(place:place) }
-                    else { Text("location.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    if let place = IMStaticLocation.read(snapshot.message) { IMStaticLocationCardView(place: place) }
+                    else { note("location.unavailable") }
                 case .voice:
-                    if let voiceOwner, IMVoiceReference.read(snapshot.message) != nil {
-                        if let ref = IMVoiceReference.read(snapshot.message) {
-                            NavigationLink { IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent) } label: { IMVoiceCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
-                        }
-                    } else { Text("voice.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    if let voiceOwner, let ref = IMVoiceReference.read(snapshot.message) {
+                        openCard(label: { IMVoiceCardLabel(reference: ref) }, destination: {
+                            IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent)
+                        })
+                    } else { note("voice.unavailable") }
                 case .file:
-                    if let fileOwner, IMFileReference.read(snapshot.message) != nil {
-                        if let ref = IMFileReference.read(snapshot.message) {
-                            NavigationLink { IMFilePreviewView(message: snapshot.message, owner: fileOwner, current: isCurrent) } label: { IMFileCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
-                        }
-                    } else { Text("file.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    if let fileOwner, let ref = IMFileReference.read(snapshot.message) {
+                        openCard(label: { IMFileCardLabel(reference: ref) }, destination: {
+                            IMFilePreviewView(message: snapshot.message, owner: fileOwner, current: isCurrent)
+                        })
+                    } else { note("file.unavailable") }
                 case .video:
-                    if let videoOwner, IMVideoReference.read(snapshot.message) != nil {
-                        if let ref = IMVideoReference.read(snapshot.message) {
-                            NavigationLink { IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent) } label: { IMVideoCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
-                        }
-                    } else { Text("video.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    if let videoOwner, let ref = IMVideoReference.read(snapshot.message) {
+                        openCard(label: { IMVideoCardLabel(reference: ref) }, destination: {
+                            IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent)
+                        })
+                    } else { note("video.unavailable") }
                 case .chain:
-                    Label { Text("type.14", tableName: "NativeChannelMessage") } icon: { Image(systemName: "list.number") }
-                    if let content = snapshot.content { Text(verbatim: content).lineLimit(typeSize.isAccessibilitySize ? nil : 3) }
+                    kindLine("type.14", symbol: "list.number")
+                    verbatimBody
                     if let reference = NativeChannelChainReference(message: snapshot.message), let chainCoordinator {
-                        NavigationLink {
+                        openLink("chain.open", identifier: "ncm47.originalChain") {
                             NativeChannelChainLaunchView(makeFlow: { chainCoordinator(snapshot.message.conversationID, reference) }, current: isCurrent)
-                        } label: { Text("chain.open", tableName: "NativeChannelMessage") }.accessibilityIdentifier("ncm47.originalChain")
+                        }
                     } else if let openExistingType {
-                        Button { if isCurrent() { openExistingType(snapshot) } } label: { Text("type.open", tableName: "NativeChannelMessage") }
-                    } else { Text("type.sourceRequired", tableName: "NativeChannelMessage").font(Theme.Font.label).foregroundStyle(.secondary) }
+                        openButton { if isCurrent() { openExistingType(snapshot) } }
+                    } else { note("type.sourceRequired") }
                 case .redPacket:
-                    Label { Text("type.15", tableName: "NativeChannelMessage") } icon: { Image(systemName: icon) }
-                    if let content = snapshot.content { Text(verbatim: content).lineLimit(typeSize.isAccessibilitySize ? nil : 3) }
+                    // Existing open path only. This restyle does not enable a payout or a new virtual-goods action.
+                    kindLine("type.15", symbol: icon)
+                    verbatimBody
                     if let openExistingType {
-                        Button { if isCurrent() { openExistingType(snapshot) } } label: { Text("type.open", tableName: "NativeChannelMessage") }
-                    } else { Text("type.sourceRequired", tableName: "NativeChannelMessage").font(Theme.Font.label).foregroundStyle(.secondary) }
-                case .unknown: Text("type.unknown", tableName: "NativeChannelMessage").foregroundStyle(.secondary)
+                        openButton { if isCurrent() { openExistingType(snapshot) } }
+                    } else { note("type.sourceRequired") }
+                case .unknown: note("type.unknown")
                 }
                 if let reference = snapshot.message.pollReference,
                    let owner = pollCoordinator?(snapshot.message.conversationID, reference),
                    owner.isCurrent, owner.reference == reference, owner.canRead {
-                    NavigationLink {
+                    openLink("poll.results", identifier: "ncm47.originalPollResult") {
                         GroupPollOriginalResultView(owner: owner, reference: reference, current: isCurrent)
-                    } label: { Text("poll.results", tableName: "NativeChannelMessage") }.accessibilityIdentifier("ncm47.originalPollResult")
+                    }
                 }
-                if snapshot.editedAt != nil { CYStatusChip(verbatim: String(localized: LocalizedStringResource("message.edited", table: "NativeChannelMessage", locale: locale)), systemImage: "pencil") }
+                if snapshot.editedAt != nil {
+                    Label { Text("message.edited", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pencil").accessibilityHidden(true) }
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
-        .font(Theme.Font.body)
-        .fixedSize(horizontal: false, vertical: true)
-        .privacySensitive().accessibilityIdentifier("ncm47.message.\(snapshot.id.rawValue)")
+        .font(CYTypography.body)
+        .privacySensitive()
+        .accessibilityIdentifier("ncm47.message.\(snapshot.id.rawValue)")
     }
+
+    private var imageBody: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            // Generated art only. No remote fetch: an image request can disclose the reader.
+            Color.clear
+                .aspectRatio(16.0 / 10.0, contentMode: .fit)
+                .overlay { CYCoverArt(seed: snapshot.id.rawValue, symbol: "photo") }
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            MessagingMessageContent(message: snapshot.message)
+        }
+    }
+
+    private var systemLine: some View {
+        let raw = snapshot.content ?? copy("message.system")
+        let shown = raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw
+        return Text(verbatim: shown)
+            .font(CYTypography.meta)
+            .foregroundStyle(CYColor.textSecondary)
+            .multilineTextAlignment(.center)
+            .frame(maxWidth: .infinity, alignment: .center)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder private var verbatimBody: some View {
+        if let content = snapshot.content {
+            let shown = content.trimmingCharacters(in: .whitespacesAndNewlines)
+            Text(verbatim: shown.isEmpty ? "—" : shown)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    private func kindLine(_ key: String, symbol: String) -> some View {
+        Label { Text(LocalizedStringKey(key), tableName: "NativeChannelMessage") } icon: { Image(systemName: symbol).accessibilityHidden(true) }
+            .font(CYTypography.cardTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "NativeChannelMessage"))
+    }
+
+    private func unavailable(_ key: String, symbol: String = "eye.slash", tone: CYStatusTone = .neutral) -> some View {
+        CYStatusChip(verbatim: copy(key), tone: tone, systemImage: symbol)
+            .accessibilityLabel(Text(verbatim: copy(key)))
+    }
+
+    private func note(_ key: String) -> some View {
+        Text(LocalizedStringKey(key), tableName: "NativeChannelMessage")
+            .font(CYTypography.meta)
+            .foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    private func quoteRow(_ quote: NativeChannelMessageQuote) -> some View {
+        let shown = quote.summary ?? placeholder(quote.state)
+        return Button { if isCurrent(), quote.state == "VISIBLE" { locateOriginal(quote.id) } } label: {
+            Text(verbatim: shown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : shown)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.leading, CYSpacing.md)
+                .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                .overlay(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 1, style: .continuous)
+                        .fill(CYColor.borderStrong)
+                        .frame(width: 2)
+                        .accessibilityHidden(true)
+                }
+        }
+        .buttonStyle(.plain)
+        .disabled(quote.state != "VISIBLE")
+        .accessibilityLabel(Text(verbatim: shown.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : shown))
+        .accessibilityIdentifier("ncm47.quote")
+    }
+
+    private func openButton(_ action: @escaping () -> Void) -> some View {
+        CYPillButton("type.open", style: .secondary, fullWidth: false, tableName: "NativeChannelMessage", action: action)
+            .accessibilityLabel(Text("type.open", tableName: "NativeChannelMessage"))
+    }
+
+    private func openLink<Destination: View>(_ key: String, identifier: String? = nil, @ViewBuilder destination: () -> Destination) -> some View {
+        NavigationLink(destination: destination) {
+            Text(LocalizedStringKey(key), tableName: "NativeChannelMessage")
+        }
+        .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+        .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "NativeChannelMessage"))
+        .modifier(NativeChannelBubbleIdentifier(identifier: identifier))
+    }
+
+    /// Rich cards keep their own layout. The destination stays lazy. Press feedback respects Reduce Motion.
+    private func openCard<Label: View, Destination: View>(@ViewBuilder label: () -> Label, @ViewBuilder destination: () -> Destination) -> some View {
+        NavigationLink(destination: destination, label: label)
+            .buttonStyle(.cyPressable)
+    }
+
     private var icon: String {
         switch snapshot.kind { case .voice: return "waveform"; case .video: return "video"; case .file: return "doc"; case .location: return "mappin"; case .chain: return "list.number"; case .redPacket: return "gift"; default: return "bubble.left" }
     }
+    private func copy(_ key: String) -> String {
+        String(localized: LocalizedStringResource(String.LocalizationValue(key), table: "NativeChannelMessage", locale: locale))
+    }
     private func placeholder(_ state: String) -> String {
         switch state {
-        case "BLOCKED": return String(localized: LocalizedStringResource("quote.blocked", table: "NativeChannelMessage", locale: locale))
-        case "RECALLED": return String(localized: LocalizedStringResource("message.recalled", table: "NativeChannelMessage", locale: locale))
-        default: return String(localized: LocalizedStringResource("message.unavailable", table: "NativeChannelMessage", locale: locale))
+        case "BLOCKED": return copy("quote.blocked")
+        case "RECALLED": return copy("message.recalled")
+        default: return copy("message.unavailable")
         }
+    }
+}
+
+private struct NativeChannelBubbleIdentifier: ViewModifier {
+    let identifier: String?
+    func body(content: Content) -> some View {
+        if let identifier, !identifier.isEmpty { content.accessibilityIdentifier(identifier) }
+        else { content }
     }
 }

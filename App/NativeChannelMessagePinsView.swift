@@ -1,7 +1,6 @@
 import SwiftUI
 
 @MainActor struct NativeChannelMessagePinsView: View {
-    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.locale) private var locale
     private var copy: NativeChannelPinLocalization { .init(locale: locale) }
     @Bindable var coordinator: NativeChannelMessageCoordinator
@@ -16,20 +15,26 @@ import SwiftUI
     var locateOriginal: ((NativeChannelMessageID) -> Void)?
     var body: some View {
         List {
-            CYHeroHeader("pins.title", tableName: "NativeChannelMessage")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            if coordinator.pins.loading { CYSkeleton().frame(maxWidth: .infinity) }
+            Section {
+                CYHeroHeader("pins.title", tableName: "NativeChannelMessage")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            if coordinator.pins.loading { stateRow { loading } }
             else if !coordinator.pins.isCurrent {
-                ContentUnavailableView { Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") } }
+                stateRow { CYEmptyState(systemImage: "lock", "access.closed", tableName: "NativeChannelMessage") }
             }
             else {
                 if coordinator.pins.rows.isEmpty && !coordinator.pins.failed {
-                    ContentUnavailableView { Label { Text("pins.empty", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pin") } }
+                    stateRow { CYEmptyState(systemImage: "pin", "pins.empty", tableName: "NativeChannelMessage") }
                 }
                 ForEach(coordinator.pins.rows) { pin in
                     Button { if coordinator.pins.isCurrent { locateOriginal?(pin.message_id) } } label: {
-                        Label { Text(verbatim: pin.summary).lineLimit(typeSize.isAccessibilitySize ? nil : 3).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "pin.fill").foregroundStyle(.secondary) }
-                    }.disabled(locateOriginal == nil)
+                        CYListRow(verbatim: pin.summary, trailing: .none) { CYRowIcon(systemImage: "pin.fill") }
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(locateOriginal == nil)
+                    .accessibilityLabel(Text(verbatim: shown(pin.summary)))
                     .accessibilityIdentifier("ncm47.pin.\(pin.id.rawValue)")
                     .swipeActions {
                         if coordinator.client.allows(.mutate(.unpin)) {
@@ -40,12 +45,23 @@ import SwiftUI
                     reorder(offsets, to: destination)
                 }.moveDisabled(!coordinator.canStart || !coordinator.client.allows(.mutate(.sort)) || !coordinator.client.allows(.receipt))
             }
-            if selecting { ProgressView(copy.text("p23.selecting")) }
+            if selecting {
+                ProgressView(copy.text("p23.selecting"))
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityLabel(Text(verbatim: copy.text("p23.selecting")))
+            }
             if coordinator.pins.failed {
                 Section {
-                    Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
+                    if coordinator.pins.rows.isEmpty {
+                        CYEmptyState(systemImage: "exclamationmark.triangle", "load.failed", tableName: "NativeChannelMessage", kind: .failure)
+                            .listRowBackground(Color.clear)
+                    } else {
+                        CYNoteBanner(text: Text("load.failed", tableName: "NativeChannelMessage"), symbol: "exclamationmark.triangle", tone: .danger)
+                    }
                     CYPillButton(verbatim: copy.text("p23.reload"), style: .secondary) { reload() }
                         .disabled(!coordinator.pins.isCurrent || phase != .active)
+                        .accessibilityLabel(Text(verbatim: copy.text("p23.reload")))
+                        .listRowBackground(Color.clear)
                 }
             }
             NativeChannelMessageRecoveryView(coordinator: coordinator)
@@ -89,6 +105,19 @@ import SwiftUI
         }
         .onDisappear { retireRead() }
         .privacySensitive()
+    }
+    private var loading: some View {
+        CYSkeleton()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("cy.state.loading"))
+    }
+    private func stateRow<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        content().listRowBackground(Color.clear).listRowSeparator(.hidden)
+    }
+    /// Blank pin text is unknown. A real summary, including "0", stays.
+    private func shown(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
     }
     private func reload() {
         guard phase == .active, coordinator.pins.isCurrent else { retireRead(); return }
