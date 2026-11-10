@@ -42,3 +42,6 @@ QR check: with the app's `verificationCodeFactory` (injected in `QuestifyApp`) a
 - Watermark: `E1CoverArt` gets `symbolPoint`; both pass cards move the generated-art ticket glyph from top-right (0.8, 0.24) to lower right, clear of the chip and the title.
 - `E1TicketCard` (ticket details / wallet detail, `e1-ticket-holder-expired`, `ticket-detail`) drops the diagonal corner ribbon for the same chip at the top-right of the band (below the band at accessibility sizes). Identifier `ticketWallet.detail.ribbon` became `ticketWallet.detail.status` (no references in App or Tests). No `CYStatusRibbon` call sites remain; the type is left in the kit.
 Parse, scaffold and design lint pass; not built or run.
+
+## Follow-up 3: Ticket details hero (E1TicketCard)
+The chip block from follow-up 2 never landed on the hero (the edit anchored on a gradient line that is not there), so the status showed only further down. Now: status chip (`CYPassStatusChip`) top-right of the hero band, same as My pass; the generated-art glyph is dropped on this hero (`E1CoverArt.symbolPoint` is optional, `nil` hides it in both the real neutral tile and the DEBUG art) because a three-line title block always reaches the middle of the band. Title keeps the bottom scrim; at accessibility sizes the chip and title sit below the band as before. Parse, scaffold, lint pass; not built or run.

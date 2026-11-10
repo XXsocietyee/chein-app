@@ -52,9 +52,14 @@ struct E1TicketCard: View {
     private var top: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false, symbolPoint: CGPoint(x: 0.84, y: 0.6))
+                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false, symbolPoint: nil)
                 LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
                 if !typeSize.isAccessibilitySize {
+                    // Status chip top-right, exactly like the My pass card; the title keeps the bottom scrim.
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) { Spacer(minLength: 0); statusChip }
+                        Spacer(minLength: 0)
+                    }.padding(CYSpacing.lg)
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                         .font(CYTypography.pageTitle).foregroundStyle(.white)
                         .lineLimit(3).fixedSize(horizontal: false, vertical: true)
