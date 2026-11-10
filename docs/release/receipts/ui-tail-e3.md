@@ -71,3 +71,8 @@ Skipped: none.
 ## Batch 16 (reverse; last of the list)
 Done: ClubMembersView, ClubMemberReportView, ClubLeadProgressView, ClubLeadPrimaryActionView, ClubInvitationFeedbackView, ClubHomeView.
 Skipped: none.
+
+## Final state
+Files: 88 in the list. Restyled: 79. Cloud-owned, not touched here: ClubEventCalendarView, ClubGovernanceFeedPostView, ClubGovernanceViews, ClubManagementView, ClubOpsCustomerViews, CooperationBrowserView. Host/adapter with no presentation of their own, skipped: RoamNearbyTeamsView, SessionClubPublicActivityListView, SessionTeamViews. No merchant-only files were in the list.
+New strings: none (every string kept an existing key or runtime copy); docs/release/ui-strings-e3t.json is `[]`.
+Cloud: Build - iOS green on batch 14 and 15 heads (cbfcaa4.. through the batch 15 commit). After merging origin/ui/main (db7f300e6) Build - iOS has 1 error: App/CityActionBudgetView.swift:10 "Failed to produce diagnostic for expression", a file from the e2 lane (UI-e2 tail batch 1) that I did not touch. origin/ui/main shows the same 1 error. Test - iOS "action_required" is always the 2 GLTFKit2 vendor errors.
