@@ -75,3 +75,12 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/RegistrationSheetView.swift | done (partial by design): CYPillButton for 11 secondary actions, 8 CYLoadingStateView; checkout bar (cyPrimary) and alerts/destructive left as-is |
 | App/SearchMapDetailViews.swift | done: CYLoadingStateView |
 | App/SearchMapExplorerView.swift | done: CYPillButton (search area primary), CYEmptyState, CYLoadingStateView; map/selection logic untouched |
+
+## Batch 9
+| File | Result |
+| --- | --- |
+| App/SearchRoutePreviewView.swift | done: CYLoadingStateView, CYPillButton remove/retry |
+| App/SecondRegistrationStatsView.swift | done: CYEmptyState unavailable, cyGroupedSurface (read-only report, rate rows already mono) |
+| App/SessionGlobalSearchView.swift | skipped: pure host wrapper around GlobalSearchView, no UI of its own |
+| App/SessionHomeFeedView.swift | skipped: host with native toolbar/menu/sheets (close buttons are toolbar items), no restylable content of its own |
+| App/SessionTopicBrowserView.swift | skipped: pure host wrapper around TopicBrowserView |

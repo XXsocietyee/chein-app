@@ -64,7 +64,7 @@ import Observation
                         Task { await load(retryOwner) }
                     }
                 }
-                else { ProgressView("searchMap.loading") }
+                else { CYLoadingStateView(rows: 2).accessibilityLabel(Text("searchMap.loading")) }
                 Text("searchMap.routeBoundary").font(.footnote).foregroundStyle(.secondary)
             }.padding()
         }.appNavigationTitle("searchMap.routePreview")
@@ -102,14 +102,14 @@ import Observation
                 } label: { Label("walking.saved.open", systemImage: "bookmark") }
                     .accessibilityIdentifier("walking.saved.open")
                 Text("walking.saved.notice").font(.footnote)
-                Button("walking.saved.remove") {
+                CYPillButton("walking.saved.remove", style: .tertiary) {
                     do { try factory.removeSavedDestination(saved); self.saved = nil; failed = false }
                     catch { failed = true }
                 }.accessibilityIdentifier("walking.saved.remove")
             }
             if failed {
                 Text("walking.saved.failed").font(.footnote).accessibilityIdentifier("walking.saved.failed")
-                Button("walking.saved.retryRead") { load(offered) }
+                CYPillButton("walking.saved.retryRead", style: .secondary) { load(offered) }
                     .disabled(offered == nil || !factory.available)
                     .accessibilityIdentifier("walking.saved.retryRead")
             }

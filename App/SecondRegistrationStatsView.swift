@@ -45,11 +45,12 @@ struct SecondRegistrationStatsView: View {
                     if offline { Label("secondRegistration.offlineExample", systemImage: "testtube.2").font(.footnote) }
                 }.accessibilityIdentifier("secondRegistration.footer")
             } else {
-                Text("secondRegistration.unavailable").accessibilityIdentifier("secondRegistration.unavailable")
+                CYEmptyState(systemImage: "chart.bar", "secondRegistration.unavailable", messageIdentifier: "secondRegistration.unavailable")
             }
         }
         .accessibilityIdentifier("secondRegistration.content")
         .appNavigationTitle("secondRegistration.title")
+        .cyGroupedSurface()
     }
     static func transitionKey(_ row: SecondRegistrationTransition) -> String {
         "secondRegistration.transition.\(row.from.rawValue.lowercased()).\(row.to.rawValue.lowercased())"
