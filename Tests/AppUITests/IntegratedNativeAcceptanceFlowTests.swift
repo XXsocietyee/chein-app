@@ -194,6 +194,7 @@ import XCTest
         close.tap()
     }
     private func phoneSheet(_ app: XCUIApplication) {
+        skipOnboardingIfPresent(in: app)
         tap("welcome.player", app); tap("auth.otherChannels", app)
         XCTAssertTrue(app.textFields["auth.channels.phone"].waitForExistence(timeout: 5),
                       "Login presentation: first=" + String(app.navigationBars["Sign in"].exists) +

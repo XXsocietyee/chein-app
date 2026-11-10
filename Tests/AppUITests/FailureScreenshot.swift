@@ -169,3 +169,14 @@ private func emitRegistrationFailureEvidence(_ app: XCUIApplication) {
     print("QUESTIFY_UI_EVIDENCE_V1 " + text)
     fflush(stdout)
 }
+
+/// Fresh installs open the onboarding pager, where `welcome.player` only exists on the final (consent) step.
+/// Tap `onboarding.skip` when it is shown; relaunches that already completed onboarding start on the final step
+/// and have no skip button, so this is a no-op there.
+func skipOnboardingIfPresent(in app: XCUIApplication, timeout: TimeInterval = 10) {
+    let skip = app.buttons["onboarding.skip"]
+    let player = app.buttons["welcome.player"]
+    let deadline = Date().addingTimeInterval(timeout)
+    while Date() < deadline, !skip.exists, !player.exists { RunLoop.current.run(until: Date().addingTimeInterval(0.2)) }
+    if skip.exists, !player.exists { skip.tap() }
+}

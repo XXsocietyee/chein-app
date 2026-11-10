@@ -34,6 +34,7 @@ final class ActivityFlowTests: XCTestCase {
         XCTAssertFalse(element("activity.ticket.inventoryUnknown.502").exists)
 
         let detail=element("activity.detail.content")
+        expandMoreInfo()
         scrollTo(element("activity.detail.readOnly"),in:detail)
         // A review composer is a separate allowed action; detail still cannot book or pay.
         XCTAssertFalse(app.buttons["activity.openRegistration"].exists)
@@ -154,6 +155,7 @@ final class ActivityFlowTests: XCTestCase {
             tap(element("activity.row.101"))
             waitForDetail()
             let detail = element("activity.detail.content")
+            expandMoreInfo()
             scrollTo(element("activity.reviews.average"), in: detail)
             XCTAssertEqual(element("activity.reviews.average").label, "Average rating, 4.2 / 5")
             XCTAssertEqual(element("activity.reviews.count").label, "Total reviews, 12")
@@ -175,6 +177,7 @@ final class ActivityFlowTests: XCTestCase {
         launchFixture("reviews-empty")
         tap(element("activity.row.101"))
         waitForDetail()
+        expandMoreInfo()
         scrollTo(element("activity.reviews.empty"), in: element("activity.detail.content"))
         XCTAssertEqual(element("activity.reviews.count").label, "Total reviews, 0")
         XCTAssertFalse(element("activity.reviews.average").exists)
@@ -186,6 +189,7 @@ final class ActivityFlowTests: XCTestCase {
         launchFixture("reviews-unknown")
         tap(element("activity.row.101"))
         waitForDetail()
+        expandMoreInfo()
         scrollTo(element("activity.reviews.previewUnavailable"), in: element("activity.detail.content"))
         XCTAssertTrue(element("activity.reviews.averageUnknown").exists)
         XCTAssertTrue(element("activity.reviews.countUnknown").exists)
@@ -223,6 +227,13 @@ final class ActivityFlowTests: XCTestCase {
     private func waitForDetail(file: StaticString=#filePath, line: UInt=#line) {
         XCTAssertTrue(app.navigationBars["Activity details"].waitForExistence(timeout:5),app.debugDescription,file:file,line:line)
         waitForHittable(element("activity.detail.name"),file:file,line:line)
+    }
+
+    /// Secondary rows (reviews, topic link, about, review composer, play rows) sit behind "More info".
+    private func expandMoreInfo(file: StaticString=#filePath, line: UInt=#line) {
+        let toggle = element("activity.more.toggle")
+        scrollTo(toggle, in: element("activity.detail.content"), file: file, line: line)
+        if (toggle.value as? String) != "Expanded" { toggle.tap() }
     }
 
     private func goBackToList(file: StaticString=#filePath, line: UInt=#line) {

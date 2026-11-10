@@ -20,10 +20,18 @@ final class SignedInContentDetailFlowTests: XCTestCase {
     private func openTopic(_ app: XCUIApplication) {
         app.buttons["homeFeed.recommended.topic.31"].tap()
     }
+    /// "More info" hides the topic link (and other secondary rows) until toggled; collapsed again after every reopen.
+    private func expandActivityMoreInfo(_ app: XCUIApplication) {
+        let toggle = app.buttons["activity.more.toggle"]
+        XCTAssertTrue(toggle.waitForExistence(timeout: 5), app.debugDescription)
+        if !toggle.isHittable { _ = revealFixtureElement(toggle, in: app) }
+        if (toggle.value as? String) != "Expanded" { toggle.tap() }
+    }
     private func openActivityRoute(_ app: XCUIApplication) {
         app.tabBars.buttons["Activities"].tap()
         let card = app.buttons["activity.row.21"]
         XCTAssertTrue(card.waitForExistence(timeout: 5)); card.tap()
+        expandActivityMoreInfo(app)
         let route = app.buttons["activity.openTopic"]
         XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
     }
@@ -32,6 +40,7 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         openActivityRoute(app)
         XCTAssertTrue(app.staticTexts["Synthetic route detail"].waitForExistence(timeout: 5))
         app.navigationBars.buttons.firstMatch.tap()
+        expandActivityMoreInfo(app)
         let route = app.buttons["activity.openTopic"]
         XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
         XCTAssertTrue(app.staticTexts["Synthetic route detail"].waitForExistence(timeout: 5))
@@ -57,6 +66,7 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Synthetic activity card"].exists)
         refreshedCard.tap()
         XCTAssertTrue(app.staticTexts["Synthetic activity detail"].waitForExistence(timeout: 5))
+        expandActivityMoreInfo(app)
         let route = app.buttons["activity.openTopic"]
         XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
         XCTAssertTrue(app.staticTexts["Synthetic merchant route"].waitForExistence(timeout: 5))
@@ -81,6 +91,7 @@ final class SignedInContentDetailFlowTests: XCTestCase {
         XCTAssertTrue(app.descendants(matching: .any)["topic.error"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertFalse(app.staticTexts["Synthetic route detail"].exists)
         app.navigationBars.buttons.firstMatch.tap()
+        expandActivityMoreInfo(app)
         let route = app.buttons["activity.openTopic"]
         XCTAssertTrue(route.waitForExistence(timeout: 5)); route.tap()
         XCTAssertTrue(app.descendants(matching: .any)["topic.error"].firstMatch.waitForExistence(timeout: 5))
