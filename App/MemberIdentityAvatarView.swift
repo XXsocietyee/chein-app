@@ -128,16 +128,34 @@ private final class MemberIdentityAvatarLifecycle: @unchecked Sendable {
 @MainActor struct MemberIdentityAvatarView: View {
     @State private var model: MemberIdentityAvatarModel
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .title3) private var diameter: CGFloat = 56
     init(observation: MemberIdentityAvatarObservation, owner: MemberIdentityCardReadOwner, access: MemberIdentityAvatarAccess?) {
         _model = State(initialValue: .init(observation: observation, owner: owner, access: access))
     }
     var body: some View {
-        MemberIdentityAvatarSurfaceView(model: model)
-            .frame(width: 56, height: 56).background(CYColor.bgRaised, in: Circle()).clipShape(Circle()).accessibilityHidden(true).privacySensitive()
-            .onAppear { model.appear(active: scenePhase == .active) }
-            .onDisappear { model.disappear() }
-            .onChange(of: scenePhase) { _, value in model.scene(active: value == .active) }
-            .onChange(of: model.available) { _, value in if !value { model.stop() } }
+        ZStack {
+            Circle().fill(palette.bgRaised)
+            if model.phase == .loading {
+                Circle().fill(palette.skeletonBase)
+            } else if model.phase != .ready {
+                Image(systemName: model.phase == .failed ? "person.crop.circle.badge.exclamationmark" : "person.fill")
+                    .font(.title3)
+                    .foregroundStyle(palette.textSecondary)
+                    .accessibilityHidden(true)
+            }
+            MemberIdentityAvatarSurfaceView(model: model)
+        }
+        .frame(width: diameter, height: diameter)
+        .clipShape(Circle())
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text("用户头像"))
+        .privacySensitive()
+        .cyAnimation(value: model.phase)
+        .onAppear { model.appear(active: scenePhase == .active) }
+        .onDisappear { model.disappear() }
+        .onChange(of: scenePhase) { _, value in model.scene(active: value == .active) }
+        .onChange(of: model.available) { _, value in if !value { model.stop() } }
     }
 }
 @MainActor private struct MemberIdentityAvatarSurfaceView: UIViewRepresentable {

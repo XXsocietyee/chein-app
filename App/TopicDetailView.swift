@@ -14,10 +14,9 @@ struct TopicDetailView: View {
     var selfPlayDestination: ((TopicDetail) -> AnyView)? = nil
     @State private var showingSelfPlay = false
     @State private var showingSessionSelection = false
-    @State private var detail: TopicDetail?
+    /// Load lifecycle (docs/release/state-machines/views.md). `loadedKey` guards a phase that belongs to a stale key.
+    @State private var phase: CYPhase<TopicDetail, TopicScreenIssue> = .idle
     @State private var loadedKey: Key?
-    @State private var issue: TopicScreenIssue?
-    @State private var loading = false
     @State private var generation = 0
     @State private var loads = SignedInContentDetailLoadOwner()
     @Environment(\.topicPricingDestination) private var pricingDestination
@@ -27,14 +26,19 @@ struct TopicDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-            else if loading || loadedKey != key { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topic.loading")) }
-            else if let issue { TopicIssueView(issue: issue) { loads.start { await load() } } }
-            else if let detail { content(detail) }
+            else if phase.isLoading || loadedKey != key { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topic.loading")) }
+            else {
+                switch phase {
+                case .failed(let issue, _): TopicIssueView(issue: issue) { loads.start { await load() } }
+                case .loaded(let detail): content(detail)
+                case .idle, .loading, .empty: EmptyView()
+                }
+            }
         }
         .appNavigationTitle("topic.detail")
         .navigationBarTitleDisplayMode(.inline)
         .task(id: key) { await loads.run { await load() } }
-        .onDisappear { loads.cancel(); generation += 1; loading = false }
+        .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .sheet(isPresented: $showsReview) {
             NavigationStack { ContextualReviewComposer(target: .topic(id), owner: reviewOwner) { loads.start { await load() } } }
         }
@@ -239,22 +243,25 @@ struct TopicDetailView: View {
         .accessibilityIdentifier("topic.detail.content")
         }
     }
+    private var detail: TopicDetail? { phase.value }
+    /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
+    private func settleLoading() { if phase.isLoading { phase = .idle } }
     private func load() async {
         generation += 1
         let operation = generation, captured = key
-        detail = nil; issue = nil; loadedKey = nil
-        guard reader.isConfigured else { loading = false; return }
-        loading = true
-        defer { if operation == generation { loading = false } }
+        phase = .idle; loadedKey = nil
+        guard reader.isConfigured else { return }
+        phase = .loading
+        defer { if operation == generation { settleLoading() } }
         do {
             let result = try await reader.topicDetail(id: id)
             try Task.checkCancellation()
             guard operation == generation, captured == key, !Task.isCancelled else { return }
-            detail = result; loadedKey = captured
+            phase = .loaded(result); loadedKey = captured
         } catch is CancellationError { }
         catch {
             guard operation == generation, captured == key, !Task.isCancelled else { return }
-            issue = TopicScreenIssue(error); loadedKey = captured
+            phase = .failed(TopicScreenIssue(error), retry: nil); loadedKey = captured
         }
     }
 }

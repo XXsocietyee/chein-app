@@ -34,18 +34,24 @@ import SwiftUI
                     }.pickerStyle(.segmented).accessibilityIdentifier("cooperation.direction")
                     NavigationLink {
                         CooperationPoolView(reader: reader)
-                    } label: { Label("cooperation.pool.title", systemImage: "rectangle.stack") }
-                        .accessibilityIdentifier("cooperation.pool.open")
+                    } label: {
+                        CYListRow("cooperation.pool.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
+                    }
+                    .accessibilityIdentifier("cooperation.pool.open")
                     if let peerReader, listPage.showsNewInvite {
                         NavigationLink { CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope) } label: {
-                            Label("cooperation.list.newInvite", systemImage: "plus.circle")
-                        }.accessibilityIdentifier("cooperation.list.newInvite")
+                            CYListRow("cooperation.list.newInvite", trailing: .none) { CYRowIcon(systemImage: "plus.circle") }
+                        }
+                        .accessibilityIdentifier("cooperation.list.newInvite")
                     }
                 }
                 topicFilterSection(snapshot)
                 if let peerReader { CoopChapterApplicationSection(reader: peerReader, direction: direction, operationScope: operationScope) }
                 if snapshot.isPartial {
-                    Label("cooperation.partial", systemImage: "exclamationmark.triangle").font(CYTypography.meta).foregroundStyle(CYColor.warningText)
+                    Label("cooperation.partial", systemImage: "exclamationmark.triangle")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.warningText)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("cooperation.partial")
                 }
                 invitationSection(snapshot.invitations, direction: snapshot.direction)
@@ -56,7 +62,15 @@ import SwiftUI
                 if direction == .received, let peerReader { CoopOfficialInviteSection(reader: peerReader) }
                 Section { CooperationReadOnlyNotice() }
             }
-            .appNavigationTitle("cooperation.title")
+            .safeAreaInset(edge: .top, spacing: 0) {
+                CYHeroHeader("cooperation.title")
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.top, CYSpacing.sm)
+                    .padding(.bottom, CYSpacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(CYColor.bgPage)
+            }
+            .cyHeroScreen()
             .onChange(of: reader.scope) { _, _ in topicFilter = nil }
             .onChange(of: ObjectIdentifier(reader)) { _, _ in topicFilter = nil }
             .onChange(of: reader.isAuthenticated) { _, _ in topicFilter = nil }
@@ -88,6 +102,7 @@ import SwiftUI
                         Text(verbatim: "#" + String(selected)).tag(selected)
                     }
                 }.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")
+                    .frame(minHeight: CYSpacing.minTouchTarget)
                     .fixedSize(horizontal: false, vertical: true)
                 Text("cooperation.topicFilter.loadedOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -95,7 +110,9 @@ import SwiftUI
                     Button("cooperation.topicFilter.clear") {
                         guard ObjectIdentifier(reader) == owner, reader.scope == scope else { return }
                         topicFilter = nil
-                    }.accessibilityIdentifier("cooperation.topicFilter.clear")
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("cooperation.topicFilter.clear")
                 }
             }
         }
@@ -106,7 +123,10 @@ import SwiftUI
             case .failure(let issue): CooperationIssueView(issue: issue)
             case .content(let list):
                 let rows = CooperationInboxTopicFilter.visibleRows(list.rows(direction), topicID: selectedTopicID, topic: { $0.topicId })
-                if rows.isEmpty { Text(selectedTopicID == nil ? "cooperation.invitations.empty" : "cooperation.topicFilter.empty").font(CYTypography.body).foregroundStyle(CYColor.textTertiary) }
+                if rows.isEmpty {
+                    CYEmptyState(systemImage: "tray", selectedTopicID == nil ? "cooperation.invitations.empty" : "cooperation.topicFilter.empty")
+                        .listRowBackground(Color.clear)
+                }
                 // Ordinal identities preserve duplicate server IDs without merging unrelated entries.
                 ForEach(rows, id: \.offset) { index, row in
                     NavigationLink {
@@ -115,15 +135,25 @@ import SwiftUI
                     } label: {
                         // Mini `.inv`: row 1 status badge + peer ("来自/发给 X"), row 2 title/sub, row 3 terms, then meta.
                         VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            HStack(alignment: .center, spacing: CYSpacing.sm) {
-                                CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : row.status == 2 ? "xmark.circle" : "circle")
-                                Spacer(minLength: CYSpacing.sm)
-                                HStack(spacing: CYSpacing.xs) {
-                                    Text(LocalizedStringKey(direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
-                                    CooperationName(name: row.partner?.name).lineLimit(2).truncationMode(.tail)
-                                }.font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                            if index == 0 {
+                                CoopCloudCoverBanner(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(row.topicName, fallback: "invite-\(row.id)"))
                             }
-                            CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))
+                            HStack(alignment: .top, spacing: CYSpacing.md) {
+                                if index != 0 {
+                                    CoopCloudCoverThumb(url: TemplateBrowserPort.coverURL(row.coverURL), seed: coopCoverSeed(row.topicName, fallback: "invite-\(row.id)"))
+                                }
+                                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                    HStack(alignment: .center, spacing: CYSpacing.sm) {
+                                        CooperationStatus(key: row.statusKey, symbol: row.status == 0 ? "clock" : row.status == 1 ? "checkmark.circle" : row.status == 2 ? "xmark.circle" : "circle")
+                                        Spacer(minLength: CYSpacing.sm)
+                                        HStack(spacing: CYSpacing.xs) {
+                                            Text(LocalizedStringKey(direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
+                                            CooperationName(name: row.partner?.name).lineLimit(2).truncationMode(.tail).fixedSize(horizontal: false, vertical: true)
+                                        }.font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
+                                    }
+                                    CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))
+                                }
+                            }
                             // One compact meta line (topic · created) instead of two tall inset rows.
                             let created: String? = row.createTime.flatMap { time -> String? in
                                 switch time {
@@ -132,7 +162,13 @@ import SwiftUI
                                 }
                             }
                             let meta = [row.topicId.map { "#\($0)" }, created].compactMap { $0 }.joined(separator: " · ")
-                            if !meta.isEmpty { Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit() }
+                            if !meta.isEmpty {
+                                Text(verbatim: meta)
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textTertiary)
+                                    .monospacedDigit()
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
                         }.padding(.vertical, CYSpacing.xs)
                         .opacity((row.status ?? 0) >= 3 ? 0.6 : 1)
                     }.accessibilityIdentifier("cooperation.invite.\(direction.rawValue).\(row.id).\(index)")
@@ -146,13 +182,24 @@ import SwiftUI
             case .failure(let issue): CooperationIssueView(issue: issue)
             case .content(let rows):
                 let visible = CooperationInboxTopicFilter.visibleRows(rows, topicID: selectedTopicID, topic: { $0.topicId })
-                if visible.isEmpty { Text(selectedTopicID == nil ? "cooperation.applications.empty" : "cooperation.topicFilter.empty").foregroundStyle(.secondary) }
+                if visible.isEmpty {
+                    CYEmptyState(systemImage: "tray", selectedTopicID == nil ? "cooperation.applications.empty" : "cooperation.topicFilter.empty")
+                        .listRowBackground(Color.clear)
+                }
                 ForEach(visible, id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
                         let replied = direction == .received ? CooperationRepliedApplication(application: row, sent: sentInvites) : nil
                         // Mini `.inv-top` then `.inv-title`: badge first, topic title second.
-                        CooperationStatus(key: replied?.statusKey ?? row.statusKey)
-                        CooperationName(name: row.topicName, fallback: "cooperation.unnamedTopic").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            CYRowIcon(systemImage: "person.2")
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                CooperationStatus(key: replied?.statusKey ?? row.statusKey)
+                                CooperationName(name: row.topicName, fallback: "cooperation.unnamedTopic")
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                         CooperationField(key: direction == .received ? "cooperation.fromClub" : "cooperation.toMerchant", value: direction == .received ? row.clubName : row.merchantNick)
                         CooperationTopicReference(id: row.topicId)
                         CooperationTimeField(key: "cooperation.start", value: row.startDate)
@@ -163,7 +210,7 @@ import SwiftUI
                         if let linked = replied?.linkedInviteID {
                             NavigationLink { CooperationInviteDetailView(key: CooperationInviteKey(id: linked, direction: .sent), reader: reader, peerReader: peerReader)
                                 .environment(\.cooperationProjectDestination, topicDestination) } label: {
-                                Text("cooperation.list.apply.viewCooperation")
+                                CYListRow("cooperation.list.apply.viewCooperation", trailing: .none) { CYRowIcon(systemImage: "arrow.right.circle") }
                             }.accessibilityIdentifier("cooperation.list.apply.linked.\(linked)")
                         }
                     }.padding(.vertical, CYSpacing.xs)
@@ -177,11 +224,22 @@ import SwiftUI
             case .failure(let issue): CooperationIssueView(issue: issue)
             case .content(let page):
                 let visible = CooperationInboxTopicFilter.visibleRows(page.rows, topicID: selectedTopicID, topic: { $0.topicId })
-                if visible.isEmpty { Text(selectedTopicID == nil ? "cooperation.registrations.empty" : "cooperation.topicFilter.empty").foregroundStyle(.secondary) }
+                if visible.isEmpty {
+                    CYEmptyState(systemImage: "bag", selectedTopicID == nil ? "cooperation.registrations.empty" : "cooperation.topicFilter.empty")
+                        .listRowBackground(Color.clear)
+                }
                 ForEach(visible, id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        CooperationStatus(key: row.statusKey)
-                        CooperationName(name: row.merchantName, fallback: "cooperation.unnamedMerchant").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            CYRowIcon(systemImage: "bag")
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                CooperationStatus(key: row.statusKey)
+                                CooperationName(name: row.merchantName, fallback: "cooperation.unnamedMerchant")
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(CYColor.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                        }
                         if let member = row.memberId { CooperationField(key: "cooperation.merchant", value: "#\(member)") }
                         CooperationField(key: "cooperation.topic", value: row.topicName)
                         CooperationField(key: "cooperation.location", value: row.addressName?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false ? row.addressName : row.address)
@@ -190,7 +248,7 @@ import SwiftUI
                             CooperationTopicReference(id: topic)
                             CooperationCandidateLink(topicID: topic, reader: reader)
                         }
-                    }.padding(.vertical, 4)
+                    }.padding(.vertical, CYSpacing.xs)
                 }
                 if page.hasMore == true {
                     Text("cooperation.registrations.more").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
@@ -198,5 +256,52 @@ import SwiftUI
                 }
             }
         }
+    }
+}
+
+func coopCoverSeed(_ name: String?, fallback: String) -> String {
+    if let name = name?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { return name }
+    return fallback
+}
+
+struct CoopCloudCoverBanner: View {
+    let url: URL?
+    let seed: String
+    var body: some View {
+        Color.clear
+            .aspectRatio(16.0 / 10.0, contentMode: .fit)
+            .overlay {
+                if let url {
+                    AsyncImage(url: url) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() }
+                        else { CYCoverArt(seed: seed) }
+                    }
+                } else {
+                    CYCoverArt(seed: seed)
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+struct CoopCloudCoverThumb: View {
+    let url: URL?
+    let seed: String
+    @ScaledMetric(relativeTo: .body) private var side: CGFloat = 56
+    var body: some View {
+        Group {
+            if let url {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() }
+                    else { CYCoverArt(seed: seed) }
+                }
+            } else {
+                CYCoverArt(seed: seed)
+            }
+        }
+        .frame(width: side, height: side)
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+        .accessibilityHidden(true)
     }
 }
