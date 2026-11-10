@@ -1,1 +1,1 @@
-UI-CLOUD-26 3772d77eeeefb587781f5771209d67c9edd391a2 Build PASS restyled App/ModUpgradeView.swift, App/ModVenueOperationsView.swift, App/MyProjectMutationViews.swift, App/NPCChatDataView.swift, App/NativeAttributeAuthorViews.swift; skipped none
+UI-CLOUD-27 76f5734656c54afbba2ff7d1f0ee23cc31ae6aef Build PASS restyled: App/NativeBlacklistView.swift, App/NativeChannelChainView.swift, App/NativeChannelCheckinView.swift, App/NativeChannelHistoryView.swift, App/NativeChannelManagementPermissionsView.swift
