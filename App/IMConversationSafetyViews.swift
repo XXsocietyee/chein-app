@@ -60,10 +60,13 @@ struct IMSafetyCopy {
     }
     var body: some View {
         NavigationStack {
-            Form { content }
+            Form {
+                CYHeroHeader("im.safety.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                content
+            }
                 .cyGroupedSurface()
-                .navigationTitle(Text("im.safety.title"))
-                .navigationBarTitleDisplayMode(.inline)
+                .cyHeroScreen()
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
                         Button("action.close") { close() }.disabled(isInFlight).accessibilityIdentifier("im.safety.close")
@@ -119,12 +122,12 @@ struct IMSafetyCopy {
                 Label(LocalizedStringKey(copy.doneKey), systemImage: "checkmark.circle").accessibilityIdentifier("im.safety.done")
                 if let key = copy.doneDetailKey { Text(LocalizedStringKey(key)) }
             }
-            Button("action.close") { close() }.accessibilityIdentifier("im.safety.doneClose")
+            CYPillButton("action.close") { close() }.accessibilityIdentifier("im.safety.doneClose")
         case .rejected(let action, let message):
             Section {
                 Label(LocalizedStringKey(IMSafetyCopy(action).failureKey), systemImage: "xmark.octagon").accessibilityIdentifier("im.safety.rejected")
                 if let message, !message.isEmpty { Text(verbatim: message) }
-                Button("im.safety.retrySame") { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+                CYPillButton("im.safety.retrySame", style: .secondary) { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
             }
         case .outcomeUnknown(let action):
             Section {
@@ -135,14 +138,14 @@ struct IMSafetyCopy {
                     Text("im.safety.unknownReport")
                 } else {
                     Text("im.safety.unknownHint")
-                    Button("im.safety.verify") { run { await model.owner.verify() } }.accessibilityIdentifier("im.safety.verify")
+                    CYPillButton("im.safety.verify", style: .secondary) { run { await model.owner.verify() } }.accessibilityIdentifier("im.safety.verify")
                 }
-                Button("im.safety.retrySame") { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+                CYPillButton("im.safety.retrySame", style: .secondary) { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
             }
         case .notApplied:
             Section {
                 Label("im.safety.notApplied", systemImage: "arrow.uturn.backward.circle").accessibilityIdentifier("im.safety.notApplied")
-                Button("im.safety.retrySame") { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+                CYPillButton("im.safety.retrySame", style: .secondary) { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
             }
         }
     }
