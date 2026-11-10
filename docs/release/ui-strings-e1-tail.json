@@ -1,1 +1,23 @@
-[]
+[
+  {
+    "key": "提交申诉",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Appeal a voucher",
+    "zh-Hans": "提交申诉"
+  },
+  {
+    "key": "商家忘记核销时，可提交审核。",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "If the merchant forgot to scan your voucher, send it for review.",
+    "zh-Hans": "商家忘记核销时，可提交审核。"
+  },
+  {
+    "key": "正在提交…",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Submitting…",
+    "zh-Hans": "正在提交…"
+  }
+]

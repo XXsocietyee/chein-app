@@ -9,3 +9,6 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 - ActivityEditingView: hero title, grouped surface, pills (review primary), one title
 - ActivityHostCancelView: hero, skeleton loading, pills (confirm primary), grouped surface
 - ApprovedTopicReviewRequestView: hero (x2), skeleton loading, pills, grouped surface
+
+## Batch 2
+- BundleAppealView, BundleCancelView, BundleOrderStatusView (view only), BundleRedeemResultView, BundleRefundQuoteView: hero title, grouped surface, pill actions (one primary), skeleton loading, status icons/chips, tabular values. BundleRefundQuoteView stays action-free (read-only quote).

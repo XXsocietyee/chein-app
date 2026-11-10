@@ -75,12 +75,20 @@ enum BundleOrderStatusPresentation {
 
     var body: some View {
         Form {
+            Section { CYHeroHeader("order.status", tableName: table) }.e1HeroRow()
             if let poller {
                 if let key = BundleOrderStatusPresentation.bannerKey(BundleOrderStatusPresentation.banner(for: poller.state)) {
                     Section {
-                        text(key).accessibilityIdentifier("bundle.order.receiptBanner")
+                        HStack(spacing: CYSpacing.sm) {
+                            Image(systemName: poller.state == .failed ? "exclamationmark.triangle.fill" : "clock.arrow.circlepath").accessibilityHidden(true)
+                            text(key)
+                        }
+                        .font(CYTypography.cardTitle)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("bundle.order.receiptBanner")
                         if poller.state == .stillUnconfirmed || poller.state == .readUnavailable {
-                            Button { poller.poller.start() } label: { text("order.receipt.recheck") }
+                            CYPillButton("order.receipt.recheck", style: .secondary, systemImage: "arrow.clockwise", tableName: table) { poller.poller.start() }
+                                .e1ActionRow()
                         }
                     }
                 }
@@ -98,6 +106,9 @@ enum BundleOrderStatusPresentation {
                 }
             }
         }
+        .formStyle(.grouped)
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .onDisappear { poller?.poller.stop() }
     }
 }
