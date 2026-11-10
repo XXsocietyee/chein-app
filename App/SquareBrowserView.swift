@@ -26,8 +26,11 @@ import SwiftUI
     @State private var pagination = SquareFeedPagination()
     @State private var loadedKey: Key?
     @State private var generation = 0
-    @State private var loading = false
-    @State private var issue: Error?
+    /// Fetch lifecycle of the feed (docs/release/state-machines/views.md). Items live in `pagination`; a failed
+    /// load-more keeps them, so the phase carries no value (`.loaded(())` = last fetch succeeded).
+    @State private var phase: CYPhase<Void, Error> = .idle
+    private var loading: Bool { phase.isLoading }
+    private var issue: Error? { phase.failure }
     @State private var path: [Int] = []
     /// Source `canUseCommunity(false)`: owner-bound flags; anything but a literal true keeps the community closed.
     @State private var communityGate: SquareCommunityFeatures?
@@ -130,7 +133,7 @@ import SwiftUI
             .onChange(of: reader.scope) { _, _ in path = []; generation += 1; pagination = SquareFeedPagination(); loadedKey = nil }
             .task(id: key) { await loadGate(); await load(reset: true) }
             .refreshable { await load(reset: true) }
-            .onDisappear { generation += 1; loading = false }
+            .onDisappear { generation += 1; settleLoading() }
             .accessibilityIdentifier("square.browser")
         }
     }
@@ -159,27 +162,29 @@ import SwiftUI
         guard !Task.isCancelled, scope == reader.scope else { return }
         communityGate = value; gateScope = scope
     }
+    /// Guard: only an in-flight fetch falls back to idle; a failure stays visible.
+    private func settleLoading() { if phase.isLoading { phase = .idle } }
     private func load(reset: Bool) async {
         guard reset || !loading else { return }
         // A closed or unresolved community gate never requests the feed (source aborts reads when closed).
-        guard !gatePending, !communityClosed else { pagination = SquareFeedPagination(); loadedKey = nil; loading = false; return }
+        guard !gatePending, !communityClosed else { pagination = SquareFeedPagination(); loadedKey = nil; settleLoading(); return }
         generation += 1
         let operation = generation, captured = key
         if reset { pagination = SquareFeedPagination(); loadedKey = nil }
-        issue = nil
-        guard reader.isConfigured, !query.mode.requiresAccount || reader.isSignedIn else { loading = false; return }
-        loading = true
-        defer { if operation == generation { loading = false } }
+        phase = .idle
+        guard reader.isConfigured, !query.mode.requiresAccount || reader.isSignedIn else { return }
+        phase = .loading
+        defer { if operation == generation { settleLoading() } }
         let cursor = reset ? nil : pagination.nextCursor
         do {
             let page = try await reader.squareFeed(query: captured.query, cursor: cursor)
             try Task.checkCancellation()
             guard operation == generation, captured == key else { return }
-            try pagination.accept(page, requestedCursor: cursor); loadedKey = captured
+            try pagination.accept(page, requestedCursor: cursor); phase = .loaded(()); loadedKey = captured
         } catch is CancellationError { }
         catch {
             guard operation == generation, captured == key else { return }
-            issue = error; loadedKey = captured
+            phase = .failed(error, retry: nil); loadedKey = captured
         }
     }
 }
