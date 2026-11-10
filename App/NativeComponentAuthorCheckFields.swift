@@ -38,14 +38,14 @@ import SwiftUI
         ForEach(["advantageIf", "disadvantageIf", "retryIf"], id: \.self) { key in
             if check[key] != nil {
                 NativeConditionAuthorExpressionSection(model: model, path: root.field(key), effect: false)
-                Section { Button("移除此可选条件：" + key, role: .destructive) { model.removeField(key, at: root) }.disabled(!model.canEdit) }
+                Section { Button(String(localized: "移除此可选条件：") + key, role: .destructive) { model.removeField(key, at: root) }.disabled(!model.canEdit) }
             } else if key != "retryIf" || (binding?.whiteRed == true && check["kind"] == .string("WHITE")) {
-                Section { Button("配置原条件：" + key) { model.setField(key, at: root, to: .array([])) }.disabled(!model.canEdit) }
+                Section { Button(String(localized: "配置原条件：") + key) { model.setField(key, at: root, to: .array([])) }.disabled(!model.canEdit) }
             }
         }
         ForEach(["successEffects", "failEffects", "critEffects", "fumbleEffects"], id: \.self) { key in
             if check[key] != nil { NativeConditionAuthorExpressionSection(model: model, path: root.field(key), effect: true) }
-            else { Section { Button("配置原结果效果：" + key) { model.setField(key, at: root, to: .array([])) }.disabled(!model.canEdit) } }
+            else { Section { Button(String(localized: "配置原结果效果：") + key) { model.setField(key, at: root, to: .array([])) }.disabled(!model.canEdit) } }
         }
     }
     private func text(_ key: String) -> Binding<String> {
@@ -59,7 +59,7 @@ import SwiftUI
             if optional && value.isEmpty { model.removeField(key, at: root) } else { model.setField(key, at: root, to: .string(value)) }
         })) {
             Text(optional ? "未配置（保留原语义）" : "请选择").tag("")
-            if !current.isEmpty && !options.contains(current) { Text("原值（不可用）：" + current).tag(current) }
+            if !current.isEmpty && !options.contains(current) { Text(String(localized: "原值（不可用）：") + current).tag(current) }
             ForEach(options, id: \.self) { Text(verbatim: $0).tag($0) }
         }
     }

@@ -106,7 +106,10 @@ struct CityOnsiteTaskContent<Entry: View>: View {
         } content: {
             CYNoteBanner(text: Text(LocalizedStringKey(messageKey), tableName: table), symbol: busy ? "hourglass" : "info.circle")
                 .accessibilityIdentifier("cityOnsite.status")
-            CYInfoCard(title: Text("cityOnsite.evidenceEntryHint", tableName: table), symbol: "checkmark.shield.fill") { arrivalEntry() }
+            CYInfoCard(symbol: "checkmark.shield.fill") {
+                Text("cityOnsite.evidenceEntryHint", tableName: table).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                arrivalEntry().font(CYTypography.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary).frame(minHeight: 44)
+            }
             if let value = snapshot {
                 if value.status == "JOIN_REQUIRED" { CYNoteBanner(text: Text("cityOnsite.joinRequired", tableName: table), symbol: "person.badge.plus") }
                 if value.status == "TEAM_NOT_READY" { CYNoteBanner(text: Text("cityOnsite.teamNotReady", tableName: table), symbol: "person.2.slash") }

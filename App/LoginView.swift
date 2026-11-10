@@ -20,8 +20,10 @@ struct LoginView: View {
     private var showsPasswordForm: Bool {
 #if DEBUG
         if let designOverride { return designOverride.showsPassword }
-#endif
         return session.canUsePassword
+#else
+        return false // Release signs in by phone code (or Apple) only.
+#endif
     }
     private var shownErrorKey: String? {
 #if DEBUG
@@ -41,7 +43,7 @@ struct LoginView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    WelcomeHero().scaleEffect(0.78).frame(height: 232).padding(.top, CYSpacing.lg)
+                    WelcomeHero().scaleEffect(0.9).frame(height: 262).padding(.top, CYSpacing.lg)
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         Text("auth.login.headline").font(.system(.largeTitle, design: .rounded, weight: .heavy)).foregroundStyle(CYColor.textPrimary)
                             .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
@@ -188,7 +190,7 @@ struct LoginView: View {
         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 60)
     }
     private func submit() {
-        guard session.canUsePassword, !session.isWorking,
+        guard showsPasswordForm, session.canUsePassword, !session.isWorking,
               !username.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty, !password.isEmpty else { return }
         focusedField=nil
         let name=username, credential=password

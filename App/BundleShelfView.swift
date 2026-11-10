@@ -5,6 +5,9 @@ import SwiftUI
 @MainActor struct BundleShelfView: View {
     @Bindable var model: BundleShelfModel
     var onSelect: ((BundleShelfItem) -> Void)? = nil
+    /// When the host pushes the detail with a NavigationLink, pass its namespace and apply `cyHeroDestination(item.topicId, in:)` there.
+    var heroNamespace: Namespace.ID? = nil
+    @State private var stagger = CYStaggerGate()
     private let table = "BundleCommerce"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
     var body: some View {
@@ -20,11 +23,14 @@ import SwiftUI
                                  messageIdentifier: "bundle.shelf.error", actionTitle: "action.retry") { Task { await model.refresh() } }
                 default:
                     if model.items.isEmpty { CYEmptyState(systemImage: "shippingbox", "shelf.empty", tableName: table) }
-                    ForEach(model.items, id: \.topicId) { item in
+                    ForEach(Array(model.items.enumerated()), id: \.element.topicId) { index, item in
                         Button { onSelect?(item) } label: {
                             BundleShelfRow(item: item)
+                                .cyStaggeredAppear(index: index, gate: stagger)
                         }
-                        .buttonStyle(.plain)
+                        .buttonStyle(CYPressableStyle())
+                        .modifier(CYOptionalHeroSource(id: item.topicId, namespace: heroNamespace))
+                        .cyRowTransition()
                         .disabled(onSelect == nil)
                         .onAppear {
                             if item.topicId == model.items.last?.topicId, model.hasMore {
@@ -39,7 +45,8 @@ import SwiftUI
         }
         .navigationTitle(Text("shelf.title", tableName: table))
         .task { if model.state == .idle { await model.refresh() } }
-        .refreshable { await model.refresh() }
+        .cyAnimation(value: model.items.map(\.topicId))
+        .cyRefreshable { await model.refresh() }
     }
 }
 

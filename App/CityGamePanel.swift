@@ -45,7 +45,7 @@ struct CityGamePanel: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
         .accessibilityElement(children: .contain)
-        .sensoryFeedback(.success, trigger: outcomeApplied)
+        .cyHaptic(.success, trigger: outcomeApplied)
         .accessibilityIdentifier("cityGame.panel")
     }
 

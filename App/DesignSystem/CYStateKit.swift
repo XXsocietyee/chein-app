@@ -65,7 +65,7 @@ enum CYStateKind: Equatable {
         case .offline: "arrow.clockwise"
         case .failure: "arrow.clockwise"
         case .location: "mappin"
-        case .camera: "seal.fill"
+        case .camera: "sparkles"
         case .notifications: "xmark"
         case .photos: "plus"
         case .generic: nil

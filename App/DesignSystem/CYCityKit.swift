@@ -184,3 +184,74 @@ extension View {
             .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
     }
 }
+
+/// One grid for every collection (stamp album, badge wall, passport): adaptive 160pt cells, 12pt gutters, a single column at accessibility sizes.
+enum CYCollectionGrid {
+    static func columns(accessibility: Bool) -> [GridItem] {
+        accessibility ? [GridItem(.flexible(), alignment: .topLeading)] : [GridItem(.adaptive(minimum: 160), spacing: CYSpacing.md, alignment: .topLeading)]
+    }
+    static let spacing = CYSpacing.md
+}
+
+/// Collapsible rule card: icon tile + title + chevron header; content slides open. Header is one 56pt button that announces its expanded state.
+struct CYCollapsibleCard<Content: View>: View {
+    let title: Text
+    let symbol: String
+    @Binding var expanded: Bool
+    @ViewBuilder let content: () -> Content
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Button {
+                withAnimation(reduceMotion ? nil : .spring(response: 0.35, dampingFraction: 0.85)) { expanded.toggle() }
+            } label: {
+                HStack(spacing: CYSpacing.md) {
+                    Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                        .frame(width: 36, height: 36)
+                        .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .accessibilityHidden(true)
+                    title.font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Spacer(minLength: CYSpacing.sm)
+                    Image(systemName: "chevron.down").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary)
+                        .rotationEffect(.degrees(expanded ? 180 : 0)).accessibilityHidden(true)
+                }
+                .padding(CYSpacing.lg).frame(maxWidth: .infinity, minHeight: 56, alignment: .leading).contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityValue(Text(verbatim: expanded ? "expanded" : "collapsed"))
+            .sensoryFeedback(.selection, trigger: expanded)
+            if expanded {
+                VStack(alignment: .leading, spacing: CYSpacing.md) { content() }
+                    .padding([.horizontal, .bottom], CYSpacing.lg)
+                    .transition(reduceMotion ? .opacity : .opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+    }
+}
+
+/// Timeline spine: a status dot on a connector line with the row content on the right. `first`/`last` trim the line at both ends.
+/// Day grouping is only used where the source supplies dates; undated lists use the spine alone (never an invented date).
+struct CYTimelineItem<Content: View>: View {
+    var first = false
+    var last = false
+    var symbol = "circle.fill"
+    var tint: Color = CYColor.textPrimary
+    @ViewBuilder let content: () -> Content
+    var body: some View {
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            VStack(spacing: 0) {
+                Rectangle().fill(first ? Color.clear : CYColor.borderStrong).frame(width: 2, height: 10)
+                Image(systemName: symbol).font(.caption.weight(.bold)).foregroundStyle(tint)
+                    .frame(width: 28, height: 28).background(CYColor.bgRaised, in: Circle()).accessibilityHidden(true)
+                Rectangle().fill(last ? Color.clear : CYColor.borderStrong).frame(width: 2).frame(maxHeight: .infinity)
+            }
+            .frame(width: 28)
+            content().padding(.bottom, last ? 0 : CYSpacing.md)
+        }
+    }
+}
