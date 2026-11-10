@@ -516,24 +516,26 @@ struct ActivityDetailView: View {
         else if primaryAction != .cancelled, reader is AppSession { showsTicketWallet = true }
     }
     /// "From ¥58 · 24 going"; an unknown price or count is an em dash, never 0.
-    private func pinnedSummary(_ detail: ActivityDetail) -> Text {
+    /// Known parts only: price and attendee count joined by a dot. Nil (line hidden) when neither is known.
+    private func pinnedSummary(_ detail: ActivityDetail) -> Text? {
         let amount = detail.summary.minimumAmount
-        let price: Text
-        if let amount, amount == 0 { price = Text(verbatim: CoreLoopCopy(locale: locale).t("免费", "Free")) }
-        else if let yuan = E1Money.yuan(amount, locale: locale) { price = Text("activity.pinned.price \(yuan)") }
-        else { price = Text("activity.pinned.price \("¥—")") }
-        let going: Text
-        if let count = ActivityDetailHeaderFacts(detail: detail).registrationCount { going = Text("activity.pinned.going \(count)") }
-        else { going = Text(verbatim: "—") }
-        return price + Text(verbatim: " · ") + going
+        var parts: [Text] = []
+        if let amount, amount == 0 { parts.append(Text(verbatim: CoreLoopCopy(locale: locale).t("免费", "Free"))) }
+        else if let yuan = E1Money.yuan(amount, locale: locale) { parts.append(Text("activity.pinned.price \(yuan)")) }
+        if let count = ActivityDetailHeaderFacts(detail: detail).registrationCount { parts.append(Text("activity.pinned.going \(count)")) }
+        guard var line = parts.first else { return nil }
+        for part in parts.dropFirst() { line = line + Text(verbatim: " · ") + part }
+        return line
     }
     private func registrationAction(_ detail: ActivityDetail) -> some View {
         // Same placement as `.questifyBottomAction`: one primary action pinned above the home indicator.
         VStack(spacing: CYSpacing.xs) {
-            pinnedSummary(detail)
-                .font(CYTypography.meta)
-                .foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("activity.pinned.summary")
+            if let summary = pinnedSummary(detail) {
+                summary
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("activity.pinned.summary")
+            }
             if primaryAction == .signUp {
                 CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { showsRegistration = true }
                     .accessibilityIdentifier("activity.openRegistration")
