@@ -34,7 +34,12 @@ struct NativeChannelNotificationGlobalNavigation {
     var body: some View {
         let ticket = screenGeneration
         Form {
-            Section { CYHeroHeader(verbatim: NativeChannelNotificationPresentation.localized("notification.global.title", locale: locale)).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section {
+                CYHeroHeader(verbatim: NativeChannelNotificationPresentation.localized("notification.global.title", locale: locale))
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.lg, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+            }
             NativeChannelNotificationStatusSection(model: model, perform: { perform($0, expected: ticket) })
             Section { NativeChannelUnreadSummaryContent(model: model) }
             Section {
@@ -48,21 +53,27 @@ struct NativeChannelNotificationGlobalNavigation {
                             NativeChannelNotificationGlobalRow(title: c("global.defaultLevel"),
                                 value: NativeChannelNotificationCopy.level(directory.defaults.effectiveLevel, locale: locale))
                         }
+                        .buttonStyle(.plain)
                         .accessibilityIdentifier("notification.global.defaults")
                     } else {
-                        LabeledContent(c("global.defaultLevel"), value: NativeChannelNotificationCopy.level(directory.defaults.effectiveLevel, locale: locale))
+                        NativeChannelNotificationGlobalRow(title: c("global.defaultLevel"),
+                            value: NativeChannelNotificationCopy.level(directory.defaults.effectiveLevel, locale: locale), navigates: false)
                     }
                 }
                 Section {
                     let overrides = directory.list.filter { !$0.scope.isAccountDefault }
-                    if overrides.isEmpty { Text(c("global.noOverrides")).foregroundStyle(.secondary) }
+                    if overrides.isEmpty {
+                        CYEmptyState(systemImage: "bell.slash", "d7.channelNotify.global.noOverrides", tableName: "NativeChannelNotification")
+                            .listRowBackground(Color.clear)
+                    }
                     ForEach(overrides) { row in
                         Button { open(row.scope, expected: ticket) } label: {
                             NativeChannelNotificationGlobalRow(title: c(row.scope.type == 1 ? "global.channelScope" : "global.clubScope"),
                                 value: NativeChannelNotificationCopy.level(row.effective.level, locale: locale))
                         }
+                        .buttonStyle(.plain)
                     }
-                } header: { Text(c("global.savedOverrides")) }
+                } header: { ChannelNotifyHeading(title: c("global.savedOverrides")) }
             }
         }
         .nativeChannelScreen()
@@ -136,11 +147,32 @@ struct NativeChannelNotificationGlobalNavigation {
 private struct NativeChannelNotificationGlobalRow: View {
     let title: String
     let value: String
+    var navigates = true
+    private var shownTitle: String {
+        let trimmed = title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
+    }
+    private var shownValue: String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
+    }
     var body: some View {
-        HStack {
-            LabeledContent(title, value: value).foregroundStyle(.primary)
-            Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(.tertiary)
-                .accessibilityHidden(true)
+        CYListRow(verbatim: shownTitle, trailing: navigates ? .valueChevron(shownValue) : .value(shownValue)) {
+            CYRowIcon(systemImage: "bell")
         }
+        .accessibilityLabel(Text(verbatim: shownTitle))
+        .accessibilityValue(Text(verbatim: shownValue))
+    }
+}
+
+private struct ChannelNotifyHeading: View {
+    let title: String
+    var body: some View {
+        Text(verbatim: title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : title)
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .textCase(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
     }
 }

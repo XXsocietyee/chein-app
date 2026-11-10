@@ -10,7 +10,6 @@ import SwiftUI
     @State private var readTask: Task<Void, Never>?
     @Environment(\.scenePhase) private var phase
     @Environment(\.themeDomain) private var domain
-    @Environment(\.dynamicTypeSize) private var typeSize
     @Environment(\.dismiss) private var dismiss
     var locateOriginal: ((NativeChannelMessageID) -> Void)?
     private var groups: [(String, [NativeChannelMessageSnapshot])] {
@@ -24,8 +23,10 @@ import SwiftUI
     }
     var body: some View {
         List {
-            CYHeroHeader("search.title", tableName: "NativeChannelMessage")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            Section {
+                CYHeroHeader("search.title", tableName: "NativeChannelMessage")
+                    .channelKitInset(clear: true)
+            }
             Section {
                 TextField("", text: $author, prompt: Text("search.author", tableName: "NativeChannelMessage")).keyboardType(.numberPad)
                     .accessibilityLabel(Text("search.author", tableName: "NativeChannelMessage"))
@@ -35,39 +36,93 @@ import SwiftUI
                 TextField("", text: $to, prompt: Text("search.to", tableName: "NativeChannelMessage"))
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityLabel(Text("search.to", tableName: "NativeChannelMessage"))
-                if invalidFilter { Text("search.invalid", tableName: "NativeChannelMessage").font(.footnote).foregroundStyle(Theme.Color.danger(in: domain)) }
+                if invalidFilter {
+                    Label {
+                        Text("search.invalid", tableName: "NativeChannelMessage")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+                    }
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.dangerText)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
+                }
                 CYPillButton("search.run", tableName: "NativeChannelMessage") { search() }
-            } header: { Text("d7.channelSearch.filters") }
+                    .accessibilityLabel(Text("search.run", tableName: "NativeChannelMessage"))
+                    .channelKitInset(clear: true)
+            } header: {
+                CYSectionHeader("d7.channelSearch.filters")
+            }
             if model.isCurrent {
                 if let oldest = model.oldestSearchableAt {
-                    LabeledContent { Text(verbatim: oldest) } label: { Text("search.retention", tableName: "NativeChannelMessage") }
+                    LabeledContent {
+                        Text(verbatim: shown(oldest)).font(CYTypography.numericBody).monospacedDigit()
+                    } label: { Text("search.retention", tableName: "NativeChannelMessage") }
                 }
                 if let reason = model.degradedReason {
-                    Label { Text(LocalizedStringKey(degradationKey(reason)), tableName: "NativeChannelMessage") } icon: { Image(systemName: "info.circle") }
-                        .font(.footnote).foregroundStyle(.secondary)
+                    Label {
+                        Text(LocalizedStringKey(degradationKey(reason)), tableName: "NativeChannelMessage")
+                    } icon: {
+                        Image(systemName: "info.circle").accessibilityHidden(true)
+                    }
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityElement(children: .combine)
                 }
                 ForEach(groups, id: \.0) { group in
-                    Section(group.0) {
+                    Section {
                         ForEach(group.1, id: \.id) { row in
-                            Button { if model.isCurrent { locateOriginal?(row.id) } } label: { Text(verbatim: row.content ?? "—").lineLimit(typeSize.isAccessibilitySize ? nil : 4).fixedSize(horizontal: false, vertical: true) }
-                                .disabled(locateOriginal == nil).accessibilityIdentifier("ncm47.search.\(row.id.rawValue)")
+                            Button { if model.isCurrent { locateOriginal?(row.id) } } label: {
+                                CYListRow(verbatim: shown(row.content), trailing: locateOriginal == nil ? CYListRowTrailing.none : .chevron) {
+                                    ChannelCoverTile(seed: row.id.rawValue, symbol: symbol(for: row.kind))
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(locateOriginal == nil)
+                            .accessibilityIdentifier("ncm47.search.\(row.id.rawValue)")
+                            .accessibilityLabel(Text(verbatim: shown(row.content)))
                         }
+                    } header: {
+                        Text(verbatim: group.0)
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .textCase(nil)
+                            .accessibilityAddTraits(.isHeader)
                     }
                 }
-                if model.rows.isEmpty && model.query != nil && !model.loading && !model.failed { ContentUnavailableView.search(text: keyword) }
-                if model.hasMore { Button { more() } label: { Text("search.more", tableName: "NativeChannelMessage") }.disabled(model.loading) }
-            } else { ContentUnavailableView { Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") } } }
-            if model.loading { CYSkeleton().frame(maxWidth: .infinity) }
+                if model.rows.isEmpty && model.query != nil && !model.loading && !model.failed {
+                    CYEmptyState(systemImage: "magnifyingglass", "search.empty", tableName: "NativeChannelMessage", kind: .search)
+                        .channelKitInset(clear: true)
+                }
+                if model.hasMore {
+                    CYPillButton("search.more", style: .secondary, tableName: "NativeChannelMessage") { more() }
+                        .disabled(model.loading)
+                        .accessibilityLabel(Text("search.more", tableName: "NativeChannelMessage"))
+                        .channelKitInset(clear: true)
+                }
+            } else {
+                CYEmptyState(systemImage: "lock", "access.closed", tableName: "NativeChannelMessage")
+                    .channelKitInset(clear: true)
+            }
+            if model.loading { CYSkeleton().channelKitInset(clear: true) }
             if model.failed {
                 Section {
-                    Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
-                        .foregroundStyle(Theme.Color.danger(in: domain))
-                    CYPillButton("messaging.retry", style: .secondary) { search() }
-                        .disabled(!model.isCurrent || model.loading || phase != .active)
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        "load.failed",
+                        tableName: "NativeChannelMessage",
+                        actionTitle: "messaging.retry",
+                        actionStyle: .secondary,
+                        kind: .failure
+                    ) { search() }
+                    .disabled(!model.isCurrent || model.loading || phase != .active)
+                    .channelKitInset(clear: true)
                 }
             }
         }
         .nativeChannelScreen()
+        .listStyle(.insetGrouped)
         .tint(Theme.Color.accent(in: domain))
         .searchable(text: $keyword, prompt: Text("search.keyword", tableName: "NativeChannelMessage"))
         .onSubmit(of: .search, search)
@@ -82,6 +137,23 @@ import SwiftUI
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .onDisappear { retireRead() }
         .privacySensitive()
+    }
+    /// Unknown copy is an em dash. A real value, including a real 0, stays as written.
+    private func shown(_ value: String?) -> String {
+        let trimmed = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return trimmed.isEmpty ? "—" : (value ?? "—")
+    }
+    private func symbol(for kind: NativeChannelMessageKind) -> String {
+        switch kind {
+        case .image: return "photo"
+        case .voice: return "waveform"
+        case .video: return "video"
+        case .file: return "doc"
+        case .location: return "mappin.and.ellipse"
+        case .poll, .pollResult: return "chart.bar"
+        case .card: return "rectangle.on.rectangle"
+        default: return "text.bubble"
+        }
     }
     private func search() {
         guard phase == .active, model.isCurrent else { retireRead(); return }
@@ -109,5 +181,35 @@ import SwiftUI
         case "SHORT_KEYWORD_AND_RETENTION_BOUNDARY": return "search.shortAndClipped"
         default: return "search.degraded"
         }
+    }
+}
+
+private struct ChannelCoverTile: View {
+    let seed: String
+    let symbol: String
+    var body: some View {
+        Color.clear
+            .frame(width: 40, height: 40)
+            .overlay {
+                CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false, cornerRadius: CYRadius.sm)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+private struct ChannelKitInset: ViewModifier {
+    var clear = false
+    func body(content: Content) -> some View {
+        content
+            .listRowSeparator(.hidden)
+            .listRowBackground(clear ? Color.clear : CYColor.bgElevated)
+            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+    }
+}
+
+private extension View {
+    func channelKitInset(clear: Bool = false) -> some View {
+        modifier(ChannelKitInset(clear: clear))
     }
 }
