@@ -55,11 +55,7 @@ import SwiftUI
                     }
                 }.cyGroupedSurface()
             } else {
-                let canReopen = session.currentRuntimeDependencyContext == context && scenePhase == .active
-                CYEmptyState(
-                    systemImage: "dice", "行动额度暂不可用", detail: "保留原请求，不会自动重新提交。",
-                    actionTitle: canReopen ? "重新打开" : nil,
-                    action: canReopen ? reopen : nil)
+                unavailable
             }
         }
         .navigationTitle("行动额度")
@@ -68,6 +64,14 @@ import SwiftUI
         .onChange(of: identityVersion) { _, _ in model.close() }
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.close() } }
         .onDisappear { model.close() }
+    }
+    @ViewBuilder private var unavailable: some View {
+        if session.currentRuntimeDependencyContext == context && scenePhase == .active {
+            CYEmptyState(systemImage: "dice", "行动额度暂不可用", detail: "保留原请求，不会自动重新提交。",
+                         actionTitle: "重新打开", action: { reopen() })
+        } else {
+            CYEmptyState(systemImage: "dice", "行动额度暂不可用", detail: "保留原请求，不会自动重新提交。")
+        }
     }
     private func reopen() { Task { await model.open() } }
     private var complete: Bool { if case .complete = model.display { return true }; return false }
