@@ -200,7 +200,7 @@ public struct ClubGroupCodePage: Equatable {
 
     public init(snapshot: ClubGovernanceSnapshot) {
         let capability = ClubGroupCodeCapability(permissions: snapshot.permissions, scope: snapshot.scope)
-        guard snapshot.operation == readOperation, capability.granted else {
+        guard snapshot.operation == Self.readOperation, capability.granted else {
             self = .loading(clientCapabilityPresent: false)
             return
         }
