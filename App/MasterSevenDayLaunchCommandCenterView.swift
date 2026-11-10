@@ -153,76 +153,136 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
         self.snapshot = snapshot
     }
 
+    private var gutter: EdgeInsets {
+        EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
+    }
+
     public var body: some View {
-        Group {
-            summarySection
-            pillarsSection
-        }
-    }
-
-    private var summarySection: some View {
-        Section {
-            LabeledContent {
-                CYStatusChip(verbatim: snapshot.isCommandCenterLaunchReady
-                    ? "LAUNCH READY (6/6 Pillars Verified)"
-                    : "NOT VERIFIED (\(snapshot.blockedPillarCount) Pillar(s) Pending)",
-                    tone: snapshot.isCommandCenterLaunchReady ? .success : .warning,
-                    systemImage: snapshot.isCommandCenterLaunchReady ? "checkmark.circle" : "exclamationmark.triangle")
-            } label: {
-                Text(verbatim: "Command Center Status")
-            }
-            .accessibilityIdentifier("sevenDayCommandCenter.summary.status")
-
-            LabeledContent {
-                Text(verbatim: snapshot.targetWindowLabel)
-            } label: {
-                Text(verbatim: "Execution Window")
-            }
-            .accessibilityIdentifier("sevenDayCommandCenter.summary.window")
-
-            LabeledContent {
-                Text(verbatim: snapshot.nativeSupersetPolicyEnforced
-                    ? "Enforced (Mini-Program Parity + Gated App Superset)"
-                    : "Policy Drift")
-            } label: {
-                Text(verbatim: "Native Superset Policy")
-            }
-            .accessibilityIdentifier("sevenDayCommandCenter.summary.supersetPolicy")
-
-            LabeledContent {
-                Text(verbatim: snapshot.zeroGapCertificateIssued ? "Issued (0 Unowned Gaps)" : "Pending")
-            } label: {
-                Text(verbatim: "Final Zero-Gap Certificate")
-            }
-            .accessibilityIdentifier("sevenDayCommandCenter.summary.zeroGap")
-        } header: {
-            Text(verbatim: "Master 7-Day Launch Command Center")
-        } footer: {
-            Text(verbatim: "Ready pillars: \(snapshot.readyPillarCount)/\(snapshot.pillars.count).")
-                .accessibilityIdentifier("sevenDayCommandCenter.summary.footer")
-        }
-    }
-
-    private var pillarsSection: some View {
-        Section {
-            ForEach(snapshot.pillars) { item in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(alignment: .top, spacing: 8) {
-                        Text(verbatim: item.title)
-                            .font(.subheadline)
-                        Spacer()
-                        CYStatusChip(verbatim: item.statusBadge, tone: snapshot.isCommandCenterLaunchReady ? .success : .warning)
-                            .accessibilityIdentifier("sevenDayCommandCenter.pillar.badge.\(item.id)")
-                    }
-                    Text(verbatim: item.summary)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+        List {
+            CYHeroHeader(verbatim: "Master 7-Day Launch Command Center")
+                .listRowBackground(Color.clear)
+                .listRowInsets(gutter)
+            Section {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: "\(snapshot.readyPillarCount)")
+                        .font(CYTypography.dataXL)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accessibilityHidden(true)
+                    Text(verbatim: "Ready pillars: \(snapshot.readyPillarCount)/\(snapshot.pillars.count).")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("sevenDayCommandCenter.summary.footer")
                 }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("sevenDayCommandCenter.pillar.\(item.id)")
+                .listRowInsets(gutter)
+                .listRowBackground(Color.clear)
+                statusRow
+                fact("Execution Window", value: shown(snapshot.targetWindowLabel), systemImage: "calendar", identifier: "sevenDayCommandCenter.summary.window")
+                fact(
+                    "Native Superset Policy",
+                    value: snapshot.nativeSupersetPolicyEnforced
+                        ? "Enforced (Mini-Program Parity + Gated App Superset)"
+                        : "Policy Drift",
+                    systemImage: "square.stack.3d.up",
+                    identifier: "sevenDayCommandCenter.summary.supersetPolicy"
+                )
+                fact(
+                    "Final Zero-Gap Certificate",
+                    value: snapshot.zeroGapCertificateIssued ? "Issued (0 Unowned Gaps)" : "Pending",
+                    systemImage: snapshot.zeroGapCertificateIssued ? "checkmark.seal" : "seal",
+                    identifier: "sevenDayCommandCenter.summary.zeroGap"
+                )
             }
-        } header: {
-            Text(verbatim: "7-Day Launch Command Pillars (6 Pillars)")
+            Section {
+                ForEach(Array(snapshot.pillars.enumerated()), id: \.element.id) { index, item in
+                    pillar(item)
+                        .cyStaggerAppear(index)
+                        .listRowInsets(gutter)
+                        .listRowBackground(Color.clear)
+                }
+            } header: {
+                Text(verbatim: "7-Day Launch Command Pillars (6 Pillars)")
+            }
+        }
+        .listStyle(.plain)
+        .cyGroupedSurface()
+        .cyHeroScreen()
+    }
+
+    private var statusSentence: String {
+        snapshot.isCommandCenterLaunchReady
+            ? "LAUNCH READY (6/6 Pillars Verified)"
+            : "NOT VERIFIED (\(snapshot.blockedPillarCount) Pillar(s) Pending)"
+    }
+
+    private var statusRow: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: "Command Center Status")
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYStatusChip(
+                verbatim: statusSentence,
+                tone: snapshot.isCommandCenterLaunchReady ? .success : .warning,
+                systemImage: snapshot.isCommandCenterLaunchReady ? "checkmark.circle" : "exclamationmark.triangle"
+            )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("sevenDayCommandCenter.summary.status")
+        .listRowInsets(gutter)
+        .listRowBackground(Color.clear)
+    }
+
+    private func fact(_ title: String, value: String, systemImage: String, identifier: String) -> some View {
+        CYListRow(verbatim: title, meta: shown(value), trailing: .none) {
+            CYRowIcon(systemImage: systemImage)
+        }
+        .accessibilityIdentifier(identifier)
+        .listRowInsets(gutter)
+        .listRowBackground(Color.clear)
+    }
+
+    private func pillar(_ item: SevenDayCommandPillarItem) -> some View {
+        let failed = item.statusBadge == "FAILED"
+        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYListRow(verbatim: shown(item.title), meta: shown(item.summary), trailing: .none) {
+                CYRowIcon(systemImage: symbol(for: item.pillarType))
+            }
+            CYStatusChip(
+                verbatim: item.statusBadge,
+                tone: item.isReady ? .success : (failed ? .danger : .warning),
+                systemImage: item.isReady ? "checkmark.circle" : (failed ? "xmark.octagon" : "exclamationmark.triangle")
+            )
+            .accessibilityIdentifier("sevenDayCommandCenter.pillar.badge.\(item.id)")
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("sevenDayCommandCenter.pillar.\(item.id)")
+    }
+
+    private func symbol(for type: SevenDayCommandPillarItem.PillarType) -> String {
+        switch type {
+        case .dayOneToSevenCriticalPath: return "calendar"
+        case .nativeSupersetOverMiniProgramPolicy: return "square.stack.3d.up"
+        case .finalZeroGapCertificate: return "checkmark.seal"
+        case .appStoreReviewDemoReadiness: return "iphone"
+        case .accountDeletionAndPIPLCompliance: return "person.crop.circle.badge.minus"
+        case .runtimeCrashCacheKeychainResilience: return "lock.shield"
         }
     }
+
+    /// Blank copy is unknown. A real 0 in a count or in "Issued (0 Unowned Gaps)" stays 0.
+    private func shown(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
+    }
+}
+
+#Preview("Player") {
+    NavigationStack { MasterSevenDayLaunchCommandCenterView().themeDomain(.player) }
+}
+
+#Preview("Merchant") {
+    NavigationStack { MasterSevenDayLaunchCommandCenterView().themeDomain(.merchant) }
 }

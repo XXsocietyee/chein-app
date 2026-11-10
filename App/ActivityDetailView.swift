@@ -93,9 +93,11 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
-    @State private var access: ActivityDetailAccess?
-    @State private var loading=false
-    @State private var failed=false
+    /// Load lifecycle (docs/release/state-machines/views.md). `.idle` renders the loading skeleton so the task host stays mounted.
+    @State private var phase: CYPhase<ActivityDetailAccess, Void> = .idle
+    private var access: ActivityDetailAccess? { phase.value }
+    /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
+    private func settleLoading() { if phase.isLoading { phase = .idle } }
     @State private var generation=0
     @State private var loads = SignedInContentDetailLoadOwner()
     @State private var showsShare = false
@@ -111,8 +113,9 @@ struct ActivityDetailView: View {
         // Group with nil access produces EmptyView, which cannot host the initial task.
         // Keep one concrete root for the task and navigation title through every state.
         ZStack {
-            if loading { loadingState }
-            else if failed {
+            switch phase {
+            case .loading, .idle, .empty: loadingState
+            case .failed:
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
                         CYStateArt(kind: .failure)
@@ -128,14 +131,14 @@ struct ActivityDetailView: View {
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.vertical, CYSpacing.xl)
                 }
-            } else if let access {
+            case .loaded(let access):
                 switch access {
                 case .clubRequired(_, let message):
                     clubGate(message)
                 case .allowed(let detail):
                     detailContent(detail)
                 }
-            } else { loadingState }
+            }
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
@@ -153,7 +156,7 @@ struct ActivityDetailView: View {
         .cyDomainPageBackground()
         .task(id:id) { await loads.run { await load() } }
         .onAppear { gateIsVisible = true; gatePresentationID = UUID() }
-        .onDisappear { loads.cancel(); generation += 1; loading = false }
+        .onDisappear { loads.cancel(); generation += 1; settleLoading() }
         .onDisappear { gateIsVisible = false; gatePresentationID = UUID() }
         .onChange(of: id) { _, value in
             latestGateActivityID = value; gateReadID = nil; requiredClubSelection = nil
@@ -480,22 +483,22 @@ struct ActivityDetailView: View {
         latestGateReaderID = capturedReaderID; latestGateActivityID = capturedActivityID
         gateReadID = nil; gateActivityID = nil; gateReaderID = nil; gateReaderIdentity = nil; requiredClubSelection = nil
         let profileIdentity = peopleProfile?.reader.identity
-        loading=true;failed=false;access=nil;loadedProfileIdentity=nil
+        phase = .loading;loadedProfileIdentity=nil
         profileSelection=nil;loadedPeopleSnapshotID=nil
-        defer { if generation == operation { loading=false } }
+        defer { if generation == operation { settleLoading() } }
         do {
             let result=try await reader.activityDetail(id:id)
             try Task.checkCancellation()
             if generation == operation, profileIdentity == peopleProfile?.reader.identity,
                latestGateReaderID == capturedReaderID, latestGateActivityID == capturedActivityID,
                capturedReaderIdentity == reader.activityPresentationIdentity {
-                access=result; loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
+                phase = .loaded(result); loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
                 gateActivityID = capturedActivityID; gateReaderID = capturedReaderID
                 gateReaderIdentity = capturedReaderIdentity; gateReadID = UUID()
             }
         }
         catch is CancellationError { }
-        catch { if generation == operation, !Task.isCancelled { failed=true } }
+        catch { if generation == operation, !Task.isCancelled { phase = .failed((), retry: nil) } }
     }
 }
 
