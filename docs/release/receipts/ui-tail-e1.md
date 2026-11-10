@@ -37,57 +37,32 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 - SKIPPED SecondRegistrationStatsView: operator/merchant analytics report (rates, exclusions), debug-fixture only, no player surface (light/merchant-side).
 - SKIPPED SessionGlobalSearchView, SessionHomeFeedView, SessionTopicBrowserView, SessionTopicSelfPlayView: pure host wiring (environment injection, toolbar menu entries, `Session*` is on the never-edit list); no restylable view content.
 
+## Batch 10
+- DONE ShopNPCScriptedGuideView (tokens + pill), SquareRelatedTopicView (secondary pill link), SupportTicketReadView (hero, kit list rows, empty state, pills, skeleton), TemplateAdditionalSampleBrowserView (hero, CYListRow sample links, pills, tabular dice numbers).
+- SKIPPED ShopNPCFixtureView: DEBUG-only synthetic fixture host (no production UI).
 
-## e4-lane worker pass (second worker, same list)
-Coordinator brief said e1 works from the END; ui/main already carried the e1 worker's batches 1-9 (same start-of-list files) when this worker merged, so this worker's duplicate restyles of items 1-41 were dropped in favour of the ui/main versions (merge took ui/main on every conflict). Only these non-overlapping changes were kept:
-| File | Result |
-| --- | --- |
-| App/RegistrationSheetView.swift | CYPillButton for 11 secondary actions, CYLoadingStateView for 8 spinners (checkout bar/alerts untouched) |
-| App/ShopNPCScriptedGuideView.swift | CYPillButton return |
-| App/SquareRelatedTopicView.swift | CYPillButton view-topic |
-| App/SupportTicketReadView.swift | CYHeroHeader, cyGroupedSurface, 6 CYPillButton, CYLoadingStateView |
-| App/SessionTopicSelfPlayView.swift, App/ShopNPCFixtureView.swift (#if DEBUG) | skipped: wrapper / DEBUG fixture |
+## Batch 11
+- TemplateAdvancedGameConfigurationView (hero, rehearse links -> CYListRow), TemplateAuthoringLaunchView (hero, primary pill + kit rows), TemplateAuthoringMineView (hero, kit rows/pills, skeleton, read-state copy), TemplateAuthoringView (hero for editor/review/preview, pills for secondary actions; existing questifyPrimary publish/continue kept), TemplateCoinFlipRehearsalView (hero, pills, data numerals). Creator/authoring = player surface, dark.
 
-## Second worker, range 66-88 (coordinator: e1 owns 42-65)
-No file of 66-88 is on a ui/cloud-* branch.
-### Batch A (66-70)
-| File | Result |
-| --- | --- |
-| App/TemplatePreferencePreviewView.swift | skipped: result-row fragment inside host Form, no title/buttons/states |
-| App/TemplateReactionRehearsalView.swift | done: CYHeroHeader, cyGroupedSurface, CYPillButton reload/reset |
-| App/TemplateReasoningRehearsalView.swift | done: CYHeroHeader (table key), CYPillButton retry/reload |
-| App/TemplateRootAuthoringView.swift | done (light): CYPillButton add actions; editor titles stay in nav bar (EditButton toolbar), destructive clear stays role button |
-| App/TemplateRootRehearsalView.swift | done: CYHeroHeader x2, CYPillButton evaluate (primary)/reset |
-### Batch B (71-75)
-| File | Result |
-| --- | --- |
-| App/TemplateSampleBrowserView.swift | done: CYHeroHeader, cyGroupedSurface, CYPillButton preview |
-| App/TemplateSensorDraftConfigurationView.swift | done: CYHeroHeader, CYEmptyState unavailable, cyGroupedSurface (preview screen only) |
-| App/TemplateSensorRehearsalView.swift | done: CYHeroHeader, CYPillButton advance (primary)/reload; determinate ProgressView kept |
-| App/TemplateTimerRehearsalView.swift | done: CYHeroHeader (dynamic kind title), CYPillButton start/resume/again primary, rest secondary |
-| App/TopicDetailView.swift | done: CYLoadingStateView, CYPillButton (paywall unlock primary, review/self-play secondary) |
-### Batch C (76-80)
-| File | Result |
-| --- | --- |
-| App/TopicSessionSelectionView.swift | done: CYEmptyState for missing-data/empty (ids kept); activity rows and toolbar close unchanged |
-| App/TopicThemeRecordsView.swift | done: CYLoadingStateView, CYPillButton reload |
-| App/WorkshopCommerceView.swift | done (partial): 9 refresh/more/cancel/return buttons to CYPillButton, CYLoadingStateView; buttons with custom full-width labels/modifiers and the tabled unavailable ContentUnavailableView left (CYEmptyState has no tabled detail) |
-| App/WorkshopCreatorConsentView.swift | done: CYPillButton declare (primary)/another/refresh, CYLoadingStateView |
-| App/WorkshopCreatorPendingView.swift | done: CYPillButton retry/another/more/refresh/author, CYLoadingStateView |
-### Batch D (81-88)
-| File | Result |
-| --- | --- |
-| App/WorkshopLicenseLibraryView.swift | done: CYLoadingStateView, CYPillButton refresh/next/reopen |
-| App/WorkshopModUpgradeSheetView.swift | done: CYPillButton confirm (primary), success token colour |
-| App/WorkshopOwnedLibraryView.swift | done (partial): CYLoadingStateView x2, CYPillButton retry/open-package; tabled ContentUnavailableView unavailable kept |
-| App/WorkshopOwnedPackageView.swift | done: CYLoadingStateView, CYPillButton retry |
-| App/WorkshopPaidInstallView.swift | done: CYLoadingStateView x3, CYPillButton confirm (primary) + 9 secondary; Back/close toolbar items and role .cancel button untouched |
-| App/WorkshopPaidInstalledTextView.swift | done: CYLoadingStateView, CYPillButton retry |
-| App/WorkshopPaidProfessionalView.swift | done: CYLoadingStateView, CYPillButton (start review / confirm create primary, rest secondary) |
-| App/WorkshopPurchasedLibraryView.swift | done (partial): CYLoadingStateView, CYPillButton retry; tabled unavailable view kept |
+## Batch 12
+- TemplateCreatorConfigurationView (hero, kit rows, check-preset screen pills; the deep nested field editors keep their native Form chrome), TemplateCreatorRehearsalView, TemplateD6RehearsalView, TemplateEffectListView, TemplateHotspotPlacementView: hero, grouped surface, pills, tokens, skeleton. Dynamic Type: inline button HStacks in effect/hotspot rows left as native borderless controls.
 
-## Summary (second worker, items 66-88)
-23 files: 21 restyled (some partially, as noted), 2 skipped (TemplatePreferencePreviewView fragment; none merchant-only, none on ui/cloud-*). No new string keys (all existing keys reused); `docs/release/ui-strings-e1-tail.json` is `[]`. Items 1-41 were duplicated work and dropped in favour of ui/main; 42-65 belong to e1.
+## Batch 13
+- TemplateImageCropView (pill actions, one primary), TemplateLegacyQuestionRehearsalView, TemplateLocalCategoryRemovalView, TemplateMiniGameConfigurationView (fragment: preview link row + preview hero), TemplatePreferencePreviewView (fragment: tokens): hero, grouped surface, pills, tokens.
 
-## Coordinator follow-up: Favorites > Posts
-App/AccountCollectionFavoritesView.swift: each post is now its own elevated card (16 padding, 16 radius, hairline border, 12pt gap via the existing card row); the offline "Example content" header is a one-line CYStatusChip (was a clipped caption row); App/SquareComponents.swift: compact post text limited to 3 lines (was 5). Not done: the mixed zh/en synthetic post text comes from Core/SquareSyntheticFixtures.swift (Core is off limits for this task); em dash for unknown like/comment counts needs an optional count in the model, not a presentation change.
+## Batch 14
+- TemplateReactionRehearsalView (raw .green/.red/.secondary -> CY tokens, data numerals, pills), TemplateReasoningRehearsalView, TemplateRootAuthoringView (rules form + low-HP preset), TemplateRootRehearsalView (+ D20), TemplateSampleBrowserView: hero, grouped surface, kit rows, pills.
+
+## Batch 15
+- TemplateSensorDraftConfigurationView (fragment + preview screen), TemplateSensorRehearsalView, TemplateTimerRehearsalView (+ outcome editor), TopicDetailView (already kit-ported earlier: loading skeleton, single hero via cover/name, pills for review/self-play/unlock, chapter hero), TopicSessionSelectionView (hero, kit empty states, icon rows).
+
+## Batch 16
+- TopicThemeRecordsView (records + card: hero, kit empty/error states, skeleton), WorkshopCommerceView (shared `WorkshopLibrarySurface` / `WorkshopLibraryPrimaryAction` modifiers now use CY page background + CYPillButtonStyle, so every Workshop library screen picks it up; entry empty state, hero), WorkshopCreatorConsentView, WorkshopCreatorPendingView, WorkshopLicenseLibraryView: hero, pills, skeletons, tokens. Workshop = player-side (creator/buyer library), dark.
+
+## Batch 17-18 (Workshop tail)
+- WorkshopModUpgradeSheetView (token fonts + semantic colours, grouped surface; kit primary button kept), WorkshopOwnedLibraryView, WorkshopOwnedPackageView, WorkshopPaidInstallView, WorkshopPaidInstalledTextView, WorkshopPaidProfessionalView, WorkshopPurchasedLibraryView: spinners -> skeleton blocks with the same VoiceOver label, single-line text-label buttons -> CYPillButtonStyle (primary only for confirm/review/submit), type styles -> CYTypography. These screens keep their existing native navigation title as the ONE visible title (no hero added); row buttons, toolbar close buttons and state-machine logic untouched. ContentUnavailableView states in OwnedLibrary/PurchasedLibrary left as the system component (they carry multi-line label/description pairs from the Workshop tables).
+
+## Status
+- 88 files in tail-e1.txt: 81 restyled, 7 skipped with reasons (RegistrationSheetView already restyled in earlier e1 passes; SecondRegistrationStatsView analytics/merchant-side; SessionGlobalSearchView / SessionHomeFeedView / SessionTopicBrowserView / SessionTopicSelfPlayView pure host wiring; ShopNPCFixtureView DEBUG-only).
+- Cloud Build green at cbd5234e3 (final head, includes merged origin/ui/main). Test - iOS reports action_required on every commit, including origin/ui/main itself, from the GLTFKit2 "unsupported Swift architecture" runner error (not code). 
+- Fix-forwards: BundleOrderStatusView (`== .failed` on an associated-value enum), CityActionBudgetView (another lane's body hit a type-checker timeout after merge).

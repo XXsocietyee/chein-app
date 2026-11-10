@@ -14,7 +14,7 @@ import SwiftUI
                     Section("行动额度") {
                         Text("仅记录掷骰结果，不移动、不发奖。")
                         if let state = model.state {
-                            CYStatusChip(verbatim: status(state.status), tone: tone(state.status), systemImage: "dice")
+                            CYStatusChip(verbatim: status(state.status), tone: statusTone(state.status), systemImage: "dice")
                             if let remaining = state.remainingUnits { Text("剩余额度：\(remaining)") }
                             if let cost = state.rules?.rollCost { Text("每次消耗：\(cost)") }
                             if let dice = state.dice { Text("骰子：\(dice.diceId)") }
@@ -55,7 +55,7 @@ import SwiftUI
                     }
                 }.cyGroupedSurface()
             } else {
-                unavailableState
+                unavailable
             }
         }
         .navigationTitle("行动额度")
@@ -65,23 +65,23 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.close() } }
         .onDisappear { model.close() }
     }
-    private func tone(_ value: String) -> CYStatusTone {
-        switch value {
-        case "EXHAUSTED", "NOT_CONFIGURED": return .warning
-        case "AVAILABLE": return .success
-        default: return .neutral
-        }
-    }
-    @ViewBuilder private var unavailableState: some View {
+    @ViewBuilder private var unavailable: some View {
         if session.currentRuntimeDependencyContext == context && scenePhase == .active {
             CYEmptyState(systemImage: "dice", "行动额度暂不可用", detail: "保留原请求，不会自动重新提交。",
-                         actionTitle: "重新打开", action: reopen)
+                         actionTitle: "重新打开", action: { reopen() })
         } else {
             CYEmptyState(systemImage: "dice", "行动额度暂不可用", detail: "保留原请求，不会自动重新提交。")
         }
     }
     private func reopen() { Task { await model.open() } }
     private var complete: Bool { if case .complete = model.display { return true }; return false }
+    private func statusTone(_ value: String) -> CYStatusTone {
+        switch value {
+        case "EXHAUSTED", "NOT_CONFIGURED": return .warning
+        case "AVAILABLE": return .success
+        default: return .neutral
+        }
+    }
     private func status(_ value: String) -> String {
         switch value {
         case "JOIN_REQUIRED": "请先加入城市队伍"
