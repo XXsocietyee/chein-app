@@ -49,3 +49,12 @@ Embedded editor sections (no own screen/title): kit buttons only. Confirm-save i
 | App/NativeRpgPassiveRulesAuthorView.swift | done |
 | App/NativeRpgEnvironmentAuthorView.swift | done |
 | App/NativeRpgConditionAuthorView.swift | done |
+
+## Batch 6 (reverse order)
+| File | Result |
+| --- | --- |
+| App/NativeProgressPrivacyView.swift | done: hero, CYPillButton recover/confirm/cancel/refresh |
+| App/NativeNotificationPermissionNudgeView.swift | done: hero, CYPillButton request/settings (one primary) |
+| App/NativeConditionAuthorView.swift | done: hero (root list), CYPillButton save |
+| App/NativeChannelProgressPrivacyView.swift | done: hero, CYEmptyState closed, CYLoadingStateView, CYPillButton save/recover |
+| App/NativeChannelNotificationGlobalView.swift | done: hero, one visible title |
