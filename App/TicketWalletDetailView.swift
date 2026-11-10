@@ -231,7 +231,6 @@ struct TicketWalletPlayProvider {
 private struct TicketWalletDetailHeader: View {
     let ticket: TicketWalletTicket
     @Environment(\.locale) private var locale
-    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
         let expiry = TicketExpiryAndOrderStatusRules.passExpiryText(validUntil: ticket.endDate)
@@ -241,43 +240,9 @@ private struct TicketWalletDetailHeader: View {
             verificationStatus: ticket.verificationStatus,
             productType: ticket.productType
         )
-        VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            HStack(alignment: .center, spacing: CYSpacing.md) {
-                TicketWalletStatusBadge(status: ticket.status)
-                if !expiry.isEmpty {
-                    Text(verbatim: c.tr(expiry))
-                        .font(CYTypography.caption)
-                        .foregroundStyle(CYColor.warningText)
-                }
-                Spacer(minLength: 0)
-            }
-            TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("ticketWallet.detail.title")
-            // Reference 042: one large poster tile under the heavy title. No ticket image URL exists in the model.
-            if !dynamicTypeSize.isAccessibilitySize {
-                CYColor.bgRaised
-                    .aspectRatio(4 / 3, contentMode: .fit)
-                    .overlay { Image(systemName: "ticket").font(.system(size: 44)).foregroundStyle(CYColor.textTertiary) }
-                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                    .accessibilityHidden(true)
-            }
-            VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                if let date = ticket.participateDate, !date.isEmpty {
-                    QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
-                }
-                if let place = ticket.addressName, !place.isEmpty {
-                    QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
-                }
-            }
-            if let notice = fulfillment.fulfillmentNotice {
-                Text(verbatim: c.tr(notice))
-                    .font(CYTypography.caption)
-                    .foregroundStyle(CYColor.textSecondary)
-            }
-        }
-        .orderCardSurface()
+        E1TicketCard(ticket: ticket,
+                     fulfillmentNotice: fulfillment.fulfillmentNotice.map { c.tr($0) },
+                     expiryText: expiry.isEmpty ? nil : c.tr(expiry))
     }
 }
 

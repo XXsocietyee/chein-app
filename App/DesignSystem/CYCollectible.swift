@@ -7,9 +7,14 @@ import SwiftUI
 /// socket with a lock (never a fake progress number). Pure decoration for the badge's text, so it is hidden from VoiceOver.
 struct CYBadgeMedal: View {
     var seed: String
-    var symbol: String = "medal.fill"
+    /// nil = a motif picked from the seed, so each badge gets its own mark.
+    var symbol: String? = nil
     var locked = false
     var size: CGFloat = 84
+
+    private static let motifs = ["moon.stars.fill", "mappin.and.ellipse", "flame.fill", "camera.fill", "leaf.fill", "star.fill", "bolt.fill", "heart.fill",
+                                 "figure.walk", "cup.and.saucer.fill", "ticket.fill", "binoculars.fill", "sun.max.fill", "bicycle"]
+    private var glyph: String { symbol ?? Self.motifs[Int(CYCoverArt.stableHash(seed) % UInt64(Self.motifs.count))] }
 
     var body: some View {
         ZStack {
@@ -20,13 +25,13 @@ struct CYBadgeMedal: View {
                     .font(.system(size: size * 0.32, weight: .semibold))
                     .foregroundStyle(CYColor.textTertiary)
             } else {
-                CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false, showsGlyph: false).clipShape(Circle())
+                CYCoverArt(seed: seed, symbol: glyph, showsDebugLabel: false, showsGlyph: false).clipShape(Circle())
                 Circle().fill(LinearGradient(colors: [.white.opacity(0.38), .clear], startPoint: .topLeading, endPoint: .center))
                 Circle().strokeBorder(
                     AngularGradient(colors: [Color(red: 1.0, green: 0.84, blue: 0.40), .white, Color(red: 0.95, green: 0.65, blue: 0.20),
                                              Color(red: 1.0, green: 0.84, blue: 0.40)], center: .center),
                     lineWidth: max(3, size * 0.06))
-                Image(systemName: symbol)
+                Image(systemName: glyph)
                     .font(.system(size: size * 0.38, weight: .semibold))
                     .foregroundStyle(.white)
                     .shadow(color: .black.opacity(0.35), radius: 3, y: 2)
@@ -41,10 +46,11 @@ struct CYBadgeMedal: View {
 /// Collection-grid tile: medal, name, state. Unknown dates stay a dash.
 struct CYBadgeTile: View {
     var seed: String
-    var symbol: String = "medal.fill"
+    var symbol: String? = nil
     var locked: Bool
     var name: Text
     var status: Text
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
@@ -53,8 +59,8 @@ struct CYBadgeTile: View {
                 .font(CYTypography.bodyCompact.weight(.semibold))
                 .foregroundStyle(locked ? CYColor.textSecondary : CYColor.textPrimary)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .minimumScaleFactor(0.85)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.85)
             status
                 .font(CYTypography.meta)
                 .foregroundStyle(locked ? CYColor.textTertiary : CYColor.successText)
@@ -63,7 +69,9 @@ struct CYBadgeTile: View {
         .padding(.vertical, CYSpacing.lg)
         .padding(.horizontal, CYSpacing.sm)
         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        // One stop: "name, state". The medal art is decorative; locked tiles are announced as dimmed via their status text.
         .accessibilityElement(children: .combine)
+        .accessibilitySortPriority(locked ? 0 : 1)
     }
 }
 
@@ -170,5 +178,31 @@ private struct CYStampSlam: ViewModifier {
     private func settle() {
         guard active, !done else { return }
         withAnimation(reduceMotion ? nil : .spring(response: 0.38, dampingFraction: 0.55)) { done = true }
+    }
+}
+
+/// Collection progress ring (earned of total). Total 0 shows an empty ring and a dash, never a fake zero percent.
+struct CYCountRing: View {
+    var value: Int
+    var total: Int
+    var size: CGFloat = 56
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var shown = false
+    private var fraction: CGFloat { total > 0 ? CGFloat(min(value, total)) / CGFloat(total) : 0 }
+
+    var body: some View {
+        ZStack {
+            Circle().stroke(CYColor.bgRaised, lineWidth: 6)
+            Circle().trim(from: 0, to: shown || reduceMotion ? fraction : 0)
+                .stroke(AngularGradient(colors: [Color(red: 1.0, green: 0.84, blue: 0.40), Color(red: 0.95, green: 0.60, blue: 0.20)], center: .center),
+                        style: StrokeStyle(lineWidth: 6, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+            Text(verbatim: total > 0 ? "\(value)/\(total)" : "—")
+                .font(.system(size: size * 0.26, weight: .bold, design: .rounded)).monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary).minimumScaleFactor(0.6)
+        }
+        .frame(width: size, height: size)
+        .onAppear { withAnimation(reduceMotion ? nil : .easeOut(duration: 0.9)) { shown = true } }
+        .accessibilityHidden(true)
     }
 }

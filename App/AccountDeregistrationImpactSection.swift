@@ -13,18 +13,42 @@ struct AccountDeregistrationImpactSection: View {
         default: return key
         }
     }
+    private static func symbol(_ key: String) -> String {
+        switch key {
+        case "BALANCE", "CASH_WITHDRAWAL_AMOUNT", "CASH_WITHDRAWAL_PENDING", "BANK_WITHDRAWAL_PENDING", "WITHDRAWAL_FROZEN": return "yensign.circle.fill"
+        case "POINTS": return "star.fill"
+        case "ACTIVE_ORDERS", "PENDING_REFUNDS": return "bag.fill"
+        case "ACTIVE_REGISTRATIONS": return "ticket.fill"
+        case "OWNED_CLUBS", "CLUB_MEMBERSHIPS": return "person.3.fill"
+        case "COLLECTIBLES": return "seal.fill"
+        case let k where k.hasPrefix("CREATOR"): return "paintbrush.pointed.fill"
+        case let k where k.contains("SEASON"): return "flag.checkered"
+        default: return "exclamationmark.circle.fill"
+        }
+    }
     var body: some View {
         Section {
             ForEach(impact.items) { item in
-                VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                    if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").font(Theme.Font.sectionTitle) }
-                    else { Text(verbatim: item.key).font(Theme.Font.sectionTitle) }
-                    if item.key == "SEASON_REWARD_EFFECT" { Text("c08.display.29", tableName: "AccountDeregistrationPresentation") }
-                    else if item.value == "true" { Text("c08.display.30", tableName: "AccountDeregistrationPresentation") }
-                    else if item.value == "false" { Text("c08.display.31", tableName: "AccountDeregistrationPresentation") }
-                    else { Text(verbatim: item.value) }
-                    Text(item.effect).font(Theme.Font.label)
+                HStack(alignment: .top, spacing: Theme.Space.s3) {
+                    Image(systemName: Self.symbol(item.key)).font(.system(.subheadline, weight: .semibold)).foregroundStyle(.white)
+                        .frame(width: 30, height: 30)
+                        .background(CYColor.warningText.gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .accessibilityHidden(true)
+                    VStack(alignment: .leading, spacing: 2) {
+                        if let title = titles[item.key] { Text(LocalizedStringKey(title), tableName: "AccountDeregistrationPresentation").font(.body.weight(.semibold)) }
+                        else { Text(verbatim: item.key).font(.body.weight(.semibold)) }
+                        Group {
+                            if item.key == "SEASON_REWARD_EFFECT" { Text("c08.display.29", tableName: "AccountDeregistrationPresentation") }
+                            else if item.value == "true" { Text("c08.display.30", tableName: "AccountDeregistrationPresentation") }
+                            else if item.value == "false" { Text("c08.display.31", tableName: "AccountDeregistrationPresentation") }
+                            else { Text(verbatim: item.value).monospacedDigit() }
+                        }
+                        .font(.subheadline).foregroundStyle(CYColor.textPrimary)
+                        Text(item.effect).font(.footnote).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    }
                 }
+                .padding(.vertical, 2)
+                .accessibilityElement(children: .combine)
             }
             if !impact.unknownCoverage.isEmpty {
                 (Text("c08.display.32", tableName: "AccountDeregistrationPresentation") + Text(verbatim: impact.unknownCoverage.map {
@@ -47,16 +71,38 @@ struct AccountDeregistrationImpactConfirmation: View {
     let revision: String
     let submit: () -> Void
     @State private var confirmation = ""
+    @State private var confirming = false
+    @FocusState private var focused: Bool
+    private var matches: Bool { confirmation == "注销" }
     var body: some View {
-        VStack(alignment: .leading, spacing: Theme.Space.s2) {
+        VStack(alignment: .leading, spacing: Theme.Space.s3) {
+            Text("compliance.typeToConfirm").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
             TextField(text: $confirmation) { Text("c08.display.35", tableName: "AccountDeregistrationPresentation") }
-                .autocorrectionDisabled().accessibilityIdentifier("compliance.impactConfirmation")
-            Button(role: .destructive) { confirmation = ""; submit() } label: { Text("compliance.submit", tableName: "AccountCompliance") }
-                .frame(minHeight: 44)
-                .disabled(confirmation != "注销").accessibilityIdentifier("compliance.submit")
-        }.font(Theme.Font.body)
-            .foregroundStyle(Theme.Color.textPrimary(in: domain))
-            .onDisappear { confirmation = "" }
+                .font(.system(.title3, design: .rounded, weight: .semibold))
+                .focused($focused)
+                .autocorrectionDisabled().textInputAutocapitalization(.never)
+                .padding(.horizontal, CYSpacing.lg).frame(minHeight: 56)
+                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(matches ? CYColor.dangerText : (focused ? CYColor.textPrimary.opacity(0.4) : .clear), lineWidth: 1.5))
+                .accessibilityIdentifier("compliance.impactConfirmation")
+            Button(role: .destructive) { focused = false; confirming = true } label: {
+                Text("compliance.submit", tableName: "AccountCompliance")
+                    .font(.body.weight(.bold)).frame(maxWidth: .infinity, minHeight: 52)
+                    .foregroundStyle(matches ? Color.white : CYColor.textSecondary)
+                    .background(matches ? CYColor.dangerText.opacity(0.92) : CYColor.bgRaised, in: Capsule())
+            }
+            .buttonStyle(.plain)
+            .disabled(!matches).accessibilityIdentifier("compliance.submit")
+            .sensoryFeedback(.warning, trigger: confirming) { _, new in new }
+        }
+        .font(Theme.Font.body)
+        .foregroundStyle(Theme.Color.textPrimary(in: domain))
+        .onDisappear { confirmation = "" }
+        .confirmationDialog(Text("compliance.confirmSheet.title"), isPresented: $confirming, titleVisibility: .visible) {
+            Button(role: .destructive) { confirmation = ""; submit() } label: { Text("compliance.confirmSheet.action") }
+                .accessibilityIdentifier("compliance.submit.confirm")
+            Button("compliance.close", role: .cancel) {}
+        } message: { Text("compliance.confirmSheet.message") }
         .themeDomain(domain)
         .tint(Theme.Color.accent(in: domain))
     }

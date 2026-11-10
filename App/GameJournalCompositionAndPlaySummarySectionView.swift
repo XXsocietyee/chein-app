@@ -137,73 +137,73 @@ public struct GameJournalCompositionAndPlaySummarySectionView: View {
 
     public var body: some View {
         Section {
-            HStack {
-                Text(verbatim: "手账组合层与游玩摘要 (I02)")
-                    .font(.subheadline.weight(.semibold))
-                Spacer()
-                Text(verbatim: snapshot.isFullyReady ? "组合就绪 (I02_READY)" : "存在降级或异常")
-                    .font(.caption2.weight(.bold))
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background((snapshot.isFullyReady ? CYColor.successText : CYColor.warningText).opacity(0.15), in: Capsule())
-                    .foregroundStyle(snapshot.isFullyReady ? CYColor.successText : CYColor.warningText)
-                    .accessibilityIdentifier("gameJournalComposition.overallBadge")
-            }
-
-            LabeledContent {
-                Text(verbatim: snapshot.standaloneLoadUserStampsIntact ? "loadUserStamps() 保持独立无回归" : "loadUserStamps() 回归告警")
-                    .font(.footnote.weight(.medium))
-                    .foregroundStyle(snapshot.standaloneLoadUserStampsIntact ? .green : .red)
-            } label: {
-                Text(verbatim: "I00 独立印章通道")
-            }
-            .accessibilityIdentifier("gameJournalComposition.standaloneNonRegression")
-
-            LabeledContent {
-                Text(verbatim: snapshot.summaryText)
-                    .font(.footnote.monospacedDigit())
-            } label: {
-                Text(verbatim: "组合摘要统计")
-            }
-            .accessibilityIdentifier("gameJournalComposition.summary")
-
-            ForEach(snapshot.rows) { row in
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
-                        Text(verbatim: row.title)
-                            .font(.subheadline.weight(.semibold))
-                        Spacer()
-                        Text(verbatim: "\(row.itemCount) 项 · \(row.badgeText)")
-                            .font(.caption2.weight(.bold))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(badgeColor(for: row.status).opacity(0.15), in: Capsule())
-                            .foregroundStyle(badgeColor(for: row.status))
-                    }
-                    Text(verbatim: row.sourceContract)
-                        .font(.caption.monospaced())
-                        .foregroundStyle(.secondary)
-                    Text(verbatim: row.detail)
-                        .font(.caption2)
-                        .foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                HStack(spacing: CYSpacing.sm) {
+                    Text(verbatim: "手账组合与游玩摘要")
+                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+                    Spacer(minLength: CYSpacing.sm)
+                    CYStatusChip(verbatim: snapshot.isFullyReady ? "组合就绪" : "存在降级或异常", tone: snapshot.isFullyReady ? .success : .warning,
+                                 systemImage: snapshot.isFullyReady ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .accessibilityIdentifier("gameJournalComposition.overallBadge")
                 }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("gameJournalComposition.row.\(row.id)")
+                HStack(spacing: CYSpacing.sm) {
+                    stat(snapshot.totalStampsCount, "印章", "seal.fill")
+                    stat(snapshot.totalCompletedTasksCount, "完成任务", "checkmark.circle.fill")
+                }
+                .accessibilityIdentifier("gameJournalComposition.summary")
+                Label {
+                    Text(verbatim: snapshot.standaloneLoadUserStampsIntact ? "独立印章读取保持正常" : "独立印章读取出现回归")
+                        .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary)
+                } icon: {
+                    Image(systemName: snapshot.standaloneLoadUserStampsIntact ? "checkmark.shield.fill" : "exclamationmark.shield.fill")
+                        .foregroundStyle(snapshot.standaloneLoadUserStampsIntact ? CYColor.successText : CYColor.warningText)
+                }
+                .accessibilityIdentifier("gameJournalComposition.standaloneNonRegression")
+                VStack(spacing: 0) {
+                    ForEach(snapshot.rows) { row in
+                        CYListRow(verbatim: row.title, meta: row.detail, trailing: .none) { CYRowIcon(systemImage: icon(row.kind)) }
+                            .overlay(alignment: .topTrailing) {
+                                CYStatusChip(verbatim: "\(row.itemCount) 项", tone: tone(row.status))
+                            }
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("gameJournalComposition.row.\(row.id)")
+                    }
+                }
+                CYDetailsDisclosure(title: Text(verbatim: "数据来源")) {
+                    ForEach(snapshot.rows) { row in
+                        CYFactRow(label: Text(verbatim: row.badgeText), value: row.sourceContract)
+                    }
+                }
             }
-        } header: {
-            Text(verbatim: "游戏手账组合与完赛摘要 (I02 / I00)")
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(CYSpacing.lg)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .listRowInsets(EdgeInsets(top: 6, leading: CYSpacing.pageHorizontal, bottom: 6, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear).listRowSeparator(.hidden)
         }
         .accessibilityIdentifier("gameJournalComposition.section")
     }
 
-    private func badgeColor(for status: GameJournalSliceRow.Status) -> Color {
-        switch status {
-        case .ready:
-            return .green
-        case .partialDegraded:
-            return .orange
-        case .failed:
-            return .red
+    private func stat(_ n: Int, _ label: String, _ symbol: String) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Image(systemName: symbol).font(.title3).foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: String(n)).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                Text(verbatim: label).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
+            }
+            Spacer(minLength: 0)
         }
+        .padding(CYSpacing.md).frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+        .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .accessibilityElement(children: .combine)
+    }
+
+    private func icon(_ kind: GameJournalSliceRow.SliceKind) -> String {
+        switch kind { case .userStamps: "seal.fill"; case .completedTasks: "checklist"; case .standaloneStampNonRegression: "tray.full.fill" }
+    }
+
+    private func tone(_ status: GameJournalSliceRow.Status) -> CYStatusTone {
+        switch status { case .ready: .success; case .partialDegraded: .warning; case .failed: .danger }
     }
 }

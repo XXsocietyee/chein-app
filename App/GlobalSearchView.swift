@@ -94,6 +94,7 @@ import SwiftUI
         .background(CYColor.bgPage)
         .appNavigationTitle("searchMap.title")
         .navigationDestination(item: $mapRoute) { route in
+            let _ = recordRoute(route)
             switch route {
             case .city: SearchMapExplorerView(reader: reader, mode: .city, initialFilter: filter, onSignIn: onSignIn, destination: destination)
             case .nearby: SearchMapExplorerView(reader: reader, mode: .nearby, onSignIn: onSignIn, destination: destination)
@@ -167,11 +168,21 @@ import SwiftUI
     }
     @ViewBuilder private var suggestions: some View {
         let context = categoryRecovery.context(for: categoryOwner)
+        routesShelf
         if !history.isEmpty {
             Section {
                 ForEach(history, id: \.self) { keyword in
                     Button { setKeyword(keyword); Task { await search() } } label: {
-                        Label(keyword, systemImage: "clock.arrow.circlepath").foregroundStyle(CYColor.textPrimary)
+                        HStack(spacing: CYSpacing.md) {
+                            Image(systemName: "clock.arrow.circlepath").font(.subheadline.weight(.semibold))
+                                .foregroundStyle(CYColor.textSecondary)
+                                .frame(width: 36, height: 36)
+                                .background(Circle().fill(CYColor.bgElevated))
+                                .accessibilityHidden(true)
+                            Text(verbatim: keyword).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineLimit(2)
+                            Spacer(minLength: 0)
+                            Image(systemName: "arrow.up.left").font(.caption.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        }
                     }
                     .frame(minHeight: CYSpacing.minTouchTarget)
                 }
@@ -191,9 +202,11 @@ import SwiftUI
                     ForEach(Array(recommendedKeywords.enumerated()), id: \.offset) { index, keyword in
                         Button { setKeyword(keyword); Task { await search() } } label: {
                             Text(verbatim: keyword).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
+                                .lineLimit(1).minimumScaleFactor(0.85)
                                 .frame(maxWidth: .infinity, minHeight: 44)
-                                .overlay { RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
-                                .contentShape(Rectangle())
+                                .background(Capsule(style: .continuous).fill(CYColor.bgElevated))
+                                .overlay { Capsule(style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1) }
+                                .contentShape(Capsule())
                         }.buttonStyle(.plain).disabled(!reader.isConfigured)
                             .accessibilityIdentifier("searchMap.recommended.\(index)")
                     }
@@ -221,12 +234,18 @@ import SwiftUI
                                 guard !showsFilters, let context, categoryRecovery.accepts(context) else { return }
                                 var next = filter; next.categoryID = category.id; applyFilter(next)
                             } label: {
-                                Text(verbatim: category.name).font(CYTypography.label).foregroundStyle(CYColor.textPrimary)
-                                    .multilineTextAlignment(.leading)
-                                    .frame(maxWidth: .infinity, minHeight: 56, alignment: .leading).padding(.horizontal, CYSpacing.md)
-                                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-                                    .contentShape(Rectangle())
-                            }.buttonStyle(.plain).accessibilityIdentifier("searchMap.category.\(category.id)")
+                                Text(verbatim: category.name).font(CYTypography.label).foregroundStyle(.white)
+                                    .multilineTextAlignment(.leading).shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+                                    .frame(maxWidth: .infinity, minHeight: 76, alignment: .bottomLeading).padding(CYSpacing.md)
+                                    .background {
+                                        ZStack(alignment: .bottom) {
+                                            CYCoverArt(seed: category.name, showsDebugLabel: false)
+                                            LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
+                                        }
+                                    }
+                                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                                    .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                            }.buttonStyle(CYPressScaleStyle()).accessibilityIdentifier("searchMap.category.\(category.id)")
                         }
                     }
                     .padding(.vertical, 4)
@@ -235,8 +254,63 @@ import SwiftUI
             .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
         }
     }
-    private enum MapRoute: Hashable, Identifiable { case city, nearby, layers, shops
+    private enum MapRoute: String, Hashable, Identifiable { case city, nearby, layers, shops
         var id: Self { self }
+    }
+    private func recordRoute(_ route: MapRoute) {
+        var list = (UserDefaults.standard.stringArray(forKey: globalSearchRecentRoutesKey) ?? []).filter { $0 != route.rawValue }
+        list.insert(route.rawValue, at: 0)
+        UserDefaults.standard.set(Array(list.prefix(4)), forKey: globalSearchRecentRoutesKey)
+    }
+    /// Routes ordered by last use (never-used ones follow), as art tiles in a horizontal shelf.
+    private var routeTiles: [MapRoute] {
+        let recent = (UserDefaults.standard.stringArray(forKey: globalSearchRecentRoutesKey) ?? []).compactMap(MapRoute.init(rawValue:))
+        var all: [MapRoute] = [.city, .nearby]
+        if publicLayers != nil { all.append(.layers) }
+        if !hidesMerchants { all.append(.shops) }
+        return recent.filter(all.contains) + all.filter { !recent.contains($0) }
+    }
+    private func routeTitle(_ route: MapRoute) -> LocalizedStringKey {
+        switch route {
+        case .city: "searchMap.citySearch"
+        case .nearby: "searchMap.nearby"
+        case .layers: "searchMap.publicLayers"
+        case .shops: "merchant.discover.title"
+        }
+    }
+    private func routeSymbol(_ route: MapRoute) -> String {
+        switch route { case .city: "location.north.line"; case .nearby: "location"; case .layers: "square.3.layers.3d"; case .shops: "storefront" }
+    }
+    @ViewBuilder private var routesShelf: some View {
+        Section {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: CYSpacing.md) {
+                    ForEach(routeTiles) { route in
+                        Button { mapRoute = route } label: {
+                            Label(routeTitle(route), systemImage: routeSymbol(route))
+                                .font(CYTypography.label).foregroundStyle(.white)
+                                .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+                                .multilineTextAlignment(.leading)
+                                .frame(width: 168, height: 92, alignment: .bottomLeading).padding(CYSpacing.md)
+                                .background {
+                                    ZStack(alignment: .bottom) {
+                                        CYCoverArt(seed: "route-" + route.rawValue, symbol: routeSymbol(route), showsDebugLabel: false)
+                                        LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .center, endPoint: .bottom)
+                                    }
+                                }
+                                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        }
+                        .buttonStyle(CYPressScaleStyle())
+                    }
+                }
+                .padding(.horizontal, CYSpacing.lg)
+            }
+        } header: {
+            Text(LocalizedStringResource("searchMap.routes.recent", defaultValue: "Recent routes"))
+                .font(.title3.weight(.bold)).foregroundStyle(CYColor.textPrimary).textCase(nil)
+                .padding(.horizontal, CYSpacing.xs).accessibilityAddTraits(.isHeader)
+        }
+        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
     }
     /// Mini-program `search-actions__map` (在地图上找活动与主题节点) as one pill; the native nearby, layers and
     /// shop entries are demoted into a single menu row and stay reachable.
@@ -281,11 +355,17 @@ import SwiftUI
         // Mini-program `pages/search2/result`: result tabs first. Segmented when the labels fit, a menu otherwise,
         // so counts never clip on small phones or at large text sizes.
         Section {
-            ViewThatFits(in: .horizontal) {
-                kindPicker(value).pickerStyle(.segmented).fixedSize()
-                kindPicker(value).pickerStyle(.menu)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: CYSpacing.sm) {
+                    kindPill(nil, title: Text("searchMap.all") + Text(verbatim: " \(value.rows.count)"))
+                    ForEach(searchKinds, id: \.self) { kind in
+                        kindPill(kind, title: Text(kind.titleKey) + Text(verbatim: " \(value.count(kind))"))
+                    }
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
             }
             .frame(maxWidth: .infinity, minHeight: 44)
+            .accessibilityIdentifier("searchMap.resultKinds")
             .listRowBackground(Color.clear)
             .listRowInsets(EdgeInsets())
         }
@@ -327,6 +407,17 @@ import SwiftUI
                     .questifyCardListRow()
             }
         }
+    }
+    private func kindPill(_ kind: GlobalSearchKind?, title: Text) -> some View {
+        let selected = selectedKind == kind
+        return Button { withAnimation(.snappy) { selectedKind = kind } } label: {
+            title.font(CYTypography.bodyMedium).lineLimit(1)
+                .foregroundStyle(selected ? CYColor.bgPage : CYColor.textPrimary)
+                .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
+                .background(Capsule(style: .continuous).fill(selected ? CYColor.textPrimary : CYColor.bgElevated))
+        }
+        .buttonStyle(.plain).sensoryFeedback(.selection, trigger: selectedKind)
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
     private func kindPicker(_ value: GlobalSearchResults) -> some View {
         Picker("searchMap.resultKinds", selection: $selectedKind) {
@@ -377,3 +468,5 @@ import SwiftUI
         }
     }
 }
+
+private let globalSearchRecentRoutesKey = "globalSearch.recentRoutes.v1"

@@ -74,19 +74,26 @@ extension EnvironmentValues {
         if let tab = MyProjectTab(rawValue: type) {
             let canPublishActivity = entry?.canPublishActivity == true && !merchantScopeAccess.isBrowseOnly
             let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: canPublishActivity)
-            ContentUnavailableView {
-                Label(LocalizedStringKey(keys.title), systemImage: "square.stack")
-            } description: {
-                if let detail = keys.detail { Text(LocalizedStringKey(detail)) }
-            } actions: {
+            VStack(spacing: CYSpacing.md) {
+                CYStateArt(kind: .projects)
+                Text(LocalizedStringKey(keys.title)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .multilineTextAlignment(.center)
+                if let detail = keys.detail {
+                    Text(LocalizedStringKey(detail)).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
                 if !merchantScopeAccess.isBrowseOnly, let entry, let cta = MyProjectListPresentation.emptyCTAKey(for: tab, canPublishActivity: canPublishActivity) {
                     NavigationLink { entry.make() } label: { Text(LocalizedStringKey(cta)) }
                         .buttonStyle(.cyPrimary(fullWidth: false))
+                        .padding(.top, CYSpacing.sm)
                         .accessibilityIdentifier("myProject.emptyCTA." + type)
                 }
-            }.accessibilityIdentifier("myProject.empty." + type)
+            }
+            .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xxl).padding(.horizontal, CYSpacing.xxl)
+            .accessibilityElement(children: .contain)
+            .accessibilityIdentifier("myProject.empty." + type)
         } else {
-            ContentUnavailableView("creatorContent.empty", systemImage: "square.stack")
+            CYEmptyState(systemImage: "folder", "creatorContent.empty", kind: .projects)
         }
     }
 }

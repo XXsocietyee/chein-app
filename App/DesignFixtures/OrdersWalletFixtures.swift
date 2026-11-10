@@ -12,6 +12,7 @@ enum OrdersWalletFixtures {
         case "order-detail-bottom":
             return wrap(OrderLifecycleFixtureHostView().task { try? await Task.sleep(nanoseconds: 6_000_000_000); scrollToBottom() })
         case "order-detail-full": return wrap(OrderLifecycleFixtureHostView().environment(\.dynamicTypeSize, .xSmall).scaleEffect(0.62, anchor: .top).frame(height: 1400, alignment: .top))
+        case "order-cancel-sheet": return wrap(OrderLifecycleFixtureHostView())
         case "ticket-list": return wrap(TicketWalletFixtureHostView())
         case "ticket-detail":
             return wrap(NavigationStack { TicketWalletDetailView(id: 901, reader: TicketWalletFixtureReader(scenario: .content)) })

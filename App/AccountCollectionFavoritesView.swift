@@ -87,8 +87,8 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                     .accessibilityIdentifier("accountCollection.favorites.recommendNote")
                 }
                 if model.state.visibleRows(scope: key.scope).filter({ !unliked.contains($0.id) }).isEmpty {
-                    ContentUnavailableView("accountCollection.favorites.empty", systemImage: "heart")
-                        .accessibilityIdentifier("accountCollection.favorites.empty")
+                    CYEmptyState(systemImage: "heart", "accountCollection.favorites.empty", messageIdentifier: "accountCollection.favorites.empty", kind: .favorites)
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
                 ForEach(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }) { topic in
                     Button { onOpenTopic(topic.id) } label: { AccountCollectionFavoriteCard(topic: topic) }
@@ -230,10 +230,8 @@ private struct AccountCollectionFavoriteCard: View {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
                 if model.state.visibleRows(scope: key.scope).isEmpty {
-                    ContentUnavailableView {
-                        Label { Text("member.favorites.postsEmpty", tableName: "MemberProfile") } icon: { Image(systemName: "bookmark") }
-                    }
-                        .accessibilityIdentifier("accountCollection.posts.empty")
+                    CYEmptyState(systemImage: "bookmark", "member.favorites.postsEmpty", tableName: "MemberProfile", messageIdentifier: "accountCollection.posts.empty", kind: .favorites)
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
                 ForEach(model.state.visibleRows(scope: key.scope)) { post in
                     Button {

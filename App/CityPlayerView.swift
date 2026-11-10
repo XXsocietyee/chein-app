@@ -91,11 +91,19 @@ struct CityPlayerView: View {
                         CYHeroHeader(verbatim: snapshot.board.title)
                             .padding(CYSpacing.lg).padding(.top, CYSpacing.xl)
                             .background { CYCoverArt(seed: snapshot.board.regionId, symbol: "building.2.fill") }
-                        HStack(spacing: CYSpacing.sm) {
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: CYSpacing.sm) {
                             CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.lifecycle == "OPEN" ? .success : .neutral,
                                          systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
                             CYStatusChip(membership(snapshot.membership), tone: snapshot.membership == .joined ? .info : .neutral,
                                          systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
+                            }
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            CYStatusChip(lifecycle(snapshot.board.lifecycle), tone: snapshot.board.lifecycle == "OPEN" ? .success : .neutral,
+                                         systemImage: snapshot.board.lifecycle == "OPEN" ? "flag.fill" : "flag.slash")
+                            CYStatusChip(membership(snapshot.membership), tone: snapshot.membership == .joined ? .info : .neutral,
+                                         systemImage: snapshot.membership == .joined ? "person.fill.checkmark" : "person")
+                            }
                         }
                     }
                     .accessibilityElement(children: .combine)

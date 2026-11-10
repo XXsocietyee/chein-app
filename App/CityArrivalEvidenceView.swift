@@ -15,61 +15,59 @@ enum CityArrivalCopy {
     @State var controller: CityArrivalEvidenceController
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
-        Form {
-            Section {
-                CityArrivalCopy.text("boundary")
-                Text(LocalizedStringKey(controller.messageKey), tableName: "CityArrivalEvidence")
-                Button { Task { await controller.load() } } label: { CityArrivalCopy.text("reload") }.disabled(controller.busy)
-            }
-            if controller.current, scenePhase == .active, let state = controller.player {
-                CityArrivalCopy.text("state." + state.status)
+        let live = controller.current && scenePhase == .active
+        CYCardPage {
+            CYArtCoverHeader(title: CityArrivalCopy.text("title"), subtitle: CityArrivalCopy.text("boundary"), symbol: "mappin.and.ellipse", seed: "arrival") { EmptyView() }
+        } content: {
+            CYNoteBanner(text: Text(LocalizedStringKey(controller.messageKey), tableName: "CityArrivalEvidence"), symbol: controller.busy ? "hourglass" : "info.circle")
+            if live, let state = controller.player {
+                CYNoteBanner(text: CityArrivalCopy.text("state." + state.status), symbol: "location.circle")
                 if let binding = state.binding {
-                    Section { Text(verbatim: binding.title); row("rulesRelease", binding.rulesReleaseId); row("round", binding.rules.roundId) } header: { CityArrivalCopy.text("frozenBinding") }
+                    CYInfoCard { CYDetailsDisclosure(title: CityArrivalCopy.text("frozenBinding")) {
+                        row("rulesRelease", binding.rulesReleaseId); row("round", binding.rules.roundId) } }
                 }
                 ForEach(state.points) { point in
-                    Section {
-                        Text(verbatim: point.title)
-                        row("merchant", String(point.merchantId)); row("place", String(point.placeId))
-                        row("challengeWindow", String(point.rules.challengeTtlSeconds)); row("evidenceWindow", String(point.rules.evidenceTtlSeconds))
-                        row("attemptLimit", String(point.rules.maxChallenges)); row("attempts", String(point.attemptVersion))
-                        row("assuranceReason", point.rules.assuranceReason)
-                        if !point.canIssue { CityArrivalCopy.text("sourceUnavailableHint") }
-                        CityArrivalCopy.text("singlePerson")
-                        Button { controller.prepareIssue(point) } label: { CityArrivalCopy.text("issue") }.disabled(!controller.canWrite || !point.canIssue)
-                        if let challenge = point.challenge {
-                            CityArrivalCopy.text("challenge." + challenge.state)
-                            row("challengeId", challenge.id); row("expires", challenge.expiresAt)
-                            if let code = controller.codes[challenge.id] { row("displayCode", code); CityArrivalCopy.text("showOnlyInPerson") }
-                            if challenge.state == "ISSUED" { Button { controller.prepareSubmit(point) } label: { CityArrivalCopy.text("submitSelf") }.disabled(!controller.canWrite || controller.codes[challenge.id] == nil) }
-                        }
-                        if let proof = point.evidence { Button { Task { await controller.readProof(proof.id) } } label: { CityArrivalCopy.text("readEvidence") }.disabled(controller.busy || !controller.current) }
+                    CityArrivalPointCard(point: point, code: point.challenge.flatMap { controller.codes[$0.id] }, canWrite: controller.canWrite,
+                                         busy: controller.busy, current: controller.current,
+                                         issue: { controller.prepareIssue(point) }, submit: { controller.prepareSubmit(point) },
+                                         readProof: { if let proof = point.evidence { Task { await controller.readProof(proof.id) } } })
+                }
+            }
+            if live, let state = controller.merchant {
+                CYInfoCard(title: CityArrivalCopy.text("role." + state.role), symbol: "storefront.fill") {
+                    row("merchant", String(state.merchantId)); CityArrivalCopy.text("staffBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }
+                if state.pending.isEmpty { CYEmptyState(systemImage: "tray", LocalizedStringKey("cityArrival.noPending"), tableName: "CityArrivalEvidence") }
+                ForEach(state.pending) { challenge in CityArrivalStaffClaimRow(controller: controller, challenge: challenge) }
+            }
+            if live, let proof = controller.proof {
+                CYInfoCard(title: CityArrivalCopy.text("originalEvidence"), symbol: "checkmark.seal.fill") {
+                    CityArrivalCopy.text("evidence." + proof.timeStatus).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    CityArrivalCopy.text("evidenceBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    CYDetailsDisclosure(title: CityArrivalCopy.text("evidenceId")) {
+                        row("evidenceId", proof.id); row("requestId", proof.requestId); row("challengeId", proof.challengeId)
+                        row("subject", String(proof.memberId)); row("point", proof.pointId); row("merchant", String(proof.merchantId)); row("place", String(proof.placeId))
+                        row("round", proof.roundId); row("rulesRelease", proof.rulesReleaseId)
+                        row("reviewer", String(proof.reviewerMemberId)); row("reason", proof.reason); row("recordedAt", proof.createdAt); row("expires", proof.expiresAt)
                     }
                 }
             }
-            if controller.current, scenePhase == .active, let state = controller.merchant {
-                Section { row("merchant", String(state.merchantId)); CityArrivalCopy.text("role." + state.role); CityArrivalCopy.text("staffBoundary") }
-                if state.pending.isEmpty { CityArrivalCopy.text("noPending") }
-                ForEach(state.pending) { challenge in CityArrivalStaffClaimRow(controller: controller, challenge: challenge) }
-            }
-            if controller.current, scenePhase == .active, let proof = controller.proof {
-                Section {
-                    row("evidenceId", proof.id); row("requestId", proof.requestId); row("challengeId", proof.challengeId)
-                    row("subject", String(proof.memberId)); row("point", proof.pointId); row("merchant", String(proof.merchantId)); row("place", String(proof.placeId))
-                    row("round", proof.roundId); row("rulesRelease", proof.rulesReleaseId)
-                    row("reviewer", String(proof.reviewerMemberId)); row("reason", proof.reason); row("recordedAt", proof.createdAt); row("expires", proof.expiresAt)
-                    CityArrivalCopy.text("evidence." + proof.timeStatus); CityArrivalCopy.text("evidenceBoundary")
-                } header: { CityArrivalCopy.text("originalEvidence") }
-            }
-            if controller.current, scenePhase == .active, let pending = controller.pendingRequestID {
-                Section { row("requestId", pending.uuidString); CityArrivalCopy.text("unknownHint"); Button { Task { await controller.recover() } } label: { CityArrivalCopy.text("recover") }.disabled(controller.busy || !controller.current) }
-            }
-            if controller.current, scenePhase == .active, let receipt = controller.receipt {
-                Section {
-                    row("requestId", receipt.requestId); CityArrivalCopy.text(receipt.succeeded ? "receiptRecorded" : "receiptRejected")
-                    if let proof = receipt.evidence { Button { Task { await controller.readProof(proof.id) } } label: { CityArrivalCopy.text("readEvidence") }.disabled(controller.busy || !controller.current) }
+            if live, let pending = controller.pendingRequestID {
+                CYInfoCard(title: CityArrivalCopy.text("unknownHint"), symbol: "clock.badge.questionmark") {
+                    row("requestId", pending.uuidString)
+                    CYPillButton(LocalizedStringKey("cityArrival.recover"), tableName: "CityArrivalEvidence") { Task { await controller.recover() } }.disabled(controller.busy || !controller.current)
                 }
             }
-        }.cyGroupedSurface()
+            if live, let receipt = controller.receipt {
+                CYInfoCard(title: CityArrivalCopy.text(receipt.succeeded ? "receiptRecorded" : "receiptRejected"), symbol: receipt.succeeded ? "checkmark.seal.fill" : "xmark.octagon.fill") {
+                    row("requestId", receipt.requestId)
+                    if let proof = receipt.evidence {
+                        CYPillButton(LocalizedStringKey("cityArrival.readEvidence"), style: .secondary, tableName: "CityArrivalEvidence") { Task { await controller.readProof(proof.id) } }.disabled(controller.busy || !controller.current)
+                    }
+                }
+            }
+            CYPillButton(LocalizedStringKey("cityArrival.reload"), style: .tertiary, systemImage: "arrow.clockwise", tableName: "CityArrivalEvidence") { Task { await controller.load() } }.disabled(controller.busy)
+        }
         .navigationTitle(CityArrivalCopy.text("title"))
         .task { await controller.load() }
         .onChange(of: controller.current) { _, current in if !current { controller.invalidate() } }
@@ -95,18 +93,73 @@ enum CityArrivalCopy {
     @State private var code = ""
     @State private var reason = ""
     var body: some View {
-        Section {
-            Text(verbatim: challenge.pointTitle ?? challenge.pointId)
-            LabeledContent { Text(verbatim: challenge.id) } label: { CityArrivalCopy.text("challengeId") }
-            LabeledContent { Text(verbatim: String(challenge.memberId)) } label: { CityArrivalCopy.text("subject") }
-            LabeledContent { Text(verbatim: String(challenge.placeId)) } label: { CityArrivalCopy.text("place") }
-            LabeledContent { Text(verbatim: challenge.expiresAt) } label: { CityArrivalCopy.text("expires") }
+        CYInfoCard(title: Text(verbatim: challenge.pointTitle ?? challenge.pointId), symbol: "person.badge.key.fill") {
             TextField(text: $code) { CityArrivalCopy.text("enterPresentedCode") }.textInputAutocapitalization(.characters).autocorrectionDisabled()
+                .padding(CYSpacing.md).frame(minHeight: 48).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
             TextField(text: $reason, axis: .vertical) { CityArrivalCopy.text("enterReason") }
-            Button { controller.prepareReview(challenge, confirms: true, code: code, reason: reason) } label: { CityArrivalCopy.text("staffConfirm") }.disabled(!controller.canWrite)
-            Button { controller.prepareReview(challenge, confirms: false, code: "", reason: reason) } label: { CityArrivalCopy.text("staffReject") }.disabled(!controller.canWrite)
+                .padding(CYSpacing.md).frame(minHeight: 48).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            CYPillButton(LocalizedStringKey("cityArrival.staffConfirm"), tableName: "CityArrivalEvidence") { controller.prepareReview(challenge, confirms: true, code: code, reason: reason) }.disabled(!controller.canWrite)
+            CYPillButton(LocalizedStringKey("cityArrival.staffReject"), style: .tertiary, tableName: "CityArrivalEvidence") { controller.prepareReview(challenge, confirms: false, code: "", reason: reason) }.disabled(!controller.canWrite)
+            CYDetailsDisclosure(title: CityArrivalCopy.text("challengeId")) {
+                LabeledContent { Text(verbatim: challenge.id) } label: { CityArrivalCopy.text("challengeId") }
+                LabeledContent { Text(verbatim: String(challenge.memberId)) } label: { CityArrivalCopy.text("subject") }
+                LabeledContent { Text(verbatim: challenge.expiresAt) } label: { CityArrivalCopy.text("expires") }
+            }
         }
         .onDisappear { code = ""; reason = "" }
         .onChange(of: controller.current) { _, current in if !current { code = ""; reason = "" } }
+    }
+}
+
+/// One arrival point: 3-step progress (request code, show it in person, confirmed) with a single action for the current step.
+struct CityArrivalPointCard: View {
+    let point: CityArrivalPoint
+    let code: String?
+    let canWrite: Bool
+    let busy: Bool
+    let current: Bool
+    let issue: () -> Void
+    let submit: () -> Void
+    let readProof: () -> Void
+    @Environment(\.locale) private var locale
+    private var step: Int { point.evidence != nil ? 2 : point.challenge?.state == "ISSUED" ? 1 : 0 }
+    var body: some View {
+        CYInfoCard {
+            Text(verbatim: point.title).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
+            CYStepIndicator(titles: [ChannelCopy.text("申请到场码", "Request code", locale: locale),
+                                     ChannelCopy.text("当面出示", "Show in person", locale: locale),
+                                     ChannelCopy.text("已确认", "Confirmed", locale: locale)], current: step)
+            if let code {
+                VStack(spacing: CYSpacing.xs) {
+                    Text(verbatim: code).font(.system(size: 40, weight: .bold, design: .rounded).monospacedDigit()).foregroundStyle(CYColor.textPrimary)
+                        .minimumScaleFactor(0.6).lineLimit(1)
+                    CityArrivalCopy.text("showOnlyInPerson").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity).padding(CYSpacing.lg)
+                .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                .accessibilityElement(children: .combine)
+            }
+            if !point.canIssue { CityArrivalCopy.text("sourceUnavailableHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            CityArrivalCopy.text("singlePerson").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            switch step {
+            case 0: CYPillButton(LocalizedStringKey("cityArrival.issue"), systemImage: "qrcode", tableName: "CityArrivalEvidence", action: issue).disabled(!canWrite || !point.canIssue)
+            case 1: CYPillButton(LocalizedStringKey("cityArrival.submitSelf"), systemImage: "checkmark.circle", tableName: "CityArrivalEvidence", action: submit).disabled(!canWrite || code == nil)
+            default: CYPillButton(LocalizedStringKey("cityArrival.readEvidence"), style: .secondary, systemImage: "doc.text.magnifyingglass", tableName: "CityArrivalEvidence", action: readProof).disabled(busy || !current)
+            }
+            CYDetailsDisclosure(title: CityArrivalCopy.text("challengeWindow")) {
+                CYFactRow(label: CityArrivalCopy.text("challengeWindow"), value: String(point.rules.challengeTtlSeconds))
+                CYFactRow(label: CityArrivalCopy.text("evidenceWindow"), value: String(point.rules.evidenceTtlSeconds))
+                CYFactRow(label: CityArrivalCopy.text("attemptLimit"), value: String(point.rules.maxChallenges))
+                CYFactRow(label: CityArrivalCopy.text("attempts"), value: String(point.attemptVersion))
+                CYFactRow(label: CityArrivalCopy.text("assuranceReason"), value: point.rules.assuranceReason)
+                CYFactRow(label: CityArrivalCopy.text("merchant"), value: String(point.merchantId))
+                CYFactRow(label: CityArrivalCopy.text("place"), value: String(point.placeId))
+                if let challenge = point.challenge {
+                    CYFactRow(label: CityArrivalCopy.text("challengeId"), value: challenge.id)
+                    CYFactRow(label: CityArrivalCopy.text("expires"), value: challenge.expiresAt)
+                }
+            }
+        }
     }
 }

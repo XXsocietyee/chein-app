@@ -52,5 +52,7 @@ struct ChatMessageBubble<Sender: View, Content: View>: View {
         // Leave an opposite-side gutter, but give accessibility text the full width.
         .padding(isOwn ? .leading : .trailing, typeSize.isAccessibilitySize ? 0 : 48)
         .frame(maxWidth: .infinity, alignment: isOwn ? .trailing : .leading)
+        // One VoiceOver stop per message, read in order: sender, text, time.
+        .accessibilityElement(children: .combine)
     }
 }

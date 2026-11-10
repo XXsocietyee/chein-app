@@ -16,19 +16,21 @@ struct E1ActivityHero: View {
             }
             .overlay(alignment: .bottomLeading) {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    HStack(spacing: CYSpacing.xs) {
+                    // Accessibility sizes stack the chips so neither is squeezed or clipped over the photo.
+                    let chipLayout = dynamicTypeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs)) : AnyLayout(HStackLayout(spacing: CYSpacing.xs))
+                    chipLayout {
                         if let state = E1ActivityState.of(start: summary.startDate, end: summary.endDate) { state.chip(copy) }
                         if let a = summary.minimumAmount, a == 0 { CYStatusChip(verbatim: copy.t("免费", "Free"), tone: .success) }
                         else if let p = E1Money.yuan(summary.minimumAmount, locale: locale) { CYStatusChip(verbatim: copy.t("\(p) 起", "From \(p)")) }
                     }
                     Text(verbatim: ActivityPresentation.nonempty(summary.name) ?? "—")
-                        .font(.system(.largeTitle, design: .default).weight(.bold))
+                        .font(.system(dynamicTypeSize.isAccessibilitySize ? .title : .largeTitle, design: .default).weight(.bold))
                         .foregroundStyle(.white)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityAddTraits(.isHeader)
                         .accessibilityIdentifier("activity.detail.name")
                 }
-                .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, 72)
+                .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, dynamicTypeSize.isAccessibilitySize ? CYSpacing.lg : 72)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(LinearGradient(stops: [.init(color: .clear, location: 0), .init(color: .black.opacity(0.82), location: 1)], startPoint: .top, endPoint: .bottom))
             }
@@ -49,9 +51,12 @@ struct E1ActivityInfoCard: View {
         let s = QuestifyCardText.date(detail.summary.startDate, locale: locale, displayTimeZone: timeZone)
         var e = QuestifyCardText.date(detail.summary.endDate, locale: locale, displayTimeZone: timeZone)
         // Same calendar day: the end shows the time only.
-        if let sd = HomeFeedDate.parse(detail.summary.startDate), let ed = HomeFeedDate.parse(detail.summary.endDate),
-           Calendar.current.isDate(sd, inSameDayAs: ed) {
-            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = timeZone
+        let utc = TimeZone(secondsFromGMT: 0)!
+        func parse(_ raw: String?) -> Date? { HomeFeedDate.parse(raw) ?? HomeFeedDate.parse(raw, sourceTimeZone: utc) }
+        let zone = HomeFeedDate.parse(detail.summary.endDate) == nil ? utc : timeZone
+        var cal = Calendar(identifier: .gregorian); cal.timeZone = zone
+        if let sd = parse(detail.summary.startDate), let ed = parse(detail.summary.endDate), cal.isDate(sd, inSameDayAs: ed) {
+            var style = Date.FormatStyle.dateTime.hour().minute().locale(locale); style.timeZone = zone
             e = ed.formatted(style)
         }
         switch (s, e) {

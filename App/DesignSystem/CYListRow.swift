@@ -21,6 +21,7 @@ struct CYListRow<Leading: View>: View {
     private let leading: Leading
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     init(
         _ title: LocalizedStringKey,
@@ -70,12 +71,24 @@ struct CYListRow<Leading: View>: View {
                         .font(CYTypography.meta)
                         .foregroundStyle(palette.textTertiary)
                 }
+                // Accessibility sizes: the value moves under the text so the title keeps the full row width.
+                if typeSize.isAccessibilitySize, let value = trailingValue { valueText(value) }
             }
-            Spacer(minLength: CYSpacing.sm)
+            .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : nil, alignment: .leading)
+            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
             trailingView
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .contentShape(Rectangle())
+        // One VoiceOver stop per row: "title, meta, value". Chevron and icon tile are decorative.
+        .accessibilityElement(children: .combine)
+    }
+
+    private var trailingValue: String? {
+        switch trailing {
+        case .value(let value), .valueChevron(let value): return value
+        default: return nil
+        }
     }
 
     @ViewBuilder private var titleText: some View {
@@ -86,9 +99,9 @@ struct CYListRow<Leading: View>: View {
         switch trailing {
         case .none: EmptyView()
         case .chevron: chevron
-        case .value(let value): valueText(value)
+        case .value(let value): if !typeSize.isAccessibilitySize { valueText(value) }
         case .valueChevron(let value):
-            HStack(spacing: CYSpacing.xs) { valueText(value); chevron }
+            HStack(spacing: CYSpacing.xs) { if !typeSize.isAccessibilitySize { valueText(value) }; chevron }
         }
     }
     private func valueText(_ value: String) -> some View {

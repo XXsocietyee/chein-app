@@ -108,7 +108,7 @@ struct ClubStoryChapterHeader: View {
                 NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
             } else {
                 // Generated cover art stands in for a missing photo so the card stays image-led.
-                CYCoverArt(seed: seed, systemImage: "map.fill", symbolSize: 40)
+                CYIMCoverArt(seed: seed, systemImage: "map.fill", symbolSize: 40)
             }
         }.frame(height: 168).frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous)).accessibilityHidden(true)
     }

@@ -55,9 +55,9 @@ struct E1CoverArt: View {
                            center: .bottomLeading, startRadius: 2, endRadius: 150)
             GeometryReader { g in
                 Image(systemName: symbol)
-                    .font(.system(size: min(g.size.width, g.size.height) * 0.4, weight: .light))
-                    .foregroundStyle(.white.opacity(0.42))
-                    .position(x: g.size.width * 0.5, y: g.size.height * 0.3)
+                    .font(.system(size: min(g.size.width, g.size.height) * 0.3, weight: .light))
+                    .foregroundStyle(.white.opacity(0.4))
+                    .position(x: g.size.width * 0.8, y: g.size.height * 0.24)
             }
         }
         .overlay(alignment: .topTrailing) {
