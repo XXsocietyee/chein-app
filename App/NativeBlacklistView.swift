@@ -8,6 +8,7 @@ import SwiftUI
 @MainActor struct NativeBlacklistView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     @StateObject private var model: NativeBlacklistViewModel
     @State private var settlement: NativeBlacklistCommand?
     @State private var confirmingSettlement = false
@@ -17,70 +18,147 @@ import SwiftUI
     private var flow: NativeBlacklistFlow { model.flow }
     var body: some View {
         List {
-            CYHeroHeader(verbatim: localized("blacklist.title"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-            if flow.busy { CYSkeleton().accessibilityIdentifier("blacklist.loading") }
+            Section {
+                CYHeroHeader("blacklist.title", tableName: "NativeBlacklist") {
+                    BlacklistCover(seed: "blacklist", symbol: "hand.raised")
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.lg, bottom: CYSpacing.md, trailing: CYSpacing.lg))
+                .listRowSeparator(.hidden)
+            }
+            if flow.busy && flow.items.isEmpty {
+                CYSkeleton()
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("cy.state.loading"))
+                    .accessibilityIdentifier("blacklist.loading")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            } else if flow.busy {
+                ProgressView()
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("blacklist.loading")
+            }
             if flow.phase == .closed {
-                ContentUnavailableView { Label { text("blacklist.closed") } icon: { Image(systemName: "lock") } }
-                    .accessibilityIdentifier("blacklist.closed")
+                CYEmptyState(systemImage: "lock", "blacklist.closed", tableName: "NativeBlacklist", messageIdentifier: "blacklist.closed")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
             if flow.phase == .failed {
-                ContentUnavailableView {
-                    Label { text(flow.issue ?? "blacklist.readFailure").accessibilityIdentifier("blacklist.issue") } icon: { Image(systemName: "exclamationmark.triangle") }
-                } actions: {
-                    Button { performPresented { await flow.load() } } label: { text("blacklist.retry") }.disabled(flow.busy).accessibilityIdentifier("blacklist.retry")
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    CYEmptyState(
+                        systemImage: "exclamationmark.triangle",
+                        LocalizedStringKey(flow.issue ?? "blacklist.readFailure"),
+                        tableName: "NativeBlacklist",
+                        messageIdentifier: "blacklist.issue",
+                        kind: .failure
+                    )
+                    CYPillButton("blacklist.retry", style: flow.result == nil ? .primary : .secondary, tableName: "NativeBlacklist") {
+                        performPresented { await flow.load() }
+                    }
+                    .disabled(flow.busy)
+                    .accessibilityIdentifier("blacklist.retry")
                 }
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             } else if let issue = flow.issue, !(flow.pendingCommand != nil && issue == "blacklist.unknown") {
-                Section { text(issue).foregroundStyle(.secondary).accessibilityIdentifier("blacklist.issue") }
+                Section {
+                    CYStatusChip(verbatim: localized(issue), tone: .warning, systemImage: "exclamationmark.triangle")
+                        .accessibilityIdentifier("blacklist.issue")
+                }
             }
             if flow.phase == .ready || flow.phase == .reviewing {
-                if flow.items.isEmpty {
-                    ContentUnavailableView { Label { text("blacklist.empty") } icon: { Image(systemName: "person.crop.circle.badge.checkmark") } }
-                        .accessibilityIdentifier("blacklist.empty")
-                } else {
+                if flow.items.isEmpty && !flow.busy {
+                    CYEmptyState(systemImage: "person.crop.circle.badge.checkmark", "blacklist.empty", tableName: "NativeBlacklist", messageIdentifier: "blacklist.empty")
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                } else if !flow.items.isEmpty {
                     Section {
                         ForEach(flow.items) { item in
-                            Text(verbatim: item.nickname).lineLimit(1)
-                                .accessibilityIdentifier("blacklist.row.\(item.peerID)")
-                                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                                    if flow.canReview {
-                                        Button { performPresented { await flow.reviewUnblock(item) } } label: { text("blacklist.review") }
-                                            .tint(.red)
-                                            .accessibilityIdentifier("blacklist.review.\(item.peerID)")
-                                    }
+                            CYListRow(verbatim: item.nickname, trailing: .none) {
+                                BlacklistCover(seed: String(item.peerID), symbol: "person.fill", height: 40, radius: CYRadius.sm)
+                            }
+                            .accessibilityIdentifier("blacklist.row.\(item.peerID)")
+                            .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                                if flow.canReview {
+                                    Button { performPresented { await flow.reviewUnblock(item) } } label: { text("blacklist.review") }
+                                        .tint(.red)
+                                        .accessibilityIdentifier("blacklist.review.\(item.peerID)")
                                 }
+                            }
                         }
                         if flow.nextCursor != nil {
-                            Button { performPresented { await flow.loadMore() } } label: { text("blacklist.more") }.disabled(flow.busy).accessibilityIdentifier("blacklist.more")
+                            CYPillButton("blacklist.more", style: .secondary, tableName: "NativeBlacklist") {
+                                performPresented { await flow.loadMore() }
+                            }
+                            .disabled(flow.busy)
+                            .accessibilityIdentifier("blacklist.more")
+                            .listRowBackground(Color.clear)
                         }
                     }
                 }
             }
             if let original = flow.pendingCommand {
                 Section {
-                    text("blacklist.unknown").accessibilityIdentifier("blacklist.original")
-                    Button { performPresented { await flow.recover() } } label: { text("blacklist.recover") }
-                        .disabled(!flow.canRecover).accessibilityIdentifier("blacklist.recover")
-                    Button(role: .destructive) { settlement = original; confirmingSettlement = true } label: { text("blacklist.settle") }
-                        .disabled(!flow.canSettle).accessibilityIdentifier("blacklist.settle")
+                    text("blacklist.unknown")
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("blacklist.original")
+                    CYPillButton("blacklist.recover", style: .secondary, tableName: "NativeBlacklist") {
+                        performPresented { await flow.recover() }
+                    }
+                    .disabled(!flow.canRecover)
+                    .accessibilityIdentifier("blacklist.recover")
+                    .listRowBackground(Color.clear)
+                    Button(role: .destructive) {
+                        settlement = original
+                        confirmingSettlement = true
+                    } label: { text("blacklist.settle") }
+                        .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                    .disabled(!flow.canSettle)
+                    .accessibilityIdentifier("blacklist.settle")
+                    .listRowBackground(Color.clear)
                 }
             }
             if let result = flow.result {
                 Section {
-                    text(result.outcome == "APPLIED" ? "blacklist.applied" : "blacklist.rejected").accessibilityIdentifier("blacklist.outcome")
+                    CYStatusChip(
+                        verbatim: localized(result.outcome == "APPLIED" ? "blacklist.applied" : "blacklist.rejected"),
+                        tone: result.outcome == "APPLIED" ? .success : .danger,
+                        systemImage: result.outcome == "APPLIED" ? "checkmark" : "xmark"
+                    )
+                    .accessibilityIdentifier("blacklist.outcome")
                     if let current = flow.current {
-                        text(current.blocked ? "blacklist.currentBlocked" : "blacklist.currentUnblocked").accessibilityIdentifier("blacklist.current")
-                    } else { text("blacklist.currentFailure") }
-                    Button { performPresented { await flow.retryReadback() } } label: { text("blacklist.refreshCurrent") }.disabled(flow.busy)
-                        .accessibilityIdentifier("blacklist.refreshCurrent")
-                    Button { performPresented { await flow.load() } } label: { text("blacklist.returnList") }.disabled(flow.busy)
-                        .accessibilityIdentifier("blacklist.returnList")
+                        CYStatusChip(
+                            verbatim: localized(current.blocked ? "blacklist.currentBlocked" : "blacklist.currentUnblocked"),
+                            tone: current.blocked ? .warning : .success,
+                            systemImage: current.blocked ? "hand.raised" : "person"
+                        )
+                        .accessibilityIdentifier("blacklist.current")
+                    } else {
+                        text("blacklist.currentFailure")
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    CYPillButton("blacklist.refreshCurrent", style: .secondary, tableName: "NativeBlacklist") {
+                        performPresented { await flow.retryReadback() }
+                    }
+                    .disabled(flow.busy)
+                    .accessibilityIdentifier("blacklist.refreshCurrent")
+                    .listRowBackground(Color.clear)
+                    CYPillButton("blacklist.returnList", tableName: "NativeBlacklist") {
+                        performPresented { await flow.load() }
+                    }
+                    .disabled(flow.busy)
+                    .accessibilityIdentifier("blacklist.returnList")
+                    .listRowBackground(Color.clear)
                 }
             }
         }
         .listStyle(.insetGrouped)
+        .cyGroupedSurface()
         .cyHeroScreen()
-        .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .accessibilityIdentifier("blacklist.home")
         .onAppear { visible = true; if scenePhase == .active { visit = UUID(); performPresented { await flow.load() } } }
@@ -114,19 +192,41 @@ import SwiftUI
             NavigationStack {
                 List {
                     Section {
-                        Text(verbatim: item.nickname).font(.headline).accessibilityIdentifier("blacklist.exactPeer")
+                        CYHeroHeader("d7.blacklist.reviewTitle", tableName: "NativeBlacklist")
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                            .listRowSeparator(.hidden)
+                    }
+                    Section {
+                        HStack(alignment: .center, spacing: CYSpacing.md) {
+                            BlacklistCover(seed: String(item.peerID), symbol: "person.fill", height: 40, radius: CYRadius.sm)
+                            Text(verbatim: item.nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.nickname)
+                                .font(CYTypography.cardTitle)
+                                .foregroundStyle(palette.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("blacklist.exactPeer")
+                        }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
                         text("blacklist.confirmImpact")
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     Section {
                         Button(role: .destructive) { performPresented { await flow.confirm(expected: review) } } label: { text("blacklist.confirm") }
-                            .disabled(!flow.canConfirm).accessibilityIdentifier("blacklist.confirm")
+                            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                            .disabled(!flow.canConfirm)
+                            .accessibilityIdentifier("blacklist.confirm")
+                            .listRowBackground(Color.clear)
                     }
                 }
-                .navigationTitle(localized("d7.blacklist.reviewTitle"))
-                .navigationBarTitleDisplayMode(.inline)
+                .cyGroupedSurface()
+                .cyHeroScreen()
                 .toolbar {
                     ToolbarItem(placement: .cancellationAction) {
-                        Button { flow.cancelReview() } label: { text("blacklist.cancel") }.disabled(flow.busy).accessibilityIdentifier("blacklist.cancel")
+                        Button { flow.cancelReview() } label: { text("blacklist.cancel") }
+                            .disabled(flow.busy)
+                            .accessibilityIdentifier("blacklist.cancel")
                     }
                 }
             }
@@ -146,5 +246,20 @@ import SwiftUI
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "NativeBlacklist") }
     private func localized(_ key: String) -> String {
         String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "NativeBlacklist", locale: locale))
+    }
+}
+
+/// Generated person tile. Decorative: the row title is the accessible name.
+private struct BlacklistCover: View {
+    let seed: String
+    var symbol: String = "person.fill"
+    var height: CGFloat? = nil
+    var radius: CGFloat = CYRadius.lg
+    @ScaledMetric(relativeTo: .largeTitle) private var banner: CGFloat = 120
+    var body: some View {
+        CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false, cornerRadius: radius)
+            .frame(width: height, height: height ?? banner)
+            .frame(maxWidth: height == nil ? .infinity : nil)
+            .accessibilityHidden(true)
     }
 }
