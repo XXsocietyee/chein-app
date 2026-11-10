@@ -15,6 +15,8 @@ import CryptoKit
     var body: some View {
         let _ = revision
         Form {
+            CYHeroHeader("d7.imVideo.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -36,7 +38,7 @@ import CryptoKit
                         }
                         if case .draft(let file) = owner.visibleState {
                             LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: file.name) }
-                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }
                             Button("d7.imCompose.discard", role: .destructive) { owner.discardDraft() }
                         }
                     case .uploading: ProgressView("d7.imCompose.uploading")
@@ -55,7 +57,7 @@ import CryptoKit
                         LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: file.durationMS) }
                         LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: file.size) }
                         if owner.expanded.writer.canSendVideo && owner.canRecover {
-                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }
                         }
                     case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                     }
@@ -66,7 +68,7 @@ import CryptoKit
                     case .reviewing(.send(let intent)):
                         if case .video = intent.payload {
                             IMMutationSummary(mutation: .send(intent))
-                            Button("d7.imVideo.send") { Task { if available { await owner.expanded.confirm() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imVideo.send") { Task { if available { await owner.expanded.confirm() } } }
                             Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
                         }
                     case .submitting: ProgressView("d7.imCompose.sending")
@@ -87,7 +89,7 @@ import CryptoKit
                     }
                 }
             }
-        }.imFlowForm().navigationTitle(Text("d7.imVideo.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         .fileImporter(isPresented: $picking, allowedContentTypes: IMVideoPicker.types, allowsMultipleSelection: false) { result in
             guard available else { return }
@@ -117,6 +119,8 @@ import CryptoKit
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMVideoReference.read(message) != nil }
     var body: some View {
         Form {
+            CYHeroHeader("d7.imVideo.message")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let reference = IMVideoReference.read(message), available {
                 Section {
                     LabeledContent {
@@ -151,7 +155,7 @@ import CryptoKit
             } else { IMFlowStateMessage(text: Text("d7.imVideo.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imVideo.playFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().navigationTitle(Text("d7.imVideo.message"))
+        }.imFlowForm().privacySensitive().cyHeroScreen()
         .onDisappear { stop() }
         .onChange(of: available) { _, value in if !value { stop() } }
         .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
