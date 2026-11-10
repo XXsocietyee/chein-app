@@ -11,7 +11,8 @@ struct E1CoverArt: View {
     var imageURL: String? = nil
     var debugLabel = true
     /// Where the generated-art glyph sits, as a fraction of the cover. Cards that put a chip top-right move it away.
-    var symbolPoint = CGPoint(x: 0.8, y: 0.24)
+    /// `nil` drops the glyph (covers whose title block would sit on it).
+    var symbolPoint: CGPoint? = CGPoint(x: 0.8, y: 0.24)
     @Environment(\.cyPalette) private var palette
 
     private var url: URL? {
@@ -43,7 +44,7 @@ struct E1CoverArt: View {
     }
     private var neutral: some View {
         LinearGradient(colors: [palette.bgStrong, palette.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing)
-            .overlay(Image(systemName: symbol).font(.title).foregroundStyle(palette.textPlaceholder))
+            .overlay { if symbolPoint != nil { Image(systemName: symbol).font(.title).foregroundStyle(palette.textPlaceholder) } }
     }
     #if DEBUG
     private var debugArt: some View {
@@ -56,10 +57,12 @@ struct E1CoverArt: View {
             RadialGradient(colors: [Color(hue: hue, saturation: 0.4, brightness: 1).opacity(0.28), .clear],
                            center: .bottomLeading, startRadius: 2, endRadius: 150)
             GeometryReader { g in
+                if let symbolPoint {
                 Image(systemName: symbol)
                     .font(.system(size: min(g.size.width, g.size.height) * 0.3, weight: .light))
                     .foregroundStyle(.white.opacity(0.4))
                     .position(x: g.size.width * symbolPoint.x, y: g.size.height * symbolPoint.y)
+                }
             }
         }
         .overlay(alignment: .topTrailing) {
