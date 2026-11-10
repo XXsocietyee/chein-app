@@ -10,6 +10,7 @@ import SwiftUI
     var body: some View {
         let rendered = readIntent()
         List {
+            Section { CYHeroHeader("report.detail.title", tableName: "MemberReportProgress").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if let flow, let original = flow.detailRecord {
                 Text(verbatim: "#\(original.id)").font(.caption)
                 if let record = flow.detail {
@@ -49,9 +50,9 @@ import SwiftUI
                 if let failure = flow.failure { memberReportProgressText("report.error.\(failure)") }
             } else { memberReportProgressText("report.error.disabled") }
             memberReportProgressText("report.detail.boundary").font(.footnote)
-            Button { load(rendered) } label: { memberReportProgressText("report.refresh") }.disabled(rendered == nil || flow?.busy == true)
+            CYPillButton("report.refresh", style: .secondary, tableName: "MemberReportProgress") { load(rendered) }.disabled(rendered == nil || flow?.busy == true)
         }
-        .navigationTitle(memberReportProgressText("report.detail.title")).privacySensitive()
+        .cyGroupedSurface().cyHeroScreen().privacySensitive()
         .accessibilityIdentifier("report.progress.detail")
         .onAppear { visible = true; start() }
         .onDisappear { visible = false; retire() }

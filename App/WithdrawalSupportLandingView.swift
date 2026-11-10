@@ -27,6 +27,7 @@ struct WithdrawalOrderLookupRequest {
     @State private var lookedUpOrderID: Int64?
     var body: some View {
         List {
+            Section { CYHeroHeader("withdrawal.support.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             // Revolut-style balance card: one prominent figure, with loading / error-retry inside the card.
             Section {
                 CYCard(variant: .elevated) {
@@ -40,8 +41,7 @@ struct WithdrawalOrderLookupRequest {
                                 .accessibilityIdentifier("withdrawal.support.balanceValue")
                         } else {
                             Text(LocalizedStringKey(balanceFailed ? "wallet.failed" : "wallet.unavailable"))
-                            Button("wallet.retry") { Task { await load() } }
-                                .frame(minHeight: 44)
+                            CYPillButton("wallet.retry", style: .secondary, fullWidth: false) { Task { await load() } }
                                 .disabled(!reader.isConfigured || reader.scope == nil)
                         }
                     }
@@ -70,11 +70,12 @@ struct WithdrawalOrderLookupRequest {
             Section {
                 NavigationLink("bank.withdrawal.title") { if let bankDestination { bankDestination() } else { BankWithdrawalView(reader: reader) } }
                     .accessibilityIdentifier("bank.withdrawal.entry")
-                Button("withdrawal.support.contact") { showContact = true }.accessibilityIdentifier("withdrawal.support.contact")
+                CYPillButton("withdrawal.support.contact", style: .secondary) { showContact = true }.accessibilityIdentifier("withdrawal.support.contact")
                 NavigationLink("wallet.withdrawals") { WithdrawalHistoryView(reader: reader) }
                     .accessibilityIdentifier("withdrawal.apply.history")
             }
-        }.navigationTitle("withdrawal.support.title")
+        }.cyGroupedSurface()
+            .cyHeroScreen()
             .task(id: reader.scope) {
                 balance = nil; stages = nil; loadedScope = nil; showContact = false
                 orderEntry = nil; lookedUpOrderID = nil

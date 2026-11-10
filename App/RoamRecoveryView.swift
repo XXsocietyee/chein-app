@@ -18,27 +18,28 @@ import Observation
                 TextField("roam.experience.sessionID", text: $presentation.sessionID)
                     .keyboardType(.numberPad).textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityIdentifier("roam.experience.recovery.id")
-                Button("roam.experience.checkSession") { recover() }
+                CYPillButton("roam.experience.checkSession") { recover() }
+                    .listRowBackground(Color.clear)
                     .disabled(!presentation.canRead)
                     .accessibilityIdentifier("roam.experience.recovery.check")
                 if reader.identity == nil { Text("roam.signInRequired") }
                 else if !reader.isConfigured { Text("roam.notConfigured") }
             }
             Section {
-                if presentation.loading { ProgressView("roam.loading") }
+                if presentation.loading { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
                 else {
                     switch coordinator.phase {
                     case .idle, .loading: EmptyView()
                     case .active:
-                        Label("roam.experience.sessionActive", systemImage: "pause.circle")
+                        CYStatusChip("roam.experience.sessionActive", tone: .info, systemImage: "pause.circle")
                         Text("roam.experience.activeHint").font(.caption)
                     case .notFound:
-                        Label("roam.experience.sessionNotFound", systemImage: "questionmark.circle")
+                        CYStatusChip("roam.experience.sessionNotFound", tone: .neutral, systemImage: "questionmark.circle")
                     case .incomplete:
-                        Label("roam.experience.settlementIncomplete", systemImage: "clock.badge.exclamationmark")
+                        CYStatusChip("roam.experience.settlementIncomplete", tone: .warning, systemImage: "clock.badge.exclamationmark")
                         Text("roam.experience.incompleteHint").font(.caption)
                     case .finished:
-                        Label("roam.experience.settled", systemImage: "checkmark.seal")
+                        CYStatusChip("roam.experience.settled", tone: .success, systemImage: "checkmark.seal")
                         if let result = coordinator.fact?.result {
                             if let xp = result.totalXp { LabeledContent("roam.experience.xp", value: String(xp)) }
                             if let tiles = result.newTiles { LabeledContent("roam.experience.newTiles", value: String(tiles)) }

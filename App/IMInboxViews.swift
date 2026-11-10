@@ -190,9 +190,11 @@ struct CYIMCoverArt: View {
                                     Color(hue: (hue + 0.12).truncatingRemainder(dividingBy: 1), saturation: 0.65, brightness: 0.30)],
                            startPoint: .topLeading, endPoint: .bottomTrailing)
             RadialGradient(colors: [Color.white.opacity(0.22), .clear], center: .topTrailing, startRadius: 4, endRadius: 160)
-            Image(systemName: systemImage)
-                .font(.system(size: symbolSize, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.85))
+            if symbolSize > 0 {
+                Image(systemName: systemImage)
+                    .font(.system(size: symbolSize, weight: .semibold))
+                    .foregroundStyle(Color.white.opacity(0.85))
+            }
         }
         .accessibilityHidden(true)
     }

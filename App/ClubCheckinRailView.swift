@@ -3,16 +3,21 @@ import SwiftUI
 struct ClubCheckinRailView: View {
     let rail: ClubCheckinRail
     var stateKind: ClubCheckinRail.StateKind? = nil
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
+        let layout = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
+            : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
         Section("club.checkin.rail.title") {
-            HStack(spacing: 6) {
+            layout {
                 ForEach(rail.stops) { stop in
-                    VStack(spacing: 4) {
+                    VStack(spacing: CYSpacing.xs) {
                         Image(systemName: stop.reached ? "checkmark.circle.fill" : "circle")
-                            .foregroundStyle(stop.reached ? CYColor.textPrimary : CYColor.textTertiary)
+                            .foregroundStyle(stop.reached ? palette.success : palette.textTertiary)
                         Text(LocalizedStringKey("club.checkin.rail." + stop.step.rawValue))
-                            .font(.caption.weight(stop.current ? .semibold : .regular))
-                            .foregroundStyle(stop.reached ? .primary : .secondary)
+                            .font(CYTypography.caption.weight(stop.current ? .semibold : .regular))
+                            .foregroundStyle(stop.reached ? palette.textPrimary : palette.textTertiary)
                     }
                     .frame(maxWidth: .infinity)
                     .accessibilityElement(children: .combine)
@@ -22,19 +27,19 @@ struct ClubCheckinRailView: View {
                 }
             }
             if let stateKind {
-                Text(verbatim: stateKind.title).font(.footnote.weight(.medium)).foregroundStyle(.secondary)
+                CYStatusChip(verbatim: stateKind.title, tone: .info, systemImage: "location.circle")
                     .accessibilityIdentifier("club.checkin.rail.stateTitle")
             }
             if let sessionTime = rail.sessionTimeText {
-                Text(verbatim: sessionTime).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: sessionTime).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                     .accessibilityIdentifier("club.checkin.rail.sessionTime")
             }
             if let statusTime = rail.statusTimeText {
-                Text(verbatim: statusTime).font(.caption).foregroundStyle(.secondary)
+                Text(verbatim: statusTime).font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                     .accessibilityIdentifier("club.checkin.rail.statusTime")
             }
             if rail.refunded {
-                Text("club.checkin.rail.refunded").font(.footnote).foregroundStyle(.secondary)
+                CYStatusChip("club.checkin.rail.refunded", tone: .warning, systemImage: "arrow.uturn.backward.circle")
                     .accessibilityIdentifier("club.checkin.rail.refundedNote")
             }
         }
@@ -45,31 +50,36 @@ struct ClubCheckinRailView: View {
 /// Values come straight from the server; a missing value shows —.
 struct ClubCheckinDetailRows: View {
     let value: ClubGovernanceValue
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Section {
-            HStack(alignment: .top, spacing: Theme.Space.s3) {
+            let head = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: Theme.Space.s3))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: Theme.Space.s3))
+            head {
                 if let avatar = text("avatar") {
                     SquareImage(source: avatar).frame(width: 48, height: 48).clipShape(Circle()).accessibilityHidden(true)
                 }
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(verbatim: text("displayName") ?? "—").font(.title3.weight(.semibold))
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: text("displayName") ?? "—").font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
                         .accessibilityIdentifier("club.gov.fact.displayName")
-                    if let session = text("sessionTimeText") { Text(verbatim: session).font(.subheadline).foregroundStyle(.secondary) }
-                    if let phone = text("phoneText") { Text(verbatim: phone).font(.subheadline).foregroundStyle(.secondary) }
+                    if let session = text("sessionTimeText") { Text(verbatim: session).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary) }
+                    if let phone = text("phoneText") { Text(verbatim: phone).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary) }
                 }
-                Spacer(minLength: Theme.Space.s2)
-                VStack(alignment: .trailing, spacing: 4) {
+                if !typeSize.isAccessibilitySize { Spacer(minLength: Theme.Space.s2) }
+                VStack(alignment: typeSize.isAccessibilitySize ? .leading : .trailing, spacing: CYSpacing.xs) {
                     if let status = text("statusText") {
-                        Text(verbatim: status).font(.subheadline.weight(.semibold)).foregroundStyle(statusColor)
+                        CYStatusChip(verbatim: status, tone: statusTone)
                     }
-                    if let time = text("statusTimeText") { Text(verbatim: time).font(.caption).foregroundStyle(.secondary) }
+                    if let time = text("statusTimeText") { Text(verbatim: time).font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
                 }
             }
         }
         Section {
             VStack(alignment: .leading, spacing: 4) {
-                Text(verbatim: text("topicName") ?? "—").font(.headline)
-                if let order = text("orderNo") { Text("club.checkin.orderNo \(order)").font(.footnote).foregroundStyle(.secondary).textSelection(.enabled) }
+                Text(verbatim: text("topicName") ?? "—").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                if let order = text("orderNo") { Text("club.checkin.orderNo \(order)").font(CYTypography.meta).foregroundStyle(palette.textTertiary).textSelection(.enabled) }
             }
             row("club.gov.field.ticketText", "ticketText")
             row("club.gov.field.orderTimeText", "orderTimeText")
@@ -80,11 +90,11 @@ struct ClubCheckinDetailRows: View {
             ClubGovernanceFactRows(value: value, fields: ["registrationId"])
         }
     }
-    private var statusColor: Color {
+    private var statusTone: CYStatusTone {
         switch value["statusCode"].string {
-        case "VERIFIED": return .green
-        case "REFUNDED", "CANCELLED": return .red
-        default: return .orange
+        case "VERIFIED": return .success
+        case "REFUNDED", "CANCELLED": return .danger
+        default: return .warning
         }
     }
     private func text(_ key: String) -> String? {

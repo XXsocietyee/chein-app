@@ -23,9 +23,10 @@ import SwiftUI
     private var hasInput: Bool { draft != BankWithdrawalDraft() }
     var body: some View {
         Form {
+            Section { CYHeroHeader("bank.withdrawal.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if let receipt {
                 Section {
-                    Label("bank.withdrawal.accepted", systemImage: "clock.badge.checkmark").accessibilityIdentifier("bank.withdrawal.receipt")
+                    CYStatusChip("bank.withdrawal.accepted", tone: .success, systemImage: "clock.badge.checkmark").accessibilityIdentifier("bank.withdrawal.receipt")
                     LabeledContent("bank.withdrawal.applicationID", value: String(receipt.applicationID))
                     Text("bank.withdrawal.notPaid")
                     NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
@@ -33,7 +34,7 @@ import SwiftUI
             } else {
                 Section {
                     if reader.scope == nil { Text("wallet.login") }
-                    else if !available { Label("bank.withdrawal.unavailable", systemImage: "lock") }
+                    else if !available { CYStatusChip("bank.withdrawal.unavailable", tone: .warning, systemImage: "lock") }
                     if adapter?.hasUnresolvedOutcome == true { Text("bank.withdrawal.unresolved") }
                     Text("bank.withdrawal.privacy")
                     if let currentDocument { Link("bank.withdrawal.currentDocument", destination: currentDocument.officialURL) }
@@ -53,15 +54,16 @@ import SwiftUI
                         .keyboardType(.decimalPad).accessibilityIdentifier("bank.withdrawal.amount")
                     Text("bank.withdrawal.feeArrivalUnknown")
                 }
-                if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.red).accessibilityIdentifier("bank.withdrawal.issue") }
+                if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("bank.withdrawal.issue") }
                 Section {
-                    Button("bank.withdrawal.review") { localReview() }
+                    CYPillButton("bank.withdrawal.review") { localReview() }
                         .disabled(busy || reader.scope == nil || adapter?.hasUnresolvedOutcome == true)
-                        .frame(minHeight: 44).accessibilityIdentifier("bank.withdrawal.review")
+                        .accessibilityIdentifier("bank.withdrawal.review")
                     NavigationLink("wallet.withdrawals") { WalletWithdrawalsView(reader: reader) }
                 }
             }
-        }.navigationTitle("bank.withdrawal.title")
+        }.cyGroupedSurface()
+            .cyHeroScreen()
             .scrollDismissesKeyboard(.interactively)
             .toolbar {
                 ToolbarItem(placement: .keyboard) { Button("bank.withdrawal.keyboardDone") { focused = nil } }
@@ -96,8 +98,8 @@ import SwiftUI
                         Text(verbatim: proof.question); Text(verbatim: proof.consequence)
                         ForEach(Array(proof.safetyMessages.enumerated()), id: \.offset) { _, text in Text(verbatim: text) }
                         Text("bank.withdrawal.feeArrivalUnknown")
-                        Button("bank.withdrawal.confirmSubmit") { Task { await submit(proof) } }
-                            .disabled(busy).frame(minHeight: 44).accessibilityIdentifier("bank.withdrawal.confirmSubmit")
+                        CYPillButton("bank.withdrawal.confirmSubmit") { Task { await submit(proof) } }
+                            .disabled(busy).accessibilityIdentifier("bank.withdrawal.confirmSubmit")
                         Button("bank.withdrawal.reject", role: .destructive) { Task { await reject(proof) } }
                             .disabled(busy).frame(minHeight: 44)
                     }
@@ -106,13 +108,14 @@ import SwiftUI
                     else { Text("bank.withdrawal.notSubmitted") }
                     if snapshot != nil { Text("bank.withdrawal.disclosure") }
                     if !available { Text("bank.withdrawal.unavailable") }
-                    Button("bank.withdrawal.prepare") { Task { await prepare() } }
+                    CYPillButton("bank.withdrawal.prepare") { Task { await prepare() } }
                         .disabled(!available || busy || review == nil)
-                        .frame(minHeight: 44).accessibilityIdentifier("bank.withdrawal.prepare")
+                        .accessibilityIdentifier("bank.withdrawal.prepare")
                 }
                 if busy { ProgressView("wallet.loading") }
-                if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(.red) }
-            }.navigationTitle("bank.withdrawal.checkDetails")
+                if let issue { Text(LocalizedStringKey(issue)).foregroundStyle(CYColor.dangerText) }
+            }.cyGroupedSurface()
+                .navigationTitle("bank.withdrawal.checkDetails")
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") {
                         if let proof { Task { await reject(proof) } } else { clear() }

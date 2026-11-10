@@ -52,13 +52,12 @@ import UIKit
                     photoSaveControls(image)
                     if !allowedAlbumDestinations.isEmpty { albumGuideControls(image) }
                     if channelPolicy.permits(.systemShare) {
-                        Button { beginSystemShare(image) } label: {
-                            Label("roam.share.system", systemImage: "square.and.arrow.up")
-                        }.disabled(photoSave.inFlight || albumGuide.pending != nil || systemShare != nil || photoSave.state.phase == .sourceChanged)
+                        CYPillButton("roam.share.system", style: .secondary, systemImage: "square.and.arrow.up") { beginSystemShare(image) }
+                            .disabled(photoSave.inFlight || albumGuide.pending != nil || systemShare != nil || photoSave.state.phase == .sourceChanged)
                             .accessibilityIdentifier("roam.share.system")
                     }
                 } else {
-                    Button("roam.share.prepare", systemImage: "photo") {
+                    CYPillButton("roam.share.prepare", systemImage: "photo") {
                         guard sourceIsCurrent else { invalidateImage(); return }
                         let renderer = ImageRenderer(content: card.frame(width: 320).padding(24).background(Color(uiColor: .systemBackground)))
                         renderer.scale = min(3, displayScale)
@@ -127,14 +126,13 @@ import UIKit
     }
     private func albumGuideControls(_ image: UIImage) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("roam.albumGuide.choose").font(.headline)
+            CYSectionHeader("roam.albumGuide.choose")
             Text("roam.albumGuide.beforeSave").font(.caption).foregroundStyle(.secondary)
             ForEach(allowedAlbumDestinations) { destination in
-                Button {
+                CYPillButton(LocalizedStringKey(destination == .moments ? "roam.albumGuide.momentsAction" : "roam.albumGuide.xiaohongshuAction"),
+                             style: .secondary, systemImage: "photo.on.rectangle") {
                     beginAlbumGuide(destination, image: image)
-                } label: {
-                    Label(LocalizedStringKey(destination == .moments ? "roam.albumGuide.momentsAction" : "roam.albumGuide.xiaohongshuAction"), systemImage: "photo.on.rectangle")
-                }.buttonStyle(.bordered)
+                }
                     .disabled(photoSave.inFlight || albumGuide.pending != nil || photoSave.state.phase == .sourceChanged)
                     .accessibilityIdentifier("roam.albumGuide.open." + destination.rawValue)
             }
@@ -164,7 +162,7 @@ import UIKit
     }
     @ViewBuilder private func photoSaveControls(_ image: UIImage) -> some View {
         let phase = photoSave.state.phase
-        Button {
+        CYPillButton(LocalizedStringKey(saveButtonKey), systemImage: "square.and.arrow.down") {
             let selection = RoamSharePhotoSaveState.Selection(record: record, includeRoute: includeRoute)
             photoSave.save(image, selection: selection) {
                 // Read the existing local history again after permission, before writing.
@@ -173,18 +171,16 @@ import UIKit
                       selection.includeRoute == includeRoute, renderedOwner == presentationOwner else { return false }
                 return sourceIsCurrent
             }
-        } label: {
-            Label(LocalizedStringKey(saveButtonKey), systemImage: "square.and.arrow.down")
         }.disabled(photoSave.inFlight || phase == .saved || phase == .sourceChanged)
             .accessibilityIdentifier("roam.share.savePhotos")
         if photoSave.inFlight {
-            ProgressView("roam.share.savingPhotos").accessibilityIdentifier("roam.share.savingPhotos")
+            CYSkeleton().accessibilityLabel(Text("roam.share.savingPhotos")).accessibilityIdentifier("roam.share.savingPhotos")
         } else if let key = saveStatusKey {
             Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(.secondary)
                 .accessibilityIdentifier("roam.share.photoSaveStatus")
         }
         if phase == .permissionDenied, !photoSave.inFlight {
-            Button("roam.share.openPhotoSettings") {
+            CYPillButton("roam.share.openPhotoSettings", style: .secondary) {
                 if let url = URL(string: UIApplication.openSettingsURLString) { openURL(url) }
             }.accessibilityIdentifier("roam.share.openPhotoSettings")
         }

@@ -26,15 +26,16 @@ import Observation
         let input = self.input
         let owner = loader.capture(for: input)
         ScrollView {
-            VStack(alignment: .leading, spacing: 18) {
-                Text(verbatim: name).font(.title2.bold()).fixedSize(horizontal: false, vertical: true)
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                CYHeroHeader(verbatim: name)
                 PlatformExternalMapHost(destination: .init(name: name, latitude: destination.latitude, longitude: destination.longitude), scope: scope, makeModel: makeExternalMaps)
-                Text("searchMap.routeOriginDisclosure").font(.footnote).foregroundStyle(.secondary)
-                Text("searchMap.mode.walking").font(.headline)
+                Text("searchMap.routeOriginDisclosure").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("searchMap.mode.walking").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
                 if let navigationReference, let walkingFactory, walkingFactory.available {
                     NavigationLink {
                         WalkingNavigationView(reference: navigationReference, factory: walkingFactory, offline: offline)
-                    } label: { Label("walking.title", systemImage: "figure.walk") }
+                    } label: { CYPillButtonLabel("walking.title", systemImage: "figure.walk") }
+                        .buttonStyle(CYPillButtonStyle(style: .primary))
                         .accessibilityIdentifier("walking.open")
                 }
                 if let walkingFactory, walkingFactory.available, !offline {
@@ -45,16 +46,17 @@ import Observation
                     SearchMapCanvas(area: RoamSearchArea(coordinate: origin, label: ""),
                         pins: [SearchMapPin(id: "destination", title: name, coordinate: destination, symbol: "mappin")],
                         polyline: route.coordinates, offline: offline)
-                    Text("searchMap.roadRoute").font(.headline)
+                    Text("searchMap.roadRoute").font(CYTypography.sectionTitle)
                         .accessibilityIdentifier("searchMap.route.kind")
                     LabeledContent("searchMap.distance") { Text(Measurement(value: route.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated)) }
                     if let eta = route.etaSeconds { LabeledContent("searchMap.etaMinutes") { Text(max(1, (eta / 60).rounded()), format: .number.precision(.fractionLength(0))) } }
                     ForEach(Array(route.steps.enumerated()), id: \.offset) { index, step in
-                        HStack(alignment: .top) {
-                            Text(verbatim: "\(index + 1)")
-                            Text(verbatim: step.instruction).fixedSize(horizontal: false, vertical: true)
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            Text(verbatim: "\(index + 1)").font(CYTypography.numericBody).foregroundStyle(CYColor.textTertiary)
+                            Text(verbatim: step.instruction).font(CYTypography.body).fixedSize(horizontal: false, vertical: true)
                             Spacer()
                             Text(Measurement(value: step.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
+                                .font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)
                         }
                     }
                 } else if owner != nil, loader.failed {
@@ -64,10 +66,10 @@ import Observation
                         Task { await load(retryOwner) }
                     }
                 }
-                else { ProgressView("searchMap.loading") }
-                Text("searchMap.routeBoundary").font(.footnote).foregroundStyle(.secondary)
-            }.padding()
-        }.appNavigationTitle("searchMap.routePreview")
+                else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("searchMap.loading")) }
+                Text("searchMap.routeBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            }.padding(CYSpacing.pageHorizontal)
+        }.background(CYColor.bgPage.ignoresSafeArea()).cyHeroScreen()
             .onAppear { loader.appear(input) }
             .onChange(of: input) { _, current in loader.update(current) }
             .task(id: owner) {
@@ -99,17 +101,18 @@ import Observation
                 NavigationLink {
                     WalkingNavigationView(reference: saved.record.reference, factory: factory,
                                           restoringDestination: saved)
-                } label: { Label("walking.saved.open", systemImage: "bookmark") }
+                } label: { CYPillButtonLabel("walking.saved.open", systemImage: "bookmark") }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary))
                     .accessibilityIdentifier("walking.saved.open")
-                Text("walking.saved.notice").font(.footnote)
-                Button("walking.saved.remove") {
+                Text("walking.saved.notice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                CYPillButton("walking.saved.remove", style: .tertiary) {
                     do { try factory.removeSavedDestination(saved); self.saved = nil; failed = false }
                     catch { failed = true }
                 }.accessibilityIdentifier("walking.saved.remove")
             }
             if failed {
                 Text("walking.saved.failed").font(.footnote).accessibilityIdentifier("walking.saved.failed")
-                Button("walking.saved.retryRead") { load(offered) }
+                CYPillButton("walking.saved.retryRead", style: .secondary, systemImage: "arrow.clockwise") { load(offered) }
                     .disabled(offered == nil || !factory.available)
                     .accessibilityIdentifier("walking.saved.retryRead")
             }

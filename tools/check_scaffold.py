@@ -159,6 +159,8 @@ for key,obj in objects.items():
     if obj['isa']=='PBXFileReference' and obj['sourceTree']=='<group>':
         if obj.get('lastKnownFileType')=='wrapper.pb-project':
             assert (ROOT/obj['path']/'project.pbxproj').is_file(),obj['path']
+        elif obj.get('lastKnownFileType')=='folder.assetcatalog':
+            assert (ROOT/obj['path']).is_dir(),obj['path']
         else: assert (ROOT/obj['path']).is_file(),obj['path']
 source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
 assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests','Tests/AppUnitTests'] for p in (ROOT/folder).rglob('*.swift')}

@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// Mini-program pages/club/notify audience rows: label + `N 人`; a null count stays blank, never 0.
+/// Mini-program pages/club/notify audience rows: label + `N 人`; a null count is an em dash (ClubNotifyPage.unknownDisplay), never 0.
 struct ClubOpsNotifyAudienceRows: View {
     let rows: [ClubOpsNotifyAudienceRow]
     var body: some View {
@@ -9,6 +9,7 @@ struct ClubOpsNotifyAudienceRows: View {
                 Text(LocalizedStringKey("club.gov.choice." + row.id))
                 Spacer()
                 if let count = row.count { ClubOpsJoinNotifyCopy.people(count).monospacedDigit().foregroundStyle(.secondary) }
+                else { Text(verbatim: ClubNotifyPage.unknownDisplay).foregroundStyle(.secondary) }
             }.accessibilityIdentifier("clubOpsJN.notify.audience." + row.id)
         }
     }

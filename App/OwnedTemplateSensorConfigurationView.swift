@@ -5,9 +5,9 @@ import SwiftUI
     let configuration: OwnedTemplateSensorConfiguration
     var body: some View {
         Section("templateOwnerSensor.configuration") {
-            Text("templateOwnerSensor.scope").font(.caption).foregroundStyle(.secondary)
+            Text("templateOwnerSensor.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             if let kind = configuration.kind {
-                Label(LocalizedStringKey("templateOwnerSensor.kind." + kind.rawValue), systemImage: "waveform.path").font(.headline)
+                Label(LocalizedStringKey("templateOwnerSensor.kind." + kind.rawValue), systemImage: "waveform.path").font(CYTypography.cardTitle)
                 ForEach(configuration.parameters, id: \.self) { parameter in
                     LabeledContent(LocalizedStringKey("templateOwnerSensor.parameter." + parameter.rawValue)) {
                         switch configuration.value(parameter) {

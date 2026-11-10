@@ -55,6 +55,7 @@ import SwiftUI
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 20) {
+                CYHeroHeader("nearby.title")
                 Picker("nearby.section", selection: $tab) {
                     Text("nearby.title").tag(0); Text("nearby.mine").tag(1)
                 }.pickerStyle(.segmented).accessibilityIdentifier("nearby.section")
@@ -72,7 +73,7 @@ import SwiftUI
                     if let issue = NearbyLoadIssue(messageKey: coordinator.messageKey), !model.running {
                         NearbyLoadIssueCard(issue: issue, onSignIn: onSignIn) { Task { await refresh() } }
                     } else if !model.running && visibleTeams.isEmpty && (discoverySources == nil || nearbyCurrentReadSucceeded) {
-                        ContentUnavailableView("nearby.empty", systemImage: "person.3", description: Text("nearby.w208.listEmpty"))
+                        CYEmptyState(systemImage: "person.3", "nearby.empty", detail: "nearby.w208.listEmpty")
                     }
                     }
                     if viewMode == .map {
@@ -100,7 +101,7 @@ import SwiftUI
                     if discoverySources != nil, discoveryFilter.layer != .team, discoveryItems.isEmpty,
                        discovery.placesPhase == .loaded,
                        discoveryFilter.layer == .shop || discovery.eventsPhase == .loaded {
-                        Text("nearby.map.empty", tableName: "NearbyMapDiscovery").accessibilityIdentifier("nearby.discovery.empty")
+                        CYEmptyState(systemImage: "map", "nearby.map.empty", tableName: "NearbyMapDiscovery", messageIdentifier: "nearby.discovery.empty")
                     }
                     NearbyTeamCornerBar(radius: displayedRadius,
                                         mineCount: joinedTeamsStatus.isLoaded ? NearbyTeamBridge.activeCount(NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications)) : 0) { tab = 1 }
@@ -109,7 +110,7 @@ import SwiftUI
             }.padding()
         }
         .refreshable { if coordinator.authenticated && !model.running { await refresh() } }
-        .appNavigationTitle("nearby.title")
+        .cyHeroScreen()
             .toolbar {
                 if tab == 0 { ToolbarItem(placement: .topBarTrailing) { NearbyTeamViewModePicker(mode: $viewMode) } }
                 ToolbarItem(placement: .topBarTrailing) {
@@ -206,21 +207,21 @@ import SwiftUI
         let hasMessage = coordinator.messageKey != nil || !coordinator.serverMessage.isEmpty
         if coordinator.synthetic || coordinator.uncertain || hasMessage {
             VStack(alignment: .leading, spacing: 8) {
-                if coordinator.synthetic { Label("nearby.fixture", systemImage: "testtube.2") }
-                if coordinator.uncertain { Label("nearby.unknown", systemImage: "exclamationmark.triangle") }
+                if coordinator.synthetic { CYStatusChip("nearby.fixture", tone: .neutral, systemImage: "testtube.2") }
+                if coordinator.uncertain { CYStatusChip("nearby.unknown", tone: .warning, systemImage: "exclamationmark.triangle") }
                 if let key = coordinator.messageKey {
                     Text(LocalizedStringKey(key)).accessibilityIdentifier("nearby.message")
                 }
                 if !coordinator.serverMessage.isEmpty { Text(verbatim: coordinator.serverMessage).accessibilityIdentifier("nearby.serverMessage") }
-            }.font(.footnote).fixedSize(horizontal: false, vertical: true).padding()
-                .frame(maxWidth: .infinity, alignment: .leading).background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 16))
+            }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true).padding()
+                .frame(maxWidth: .infinity, alignment: .leading).background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         }
     }
     /// Mini-program 范围 control. Coordinates are only typed in when the host gave no map point.
     private var contextControls: some View {
         VStack(alignment: .leading, spacing: 12) {
             if initialContext == nil {
-                Text("nearby.context.title").font(.headline)
+                Text("nearby.context.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 TextField("nearby.latitude", text: $latitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.latitude")
                 TextField("nearby.longitude", text: $longitude).textFieldStyle(.roundedBorder).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("nearby.longitude")
             }
@@ -228,8 +229,8 @@ import SwiftUI
                 Picker("nearby.radius", selection: $radius) { ForEach(NearbyQueryContext.radii, id: \.self) { radius in Text(verbatim: "\(radius / 1000) km").tag(radius) } }
                     .accessibilityIdentifier("nearby.radius")
                 Spacer(minLength: 8)
-                Button("nearby.search") { Task { await refresh() } }.buttonStyle(.bordered)
-                    .frame(minHeight: 44).disabled(model.running).accessibilityIdentifier("nearby.search")
+                CYPillButton("nearby.search", style: .secondary, systemImage: "magnifyingglass", fullWidth: false) { Task { await refresh() } }
+                    .disabled(model.running).accessibilityIdentifier("nearby.search")
             }
         }
     }
@@ -279,25 +280,24 @@ import SwiftUI
     private func teamCard(_ team: NearbyTeam) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
-                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(.title2.bold()) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(.title2.bold()) }
+                if NearbyTeamPresentation.heading(team).isEmpty { Text("nearby.untitled").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: NearbyTeamPresentation.heading(team)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary) }
                 Spacer(minLength: 8)
                 NearbyTeamBadgeView(badge: NearbyTeamBadge(mode: team.mode))
             }
-            if !team.activityName.isEmpty, !team.title.isEmpty { Text(verbatim: team.title).font(.headline) }
+            if !team.activityName.isEmpty, !team.title.isEmpty { Text(verbatim: team.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
             NearbyTeamSubLine(team: team)
             NearbyTeamMembersLine(team: team)
             if !team.memberAvatars.isEmpty { NearbyTeamFaces(count: team.memberAvatars.count) }
             NearbyTeamNotice(mode: team.mode)
-            Label(LocalizedStringKey(team.viewerStatus.key), systemImage: team.viewerStatus == .pending ? "clock" : "person.3")
+            CYStatusChip(LocalizedStringKey(team.viewerStatus.key), tone: team.viewerStatus == .pending ? .warning : .neutral, systemImage: team.viewerStatus == .pending ? "clock" : "person.3")
             switch team.mode {
             case "leader":
-                Text("nearby.w208.leaderSub \(team.joinedCount) \(team.maxMembers) \(NearbyTeamPresentation.remainingSeats(team))").font(.subheadline)
-                Button { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } } label: {
-                    Label { Text("nearby.applicants") + Text(verbatim: " · \(team.pendingCount)") } icon: { Image(systemName: "person.badge.plus") }
-                }.buttonStyle(.bordered).frame(minHeight: 44).disabled(model.running)
+                Text("nearby.w208.leaderSub \(team.joinedCount) \(team.maxMembers) \(NearbyTeamPresentation.remainingSeats(team))").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
+                CYPillButton(verbatim: String(localized: "nearby.applicants") + " · \(team.pendingCount)", style: .secondary, systemImage: "person.badge.plus") { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } }
+                    .disabled(model.running)
             case "joined": routeButton("nearby.enter", destination: .team(team.id))
             case "pending": expiry(team.applyExpireTime); actionButton(.withdraw(team.id))
-            case "rejected": Text("nearby.rejected.foot").font(.footnote).foregroundStyle(.secondary)
+            case "rejected": Text("nearby.rejected.foot").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             case "apply": actionButton(.apply(team.id))
             case "buy":
                 // xcx falls back to the topic page when the team has no activity session.
@@ -307,17 +307,17 @@ import SwiftUI
             default: EmptyView()
             }
         }.fixedSize(horizontal: false, vertical: true).padding().frame(maxWidth: .infinity, alignment: .leading)
-            .background(.secondary.opacity(0.06), in: RoundedRectangle(cornerRadius: 20))
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
             .accessibilityElement(children: .contain).accessibilityIdentifier("nearby.team.\(team.id.rawValue)")
     }
     @ViewBuilder private var applicantSection: some View {
         if let teamID = coordinator.applicantsTeamID {
-            Text("nearby.applicants").font(.title2.bold()).accessibilityAddTraits(.isHeader)
-            if coordinator.applicants.isEmpty { Text("nearby.applicants.empty") }
+            Text("nearby.applicants").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            if coordinator.applicants.isEmpty { CYEmptyState(systemImage: "person.badge.plus", "nearby.applicants.empty") }
             ForEach(coordinator.applicants) { applicant in
                 VStack(alignment: .leading, spacing: 10) {
-                    if applicant.name.isEmpty { Text("nearby.player").font(.headline) } else { Text(verbatim: applicant.name).font(.headline) }
-                    Label("nearby.applicant.ticket", systemImage: "ticket")
+                    if applicant.name.isEmpty { Text("nearby.player").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: applicant.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                    CYStatusChip("nearby.applicant.ticket", tone: .info, systemImage: "ticket")
                     if let date = applicant.appliedAt?.date() { LabeledContent("nearby.appliedAt") { Text(date, style: .relative) } }
                     expiry(applicant.applyExpireTime)
                     if !applicant.message.isEmpty { Text(verbatim: "“\(applicant.message)”").fixedSize(horizontal: false, vertical: true) }
@@ -333,9 +333,9 @@ import SwiftUI
             case .loading:
                 ProgressView("team.loading").accessibilityIdentifier("nearby.mine.owned.loading")
             case .failed(let key):
-                Text(LocalizedStringKey(key)).accessibilityIdentifier("nearby.mine.owned.error")
+                CYStatusChip(LocalizedStringKey(key), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("nearby.mine.owned.error")
                 if let retryJoinedTeams {
-                    Button("action.retry", action: retryJoinedTeams).frame(minHeight: 44)
+                    CYPillButton("action.retry", style: .secondary, action: retryJoinedTeams)
                         .accessibilityIdentifier("nearby.mine.owned.retry")
                 }
             case .loaded: EmptyView()
@@ -345,8 +345,8 @@ import SwiftUI
             if mine.failed && !model.running, let mineIssue = NearbyLoadIssue(messageKey: coordinator.messageKey), !mineIssue.offersRetry {
                 NearbyLoadIssueCard(issue: mineIssue, onSignIn: nil) {}
             } else if mine.failed && !model.running {
-                Button { Task { await loadMine() } } label: { Text("nearby.w208.mine.failed").frame(maxWidth: .infinity, alignment: .leading) }
-                    .frame(minHeight: 44).accessibilityIdentifier("nearby.w208.mine.retry")
+                CYPillButton("nearby.w208.mine.failed", style: .secondary) { Task { await loadMine() } }
+                    .accessibilityIdentifier("nearby.w208.mine.retry")
             }
             let rows = NearbyTeamBridge.myRows(joined: joinedTeamsStatus.isLoaded ? joinedTeams : [], applications: coordinator.myApplications)
             let groups = NearbyTeamBridge.myGroups(rows, viewerAccountID: coordinator.session?.accountID)
@@ -357,8 +357,8 @@ import SwiftUI
                 HStack(spacing: 8) {
                     ForEach(NearbyMyTeamGroup.Kind.statsOrder, id: \.self) { kind in
                         VStack(spacing: 2) {
-                            Text(verbatim: String(NearbyMyTeamGroup.count(kind, in: groups))).font(.title3.bold()).monospacedDigit()
-                            Text(LocalizedStringKey(kind.statKey)).font(.caption).foregroundStyle(.secondary)
+                            Text(verbatim: String(NearbyMyTeamGroup.count(kind, in: groups))).font(CYTypography.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+                            Text(LocalizedStringKey(kind.statKey)).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
                         }.frame(maxWidth: .infinity)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("nearby.mine.stat.\(kind.rawValue)")
@@ -366,15 +366,15 @@ import SwiftUI
                 }.padding(.vertical, 8)
             }
             if rows.isEmpty && joinedTeamsStatus.isLoaded && mine.loaded && !mine.loading && !mine.failed {
-                Text("nearby.w208.mine.empty").font(.headline).accessibilityIdentifier("nearby.mine.empty")
-                Button("nearby.mine.findOnMap") { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }.frame(minHeight: 44).accessibilityIdentifier("nearby.mine.findOnMap")
+                CYEmptyState(systemImage: "person.3", "nearby.w208.mine.empty", messageIdentifier: "nearby.mine.empty",
+                             actionTitle: "nearby.mine.findOnMap", actionIdentifier: "nearby.mine.findOnMap", actionStyle: .primary) { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }
                 NearbyRecruitingSection(state: recruiting, teams: recruiting == .loaded ? NearbyTeamPresentation.recruiting(coordinator.teams) : [],
                                         retry: { Task { await loadRecruiting() } }) { id in
                     radius = NearbyTeamPresentation.recruitingRadius; focusedTeamID = id; viewMode = .map; tab = 0
                 }
             }
             ForEach(groups) { group in
-                Text(LocalizedStringKey(group.kind.titleKey)).font(.title3.bold())
+                Text(LocalizedStringKey(group.kind.titleKey)).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     .accessibilityAddTraits(.isHeader)
                     .accessibilityIdentifier("nearby.mine.group.\(group.kind.rawValue)")
                 ForEach(group.rows) { row in mineRow(row, leading: group.kind == .leading) }
@@ -387,12 +387,12 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
                     NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: 0, members: team.joinedCount))
-                    if team.title.isEmpty { Text("nearby.w208.mine.untitled").font(.headline) } else { Text(verbatim: team.title).font(.headline) }
+                    if team.title.isEmpty { Text("nearby.w208.mine.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: team.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                     Spacer(minLength: 8)
                     NearbyTeamBadgeView(badge: leading ? .leader : .joined, captain: leading)
                 }
-                if let start = NearbyTeamPresentation.startText(team.expireTime) { Text("nearby.w208.mine.start \(start)").font(.subheadline).foregroundStyle(.secondary) }
-                else { Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").font(.subheadline).foregroundStyle(.secondary) }
+                if let start = NearbyTeamPresentation.startText(team.expireTime) { Text("nearby.w208.mine.start \(start)").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                else { Text(leading ? "nearby.mine.badge.leading" : "nearby.mine.badge.approved").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 NearbyMineMembersText(joined: team.joinedCount, maximum: team.maxMembers)
                 routeButton("nearby.enter", destination: .team(.init(team.id)))
             }.accessibilityElement(children: .contain)
@@ -401,16 +401,16 @@ import SwiftUI
             VStack(alignment: .leading, spacing: 10) {
                 HStack(alignment: .top) {
                     NearbyTeamFaces(count: NearbyTeamPresentation.faceCount(real: application.leaderAvatar.isEmpty ? 0 : 1, members: application.joinedCount))
-                    if application.title.isEmpty { Text("nearby.w208.mine.untitled").font(.headline) } else { Text(verbatim: application.title).font(.headline) }
+                    if application.title.isEmpty { Text("nearby.w208.mine.untitled").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) } else { Text(verbatim: application.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                     Spacer(minLength: 8)
                     NearbyTeamBadgeView(badge: application.status == .pending ? .pending : .rejected)
                 }
-                if application.status == .pending, !application.activityName.isEmpty { Text(verbatim: application.activityName).font(.subheadline).foregroundStyle(.secondary) }
+                if application.status == .pending, !application.activityName.isEmpty { Text(verbatim: application.activityName).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 NearbyMineMembersText(joined: application.joinedCount, maximum: application.maxMembers)
-                Text(LocalizedStringKey(application.status.key))
+                CYStatusChip(LocalizedStringKey(application.status.key), tone: application.status == .pending ? .warning : .danger)
                 if !application.leaderName.isEmpty { LabeledContent("nearby.leader") { Text(verbatim: application.leaderName) } }
                 if application.status == .pending { expiry(application.applyExpireTime); actionButton(.withdraw(application.id)) }
-                else { Text("nearby.rejected.foot"); Button("nearby.lookNearby") { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 }.frame(minHeight: 44) }
+                else { Text("nearby.rejected.foot").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary); CYPillButton("nearby.lookNearby", style: .secondary) { radius = NearbyTeamPresentation.recruitingRadius; tab = 0 } }
             }.accessibilityElement(children: .contain)
                         .accessibilityIdentifier("nearby.application.\(application.id.rawValue)")
         }
@@ -418,12 +418,12 @@ import SwiftUI
     /// Hidden when this build cannot send team actions, instead of a button that leads nowhere.
     @ViewBuilder private func actionButton(_ action: NearbyTeamAction) -> some View {
         if coordinator.canSubmit {
-            Button(LocalizedStringKey(action.key)) { model.prepare(action) }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+            CYPillButton(LocalizedStringKey(action.key)) { model.prepare(action) }
                 .disabled(model.running || !coordinator.allowed(action)).accessibilityIdentifier("nearby.\(action.operation).\(action.teamID.rawValue)")
         }
     }
     private func routeButton(_ key: LocalizedStringKey, destination: NearbyTeamDestination) -> some View {
-        Button(key) { navigate(destination) }.buttonStyle(.borderedProminent).frame(minHeight: 44)
+        CYPillButton(key) { navigate(destination) }
     }
     @ViewBuilder private func expiry(_ value: NearbyServerTime?) -> some View {
         if let minutes = value?.remainingMinutes(now: Date()) {
@@ -438,21 +438,18 @@ import SwiftUI
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 18) {
-                    Text(LocalizedStringKey(snapshot.action.key)).font(.title2.bold())
-                    Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "").font(.headline)
+                    CYHeroHeader(LocalizedStringKey(snapshot.action.key))
+                    Text(verbatim: snapshot.team?.title ?? snapshot.application?.title ?? "").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                     if let applicant = snapshot.applicant, !applicant.name.isEmpty {
                         Label { Text(verbatim: applicant.name) } icon: { Image(systemName: "person.crop.circle") }
                     }
                     Text(model.coordinator.synthetic ? "nearby.review.consequence" : "nearby.review.liveConsequence")
-                        .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
-                    Button { Task { await model.run { await model.coordinator.confirm(snapshot) } } } label: {
-                        Text(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed").frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.questifyPrimary)
-                    .frame(minHeight: 44).disabled(model.running || !model.coordinator.canSubmit).accessibilityIdentifier("nearby.confirm")
-                    Button("nearby.cancel", role: .cancel) { model.cancel() }.frame(maxWidth: .infinity, minHeight: 44).accessibilityIdentifier("nearby.cancel")
+                        .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                    CYPillButton(model.coordinator.synthetic ? "nearby.simulate" : "nearby.submitReviewed") { Task { await model.run { await model.coordinator.confirm(snapshot) } } }
+                        .disabled(model.running || !model.coordinator.canSubmit).accessibilityIdentifier("nearby.confirm")
+                    CYPillButton("nearby.cancel", style: .tertiary) { model.cancel() }.accessibilityIdentifier("nearby.cancel")
                 }.padding()
-            }.navigationTitle("nearby.review").navigationBarTitleDisplayMode(.inline)
+            }.cyHeroScreen()
         }
     }
 }

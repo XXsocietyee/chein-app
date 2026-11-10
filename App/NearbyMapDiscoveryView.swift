@@ -207,7 +207,7 @@ struct NearbyMapDiscoveryControls: View {
                 } else {
                     HStack {
                         Text(verbatim: filter.tag)
-                        Button { filter.tag = "" } label: { Text("nearby.map.allTags", tableName: "NearbyMapDiscovery") }
+                        CYPillButton("nearby.map.allTags", style: .secondary, fullWidth: false, tableName: "NearbyMapDiscovery") { filter.tag = "" }
                     }
                     Text("nearby.map.selectedCondition", tableName: "NearbyMapDiscovery").font(.caption)
                 }
@@ -232,17 +232,27 @@ struct NearbyMapDiscoveryStatusView: View {
     @ViewBuilder private func status(_ phase: NearbyMapDiscoveryModel.Phase, issue: RoamScreenIssue?, events: Bool) -> some View {
         switch phase {
         case .loading:
-            if events { ProgressView { Text("nearby.map.eventsLoading", tableName: "NearbyMapDiscovery") } }
-            else { ProgressView { Text("nearby.map.poisLoading", tableName: "NearbyMapDiscovery") } }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                CYSkeletonBlock(height: 12).frame(maxWidth: 160)
+                if events { Text("nearby.map.eventsLoading", tableName: "NearbyMapDiscovery") }
+                else { Text("nearby.map.poisLoading", tableName: "NearbyMapDiscovery") }
+            }
+            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            .accessibilityElement(children: .combine)
         case .failed:
-            if events { Text("nearby.map.eventsFailed", tableName: "NearbyMapDiscovery") }
-            else { Text("nearby.map.poisFailed", tableName: "NearbyMapDiscovery") }
+            Group {
+                if events { Text("nearby.map.eventsFailed", tableName: "NearbyMapDiscovery") }
+                else { Text("nearby.map.poisFailed", tableName: "NearbyMapDiscovery") }
+            }
+            .font(CYTypography.label).foregroundStyle(CYColor.warningText)
             if let issue { RoamStatusView(issue: issue, retry: retry) }
         case .unavailable:
-            if events { Text("nearby.map.eventsUnavailable", tableName: "NearbyMapDiscovery") }
-            else { Text("nearby.map.poisUnavailable", tableName: "NearbyMapDiscovery") }
+            Group {
+                if events { Text("nearby.map.eventsUnavailable", tableName: "NearbyMapDiscovery") }
+                else { Text("nearby.map.poisUnavailable", tableName: "NearbyMapDiscovery") }
+            }.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         case .waiting:
-            Text("nearby.map.areaRequired", tableName: "NearbyMapDiscovery")
+            Text("nearby.map.areaRequired", tableName: "NearbyMapDiscovery").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         case .loaded: EmptyView()
         }
     }
@@ -251,19 +261,21 @@ struct NearbyMapDiscoveryStatusView: View {
 struct NearbyMapDiscoveryRow: View {
     let item: RoamMapItem
     let open: () -> Void
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Button(action: open) {
-            HStack(alignment: .top, spacing: 12) {
+            let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
+            layout {
                 if case .place(let place) = item, let cover = place.coverImage, QuestifyCardArtwork.safeURL(cover) != nil {
-                    RoamEntryCover(source: cover).frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: 12))
+                    RoamEntryCover(source: cover).frame(width: 72, height: 72).clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                 }
-                VStack(alignment: .leading, spacing: 5) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     RoamItemRow(item: item, showsCurrentReadStatus: true)
                     if case .place(let place) = item, !place.tags.isEmpty {
-                        Text(verbatim: place.tags.prefix(4).joined(separator: " · ")).font(.caption).foregroundStyle(.secondary)
+                        Text(verbatim: place.tags.prefix(4).joined(separator: " · ")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 }
-            }.frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+            }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
         }.buttonStyle(.plain).accessibilityIdentifier("nearby.discovery.row.\(item.id)")
     }
 }

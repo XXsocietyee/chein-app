@@ -39,6 +39,7 @@ import UIKit
     @Binding var operationID: UUID
     @Binding var generating: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     @StateObject private var model = ClubAIDesignFeedbackModel()
     private var context: ClubAIDesignFeedbackContext {
         .init(clubID: clubID, session: session, operationID: operationID)
@@ -48,8 +49,9 @@ import UIKit
         let _ = model.revision
         let _ = model.bind(value)
         let permit = model.state.permit(value, generating: generating)
-        VStack(alignment: .leading, spacing: 8) {
-            Text("club.aiFeedback.ideas").font(.caption).foregroundStyle(.secondary)
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text("club.aiFeedback.ideas").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                .accessibilityAddTraits(.isHeader)
             ForEach(ClubAIDesignIdea.allCases) { chip in
                 Button {
                     guard scenePhase == .active, let permit,
@@ -113,18 +115,19 @@ import UIKit
         let permit = model.state.permit(value, generating: generating)
         if !promoCopy.isEmpty {
             Section {
-                Button {
+                CYPillButton("club.aiFeedback.copy", style: .secondary, systemImage: "doc.on.doc") {
                     guard let permit else { return }
                     model.copy(permit, current: current, generating: { generating }, write: ClubAIDesignFeedbackModel.writeClipboard)
-                } label: {
-                    Text("club.aiFeedback.copy").fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                 }
                 .disabled(permit == nil || current() == nil || model.state.phase == .copying)
                 .accessibilityIdentifier("club.aiFeedback.copy")
                 if current() != nil {
-                    if model.state.phase == .copied { Text("club.aiFeedback.copied").accessibilityIdentifier("club.aiFeedback.copied") }
-                    if model.state.phase == .failed { Text("club.aiFeedback.failed").accessibilityIdentifier("club.aiFeedback.failed") }
+                    if model.state.phase == .copied {
+                        CYStatusChip("club.aiFeedback.copied", tone: .success, systemImage: "checkmark").accessibilityIdentifier("club.aiFeedback.copied")
+                    }
+                    if model.state.phase == .failed {
+                        CYStatusChip("club.aiFeedback.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.aiFeedback.failed")
+                    }
                 }
             }
             .onAppear { model.appear() }

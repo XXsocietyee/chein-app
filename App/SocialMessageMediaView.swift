@@ -11,24 +11,26 @@ import ImageIO
     @State private var loading = false
     @State private var generation = 0
     @State private var requested = false
+    @Environment(\.cyPalette) private var palette
     private var media: SocialMessageMedia? { try? .init(message: message) }
     var body: some View {
         ScrollView([.horizontal, .vertical]) {
             VStack(alignment: .leading, spacing: Theme.Space.s4) {
                 if !isMessageCurrent() || reader.identity != expectedIdentity { SocialIssueView(error: APIError.unauthorized) }
                 else if let media {
-                    if reader.isOfflineExample { Text("social.offline").font(.caption) }
+                    if reader.isOfflineExample { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
                     if let image {
                         Image(uiImage: image).resizable().scaledToFit().frame(maxWidth: 1200, maxHeight: 1200)
                             .accessibilityLabel("social.media.image").accessibilityIdentifier("social.media.loaded")
                     } else {
-                        Label("social.media.image", systemImage: "photo").font(.title)
+                        CYHeroHeader("social.media.title")
+                        Label("social.media.image", systemImage: "photo").font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
                         if !reader.isConfigured { Text("social.media.disabled").modifier(SquareFlowNoticeStyle()) }
                         else {
-                            Text("social.media.purpose").font(.footnote)
+                            Text("social.media.purpose").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                             // Display only origin, never leak signed query parameters.
-                            Text(verbatim: SocialMessageMediaService.origin(media.url) ?? "").font(.caption.monospaced()).fixedSize(horizontal: false, vertical: true)
-                            Button(LocalizedStringKey(requested ? "action.retry" : "social.media.load")) { Task { await load(media) } }
+                            Text(verbatim: SocialMessageMediaService.origin(media.url) ?? "").font(CYTypography.caption.monospaced()).foregroundStyle(palette.textTertiary).fixedSize(horizontal: false, vertical: true)
+                            CYPillButton(LocalizedStringKey(requested ? "action.retry" : "social.media.load"), systemImage: "arrow.down.circle") { Task { await load(media) } }
                                 .disabled(loading).accessibilityIdentifier("social.media.load")
                         }
                         if loading { ProgressView("social.loading") }
@@ -38,7 +40,7 @@ import ImageIO
             }.padding()
         }
         .modifier(SquareFlowSurfaceStyle())
-        .appNavigationTitle("social.media.title").privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .onChange(of: isMessageCurrent()) { _, _ in clear() }
         .onChange(of: reader.identity) { _, _ in clear() }
         .onDisappear { clear() }

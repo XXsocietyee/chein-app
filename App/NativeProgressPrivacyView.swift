@@ -7,6 +7,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
+            Section { CYHeroHeader(verbatim: copy.text("p31.title")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section(copy.text("p31.overview")) {
                 Text(copy.text("p31.explanation"))
                 Text(copy.text("p31.unopened"))
@@ -17,7 +18,7 @@ import SwiftUI
                     Text(verbatim: copy.pending(flow.pendingTarget, fallback: flow.pendingLabel))
                     Text(verbatim: request).textSelection(.enabled)
                     Text(copy.text("p31.recovery.unknown"))
-                    Button(copy.text("p31.recovery.read")) { Task { await flow.recover() } }.disabled(!flow.canRecover)
+                    CYPillButton(verbatim: copy.text("p31.recovery.read"), style: .secondary) { Task { await flow.recover() } }.disabled(!flow.canRecover)
                 }
             }
             if let value = flow.snapshot {
@@ -47,8 +48,8 @@ import SwiftUI
             if let command = flow.reviewedCommand {
                 Section(copy.text("p31.confirm.title")) {
                     Text(verbatim: copy.format("p31.confirm.scope", copy.scope(command.aggregate)))
-                    Button(copy.text("p31.confirm.submit")) { Task { await flow.confirm(expected: command) } }.disabled(!flow.canConfirm)
-                    Button(copy.text("p31.confirm.cancel")) { flow.cancelReview() }
+                    CYPillButton(verbatim: copy.text("p31.confirm.submit")) { Task { await flow.confirm(expected: command) } }.disabled(!flow.canConfirm)
+                    CYPillButton(verbatim: copy.text("p31.confirm.cancel"), style: .tertiary) { flow.cancelReview() }
                 }
             }
             Section {
@@ -56,10 +57,10 @@ import SwiftUI
                 if flow.phase == .closed { Text(copy.text("p31.closed")) }
                 if flow.phase == .unknown { Text(copy.text("p31.unknown")) }
                 if flow.phase == .unavailable { Text(copy.text("p31.unavailable")) }
-                Button(copy.text("p31.refresh")) { Task { await flow.refresh() } }.disabled(!flow.canRefresh)
+                CYPillButton(verbatim: copy.text("p31.refresh"), style: .tertiary) { Task { await flow.refresh() } }.disabled(!flow.canRefresh)
             }
         }
-        .navigationTitle(copy.text("p31.title")).privacySensitive()
+        .cyGroupedSurface().cyHeroScreen().privacySensitive()
         .task { await flow.activate() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await flow.activate() } } else { flow.deactivate() } }
         .onDisappear { flow.deactivate() }
@@ -79,7 +80,7 @@ import SwiftUI
     var body: some View {
         Group {
             if let flow { NativeProgressPrivacyView(flow: flow).id(ObjectIdentifier(flow)) }
-            else { VStack { Text(copy.text("p31.channel.unavailable")); Button(copy.text("p31.channel.refresh")) { Task { await open() } } } }
+            else { VStack(spacing: CYSpacing.md) { Text(copy.text("p31.channel.unavailable")).foregroundStyle(CYColor.textSecondary); CYPillButton(verbatim: copy.text("p31.channel.refresh"), style: .secondary, fullWidth: false) { Task { await open() } } } }
         }
         .task { await open() }
         .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await open() } } else { close() } }

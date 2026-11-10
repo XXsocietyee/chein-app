@@ -16,7 +16,7 @@ import SwiftUI
                     if let codeFactory {
                         NavigationLink("verificationCode.city.open") { VerificationCodeView(model: codeFactory(target)) }
                             .accessibilityIdentifier("verificationCode.city.open")
-                    } else { Text("verificationCode.phase.disabled") }
+                    } else { CYEmptyState(systemImage: "lock", "verificationCode.phase.disabled") }
                 } else {
                     Label("roam.experience.voucherMissing", systemImage: "questionmark.circle")
                     Text("roam.experience.voucherMissingHint").font(.caption)
@@ -29,11 +29,8 @@ import SwiftUI
 }
 struct RoamHangoutUnavailableView: View {
     var body: some View {
-        ContentUnavailableView {
-            Label("roam.experience.hangoutUnavailable", systemImage: "person.3")
-        } description: {
-            Text("roam.experience.hangoutHint")
-        }.navigationTitle("roam.experience.hangout")
+        CYEmptyState(systemImage: "person.3", "roam.experience.hangoutUnavailable", detail: "roam.experience.hangoutHint")
+            .navigationTitle("roam.experience.hangout")
             .accessibilityIdentifier("roam.experience.hangout.unavailable")
     }
 }

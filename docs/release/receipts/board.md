@@ -35,5 +35,56 @@
 - wire36 [x] 2716fd1af. PR 1019. Perks List removed. Core type kept. Not merged.
 - wire41 [x] 945dda747. PR 1029. Insight string 0 stays 0. Not merged.
 - S13 Build red on fe078eb67 and 9a3d23676. App/DesignFixtures/E3Fixtures.swift:487 unexpected #endif. Wire merge batches wait.
+- S12 [x] ui/main 9979a6151 merged. Extra E3Fixtures #endif removed. Build not read yet.
 - wire29 [x] 26e87fbba. PR 1030. CRM campaigns read MerchantCrmCampaignsPage.phase. Not merged.
 - wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
+- ut-d4-gov [x] ba1318805. PR 1032. Fixture test only. Not merged. Not run on Xcode Cloud yet.
+- ut-d4-ops [x] b3805eb07. PR 1033. Fixture test only. Not merged. Not run on Xcode Cloud yet.
+- ut-d4-channel-chat [x] 06229e2cd. PR 1034. Fixture test only. Not merged. Not run on Xcode Cloud yet.
+- ut-consent [x] 171c3db3b. PR 1035. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d2-search [x] 40bb3243b. PR 1036. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-coupons [x] d822e8309. PR 1037. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-confirm [x] e321bcefc. PR 1038. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-badges-error [x] 6d0fce572. PR 1039. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-growth [x] 5fec205dd. PR 1040. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-badges-empty [x] 42fba1c3c. PR 1041. Fixture test only. Not merged.
+- ut-d4-badges [x] 0e8ce43f1. PR 1042. Test plus a 12-line project registration. Not merged.
+- ut-d4-directory [x] ebaaf04fd. PR 1043. Test plus a 12-line project registration. Not merged.
+- ut-d4-tab-events [x] 877fa1446. PR 1044. Test plus a 12-line project registration. Not merged.
+- ut-e1-bundle-shelf-empty [x] f1e7470f4. PR 1045. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d2-city [x] fae32fdc2. PR 1046. Fixture test only. Not merged.
+- ut-d4-owner-detail [x] 496b22302. PR 1047. Fixture test only. Not merged.
+- ut-d2-play [x] dccb003fe. PR 1048. Fixture test only. Not merged.
+- ut-d4-tab-posts [x] bbcaac99a. PR 1049. Fixture test only. Not merged.
+- ut-d2-roam [x] 53a99f0cf. PR 1050. Fixture test only. Not merged.
+- ut-d2-me [x] e684da31e. PR 1051. Fixture test only. Not merged.
+- ut-d2-inbox [x] 42255c2d1. PR 1052. Fixture test only. Not merged.
+- ut-d6-search [x] b4409ff51. PR 1053. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-play-loading [x] 3629a5850. PR 1054. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d2-square [x] 6d39863cb. PR 1055. Test plus a 12-line project registration. Not merged.
+- ut-d4-ops-create [x] 79a606663. PR 1056. Fixture test only. Not merged.
+- ut-d4-tab-overview [x] 7ee572702. PR 1057. Fixture test only. Not merged.
+- ut-d2-search-results [x] 934f276fc. PR 1058. Fixture test only. Not merged.
+- ut-d2-home [x] c9a502b76. PR 1059. Fixture test only. Not merged.
+- ut-d4-members [x] 23be11f35. PR 1060. Fixture test only. Not merged.
+- ut-e1-discovery [x] c77a48de9. PR 1061. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d4-stamps-empty [x] bcab2d80f. PR 1062. Fixture test only. Not merged.
+- ut-d4-channels [x] 778bae2ed. PR 1063. Test plus a 12-line project registration. Not merged.
+- ut-e1-bundle-detail [x] cc4a7fb1c. PR 1064. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-live [x] b200cb770. PR 1065. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d2-npc [x] ee582e7c4. PR 1066. Fixture test only. Not merged.
+- ut-d4-join-confirm [x] a737ba37f. PR 1067. Fixture test only. Not merged.
+- ut-d4-settings [x] b38975847. PR 1068. Test plus a 12-line project registration. Not merged.
+- ut-e1-activities [x] 3feaeac4b. PR 1069. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d4-leaderboard [x] d080ef62b. PR 1070. Fixture test only. Not merged.
+- ut-detail [x] 055d30793. PR 1071. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d4-detail [x] b80e818b2. PR 1072. Fixture test only. Not merged.
+- ut-e1-activity-detail [x] a700c1a03. PR 1073. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-real-live [x] 2559f7a87. PR 1074. Fixture test only. Parent is the docs rc. Not merged.
+- ut-e1-bundle-shelf [x] 697a2d40c. PR 1075. Fixture test only. Parent is the docs rc. Not merged.
+- ut-e1-bundle-shelf-error [x] 29a4c813b. PR 1076. Fixture test only. Not merged.
+- ut-d4-stamps [x] d63d51b3b. PR 1077. Fixture test only. Not merged.
+- ut-d6-play [x] 14deab0ca. PR 1078. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-roam [x] 43317e132. PR 1079. Fixture test only. Parent is the docs rc. Not merged.
+- ut-e1-bundle-detail-off [x] 7c8d9659e. PR 1080. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d4-enroll [x] a9efb51f1. PR 1081. Fixture test only. Not merged.

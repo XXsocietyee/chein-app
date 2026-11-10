@@ -23,6 +23,7 @@ import SwiftUI
     }
     private var content: some View {
         Form {
+            Section { CYHeroHeader("modInstallation.templateEdit.title", tableName: "ModInstallation") }.e1HeroRow()
             Section {
                 Text("modInstallation.templateEdit.scope", tableName: "ModInstallation")
                 Text(verbatim: editor.installation.requestId).font(.caption.monospaced())
@@ -48,15 +49,15 @@ import SwiftUI
                 Section {
                     Text(rehearsalText("savedOnly")).font(.caption)
                     if editor.hasChanges { Text(rehearsalText("unsavedPreserved")).font(.caption) }
-                    Button { readSavedRehearsal() } label: { Text(rehearsalText("entry")) }
+                    CYPillButton(verbatim: rehearsalText("entry"), style: .secondary, systemImage: "play.circle") { readSavedRehearsal() }
                         .disabled(!editor.canReadSavedRehearsal || scenePhase != .active)
-                        .accessibilityIdentifier("installedRehearsal.entry")
+                        .accessibilityIdentifier("installedRehearsal.entry").e1ActionRow()
                     if !editor.savedRehearsalReadEnabled || rehearsalUnavailable { Text(rehearsalText("unavailable")).font(.caption) }
                 }
                 Section {
-                    Button { prepare("SAVE") } label: { Text("modInstallation.templateEdit.save", tableName: "ModInstallation") }.disabled(!editor.canEdit || !editor.hasChanges)
-                    Button { prepare("CONFIRM_FACTS") } label: { Text("modInstallation.templateEdit.facts", tableName: "ModInstallation") }.disabled(!editor.canConfirmFacts)
-                    Button { prepare("REVIEW") } label: { Text("modInstallation.templateEdit.submit", tableName: "ModInstallation") }.disabled(!editor.canSubmitReview)
+                    CYPillButton("modInstallation.templateEdit.save", tableName: "ModInstallation") { prepare("SAVE") }.disabled(!editor.canEdit || !editor.hasChanges).e1ActionRow()
+                    CYPillButton("modInstallation.templateEdit.facts", style: .secondary, tableName: "ModInstallation") { prepare("CONFIRM_FACTS") }.disabled(!editor.canConfirmFacts).e1ActionRow()
+                    CYPillButton("modInstallation.templateEdit.submit", style: .secondary, tableName: "ModInstallation") { prepare("REVIEW") }.disabled(!editor.canSubmitReview).e1ActionRow()
                     Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation").font(.caption)
                 }
                 DisclosureGroup { Text(verbatim: state.snapshotJson).font(.caption.monospaced()).textSelection(.enabled) } label: { Text("modInstallation.templateEdit.fullSnapshot", tableName: "ModInstallation") }
@@ -71,14 +72,16 @@ import SwiftUI
                     } else { Text("modInstallation.templateEdit.unknown", tableName: "ModInstallation") }
                 }
                 if editor.retryOriginalAvailable {
-                    Button { Task { await editor.retryOriginal() } } label: { Text("modInstallation.retryOriginal", tableName: "ModInstallation") }.disabled(editor.busy || !editor.isCurrent)
+                    CYPillButton("modInstallation.retryOriginal", style: .secondary, tableName: "ModInstallation") { Task { await editor.retryOriginal() } }.disabled(editor.busy || !editor.isCurrent).e1ActionRow()
                 }
                 if let key = editor.messageKey { Text(LocalizedStringKey("modInstallation." + key), tableName: "ModInstallation") }
-                if editor.busy { ProgressView() }
-                Button { Task { await editor.open() } } label: { Text("modInstallation.recover", tableName: "ModInstallation") }.disabled(editor.busy || !editor.isCurrent)
+                if editor.busy { CYSkeletonBlock(height: 18).accessibilityLabel(Text("cy.state.loading")) }
+                CYPillButton("modInstallation.recover", style: .tertiary, tableName: "ModInstallation") { Task { await editor.open() } }.disabled(editor.busy || !editor.isCurrent).e1ActionRow()
             }
         }
-        .navigationTitle(Text("modInstallation.templateEdit.title", tableName: "ModInstallation"))
+        .formStyle(.grouped)
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
         .task { if editor.state == nil { await editor.open() } }
         .sheet(item: $rehearsal, onDismiss: { editor.invalidateSavedRehearsal() }) { visit in
@@ -101,9 +104,9 @@ import SwiftUI
                         Text(verbatim: original.command.fields[key] ?? "").textSelection(.enabled)
                     }
                     Text("modInstallation.templateEdit.reviewBoundary", tableName: "ModInstallation")
-                    Button { review = nil; Task { await editor.confirm(original) } } label: { Text("modInstallation.templateEdit.confirm", tableName: "ModInstallation") }
-                        .disabled(!editor.canEdit || editor.review != original)
-                }.toolbar { ToolbarItem(placement: .cancellationAction) { Button { editor.cancelReview(); review = nil } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
+                    CYPillButton("modInstallation.templateEdit.confirm", tableName: "ModInstallation") { review = nil; Task { await editor.confirm(original) } }
+                        .disabled(!editor.canEdit || editor.review != original).e1ActionRow()
+                }.formStyle(.grouped).cyGroupedSurface().toolbar { ToolbarItem(placement: .cancellationAction) { Button { editor.cancelReview(); review = nil } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
             }
         }
     }
