@@ -17,15 +17,21 @@ import SwiftUI
         ClubGovernanceReadView(operation: .checkin, scope: .init(clubID: 81, registrationID: 121), identity: identity, access: access.governance, coordinator: governance)
             .environment(\.clubOwnerRefundCoordinator, refund)
             .safeAreaInset(edge: .bottom) {
-                VStack(spacing: 8) {
-                    CYPillButton("club.refund.fixtureRecord", style: .secondary) { access.markRefundRecorded() }.accessibilityIdentifier("club.refund.fixtureRecord")
-                    CYPillButton("club.gov.switchAccount", style: .secondary) { access.identity = .init(accountID: 799, epoch: 2); access.governance.readFailure = .forbidden; identity = access.identity }.accessibilityIdentifier("club.refund.fixtureSwitch")
+                VStack(spacing: CYSpacing.sm) {
+                    CYPillButton("club.refund.fixtureRecord", style: .secondary) { access.markRefundRecorded() }
+                        .accessibilityIdentifier("club.refund.fixtureRecord")
+                    CYPillButton("club.gov.switchAccount", style: .tertiary) {
+                        access.identity = .init(accountID: 799, epoch: 2)
+                        access.governance.readFailure = .forbidden
+                        identity = access.identity
+                    }
+                    .accessibilityIdentifier("club.refund.fixtureSwitch")
                 }
-                .buttonStyle(.bordered)
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(.regularMaterial)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.sm)
+                .background(CYColor.bgElevated)
+                .overlay(alignment: .top) { Rectangle().fill(CYColor.borderSubtle).frame(height: 1).allowsHitTesting(false).accessibilityHidden(true) }
             }
     }
 }

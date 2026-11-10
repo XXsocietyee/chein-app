@@ -1,1 +1,1 @@
-UI-CLOUD-11 eac850bf24734a40f3908d3a153e561bf018c7ad Build PASS (Questify | chein - 城瘾 | Build - iOS, 0 errors, 145 warnings). Restyled App/ClubGovernanceViews.swift, App/ClubHomeView.swift, App/ClubInvitationFeedbackView.swift, App/ClubLeadPrimaryActionView.swift, App/ClubLeadProgressView.swift. Skipped none.
+UI-CLOUD-13 d27eec5617fa4820283ffdc18a0e1574841c71d7 PASS restyled App/ClubOpsCustomerViews.swift, App/ClubOpsEventView.swift, App/ClubOpsJoinNotifyViews.swift, App/ClubOwnerRefundFixtureView.swift; skipped App/ClubOpsSettlementViews.swift

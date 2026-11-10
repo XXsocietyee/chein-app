@@ -3,7 +3,6 @@ import SwiftUI
 /// Mini pages/club/event-ops hub. It only orders existing governance reads; each pushed
 /// read re-checks access/me and owns its own writes, review/confirm and return reads.
 @MainActor struct ClubOpsEventView: View {
-    @Environment(\.locale) private var locale
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
@@ -19,67 +18,121 @@ import SwiftUI
     @State private var failure: ClubGovernanceFailure?
     @State private var loading = false
     @State private var generation: UInt64 = 0
+    @ScaledMetric(relativeTo: .largeTitle) private var heroArtHeight: CGFloat = 168
     private var key: Key { .init(identity: identity, authorization: access.authorizationGeneration, reader: ObjectIdentifier(access), scope: scope) }
     private var accessScope: ClubGovernanceScope { .init(clubID: scope.clubID, activityID: scope.activityID) }
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
+    private var phaseToken: String {
+        if loading { return "loading" }
+        if failure == .forbidden || (loadedKey == key && model?.permitted == false) { return "denied" }
+        if failure != nil { return "failure" }
+        if loadedKey == key, model != nil { return "ready" }
+        return "idle"
+    }
     var body: some View {
         List {
-            CYHeroHeader("clubOpsEvent.title", tableName: "ClubOpsEvent").listRowBackground(Color.clear).listRowSeparator(.hidden)
-            if loading { ProgressView().accessibilityIdentifier("clubOpsEvent.loading") }
-            else if failure == .forbidden || (loadedKey == key && model?.permitted == false) { denied }
-            else if let failure {
-                Section {
-                    CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle")
-                        .accessibilityIdentifier("clubOpsEvent.error")
-                    CYPillButton("action.retry", style: .secondary) { Task { await load() } }.accessibilityIdentifier("clubOpsEvent.retry")
-                }
+            CYHeroHeader("clubOpsEvent.title", tableName: "ClubOpsEvent") {
+                CYCoverArt(seed: "clubOpsEvent", symbol: "calendar", showsDebugLabel: false)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: heroArtHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .accessibilityHidden(true)
+            }
+            .e1HeroRow()
+            if loading {
+                CYSkeleton()
+                    .accessibilityIdentifier("clubOpsEvent.loading")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .e1HeroRow()
+            } else if failure == .forbidden || (loadedKey == key && model?.permitted == false) {
+                denied
+            } else if let failure {
+                CYEmptyState(
+                    systemImage: "exclamationmark.triangle",
+                    LocalizedStringKey(failure.localizationKey),
+                    messageIdentifier: "clubOpsEvent.error",
+                    actionTitle: "action.retry",
+                    actionIdentifier: "clubOpsEvent.retry",
+                    actionStyle: .primary,
+                    kind: .failure
+                ) { Task { await load() } }
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             } else if loadedKey == key, let model {
                 ForEach(model.sections, id: \.self) { section in self.section(section, model: model) }
             }
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .cyAnimation(value: phaseToken)
         .accessibilityIdentifier("clubOpsEvent.root")
         .task(id: key) { await load() }
         .refreshable { await load() }
     }
     private var denied: some View {
-        CYEmptyState(systemImage: "lock", "clubOpsEvent.denied.title", tableName: "ClubOpsEvent",
-                     detail: "clubOpsEvent.denied.body", messageIdentifier: "clubOpsEvent.denied")
-            .listRowBackground(Color.clear)
+        VStack(spacing: CYSpacing.sm) {
+            CYEmptyState(systemImage: "lock", "clubOpsEvent.denied.title", tableName: "ClubOpsEvent", kind: .generic)
+            Text("clubOpsEvent.denied.body", tableName: "ClubOpsEvent")
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityIdentifier("clubOpsEvent.denied")
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
     }
     @ViewBuilder private func section(_ section: ClubOpsEventSection, model: ClubOpsEventAccess) -> some View {
         switch section {
         case .occurrence:
             Section {
                 if model.rosterHiddenForManager {
-                    CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.roster.hidden", table: "ClubOpsEvent", locale: locale)), tone: .neutral, systemImage: "eye.slash").accessibilityIdentifier("clubOpsEvent.roster.hidden")
+                    Label {
+                        Text("clubOpsEvent.roster.hidden", tableName: "ClubOpsEvent")
+                            .fixedSize(horizontal: false, vertical: true)
+                    } icon: {
+                        Image(systemName: "eye.slash").accessibilityHidden(true)
+                    }
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityIdentifier("clubOpsEvent.roster.hidden")
                 }
                 push(.occurrenceStatus, eventScope) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("club.gov.action.cancelOccurrence")
-                        Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                    }
+                    CYListRow(
+                        "club.gov.action.cancelOccurrence",
+                        trailing: .none,
+                        verbatimMeta: String(localized: "clubOpsEvent.cancel.subtitle", table: "ClubOpsEvent")
+                    ) { CYRowIcon(systemImage: "calendar.badge.minus") }
                 }
-            } header: { Text("clubOpsEvent.section.occurrence", tableName: "ClubOpsEvent") }
+            } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
         case .roster:
             Section {
-                push(.roster, eventScope) { Label { Text("clubOpsEvent.section.roster", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.crop.rectangle.stack") } }
+                push(.roster, eventScope) {
+                    CYListRow(verbatim: String(localized: "clubOpsEvent.section.roster", table: "ClubOpsEvent"), trailing: .none) {
+                        CYRowIcon(systemImage: "person.crop.rectangle.stack")
+                    }
+                }
             }
         case .series:
             // Mini-program 日期清单 card: title row + its one-line rule 「仅可修改无报名的未来场次」.
             Section {
-                push(.series, .init(clubID: scope.clubID)) { Label { Text("clubOpsEvent.section.series", tableName: "ClubOpsEvent") } icon: { Image(systemName: "calendar") } }
-            } footer: { Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent") }
+                push(.series, .init(clubID: scope.clubID)) {
+                    CYListRow(verbatim: String(localized: "clubOpsEvent.section.series", table: "ClubOpsEvent"), trailing: .none) {
+                        CYRowIcon(systemImage: "calendar")
+                    }
+                }
+            } footer: { ClubOpsTableNote("clubOpsEvent.series.note") }
         case .recurrence:
             Section {
                 push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID)) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("clubOpsEvent.recurrence.add", tableName: "ClubOpsEvent")
-                        Text("clubOpsEvent.recurrence.addHint", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-                    }
+                    CYListRow(
+                        verbatim: String(localized: "clubOpsEvent.recurrence.add", table: "ClubOpsEvent"),
+                        meta: String(localized: "clubOpsEvent.recurrence.addHint", table: "ClubOpsEvent"),
+                        trailing: .none
+                    ) { CYRowIcon(systemImage: "plus.circle") }
                 }
-            } header: { Text("clubOpsEvent.section.recurrence", tableName: "ClubOpsEvent") } footer: { Text("clubOpsEvent.recurrence.note", tableName: "ClubOpsEvent") }
+            } header: { ClubOpsTableHeading("clubOpsEvent.section.recurrence") } footer: { ClubOpsTableNote("clubOpsEvent.recurrence.note") }
         case .capacity:
             // Capacity and waitlist are set inside the series form (ClubOpsEventSeriesFields);
             // the hub section held only explanations with no control, so it is not shown.
@@ -121,13 +174,25 @@ import SwiftUI
 @MainActor struct ClubOpsEventSeriesRowView: View {
     let row: ClubOpsEventSeriesRow
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            title.font(.headline)
-            if let enabled = row.waitlistEnabled {
-                Text(enabled ? "clubOpsEvent.series.waitlistOn" : "clubOpsEvent.series.waitlistOff", tableName: "ClubOpsEvent")
-                    .font(.footnote).foregroundStyle(.secondary)
+        HStack(alignment: .top, spacing: CYSpacing.md) {
+            CYRowIcon(systemImage: "calendar")
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                title
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let enabled = row.waitlistEnabled {
+                    if enabled {
+                        CYStatusChip(verbatim: String(localized: "clubOpsEvent.series.waitlistOn", table: "ClubOpsEvent"), tone: .success, systemImage: "person.2")
+                    } else {
+                        CYStatusChip(verbatim: String(localized: "clubOpsEvent.series.waitlistOff", table: "ClubOpsEvent"), tone: .neutral, systemImage: "person.2.slash")
+                    }
+                }
             }
-        }.accessibilityIdentifier("clubOpsEvent.series.row.\(row.id)")
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .accessibilityIdentifier("clubOpsEvent.series.row.\(row.id)")
     }
     private var title: Text {
         var text = row.topicName.map { Text(verbatim: $0) } ?? Text("clubOpsEvent.series.topicID \(row.topicID)", tableName: "ClubOpsEvent")
@@ -152,13 +217,21 @@ import SwiftUI
     var loadNames: (@MainActor (ClubGovernanceReadContext) async -> Void)? = nil
     var body: some View {
         Section {
-            Text("clubOpsEvent.series.note", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+            ClubOpsTableNote("clubOpsEvent.series.note")
                 .task(id: namesKey) { if let namesKey, let loadNames { await loadNames(namesKey) } }
             if empty {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("clubOpsEvent.series.empty", tableName: "ClubOpsEvent").font(.headline)
-                    Text("clubOpsEvent.series.emptyHint", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
-                }.accessibilityIdentifier("clubOpsEvent.series.empty")
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    CYEmptyState(systemImage: "calendar", "clubOpsEvent.series.empty", tableName: "ClubOpsEvent")
+                    Text("clubOpsEvent.series.emptyHint", tableName: "ClubOpsEvent")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                }
+                .accessibilityIdentifier("clubOpsEvent.series.empty")
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
         }
     }
@@ -168,10 +241,14 @@ struct ClubOpsEventOccurrenceBadgeText: View {
     let badge: ClubOpsEventOccurrenceBadge
     var body: some View {
         switch badge {
-        case .cancelled: Text("clubOpsEvent.occurrences.cancelled", tableName: "ClubOpsEvent").foregroundStyle(CYColor.dangerText)
-        case .editable: Text("clubOpsEvent.occurrences.editable", tableName: "ClubOpsEvent").foregroundStyle(CYColor.successText)
-        case .lockReason(let reason): Text(verbatim: reason).foregroundStyle(.secondary)
-        case .locked: Text("clubOpsEvent.occurrences.locked", tableName: "ClubOpsEvent").foregroundStyle(.secondary)
+        case .cancelled:
+            ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
+        case .editable:
+            CYStatusChip(verbatim: String(localized: "clubOpsEvent.occurrences.editable", table: "ClubOpsEvent"), tone: .success, systemImage: "pencil.circle")
+        case .lockReason(let reason):
+            ClubOpsEventStatusLine(verbatim: reason, symbol: "lock", tone: CYColor.warningText)
+        case .locked:
+            CYStatusChip(verbatim: String(localized: "clubOpsEvent.occurrences.locked", table: "ClubOpsEvent"), tone: .neutral, systemImage: "lock")
         }
     }
 }
@@ -179,6 +256,13 @@ struct ClubOpsEventOccurrenceBadgeText: View {
 struct ClubOpsEventOccurrenceMetaText: View {
     let meta: ClubOpsEventOccurrenceMeta
     var body: some View {
+        metaText
+            .font(CYTypography.meta)
+            .foregroundStyle(CYColor.textSecondary)
+            .monospacedDigit()
+            .fixedSize(horizontal: false, vertical: true)
+    }
+    @ViewBuilder private var metaText: some View {
         switch meta {
         case .refunded(let count): Text("clubOpsEvent.occurrences.refunded \(count)", tableName: "ClubOpsEvent")
         case .cancelled: Text("clubOpsEvent.occurrences.cancelled", tableName: "ClubOpsEvent")
@@ -198,15 +282,27 @@ struct ClubOpsEventOccurrenceMetaText: View {
     var body: some View {
         switch ClubOpsEventCancellation.state(value, activityID: activityID) {
         case .cancelled(let reason)?:
-            VStack(alignment: .leading, spacing: 4) {
-                Text("clubOpsEvent.occurrences.cancelled", tableName: "ClubOpsEvent").font(.headline).foregroundStyle(CYColor.dangerText)
-                if let reason { Text("clubOpsEvent.cancel.reason \(reason)", tableName: "ClubOpsEvent").font(.footnote) }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
+                if let reason {
+                    Text("clubOpsEvent.cancel.reason \(reason)", tableName: "ClubOpsEvent")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }.accessibilityIdentifier("clubOpsEvent.cancel.cancelled")
         case .active?:
-            Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+            Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent")
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.active")
         case nil:
-            Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent").accessibilityIdentifier("clubOpsEvent.cancel.unknownState")
+            Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent")
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("clubOpsEvent.cancel.unknownState")
         }
     }
 }
@@ -218,15 +314,27 @@ struct ClubOpsEventOccurrenceMetaText: View {
     let reread: () -> Void
     var body: some View {
         if !confirmed {
-            Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent").font(.headline)
+            Text("clubOpsEvent.cancel.incomplete", tableName: "ClubOpsEvent")
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOpsEvent.cancel.incomplete")
-            Button { reread() } label: { Text("clubOpsEvent.cancel.reread", tableName: "ClubOpsEvent") }
+            CYPillButton("clubOpsEvent.cancel.reread", style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsEvent", action: reread)
                 .accessibilityIdentifier("clubOpsEvent.cancel.reread")
+                .e1ActionRow()
         }
-        Text(LocalizedStringKey("clubOpsEvent.refund." + ClubOpsEventCancellation.refund(receipt).rawValue), tableName: "ClubOpsEvent")
-            .accessibilityIdentifier("clubOpsEvent.cancel.refund")
-        Text(LocalizedStringKey("clubOpsEvent.notify." + ClubOpsEventCancellation.notifications(receipt).rawValue), tableName: "ClubOpsEvent")
-            .accessibilityIdentifier("clubOpsEvent.cancel.notify")
+        ClubOpsEventStatusLine(
+            key: "clubOpsEvent.refund." + ClubOpsEventCancellation.refund(receipt).rawValue,
+            symbol: "arrow.uturn.backward.circle",
+            tone: CYColor.textPrimary
+        )
+        .accessibilityIdentifier("clubOpsEvent.cancel.refund")
+        ClubOpsEventStatusLine(
+            key: "clubOpsEvent.notify." + ClubOpsEventCancellation.notifications(receipt).rawValue,
+            symbol: "bell",
+            tone: CYColor.textPrimary
+        )
+        .accessibilityIdentifier("clubOpsEvent.cancel.notify")
     }
 }
 
@@ -259,8 +367,68 @@ struct ClubOpsEventOccurrenceMetaText: View {
 struct ClubOpsEventSeriesConflictNotice: View {
     var body: some View {
         Section {
-            Text("clubOpsEvent.series.conflict", tableName: "ClubOpsEvent").font(.subheadline)
-                .accessibilityIdentifier("clubOpsEvent.series.conflict")
+            Label {
+                Text("clubOpsEvent.series.conflict", tableName: "ClubOpsEvent")
+                    .fixedSize(horizontal: false, vertical: true)
+            } icon: {
+                Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+            }
+            .font(CYTypography.body)
+            .foregroundStyle(CYColor.warningText)
+            .accessibilityIdentifier("clubOpsEvent.series.conflict")
         }
+    }
+}
+
+private struct ClubOpsTableHeading: View {
+    let key: String
+    init(_ key: String) { self.key = key }
+    var body: some View {
+        Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .textCase(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
+private struct ClubOpsTableNote: View {
+    let key: String
+    init(_ key: String) { self.key = key }
+    var body: some View {
+        Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
+            .font(CYTypography.meta)
+            .foregroundStyle(CYColor.textSecondary)
+            .textCase(nil)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+}
+
+/// Icon plus wrapping status copy. A blank server reason is an em dash, never a zero.
+private struct ClubOpsEventStatusLine: View {
+    private let text: Text
+    private let symbol: String
+    private let tone: Color
+    init(key: String, symbol: String, tone: Color) {
+        text = Text(LocalizedStringKey(key), tableName: "ClubOpsEvent")
+        self.symbol = symbol
+        self.tone = tone
+    }
+    init(verbatim: String, symbol: String, tone: Color) {
+        let shown = verbatim.trimmingCharacters(in: .whitespacesAndNewlines)
+        text = Text(verbatim: shown.isEmpty ? "—" : shown)
+        self.symbol = symbol
+        self.tone = tone
+    }
+    var body: some View {
+        Label {
+            text.fixedSize(horizontal: false, vertical: true)
+        } icon: {
+            Image(systemName: symbol).accessibilityHidden(true)
+        }
+        .font(CYTypography.body)
+        .foregroundStyle(tone)
+        .accessibilityElement(children: .combine)
     }
 }
