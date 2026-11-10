@@ -82,6 +82,8 @@ enum DesignFixtureRegistry {
         case let n where n.hasPrefix("e3-") && E3Fixtures.make(n) != nil: return E3Fixtures.make(n)!
         // HERO collection album (AlbumFixtures): album-kit, album-stamps[-empty], album-badges[-new|-locked], album-cards, album-unlock
         case let n where n.hasPrefix("album-") && AlbumFixtures.make(n) != nil: return AlbumFixtures.make(n)!
+        // Glass carousel (CarouselFixtures): carousel-events, carousel-tickets, carousel-empty, carousel-loading, carousel-ax
+        case let n where n.hasPrefix("carousel-") && CarouselFixtures.make(n) != nil: return CarouselFixtures.make(n)!
         default:
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }

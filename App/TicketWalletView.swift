@@ -11,6 +11,9 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletSnapshot>()
     @State private var isVisible = false
+    @State private var carouselTicketID: Int?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     @State private var refreshOnActive = false
     @State private var pendingOrderEntry = TicketWalletPendingOrderEntry()
     @State private var pendingOrderReadOwner: TicketWalletPendingOrderOwner?
@@ -52,6 +55,7 @@ import SwiftUI
                             }
                         }
                     }
+                    ticketCarousel(snapshot.tickets)
                     // Source preserves both lanes and row order, including repeated server IDs.
                     ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { rowIndex, ticket in
                         if ticket.action == .detail {
@@ -104,6 +108,9 @@ import SwiftUI
             }
             .onChange(of: key) { _, _ in replacePresentation() }
             .onChange(of: pendingOrderProvider?.owner) { _, _ in replacePresentation() }
+            .navigationDestination(item: $carouselTicketID) { id in
+                TicketWalletDetailView(id: id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
+            }
             .navigationDestination(item: $pendingOrderEntry.target) { target in
                 if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
                    !model.isLoading, let snapshot = model.value(owner: key),
@@ -153,6 +160,38 @@ import SwiftUI
            let provider, provider.owner == pendingOrderProvider?.owner, provider.matches(reader: reader),
            model.value(owner: captured) != nil {
             pendingOrderReadOwner = provider.owner
+        }
+    }
+}
+
+extension TicketWalletView {
+    /// Glass carousel entry over the openable tickets (detail action only, same destination as the rows below). Two or more tickets;
+    /// accessibility Dynamic Type sizes skip it and keep the vertical rows.
+    @ViewBuilder fileprivate func ticketCarousel(_ tickets: [TicketWalletTicket]) -> some View {
+        let openable = Array(tickets.enumerated()).filter { $0.element.action == .detail }.prefix(12)
+        if openable.count >= 2 && !dynamicTypeSize.isAccessibilitySize {
+            let slides = openable.map { offset, ticket in
+                CYCarouselSlide(id: "\(offset)-\(ticket.id)", seed: "ticket-\(ticket.id)",
+                                title: ticket.title.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 } ?? appLocalized("ticketWallet.untitled", locale: locale),
+                                date: ticket.participateDate, place: ticket.addressName, badge: statusTitle(ticket.status),
+                                kind: .ticket, dimmed: ticket.status == .cancelled || ticket.status == .expired)
+            }
+            Section {
+                CYCarouselRail(phase: .loaded(Array(slides)), railLabel: "carousel.tickets", onOpen: { key in
+                    if let match = openable.first(where: { "\($0.offset)-\($0.element.id)" == key }) { carouselTicketID = match.element.id }
+                }) { EmptyView() }
+                    .questifyCardListRow()
+            }
+        }
+    }
+    private func statusTitle(_ status: TicketWalletStatus) -> String {
+        switch status {
+        case .ready: return appLocalized("ticketWallet.status.ready", locale: locale)
+        case .pending: return appLocalized("ticketWallet.status.pending", locale: locale)
+        case .verified: return appLocalized("ticketWallet.status.verified", locale: locale)
+        case .cancelled: return appLocalized("ticketWallet.status.cancelled", locale: locale)
+        case .expired: return appLocalized("ticketWallet.status.expired", locale: locale)
+        case .unknown: return appLocalized("ticketWallet.status.unknown", locale: locale)
         }
     }
 }
