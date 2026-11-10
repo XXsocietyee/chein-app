@@ -125,7 +125,7 @@ import UIKit
         let calls = service.calls, writes = storage.writes, bytes = storage.bytes
         let value = RoamLiveCoveragePresentation(controller: owner)
         XCTAssertNil(value.percentage)
-        XCTAssertEqual(value.value(locale: Locale(identifier: "en")), "Unavailable")
+        XCTAssertEqual(value.value(locale: Locale(identifier: "en")), "—")
         XCTAssertEqual(service.calls, calls); XCTAssertEqual(location.calls, 0)
         XCTAssertEqual(storage.writes, writes); XCTAssertEqual(storage.bytes, bytes)
     }
@@ -167,7 +167,7 @@ import UIKit
         await owner.start(purposeAccepted: true)
         let known = RoamLiveCoveragePresentation(controller: owner)
         let calls = service.calls, fixes = location.calls, writes = storage.writes
-        for (identifier, title, placeholder) in [("en", "Local area explored", "Unavailable"), ("zh-Hans", "本地片区探索度", "暂无可靠数据")] {
+        for (identifier, title, placeholder) in [("en", "Local area explored", "—"), ("zh-Hans", "本地片区探索度", "—")] {
             let locale = Locale(identifier: identifier), copy = RoamLiveCoverageCopy(locale: Locale(identifier: identifier))
             XCTAssertEqual(copy.title, title); XCTAssertEqual(unknown.value(locale: locale), placeholder)
             XCTAssertEqual(known.value(locale: locale), "\(owner.explorationPercent)%")
@@ -190,11 +190,11 @@ import UIKit
         for (seconds, value) in [(0, "00:00"), (9, "00:09"), (59, "00:59"), (60, "01:00"), (3661, "61:01")] {
             XCTAssertEqual(copy.value(seconds: seconds), value)
         }
-        XCTAssertEqual(copy.value(seconds: nil), "Unavailable")
-        XCTAssertEqual(copy.value(seconds: -1), "Unavailable")
+        XCTAssertEqual(copy.value(seconds: nil), "—")
+        XCTAssertEqual(copy.value(seconds: -1), "—")
     }
     func testEnglishChineseUnknownAndKnownRowsMountWithLargeText() {
-        for (language, title, unknown) in [("en", "Foreground time", "Unavailable"), ("zh-Hans", "本次前台用时", "暂无可靠数据")] {
+        for (language, title, unknown) in [("en", "Foreground time", "—"), ("zh-Hans", "本次前台用时", "—")] {
             let locale = Locale(identifier: language), copy = RoamLiveElapsedCopy(locale: locale)
             XCTAssertEqual(copy.title, title); XCTAssertEqual(copy.value(seconds: nil), unknown)
             XCTAssertTrue(copy.hint.contains(language == "en" ? "Recovery cannot restore" : "恢复记录无法还原"))

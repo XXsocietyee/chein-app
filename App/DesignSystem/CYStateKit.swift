@@ -257,7 +257,7 @@ enum CYPermissionKind: Equatable {
 
     func title(_ t: CYKitCopy) -> String {
         switch self {
-        case .location: t("See what's around you", "发现你身边的地方")
+        case .location: t("Turn on location. Walk, and it lights up.", "打开定位，走到哪，亮到哪")
         case .camera: t("Stamp the moment", "为这一刻盖章")
         case .notifications: t("No push notifications", "不会向你推送通知")
         case .photos: t("Add a photo to your stamp", "给印章配一张照片")
@@ -284,10 +284,10 @@ enum CYPermissionKind: Equatable {
 
     func notNow(_ t: CYKitCopy) -> String {
         switch self {
-        case .location: t("Not now, browse without it", "暂不开启，先逛逛")
-        case .camera: t("Not now", "暂不开启")
+        case .location: t("Not now", "以后再说")
+        case .camera: t("Not now", "以后再说")
         case .notifications: t("Open my inbox", "查看站内消息")
-        case .photos: t("Not now", "暂不开启")
+        case .photos: t("Not now", "以后再说")
         }
     }
 }
@@ -351,7 +351,7 @@ struct CYPermissionDeniedCard: View {
         let t = CYKitCopy(locale: locale)
         VStack(spacing: CYSpacing.md) {
             CYStateArt(kind: kind.artKind, size: 96)
-            Text(verbatim: kind == .location ? t("Location is off", "位置权限已关闭") : t("Camera is off", "相机权限已关闭"))
+            Text(verbatim: kind == .location ? t("Location is off", "定位没开") : t("Camera is off", "相机没开"))
                 .font(CYTypography.cardTitle.weight(.semibold))
                 .foregroundStyle(palette.textPrimary)
             Text(verbatim: kind == .location

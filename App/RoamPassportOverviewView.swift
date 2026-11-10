@@ -17,16 +17,16 @@ import SwiftUI
                     .accessibilityIdentifier("roam.passport.trips")
                 LabeledContent("roam.passport.shopVisits") {
                     if let shops = summary.knownShopVisits { Text(shops, format: .number) }
-                    else { Text("roam.passport.unknown") }
+                    else { Text("roam.passport.unknown").accessibilityLabel(Text("roam.passport.unknown.a11y")) }
                 }.accessibilityIdentifier("roam.passport.shops")
                 LabeledContent("roam.passport.activeDays") {
                     if let days = summary.activeDays { Text(days, format: .number) }
-                    else { Text("roam.passport.unknown") }
+                    else { Text("roam.passport.unknown").accessibilityLabel(Text("roam.passport.unknown.a11y")) }
                 }.accessibilityIdentifier("roam.passport.days")
                 LabeledContent("roam.experience.knownDistance") {
                     if let distance = summary.knownKilometers {
                         Text(distance, format: .number.precision(.fractionLength(1))) + Text(verbatim: " km")
-                    } else { Text("roam.passport.unknown") }
+                    } else { Text("roam.passport.unknown").accessibilityLabel(Text("roam.passport.unknown.a11y")) }
                 }.accessibilityIdentifier("roam.passport.distance")
                 if summary.trips == 0 {
                     CYEmptyState(systemImage: "figure.walk", "roam.experience.historyEmpty")
