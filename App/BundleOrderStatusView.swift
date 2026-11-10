@@ -84,10 +84,12 @@ enum BundleOrderStatusPresentation {
                 if banner == .confirming {
                     CYSkeleton()
                         .accessibilityHidden(true)
+                        .cyRowTransition()
                 }
                 if let key = BundleOrderStatusPresentation.bannerKey(banner) {
                     CYNoteBanner(text: Text(verbatim: catalog(key)), symbol: bannerSymbol(banner), tone: bannerTone(banner))
                         .accessibilityIdentifier("bundle.order.receiptBanner")
+                        .cyRowTransition()
                     if poller?.state == .stillUnconfirmed || poller?.state == .readUnavailable {
                         CYPillButton(verbatim: catalog("order.receipt.recheck"), systemImage: "arrow.clockwise") {
                             poller?.poller.start()
@@ -106,7 +108,14 @@ enum BundleOrderStatusPresentation {
             }
         }
         .cyAnimation(value: poller?.state)
+        .cyHaptic(.success, trigger: receiptFound) { _, new in new }
         .onDisappear { poller?.poller.stop() }
+    }
+
+    /// True once polling lands on a receipt: the one `.success` tick of this screen (motion-spec-purchase.md).
+    private var receiptFound: Bool {
+        if case .found? = poller?.state { return true }
+        return false
     }
 
     private func orderBody(_ order: BundleOrderReadModel) -> some View {
