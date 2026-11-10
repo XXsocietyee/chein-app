@@ -204,14 +204,21 @@ private struct MemberScoreAppealRowLabel: View {
 
 struct MemberScoreStatusChip: View {
     let status: MemberScoreAppealStatus
-    var body: some View {
-        let tone: CYStatusTone
-        let symbol: String
+    private var tone: CYStatusTone {
         switch status {
-        case .open: tone = .warning; symbol = "clock"
-        case .accepted: tone = .success; symbol = "checkmark"
-        case .rejected: tone = .danger; symbol = "xmark"
+        case .open: return .warning
+        case .accepted: return .success
+        case .rejected: return .danger
         }
+    }
+    private var symbol: String {
+        switch status {
+        case .open: return "clock"
+        case .accepted: return "checkmark"
+        case .rejected: return "xmark"
+        }
+    }
+    var body: some View {
         MemberScoreChipChrome(tone: tone, symbol: symbol) {
             memberScoreText("score.status.\(status.rawValue)")
         }
