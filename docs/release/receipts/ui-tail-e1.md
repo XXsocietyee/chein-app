@@ -36,3 +36,7 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 - DONE SearchRoutePreviewView: hero name, primary pill link for walking nav, numbered step rows with tabular numerals, skeleton, tokens. (New shared `CYPillButtonLabel` in E1CommerceComponents.swift.)
 - SKIPPED SecondRegistrationStatsView: operator/merchant analytics report (rates, exclusions), debug-fixture only, no player surface (light/merchant-side).
 - SKIPPED SessionGlobalSearchView, SessionHomeFeedView, SessionTopicBrowserView, SessionTopicSelfPlayView: pure host wiring (environment injection, toolbar menu entries, `Session*` is on the never-edit list); no restylable view content.
+
+## Batch 10
+- DONE ShopNPCScriptedGuideView (tokens + pill), SquareRelatedTopicView (secondary pill link), SupportTicketReadView (hero, kit list rows, empty state, pills, skeleton), TemplateAdditionalSampleBrowserView (hero, CYListRow sample links, pills, tabular dice numbers).
+- SKIPPED ShopNPCFixtureView: DEBUG-only synthetic fixture host (no production UI).

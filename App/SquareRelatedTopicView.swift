@@ -28,7 +28,8 @@ extension EnvironmentValues {
                 Button {
                     guard selected.isCurrent(squareScope: squareReader.scope, topicScope: context.reader.scope) else { return }
                     onSelect(selected)
-                } label: { Label("activity.viewTopic", systemImage: "map") }
+                } label: { CYPillButtonLabel("activity.viewTopic", systemImage: "map") }
+                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
                     .accessibilityIdentifier("square.openRelatedTopic")
             }
         }

@@ -14,27 +14,27 @@ import SwiftUI
     private var fallbackNeeded: Bool { !coordinator.grants.textAllowed || coordinator.failure != nil }
     var body: some View {
         if let state = ShopNPCScriptedGuidePresentation.state(source: source, coordinator: coordinator) {
-            VStack(alignment: .leading, spacing: 16) {
-                if fallbackNeeded { Text("shopNPCGuide.fallback").font(.footnote).foregroundStyle(.secondary) }
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                if fallbackNeeded { Text("shopNPCGuide.fallback").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                 DisclosureGroup("shopNPCGuide.title", isExpanded: $expanded) {
-                    VStack(alignment: .leading, spacing: 12) {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
                         switch state {
                         case .available(let guide):
-                            Text("shopNPCGuide.source").font(.caption).foregroundStyle(.secondary)
-                            if let rules = guide.rules { Text(verbatim: rules).font(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.rules") }
+                            Text("shopNPCGuide.source").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                            if let rules = guide.rules { Text(verbatim: rules).font(CYTypography.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.rules") }
                             else { Text("shopNPCGuide.noRules").accessibilityIdentifier("shopNPCGuide.noRules") }
                             if let materials = guide.materials {
-                                Text("shopNPCGuide.materials").font(.headline)
-                                Text(verbatim: materials).font(.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.materials")
+                                Text("shopNPCGuide.materials").font(CYTypography.cardTitle).accessibilityAddTraits(.isHeader)
+                                Text(verbatim: materials).font(CYTypography.body).lineSpacing(4).textSelection(.enabled).accessibilityIdentifier("shopNPCGuide.materials")
                             }
-                            Text("shopNPCGuide.noProgress").font(.footnote).foregroundStyle(.secondary)
+                            Text("shopNPCGuide.noProgress").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         case .unavailable: Text("shopNPCGuide.unavailable").accessibilityIdentifier("shopNPCGuide.unavailable")
                         case .tooLarge: Text("shopNPCGuide.tooLarge").accessibilityIdentifier("shopNPCGuide.tooLarge")
                         }
-                    }.padding(.top, 6)
+                    }.padding(.top, CYSpacing.sm)
                 }
-                Button("shopNPCGuide.return") { returnToNode() }
-                    .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("shopNPCGuide.return")
+                CYPillButton("shopNPCGuide.return", style: .secondary, systemImage: "arrow.uturn.backward") { returnToNode() }
+                    .accessibilityIdentifier("shopNPCGuide.return")
             }
             .accessibilityIdentifier("shopNPCGuide.panel")
             .onAppear { expanded = fallbackNeeded }

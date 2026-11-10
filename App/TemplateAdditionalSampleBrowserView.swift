@@ -105,39 +105,38 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateSampleCoverage.open") }.e1HeroRow()
             Section {
-                NavigationLink("templateReaction.sample") { TemplateReactionRehearsalView(model: model, mode: .sourceExample) }
+                NavigationLink { TemplateReactionRehearsalView(model: model, mode: .sourceExample) } label: { CYListRow("templateReaction.sample", trailing: .none) { CYRowIcon(systemImage: "bolt.fill") } }
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateReaction.openSample")
             }
             Section {
-                NavigationLink("templateTimer.sample.countdown") { TemplateTimerRehearsalView(model: model, kind: .countdown, mode: .sourceExample) }
+                NavigationLink { TemplateTimerRehearsalView(model: model, kind: .countdown, mode: .sourceExample) } label: { CYListRow("templateTimer.sample.countdown", trailing: .none) { CYRowIcon(systemImage: "timer") } }
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateTimer.openSample.countdown")
-                NavigationLink("templateTimer.sample.stopwatch") { TemplateTimerRehearsalView(model: model, kind: .stopwatch, mode: .sourceExample) }
+                NavigationLink { TemplateTimerRehearsalView(model: model, kind: .stopwatch, mode: .sourceExample) } label: { CYListRow("templateTimer.sample.stopwatch", trailing: .none) { CYRowIcon(systemImage: "stopwatch") } }
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateTimer.openSample.stopwatch")
             }
             Section {
-                NavigationLink("templateCoin.sample") { TemplateCoinFlipRehearsalView(model: model, mode: .sourceExample) }
+                NavigationLink { TemplateCoinFlipRehearsalView(model: model, mode: .sourceExample) } label: { CYListRow("templateCoin.sample", trailing: .none) { CYRowIcon(systemImage: "circle.lefthalf.filled") } }
                     .disabled(!controller.canBrowse).accessibilityIdentifier("templateCoin.openSample")
             }
-            Section { Text("templateSampleCoverage.scope") }
-            if controller.unavailable { Section { Text("templateSampleCoverage.unavailable") } }
+            Section { Text("templateSampleCoverage.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if controller.unavailable { Section { Text("templateSampleCoverage.unavailable").foregroundStyle(CYColor.warningText) } }
             ForEach(TemplateAdditionalSamplePreview.Choice.allCases) { choice in
                 Section(LocalizedStringKey(choice.labelKey)) {
-                    if choice == .pricePair { Text("templateSampleCoverage.nameOnly").font(.footnote) }
-                    HStack {
-                        Button("templateSamples.preview", action: controller.openAction(choice))
-                            .disabled(!controller.canBrowse || controller.presentation != nil)
-                            .accessibilityIdentifier("templateSampleCoverage.preview." + choice.rawValue)
-                        Spacer()
-                        NavigationLink("templateSamples.configure") {
-                            if let family = choice.family { TemplateCreatorConfigurationView(model: model, family: family) }
-                            else { TemplateAdvancedGameConfigurationView(model: model, game: .dice) }
-                        }.disabled(!controller.canBrowse)
-                            .accessibilityIdentifier("templateSampleCoverage.configure." + choice.rawValue)
-                    }.buttonStyle(.borderless)
+                    if choice == .pricePair { Text("templateSampleCoverage.nameOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    CYPillButton("templateSamples.preview", style: .secondary, systemImage: "play.circle", action: controller.openAction(choice))
+                        .disabled(!controller.canBrowse || controller.presentation != nil)
+                        .accessibilityIdentifier("templateSampleCoverage.preview." + choice.rawValue).e1ActionRow()
+                    NavigationLink {
+                        if let family = choice.family { TemplateCreatorConfigurationView(model: model, family: family) }
+                        else { TemplateAdvancedGameConfigurationView(model: model, game: .dice) }
+                    } label: { CYListRow("templateSamples.configure", trailing: .chevron) { CYRowIcon(systemImage: "slider.horizontal.3") } }
+                        .disabled(!controller.canBrowse)
+                        .accessibilityIdentifier("templateSampleCoverage.configure." + choice.rawValue)
                 }
             }
-        }.navigationTitle("templateSampleCoverage.open")
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .sheet(item: controller.presentationBinding) { item in
                 NavigationStack { TemplateAdditionalSamplePresentationView(controller: controller, presentationID: item.id) }
             }
@@ -156,9 +155,9 @@ import Combine
     var body: some View {
         Group {
             if let item = controller.visiblePresentation, item.id == presentationID {
-                VStack(spacing: 8) {
-                    Text("templateSamples.previewScope").font(.footnote).padding(.horizontal)
-                    Text("templateSamples.filled \(item.sample.filledFields.count)").font(.caption)
+                VStack(spacing: CYSpacing.sm) {
+                    Text("templateSamples.previewScope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.horizontal)
+                    Text("templateSamples.filled \(item.sample.filledFields.count)").font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)
                     if let family = item.sample.choice.family {
                         if family == .pricePair { Text("templateSampleCoverage.nameOnly").font(.footnote) }
                         TemplateCreatorRehearsalView(draft: item.sample.draft, family: family).id(item.id)
@@ -183,24 +182,24 @@ import Combine
     private var configuration: TemplateD6Rehearsal? { try? TemplateD6Rehearsal(draft: draft) }
     var body: some View {
         Form {
-            Section { Text("templateSampleCoverage.fixedDice").font(.footnote) }
+            Section { CYHeroHeader("templateSampleCoverage.choice.dice", subtitle: "templateSampleCoverage.fixedDice") }.e1HeroRow()
             if let configuration {
                 Section {
                     Text(verbatim: configuration.kicker)
-                    Button("templateD6.showSample") {
+                    CYPillButton("templateD6.showSample", systemImage: "dice") {
                         sample = try? configuration.sample(pips: configuration.diceCount == 2 ? [5, 4] : [5])
-                    }.accessibilityIdentifier("templateSampleCoverage.dice.show")
+                    }.accessibilityIdentifier("templateSampleCoverage.dice.show").e1ActionRow()
                 }
                 if let sample {
                     Section("templateD6.sampleResult") {
-                        Text(verbatim: sample.pips.map(String.init).joined(separator: " + "))
-                        LabeledContent("playkit.dice.total", value: String(sample.total))
+                        Text(verbatim: sample.pips.map(String.init).joined(separator: " + ")).font(CYTypography.dataXL).monospacedDigit()
+                        LabeledContent("playkit.dice.total", value: String(sample.total)).monospacedDigit()
                         if let action = sample.action { Text(verbatim: action) }
                         else { Text("templateD6.sumOnly").font(.caption) }
                     }
                 }
-                Button("creator.reset") { sample = nil }.accessibilityIdentifier("templateSampleCoverage.dice.reset")
+                CYPillButton("creator.reset", style: .tertiary) { sample = nil }.accessibilityIdentifier("templateSampleCoverage.dice.reset").e1ActionRow()
             } else { Text("templateSampleCoverage.unavailable") }
-        }.navigationTitle("templateSampleCoverage.choice.dice")
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
     }
 }
