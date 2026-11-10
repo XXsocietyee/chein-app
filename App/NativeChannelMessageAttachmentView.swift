@@ -15,8 +15,8 @@ import SwiftUI
                 SocialMessageMediaView(message: snapshot.message, reader: reader, expectedIdentity: expectedIdentity,
                     isMessageCurrent: { current })
             } else {
-                Text("attachment.sourceRequired", tableName: "NativeChannelMessage")
-                    .nativeChannelNotice(systemImage: "doc.badge.ellipsis").padding(Theme.Space.s3)
+                CYEmptyState(systemImage: "doc.badge.ellipsis", "attachment.sourceRequired", tableName: "NativeChannelMessage")
+                    .padding(Theme.Space.s3)
             }
         }.nativeChannelScreen().privacySensitive().accessibilityIdentifier("ncm47.attachment")
     }
