@@ -1,0 +1,20 @@
+[
+  {
+    "key": "uiCloud24.income.loading",
+    "table": "Localizable",
+    "en": "Loading original income facts",
+    "zh-Hans": "正在读取原收入事实"
+  },
+  {
+    "key": "uiCloud24.incomeDetail.loading",
+    "table": "Localizable",
+    "en": "Loading this income fact",
+    "zh-Hans": "正在读取这条原收入事实"
+  },
+  {
+    "key": "uiCloud24.qa.loading",
+    "table": "Localizable",
+    "en": "Loading the question editor",
+    "zh-Hans": "正在读取题目编辑"
+  }
+]
