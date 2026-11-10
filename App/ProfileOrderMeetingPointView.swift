@@ -42,16 +42,21 @@ import SwiftUI
     let current: @MainActor () -> ProfileOrderMeetingPointContext?
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Button("profile.orderMap.open", systemImage: "map") { model.prepare(current: current()) }
+            CYPillButton("profile.orderMap.open", style: .secondary, systemImage: "map") { model.prepare(current: current()) }
                 .disabled(!model.canPrepare(current: current()))
-                .frame(minHeight: 44).accessibilityIdentifier("profile.orderMap.open")
+                .accessibilityIdentifier("profile.orderMap.open")
             if !model.matches(current()) {
-                Text("profile.orderMap.unavailable").font(.footnote).foregroundStyle(.secondary)
+                Text("profile.orderMap.unavailable").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             } else if model.isOpening {
-                ProgressView("profile.orderMap.opening").accessibilityIdentifier("profile.orderMap.opening")
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    CYSkeletonBlock(height: 12).frame(maxWidth: 140)
+                    Text("profile.orderMap.opening").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                }
+                .accessibilityElement(children: .combine).accessibilityIdentifier("profile.orderMap.opening")
             } else if let outcome = model.outcome {
                 Text(LocalizedStringKey(outcome == .opened ? "profile.orderMap.opened" : "profile.orderMap.failed"))
-                    .font(.footnote).accessibilityIdentifier("profile.orderMap.result")
+                    .font(CYTypography.meta).foregroundStyle(outcome == .opened ? CYColor.successText : CYColor.warningText)
+                    .accessibilityIdentifier("profile.orderMap.result")
             }
         }
     }
@@ -80,6 +85,7 @@ import SwiftUI
                    onDismiss: { model.cancel(id: review.id) }) { offered in
                 NavigationStack {
                     Form {
+                        Section { CYHeroHeader("profile.orderMap.review") }.e1HeroRow()
                         Section {
                             Text("profile.orderMap.disclosure")
                             if !offered.context.destination.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -89,12 +95,12 @@ import SwiftUI
                                 Text(verbatim: "\(latitude), \(longitude)").monospacedDigit()
                             }
                         }
-                        Button("profile.orderMap.confirm") {
+                        CYPillButton("profile.orderMap.confirm", systemImage: "map") {
                             Task { await model.confirm(offered, current: current, open: open) }
                         }.disabled(!model.owns(offered, current: current()))
-                            .accessibilityIdentifier("profile.orderMap.confirm")
+                            .accessibilityIdentifier("profile.orderMap.confirm").e1ActionRow()
                     }
-                    .navigationTitle("profile.orderMap.review")
+                    .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button("action.cancel") { model.cancel(id: offered.id) }
                             .accessibilityIdentifier("profile.orderMap.cancel")

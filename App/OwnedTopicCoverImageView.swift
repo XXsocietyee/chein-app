@@ -63,28 +63,32 @@ import UIKit
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    CYHeroHeader(verbatim: String(localized: LocalizedStringResource("ownedCover.imageTitle", defaultValue: "Selected cover image", locale: locale)))
                     Text(String(localized: LocalizedStringResource("ownedCover.authorImageScope", defaultValue: "Only this account can read this selected asset. This image is not a player grant or a publication receipt.", locale: locale)))
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("ownedCover.image.scope")
                     if original.flow.isCurrent, let image = model.image {
                         Image(uiImage: image).resizable().scaledToFit()
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                             .accessibilityLabel(String(localized: LocalizedStringResource("ownedCover.authorImage", defaultValue: "Verified selected cover", locale: locale)))
                             .accessibilityIdentifier("ownedCover.image.content")
                     } else if original.flow.state == .loading || original.flow.state == .idle {
-                        ProgressView().accessibilityIdentifier("ownedCover.image.loading")
+                        CYSkeletonBlock(height: 200, cornerRadius: CYRadius.md).accessibilityLabel(Text("cy.state.loading")).accessibilityIdentifier("ownedCover.image.loading")
                     } else {
                         Text(String(localized: LocalizedStringResource("ownedCover.imageUnavailable", defaultValue: "This exact image is unavailable. No other version or image URL will be substituted.", locale: locale)))
                             .accessibilityIdentifier("ownedCover.image.unavailable")
                         if original.flow.isCurrent {
-                            Button(String(localized: LocalizedStringResource("ownedCover.retryImage", defaultValue: "Read this exact image again", locale: locale))) { Task { await model.load() } }
-                                .buttonStyle(.borderless).accessibilityIdentifier("ownedCover.image.retry")
+                            CYPillButton(verbatim: String(localized: LocalizedStringResource("ownedCover.retryImage", defaultValue: "Read this exact image again", locale: locale)), style: .secondary, systemImage: "arrow.clockwise") { Task { await model.load() } }
+                                .accessibilityIdentifier("ownedCover.image.retry")
                         }
                     }
                     Text(verbatim: original.flow.asset.assetID).textSelection(.enabled).accessibilityIdentifier("ownedCover.image.asset")
                     Text(verbatim: original.flow.asset.sourceVersion).textSelection(.enabled).accessibilityIdentifier("ownedCover.image.version")
-                }.padding()
+                }.padding(CYSpacing.pageHorizontal)
             }
-            .navigationBarTitleDisplayMode(.inline).navigationTitle(String(localized: LocalizedStringResource("ownedCover.imageTitle", defaultValue: "Selected cover image", locale: locale)))
+            .background(CYColor.bgPage.ignoresSafeArea())
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(String(localized: LocalizedStringResource("ownedCover.close", defaultValue: "Close", locale: locale))) { model.close(); close() }
                     .accessibilityIdentifier("ownedCover.image.close")

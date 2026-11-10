@@ -33,7 +33,7 @@ struct ActivityDetailView: View {
     var body: some View {
         Group {
             if session.account == nil {
-                ContentUnavailableView("activity.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "activity.signInRequired")
                     .accessibilityIdentifier("activity.detail.signIn")
             } else {
                 let activityIdentity = session.activityPresentationIdentity
@@ -100,13 +100,9 @@ struct ActivityDetailView: View {
         ZStack {
             if loading { ScrollView { CYLoadingStateView(rows: 2).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading")) }
             else if failed {
-                ContentUnavailableView {
-                    Label {
-                        Text("activity.loadFailed").accessibilityIdentifier("activity.detail.error")
-                    } icon: { Image(systemName:"wifi.exclamationmark") }
-                } actions: {
-                    Button("action.retry") { loads.start { await load() } }
-                        .accessibilityIdentifier("activity.detail.retry")
+                CYEmptyState(systemImage: "wifi.exclamationmark", "activity.loadFailed", messageIdentifier: "activity.detail.error",
+                             actionTitle: "action.retry", actionIdentifier: "activity.detail.retry", kind: .failure) {
+                    loads.start { await load() }
                 }
             } else if let access {
                 switch access {
@@ -145,7 +141,7 @@ struct ActivityDetailView: View {
                     requiredClubSelection?.id == selection.id && selection.mayRemainOpen(access: access, in: gateScope)
                 })
             } else {
-                ContentUnavailableView("activity.requiredClub.changed", systemImage: "arrow.clockwise")
+                CYEmptyState(systemImage: "arrow.clockwise", "activity.requiredClub.changed")
                     .accessibilityIdentifier("activity.requiredClub.stale")
             }
         }
@@ -161,7 +157,7 @@ struct ActivityDetailView: View {
                                         squareReader: peopleProfile.squareReader, actions: peopleProfile.actions)
                     .id(selection)
             } else {
-                ContentUnavailableView("social.changed", systemImage: "person.crop.circle.badge.exclamationmark")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "social.changed")
             }
         }
         .sheet(isPresented: $showsReview) {
