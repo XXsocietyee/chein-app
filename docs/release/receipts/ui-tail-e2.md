@@ -27,3 +27,8 @@ Order switched to REVERSE (last file first) per coordinator: Cursor ui/cloud-* l
 - done: SessionPlayRuntimeView (CYEmptyState), SessionCityPlayerValueView (CYEmptyState, CYSkeleton, CYPillButton)
 - done: RoamVoucherHangoutViews (CYEmptyState), RoamSubpageParityViews (CYEmptyState x7, CYSkeleton)
 - skipped (no visible UI, pure wrapper views): SessionRoamMediaViews
+
+## Batch 5 (reverse)
+- done: RoamShareAlbumGuideView (CYStatusChip, CYSectionHeader), RoamRecoveryView (CYPillButton, CYSkeleton, CYStatusChip)
+- done: RoamReceivedStampMetadataView (CYEmptyState, CYSkeleton; a11y anchors untouched), RoamPosterScanView (CYPillButton, CYSkeleton)
+- done (light, loading states only; private-data settle logic untouched): RoamPassportPrivateToolsViews (CYSkeleton)

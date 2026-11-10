@@ -144,8 +144,8 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
     var body: some View {
         Group {
             if !isCurrent { receivedStampText("changed") }
-            else if reader.identity == nil { Text("roam.signInRequired") }
-            else if !reader.isConfigured { Text("roam.notConfigured") }
+            else if reader.identity == nil { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "roam.signInRequired") }
+            else if !reader.isConfigured { CYEmptyState(systemImage: "lock", "roam.notConfigured") }
             else if scenePhase == .active {
                 if let scope, scope.isCurrent {
                     RoamReceivedStampMetadataContent(reader: reader, scope: scope)
@@ -163,7 +163,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                             }
                             .accessibilityIdentifier("roam.receivedMetadata.reopen")
                     }.padding()
-                } else { ProgressView("roam.loading") }
+                } else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
             } else { Color.clear }
         }
         .navigationTitle(receivedStampText("title"))
@@ -236,7 +236,7 @@ private func receivedStampText(_ key: String) -> Text { Text(LocalizedStringKey(
                     }
                     .accessibilityIdentifier("roam.receivedMetadata.record")
                 }
-                if presentation.loading { ProgressView("roam.loading") }
+                if presentation.loading { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
                 if pager.loaded && pager.hasMore && !presentation.loading {
                     Button("roam.experience.loadMore", action: more)
                         .background { RoamReceivedStampAccessibilityAnchor(id: "roam.receivedMetadata.more", action: more) }
