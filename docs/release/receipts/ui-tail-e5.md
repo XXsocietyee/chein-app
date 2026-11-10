@@ -29,3 +29,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - SquareReportProgressView: done (CYHeroHeader, CYEmptyState, CYSkeleton, CYPillButton)
 - SquarePostVideoViews: done (CYStatusChip, CYSkeleton, CYPillButton)
 - SquareGovernanceViews: done (CYHeroHeader, CYPillButton, CYSkeleton)
+
+## Batch 5 (reverse)
+- SquareDetailView: done (CYSkeleton, CYPillButton)
+- SquareDeletionViews: done (CYPillButton, CYStatusChip; destructive confirm keeps system destructive role)
+- SquareBrowserView: done (CYSkeleton, CYPillButton)
+- SessionSquareBrowserView: SKIPPED (pure session host, no visible UI)
+- SessionPublishingModesView: SKIPPED (pure session host, no visible UI)
