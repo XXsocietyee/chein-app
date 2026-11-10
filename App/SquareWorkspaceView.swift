@@ -83,6 +83,7 @@ import UniformTypeIdentifiers
                             Text(item.objectKey).lineLimit(2)
                             Text(item.existingMediaID != nil ? "squareWorkspace.existingMedia" : item.hasProof ? "squareWorkspace.proofReady" : "squareWorkspace.legacyMedia").font(.caption)
                             Button("squareWorkspace.remove", role: .destructive) { draft.media.removeAll { $0.id == item.id } }
+                                .accessibilityHint(Text(verbatim: item.objectKey))
                         }.accessibilityIdentifier("squareWorkspace.media.\(item.id)")
                     }
                     if draft.postID != nil && lane == .legacy { Text("squareWorkspace.editMediaRetained").font(.caption) }

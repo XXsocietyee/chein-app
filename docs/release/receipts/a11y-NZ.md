@@ -18,3 +18,4 @@ Most files were already annotated (combined cards, hidden decoration, selection 
 - RoamSubpageParityViews: shared-walk date line is one stop.
 - SettingsPrivacyLocationView: "older" button keeps its label while its spinner shows.
 - Audited, no change needed: kit skeleton/loading states (label already in kit), Map views (annotations are labelled buttons; a container label could hide them, left alone), stamp slip (VoiceOver path with plain buttons already present).
+- SquareWorkspaceView: each media row's Remove button names its object in the hint.
