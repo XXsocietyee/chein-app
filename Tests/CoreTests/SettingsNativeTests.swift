@@ -239,4 +239,96 @@ final class SettingsNativeTests: XCTestCase {
             XCTAssertThrowsError(try JSONDecoder().decode(SettingsPlayerCode.self, from: Data(json.utf8)))
         }
     }
+    func testAboutPageKeepsSuppliedVersionAndBuildAndLeavesPlayerCodeInError() {
+        let information = SettingsAppInformation(info: [
+            "CFBundleDisplayName": "Questify",
+            "CFBundleShortVersionString": "0.1.0",
+            "CFBundleVersion": "1"
+        ])
+        let page = SettingsAboutPageModel(information: information, market: .china)
+        XCTAssertEqual(page.version, .ready("0.1.0"))
+        XCTAssertEqual(page.version.text, "0.1.0")
+        XCTAssertEqual(page.build, .ready("1"))
+        XCTAssertEqual(page.build.text, "1")
+        XCTAssertEqual(page.displayName, .ready("Questify"))
+        XCTAssertEqual(page.contactPhone, SettingsSourceContact.phone(market: .china))
+        XCTAssertEqual(page.playerCode, .error)
+        XCTAssertNil(page.playerCode.imageURL)
+        XCTAssertFalse(SettingsAboutPlayerCodePhase.routeInstalled)
+        XCTAssertFalse(SettingsAboutPlayerCodePhase.routeMarkedLive)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.production(), .error)
+        XCTAssertFalse(SettingsAboutPageModel.showsMerchantChoice)
+        XCTAssertFalse(SettingsAboutPageModel.paymentEnabled)
+        XCTAssertFalse(SettingsAboutPageModel.payoutEnabled)
+        XCTAssertFalse(SettingsAboutPageModel.withdrawalEnabled)
+        XCTAssertFalse(SettingsAboutPageModel.virtualGoodsEnabled)
+    }
+    func testAboutPageUnknownMetadataIsAnEmDashAndALiteralZeroStaysZero() {
+        let unresolved = SettingsAppInformation(info: [
+            "CFBundleShortVersionString": "$(MARKETING_VERSION)",
+            "CFBundleVersion": "$(CURRENT_PROJECT_VERSION)"
+        ])
+        let missing = SettingsAboutPageModel(information: unresolved, market: nil)
+        XCTAssertNil(unresolved.version)
+        XCTAssertNil(unresolved.build)
+        XCTAssertEqual(missing.version, .unknown)
+        XCTAssertEqual(missing.build, .unknown)
+        XCTAssertEqual(missing.displayName, .unknown)
+        XCTAssertEqual(missing.version.text, "—")
+        XCTAssertEqual(missing.build.text, "—")
+        XCTAssertNotEqual(missing.version.text, "0")
+        XCTAssertNotEqual(missing.version.text, "0.1.0")
+        XCTAssertNotEqual(missing.build.text, "1")
+        XCTAssertNotEqual(missing.version.text, "开发版本")
+        XCTAssertNil(missing.contactPhone)
+        for phase in [SettingsAboutMetadataPhase.loading, .empty, .error, .unknown] {
+            XCTAssertEqual(phase.text, "—")
+            XCTAssertNotEqual(phase.text, "0")
+        }
+        let literalZero = SettingsAboutPageModel(information: SettingsAppInformation(info: [
+            "CFBundleShortVersionString": "0",
+            "CFBundleVersion": "0"
+        ]), market: .unitedStates)
+        XCTAssertEqual(literalZero.version, .ready("0"))
+        XCTAssertEqual(literalZero.version.text, "0")
+        XCTAssertEqual(literalZero.build.text, "0")
+        XCTAssertNil(literalZero.contactPhone)
+    }
+    func testAboutPlayerCodePhasesDoNotInventAnImage() throws {
+        let supplied = SettingsAppInformation(info: [
+            "CFBundleDisplayName": "Questify",
+            "CFBundleShortVersionString": "0.1.0",
+            "CFBundleVersion": "1"
+        ])
+        for phase in [SettingsAboutPlayerCodePhase.loading, .empty, .error, .unknown] {
+            let page = SettingsAboutPageModel(information: supplied, market: .china, playerCode: phase)
+            XCTAssertEqual(page.playerCode, phase)
+            XCTAssertNil(page.playerCode.imageURL)
+            XCTAssertEqual(page.version.text, "0.1.0")
+            XCTAssertEqual(page.build.text, "1")
+        }
+        let readyBytes = Data(#"{"qr":" https://example.com/code.png "}"#.utf8)
+        let ready = SettingsAboutPlayerCodePhase.classify(dataObject: readyBytes)
+        guard case .ready(let code) = ready else { return XCTFail("expected a decoded code") }
+        XCTAssertEqual(code.imageURL.absoluteString, "https://example.com/code.png")
+        XCTAssertEqual(ready.imageURL, code.imageURL)
+        let shown = SettingsAboutPageModel(information: supplied, market: .china, playerCode: ready)
+        XCTAssertEqual(shown.playerCode.imageURL?.absoluteString, "https://example.com/code.png")
+        XCTAssertNil(SettingsAboutPlayerCodePhase.classify(dataObject: nil).imageURL)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: nil), .unknown)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data("null".utf8)), .unknown)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data("{}".utf8)), .empty)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data(#"{"qr":" "}"#.utf8)), .empty)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data(#"{"qr":null}"#.utf8)), .unknown)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data(#"{"qr":"UNKNOWN"}"#.utf8)), .unknown)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data(#"{"qr":0}"#.utf8)), .unknown)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data(#"{"qr":"0"}"#.utf8)), .error)
+        XCTAssertNil(SettingsAboutPlayerCodePhase.classify(dataObject: Data(#"{"qr":"0"}"#.utf8)).imageURL)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data("[]".utf8)), .error)
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: Data("not-json".utf8)), .error)
+        let unsafe = try JSONSerialization.data(withJSONObject: ["qr": "http://example.com/code.png"])
+        XCTAssertEqual(SettingsAboutPlayerCodePhase.classify(dataObject: unsafe), .error)
+        XCTAssertNil(SettingsAboutPlayerCodePhase.classify(dataObject: unsafe).imageURL)
+        XCTAssertThrowsError(try JSONDecoder().decode(SettingsPlayerCode.self, from: Data(#"{"qr":"UNKNOWN"}"#.utf8)))
+    }
 }
