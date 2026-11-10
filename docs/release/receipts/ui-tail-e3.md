@@ -26,3 +26,7 @@ Cloud-owned (diff on origin/ui/cloud-*), skipped from here on: ClubGovernanceVie
 ## Batch 5 (reverse)
 Done: ProfileFollowListView, SessionNearbyTeamView (stale state).
 Skipped (host/adapter, no visible presentation of their own): SessionTeamViews, SessionClubPublicActivityListView, RoamNearbyTeamsView.
+
+## Batch 6 (reverse)
+Done: NearbyTeamMapViews, NearbyTeamViews, OrdinaryIMSendReceiptRecoveryView, PlayAdvancedTeamViews, PlayPlayerTeamStatusView.
+Skipped: none.
