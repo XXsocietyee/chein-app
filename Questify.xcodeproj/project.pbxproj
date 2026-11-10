@@ -35362,6 +35362,31 @@
 			"path" = "App/Questify-Bridging-Header.h";
 			"sourceTree" = "<group>";
 		};
+		"2DE2C287CCE985622F66EC30" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "text.xcconfig";
+			"path" = "Config/Release.xcconfig";
+			"sourceTree" = "<group>";
+		};
+		"8BFCD78B361DEB7C0334626B" = {
+			"isa" = "PBXShellScriptBuildPhase";
+			"buildActionMask" = 2147483647;
+			"files" = (
+			);
+			"inputFileListPaths" = (
+			);
+			"inputPaths" = (
+			);
+			"name" = "Release Identity Gate";
+			"outputFileListPaths" = (
+			);
+			"outputPaths" = (
+			);
+			"runOnlyForDeploymentPostprocessing" = 0;
+			"shellPath" = "/bin/sh";
+			"shellScript" = "# Release-only deployment identity gate. Debug and test builds skip it.\n[ \"${CONFIGURATION}\" = \"Release\" ] || exit 0\nfail() { echo \"error: Release build blocked: $1 Set it in Config/Release.xcconfig (see docs/release/testflight-internal.md).\" >&2; exit 1; }\ntrim() { printf '%s' \"$1\" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }\nurl=$(trim \"${QUESTIFY_API_BASE_URL}\")\nrealm=$(trim \"${QUESTIFY_SESSION_REALM}\")\nbundle=$(trim \"${PRODUCT_BUNDLE_IDENTIFIER}\")\n[ -n \"$url\" ] || fail \"QUESTIFY_API_BASE_URL is empty.\"\ncase \"$url\" in https://*) ;; *) fail \"QUESTIFY_API_BASE_URL must be an https:// URL.\" ;; esac\n[ -n \"$realm\" ] || fail \"QUESTIFY_SESSION_REALM is empty.\"\n[ -n \"$bundle\" ] || fail \"PRODUCT_BUNDLE_IDENTIFIER is empty.\"\nlower=$(printf '%s' \"$bundle\" | tr 'A-Z' 'a-z')\ncase \"$lower\" in\n  invalid.*|*.invalid|*example*|*placeholder*|*changeme*|*todo*|*\\$\\(*) fail \"PRODUCT_BUNDLE_IDENTIFIER '$bundle' is a placeholder.\" ;;\nesac\nprintf '%s' \"$bundle\" | grep -Eq '^[A-Za-z0-9-]+(\\.[A-Za-z0-9-]+)+$' || fail \"PRODUCT_BUNDLE_IDENTIFIER '$bundle' is not a reverse-DNS identifier.\"\nexit 0\n";
+			"alwaysOutOfDate" = 1;
+		};
 		"CAE662172FD450BB0CD710A7" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "text.xcconfig";
@@ -38925,6 +38950,7 @@
 				"69F229BAC5B71B0FE2AC489B",
 				"0A1788DE25BB09F22EDF4E4F",
 				"CAE662172FD450BB0CD710A7",
+				"2DE2C287CCE985622F66EC30",
 				"0A3E27B8CA818264D75C8D81",
 				"CC88D95D0636B7861B729139",
 				"17E1B96C2D43835A76DA0F1A",
@@ -43645,7 +43671,7 @@
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
 				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E3Fixtures.swift E3ShareFixtures.swift E4PurchaseFixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift";
 			};
-			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
+			"baseConfigurationReference" = "2DE2C287CCE985622F66EC30";
 		};
 		"1B672BF3DA427763BF644BE3" = {
 			"isa" = "XCConfigurationList";
@@ -43660,6 +43686,7 @@
 			"isa" = "PBXNativeTarget";
 			"buildConfigurationList" = "1B672BF3DA427763BF644BE3";
 			"buildPhases" = (
+				"8BFCD78B361DEB7C0334626B",
 				"878A52FC5FF6A57D50B7B870",
 				"E2AA269EB967A8853A258BFA",
 				"41D311A605520FC7B8B9A980",

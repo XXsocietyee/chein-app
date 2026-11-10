@@ -1,0 +1,13 @@
+// Release-only layer (Product > Archive). Debug and the test targets keep Base.xcconfig defaults.
+// Owner-approved TestFlight internal identity; the China production profile supplies the reviewed
+// host and realm. No secrets, tokens or provider keys belong here.
+#include "China.Production.xcconfig"
+// Bound after the include so a gitignored Local.*.xcconfig cannot swap the deployment identity.
+PRODUCT_BUNDLE_IDENTIFIER = com.chengyinhub.chengyinApp
+DEVELOPMENT_TEAM = 9VHY8N755R
+QUESTIFY_API_BASE_URL = https:/$()/www.chengyinhub.com/prod-api/
+QUESTIFY_SESSION_REALM = cn-prod
+QUESTIFY_MARKET = CN
+// Enablement (Apple + SMS sign-in, legal catalog, wallet/orders/favorites/coupons reads) comes from the
+// reviewed China composition in App/RegionalLaunchConfiguration.swift, not from build settings.
+// Payout, withdrawal, payment and virtual-goods switches are not touched here; password login stays off.
