@@ -34,3 +34,7 @@ Skipped: none.
 ## Batch 7 (reverse)
 Done: NativeFriendRemovalView, NativeFriendProgressCardView, NativeFriendPickerView, NativeFriendMetadataView, NativeFriendHomeView.
 Skipped: none.
+
+## Batch 8 (reverse)
+Done: NativeClubNotificationDefaultView, NativeChannelMessageSearchView, NativeChannelMessageRevisionView, NativeChannelMessagePinsView, NativeChannelMessageContextView.
+Skipped: none.
