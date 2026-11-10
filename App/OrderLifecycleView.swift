@@ -19,6 +19,7 @@ import SwiftUI
     @StateObject private var model: OrderLifecycleScreenModel
     @Environment(\.scenePhase) private var phase
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     init(id: Int, coordinator: OrderLifecycleCoordinator) {
         self.id = id; _model = StateObject(wrappedValue: OrderLifecycleScreenModel(coordinator: coordinator))
@@ -71,7 +72,16 @@ import SwiftUI
                     .accessibilityIdentifier("orderLifecycle.refresh")
             }
         }
-        .task(id: coordinator.scope) { await model.load(id: id) }
+        .task(id: coordinator.scope) {
+            await model.load(id: id)
+            #if DEBUG
+            // Design fixtures only: `--design-auto-review` opens the first reviewable action so the confirm sheet can be shot.
+            if ProcessInfo.processInfo.arguments.contains("--design-auto-review"), let d = coordinator.detail,
+               let a = OrderLifecycleAction.allCases.first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: d) }) {
+                try? await Task.sleep(nanoseconds: 800_000_000); model.prepare(a, orderID: id)
+            }
+            #endif
+        }
         .refreshable { await model.load(id: id) }
         .onDisappear { model.dismiss() }
         .onChange(of: phase) { _, value in
@@ -110,12 +120,15 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 OrderStatusChip(title: LocalizedStringKey("orderLifecycle.state." + state.state.rawValue), systemImage: "ticket", emphasized: true)
                     .accessibilityIdentifier("orderLifecycle.state")
-                Group {
-                    if let title = detail.title, !title.isEmpty { Text(verbatim: title) }
-                    else { Text("orderLifecycle.untitled") }
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    if !typeSize.isAccessibilitySize { OrderCoverTile(systemImage: "ticket", size: 64, seed: detail.title ?? "") }
+                    Group {
+                        if let title = detail.title, !title.isEmpty { Text(verbatim: title) }
+                        else { Text("orderLifecycle.untitled") }
+                    }
+                    .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
                 }
-                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
                 Group {
                     if let reason = state.serverReason { Text(verbatim: reason) }
                     else { Text(LocalizedStringKey(state.explanationKey)) }
@@ -253,6 +266,22 @@ struct OrderLifecycleField: View {
         NavigationStack {
             List {
                 Section {
+                    VStack(spacing: CYSpacing.md) {
+                        Image(systemName: review.action == .payment ? "creditcard" : review.action == .refund ? "arrow.uturn.backward.circle" : "xmark.circle")
+                            .font(.system(size: 34, weight: .regular)).foregroundStyle(CYColor.textPrimary)
+                            .frame(width: 72, height: 72).background(Circle().fill(CYColor.bgRaised)).accessibilityHidden(true)
+                        Text(LocalizedStringKey("orderLifecycle.question." + review.action.rawValue))
+                            .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                        if review.action != .payment {
+                            Text("orderLifecycle.refund.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .multilineTextAlignment(.center).fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.sm)
+                    .listRowBackground(Color.clear)
+                }
+                Section {
                     OrderLifecycleField(label: "orderLifecycle.number", value: review.detail.registrationNumber)
                     LabeledContent("orderLifecycle.amount") { AmountLabel(amount: review.detail.payableAmount) }
                     OrderLifecycleField(label: "orderLifecycle.refund.reason", value: review.detail.refundReason)
@@ -267,10 +296,12 @@ struct OrderLifecycleField: View {
                                 .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
                         } else {
                             Button(LocalizedStringKey("orderLifecycle.production.confirm." + review.action.rawValue), role: .destructive, action: confirm)
+                                .buttonStyle(.cyDestructive).frame(maxWidth: .infinity)
+                                .listRowBackground(Color.clear)
                                 .accessibilityIdentifier("orderLifecycle.review.confirmProduction")
                         }
                     } else if canSimulate && review.action != .payment {
-                        Button("orderLifecycle.review.simulate", role: .destructive, action: confirm).accessibilityIdentifier("orderLifecycle.review.confirmFixture")
+                        Button("orderLifecycle.review.simulate", role: .destructive, action: confirm).buttonStyle(.cyDestructive).frame(maxWidth: .infinity).listRowBackground(Color.clear).accessibilityIdentifier("orderLifecycle.review.confirmFixture")
                     } else {
                         Button("orderLifecycle.review.disabled", action: {}).disabled(true).accessibilityIdentifier("orderLifecycle.review.disabled")
                     }
@@ -281,7 +312,7 @@ struct OrderLifecycleField: View {
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("orderLifecycle.review.close", action: close).accessibilityIdentifier("orderLifecycle.review.close") } }
             .accessibilityIdentifier("orderLifecycle.review.sheet")
         }
-        .presentationDetents([.medium, .large])
+        .presentationDetents([.large])
         .presentationDragIndicator(.visible)
     }
 }

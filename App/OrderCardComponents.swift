@@ -46,6 +46,7 @@ struct OrderCoverTile: View {
     var systemImage = "map"
     var url: URL? = nil
     var size: CGFloat = 88
+    var seed = ""
     var body: some View {
         Group {
             if let url {
@@ -59,7 +60,7 @@ struct OrderCoverTile: View {
         .accessibilityHidden(true)
     }
     private var placeholder: some View {
-        CYColor.bgRaised.overlay { Image(systemName: systemImage).font(.title2).foregroundStyle(CYColor.textTertiary) }
+        E1CoverArt(seed: seed.isEmpty ? systemImage : seed, symbol: systemImage, debugLabel: false)
     }
 }
 

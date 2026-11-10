@@ -13,7 +13,7 @@ import SwiftUI
                 CYEmptyState(systemImage: "person.crop.circle.badge.xmark", "当前地图不可用")
             }
         }
-        .navigationTitle("城市地图更新")
+        .navigationTitle("城市地图更新").navigationBarTitleDisplayMode(.inline)
         .task { if scenePhase == .active { await model.open() } }
         .task {
             while !Task.isCancelled {
@@ -32,36 +32,8 @@ import SwiftUI
     }
     @ViewBuilder private var content: some View {
         if let snapshot = model.snapshot {
-            List {
-                Section {
-                    Text(snapshot.board.title).font(.headline)
-                    Text("当前读取结果，不提供导航或游戏操作。")
-                    Text("坐标系：\(snapshot.datum)")
-                }
-                Section("点位") {
-                    if snapshot.points.isEmpty { Text("当前范围暂无点位") }
-                    ForEach(snapshot.points, id: \.pointId) { point in
-                        Button { model.selectPoint(point.pointId) } label: {
-                            VStack(alignment: .leading) {
-                                Text(point.title)
-                                Text(point.pointId).font(.caption)
-                            }
-                        }.accessibilityIdentifier("city.orderedMap.point.\(point.pointId)")
-                    }
-                }
-                if let point = model.selectedPoint {
-                    Section("点位详情") {
-                        Text(point.title)
-                        Text("状态：\(availability(point.availability))")
-                        Text("归属：\(ownership(point.ownership))")
-                        Text("坐标系：\(point.datum)")
-                        Text("纬度：\(NSDecimalNumber(decimal: point.latitude).stringValue)")
-                        Text("经度：\(NSDecimalNumber(decimal: point.longitude).stringValue)")
-                        Button("关闭详情") { model.selectPoint(nil) }
-                    }
-                }
-                Section { refreshButton }
-            }.cyGroupedSurface()
+            CityOrderedMapContent(snapshot: snapshot, selected: model.selectedPoint, select: { model.selectPoint($0) },
+                                  refresh: { Task { await model.open() } }, canRefresh: scenePhase == .active)
         } else if model.phase == .loading {
             ProgressView("正在读取地图")
         } else {
@@ -76,6 +48,75 @@ import SwiftUI
         Button("重新读取") { Task { await model.open() } }
             .disabled(scenePhase != .active)
             .accessibilityIdentifier("city.orderedMap.refresh")
+    }
+}
+
+/// Ordered stops as a route: numbered nodes on a connector line, availability chip per stop, selected stop opens an inline detail card.
+struct CityOrderedMapContent: View {
+    let snapshot: CityCurrentSnapshot
+    let selected: CityCurrentSnapshot.Point?
+    let select: (String?) -> Void
+    let refresh: () -> Void
+    let canRefresh: Bool
+    var body: some View {
+        CYCardPage {
+            CYArtCoverHeader(title: Text("城市地图更新"), subtitle: Text(verbatim: snapshot.board.title), symbol: "map.fill", seed: "ordered") {
+                HStack(spacing: CYSpacing.sm) {
+                    CYStatusChip(verbatim: "\(snapshot.points.count) 个点位", systemImage: "mappin.and.ellipse")
+                    CYStatusChip(verbatim: snapshot.datum)
+                }
+            }
+        } content: {
+            CYNoteBanner(text: Text("当前读取结果，不提供导航或游戏操作。"), symbol: "info.circle")
+            if snapshot.points.isEmpty {
+                CYEmptyState(systemImage: "mappin.slash", "当前范围暂无点位")
+            } else {
+                CYInfoCard(title: Text("点位"), symbol: "point.topleft.down.to.point.bottomright.curvepath.fill") {
+                    VStack(spacing: 0) {
+                        ForEach(Array(snapshot.points.enumerated()), id: \.element.pointId) { index, point in
+                            stop(index, point, last: index == snapshot.points.count - 1)
+                        }
+                    }
+                }
+            }
+            if let point = selected {
+                CYInfoCard(title: Text(verbatim: point.title), symbol: "scope") {
+                    HStack(spacing: CYSpacing.sm) {
+                        CYStatusChip(verbatim: availability(point.availability), tone: point.availability == "AVAILABLE" ? .success : .neutral)
+                        CYStatusChip(verbatim: ownership(point.ownership), tone: point.mine ? .info : .neutral)
+                    }
+                    CYFactRow(label: Text("纬度"), value: NSDecimalNumber(decimal: point.latitude).stringValue)
+                    CYFactRow(label: Text("经度"), value: NSDecimalNumber(decimal: point.longitude).stringValue)
+                    CYFactRow(label: Text("坐标系"), value: point.datum)
+                    CYPillButton(verbatim: "关闭详情", style: .tertiary) { select(nil) }
+                }
+            }
+            CYPillButton(verbatim: "重新读取", style: .secondary, systemImage: "arrow.clockwise", action: refresh)
+                .disabled(!canRefresh).accessibilityIdentifier("city.orderedMap.refresh")
+        }
+    }
+    private func stop(_ index: Int, _ point: CityCurrentSnapshot.Point, last: Bool) -> some View {
+        let on = selected?.pointId == point.pointId
+        return Button { select(on ? nil : point.pointId) } label: {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                VStack(spacing: 0) {
+                    Text(verbatim: "\(index + 1)").font(CYTypography.meta.weight(.bold)).foregroundStyle(on ? CYColor.textInverse : CYColor.textPrimary)
+                        .frame(width: 28, height: 28).background(on ? CYColor.textPrimary : CYColor.bgRaised, in: Circle())
+                    if !last { Rectangle().fill(CYColor.bgRaised).frame(width: 2).frame(maxHeight: .infinity) }
+                }
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(verbatim: point.title).font(CYTypography.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.leading)
+                    Text(verbatim: availability(point.availability) + " · " + ownership(point.ownership)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                }.padding(.bottom, last ? 0 : CYSpacing.lg)
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+            }
+            .frame(minHeight: 44).contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .combine)
+        .accessibilityAddTraits(on ? .isSelected : [])
+        .accessibilityIdentifier("city.orderedMap.point.\(point.pointId)")
     }
     private func availability(_ value: String) -> String {
         switch value { case "AVAILABLE": "可用"; case "PAUSED": "已暂停"; default: "不可用" }

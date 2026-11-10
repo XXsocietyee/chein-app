@@ -72,8 +72,8 @@ import SwiftUI
                 ForEach(flow.items) { item in
                     Button { model.open(item) } label: {
                         HStack(spacing: Theme.Space.s3) {
-                            Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary).accessibilityHidden(true)
-                            Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                            E3Avatar(seed: item.displayName.isEmpty ? String(item.peerID) : item.displayName, size: 48).accessibilityHidden(true)
+                            Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                             if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(CYColor.warningText).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
                             Spacer()
                             Image(systemName: "chevron.right").font(Theme.Font.label.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
@@ -88,7 +88,7 @@ import SwiftUI
                 Text(verbatim: localized("friendDirectory." + flow.filter.section.rawValue) + (flow.counts[flow.filter.section.rawValue].map { " · \($0)" } ?? ""))
             }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.plain)
         .font(Theme.Font.body)
         .cyGroupedSurface()
         .navigationTitle(localized("friendDirectory.title"))

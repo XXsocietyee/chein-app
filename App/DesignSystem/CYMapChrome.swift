@@ -8,15 +8,17 @@ import SwiftUI
 struct CYGlassLabel: View {
     let systemImage: String
     @ScaledMetric(relativeTo: .body) private var scaled: CGFloat = 48
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
     private var size: CGFloat { min(scaled, 60) }
     var body: some View {
         Image(systemName: systemImage)
             .font(.system(.body).weight(.semibold))
             .foregroundStyle(.white)
             .frame(width: size, height: size)
-            .background(Color.black.opacity(0.62), in: Circle())
-            .background(.ultraThinMaterial, in: Circle())
-            .overlay(Circle().strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+            .background(Color.black.opacity(reduceTransparency ? 0.94 : 0.62), in: Circle())
+            .background(reduceTransparency ? AnyShapeStyle(Color.black) : AnyShapeStyle(.ultraThinMaterial), in: Circle())
+            .overlay(Circle().strokeBorder(Color.white.opacity(contrast == .increased ? 0.5 : 0.14), lineWidth: contrast == .increased ? 1.5 : 1))
             .contentShape(Circle())
     }
 }
@@ -43,19 +45,22 @@ struct CYGlassButton: View {
 /// Glass capsule container (search field, title pill, stat strip).
 struct CYGlassCapsule<Content: View>: View {
     private let content: Content
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    @Environment(\.colorSchemeContrast) private var contrast
     init(@ViewBuilder content: () -> Content) { self.content = content() }
     var body: some View {
         content
             .padding(.horizontal, CYSpacing.lg)
             .frame(minHeight: 48)
-            .background(.ultraThinMaterial, in: Capsule(style: .continuous))
-            .overlay(Capsule(style: .continuous).strokeBorder(Color.white.opacity(0.14), lineWidth: 1))
+            .background(reduceTransparency ? AnyShapeStyle(Color(white: 0.09)) : AnyShapeStyle(.ultraThinMaterial), in: Capsule(style: .continuous))
+            .overlay(Capsule(style: .continuous).strokeBorder(Color.white.opacity(contrast == .increased ? 0.5 : 0.14), lineWidth: contrast == .increased ? 1.5 : 1))
     }
 }
 
 /// The white GO circle artwork (also used as a NavigationLink label).
 struct CYGoLabel: View {
     private let title: LocalizedStringKey
+    @Environment(\.colorSchemeContrast) private var contrast
     @ScaledMetric(relativeTo: .largeTitle) private var scaled: CGFloat = 96
     private var size: CGFloat { min(scaled, 112) }
     init(_ title: LocalizedStringKey = "GO") { self.title = title }
@@ -66,6 +71,7 @@ struct CYGoLabel: View {
             .foregroundStyle(.black)
             .frame(width: size, height: size)
             .background(Color.white, in: Circle())
+            .overlay(Circle().strokeBorder(Color.black.opacity(contrast == .increased ? 0.6 : 0), lineWidth: 2))
             .shadow(color: .black.opacity(0.35), radius: 16, y: 6)
             .contentShape(Circle())
     }
@@ -80,7 +86,10 @@ struct CYGoButton: View {
         self.action = action
     }
     var body: some View {
-        Button(action: action) { CYGoLabel(title) }.buttonStyle(CYGoPressStyle())
+        Button(action: action) { CYGoLabel(title) }
+            .buttonStyle(CYGoPressStyle())
+            .accessibilityLabel(Text(title))
+            .accessibilitySortPriority(10)   // the one primary map action is reached before the list panel
     }
 }
 
@@ -236,6 +245,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     @State private var detent: CYPanelDetent
     @GestureState private var drag: CGFloat = 0
     @Environment(\.dynamicTypeSize) private var type
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .body) private var peekLine: CGFloat = 52
 
     init(detent: CYPanelDetent = .medium, allowed: [CYPanelDetent] = CYPanelDetent.allCases, peek: AnyView? = nil,
@@ -269,7 +279,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                     .opacity(peek != nil && !isPeeking ? 0 : 1)
                     .allowsHitTesting(!(peek != nil && !isPeeking))
                     .accessibilityHidden(peek != nil && !isPeeking)
-                    .animation(.snappy, value: isPeeking)
+                    .animation(reduceMotion ? nil : .snappy, value: isPeeking)
                 VStack(spacing: 0) {
                     grabber(total: geo.size.height)
                     ZStack(alignment: .top) {
@@ -279,7 +289,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                             .accessibilityHidden(isPeeking)
                         if isPeeking, let peek {
                             peek.contentShape(Rectangle())
-                                .onTapGesture { withAnimation(.snappy) { detent = .medium } }
+                                .onTapGesture { withAnimation(reduceMotion ? nil : .snappy) { detent = .medium } }
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityHint(Text("map.panel.size"))
                         }
@@ -305,14 +315,14 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                 .updating($drag) { value, state, _ in state = value.translation.height }
                 .onEnded { value in
                     let target = height(effective, total: total) - value.translation.height
-                    withAnimation(.snappy) { detent = pool.min { abs(height($0, total: total) - target) < abs(height($1, total: total) - target) } ?? .medium }
+                    withAnimation(reduceMotion ? nil : .snappy) { detent = pool.min { abs(height($0, total: total) - target) < abs(height($1, total: total) - target) } ?? .medium }
                 })
             .accessibilityElement()
             .accessibilityLabel(Text("map.panel.size"))
             .accessibilityAdjustableAction { direction in
                 guard let i = pool.firstIndex(of: detent) else { return }
                 let next = direction == .increment ? min(i + 1, pool.count - 1) : max(i - 1, 0)
-                withAnimation(.snappy) { detent = pool[next] }
+                withAnimation(reduceMotion ? nil : .snappy) { detent = pool[next] }
             }
     }
 }

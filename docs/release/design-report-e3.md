@@ -37,3 +37,53 @@ Inbox 7, inbox empty 8, inbox error 7, chat 6, poll 6, social profile 6 (pending
 - Pillow comparison: no mini-program reference screenshots exist for IM / clubs / coop / social in docs/xcx-wechat-review-board-shots, so none done.
 ## Pages left / under 8
 Chat (7: fixture has one message; grouping, tails not added), poll (7), social profile (6), coop list (7), club community (6: plain action list on error fixture), inbox (8). Not restyled beyond grouped surface + tokens: club detail/apply/create/calendar/stories/roster, IM expanded cards (file/voice/video/location), coop invite detail, notices, friends. No motion/haptic layer added beyond existing swipe actions.
+
+
+# THIRD PASS (ADA rework)
+
+Merged origin/ui/main (already up to date at start of pass). Branch ui/e3.
+
+## Benchmarks (new Mobbin searches, ios)
+- Community group detail: Partiful club profile https://mobbin.com/screens/7c595947-0cb2-424d-8dd0-0bd981fdc1b1 (gradient cover tile, big name + tagline, action tiles); Reddit Communities https://mobbin.com/screens/d5f8357a-24e8-49ab-a401-a07406cdfd50 (round join pill on each row); Venmo group https://mobbin.com/screens/e91634c3-acc1-46b1-82b4-22af17ff8a7f (single primary action). Borrowed: full-bleed generated cover with gradient scrim and title over it, avatar stack + member count, one pinned join pill with spring + success haptic.
+- Event calendar: Partiful calendar https://mobbin.com/screens/e3941f00-7e94-45bd-985d-58777aa969b1 (month grid + "events on this day" list with thumbnails); Lightyear https://mobbin.com/screens/0a47d994-69b2-4abe-b9d5-b7a1fb06db56. Borrowed: filled selected-day circle, dot under days with events, thumbnail agenda cards with attendee stack.
+- Chat conversation: Airbnb https://mobbin.com/screens/e4d0a5f6-335f-46cc-8d78-504b77fcc308 (avatar header, sent bubbles right, quiet composer), Snapchat https://mobbin.com/screens/69be095b-3b2b-4599-a1b9-41d30f0b8005 (rich event card inside chat), Slack https://mobbin.com/screens/4da9f869-47ae-4ac4-b54e-e49a8102e24a. Borrowed: avatar+name header, pill composer with round send, rich cards at bubble width.
+- Friends list: Savee followers https://mobbin.com/screens/24a8b4dc-a3b8-42ad-8471-ff03bb0bcb4e (avatar, name+handle, white Follow pill on black), Alta https://mobbin.com/screens/085af4e5-0e66-43fc-8779-510ed2ee9094 (search pill + mutuals). Borrowed: Follow/Following/Requested/Friends pill states, search pill.
+- Notification list: Linktree https://mobbin.com/screens/9550a60a-c074-4bbb-844f-24c18e134860 (filter chips, Today grouping, unread dot), Ro https://mobbin.com/screens/3a78b2df-aebe-475c-89b6-df853ef212aa (icon tile + title/body/age). Borrowed: chips, Today/Earlier groups, tinted symbol tile, unread dot.
+
+## What changed in production views
+- ChatMessageBubble (shared by IM chat): iMessage-style: sent = accent blue fill (white text), received = elevated grey, consecutive same-sender messages group (tight inner corners, tight spacing, avatar + one timestamp only on the last of a run, sender name only on first of a group run). MessagingHistoryView computes the runs.
+- Chat header: principal item is now generated avatar + conversation name. Composer: round accent send button (grey while empty) with animation; plus entry kept only when the poll entry exists (no dead buttons).
+- Coop invite detail: topic name is a generated-cover hero card (parse-checked, built in the last batch).
+## Fixtures (DEBUG, labelled "DEBUG fixture · synthetic data", generated cover art)
+e3-club-detail (hero cover, avatar stack, segmented tabs, pinned join CTA with spring/haptic), e3-club-apply (cover picker, chips, one primary), e3-club-calendar (month grid + agenda), e3-club-feed (stories rings + photo post cards, unknown counts as em dash), e3-chat-rich (grouped bubbles, location / voice / file / video cards, composer), e3-invite (status chip, terms card, one primary), e3-notices, e3-people (follow states). e3-chat now has 5 grouped messages.
+New kit in App/DesignFixtures/E3Fixtures.swift (E3PressStyle, E3Avatar, E3AvatarStack, E3FollowButton, E3PersonRow, E3NoticeRow, E3LocationCard/VoiceCard/FileCard/VideoCard, E3MonthGrid, E3PostCard, e3Card). It lives in the DEBUG fixtures file because new files need project-file entries (out of my scope): production screens do not use these components yet.
+Motion/haptics: press spring (E3PressStyle), symbolEffect bounce on like/join, sensoryFeedback success/selection/impact, grid selection spring; all spring animation gated on Reduce Motion.
+
+## Honest status / under 8
+Real production club detail, apply/create, calendar, stories, notices and friends views were NOT re-laid-out onto the new kit (only fixtures show the target design; they depend on Core readers and project-file additions); the rich IM cards likewise live in fixtures only. Scores below are for the fixtures; production pages score lower until adopted.
+Self-score (delight/interaction/inclusivity/visuals/innovation/social, avg): club detail 8, apply 8, calendar 8, feed 8, chat rich 8, chat (real, bubbles) 8, invite 8 (real hero 7), notices 8, people 8. Production club detail / calendar / notices / friends: 6, under 8, reason above.
+Pillow compare: no mini-program reference screenshots exist for these pages.
+Contact sheets: /Users/fanning/chengyin-refs/design-reports/e3/contact-125959.png (first batch), contact-131157.png (XL after stacking fixes); final batch b2 (EN + XL) listed in the final message.
+
+## Final batch result (contact-133847.png, contact-131157.png, contact-125959.png)
+- Verified in shots (zh-Hans is the simulator default language, so all non-"-en" shots are zh-Hans): club detail, apply, calendar, feed, rich chat, invite, notices, people, real chat (grouped bubbles, accent sent fill, avatar only on last of run, one time stamp per run), and AX-XL for notices / people / invite / rich chat / club detail (rows stack; follow button drops under the name).
+- NOT verified: English shots. The `-AppleLanguages "(en)"` launch args failed to launch the app in design-batch.sh (springboard shots), so EN is parse/logic-checked only (strings use Locale.pick). Fixed after the last shot and only parse-checked: file card stacks at accessibility sizes (it wrapped per character at AX-XL).
+
+
+# FOURTH PASS (production views)
+
+Merged origin/ui/main (already up to date). Kit (E3Avatar, E3AvatarStack, E3FollowButton, E3PersonRow, E3NoticeRow, E3Location/Voice/File/VideoCard, E3MonthGrid, E3PostCard, e3Card, E3PressStyle) moved out of the DEBUG fixtures into App/ClubComponents.swift (production, no project-file change needed).
+## Now in REAL views
+- ClubDetailView: full-bleed cover hero with scrim, join-policy chip and name over it (grows with Dynamic Type), member meta line.
+- ClubEventCalendarView: filled selected-day circle, event dot, thumbnail event rows with chevron.
+- ClubStoryViews: photo-led covers (generated art fallback), stop-number chip over cover.
+- IM rich cards (NativeChannelMessageBubbleView, MessagingMessageDetailView, IMStaticLocationCardView): voice / file / video / location are cards (IMVoiceCardLabel etc. in IMExpandedViews.swift), same NavigationLink routes and privacy gate (map only on tap).
+- ProfileFollowListView, NativeFriendDirectoryView: avatar rows (48pt), name + meta, trailing state icon; plain list.
+- Notices: system tab uses the already restyled IMInboxRow (bell avatar).
+## Fixtures
+e3-club-detail now renders the REAL ClubDetailView (D4ClubFixture); new e3-club-events, e3-club-overview (real tabs), e3-club-story (real ClubStoryFixtureHost). Old synthetic design kept as e3-club-detail-spec.
+## Batch (contact-142424.png): EN worked after escaping parens as \(en\) in the list (design-batch.sh uses eval, so bare "(en)" is a syntax error; this is why EN shots failed).
+Verified: club detail EN/zh/XL, overview, chat, inbox, social, story. Hero fixed AFTER shot for XL (chip overlapped cover icon): not re-shot.
+## Not done / honest scores
+Club apply/create and notices have no real-view change beyond tokens; follow list, friend directory, calendar month grid, IM rich cards have no fixture reaching the real view (need hosts in non-UI files) so unverified by shot. Scores: club detail 8, story 7, calendar 7 (events fixture empty), IM cards 7, follow/friends 7, apply 6, notices 7. Under 8 as listed.
+Re-shot after hero fix (contact-144713.png, EN + XL zh): builds, hero grows with type; at XL the chip still sits over the decorative cover icon (cosmetic).

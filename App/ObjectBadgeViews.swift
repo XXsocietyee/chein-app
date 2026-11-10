@@ -58,7 +58,7 @@ struct ObjectBadgeWallLayoutSelection {
                 }
                 if !wall.identities.isEmpty {
                     Section("profile.badges.identities") {
-                        badgeRows(ObjectBadgeWallOrdering.litFirst(wall.identities).map { .identity($0) }, accessibilityPrefix: "profile.badge.identity", layout: layout)
+                        badgeRows(ObjectBadgeWallOrdering.litFirst(wall.identities).map { .identity($0) }, accessibilityPrefix: "profile.badge.identity", layout: layout, wall: wall)
                     }
                 }
                 if let medals = wall.medals {
@@ -66,12 +66,12 @@ struct ObjectBadgeWallLayoutSelection {
                     let achievements = medals.filter(\.isAchievement)
                     if !city.isEmpty {
                         Section("profile.badges.medals") {
-                            badgeRows(city.map { .medal($0) }, accessibilityPrefix: "profile.badge.medal", layout: layout)
+                            badgeRows(city.map { .medal($0) }, accessibilityPrefix: "profile.badge.medal", layout: layout, wall: wall)
                         }
                     }
                     if !achievements.isEmpty {
                         Section("profile.badges.achievements") {
-                            badgeRows(achievements.map { .medal($0) }, accessibilityPrefix: "profile.badge.achievement", layout: layout)
+                            badgeRows(achievements.map { .medal($0) }, accessibilityPrefix: "profile.badge.achievement", layout: layout, wall: wall)
                         }
                     }
                 }
@@ -80,25 +80,26 @@ struct ObjectBadgeWallLayoutSelection {
             // The typed internal badge-path entry is not a player feature and is not offered here.
             .onChange(of: layoutOwner) { _, _ in layoutSelection.retire() }
     }
-    @ViewBuilder private func badgeRows(_ badges: [ProfileBadgeSelection], accessibilityPrefix: String, layout: ObjectBadgeWallLayout) -> some View {
+    @ViewBuilder private func badgeRows(_ badges: [ProfileBadgeSelection], accessibilityPrefix: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
         if layout == .wall {
             LazyVGrid(columns: dynamicTypeSize.isAccessibilitySize
                 ? [GridItem(.flexible(), alignment: .topLeading)]
                 : [GridItem(.adaptive(minimum: 160), spacing: 12, alignment: .topLeading)], alignment: .leading, spacing: 12) {
                 ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
-                    link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout).buttonStyle(.plain)
+                    link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall).buttonStyle(.plain)
                 }
             }.padding(.vertical, 4)
         } else {
             ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
-                link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout)
+                link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall)
             }
         }
     }
-    private func link(_ badge: ProfileBadgeSelection, identifier: String, layout: ObjectBadgeWallLayout) -> some View {
+    private func link(_ badge: ProfileBadgeSelection, identifier: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
         let capturedIdentity = reader.identity
         return NavigationLink {
-            ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media)
+            ObjectBadgeDetailView(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media,
+                                  collection: wall.isPartial ? nil : ObjectBadgeWallSummary(wall: wall))
                 .modifier(ObjectBadgeThreeDEntry(badge: badge, reader: reader, expectedIdentity: capturedIdentity, media: media))
         } label: {
             ObjectBadgeWallBadgeLabel(badge: badge, layout: layout)
@@ -124,19 +125,17 @@ struct ObjectBadgeWallBadgeLabel: View {
     let layout: ObjectBadgeWallLayout
     var body: some View {
         if layout == .wall {
-            // Collectible tile: generated medal when earned, a quiet dashed socket with a lock when not.
             VStack(spacing: CYSpacing.sm) {
-                CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 84)
-                Group { if badge.name.isEmpty { Text(badge.familyKey) } else { Text(verbatim: badge.name) } }
-                    .font(CYTypography.bodyCompact.weight(.semibold))
-                    .foregroundStyle(badge.isLocked ? CYColor.textSecondary : CYColor.textPrimary)
-                    .multilineTextAlignment(.center).lineLimit(2)
-                CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked", tone: badge.isLocked ? .neutral : .success)
-            }
-            .frame(maxWidth: .infinity, minHeight: 72)
-            .padding(.vertical, CYSpacing.md)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-            .accessibilityElement(children: .combine)
+                CYFoilMedal(unlocked: !badge.isLocked, size: 76) {
+                    ZStack {
+                        LinearGradient(colors: [Color(hue: 0.12, saturation: 0.7, brightness: 0.9).opacity(0.9), Color(hue: 0.08, saturation: 0.7, brightness: 0.4)], startPoint: .top, endPoint: .bottom)
+                        Image(systemName: "medal.fill").font(.title2).foregroundStyle(.white.opacity(0.9))
+                    }
+                }.padding(6)
+                description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
+            }.frame(maxWidth: .infinity, minHeight: 72)
+                .cyDomainCard(padding: CYSpacing.md)
+                .accessibilityElement(children: .combine)
         } else {
             HStack(spacing: CYSpacing.md) {
                 CYBadgeMedal(seed: badge.name.isEmpty ? badge.image : badge.name, locked: badge.isLocked, size: 48)
@@ -155,56 +154,114 @@ struct ObjectBadgeWallBadgeLabel: View {
 
 @MainActor struct ObjectBadgeDetailView: View {
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     let badge: ProfileBadgeSelection
     let reader: any ProfileReading
     let expectedIdentity: ProfileReadIdentity?
     var media: (any ObjectCardImageLoading)? = nil
+    /// Lit / total across the loaded wall; nil when the caller has no wall (the collection card is then hidden, never zero).
+    var collection: ObjectBadgeWallSummary? = nil
     @State private var mediaScope = UUID()
     @State private var expiredScope = UUID()
+    @State private var celebrate = false
     private var valid: Bool { expectedIdentity != nil && reader.identity == expectedIdentity }
     private var track: Int {
         switch badge { case .identity(let value): return ObjectBadgePresentation.track(category: value.category); case .medal: return 1 }
     }
-    private var style: String {
-        switch badge { case .identity: return "glow"; case .medal(let value): return ObjectBadgePresentation.style(medal: value) }
+    private var tint: Color { [palette.success, Color(hue: 0.12, saturation: 0.7, brightness: 0.95), palette.warning, palette.textTertiary, palette.danger][track] }
+    private var displayName: String { badge.name.isEmpty ? ChannelCopy.text("徽章", "Badge", locale: locale) : badge.name }
+    private var obtained: String? {
+        switch badge {
+        case .identity(let value): return value.unlocked ? ObjectBadgePresentation.date(value.unlockTime) : nil
+        case .medal(let value): return ObjectBadgePresentation.date(value.getTime)
+        }
     }
-    private var tint: Color { [palette.success, palette.textSecondary, palette.warning, palette.textTertiary, palette.danger][track] }
+    private var requirement: String {
+        switch badge {
+        case .identity(let value): return value.unlockHint.isEmpty ? value.statement : value.unlockHint
+        case .medal(let value): return value.displayCondition
+        }
+    }
     var body: some View {
-        List {
-            if !valid { Text("objects.sessionChanged") }
+        ScrollView {
+            if !valid { Text("objects.sessionChanged").padding(CYSpacing.pageHorizontal) }
             else {
-                Section {
-                    VStack(spacing: 16) {
-                        ObjectCardArtwork(url: badge.image, label: badge.name, media: media,
-                            expectedScope: mediaScope, currentScope: { valid ? mediaScope : expiredScope })
-                            .frame(width: 188, height: 188).padding(6)
-                            .background(tint.opacity(style == "glow" ? 0.16 : 0.05), in: Circle())
-                            .overlay(Circle().stroke(tint, lineWidth: style == "enamel" ? 3 : 1))
-                        if badge.name.isEmpty { Text(badge.familyKey).font(.title3.bold()) }
-                        else { Text(verbatim: badge.name).font(.title3.bold()) }
-                        Label(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
-                              systemImage: badge.isLocked ? "lock" : "checkmark.seal")
-                            .symbolEffect(.bounce, options: .nonRepeating, value: badge.isLocked)
-                            .sensoryFeedback(.success, trigger: badge.isLocked) { _, locked in !locked }
-                        Text(style == "enamel" ? "objects.enamel" : "objects.glow").font(.footnote).foregroundStyle(.secondary)
-                    }.frame(maxWidth: .infinity).padding(.vertical, 16)
-                }
-                Section("profile.badges.details") {
-                    LabeledContent("profile.badges.family") { Text(badge.familyKey) }
-                    switch badge {
-                    case .identity(let value):
-                        LabeledContent("profile.badges.category") { Text(LocalizedStringKey("objects.track." + String(track))) }
-                        ProfileOptionalRow(key: "profile.badges.statement", value: value.statement)
-                        ProfileOptionalRow(key: "profile.badges.unlockHint", value: value.unlockHint)
-                        if value.unlocked { ProfileOptionalRow(key: "profile.badges.obtained", value: ObjectBadgePresentation.date(value.unlockTime)) }
-                    case .medal(let value):
-                        ProfileOptionalRow(key: "profile.badges.condition", value: value.displayCondition)
-                        ProfileOptionalRow(key: "profile.badges.obtained", value: ObjectBadgePresentation.date(value.getTime))
+                VStack(spacing: CYSpacing.xl) {
+                    stage
+                    VStack(spacing: CYSpacing.sm) {
+                        Text(verbatim: displayName).font(CYTypography.display).multilineTextAlignment(.center)
+                            .foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                        ViewThatFits(in: .horizontal) {
+                            HStack(spacing: CYSpacing.sm) { statusChips }
+                            VStack(spacing: CYSpacing.sm) { statusChips }
+                        }
                     }
+                    requirementCard
+                    if let collection, collection.total > 0 { collectionCard(collection) }
+                }.padding(.horizontal, CYSpacing.pageHorizontal).padding(.top, CYSpacing.lg).padding(.bottom, CYSpacing.xxl)
+            }
+        }
+        .safeAreaInset(edge: .bottom) {
+            if valid, !badge.isLocked {
+                ShareLink(item: ChannelCopy.text("我在「成印」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on Chengyin", locale: locale)) {
+                    Label { Text(verbatim: ChannelCopy.text("分享徽章", "Share badge", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
+                        .font(CYTypography.cardTitle).foregroundStyle(CYColor.textInverse)
+                        .frame(maxWidth: .infinity, minHeight: 56).background(CYColor.textPrimary, in: Capsule())
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.md)
+                .background(CYColor.bgPage.opacity(0.96))
+                .accessibilityIdentifier("objects.badge.share")
+            }
+        }
+        .background(CYColor.bgPage.ignoresSafeArea())
+        .appNavigationTitle("profile.badges.detail").privacySensitive()
+        .sensoryFeedback(.success, trigger: celebrate)
+        .onAppear { if valid, !badge.isLocked { celebrate = true } }
+        .accessibilityIdentifier("objects.badge.detail")
+    }
+    /// Large foil medal. No ring or percentage: the API has no per-badge progress, so the page only says collected or locked.
+    private var stage: some View {
+        ZStack {
+            CYFoilMedal(unlocked: !badge.isLocked, size: 168, tint: tint) {
+                if media == nil || badge.image.isEmpty {
+                    ZStack {
+                        LinearGradient(colors: [tint.opacity(0.9), tint.opacity(0.35)], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        Image(systemName: "medal.fill").font(.system(size: 76, weight: .semibold)).foregroundStyle(.white.opacity(0.92))
+                            .symbolEffect(.bounce, value: celebrate && !reduceMotion)
+                    }
+                } else {
+                    ObjectCardArtwork(url: badge.image, label: badge.name, media: media,
+                        expectedScope: mediaScope, currentScope: { valid ? mediaScope : expiredScope })
                 }
             }
-        }.appNavigationTitle("profile.badges.detail").privacySensitive()
-            .accessibilityIdentifier("objects.badge.detail")
+        }
+        .frame(width: 212, height: 212)
+        .frame(maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(verbatim: displayName))
+    }
+    @ViewBuilder private var statusChips: some View {
+        CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
+                     tone: badge.isLocked ? .neutral : .success, systemImage: badge.isLocked ? "lock.fill" : "checkmark.seal.fill")
+        if let obtained, !obtained.isEmpty { CYStatusChip(verbatim: obtained) }
+    }
+    private var requirementCard: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: ChannelCopy.text(badge.isLocked ? "如何点亮" : "获得条件", badge.isLocked ? "How to unlock" : "How it was earned", locale: locale))
+                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
+            Text(verbatim: requirement.isEmpty ? "—" : requirement)
+                .font(CYTypography.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+            if case .identity(let value) = badge, !value.statement.isEmpty, value.statement != requirement {
+                Text(verbatim: value.statement).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+            }
+        }.frame(maxWidth: .infinity, alignment: .leading).padding(CYSpacing.lg)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+    }
+    private func collectionCard(_ summary: ObjectBadgeWallSummary) -> some View {
+        CYInfoCard(title: Text(verbatim: ChannelCopy.text("我的收藏", "My collection", locale: locale)), symbol: "square.grid.2x2.fill") {
+            CYCollectedLockedSummary(collected: summary.unlocked, locked: summary.locked)
+        }
     }
 }
 

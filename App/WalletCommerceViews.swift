@@ -383,6 +383,7 @@ enum WalletPayoutCapability { static let isOn = false }
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let kind: WalletLedgerKind

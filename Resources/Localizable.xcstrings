@@ -238900,6 +238900,22 @@
         }
       }
     },
+    "searchMap.routes.recent": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recent routes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近路线"
+          }
+        }
+      }
+    },
     "settingsNative.about.brandName": {
       "extractionState": "manual",
       "localizations": {

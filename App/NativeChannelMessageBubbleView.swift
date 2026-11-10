@@ -61,15 +61,21 @@ import SwiftUI
                     else { Text("location.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .voice:
                     if let voiceOwner, IMVoiceReference.read(snapshot.message) != nil {
-                        NavigationLink { IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent) } label: { Text("voice.play", tableName: "NativeChannelMessage") }
+                        if let ref = IMVoiceReference.read(snapshot.message) {
+                            NavigationLink { IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent) } label: { IMVoiceCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
+                        }
                     } else { Text("voice.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .file:
                     if let fileOwner, IMFileReference.read(snapshot.message) != nil {
-                        NavigationLink { IMFilePreviewView(message: snapshot.message, owner: fileOwner, current: isCurrent) } label: { Text("file.open", tableName: "NativeChannelMessage") }
+                        if let ref = IMFileReference.read(snapshot.message) {
+                            NavigationLink { IMFilePreviewView(message: snapshot.message, owner: fileOwner, current: isCurrent) } label: { IMFileCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
+                        }
                     } else { Text("file.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .video:
                     if let videoOwner, IMVideoReference.read(snapshot.message) != nil {
-                        NavigationLink { IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent) } label: { Text("video.play", tableName: "NativeChannelMessage") }
+                        if let ref = IMVideoReference.read(snapshot.message) {
+                            NavigationLink { IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent) } label: { IMVideoCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
+                        }
                     } else { Text("video.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                 case .chain:
                     Label { Text("type.14", tableName: "NativeChannelMessage") } icon: { Image(systemName: "list.number") }

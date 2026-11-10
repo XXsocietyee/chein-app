@@ -27,3 +27,21 @@ Kit (new): `CYSignature.swift` (generated cover art, press styles, GO ring pulse
 4. Moments: `CYCelebrationMoment` (badge / stamp / check-in / club), stamp slam on the created-stamp result, badge receipt with medal + confetti, badge wall tiles (real `ObjectBadgeWallBadgeLabel`) with locked sockets.
 5. Club join and Me: `ClubMemberWelcomeSheet` is a join moment (medal, confetti, success haptic, three steps card, one primary); `MemberIdentityCardSection` has 72pt ringed avatar, level capsule, three stat tiles and quick-action tiles (tickets, balance, dash when unknown).
 Reduce Motion: every animation is gated; confetti is not drawn, haptics remain. All identifiers and string keys kept; no new string keys (fixtures use verbatim synthetic copy).
+
+## Evidence
+Batch run (build 0 errors): welcome en/zh/XL, consent zh, home en/zh/XL, roam en/zh, GO, unlock en/zh, stamp, check-in zh, badge wall en/zh/XL, join en/zh, me en/zh/XL. A second short batch (home, me, welcome XL) verified the fixes below. Before/after contact sheet (Pillow): `docs/release/design-report-e5b-before-after.png` (also `/Users/fanning/chengyin-refs/design-reports/e5b/before-after.png`). "Before" = the d2/d4 shots of the same fixtures; after = this branch.
+Fixed after first review: Welcome nav title removed (CHENGYIN / 城瘾 wordmark instead); hero banner collapsed to a sliver inside the List row (height now fixed by an aspect-ratio box; slides carry title copy on art); Me header overflowed at AX sizes (rows become columns).
+
+## Self-score (1-10): delight / interaction / inclusivity / visuals / innovation / social
+| Screen | D | I | Inc | V | Inn | S | Note |
+|---|---|---|---|---|---|---|---|
+| Welcome + consent | 9 | 9 | 8 | 8 | 8 | 9 | cover-art hues are slightly muddy; XL title sits close to the CTA bar (scrolls) |
+| Home | 8 | 9 | 8 | 8 | 8 | 9 | banner art is generated gradient until real covers arrive; XL banner caption now scales (3 lines) but was not re-shot |
+| Roam | 9 | 9 | 8 | 8 | 9 | 9 | GO press/ring cannot be seen in a still; nearby rows with art thumbnails were NOT captured (sheet collapsed in the fixture), so that part is unverified visually |
+| Moments (unlock, stamp, check-in, wall) | 9 | 9 | 8 | 9 | 9 | 9 | confetti/haptics not visible in stills; Reduce Motion path is code-gated, not shot |
+| Club join | 9 | 9 | 8 | 9 | 8 | 9 | real sheet via the real presentation object |
+| Me header | 8 | 8 | 8 | 8 | 7 | 9 | quick-action tiles are 2 (tickets, balance); unknown shows a dash |
+Pages under 8: none by this scoring; caveats above are unverified items, not accepted gaps.
+
+## Open
+Roam nearby-row look and the banner XL caption need one more shot when the lock queue allows. Another agent shared this worktree (guide pages); its commit 65cb8ec19 is on the branch and untouched by e5b. `Questify.xcodeproj/project.pbxproj` was regenerated to add the new design-system and fixture files.
