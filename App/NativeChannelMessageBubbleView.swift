@@ -139,11 +139,11 @@ import SwiftUI
     }
 
     private func kindLine(_ key: String, symbol: String) -> some View {
-        Label { Text(key, tableName: "NativeChannelMessage") } icon: { Image(systemName: symbol).accessibilityHidden(true) }
+        Label { Text(LocalizedStringKey(key), tableName: "NativeChannelMessage") } icon: { Image(systemName: symbol).accessibilityHidden(true) }
             .font(CYTypography.cardTitle)
             .foregroundStyle(CYColor.textPrimary)
             .fixedSize(horizontal: false, vertical: true)
-            .accessibilityLabel(Text(key, tableName: "NativeChannelMessage"))
+            .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "NativeChannelMessage"))
     }
 
     private func unavailable(_ key: String, symbol: String = "eye.slash", tone: CYStatusTone = .neutral) -> some View {
@@ -152,7 +152,7 @@ import SwiftUI
     }
 
     private func note(_ key: String) -> some View {
-        Text(key, tableName: "NativeChannelMessage")
+        Text(LocalizedStringKey(key), tableName: "NativeChannelMessage")
             .font(CYTypography.meta)
             .foregroundStyle(CYColor.textSecondary)
             .fixedSize(horizontal: false, vertical: true)
@@ -187,10 +187,10 @@ import SwiftUI
 
     private func openLink<Destination: View>(_ key: String, identifier: String? = nil, @ViewBuilder destination: () -> Destination) -> some View {
         NavigationLink(destination: destination) {
-            Text(key, tableName: "NativeChannelMessage")
+            Text(LocalizedStringKey(key), tableName: "NativeChannelMessage")
         }
         .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
-        .accessibilityLabel(Text(key, tableName: "NativeChannelMessage"))
+        .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "NativeChannelMessage"))
         .modifier(NativeChannelBubbleIdentifier(identifier: identifier))
     }
 
