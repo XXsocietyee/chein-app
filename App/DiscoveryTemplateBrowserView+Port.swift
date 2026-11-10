@@ -46,7 +46,7 @@ struct DiscoveryTemplateSyncingRow: View {
             Text("discovery.syncing").font(.footnote).foregroundStyle(.secondary)
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
-            ProgressView("discovery.loading")
+            CYLoadingStateView(rows: 2).accessibilityLabel(Text("discovery.loading"))
         }
     }
 }
@@ -54,7 +54,7 @@ struct DiscoveryTemplateSyncingRow: View {
 struct DiscoveryTemplateEmptyRefresh: View {
     let action: () -> Void
     var body: some View {
-        Button("discovery.emptyRefresh", action: action)
+        CYPillButton("discovery.emptyRefresh", style: .secondary, action: action)
             .accessibilityIdentifier("discovery.emptyRefresh")
     }
 }

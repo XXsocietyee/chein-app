@@ -20,7 +20,7 @@ struct DiscoveryHomeView: View {
         NavigationStack {
             Group {
                 if !reader.isConfigured {
-                    ContentUnavailableView("discovery.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                    CYEmptyState(systemImage: "network.slash", "discovery.unavailable", detail: "auth.notConfigured")
                 } else {
                     List {
                         Section {
@@ -38,10 +38,10 @@ struct DiscoveryHomeView: View {
                         if let error = home.error {
                             DiscoveryErrorView(error: error) { Task { await loadHome() } }
                         }
-                        if home.isLoading { ProgressView("discovery.loading") }
+                        if home.isLoading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("discovery.loading")) }
                         if let value = home.value {
                             if value.isEmpty && !home.isLoading && home.error == nil {
-                                ContentUnavailableView("discovery.emptyGames", systemImage: "sparkles.rectangle.stack")
+                                CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames")
                             }
                             // Preserve the server's five separate sections without merging/relabeling rows.
                             playSection("discovery.featured", items: value.banner)
@@ -65,7 +65,7 @@ struct DiscoveryHomeView: View {
                 DiscoveryErrorView(error: error) { Task { await loadBanners() } }
             }
         } else if banners.isLoading && banners.value == nil {
-            Section("discovery.banners") { ProgressView("discovery.loading") }
+            Section("discovery.banners") { CYLoadingStateView(rows: 1).accessibilityLabel(Text("discovery.loading")) }
         }
         if let items = banners.value, !items.isEmpty {
             Section("discovery.banners") {

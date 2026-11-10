@@ -28,3 +28,14 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/BundleReserveWindowView.swift | done: CYPillButton choose (embedded Section, no own title) |
 | App/BundleReviewComposeView.swift | done: CYLoadingStateView, CYPillButton submit/check/resend, monospaced counter |
 | App/BundleTransferClaimView.swift | done: CYPillButton claim, CYLoadingStateView, cyGroupedSurface |
+| App/BundleTransferSendView.swift | done (list item 16): CYLoadingStateView, CYPillButton confirm (primary) / recover; revoke stays destructive role button; cyGroupedSurface |
+| App/BundleWalletView.swift | done (list item 17): CYEmptyState noDetail, monospaced totals, cyGroupedSurface |
+
+(Batches are 5 files in list order; items 16-17 were done together with batch 3 and count toward batch 4.)
+
+## Batch 4 (remaining items 18-20)
+| File | Result |
+| --- | --- |
+| App/DiscoveryHomeView.swift | done: CYEmptyState (unavailable/empty), CYLoadingStateView; root keeps nav title |
+| App/DiscoveryPlayTemplatePresentationView.swift | done: monospaced use count (Section fragment, no own chrome) |
+| App/DiscoveryTemplateBrowserView+Port.swift | done: CYLoadingStateView, CYPillButton empty refresh; cover thumb left (private fallback tile, no behaviour change) |

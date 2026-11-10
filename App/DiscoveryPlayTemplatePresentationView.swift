@@ -17,7 +17,7 @@ import SwiftUI
         }
         if let count = presentation.useCount {
             Section {
-                LabeledContent("discovery.template.useCount", value: String(count))
+                LabeledContent("discovery.template.useCount") { Text(verbatim: String(count)).monospacedDigit() }
                     .accessibilityIdentifier("discovery.template.useCount")
             }
         }
