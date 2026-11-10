@@ -16,3 +16,9 @@ Coordinator note (msg_627cd7eeaa45): from batch 3 the list is processed in REVER
 Done: TicketWalletTeamView, TeamReformFlowViews, TeamPageParityViews, TeamOrientBoardView, TeamCreateView.
 Skipped: none.
 Xcode Cloud on batch 1/2 commits: Test - iOS "action_required, 2 errors" are both GLTFKit2 vendor module errors ("failed to emit precompiled module", "unsupported Swift architecture"), not from App sources.
+Batch 1+2 Build - iOS on cbfcaa411: success.
+
+## Batch 4 (reverse)
+Done: SocialPublicProfileView, SocialMessageMediaView, SocialInviteHistoryView, SocialArticleContentView, SocialActionViews.
+Skipped: none.
+Cloud-owned (diff on origin/ui/cloud-*), skipped from here on: ClubGovernanceViews, ClubManagementView, ClubOpsCustomerViews, CooperationBrowserView. ClubEnrollmentView was already restyled in batch 2 before the cloud lane touched it; expect a merge conflict to resolve in favour of one version.
