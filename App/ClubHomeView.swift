@@ -14,16 +14,21 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     /// Retained callback for hosts that own a value-based navigation path.
     var onTopicDestination: ((Int) -> Void)? = nil
     @State private var locality = MerchantClubDiscoveryState()
+    @Environment(\.dynamicTypeSize) private var typeSize
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
     /// Source talent/list top tabs 帖文 / 俱乐部; it opens on 俱乐部 and loads the feed only when chosen.
     @State private var topTab = ClubTabPresentation.TopTab.club
+    private var screenTitle: LocalizedStringKey { community == nil ? "club.title" : "club.tab.title" }
     var body: some View {
         VStack(spacing: 0) {
         if community != nil {
             Picker("club.title", selection: $topTab) {
                 ForEach(ClubTabPresentation.TopTab.allCases, id: \.self) { Text(LocalizedStringKey($0.key)).tag($0) }
-            }.pickerStyle(.segmented).padding(.horizontal, CYSpacing.pageHorizontal).padding(.vertical, CYSpacing.sm)
+            }.pickerStyle(.segmented)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.sm)
                 .accessibilityIdentifier("clubTab.topTabs")
+                .cyHaptic(.selection, trigger: topTab)
         }
         if topTab == .feed, let community {
             ClubCommunityFeedView(context: community, identity: reader.clubIdentity)
@@ -31,16 +36,25 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.home", onSignIn: onSignIn,
                        load: { try await reader.clubHome() }) { home in
             List {
+                Section {
+                    CYHeroHeader(screenTitle)
+                }
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
                 // Mini-program club tab: 「创建你自己的俱乐部」 stays pinned above the list; merchants never see it.
                 if !discoveryScope.isMerchantViewer, let operations = management?.operations {
                     Section {
-                        HStack(spacing: CYSpacing.md) {
-                            Text("club.tab.createPrompt").font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                                .fixedSize(horizontal: false, vertical: true)
-                            Spacer(minLength: CYSpacing.sm)
-                            ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
-                                .buttonStyle(.questifyPrimary)
-                                .fixedSize()
+                        let prompt = Text("club.tab.createPrompt")
+                            .font(CYTypography.bodyMedium)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        let create = ClubOperationsEntryButton(target: .create, identity: reader.clubIdentity, access: operations.access, coordinator: operations.coordinator, hostApplication: management?.governance)
+                            .buttonStyle(.questifyPrimary)
+                        if typeSize.isAccessibilitySize {
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) { prompt; create }
+                        } else {
+                            HStack(spacing: CYSpacing.md) { prompt; Spacer(minLength: CYSpacing.sm); create.fixedSize() }
                         }
                     }
                 }
@@ -50,7 +64,7 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     localityStatus
                     merchantNearbySection(nearby)
                 } else if ClubTabPresentation.isEmpty(home, nearby: nearby, merchant: false) {
-                    Section { ClubTabEmptyState(merchant: false) }
+                    Section { playerEmpty }
                 } else {
                     Section {
                         clubRows(home.owned, identifier: "club.home.owned", section: .owned)
@@ -67,18 +81,23 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     }
                     NavigationLink {
                         ClubDirectoryView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-                    } label: { Label("club.directory", systemImage: "magnifyingglass") }
+                    } label: {
+                        CYListRow("club.directory", trailing: .chevron) { CYRowIcon(systemImage: "magnifyingglass") }
+                    }
                         .accessibilityIdentifier("club.openDirectory")
                     if !discoveryScope.isMerchantViewer {
                         NavigationLink {
                             ClubOwnedView(reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-                        } label: { Label("club.owned", systemImage: "person.crop.circle") }
+                        } label: {
+                            CYListRow("club.owned", trailing: .chevron) { CYRowIcon(systemImage: "person.crop.circle") }
+                        }
                             .accessibilityIdentifier("club.openOwned")
                     }
                 }
-                Section("club.events") {
+                Section {
+                    CYSectionHeader("club.events")
                     if home.events.isEmpty {
-                        Text("club.emptyEvents").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("club.home.events.empty")
+                        CYEmptyState(systemImage: "flag.checkered", "club.emptyEvents", messageIdentifier: "club.home.events.empty")
                     }
                     ForEach(Array(home.events.enumerated()), id: \.offset) { _, event in
                         if let topicDestination, event.id > 0 {
@@ -86,16 +105,18 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                                 .accessibilityIdentifier("club.event.\(event.id)")
                         } else if let onTopicDestination {
                             Button { onTopicDestination(event.id) } label: { eventRow(event) }
+                                .buttonStyle(.cyPressable)
                                 .accessibilityIdentifier("club.event.\(event.id)")
                         } else { eventRow(event) }
                     }
                 }
             }
+            .listStyle(.plain)
             .cyGroupedSurface()
         }
         }
         }
-        .appNavigationTitle(community == nil ? "club.title" : "club.tab.title")
+        .cyHeroScreen()
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
         .environment(\.clubCustomerTopics, management?.governance?.customerTopics ?? .init())
         .environment(\.clubPostPlayHost, ClubPostPlayHost.session(reader as? AppSession))
@@ -104,21 +125,30 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
         .onDisappear { locality.leaveScreen() }
     }
+    private var playerEmpty: some View {
+        let keys = ClubTabPresentation.emptyKeys(merchant: false)
+        return CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title), messageIdentifier: "clubTab.empty")
+    }
     /// Merchant-only status above the list. Ready state becomes the list's section header instead.
     @ViewBuilder private var localityStatus: some View {
         switch locality.phase(in: discoveryScope) {
         case .idle, .loading:
             Section {
-                ProgressView("club.locality.loading").frame(maxWidth: .infinity, alignment: .leading)
+                CYSkeleton()
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("club.locality.loading"))
                     .accessibilityIdentifier("club.home.locality.loading")
             }
         case .unavailable:
             Section {
-                Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")
-                    .foregroundStyle(CYColor.warningText)
-                    .accessibilityIdentifier("club.home.locality.unavailable")
-                Button("action.retry") { Task { await loadLocality() } }
-                    .accessibilityIdentifier("club.home.locality.retry")
+                CYEmptyState(
+                    systemImage: "exclamationmark.triangle",
+                    "club.locality.unavailable",
+                    messageIdentifier: "club.home.locality.unavailable",
+                    actionTitle: "action.retry",
+                    actionIdentifier: "club.home.locality.retry",
+                    kind: .failure
+                ) { Task { await loadLocality() } }
             }
         case .ready:
             EmptyView()
@@ -127,13 +157,18 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     private func merchantNearbySection(_ rows: [ClubRecord]) -> some View {
         Section {
             if rows.isEmpty {
-                Text(locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby")
-                    .foregroundStyle(.secondary).accessibilityIdentifier("club.home.nearby.empty")
+                CYEmptyState(
+                    systemImage: "mappin.and.ellipse",
+                    LocalizedStringKey(locality.phase(in: discoveryScope) == .ready ? "club.tab.empty.merchant" : "club.emptyNearby"),
+                    messageIdentifier: "club.home.nearby.empty"
+                )
             }
             clubRows(rows, identifier: "club.home.nearby", section: .nearby)
         } header: {
             if locality.phase(in: discoveryScope) == .ready {
-                Text("club.locality.ready").accessibilityIdentifier("club.home.locality.ready")
+                Text("club.locality.ready")
+                    .font(CYTypography.sectionTitle)
+                    .accessibilityIdentifier("club.home.locality.ready")
             }
         }
     }
@@ -154,20 +189,27 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             NavigationLink {
                 ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
             } label: {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     ClubRow(club: club)
                     ClubTabTagLine(club: club, section: section)
                 }
             }
-                .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
+                .buttonStyle(QuestifyCardButtonStyle())
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
                 .accessibilityIdentifier(identifier + ".\(club.id)")
         }
     }
     private func eventRow(_ event: ClubHomeEvent) -> some View {
-        Label {
-            if event.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitledEvent") }
-            else { Text(verbatim: event.title) }
-        } icon: { Image(systemName: "flag.checkered") }
-        .foregroundStyle(.primary)
+        let title = event.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        return Group {
+            if title.isEmpty {
+                CYListRow("club.untitledEvent", trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+            } else {
+                CYListRow(verbatim: title, trailing: .none) { CYRowIcon(systemImage: "flag.checkered") }
+            }
+        }
+        .accessibilityElement(children: .combine)
     }
 }

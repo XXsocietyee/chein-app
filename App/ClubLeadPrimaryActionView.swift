@@ -72,11 +72,17 @@ import SwiftUI
                     let displayed = snapshot.stage
                     Task { await controller.prepare(permit, displayed: displayed, context: context,
                         isCurrent: { current }, refresh: refresh) }
-                }.disabled(controller.preparing || controller.route != nil || !current || destinations.destination == nil)
-                    .accessibilityIdentifier("club.leadPrimary.open")
+                }
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                .disabled(controller.preparing || controller.route != nil || !current || destinations.destination == nil)
+                .accessibilityIdentifier("club.leadPrimary.open")
+                .cyHaptic(.impactMedium, trigger: controller.route?.id) { _, opened in opened != nil }
             }
-            if controller.preparing { ProgressView("club.leadPrimary.checking") }
-            if let notice = controller.notice { Text(LocalizedStringKey("club.leadPrimary." + notice.rawValue)).accessibilityIdentifier("club.leadPrimary.notice") }
+            if controller.preparing { ProgressView("club.leadPrimary.checking").frame(minHeight: CYSpacing.minTouchTarget) }
+            if let notice = controller.notice {
+                CYStatusChip(LocalizedStringKey("club.leadPrimary." + notice.rawValue), tone: notice == .changed ? .warning : .neutral, systemImage: "info.circle")
+                    .accessibilityIdentifier("club.leadPrimary.notice")
+            }
         }
         .task(id: context) { if scenePhase == .active { controller.activate(context) } }
         .onChange(of: context) { _, _ in controller.invalidate(); if scenePhase == .active { controller.activate(context) } }
@@ -121,7 +127,7 @@ import SwiftUI
                 return AnyView(SessionClubMerchantProfileHost(session: self) {
                     List { ClubMerchantDiscoveryView(club: club, clubReader: self, reader: self.cooperationFlowReader) }
                         .cyGroupedSurface()
-                        .navigationTitle("club.merchantDiscovery.title")
+                        .cyHeroScreen()
                 })
             case .sentInvitations:
                 return AnyView(ClubInvitationFeedbackView(club: club, clubReader: self,
