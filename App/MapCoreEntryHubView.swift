@@ -8,6 +8,8 @@ struct MapCoreEntryHubView: View {
     let onOpen: (MapCoreEntry) -> Void
     var publicLayers: MapPublicLayerCaller? = nil
     @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     @State private var showsSharingExplainer = false
     init(manifest: MapVisualStyleManifest = .candidate, onOpen: @escaping (MapCoreEntry) -> Void, publicLayers: MapPublicLayerCaller? = nil) {
         self.manifest = manifest; self.onOpen = onOpen; self.publicLayers = publicLayers
@@ -16,25 +18,27 @@ struct MapCoreEntryHubView: View {
 
     var body: some View {
         List {
-            CYHeroHeader("mapCore.title", tableName: "MapCoreEntry")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            CYHeroHeader("mapCore.title", tableName: "MapCoreEntry").e1HeroRow()
             Section {
                 ForEach(MapCoreEntry.allCases, id: \.self) { entry in
-                    Button { onOpen(entry) } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Label { MapCoreEntryText.title(entry) } icon: { Image(systemName: entry.symbolName) }
-                            MapCoreEntryText.availability(entry.availability).font(.caption).foregroundStyle(.secondary)
-                        }
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                    }
-                    .disabled(entry.availability != .existing)
-                    .accessibilityIdentifier("mapCore.entry.\(entry.rawValue)")
+                    Button { onOpen(entry) } label: { entryLabel(entry) }
+                        .disabled(entry.availability != .existing)
+                        .accessibilityIdentifier("mapCore.entry.\(entry.rawValue)")
                 }
-            } header: { Text("mapCore.entries.title", tableName: "MapCoreEntry") } footer: { Text("mapCore.entries.footer", tableName: "MapCoreEntry") }
+            } header: {
+                Text("mapCore.entries.title", tableName: "MapCoreEntry").sectionHeading()
+            } footer: {
+                Text("mapCore.entries.footer", tableName: "MapCoreEntry")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if let publicLayers {
                 Section {
                     NavigationLink { MapPublicLayerCallerView(caller: publicLayers) } label: {
-                        Text(verbatim: "Public layers").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
+                        CYListRow(verbatim: Cloud21Copy.phrase(key: "cloud21.map.publicLayers", en: "Public layers", zh: "公开图层", locale: locale), trailing: .none) {
+                            CYRowIcon(systemImage: "square.3.layers.3d")
+                        }
                     }
                     .accessibilityIdentifier("mapPublic.entry")
                 }
@@ -42,21 +46,22 @@ struct MapCoreEntryHubView: View {
 
             Section {
                 ForEach(MapMarkerVisualState.allCases, id: \.self) { state in
-                    HStack(spacing: 12) {
-                        Image(systemName: state.symbolName)
-                            .frame(width: 28, height: 28)
-                            .overlay(Circle().stroke(swatch(for: state), lineWidth: state.strokeWidth))
-                            .accessibilityHidden(true)
-                        MapCoreEntryText.state(state)
-                    }
-                    .accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("mapCore.legend.\(state.rawValue)")
+                    legendRow(state)
                 }
-            } header: { Text("mapCore.legend.title", tableName: "MapCoreEntry") } footer: {
-                VStack(alignment: .leading, spacing: 4) {
+            } header: {
+                Text("mapCore.legend.title", tableName: "MapCoreEntry").sectionHeading()
+            } footer: {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     Text("mapCore.legend.footer", tableName: "MapCoreEntry")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     if manifest.approval == .candidate {
-                        Text("mapCore.legend.candidate", tableName: "MapCoreEntry").accessibilityIdentifier("mapCore.legend.candidate")
+                        Text("mapCore.legend.candidate", tableName: "MapCoreEntry")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("mapCore.legend.candidate")
                     }
                 }
             }
@@ -64,23 +69,111 @@ struct MapCoreEntryHubView: View {
             Section {
                 LabeledContent {
                     Text("mapCore.share.off", tableName: "MapCoreEntry")
-                } label: { Text("mapCore.share.status", tableName: "MapCoreEntry") }
+                        .font(CYTypography.numericBody)
+                        .foregroundStyle(CYColor.textPrimary)
+                } label: {
+                    Text("mapCore.share.status", tableName: "MapCoreEntry")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                }
                 .accessibilityIdentifier("mapCore.share.status")
-                Text("mapCore.share.permissionIsNotSharing", tableName: "MapCoreEntry").font(.caption)
+                Text("mapCore.share.permissionIsNotSharing", tableName: "MapCoreEntry")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 CYPillButton("mapCore.share.explain", style: .secondary, tableName: "MapCoreEntry") { showsSharingExplainer = true }
-                    .listRowBackground(Color.clear)
+                    .e1ActionRow()
                     .accessibilityIdentifier("mapCore.share.explain")
-            } header: { Text("mapCore.share.title", tableName: "MapCoreEntry") }
+            } header: {
+                Text("mapCore.share.title", tableName: "MapCoreEntry").sectionHeading()
+            }
         }
+        .listStyle(.insetGrouped)
+        .cyGroupedSurface()
         .cyHeroScreen()
+        .themeDomain(.player)
         .sheet(isPresented: $showsSharingExplainer) {
             NavigationStack { LocationShareExplainerView() }
         }
     }
+
+    private func entryLabel(_ entry: MapCoreEntry) -> some View {
+        let open = entry.availability == .existing
+        return Group {
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    titleBlock(entry, open: open)
+                }
+            } else {
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    CYRowIcon(systemImage: entry.symbolName)
+                    titleBlock(entry, open: open)
+                    Spacer(minLength: CYSpacing.sm)
+                    if open {
+                        Image(systemName: "chevron.right")
+                            .font(.footnote.weight(.semibold))
+                            .foregroundStyle(CYColor.textTertiary)
+                            .accessibilityHidden(true)
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
+    private func titleBlock(_ entry: MapCoreEntry, open: Bool) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            MapCoreEntryText.title(entry)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                Image(systemName: open ? "checkmark.circle" : "clock")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .accessibilityHidden(true)
+                MapCoreEntryText.availability(entry.availability)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+
+    private func legendRow(_ state: MapMarkerVisualState) -> some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            Image(systemName: state.symbolName)
+                .font(.body.weight(.semibold))
+                .foregroundStyle(CYColor.textPrimary)
+                .frame(width: 40, height: 40)
+                .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(CYColor.bgRaised))
+                .overlay(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).stroke(swatch(for: state), lineWidth: state.strokeWidth))
+                .accessibilityHidden(true)
+            MapCoreEntryText.state(state)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: CYSpacing.sm)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("mapCore.legend.\(state.rawValue)")
+    }
+
     private func swatch(for state: MapMarkerVisualState) -> Color {
         let role: MapSemanticRole = [.completed, .locked, .unavailable].contains(state) ? .completedUnavailable : .currentTargetRoute
         let token = manifest.color(role, appearance)
         return Color(red: token.red, green: token.green, blue: token.blue, opacity: token.opacity)
+    }
+}
+
+private extension Text {
+    func sectionHeading() -> some View {
+        font(CYTypography.sectionTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .textCase(nil)
+            .fixedSize(horizontal: false, vertical: true)
     }
 }
 
@@ -91,26 +184,38 @@ struct LocationShareExplainerView: View {
     @State private var draft = LocationShareDraft()
     var body: some View {
         Form {
-            CYHeroHeader("mapCore.share.title", tableName: "MapCoreEntry")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            CYHeroHeader("mapCore.share.title", tableName: "MapCoreEntry").e1HeroRow()
             Section {
                 ForEach(LocationShareDisclosure.allCases, id: \.self) { item in
                     Toggle(isOn: Binding(get: { draft.acknowledged.contains(item) }, set: { if $0 { draft.acknowledge(item) } else { draft.withdraw(item) } })) {
                         MapCoreEntryText.disclosure(item)
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                     .accessibilityIdentifier("mapCore.share.disclosure.\(item.rawValue)")
                 }
-            } footer: { Text("mapCore.share.disclosureFooter", tableName: "MapCoreEntry") }
+            } footer: {
+                Text("mapCore.share.disclosureFooter", tableName: "MapCoreEntry")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             Section {
                 CYPillButton("mapCore.share.start", tableName: "MapCoreEntry") {}
-                    .listRowBackground(Color.clear)
+                    .e1ActionRow()
                     .disabled(true)
                     .accessibilityIdentifier("mapCore.share.start")
-                Text("mapCore.share.unavailable", tableName: "MapCoreEntry").font(.caption).foregroundStyle(.secondary)
+                Text("mapCore.share.unavailable", tableName: "MapCoreEntry")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("mapCore.share.unavailable")
             }
         }
+        .cyGroupedSurface()
         .cyHeroScreen()
+        .themeDomain(.player)
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button { dismiss() } label: { Text("mapCore.close", tableName: "MapCoreEntry") }.accessibilityIdentifier("mapCore.share.close")
@@ -176,6 +281,7 @@ struct MapCoreEntryFixtureHost: View {
                         .accessibilityIdentifier("mapCore.fixture.opened")
                 }
         }
+        .modifier(AccessibilityFixtureOptions())
     }
 }
 #endif
