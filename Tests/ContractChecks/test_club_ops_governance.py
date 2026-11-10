@@ -139,7 +139,7 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
     def test_views_route_every_action_through_existing_edit_gates(self):
         for token in ['ClubOpsRoleSection(roles: snapshot, context: readContext, access: access, assign: AnyView(edit(.assignRole)))',
                       'AnyView(edit(.revokeRole, seed: row.revokeSeed))',
-                      'ClubOpsBanSection(list: bans) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }',
+                      'ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }',
                       'ban: { AnyView(edit(.ban, seed: $0.seed)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed)) }',
                       'report: cases.canReport ? AnyView(edit(.report)) : nil, appeal: cases.canAppeal ? AnyView(edit(.appeal)) : nil',
                       'if failure == .forbidden { ClubOpsGovernanceDeniedNote(operation: operation, cases: scope.clubID == nil ? nil : AnyView(link(.cases))) }']:
