@@ -45,3 +45,5 @@ Notes: most files already used kit tokens/components from earlier waves; this pa
 
 ## Summary
 22 files in range 67-88: 15 touched, 7 skipped (SessionClubPublicActivityListView, SessionTeamViews: no UI wrappers; PlayPlayerTeamStatusView, SocialArticleContentView, SocialPublicProfileView, TeamPageParityViews: already fully kit; OrdinaryIM counted as touched). No merchant-only files in the range. No new string keys (`docs/release/ui-strings-e4-tail3.json` is `[]`). No local builds.
+
+Cloud result for 1ee610b54 (all 5 batches): Build - iOS and Test - iOS report `action_required` (workflow awaiting approval, not run; no red). Earlier per-batch runs were cancelled by the next push.
