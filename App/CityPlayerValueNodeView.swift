@@ -10,7 +10,7 @@ struct CityPlayerValueSourceSelection: Identifiable { let id = UUID(); let visit
     var body: some View {
         Group {
             if let runtime { CityPlayerValueNodeView(runtime: runtime) }
-            else { CYEmptyState(systemImage: "mappin.slash", LocalizedStringKey("cityValue.sourceDisabled"), tableName: "CityValue") }
+            else { CityPlayerValueCopy.text("sourceDisabled") }
         }.task { guard !resolved else { return }; resolved = true; runtime = factory(visit) }
             .navigationTitle(CityPlayerValueCopy.string("sourceAction"))
     }
@@ -32,13 +32,13 @@ struct CityPlayerValueSourceSelection: Identifiable { let id = UUID(); let visit
                     RoamPosterScanView(node: node, coordinator: poster, cameraEnabled: runtime.cameraEnabled,
                         voucherDestination: { AnyView(VerificationCodeView(model: runtime.voucher(), title: node.name)) })
                     if failed { CityPlayerValueCopy.text("sourceReadFailed") }
-                    CYPillButton(verbatim: CityPlayerValueCopy.string("recoverSource"), style: .secondary) { start(recover: true) }
+                    Button { start(recover: true) } label: { CityPlayerValueCopy.text("recoverSource") }
                         .disabled(loading).accessibilityIdentifier("cityValue.recoverSource")
                     CityPlayerValueCopy.text("sourceNoSuccessClaim").font(.footnote).padding(.horizontal)
                 }
             } else {
-                VStack { if loading { CYSkeleton() }; if failed { CityPlayerValueCopy.text("sourceReadFailed") }
-                    CYPillButton(verbatim: CityPlayerValueCopy.string("refresh"), style: .secondary) { start(recover: false) }.disabled(loading)
+                VStack { if loading { ProgressView() }; if failed { CityPlayerValueCopy.text("sourceReadFailed") }
+                    Button { start(recover: false) } label: { CityPlayerValueCopy.text("refresh") }.disabled(loading)
                 }
             }
         }.task { start(recover: false) }

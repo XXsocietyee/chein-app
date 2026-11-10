@@ -21,10 +21,9 @@ import SwiftUI
                     Text("\(policy(p.policy)) · \(phase(p.phase))")
                     if !p.team.writable { Text("当前原状态不允许新签署；可读取当前状态和本人原回执。").font(.caption) }
                 } else { Text("尚未确认当前本队与原方案。") }
-                if model.busy { CYSkeleton() }
+                if model.busy { ProgressView() }
                 if let message = model.message { Text(message).accessibilityIdentifier("sharedPlan.message") }
-                CYPillButton(model.pending == nil ? "刷新当前原状态" : "核对同一原请求回执", style: .secondary) { reset(); Task { await model.load() } }
-                    .listRowBackground(Color.clear)
+                Button(model.pending == nil ? "刷新当前原状态" : "核对同一原请求回执") { reset(); Task { await model.load() } }
                     .disabled(model.busy || !model.isCurrent).accessibilityIdentifier("sharedPlan.refresh")
                 if !model.writesEnabled { Text("原 PLAYER 写能力／command 端点未批准或已撤销，当前只读。").font(.caption) }
             }
@@ -59,7 +58,7 @@ import SwiftUI
                         } label: {
                             VStack(alignment: .leading, spacing: Theme.Space.s2) {
                                 Text(row.title).font(Theme.Font.cardTitle)
-                                if row.selected { CYStatusChip("已选定，尚须核对执行状态", tone: .info, systemImage: "checkmark.seal") }
+                                if row.selected { Label("已选定，尚须核对执行状态", systemImage: "checkmark.seal").font(.footnote) }
                                 Text(row.summary).font(.subheadline).foregroundStyle(.secondary)
                                 Text(String(localized: "需求：") + amounts(row.cost, p)).font(.footnote)
                                 Text(row.conditionsMet ? "原公共前置已满足" : "原公共前置尚未满足").font(.footnote).foregroundStyle(.secondary)
@@ -216,7 +215,7 @@ import SwiftUI
         NavigationStack {
             Group {
                 if model.operationIsCurrent(ticket), let destination { destination }
-                else { CYEmptyState(systemImage: "lock", "当前原方案题组不可用", detail: "需当前真实操作实例、节点与既有高级玩法权限；过期实例不能提交。") }
+                else { ContentUnavailableView("当前原方案题组不可用", systemImage: "lock", description: Text("需当前真实操作实例、节点与既有高级玩法权限；过期实例不能提交。")) }
             }.toolbar { ToolbarItem(placement: .cancellationAction) { Button("返回并回读原方案") { dismiss() } } }
         }.task {
             do { try await model.validateOperation(ticket); guard !Task.isCancelled else { return }; destination = makeDestination(model, ticket) }
