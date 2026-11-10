@@ -23,7 +23,7 @@ import SwiftUI
                 }
                 if let page = model.page {
                     if page.list.isEmpty {
-                        ContentUnavailableView("d7.deliveryLog.empty", systemImage: "bell.slash")
+                        CYEmptyState(systemImage: "bell", "d7.deliveryLog.empty", kind: .notices).listRowBackground(Color.clear).listRowSeparator(.hidden)
                     } else {
                         Section {
                             ForEach(page.list) { row in

@@ -42,18 +42,36 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                 // Mini-program profile block: cover hero, name, then two meta lines —
                 // 「类型 · N 名成员」 and the join policy (公开加入 / 需审核加入).
                 Section {
-                    VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                        ClubDetailCover(source: club.cover, seed: club.name + String(club.id))
-                        ClubName(value: club.name).font(.largeTitle.weight(.heavy)).padding(.horizontal, Theme.Space.s4).padding(.top, Theme.Space.s2)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("club.detail.name")
-                        Label { Text(verbatim: headerMeta(club)) } icon: { Image(systemName: "person.3") }
-                            .font(.subheadline).foregroundStyle(.secondary).padding(.horizontal, Theme.Space.s4)
-                        if club.joinPolicySupported {
-                            Label(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
-                                  systemImage: club.needsApproval ? "lock" : "checkmark")
-                                .font(.subheadline).foregroundStyle(.secondary).padding(.horizontal, Theme.Space.s4)
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            if club.joinPolicySupported {
+                                CYStatusChip(club.needsApproval ? "club.detail.joinPolicy.review" : "club.detail.joinPolicy.open",
+                                             tone: club.needsApproval ? .warning : .success, systemImage: club.needsApproval ? "lock" : "checkmark.circle")
+                            }
+                            ClubName(value: club.name).font(.largeTitle.weight(.bold)).foregroundStyle(.white)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("club.detail.name")
                         }
+                        .padding(CYSpacing.lg).padding(.top, 120)
+                        .frame(maxWidth: .infinity, minHeight: 280, alignment: .bottomLeading)
+                        // Cover + scrim grow with the text so large type never spills out of the hero.
+                        .background {
+                            ZStack {
+                                ClubDetailCover(source: club.cover, seed: club.name + String(club.id))
+                                LinearGradient(stops: [.init(color: .clear, location: 0.3), .init(color: .black.opacity(0.85), location: 1)], startPoint: .top, endPoint: .bottom)
+                            }.accessibilityHidden(true)
+                        }
+                        .clipped()
+                        HStack(spacing: CYSpacing.sm) {
+                            if club.memberCount > 0 {
+                                E3AvatarStack(seeds: (0..<min(club.memberCount, 4)).map { "\(club.id)-m\($0)" }, extra: club.memberCount > 4 ? club.memberCount - 4 : nil, size: 28)
+                                    .accessibilityHidden(true)
+                            }
+                            Text(verbatim: headerMeta(club)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(.horizontal, CYSpacing.lg)
+                        .accessibilityElement(children: .combine)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .listRowInsets(EdgeInsets())
@@ -349,10 +367,7 @@ private struct ClubDetailCover: View {
                 }
             }
         }
-        .frame(maxWidth: .infinity).frame(height: 180)
-        .clipShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .padding(.horizontal, Theme.Space.s4)
-        .shadow(color: .black.opacity(0.3), radius: 12, y: 6)
+        .frame(maxWidth: .infinity, maxHeight: .infinity).clipped()
         .accessibilityHidden(true)
     }
 }

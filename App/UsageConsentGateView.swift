@@ -109,10 +109,15 @@ struct UsageConsentGateView: View {
             .safeAreaInset(edge: .bottom) {
                 VStack(alignment: .leading, spacing: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.md) {
-                    Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact) }
+                    Toggle(isOn: $checked) { Text("authEntry.gate.checkbox", tableName: "AuthEntry").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textPrimary) }
                         .toggleStyle(.switch)
                         .tint(CYColor.accent)
-                        .cyHaptic(.selection, trigger: checked)
+                        .padding(.horizontal, CYSpacing.lg)
+                        .padding(.vertical, CYSpacing.md)
+                        .frame(minHeight: 64)
+                        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .contentShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .sensoryFeedback(.selection, trigger: checked)
                         .accessibilityIdentifier("authEntry.gate.checkbox")
                     if showsCheckRequired && !checked {
                         Label { Text("authEntry.gate.checkRequired", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }

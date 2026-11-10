@@ -121,7 +121,7 @@ struct MessageComposerSubmission: Equatable {
                 }
                 HStack(alignment:.bottom,spacing:4) {
                     TextField("message.send.placeholder",text:$model.draft,axis:.vertical)
-                        .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).focused($typing).disabled(!canCompose)
+                        .lineLimit(1...5).textFieldStyle(.plain).padding(.vertical,11).padding(.leading,16).padding(.trailing,0).focused($typing).disabled(!canCompose)
                         .accessibilityIdentifier("message.send.input")
                     let draftIsEmpty = model.draft.trimmingCharacters(in:.whitespacesAndNewlines).isEmpty
                     Button {
@@ -129,11 +129,17 @@ struct MessageComposerSubmission: Equatable {
                         guard let token = model.prepare(.send(model.draft), identity: identity, canReply: ready) else { return }
                         Task { await model.perform(token, canReply: { ready }) }
                     } label: {
-                        Label("message.send.button",systemImage:"arrow.up.circle.fill").labelStyle(.iconOnly)
-                            .font(.title2).frame(minWidth:44,minHeight:44).contentShape(Rectangle())
-                            // Quiet while there is nothing to send; the accent returns with text.
-                            .foregroundStyle(draftIsEmpty || !canCompose ? AnyShapeStyle(.tertiary) : AnyShapeStyle(.tint))
+                        let live = !(draftIsEmpty || !canCompose)
+                        Label("message.send.button",systemImage:"arrow.up").labelStyle(.iconOnly)
+                            .font(.subheadline.weight(.bold))
+                            .foregroundStyle(live ? CYChat.onSent : Color.secondary)
+                            .frame(width:32,height:32)
+                            // Quiet grey while there is nothing to send; the accent fills in with text.
+                            .background(live ? CYChat.sent : Color.secondary.opacity(0.25),in:Circle())
+                            .frame(minWidth:44,minHeight:44).contentShape(Rectangle())
+                            .animation(.snappy(duration:0.2),value:live)
                     }
+                    .sensoryFeedback(.impact(weight:.light),trigger:model.draft.isEmpty)
                     .buttonStyle(.borderless)
                     .disabled(!canCompose || draftIsEmpty)
                     .accessibilityIdentifier("message.send.button")

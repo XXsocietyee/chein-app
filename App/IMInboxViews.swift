@@ -86,13 +86,17 @@ struct IMInboxRow: View {
     @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         HStack(alignment: .center, spacing: 12) {
-            // Decorative: dropped at accessibility sizes so the conversation name keeps the whole row width.
-            if !typeSize.isAccessibilitySize {
-                CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
-                    .frame(width: avatarSize, height: avatarSize)
-                    .clipShape(Circle())
-                    .accessibilityHidden(true)
-            }
+            CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
+                .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
+                .clipShape(Circle())
+                .overlay(alignment: .topTrailing) {
+                    // Unread dot on the avatar; the count badge stays on the preview line.
+                    if (conversation.unread ?? 0) > 0 && conversation.muted != true {
+                        Circle().fill(CYChat.sent).frame(width: 12, height: 12)
+                            .overlay(Circle().strokeBorder(CYColor.bgPage, lineWidth: 2)).offset(x: 2, y: -2)
+                    }
+                }
+                .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 if typeSize.isAccessibilitySize {
                     MessagingConversationName(conversation: conversation)

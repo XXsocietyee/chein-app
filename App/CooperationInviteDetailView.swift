@@ -59,7 +59,19 @@ import UIKit
                         partnerLine(row)
                     }
                 }
-                if let name = row.topicName { CYHeroHeader(verbatim: name) }
+                if let name = row.topicName {
+                    // Hero: generated cover under the topic name so the invite reads as a card, not a form row.
+                    ZStack(alignment: .bottomLeading) {
+                        CYIMCoverArt(seed: name, systemImage: "handshake.fill", symbolSize: 44)
+                        LinearGradient(colors: [.clear, .black.opacity(0.78)], startPoint: .top, endPoint: .bottom)
+                        Text(verbatim: name).font(.title2.weight(.bold)).foregroundStyle(.white)
+                            .padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .frame(minHeight: 150)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
+                    .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                    .accessibilityElement(children: .combine).accessibilityAddTraits(.isHeader)
+                }
                 if let topic = row.topicId {
                     CooperationTopicReference(id: topic)
                     CooperationProjectNavigationLink(topicID: topic, invite: key, destination: topicDestination, openedTopic: $openedTopic)

@@ -6,28 +6,32 @@ extension PlayKitScreen {
             if !avatarURL.isEmpty { artwork(avatarURL); Label("playkit.profile.avatarReady", systemImage: "person.crop.circle.badge.checkmark") }
             photoInput { url in avatarURL = url; dirty = true }
         }
+        let questions = (raw["questions"].array ?? []).filter { ($0["key"].text ?? "").isEmpty == false }
+        if questions.count > 1 {
+            let answered = questions.filter { !(answers[$0["key"].text ?? ""] ?? "").isEmpty }.count
+            CYStepIndicator(titles: questions.map { $0["label"].text ?? "" }, current: min(answered, questions.count - 1))
+        }
         ForEach(Array((raw["questions"].array ?? []).enumerated()), id: \.offset) { _, question in
             if let key = question["key"].text, !key.isEmpty {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text(verbatim: question["label"].text ?? key).font(.headline)
+                CYInfoCard {
+                    Text(verbatim: question["label"].text ?? key).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
                     if question["kind"].text == "pick" {
                         ForEach(PlayKitOption.read(question["options"], idKey: "key")) { option in
-                            Button {
+                            CYChoiceRow(label: option.label, selected: answers[key] == option.id, enabled: enabled) {
                                 answers[key] = option.id; dirty = true
-                            } label: {
-                                HStack { Image(systemName: answers[key] == option.id ? "checkmark.circle.fill" : "circle"); Text(verbatim: option.label) }
-                            }.disabled(!enabled)
+                            }
                         }
                     } else {
                         TextField("playkit.profile.answer", text: Binding(get: { answers[key] ?? "" }, set: {
                             let maxLength = question["maxLength"].integer ?? 0
                             answers[key] = PlayKitInputContract.limitText($0, toUTF16: maxLength > 0 ? maxLength : 4096); dirty = true
-                        }), axis: .vertical).textFieldStyle(.roundedBorder).disabled(!enabled)
+                        }), axis: .vertical).cyField().disabled(!enabled)
                     }
                 }
             }
         }
-        Text("playkit.profile.lockNotice").font(.footnote)
+        Text("playkit.profile.lockNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         let payload: [String: PlayWireValue] = ["answers": .object(answers.mapValues(PlayWireValue.string)), "avatarUrl": .string(avatarURL)]
         submitButton("SUBMIT_PROFILE", payload: payload, valid: valid("SUBMIT_PROFILE", payload))
     }
@@ -35,18 +39,18 @@ extension PlayKitScreen {
         let limit = PlayKitShortMessageLimit.resolve(raw["maxLength"])
         ForEach(Array((raw["previous"].array ?? []).enumerated()), id: \.offset) { _, note in
             if let value = note["text"].text, !value.isEmpty {
-                VStack(alignment: .leading) {
-                    Text(verbatim: value)
-                    if let at = note["at"].double, at.isFinite { Text(Date(timeIntervalSince1970: at / 1000), style: .date).font(.caption).foregroundStyle(.secondary) }
-                }.padding().frame(maxWidth: .infinity, alignment: .leading).background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                CYInfoCard {
+                    Text(verbatim: value).font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
+                    if let at = note["at"].double, at.isFinite { Text(Date(timeIntervalSince1970: at / 1000), style: .date).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                }
             }
         }
         ForEach(Array((raw["presets"].array ?? []).enumerated()), id: \.offset) { _, value in
-            if let preset = value.text { Button { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } label: { Text(verbatim: preset) }.buttonStyle(.bordered).disabled(!enabled) }
+            if let preset = value.text { CYChoiceRow(label: preset, selected: text == preset, enabled: enabled) { text = PlayKitInputContract.limitText(preset, toUTF16: limit); dirty = true } }
         }
-        TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).textFieldStyle(.roundedBorder).disabled(!enabled)
-        LabeledContent("playkit.characters") { Text(verbatim: "\(text.utf16.count) / \(limit)").monospacedDigit() }
-        Text("playkit.note.audience").font(.footnote)
+        TextField("playkit.note.placeholder", text: textBinding(limit: limit), axis: .vertical).lineLimit(3...8).cyField().disabled(!enabled)
+        Text(verbatim: "\(text.utf16.count) / \(limit)").font(CYTypography.meta.monospacedDigit()).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity, alignment: .trailing)
+        Text("playkit.note.audience").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         submitButton("SUBMIT_NOTE", payload: ["text": .string(text)], valid: !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
     }
     @ViewBuilder var photoCheckForm: some View {
@@ -100,14 +104,18 @@ extension PlayKitScreen {
     @Bindable var model: PlayDeviceCaptureCoordinator
     let identity: String; let enabled: Bool; var frame: PlayKitPhotoFrame? = nil; let onDirty: () -> Void; let onURL: (String) -> Void
     @State private var capturedIdentity: String?
+    @Environment(\.locale) private var locale
     @State private var cameraPurpose = false
     @State private var uploadReview = false
     @State private var mounted = false
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Button("playkit.photo.capture") { cameraPurpose = true }
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYStepIndicator(titles: [ChannelCopy.text("拍摄", "Capture", locale: locale), ChannelCopy.text("上传", "Upload", locale: locale),
+                                     ChannelCopy.text("使用", "Use", locale: locale)],
+                            current: model.reviewedPhoto() != nil ? 2 : (capturedIdentity == identity && model.output != nil) ? 1 : 0)
+            CYPillButton(LocalizedStringKey("playkit.photo.capture"), systemImage: "camera.fill") { cameraPurpose = true }
                 .disabled(!enabled || model.busy || !model.supports(.photo))
-            Button("playkitCamera.choosePhoto") {
+            CYPillButton(LocalizedStringKey("playkitCamera.choosePhoto"), style: .tertiary, systemImage: "photo.on.rectangle") {
                 let expected = identity; capturedIdentity = expected
                 Task {
                     await model.capture(.photo, usePhotoLibrary: true)
@@ -120,12 +128,12 @@ extension PlayKitScreen {
             if capturedIdentity == identity, let output = model.output, case .photo(let bytes, _) = output {
                 if let image = UIImage(data: bytes) { Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240).accessibilityLabel(Text("playkit.photo.preview")) }
                 if bytes.count > 10 * 1024 * 1024 { Text("playkit.photo.tooLarge") }
-                Button("playkit.photo.upload") { uploadReview = true }
+                CYPillButton(LocalizedStringKey("playkit.photo.upload"), systemImage: "icloud.and.arrow.up") { uploadReview = true }
                     .disabled(!enabled || !model.canUpload || bytes.isEmpty || bytes.count > 10 * 1024 * 1024)
                 if !model.canUpload && model.uploadedPhoto == nil && !model.busy { Text("playkit.photo.uploadGate").font(.footnote) }
                 if let evidence = model.reviewedPhoto(), case .photo(let uploadedURL) = evidence {
                     Label("playkit.photo.uploaded", systemImage: "checkmark.circle")
-                    Button("playkit.photo.use") { if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) } }.disabled(!enabled)
+                    CYPillButton(LocalizedStringKey("playkit.photo.use"), systemImage: "checkmark") { if mounted && capturedIdentity == identity && enabled { onURL(uploadedURL) } }.disabled(!enabled)
                 }
             }
             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
@@ -163,12 +171,12 @@ extension PlayKitScreen {
     @State private var mounted = false
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Button("playkit.scan.capture") { purpose = true }.disabled(!enabled || model.busy || !model.supports(.scan))
+            CYPillButton(LocalizedStringKey("playkit.scan.capture"), systemImage: "qrcode.viewfinder") { purpose = true }.disabled(!enabled || model.busy || !model.supports(.scan))
             if !model.supports(.scan) { Text("playkit.camera.gated") }
             if model.busy { ProgressView("playkit.scan.working") }
             if capturedIdentity == identity, let output = model.output, case .scan(let code) = output {
                 Label("playkit.scan.captured", systemImage: "qrcode")
-                Button("playkit.review") { if mounted && enabled { onCode(code) } }.disabled(!enabled)
+                CYPillButton(LocalizedStringKey("playkit.review"), systemImage: "checkmark") { if mounted && enabled { onCode(code) } }.disabled(!enabled)
             }
             if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
         }

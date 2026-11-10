@@ -45,6 +45,34 @@ Those edits stay on the CI machine. Do not run the prepare script in a local che
 
 Also set the same value as a workflow environment variable (the remaining step below). That is the setting `xcodebuild` applies to every target, including the embedded framework. Leave it unredacted. It is not a secret. The owner-confirmed facts above do not say whether this variable is already set on the workflow.
 
+## Simulator architecture for the Test action
+
+The Test action failure named for this lane is `unsupported Swift architecture` at `Vendor/GLTFKit2` `GLTFKit2-Swift.h:382`. This checkout did not open that Xcode Cloud log, and `xcodebuild` was not run.
+
+`Vendor/GLTFKit2` is a separate project. Its target does not inherit `Config/Base.xcconfig`. `ci_scripts/ci_post_clone.sh` writes this file on the temporary checkout and does not commit it:
+
+`ci_scripts/ci-simulator-arch.xcconfig`
+
+```
+ARCHS = arm64
+EXCLUDED_ARCHS[sdk=iphonesimulator*] = x86_64
+ONLY_ACTIVE_ARCH = YES
+```
+
+`EXCLUDED_ARCHS` is conditioned on the iphonesimulator SDK (`iphonesimulator*`). `ARCHS` and `ONLY_ACTIVE_ARCH` are unconditional. The Questify project, the shared scheme, and the GLTFKit2 project do not reference the file. `Config/Base.xcconfig` and `Vendor/GLTFKit2` are unchanged in git.
+
+`man xcodebuild` loads `XCODE_XCCONFIG_FILE` for every target, which is the override that reaches the GLTFKit2 target. Xcode Cloud starts `xcodebuild` itself. A variable exported from `ci_post_clone.sh` is not in that process. The scheme Test action has `buildConfiguration = Debug` and no xcconfig attribute. Putting `XCODE_XCCONFIG_FILE` in the workflow Environment is a workflow edit. This change does not edit the workflow. The script writes the xcconfig. The Test action does not load it.
+
+### The one remaining manual step
+
+Open the workflow **chein - 城瘾**. Open **Environment**. Add one variable. Leave **Secret** / **Keep value redacted** unchecked.
+
+| Name | Value |
+| --- | --- |
+| `XCODE_XCCONFIG_FILE` | `/Volumes/workspace/repository/ci_scripts/ci-simulator-arch.xcconfig` |
+
+The value is that literal path. Apple’s environment-variable reference gives `/Volumes/workspace/repository` as the example for `CI_PRIMARY_REPOSITORY_PATH`. The script writes `ci_scripts/ci-simulator-arch.xcconfig` under that directory. The variable is workflow-scoped, so the Build action in the same workflow loads the same file. Archive stays off. Do not start a build from this change.
+
 ## Test shards
 
 The confirmed workflow has one Test iOS action, on scheme `Questify`, not four Test actions. The Questify scheme Test action uses `QuestifyAppUnitTests-Shards.xctestplan`. That plan’s `QuestifyAppUnitTests` entry has an empty skip list, so the single Test iOS action runs every app-unit class the four shard plans partition. Its `QuestifyUITests` entry also has an empty skip list, so the UI tests that the Questify scheme already ran stay in the Test action. Nothing in the shard plans was deleted. The shard schemes were not edited.
@@ -87,8 +115,9 @@ The outcomes below are the owner-confirmed facts. This change did not open App S
 8. Open the workflow **Environment**. The confirmed facts do not include an Xcode version or any environment variable.
    1. Choose the newest Xcode version in the list. See “Not verified” below before assuming that entry is Xcode 27.
    2. Under environment variables, click **+**. Name: `CODE_SIGNING_ALLOWED`. Value: `NO`.
-   3. Leave **Secret** / **Keep value redacted** unchecked. Add no other variable, API key, certificate, or profile.
-9. Do not start a build from this change. On a branch that matches `rc/*`, a later **Start Build** is still an owner action. Each Test iOS run compiles the tests on that action. No build result and no test result are known from this checkout.
+   3. Leave **Secret** / **Keep value redacted** unchecked. Do not add an API key, certificate, or profile.
+9. **Not done.** Point the Test action at the CI simulator xcconfig. The script writes the file and does not apply it. The one manual step is in “Simulator architecture for the Test action” above: workflow **Environment**, name `XCODE_XCCONFIG_FILE`, value `/Volumes/workspace/repository/ci_scripts/ci-simulator-arch.xcconfig`, secret unchecked. This change does not edit the workflow.
+10. Do not start a build from this change. On a branch that matches `rc/*`, a later **Start Build** is still an owner action. Each Test iOS run compiles the tests on that action. No build result and no test result are known from this checkout.
 
 ## Not verified
 

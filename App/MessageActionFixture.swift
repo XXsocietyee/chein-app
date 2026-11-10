@@ -4,7 +4,12 @@ import SwiftUI
 @MainActor private final class MessageFixtureStore:MessagingReading,MessageActionWriting {
     let isConfigured=true
     let identity:MessagingReadIdentity? = .init(accountID:9001,epoch:1)
-    private var rows:[[String:Any]]=[["id":1,"conversationId":901,"senderId":8001,"status":0,"msgType":1,"content":"Fixture received message"]]
+    private var rows:[[String:Any]]=[
+        ["id":1,"conversationId":901,"senderId":8001,"status":0,"msgType":1,"content":"Fixture received message","createTime":"19:21"],
+        ["id":2,"conversationId":901,"senderId":8001,"status":0,"msgType":1,"content":"Second message in the same run, grouped","createTime":"19:21"],
+        ["id":3,"conversationId":901,"senderId":9001,"status":0,"msgType":1,"content":"Sent reply on the accent fill","createTime":"19:22"],
+        ["id":4,"conversationId":901,"senderId":9001,"status":0,"msgType":1,"content":"And a second sent bubble","createTime":"19:22"],
+        ["id":5,"conversationId":901,"senderId":8001,"status":0,"msgType":1,"content":"Got it, see you there","createTime":"19:24"]]
     private var receipts:[String:MessagingMessage]=[:]
     func messagingConversations() async throws -> [MessagingConversation] { [] }
     func messagingMessages(conversationID:Int,cursor:Int) async throws -> MessagingPage {

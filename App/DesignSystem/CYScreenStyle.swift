@@ -53,16 +53,22 @@ enum CYScreenChrome {
         let hairline = UIColor(palette.borderSubtle)
         let brand = UIColor(palette.brand)
 
+        // Scrolled: opaque page colour + hairline. At the top edge: transparent, so a large title sits on the page
+        // with no rule under it (the system large-title behaviour), and the bar settles into the hairline on scroll.
         let nav = UINavigationBarAppearance()
         nav.configureWithOpaqueBackground()
         nav.backgroundColor = page
         nav.shadowColor = hairline
         nav.titleTextAttributes = [.foregroundColor: title]
         nav.largeTitleTextAttributes = [.foregroundColor: title]
+        let edge = UINavigationBarAppearance()
+        edge.configureWithTransparentBackground()
+        edge.titleTextAttributes = [.foregroundColor: title]
+        edge.largeTitleTextAttributes = [.foregroundColor: title]
 
         let bar = UINavigationBar.appearance()
         bar.standardAppearance = nav
-        bar.scrollEdgeAppearance = nav
+        bar.scrollEdgeAppearance = edge
         bar.compactAppearance = nav
         bar.compactScrollEdgeAppearance = nav
         bar.tintColor = brand
@@ -113,10 +119,14 @@ enum CYScreenChrome {
         appearance.shadowColor = UIColor(palette.borderSubtle)
         appearance.titleTextAttributes = [.foregroundColor: UIColor(palette.textPrimary)]
         appearance.largeTitleTextAttributes = [.foregroundColor: UIColor(palette.textPrimary)]
+        let edge = UINavigationBarAppearance()
+        edge.configureWithTransparentBackground()
+        edge.titleTextAttributes = [.foregroundColor: UIColor(palette.textPrimary)]
+        edge.largeTitleTextAttributes = [.foregroundColor: UIColor(palette.textPrimary)]
         nav.standardAppearance = appearance
-        nav.scrollEdgeAppearance = appearance
+        nav.scrollEdgeAppearance = edge
         nav.compactAppearance = appearance
-        nav.compactScrollEdgeAppearance = appearance
+        nav.compactScrollEdgeAppearance = edge
         nav.tintColor = UIColor(palette.brand)
     }
 

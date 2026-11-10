@@ -63,8 +63,17 @@ private struct ProfileComplaintPresentationKey: Hashable {
     var body: some View {
         Form {
             Section {
-                CYHeroHeader("profile.complaint.pageTitle", subtitle: "profile.complaint.pageSubtitle")
-                    .accessibilityIdentifier("profile.complaint.pageSubtitle")
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Image(systemName: "text.bubble.fill").font(.system(size: 24, weight: .semibold)).foregroundStyle(.white)
+                        .frame(width: 52, height: 52)
+                        .background(SettingsTint.teal.gradient, in: RoundedRectangle(cornerRadius: 15, style: .continuous))
+                        .accessibilityHidden(true)
+                    Text("profile.complaint.pageTitle").font(.system(.largeTitle, design: .rounded, weight: .bold)).foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true).accessibilityAddTraits(.isHeader)
+                    Text("profile.complaint.pageSubtitle").font(.body).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .accessibilityIdentifier("profile.complaint.pageSubtitle")
                     .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                     .listRowBackground(Color.clear)
             }

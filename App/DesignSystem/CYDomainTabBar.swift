@@ -185,3 +185,28 @@ private struct CYDomainTabBarPreview: View {
 #Preview("Merchant tab bar (light)") {
     CYDomainTabBarPreview(domain: .merchant)
 }
+
+// MARK: - Selection haptic and close affordance (e5c)
+
+extension View {
+    /// Light selection tick when the root tab changes. Apply once on the root `TabView`, passing the selection it binds.
+    /// No haptic on first appearance. Honors the system haptics setting through `.sensoryFeedback`.
+    func cyTabSelectionFeedback<T: Equatable>(_ selection: T) -> some View {
+        sensoryFeedback(.selection, trigger: selection)
+    }
+}
+
+/// One close affordance for modal screens: a 44pt circular xmark in the leading/trailing cancellation slot,
+/// always labelled "Close" for VoiceOver. Back stays the system chevron (never custom) on pushed screens.
+struct CYCloseToolbarButton: ToolbarContent {
+    let action: () -> Void
+    var body: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(action: action) {
+                Image(systemName: "xmark").font(.footnote.weight(.bold))
+                    .frame(width: 44, height: 44).contentShape(Circle())
+            }
+            .accessibilityLabel(Text("action.close"))
+        }
+    }
+}
