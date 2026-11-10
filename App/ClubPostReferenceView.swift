@@ -50,6 +50,7 @@ import SwiftUI
         .sheet(item: $selected) { target in
             ClubPostReferenceDestination(target: target, identity: identity, topics: topics, model: model)
                 .presentationDetents([.large]).presentationCompactAdaptation(.sheet)
+                .cyDomainPageBackground()
         }
         .onChange(of: context) { _, _ in selected = nil }
         .onChange(of: post) { _, _ in selected = nil }
@@ -57,9 +58,49 @@ import SwiftUI
         .onAppear { sourceActive = true }
         .onDisappear { sourceActive = false }
     }
+    private var referenceTitle: String {
+        let trimmed = post.sportName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
+    }
     private var referenceLabel: some View {
-        Label { Text(verbatim: post.sportName) } icon: { Image(systemName: "doc.text.magnifyingglass") }
-            .frame(minHeight: 44, alignment: .leading)
+        CYListRow(verbatim: referenceTitle, trailing: .chevron) {
+            referenceThumb
+        }
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .accessibilityLabel(Text(verbatim: referenceTitle))
+    }
+    private var referenceThumb: some View {
+        let seed = referenceTitle == "—" ? "club-post-\(post.id)" : referenceTitle
+        return ClubCloud14Thumb(seed: seed, symbol: "doc.text.magnifyingglass", imageURL: ClubCloud14HTTPS.url(post.sportCover))
+    }
+}
+
+/// Leading art for a linked topic. Decorative: the row title is the accessible name.
+private struct ClubCloud14Thumb: View {
+    let seed: String
+    var symbol: String? = nil
+    var imageURL: URL? = nil
+    var body: some View {
+        Color.clear
+            .overlay {
+                CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false)
+                if let imageURL {
+                    AsyncImage(url: imageURL) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() }
+                    }
+                }
+            }
+            .frame(width: 40, height: 40)
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+private enum ClubCloud14HTTPS {
+    static func url(_ raw: String?) -> URL? {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
+        return url
     }
 }
 
