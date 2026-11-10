@@ -22,4 +22,4 @@ Briefs: W2-3 and W2-4 in `/Users/fanning/chengyin-refs/specs/ux-strategy.md`; `d
 - Mounting `.cyCelebrations` adds a `fullScreenCover(item:)` and `sheet(item:)` to two roots that already have sheets; compile and a device pass should confirm presentation does not collide.
 
 ## Not verified
-No build, simulator, haptic, VoiceOver or motion run in this lane. Cloud result: see the follow-up line below once a check run reports.
+No build, simulator, haptic, VoiceOver or motion run in this lane. Cloud: commit 30f49c2fe got no Build or Test check run, only the combined status `Questify / chein - 城瘾` = failure / cancelled (same as the base commits), so there is no Build error count to read; not cloud-verified. Build before merging.
