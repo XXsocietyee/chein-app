@@ -15,14 +15,20 @@ class ActivityReviewChecks(unittest.TestCase):
         self.assertIn('reviews=try ActivityReviews(from:decoder)', model)
         view = self.read('App/ActivityDetailView.swift')
         self.assertEqual(view.count('ActivityReviewsSection(reviews: detail.reviews)'), 1)
-        self.assertLess(view.index('Section("activity.tickets")'), view.index('ActivityReviewsSection('))
+        # Tickets stay in the first screen; reviews live in the secondary rows behind the "More info" toggle.
+        self.assertLess(view.index('E1IconHeader(systemImage: "ticket"'), view.index('ActivityReviewsSection('))
+        self.assertLess(view.index('accessibilityIdentifier("activity.more.toggle")'), view.index('if showsMoreInfo { moreInfoSections(detail) }'))
+        more = view.split('private func moreInfoSections', 1)[1].split('private func profileAction', 1)[0]
+        self.assertIn('ActivityReviewsSection(reviews: detail.reviews)', more)
+        self.assertIn('.accessibilityIdentifier("activity.openReview")', more)
         gate = view.split('case .clubRequired', 1)[1].split('case .allowed', 1)[0]
         self.assertNotIn('ActivityReviewsSection', gate)
         self.assertIn('.id(session.contentDetailRevision)', view)
-        self.assertIn('loading=true;failed=false;access=nil', view)
-        self.assertIn('if generation == operation, profileIdentity == peopleProfile?.reader.identity', view)
+        self.assertIn('phase = .loading;loadedProfileIdentity=nil', view)
+        self.assertIn('if generation == operation, profileIdentity == peopleProfile?.reader.identity,', view)
         self.assertIn('ContextualReviewComposer(target: .activity(id)', view)
-        self.assertIn('Button("context.review.title", systemImage: "square.and.pencil") { showsReview = true }', view)
+        self.assertIn('Button { showsReview = true } label: {', view)
+        self.assertIn('CYListRow("context.review.title", trailing: .none)', view)
 
     def test_bounded_preview_is_not_count_average_or_authority(self):
         model = self.read('Core/ActivityReviews.swift')

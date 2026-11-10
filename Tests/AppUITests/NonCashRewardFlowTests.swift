@@ -18,6 +18,7 @@ import XCTest
         app.launchArguments = ["--uitesting-integrated-native", "ready", "--uitesting-reset-language", "-AppleLanguages", "(en)", "-AppleLocale", "en_US"]
         if let scenario { app.launchArguments += ["--uitesting-rewards-scenario", scenario] }
         app.launch()
+        skipOnboardingIfPresent(in: app)
         tap("welcome.player"); tap("auth.otherChannels")
         app.textFields["auth.channels.phone"].tap(); app.textFields["auth.channels.phone"].typeText("10000000000")
         tap("auth.channels.sendCode")

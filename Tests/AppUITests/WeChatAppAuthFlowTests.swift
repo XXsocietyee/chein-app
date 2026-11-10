@@ -7,6 +7,7 @@ final class WeChatAppAuthFlowTests: XCTestCase {
             let app = XCUIApplication()
             app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(\(language))"]
             app.launch()
+            skipOnboardingIfPresent(in: app)
             for _ in 0..<2 {
                 XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout: 10))
                 app.buttons["welcome.player"].tap()

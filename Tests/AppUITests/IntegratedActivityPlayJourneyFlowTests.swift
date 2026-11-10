@@ -97,6 +97,10 @@ import XCTest
         !row.isEmpty && !viewport.isEmpty && !viewport.isNull && viewport.contains(row)
     }
     private func tapActivityPlay(_ app: XCUIApplication) {
+        let toggle = app.buttons["activity.more.toggle"]
+        if toggle.waitForExistence(timeout: 5), (toggle.value as? String) != "Expanded" {
+            _ = revealFixtureElement(toggle, in: app); toggle.tap()
+        }
         let row = app.buttons["activity.openPlay"]
         let navigation = app.navigationBars["Activity details"]
         let registration = app.buttons["activity.openRegistration"]
@@ -202,6 +206,7 @@ import XCTest
         close.tap()
     }
     private func phoneSheet(_ app: XCUIApplication) {
+        skipOnboardingIfPresent(in: app)
         tap("welcome.player", app); tap("auth.otherChannels", app)
         XCTAssertTrue(app.textFields["auth.channels.phone"].waitForExistence(timeout: 5))
     }

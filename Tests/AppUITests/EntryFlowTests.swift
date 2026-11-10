@@ -7,6 +7,7 @@ final class EntryFlowTests: XCTestCase {
         app=XCUIApplication()
         app.launchArguments=["--uitesting-reset-language","-AppleLanguages","(en)","-AppleLocale","en_US"]
         app.launch()
+        skipOnboardingIfPresent(in: app)
     }
     override func tearDownWithError() throws { attachFailureScreenshot(self,app:app); app.terminate();app=nil }
 
@@ -99,6 +100,7 @@ final class EntryFlowTests: XCTestCase {
         app.terminate()
         app.launchArguments=["-AppleLanguages","(en)","-AppleLocale","en_US"]
         app.launch()
+        skipOnboardingIfPresent(in: app)
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:10))
         XCTAssertTrue(app.buttons["welcome.player"].label.contains("玩家注册"))
         openSettings(title:"设置")
@@ -142,6 +144,7 @@ final class EntryFlowTests: XCTestCase {
     func testSettingsReopensAfterRepeatedColdLaunch() {
         for _ in 0..<3 {
             app.terminate();app.launch()
+            skipOnboardingIfPresent(in: app)
             openSettings(title:"Settings")
             app.buttons["Done"].tap()
             XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
@@ -154,6 +157,7 @@ final class EntryFlowTests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.staticTexts["Scanning Isn't Supported"].waitForExistence(timeout:10),app.debugDescription)
         app.buttons["Cancel"].tap()
+        skipOnboardingIfPresent(in: app)
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
     }
 

@@ -34,6 +34,7 @@ import XCTest
         XCTAssertTrue(revealFixtureElement(element, in: app), app.debugDescription); element.tap()
     }
     func openCoupons() {
+        skipOnboardingIfPresent(in: app)
         tap("welcome.player"); tap("auth.otherChannels")
         let phone = app.textFields["auth.channels.phone"]; XCTAssertTrue(phone.waitForExistence(timeout: 5)); phone.tap(); phone.typeText("10000000000")
         let code = app.textFields["auth.channels.code"]; code.tap(); code.typeText("123456")
