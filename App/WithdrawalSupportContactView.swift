@@ -31,20 +31,22 @@ extension EnvironmentValues {
         let offered = generation
         return NavigationStack {
             Form {
-                Text("withdrawal.support.explanation")
+                Section { CYHeroHeader("withdrawal.support.contact", subtitle: "withdrawal.support.explanation").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+
                 if busy { ProgressView("wallet.loading") }
                 if let configuration, loadedScope == reader?.scope {
                     LabeledContent("withdrawal.support.weChat") { Text(verbatim: configuration.contact.weChatID) }
-                    Button("withdrawal.support.copyWeChat") { Task { await copy(configuration, offered: offered) } }
+                    CYPillButton("withdrawal.support.copyWeChat", systemImage: "doc.on.doc") { Task { await copy(configuration, offered: offered) } }
                         .disabled(busy).accessibilityIdentifier("withdrawal.support.copyWeChat")
                     Text("withdrawal.support.manualContact")
                 } else if !busy {
-                    Label("withdrawal.support.unconfigured", systemImage: "exclamationmark.bubble")
+                    CYStatusChip("withdrawal.support.unconfigured", tone: .warning, systemImage: "exclamationmark.bubble")
                         .accessibilityIdentifier("withdrawal.support.unconfigured")
                 }
                 if let issue { Text(LocalizedStringKey(issue)).accessibilityIdentifier("withdrawal.support.status") }
-                Button("wallet.retry") { Task { await load(offered: offered) } }.disabled(busy)
-            }.navigationTitle("withdrawal.support.contact")
+                CYPillButton("wallet.retry", style: .tertiary) { Task { await load(offered: offered) } }.disabled(busy)
+            }.cyGroupedSurface()
+                .cyHeroScreen()
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { clear(); dismiss() }.accessibilityIdentifier("withdrawal.support.close") } }
         }
         .task(id: readerKey) { await load(offered: offered) }
