@@ -22,3 +22,6 @@ Note: `design-bar-ada.md` does not exist in this tree; `motion-spec*.md` and `ux
 
 ## Checks
 swiftc -parse on all touched Swift files clean; check_scaffold PASS; check_design_lint PASS. Cloud: appended below.
+
+## Follow-up: AX5 badge grid (hyphenation)
+`shots/sheet-a11y-en.png` showed "Un-/locked" and "Mar-" in the AX5 badge grid. Cause: the fixture hard-coded two columns (the real wall already uses one column at AX via `CYCollectionGrid`). Fix: fixture uses `CYCollectionGrid`; `CYStatusChip.singleLine()` (lineLimit 1, minimumScaleFactor 0.7) for the Locked/Unlocked chip; badge titles `allowsTightening` + standard line break. Fixture `a11y-badges-ax5` (alias of the AX5 badge wall). NOT COMPILED; parse, scaffold, design lint, catalog coverage clean.
