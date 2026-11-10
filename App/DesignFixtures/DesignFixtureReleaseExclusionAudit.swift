@@ -13,6 +13,8 @@ import Foundation
 /// This audit is a source gate. It does not compile or run a Release build.
 enum DesignFixtureReleaseExclusionAudit {
     static let symbols: [String] = [
+        "A11yPassportAX5Fixture",
+        "A11yRoamAX5Fixture",
         "AlbumBadgeFixtureReader",
         "AlbumBadgeVariant",
         "AlbumBadgeWallFixture",
@@ -22,6 +24,7 @@ enum DesignFixtureReleaseExclusionAudit {
         "AlbumObjectCardFixtureReader",
         "AlbumStampFixtureReader",
         "CarouselFixtures",
+        "ClubCardFixtures",
         "ConsentFixture",
         "D2Fixture",
         "D4ChannelsHost",
@@ -87,10 +90,12 @@ enum DesignFixtureReleaseExclusionAudit {
         "E4LoadingLab",
         "E4LoginFixture",
         "E4PayResultFixture",
+        "E4PeakRoute",
         "E4PurchaseDetailHost",
         "E4PurchaseFixtures",
         "E4PurchaseFlowFixture",
         "E4SettingsFixture",
+        "E4ShareSheetLab",
         "E4StateLab",
         "E4StubTransport",
         "E5Fixtures",
