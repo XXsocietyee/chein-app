@@ -3,6 +3,7 @@ import SwiftUI
 /// Mini pages/club/event-ops hub. It only orders existing governance reads; each pushed
 /// read re-checks access/me and owns its own writes, review/confirm and return reads.
 @MainActor struct ClubOpsEventView: View {
+    @Environment(\.locale) private var locale
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
@@ -102,14 +103,14 @@ import SwiftUI
                     CYListRow(
                         "club.gov.action.cancelOccurrence",
                         trailing: .none,
-                        verbatimMeta: String(localized: "clubOpsEvent.cancel.subtitle", table: "ClubOpsEvent")
+                        verbatimMeta: String(localized: LocalizedStringResource("clubOpsEvent.cancel.subtitle", table: "ClubOpsEvent", locale: locale))
                     ) { CYRowIcon(systemImage: "calendar.badge.minus") }
                 }
             } header: { ClubOpsTableHeading("clubOpsEvent.section.occurrence") }
         case .roster:
             Section {
                 push(.roster, eventScope) {
-                    CYListRow(verbatim: String(localized: "clubOpsEvent.section.roster", table: "ClubOpsEvent"), trailing: .none) {
+                    CYListRow(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.section.roster", table: "ClubOpsEvent", locale: locale)), trailing: .none) {
                         CYRowIcon(systemImage: "person.crop.rectangle.stack")
                     }
                 }
@@ -118,7 +119,7 @@ import SwiftUI
             // Mini-program 日期清单 card: title row + its one-line rule 「仅可修改无报名的未来场次」.
             Section {
                 push(.series, .init(clubID: scope.clubID)) {
-                    CYListRow(verbatim: String(localized: "clubOpsEvent.section.series", table: "ClubOpsEvent"), trailing: .none) {
+                    CYListRow(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.section.series", table: "ClubOpsEvent", locale: locale)), trailing: .none) {
                         CYRowIcon(systemImage: "calendar")
                     }
                 }
@@ -127,8 +128,8 @@ import SwiftUI
             Section {
                 push(.eventTopics, .init(clubID: scope.clubID, topicID: scope.topicID)) {
                     CYListRow(
-                        verbatim: String(localized: "clubOpsEvent.recurrence.add", table: "ClubOpsEvent"),
-                        meta: String(localized: "clubOpsEvent.recurrence.addHint", table: "ClubOpsEvent"),
+                        verbatim: String(localized: LocalizedStringResource("clubOpsEvent.recurrence.add", table: "ClubOpsEvent", locale: locale)),
+                        meta: String(localized: LocalizedStringResource("clubOpsEvent.recurrence.addHint", table: "ClubOpsEvent", locale: locale)),
                         trailing: .none
                     ) { CYRowIcon(systemImage: "plus.circle") }
                 }
@@ -183,9 +184,9 @@ import SwiftUI
                     .fixedSize(horizontal: false, vertical: true)
                 if let enabled = row.waitlistEnabled {
                     if enabled {
-                        CYStatusChip(verbatim: String(localized: "clubOpsEvent.series.waitlistOn", table: "ClubOpsEvent"), tone: .success, systemImage: "person.2")
+                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.series.waitlistOn", table: "ClubOpsEvent", locale: locale)), tone: .success, systemImage: "person.2")
                     } else {
-                        CYStatusChip(verbatim: String(localized: "clubOpsEvent.series.waitlistOff", table: "ClubOpsEvent"), tone: .neutral, systemImage: "person.2.slash")
+                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.series.waitlistOff", table: "ClubOpsEvent", locale: locale)), tone: .neutral, systemImage: "person.2.slash")
                     }
                 }
             }
@@ -238,17 +239,18 @@ import SwiftUI
 }
 
 struct ClubOpsEventOccurrenceBadgeText: View {
+    @Environment(\.locale) private var locale
     let badge: ClubOpsEventOccurrenceBadge
     var body: some View {
         switch badge {
         case .cancelled:
             ClubOpsEventStatusLine(key: "clubOpsEvent.occurrences.cancelled", symbol: "xmark.circle", tone: CYColor.dangerText)
         case .editable:
-            CYStatusChip(verbatim: String(localized: "clubOpsEvent.occurrences.editable", table: "ClubOpsEvent"), tone: .success, systemImage: "pencil.circle")
+            CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.occurrences.editable", table: "ClubOpsEvent", locale: locale)), tone: .success, systemImage: "pencil.circle")
         case .lockReason(let reason):
             ClubOpsEventStatusLine(verbatim: reason, symbol: "lock", tone: CYColor.warningText)
         case .locked:
-            CYStatusChip(verbatim: String(localized: "clubOpsEvent.occurrences.locked", table: "ClubOpsEvent"), tone: .neutral, systemImage: "lock")
+            CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.occurrences.locked", table: "ClubOpsEvent", locale: locale)), tone: .neutral, systemImage: "lock")
         }
     }
 }

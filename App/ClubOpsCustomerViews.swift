@@ -77,6 +77,7 @@ struct ClubOpsFailureSection: View {
 }
 
 struct ClubOpsCustomerRowView: View {
+    @Environment(\.locale) private var locale
     let row: ClubOpsCustomerRow
     @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 40
@@ -109,7 +110,7 @@ struct ClubOpsCustomerRowView: View {
                     }
                     if row.hasRemark {
                         CYStatusChip(
-                            verbatim: String(localized: "clubOps.customers.remarkBadge", table: "ClubOpsCustomer"),
+                            verbatim: String(localized: LocalizedStringResource("clubOps.customers.remarkBadge", table: "ClubOpsCustomer", locale: locale)),
                             tone: .neutral,
                             systemImage: "note.text"
                         )
