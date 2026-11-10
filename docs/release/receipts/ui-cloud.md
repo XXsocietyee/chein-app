@@ -1,0 +1,1 @@
+UI-CLOUD-12 46d7d2bfbd0bf85a3a40a2b65cf93e602380f432 PASS App/ClubManagementView.swift, App/ClubMemberReportView.swift, App/ClubMembersView.swift, App/ClubNotificationAudienceView.swift, App/ClubOperationsReviewView.swift
