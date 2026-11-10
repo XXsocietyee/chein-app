@@ -61,6 +61,7 @@ extension EnvironmentValues {
 @MainActor struct CityNodeRedeemView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.cityNodeReceiptFactory) private var receiptFactory
+    @Environment(\.cyPalette) private var palette
     @StateObject private var model: CityNodeRedeemModel
     @State private var raw = ""
     @State private var showsScanner = false
@@ -74,72 +75,163 @@ extension EnvironmentValues {
         _model = StateObject(wrappedValue: CityNodeRedeemModel(reader: reader, journal: journal, receipt: receipt))
     }
     private var busy: Bool { preparing || confirming || model.coordinator.busy }
+    private var showsNext: Bool { model.coordinator.result != nil && !model.blocksAllTargets }
+    private var rowInsets: EdgeInsets {
+        EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal)
+    }
+
     var body: some View {
         Form {
             Section {
-                Text("merchant.cityRedeem.instructions")
-                if !model.isAvailable { Text("merchant.cityRedeem.disabled").foregroundStyle(.secondary) }
+                CYHeroHeader("merchant.cityRedeem.title", subtitle: "merchant.cityRedeem.instructions") {
+                    Cloud07Cover(seed: "city-node-redeem", symbol: "qrcode.viewfinder")
+                }
+            }
+            .listRowInsets(rowInsets)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+            if !model.isAvailable {
+                Section {
+                    CYNoteBanner(text: Text("merchant.cityRedeem.disabled"), symbol: "lock.fill", tone: .warning)
+                }
+                .listRowInsets(rowInsets)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+
+            Section {
+                Text("merchant.cityRedeem.code")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 SecureField("merchant.cityRedeem.code", text: $raw)
                     .textInputAutocapitalization(.never).autocorrectionDisabled().keyboardType(.asciiCapable)
                     .focused($codeFocused).privacySensitive().disabled(!model.isAvailable || model.blocksAllTargets || busy || model.coordinator.review != nil)
                     .accessibilityIdentifier("merchant.cityRedeem.code")
-                Button("merchant.cityRedeem.review") { prepare(raw) }
-                    .disabled(!model.isAvailable || model.blocksAllTargets || raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || busy || model.coordinator.review != nil)
-                    .accessibilityIdentifier("merchant.cityRedeem.review")
-                Button { showsScanner = true } label: { Label("merchant.cityRedeem.scan", systemImage: "qrcode.viewfinder") }
+                Text("merchant.cityRedeem.cameraConsent")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .listRowInsets(rowInsets)
+
+            Section {
+                if showsNext {
+                    reviewButton(style: .secondary)
+                }
+                CYPillButton("merchant.cityRedeem.scan", style: .secondary, systemImage: "qrcode.viewfinder") { showsScanner = true }
                     .disabled(!model.isAvailable || model.blocksAllTargets || busy || model.coordinator.review != nil)
+                    .accessibilityLabel(Text("merchant.cityRedeem.scan"))
                     .accessibilityIdentifier("merchant.cityRedeem.scan")
                 if model.canRecover {
-                    Button("回读原核销结果") { recover(raw) }
+                    CYPillButton("回读原核销结果", style: .tertiary) { recover(raw) }
                         .disabled(raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || busy || model.coordinator.review != nil)
+                        .accessibilityLabel(Text("回读原核销结果"))
                         .accessibilityIdentifier("merchant.cityRedeem.recoverOriginal")
                 }
-                Text("merchant.cityRedeem.cameraConsent").font(.footnote).foregroundStyle(.secondary)
             }
-            if busy { ProgressView("merchant.cityRedeem.processing") }
+            .listRowInsets(rowInsets)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+
+            if busy {
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text("merchant.cityRedeem.processing")
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        CYSkeleton().accessibilityHidden(true)
+                    }
+                    .accessibilityElement(children: .combine)
+                }
+                .listRowInsets(rowInsets)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
+            }
+
             if let result = model.coordinator.result {
                 Section {
-                    Label {
-                        if result.isUnknown { Text(verbatim: CityNodeRedemptionResult.unknownMessage) }
-                        else { Text(LocalizedStringKey(result.redeemed ? "merchant.cityRedeem.success" : "merchant.cityRedeem.rejected")) }
-                    } icon: { Image(systemName: result.isUnknown ? "questionmark.circle" : result.redeemed ? "checkmark.circle" : "exclamationmark.circle") }
-                    if !result.isUnknown {
-                        Text(verbatim: result.message).textSelection(.enabled)
+                    if result.isUnknown {
+                        CYNoteBanner(text: Text(verbatim: CityNodeRedemptionResult.unknownMessage), symbol: "questionmark.circle", tone: .warning)
+                    } else {
+                        CYStatusChip(
+                            LocalizedStringKey(result.redeemed ? "merchant.cityRedeem.success" : "merchant.cityRedeem.rejected"),
+                            tone: result.redeemed ? .success : .danger,
+                            systemImage: result.redeemed ? "checkmark.circle" : "exclamationmark.circle"
+                        )
+                        Text(verbatim: shown(result.message))
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
                             .accessibilityIdentifier("merchant.cityRedeem.serverMessage")
                     }
                     if let unverified = result.unverifiedServerMessage, !unverified.isEmpty {
-                        Text(verbatim: "服务返回（尚未确认为本次回执）").font(.caption).foregroundStyle(.secondary)
-                        Text(verbatim: unverified).accessibilityIdentifier("merchant.cityRedeem.unverifiedMessage")
-                    }
-                    if !model.blocksAllTargets {
-                        Button { raw = ""; model.next() } label: {
-                            if model.coordinator.pendingScope != nil { Text(verbatim: "核销其他玩家或节点") }
-                            else { Text("merchant.cityRedeem.next") }
-                        }.accessibilityIdentifier("merchant.cityRedeem.next")
+                        Text(verbatim: "服务返回（尚未确认为本次回执）")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: unverified)
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                            .accessibilityIdentifier("merchant.cityRedeem.unverifiedMessage")
                     }
                 }
+                .listRowInsets(rowInsets)
             }
+
             if let pending = model.coordinator.pendingScope {
                 Section {
                     if let result = model.coordinator.result, !result.isUnknown {
                         Text(verbatim: "服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。")
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                     } else if pending == .legacy {
                         Text(verbatim: CityNodeRedemptionResult.legacyGuidance)
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                     } else if pending == .storage {
                         Text(verbatim: "本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。")
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                     } else {
                         Text(verbatim: CityNodeRedemptionResult.unknownGuidance)
+                            .font(CYTypography.body)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
                         Text(verbatim: "可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。")
-                            .font(.footnote).foregroundStyle(.secondary)
+                            .font(CYTypography.meta)
+                            .foregroundStyle(palette.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
-                }.accessibilityIdentifier("merchant.cityRedeem.pendingGuidance")
+                }
+                .listRowInsets(rowInsets)
+                .accessibilityIdentifier("merchant.cityRedeem.pendingGuidance")
             }
+
             if let failure = model.coordinator.failure {
-                Text(LocalizedStringKey(failure)).accessibilityIdentifier("merchant.cityRedeem.failure")
+                Section {
+                    CYNoteBanner(text: Text(LocalizedStringKey(failure)), symbol: "exclamationmark.triangle", tone: .danger)
+                        .accessibilityIdentifier("merchant.cityRedeem.failure")
+                }
+                .listRowInsets(rowInsets)
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
-        }.cyGroupedSurface()
+        }
+        .listStyle(.insetGrouped)
+        .cyGroupedSurface()
         .scrollDismissesKeyboard(.interactively)
-        .appNavigationTitle("merchant.cityRedeem.title")
+        .safeAreaInset(edge: .bottom, spacing: 0) { primaryBar }
+        .cyHaptic(.impactMedium, trigger: preparing) { old, new in !old && new }
+        .cyHaptic(.impactMedium, trigger: confirming) { old, new in !old && new }
         .confirmationDialog("merchant.cityRedeem.confirmTitle", isPresented: Binding(
             get: { model.coordinator.review != nil },
             set: { if !$0 && !confirming { model.cancel() } }
@@ -174,6 +266,42 @@ extension EnvironmentValues {
         .onChange(of: scenePhase) { _, phase in if phase != .active { clear() } }
         .onDisappear { visible = false; clear() }
     }
+
+    private var primaryBar: some View {
+        Group {
+            if showsNext { nextButton } else { reviewButton(style: .primary) }
+        }
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.vertical, CYSpacing.md)
+        .background(palette.bgPage)
+    }
+
+    private func reviewButton(style: CYPillStyle) -> some View {
+        CYPillButton("merchant.cityRedeem.review", style: style, systemImage: "checkmark.circle") { prepare(raw) }
+            .disabled(!model.isAvailable || model.blocksAllTargets || raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || busy || model.coordinator.review != nil)
+            .accessibilityLabel(Text("merchant.cityRedeem.review"))
+            .accessibilityIdentifier("merchant.cityRedeem.review")
+    }
+
+    private var nextButton: some View {
+        Group {
+            if model.coordinator.pendingScope != nil {
+                CYPillButton(verbatim: "核销其他玩家或节点", systemImage: "arrow.right") { raw = ""; model.next() }
+                    .accessibilityLabel(Text(verbatim: "核销其他玩家或节点"))
+            } else {
+                CYPillButton("merchant.cityRedeem.next", systemImage: "arrow.right") { raw = ""; model.next() }
+                    .accessibilityLabel(Text("merchant.cityRedeem.next"))
+            }
+        }
+        .accessibilityIdentifier("merchant.cityRedeem.next")
+    }
+
+    /// Blank server copy is unknown. A real message, including a literal zero, stays as sent.
+    private func shown(_ message: String) -> String {
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : message
+    }
+
     private func recover(_ code: String) {
         guard visible, !busy, scenePhase == .active, model.canRecover else { return }
         codeFocused = false; raw = ""; preparing = true
