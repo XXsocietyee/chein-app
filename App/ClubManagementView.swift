@@ -47,43 +47,66 @@ struct ClubManagementView: View {
 
     var body: some View {
         List {
+            Section {
+                CYHeroHeader("club.management.title")
+            }
+            .listRowInsets(Self.gutterInsets)
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
             if identity == nil {
-                Text("club.management.signin")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.management.signin", kind: .inbox)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             } else if !access.isConfigured {
-                Text("club.management.unconfigured")
+                CYEmptyState(systemImage: "network.slash", "club.management.unconfigured", kind: .offline)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             } else {
-                if loading { ProgressView().accessibilityLabel(Text("club.management.loading")) }
+                if loading && snapshot == nil {
+                    CYSkeleton()
+                        .accessibilityLabel(Text("club.management.loading"))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
+                }
                 let loadIssue = ClubOpsJoinRequestCopy.loadIssue(failed: failed, denied: denied, stale: stale, hasSnapshot: contextMatches && snapshot != nil)
                 if let issue = loadIssue {
                     ClubOpsJoinRequestLoadIssue(issue: issue, disabled: loading || state == .checking || state == .awaitingConfirmation || state == .submitting) { Task { await refresh() } }
                 }
                 if failed {
                     // The mini page title replaces the generic unavailable line; denial keeps its own copy.
-                    if denied || loadIssue == nil { Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable")).foregroundStyle(.secondary) }
-                    if let serverReadMessage { Text(verbatim: serverReadMessage) }
+                    if denied || loadIssue == nil {
+                        Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    if let serverReadMessage { serverMessage(serverReadMessage) }
                 }
                 status
                 if contextMatches, let snapshot {
                     // Mini-program club/join-requests: title, the 「N 条待审 · 可直接通过或拒绝」 line, then the cards.
                     Section {
                         if snapshot.requests.isEmpty {
-                            ContentUnavailableView("club.management.empty", systemImage: "person.badge.clock")
+                            CYEmptyState(systemImage: "person.badge.clock", "club.management.empty", detail: "club.management.emptyHint", kind: .inbox)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                         }
                         ForEach(snapshot.requests) { request in
                             Button { selection = .request(request.id) } label: {
-                                VStack(alignment: .leading) {
-                                    ClubOpsJoinRequestRowText(request: request)
-                                    Group {
-                                        if let time = request.requestTimeText { Text("club.management.requestedAt \(time)") }
-                                        else { Text("club.management.timeUnknown") }
-                                    }.font(.caption).foregroundStyle(.secondary)
-                                }
+                                requestRow(request)
                             }
+                            .buttonStyle(.cyPressable)
                             .accessibilityIdentifier("club.management.request.\(request.id)")
+                            .listRowInsets(Self.gutterInsets)
+                            .listRowBackground(Color.clear)
+                            .listRowSeparator(.hidden)
                         }
                     } header: {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text("club.management.requests")
+                                .font(CYTypography.sectionTitle)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .accessibilityAddTraits(.isHeader)
                             if !snapshot.requests.isEmpty,
                                let pendingText = ClubJoinRequestsPageReady.pendingCountText(
                                 visibility: .init(reviewCapabilityPresent: contextMatches, canGovern: snapshot.club.isOwner || snapshot.club.viewerIsAdmin, playerFirstEntry: false),
@@ -92,29 +115,51 @@ struct ClubManagementView: View {
                                     .accessibilityValue(Text(verbatim: pendingText))
                             }
                         }
+                        .textCase(nil)
                     }
                     if snapshot.club.isOwner {
-                        Section("club.management.members") {
+                        Section {
                             if snapshot.members.isEmpty {
-                                Text(LocalizedStringKey(snapshot.club.memberCount > 0 ? "club.management.members_unavailable" : "club.management.members_empty"))
+                                CYEmptyState(
+                                    systemImage: "person.2",
+                                    LocalizedStringKey(snapshot.club.memberCount > 0 ? "club.management.members_unavailable" : "club.management.members_empty"),
+                                    kind: .generic
+                                )
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
                             ForEach(snapshot.members) { member in
                                 Button { selection = .member(member.id) } label: {
-                                    if let name = ClubOpsJoinRequestPresentation.displayName(member.nickname) { Text(verbatim: name) }
-                                    else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify") }
+                                    managementMemberRow(member)
                                 }
+                                .buttonStyle(.cyPressable)
                                 .accessibilityIdentifier("club.management.member.\(member.id)")
+                                .listRowInsets(Self.gutterInsets)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                             }
+                        } header: {
+                            Text("club.management.members")
+                                .font(CYTypography.sectionTitle)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .accessibilityAddTraits(.isHeader)
+                                .textCase(nil)
                         }
                     }
                 }
                 Button("club.management.refresh") { Task { await refresh() } }
+                    .buttonStyle(CYPillButtonStyle(style: loadIssue == nil ? .primary : .secondary))
                     .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
                     .accessibilityIdentifier("club.management.refresh")
+                    .listRowInsets(Self.gutterInsets)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
         }
-        .cyGroupedSurface()
-        .appNavigationTitle("club.management.title")
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .cyDomainPageBackground()
+        .cyHeroScreen()
         .navigationDestination(item: $selection) { selected in detail(selected) }
         .task(id: readContext) {
             guard screenContext != readContext || snapshot == nil && state == .idle else { return }
@@ -133,22 +178,22 @@ struct ClubManagementView: View {
     }
     @ViewBuilder private func detail(_ selected: DetailSelection) -> some View {
         let presentedAttachment = reviewOwner.attachment
+        let detailTitle: LocalizedStringKey = {
+            switch selected { case .request: return "club.management.request"; case .member: return "club.management.member" }
+        }()
         Form {
-            if loading { ProgressView().accessibilityIdentifier("club.management.detail.loading") }
+            Section {
+                CYHeroHeader(detailTitle)
+            }
+            .listRowInsets(Self.gutterInsets)
+            .listRowBackground(Color.clear)
+            if loading { ProgressView().accessibilityIdentifier("club.management.detail.loading").accessibilityLabel(Text("club.management.loading")) }
             status
             if contextMatches, access.identity == identity, let snapshot {
                 switch selected {
                 case .request(let id):
                     if let request = snapshot.requests.first(where: { $0.id == id }) {
-                        if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) { Text(verbatim: name) }
-                        else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify") }
-                        if let time = request.requestTimeText { Text("club.management.requestedAt \(time)").foregroundStyle(.secondary) }
-                        if let message = request.joinMessage, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text("club.application.messageReceived").font(.caption).foregroundStyle(.secondary)
-                                Text(verbatim: message).accessibilityIdentifier("club.management.joinMessage")
-                            }
-                        }
+                        requestDetail(request)
                         if snapshot.allows(.approve, memberID: id) {
                             action(.approve, memberID: id)
                             action(.reject, memberID: id)
@@ -156,24 +201,29 @@ struct ClubManagementView: View {
                     }
                 case .member(let id):
                     if let member = snapshot.members.first(where: { $0.id == id }) {
-                        if let name = ClubOpsJoinRequestPresentation.displayName(member.nickname) { Text(verbatim: name).font(.headline) }
-                        else { Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify").font(.headline) }
+                        managementMemberRow(member)
+                            .accessibilityElement(children: .combine)
                         if snapshot.allows(.remove, memberID: id) { action(.remove, memberID: id) }
                     }
                 }
             }
             if failed {
                 Text(LocalizedStringKey(denied ? "club.management.denied" : "club.management.unavailable"))
-                if let serverReadMessage { Text(verbatim: serverReadMessage) }
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let serverReadMessage { serverMessage(serverReadMessage) }
             }
             Button("club.management.refresh") { Task { await refresh() } }
+                .buttonStyle(CYPillButtonStyle(style: .tertiary))
                 .disabled(loading || state == .checking || state == .awaitingConfirmation || state == .submitting)
                 .accessibilityIdentifier("club.management.detail.refresh")
+                .listRowInsets(Self.gutterInsets)
+                .listRowBackground(Color.clear)
         }
-        .cyGroupedSurface()
-        .appNavigationTitle(key: {
-            switch selected { case .request: return "club.management.request"; case .member: return "club.management.member" }
-        }())
+        .scrollContentBackground(.hidden)
+        .cyDomainPageBackground()
+        .cyHeroScreen()
         // The root List's task is suspended while this destination is pushed.
         // Invalidate its selection here, where viewer changes are still observed.
         .onChange(of: readContext) { _, _ in invalidateDetailContext() }
@@ -200,6 +250,94 @@ struct ClubManagementView: View {
             }
         }
     }
+    private static let gutterInsets = EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
+    /// A blank name is unknown. The id is a real identifier and stays visible.
+    private static func namedID(_ name: String, _ id: Int) -> String {
+        let shown = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return "\(shown.isEmpty ? "—" : shown) (#\(id))"
+    }
+    private func personAvatar(raw: String?, fallback: String) -> some View {
+        CYAvatarView(url: QuestifyCardArtwork.safeURL(raw), name: fallback, size: .md)
+            .accessibilityHidden(true)
+    }
+    private func requestRow(_ request: ClubManagementRequest) -> some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                ClubOpsJoinRequestRowText(request: request)
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Group {
+                    if let time = request.requestTimeText { Text("club.management.requestedAt \(time)") }
+                    else { Text("club.management.timeUnknown") }
+                }
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: CYSpacing.sm)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(CYColor.textTertiary)
+                .accessibilityHidden(true)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .contentShape(Rectangle())
+    }
+    private func requestDetail(_ request: ClubManagementRequest) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(alignment: .center, spacing: CYSpacing.md) {
+                personAvatar(raw: request.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(request.nickname) ?? "\(request.id)")
+                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                    if let name = ClubOpsJoinRequestPresentation.displayName(request.nickname) {
+                        Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify")
+                            .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if let time = request.requestTimeText {
+                        Text("club.management.requestedAt \(time)")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+            }
+            if let message = request.joinMessage, !message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text("club.application.messageReceived")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: message)
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("club.management.joinMessage")
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private func managementMemberRow(_ member: ClubMember) -> some View {
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            personAvatar(raw: member.avatar, fallback: ClubOpsJoinRequestPresentation.displayName(member.nickname) ?? "\(member.id)")
+            if let name = ClubOpsJoinRequestPresentation.displayName(member.nickname) {
+                Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("clubOpsJN.join.playerFallback", tableName: "ClubOpsJoinNotify")
+                    .font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: CYSpacing.sm)
+            Image(systemName: "chevron.right")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(CYColor.textTertiary)
+                .accessibilityHidden(true)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget)
+        .contentShape(Rectangle())
+    }
     private func invalidateDetailContext() {
         guard screenContext != readContext else { return }
         // Fence cancellation-ignoring completions and cancel only undispatched review.
@@ -217,26 +355,84 @@ struct ClubManagementView: View {
         cancel(); reviewOwner.retire()
     }
     @ViewBuilder private var status: some View {
-        if stale { Text("club.management.stale").accessibilityIdentifier("club.management.stale") }
+        if stale { statusLine("club.management.stale", symbol: "clock.arrow.circlepath", identifier: "club.management.stale") }
         switch state {
-        case .checking, .submitting: ProgressView()
-        case .notSent: Text("club.management.not_sent")
+        case .checking, .submitting: ProgressView().accessibilityLabel(Text("club.management.loading"))
+        case .notSent: statusLine("club.management.not_sent", symbol: "paperplane")
         case .acknowledged(let receipt):
-            if let message = receipt.message { Text(verbatim: message) } else { Text("club.management.acknowledged") }
+            if let message = receipt.message { serverMessage(message) } else { statusLine("club.management.acknowledged", symbol: "checkmark.circle") }
         case .rejected(let failure):
-            if let message = failure.message { Text(verbatim: message) } else { Text("club.management.rejected") }
-        case .outcomeUnknown: Text("club.management.unknown").accessibilityIdentifier("club.management.unknown")
+            if let message = failure.message { serverMessage(message) } else { statusLine("club.management.rejected", symbol: "xmark.circle") }
+        case .outcomeUnknown: statusLine("club.management.unknown", symbol: "questionmark.circle", identifier: "club.management.unknown")
         default: EmptyView()
         }
-        if readbackUnavailable { Text("club.management.readback_unavailable").accessibilityIdentifier("club.management.readbackUnavailable") }
+        if readbackUnavailable { statusLine("club.management.readback_unavailable", symbol: "arrow.triangle.2.circlepath", identifier: "club.management.readbackUnavailable") }
     }
-    private func action(_ action: ClubManagementAction, memberID: Int) -> some View {
+    /// Status copy stays a `Text` so existing UI tests can find the static text by identifier.
+    private func statusLine(_ key: LocalizedStringKey, symbol: String, identifier: String? = nil) -> some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+            Image(systemName: symbol)
+                .font(CYTypography.body.weight(.semibold))
+                .foregroundStyle(CYColor.textSecondary)
+                .accessibilityHidden(true)
+            Text(key)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .modifier(CYOptionalAccessibilityIdentifier(identifier: identifier))
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+    }
+    private func serverMessage(_ message: String) -> some View {
+        let shown = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        return Text(verbatim: shown.isEmpty ? "—" : shown)
+            .font(CYTypography.body)
+            .foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .textSelection(.enabled)
+    }
+    @ViewBuilder private func action(_ action: ClubManagementAction, memberID: Int) -> some View {
         let attachment = reviewOwner.attachment, source = reviewContext
-        return Button(role: action == .approve ? nil : .destructive) {
-            Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
-        } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
+        if action == .approve {
+            Button {
+                Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
+            } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
+            .buttonStyle(CYPillButtonStyle(style: .primary))
             .disabled(loading || stale || !contextMatches || state.preventsNewAction)
             .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
+            .listRowInsets(Self.gutterInsets)
+            .listRowBackground(Color.clear)
+        } else {
+            Button(role: .destructive) {
+                Task { await prepare(action, memberID: memberID, attachment: attachment, source: source) }
+            } label: { ClubOpsJoinRequestActionLabel(action: action, progressKey: progressKey(action, memberID: memberID)) }
+            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            .disabled(loading || stale || !contextMatches || state.preventsNewAction)
+            .accessibilityIdentifier("club.management.\(action.rawValue).\(memberID)")
+            .listRowInsets(Self.gutterInsets)
+            .listRowBackground(Color.clear)
+        }
+    }
+    @ViewBuilder private func confirmControl(_ pending: ClubManagementConfirmation, item: ClubManagementReviewOwner.Item) -> some View {
+        if pending.action == .approve {
+            Button {
+                guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
+                state = .submitting
+                Task { await confirm(pending, item: item) }
+            } label: { ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID)) }
+            .buttonStyle(CYPillButtonStyle(style: .primary))
+            .disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))
+            .accessibilityIdentifier("club.management.confirm")
+        } else {
+            Button(role: .destructive) {
+                guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
+                state = .submitting
+                Task { await confirm(pending, item: item) }
+            } label: { ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID)) }
+            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            .disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))
+            .accessibilityIdentifier("club.management.confirm")
+        }
     }
     private func progressKey(_ action: ClubManagementAction, memberID: Int) -> String? {
         let acting = reviewOwner.item?.confirmation
@@ -257,25 +453,39 @@ struct ClubManagementView: View {
         if contextMatches, reviewOwner.current(item, context: reviewContext, active: scenePhase == .active) {
             NavigationStack {
                 Form {
-                    if pending.action == .remove { Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body")) }
-                    else { ClubOpsJoinReviewNotes(action: pending.action) }
-                    LabeledContent("club.management.club") { Text(verbatim: "\(pending.clubName) (#\(pending.clubID))") }
-                    LabeledContent("club.management.target") { Text(verbatim: "\(pending.memberName) (#\(pending.memberID))") }
+                    Section {
+                        CYHeroHeader(LocalizedStringKey("club.management." + pending.action.rawValue))
+                    }
+                    .listRowInsets(Self.gutterInsets)
+                    .listRowBackground(Color.clear)
+                    if pending.action == .remove {
+                        Text(LocalizedStringKey("club.management." + String(pending.action.rawValue) + ".body"))
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else { ClubOpsJoinReviewNotes(action: pending.action) }
+                    LabeledContent("club.management.club") { Text(verbatim: Self.namedID(pending.clubName, pending.clubID)).font(CYTypography.numericBody) }
+                    LabeledContent("club.management.target") { Text(verbatim: Self.namedID(pending.memberName, pending.memberID)).font(CYTypography.numericBody) }
                     if pending.action == .reject { ClubOpsJoinRejectReasonField(text: $reviewReasonDraft).disabled(state == .submitting || state.preventsNewAction) }
-                    Button(role: pending.action == .approve ? nil : .destructive) {
-                        guard reviewOwner.claim(item, context: reviewContext, active: scenePhase == .active) else { return }
-                        state = .submitting
-                        Task { await confirm(pending, item: item) }
-                    } label: { ClubOpsJoinRequestActionLabel(action: pending.action, progressKey: progressKey(pending.action, memberID: pending.memberID)) }
-                    .disabled(pending.action == .reject && !ClubOpsJoinReviewReason.isValid(reviewReasonDraft))
-                    .accessibilityIdentifier("club.management.confirm")
+                    confirmControl(pending, item: item)
+                        .listRowInsets(Self.gutterInsets)
+                        .listRowBackground(Color.clear)
+                        .cyHaptic(.impactMedium, trigger: state) { old, new in
+                            if case .submitting = new {
+                                if case .submitting = old { return false }
+                                return true
+                            }
+                            return false
+                        }
                 }
-                .cyGroupedSurface()
-                .appNavigationTitle(key: "club.management." + pending.action.rawValue)
+                .scrollContentBackground(.hidden)
+                .cyDomainPageBackground()
+                .cyHeroScreen()
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("club.management.cancel") {
                         if reviewOwner.cancel(item) { cancelReview(item) }
                     }
+                    .accessibilityLabel(Text("club.management.cancel"))
                 } }
             }
             .accessibilityIdentifier("club.management.confirmation")
