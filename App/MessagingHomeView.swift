@@ -361,7 +361,8 @@ enum MessagingSegment: String, CaseIterable, Hashable {
         case .channels: title = Text("messaging.segment.channels")
         case .direct: title = Text("messaging.segment.direct")
         }
-        guard let text else { return title }
+        // Unknown unread: label only, the dash belongs inside rows and stats.
+        guard let text, text != IMListPageReady.unknownMark else { return title }
         return title + Text(verbatim: " \(text)")
     }
 }

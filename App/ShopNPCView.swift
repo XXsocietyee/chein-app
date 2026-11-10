@@ -57,6 +57,11 @@ import SwiftUI
                                 ShopNPCScriptedGuideView(source: scriptedGuide, coordinator: coordinator, returnToNode: { dismiss() })
                             }
                             if let greeting, !greeting.isEmpty { NPCChatBubble(name: name, isOwn: false) { Text(verbatim: greeting) } }
+                            if (greeting ?? "").isEmpty, coordinator.messages.isEmpty, coordinator.grants.textAllowed {
+                                NPCChatBubble(name: name, isOwn: false) {
+                                    Text(verbatim: ChannelCopy.text("你好，想了解什么？点下面的问题或直接输入。", "Hi! Tap a question below or type your own.", locale: locale))
+                                }
+                            }
                             if !coordinator.grants.textAllowed { Text("shopNPC.disabled").accessibilityIdentifier("shopNPC.disabled") }
                             ForEach(coordinator.messages) { message in
                                 VStack(alignment: .leading, spacing: 4) {
@@ -154,9 +159,9 @@ import SwiftUI
                 TextField("shopNPC.question", text: Binding(get: { showsConversation ? draft : "" }, set: { draft = $0 }), axis: .vertical)
                     .lineLimit(1...4).focused($typing)
                     .font(CYTypography.body).foregroundStyle(CYColor.textPrimary)
-                    .padding(.horizontal, 14).padding(.vertical, 10).frame(minHeight: 44)
-                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-                    .overlay(RoundedRectangle(cornerRadius: 22, style: .continuous).stroke(CYColor.borderSubtle, lineWidth: 1))
+                    .padding(.horizontal, 16).padding(.vertical, 14).frame(minHeight: 52)
+                    .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 26, style: .continuous))
+                    .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).stroke(CYColor.borderSubtle, lineWidth: 1))
                     .disabled(!canCompose).accessibilityIdentifier("shopNPC.input")
                 textReviewButton
             }
