@@ -63,6 +63,8 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
     @StateObject private var actions = NativeChannelProgressActionLifetime()
     var body: some View {
         List {
+            CYHeroHeader(verbatim: board.title)
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Picker(selection: $section) {
                     Text("top", tableName: "NativeChannelProgress").tag("top")
@@ -86,7 +88,7 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
                     } label: { Text("team", tableName: "NativeChannelProgress") }
                 }
             }.disabled(!model.isCurrent)
-            if model.busy { ProgressView() }
+            if model.busy { CYSkeleton() }
             NativeChannelProgressIssueView(model: model, part: section)
             let buffer = section == "detail" ? model.detail : model.top
             if !selections.hasPendingSelection, let page = buffer.page {
@@ -122,7 +124,7 @@ public struct NativeChannelProgressTeamOption: Identifiable, Equatable {
                 NavigationLink { NativeChannelProgressOwnHistoryView(model: model) } label: { Text("d7.channelProgress.historyTitle", tableName: "NativeChannelProgress") }
                     .disabled(model.busy || selections.hasPendingSelection).accessibilityIdentifier("channelProgress.historyEntry")
             }
-        }.nativeChannelScreen().navigationTitle(board.title).privacySensitive()
+        }.nativeChannelScreen().cyHeroScreen().privacySensitive()
         .onAppear {
             actions.activate(); selections.activate()
             if period.isEmpty { period = board.period }

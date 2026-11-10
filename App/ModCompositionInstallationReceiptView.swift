@@ -7,6 +7,7 @@ struct ModCompositionInstallationReceiptView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(usesChinese ? "原多依赖安装组" : "Original dependency installation group").font(Theme.Font.sectionTitle)
+            CYStatusChip(verbatim: usesChinese ? "只读回执" : "Read-only receipt", tone: .neutral, systemImage: "lock.doc")
             Text(verbatim: "lock=" + value.lockHash).font(Theme.Font.label.monospaced()).fixedSize(horizontal: false, vertical: true)
             Text(usesChinese ? "确认会同时安装所列依赖，并分别使用各原许可的一次安装额度。仅创建私有稿，仍需事实确认与原审核发布。读取原结果不会再次安装或消耗额度。" : "Confirmation installs the listed dependencies together, using one installation allowance from each original license. Only private drafts are created; fact confirmation and the original review and publication process still apply. Reading the original result does not install again or use allowance.")
                 .font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)

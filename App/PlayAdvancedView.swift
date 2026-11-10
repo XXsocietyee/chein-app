@@ -23,10 +23,10 @@ import SwiftUI
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                if model.state == nil && ["idle", "rejected", "disabled"].contains(model.phase) { Button("playx.advanced.start") { Task { await model.start() } } }
-                if model.state != nil && model.pending == nil { Button("playx.refresh") { Task { await model.refreshAuthoritative() } } }
-                if model.phase == "unknown" { Button("playx.reconcile") { Task { await model.recover() } } }
-                if model.phase == "retryable" { Button("playx.retryExact") { Task { await model.retryExact() } } }
+                if model.state == nil && ["idle", "rejected", "disabled"].contains(model.phase) { CYPillButton("playx.advanced.start") { Task { await model.start() } }.listRowBackground(Color.clear) }
+                if model.state != nil && model.pending == nil { CYPillButton("playx.refresh", style: .secondary) { Task { await model.refreshAuthoritative() } }.listRowBackground(Color.clear) }
+                if model.phase == "unknown" { CYPillButton("playx.reconcile", style: .secondary) { Task { await model.recover() } }.listRowBackground(Color.clear) }
+                if model.phase == "retryable" { CYPillButton("playx.retryExact", style: .tertiary) { Task { await model.retryExact() } }.listRowBackground(Color.clear) }
             }
             if let receipt = model.modInstallationActionReceipt, let requestID = model.modInstallationActionKey {
                 ModInstallationNativeActionReceiptView(receipt: receipt, requestID: requestID)
@@ -45,7 +45,8 @@ import SwiftUI
                         }
                     }
                     if state.readyForBase {
-                        Button("playx.advanced.continue") { onReady(state); dismiss() }
+                        CYPillButton("playx.advanced.continue") { onReady(state); dismiss() }
+                            .listRowBackground(Color.clear)
                             .disabled(model.pending != nil || !model.isCurrent || model.phase != "ready")
                             .accessibilityIdentifier("playx.advanced.continue")
                     }

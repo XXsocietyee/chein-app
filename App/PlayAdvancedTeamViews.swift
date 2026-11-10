@@ -53,7 +53,9 @@ import SwiftUI
         .sheet(item: $review) { captured in
             NavigationStack {
                 Form {
-                    Section("advancedTeam.review") {
+                    CYHeroHeader("advancedTeam.review")
+                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                    Section {
                         if let member = captured.memberName { LabeledContent("advancedTeam.member", value: member) }
                         if let role = captured.roleLabel { LabeledContent("advancedTeam.role", value: role) }
                         Text(captured.action == .completeUnit ? "advancedTeam.complete" : "advancedTeam.assign")
@@ -65,7 +67,7 @@ import SwiftUI
                         }.disabled(!model.canTeamInteract || model.state?.version != captured.version)
                             .accessibilityIdentifier("advancedTeam.confirm")
                     }
-                }.cyGroupedSurface().navigationTitle("advancedTeam.review")
+                }.cyGroupedSurface().cyHeroScreen()
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playkit.cancel") { review = nil } } }
             }.privacySensitive()
         }
@@ -88,7 +90,7 @@ import SwiftUI
             if let metric = model.leaderboardMetric {
                 Text(metric == .elapsed ? "advancedBoard.elapsed" : metric == .units ? "advancedBoard.units" : "advancedBoard.score").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Text("advancedBoard.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                if model.leaderboardPhase == "loading" { ProgressView("advancedBoard.loading") }
+                if model.leaderboardPhase == "loading" { CYSkeleton().accessibilityLabel(Text("advancedBoard.loading")) }
                 else if model.leaderboardPhase == "failed" { CYStatusChip("advancedBoard.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("advancedBoard.failed") }
                 else if model.leaderboardPhase == "ready" && model.leaderboard.isEmpty { CYEmptyState(systemImage: "list.number", "advancedBoard.empty", messageIdentifier: "advancedBoard.empty") }
                 ForEach(Array(model.leaderboard.enumerated()), id: \.offset) { _, row in

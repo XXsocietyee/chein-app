@@ -4,7 +4,9 @@ struct ParticipationSupportView: View {
     var configuration: ParticipationSupportConfiguration? = nil
     var body: some View {
         Form {
-            Section("participationSupport.title") {
+            CYHeroHeader("participationSupport.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            Section {
                 G01JourneyNotice(message: Text("participationSupport.purpose"), symbol: "message")
                 if let configuration {
                     Link(destination: configuration.url) {
@@ -19,7 +21,7 @@ struct ParticipationSupportView: View {
                     Text("participationSupport.configurationBoundary").font(.footnote).foregroundStyle(.secondary)
                 }
             }
-        }.navigationTitle("participationSupport.title").navigationBarTitleDisplayMode(.inline)
+        }.cyHeroScreen()
             .modifier(G01JourneyFormStyle())
     }
 }

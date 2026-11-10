@@ -15,6 +15,8 @@ import SwiftUI
     @State private var loaded = false
     var body: some View {
         Form {
+            CYHeroHeader("templateAuthor.prefab.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 QuestifyStatusBadge(title: "templateAuthor.prefab.badge", systemImage: "book.pages")
                 Text("templateAuthor.prefab.notice").foregroundStyle(.secondary)
@@ -36,20 +38,20 @@ import SwiftUI
             }
             Section("templateAuthor.prefab.observations") {
                 TextField("templateAuthor.prefab.observation", text: $observation, axis: .vertical)
-                Button("templateAuthor.prefab.addObservation") { state.observe(where: state.scene.rawValue, text: observation); observation = ""; save() }
+                CYPillButton("templateAuthor.prefab.addObservation", style: .secondary) { state.observe(where: state.scene.rawValue, text: observation); observation = ""; save() }
                     .disabled(observation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 ForEach(Array(state.observations.enumerated()), id: \.offset) { _, row in Text(verbatim: row.text) }
             }
             Section {
-                Button("templateAuthor.prefab.next") {
+                CYPillButton("templateAuthor.prefab.next") {
                     guard canEdit else { return }
                     if state.scene == .register { state.applyProfile(profile) }
                     state.advance(); save()
                 }.disabled(state.scene == .flow).accessibilityIdentifier("templateAuthor.prefab.next")
-                Button("templateAuthor.saveLocal") { save() }
+                CYPillButton("templateAuthor.saveLocal", style: .secondary) { save() }
                 if let message { Text(LocalizedStringKey(message)) }
             }
-        }.disabled(!canEdit).navigationTitle("templateAuthor.prefab.title")
+        }.disabled(!canEdit).cyHeroScreen()
             .task(id: sessionRevision) { load() }
             .onDisappear { save() }
     }

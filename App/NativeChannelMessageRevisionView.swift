@@ -14,23 +14,24 @@ import SwiftUI
     @State private var generation = 0
     var body: some View {
         List {
-            CYHeroHeader("revisions.title", tableName: "NativeChannelMessage").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            CYHeroHeader("revisions.title", tableName: "NativeChannelMessage")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if phase == .active && identity != nil && client.identity == identity && client.allows(.revisions) {
                 ForEach(rows) { row in
                     VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                        CYStatusChip("d7.channelRevisions.version \(row.revision_no)", tone: .neutral, systemImage: "clock.arrow.circlepath")
-                        if let content = row.content { Text(verbatim: content).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled) }
-                        else { Text("message.unavailable", tableName: "NativeChannelMessage").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        Text("d7.channelRevisions.version \(row.revision_no)").font(.footnote).foregroundStyle(.secondary).monospacedDigit()
+                        if let content = row.content { Text(verbatim: content).fixedSize(horizontal: false, vertical: true).textSelection(.enabled) }
+                        else { Text("message.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
                     }
                 }
-                if hasMore { CYPillButton("search.more", style: .secondary, tableName: "NativeChannelMessage") { Task { await load() } }.disabled(loading) }
+                if hasMore { Button { Task { await load() } } label: { Text("search.more", tableName: "NativeChannelMessage") }.disabled(loading) }
                 if rows.isEmpty && !loading && !failed && !hasMore {
-                    CYEmptyState(systemImage: "clock.arrow.circlepath", "d7.channelRevisions.empty")
+                    ContentUnavailableView { Label("d7.channelRevisions.empty", systemImage: "clock.arrow.circlepath") }
                 }
             }
-            if loading { ProgressView().frame(maxWidth: .infinity) }
+            if loading { CYSkeleton().frame(maxWidth: .infinity) }
             if failed {
-                CYStatusChip(verbatim: String(localized: "load.failed", table: "NativeChannelMessage"), tone: .danger, systemImage: "exclamationmark.triangle")
+                Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
                 CYPillButton("messaging.retry", style: .secondary) { Task { await load() } }
                     .disabled(phase != .active || loading || identity == nil || client.identity != identity || !client.allows(.revisions))
                     .accessibilityIdentifier("ncm47.revisions.retry")

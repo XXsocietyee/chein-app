@@ -22,7 +22,7 @@ import SwiftUI
                 if let issue = model.issue ?? error { PlayExperienceIssueView(issue: issue) }
                 if model.phase == "unknown" {
                     Text("playx.unknown.body")
-                    Button("playx.reconcile") { Task { await model.load() } }
+                    CYPillButton("playx.reconcile", style: .secondary) { Task { await model.load() } }.listRowBackground(Color.clear)
                     if model.canRetryExact { Button("playx.retryExact") { Task { await model.retryExact() } } }
                 }
             }
@@ -39,7 +39,7 @@ import SwiftUI
                         Text(verbatim: tag.code + " · " + tag.value)
                         if let purpose = submission.disclosure["purpose"].text { LabeledContent { Text(verbatim: purpose) } label: { Text("playx.preference.purpose") } }
                         if let recipient = submission.disclosure["recipientLabel"].text { LabeledContent { Text(verbatim: recipient) } label: { Text("playx.preference.recipient") } }
-                        if tag.status == 1 { Label("playx.preference.confirmed", systemImage: "checkmark.seal") }
+                        if tag.status == 1 { CYStatusChip("playx.preference.confirmed", tone: .success, systemImage: "checkmark.seal") }
                         else { Button("playx.preference.confirmTag") { correctedValue = ""; tagConfirm = true }.disabled(model.phase != "completed" || !submission.canDiscloseTag) }
                         if submission.availableTagValues.count >= 2 {
                             Picker("playx.preference.correctValue", selection: $correctedValue) {
@@ -74,10 +74,10 @@ import SwiftUI
                             }.disabled(model.phase != "ready").accessibilityIdentifier("playx.preference.step.\(step.id)")
                         }
                     }
-                    Button("playx.review") { prepare(reuse: nil) }.disabled(model.phase != "ready").accessibilityIdentifier("playx.preference.review")
+                    CYPillButton("playx.review") { prepare(reuse: nil) }.listRowBackground(Color.clear).disabled(model.phase != "ready").accessibilityIdentifier("playx.preference.review")
                 }
             }
-            if model.phase == "completed" { Button("playx.preference.done") { dismiss() } }
+            if model.phase == "completed" { CYPillButton("playx.preference.done") { dismiss() }.listRowBackground(Color.clear) }
             if model.phase == "failed" || model.phase == "idle" { Button("playx.refresh") { Task { await model.load() } } }
         }.cyGroupedSurface().privacySensitive().navigationTitle("playx.preference.title").navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playx.preference.view")
             .task { await model.load() }
@@ -148,11 +148,11 @@ import SwiftUI
             Section {
                 Text("playx.os.private").font(.footnote).accessibilityIdentifier("playx.os.private")
                 PlayRuntimePhaseText(phase: model.phase)
-                if presentation.loading { ProgressView("playx.loading") }
+                if presentation.loading { CYSkeleton().accessibilityLabel(Text("playx.loading")) }
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
-                Button("playx.refresh") {
+                CYPillButton("playx.refresh", style: .secondary) {
                     Task { await presentation.load(model: model, current: sourceIsCurrent) }
-                }.disabled(presentation.loading || model.phase == "submitting")
+                }.listRowBackground(Color.clear).disabled(presentation.loading || model.phase == "submitting")
                 if !model.unresolvedTagIDs.isEmpty { Text("playx.unknown.body") }
             }
             if let summary = presentation.displayedSummary(model: model, current: sourceIsCurrent) {

@@ -9,7 +9,9 @@ import CryptoKit
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
-            Section("nativeEnrollment.title") {
+            CYHeroHeader("nativeEnrollment.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            Section {
                 Text("nativeEnrollment.boundary").font(.footnote)
                 LabeledContent("nativeEnrollment.app") { Text(verbatim: model.scope.appID) }
                 LabeledContent("nativeEnrollment.environment") { Text(verbatim: model.scope.environment) }
@@ -22,21 +24,21 @@ import CryptoKit
                 if let privacyURL { Link("nativePlatform.privacy", destination: privacyURL) }
             }
             Section {
-                Button("nativeEnrollment.refresh") { Task { await model.load() } }.accessibilityIdentifier("nativeEnrollment.refresh")
+                CYPillButton("nativeEnrollment.refresh", style: .secondary) { Task { await model.load() } }.accessibilityIdentifier("nativeEnrollment.refresh")
                 if model.canResumePreparation {
-                    Button("nativeEnrollment.resumeKey") { Task { await model.prepareSavedKey() } }.accessibilityIdentifier("nativeEnrollment.resumeKey")
+                    CYPillButton("nativeEnrollment.resumeKey", style: .secondary) { Task { await model.prepareSavedKey() } }.accessibilityIdentifier("nativeEnrollment.resumeKey")
                 }
                 if model.canCreate && !model.canResumePreparation {
-                    Button(LocalizedStringKey(model.record == nil ? "nativeEnrollment.create" : "nativeEnrollment.createNew")) { review = .create }
+                    CYPillButton(LocalizedStringKey(model.record == nil ? "nativeEnrollment.create" : "nativeEnrollment.createNew"), style: .secondary) { review = .create }
                         .accessibilityIdentifier("nativeEnrollment.create")
                 }
                 if model.canSubmit {
                     Text("nativeEnrollment.proofLocal").font(.footnote)
-                    Button("nativeEnrollment.enroll") { review = .enroll }.accessibilityIdentifier("nativeEnrollment.enroll")
+                    CYPillButton("nativeEnrollment.enroll") { review = .enroll }.accessibilityIdentifier("nativeEnrollment.enroll")
                 }
                 if model.canRetryEnrollment {
                     Text("nativeEnrollment.recoveryProof").font(.footnote)
-                    Button("nativeEnrollment.retryEnroll") { Task { await model.retryExactEnrollment() } }.accessibilityIdentifier("nativeEnrollment.retryEnroll")
+                    CYPillButton("nativeEnrollment.retryEnroll", style: .secondary) { Task { await model.retryExactEnrollment() } }.accessibilityIdentifier("nativeEnrollment.retryEnroll")
                 }
                 if model.canRevoke {
                     Button("nativeEnrollment.revoke", role: .destructive) { review = .revoke }.accessibilityIdentifier("nativeEnrollment.revoke")
@@ -46,10 +48,10 @@ import CryptoKit
                     Button("nativeEnrollment.retryRevoke", role: .destructive) { review = .revoke }.accessibilityIdentifier("nativeEnrollment.retryRevoke")
                 }
                 if ["generating", "preparing", "attesting", "enrolling", "revoking"].contains(model.phase) {
-                    ProgressView("nativePlatform.working")
+                    CYSkeleton()
                 }
             }
-        }.navigationTitle("nativeEnrollment.title").privacySensitive().accessibilityIdentifier("nativeEnrollment.host")
+        }.cyHeroScreen().privacySensitive().accessibilityIdentifier("nativeEnrollment.host")
         .task { await model.load() }
         .sheet(item: $review) { action in
             NavigationStack {

@@ -82,8 +82,8 @@ struct OfflineNodeSafetyView: View {
                     opsText("opsSafety.offline.noAlternative").font(.footnote).foregroundStyle(.secondary)
                         .accessibilityIdentifier("opsSafety.offline.noAlternative")
                 }
-                Button(action: contactSupport) { opsText("opsSafety.action.contactSupport") }
-                    .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("opsSafety.action.contactSupport")
+                CYPillButton("opsSafety.action.contactSupport", style: .secondary, tableName: "OpsSafety", action: contactSupport)
+                    .accessibilityIdentifier("opsSafety.action.contactSupport")
             }
             .padding().frame(maxWidth: .infinity, alignment: .leading)
             .background(.thinMaterial, in: RoundedRectangle(cornerRadius: 12))

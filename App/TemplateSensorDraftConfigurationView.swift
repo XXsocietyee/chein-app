@@ -59,10 +59,11 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     var body: some View {
         List {
+            Section { CYHeroHeader("sensorDraft.preview").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if model.canEdit, model.draft.id == nil, model.draft.validationMethod.rawValue == 7 {
                 TemplateSensorDraftPreviewContent(draft: model.draft.sensorDraft ?? .init())
-            } else { Text("sensorDraft.unavailable") }
-        }.navigationTitle("sensorDraft.preview")
+            } else { CYEmptyState(systemImage: "sensor", "sensorDraft.unavailable") }
+        }.cyGroupedSurface()
     }
 }
 

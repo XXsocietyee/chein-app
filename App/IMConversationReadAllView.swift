@@ -74,7 +74,8 @@ struct IMConversationReadAllButtonToken: Equatable {
         let appearance = model.appearance
         NavigationStack {
             List {
-                CYHeroHeader("im.readAll.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
+                CYHeroHeader("im.readAll.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 if model.batch.isCurrent {
                     Section {
                         LabeledContent("d7.readAll.count") { Text(verbatim: String(model.items.count)) }
@@ -89,33 +90,33 @@ struct IMConversationReadAllButtonToken: Equatable {
                                 }
                                 .disabled(model.isActionPending)
                                 .accessibilityIdentifier("im.readAll.confirmButton")
-                            } else { CYStatusChip("d7.readAll.unavailable", tone: .neutral, systemImage: "slash.circle") }
+                            } else { Text("d7.readAll.unavailable") }
                         case .running:
                             ProgressView("d7.readAll.running")
                             if model.stopRequested {
-                                CYStatusChip("d7.readAll.stopping", tone: .warning, systemImage: "hourglass")
+                                Text("d7.readAll.stopping")
                             } else {
-                                CYPillButton("d7.readAll.stop", style: .secondary) { model.stop() }
+                                Button("d7.readAll.stop", role: .destructive) { model.stop() }
                                     .accessibilityIdentifier("im.readAll.stopButton")
                             }
                         case .finished:
                             summary
-                            if model.batch.unknownCount > 0 { CYStatusChip("d7.readAll.unknownHint", tone: .warning, systemImage: "questionmark.circle") }
+                            if model.batch.unknownCount > 0 { Text("d7.readAll.unknownHint") }
                         case .cancelled:
-                            CYStatusChip("d7.readAll.cancelled", tone: .neutral, systemImage: "xmark.circle")
+                            Text("d7.readAll.cancelled")
                         }
                     }
                     Section("d7.readAll.conversations") {
                         ForEach(model.items) { item in
                             LabeledContent {
-                                CYStatusChip(LocalizedStringKey(outcomeKey(item.outcome)), tone: outcomeTone(item.outcome))
+                                Text(LocalizedStringKey(outcomeKey(item.outcome)))
                             } label: {
                                 MessagingConversationName(conversation: item.conversation).lineLimit(1)
                             }
                             .accessibilityIdentifier("im.readAll.item.\(item.id)")
                         }
                     }
-                } else { CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "messaging.signInHint") }
+                } else { Text("messaging.signInHint") }
             }
             .cyGroupedSurface()
             .cyHeroScreen()
@@ -139,14 +140,6 @@ struct IMConversationReadAllButtonToken: Equatable {
             LabeledContent("d7.readAll.unknown") { Text(verbatim: String(model.batch.unknownCount)) }
             LabeledContent("d7.readAll.rejected") { Text(verbatim: String(model.batch.rejectedCount)) }
             LabeledContent("d7.readAll.remaining") { Text(verbatim: String(model.batch.remainingCount)) }
-        }
-    }
-    private func outcomeTone(_ outcome: IMConversationReadAllOutcome) -> CYStatusTone {
-        switch outcome {
-        case .acknowledged: return .success
-        case .rejected: return .danger
-        case .outcomeUnknown: return .warning
-        default: return .neutral
         }
     }
     private func outcomeKey(_ outcome: IMConversationReadAllOutcome) -> String {

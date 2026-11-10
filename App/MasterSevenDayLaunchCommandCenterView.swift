@@ -163,9 +163,11 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
     private var summarySection: some View {
         Section {
             LabeledContent {
-                Text(verbatim: snapshot.isCommandCenterLaunchReady
+                CYStatusChip(verbatim: snapshot.isCommandCenterLaunchReady
                     ? "LAUNCH READY (6/6 Pillars Verified)"
-                    : "NOT VERIFIED (\(snapshot.blockedPillarCount) Pillar(s) Pending)")
+                    : "NOT VERIFIED (\(snapshot.blockedPillarCount) Pillar(s) Pending)",
+                    tone: snapshot.isCommandCenterLaunchReady ? .success : .warning,
+                    systemImage: snapshot.isCommandCenterLaunchReady ? "checkmark.circle" : "exclamationmark.triangle")
             } label: {
                 Text(verbatim: "Command Center Status")
             }
@@ -209,8 +211,7 @@ public struct MasterSevenDayLaunchCommandSnapshot: Sendable, Equatable {
                         Text(verbatim: item.title)
                             .font(.subheadline)
                         Spacer()
-                        Text(verbatim: item.statusBadge)
-                            .font(.caption.monospaced())
+                        CYStatusChip(verbatim: item.statusBadge, tone: snapshot.isCommandCenterLaunchReady ? .success : .warning)
                             .accessibilityIdentifier("sevenDayCommandCenter.pillar.badge.\(item.id)")
                     }
                     Text(verbatim: item.summary)

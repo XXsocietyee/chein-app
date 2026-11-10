@@ -205,6 +205,8 @@ private struct OwnMediaModelPreviewViewIdentity: Hashable {
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader("title", tableName: "OwnMediaModelPreview")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Text("privateOnly", tableName: "OwnMediaModelPreview")
                 Text("staticOnly", tableName: "OwnMediaModelPreview").font(.footnote).foregroundStyle(.secondary)
                 if model.available, model.presentation == offered {
@@ -212,7 +214,7 @@ private struct OwnMediaModelPreviewViewIdentity: Hashable {
                 } else { Text("unavailable", tableName: "OwnMediaModelPreview") }
                 Text("limits", tableName: "OwnMediaModelPreview").font(.footnote).foregroundStyle(.secondary)
             }
-            .navigationTitle(Text("title", tableName: "OwnMediaModelPreview"))
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { model.close(offered) } label: { Text("close", tableName: "OwnMediaModelPreview") }.frame(minWidth: 44, minHeight: 44)
             } }
@@ -226,17 +228,17 @@ private struct OwnMediaModelPreviewViewIdentity: Hashable {
     let offered: UUID, operation: UUID
     var body: some View {
         switch model.phase {
-        case .loading: ProgressView { Text("loading", tableName: "OwnMediaModelPreview") }
+        case .loading: CYSkeleton()
         case .ready:
             if let device = model.device {
                 OwnMediaModelPreviewViewport(device: device).id(operation).frame(height: 300)
                     .accessibilityLabel(Text("viewport", tableName: "OwnMediaModelPreview"))
-                Button { model.rotate(offered, operation: operation) } label: { Text("rotate", tableName: "OwnMediaModelPreview") }
-                    .frame(minHeight: 44).accessibilityIdentifier("member.media.modelPreview.rotate")
+                CYPillButton("rotate", style: .secondary, tableName: "OwnMediaModelPreview") { model.rotate(offered, operation: operation) }
+                    .accessibilityIdentifier("member.media.modelPreview.rotate")
             }
         case .failed, .expired:
             Text(LocalizedStringKey(model.phase == .expired ? "expired" : "failed"), tableName: "OwnMediaModelPreview")
-            Button { model.retry(offered, operation: operation) } label: { Text("retry", tableName: "OwnMediaModelPreview") }.frame(minHeight: 44)
+            CYPillButton("retry", tableName: "OwnMediaModelPreview") { model.retry(offered, operation: operation) }
         case .idle: Text("unavailable", tableName: "OwnMediaModelPreview")
         }
     }

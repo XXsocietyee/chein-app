@@ -74,6 +74,7 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateSensor.title", tableName: "TemplateSensorRehearsal").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section { sensorText("boundary"); sensorText("virtualTime").font(.footnote) }
             if let state = controller.visibleState {
                 TemplateSensorRehearsalInputs(state: state, advance: controller.advanceAction())
@@ -89,12 +90,12 @@ import Combine
             } else {
                 Section {
                     sensorText("unavailable")
-                    Button { controller.reload() } label: { sensorText("reload") }
+                    CYPillButton(LocalizedStringKey("templateSensor.reload"), style: .secondary, tableName: "TemplateSensorRehearsal") { controller.reload() }
                         .disabled(!controller.canReload)
                 }
             }
         }
-        .navigationTitle(sensorText("title"))
+        .cyGroupedSurface()
         .privacySensitive()
         .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onDisappear { controller.viewDisappeared() }
@@ -127,7 +128,7 @@ import Combine
                 Slider(value: $peak, in: 0...1, step: 0.01) { sensorText("peak") }
                     .accessibilityIdentifier("templateSensor.peak")
             }
-            Button { advance(bearing, accuracy, peak) } label: { sensorText("advance") }
+            CYPillButton(LocalizedStringKey("templateSensor.advance"), style: .primary, tableName: "TemplateSensorRehearsal") { advance(bearing, accuracy, peak) }
                 .disabled(state.finished).accessibilityIdentifier("templateSensor.advance")
         }
     }

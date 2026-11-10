@@ -10,7 +10,7 @@ import SwiftUI
         Section("主题角色成长规则") {
             if author.editor == nil {
                 Text("沿已有 RPG 角色配置编辑本主题成长曲线，不与平台经验互相换算。不会创建缺失角色模板或自动开启成长。")
-                Button("读取原成长配置") { author.open() }.disabled(!author.available)
+                CYPillButton("读取原成长配置", style: .secondary) { author.open() }.listRowBackground(Color.clear).disabled(!author.available)
             } else {
                 if !author.isCurrent { NativeAuthorNotice(text: Text("原项目已变化，请重新读取；不会覆盖其他编辑。"), tone: .attention) }
                 editor.disabled(!author.isCurrent)
@@ -57,10 +57,10 @@ import SwiftUI
                 } else {
                     ForEach(NativeRpgGrowthAuthorDraft.featKeys, id: \.self) { key in Toggle(key, isOn: author.feat(key)) }
                 }
-                Button("预览本地成长修改") { author.preview(editorID: editorID) }.disabled(!validation.canPreview).accessibilityIdentifier("growth.author.preview")
+                CYPillButton("预览本地成长修改", style: .secondary) { author.preview(editorID: editorID) }.listRowBackground(Color.clear).disabled(!validation.canPreview).accessibilityIdentifier("growth.author.preview")
                 if let review = author.review {
                     Text(review.value.text ?? "") .font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                    Button(author.saveUnconfirmed ? "重试保存原项目本地草稿" : "确认写回并保存原项目草稿") { author.apply(review) }.nativeAuthorPrimaryAction()
+                    CYPillButton(author.saveUnconfirmed ? "重试保存原项目本地草稿" : "确认写回并保存原项目草稿") { author.apply(review) }.listRowBackground(Color.clear)
                     Text("先由原保存器确认完整本地草稿保存成功，再关闭此副本；本地失败保留编辑。仍须使用页面原云保存／发布，服务器按本版本角色与属性定义校验并冻结。").nativeAuthorSupportingCopy()
                 }
             }

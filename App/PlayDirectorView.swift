@@ -8,12 +8,12 @@ import UIKit
         List {
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
-                Button("playx.refresh") { Task { await model.load() } }.disabled(model.phase == "submitting")
+                CYPillButton("playx.refresh", style: .secondary) { Task { await model.load() } }.listRowBackground(Color.clear).disabled(model.phase == "submitting")
                 if let issue = model.issue { PlayExperienceIssueView(issue: issue) }
                 if model.phase == "unknown" {
                     Text("playx.unknown.body")
-                    Button("playx.reconcile") { Task { await model.recover() } }
-                    Button("playx.retryExact") { Task { await model.retryExact() } }
+                    CYPillButton("playx.reconcile", style: .secondary) { Task { await model.recover() } }.listRowBackground(Color.clear)
+                    CYPillButton("playx.retryExact", style: .tertiary) { Task { await model.retryExact() } }.listRowBackground(Color.clear)
                 }
             }
             if let projection = model.projection {
@@ -28,7 +28,8 @@ import UIKit
                 }
                 Section("playx.director.actions") {
                     ForEach(PlayDirectorAction.allCases.filter { projection.availableActions.contains($0.rawValue) }) { action in
-                        Button(LocalizedStringKey("playx.director.action." + action.rawValue)) { editor = action }
+                        CYPillButton(LocalizedStringKey("playx.director.action." + action.rawValue), style: .secondary) { editor = action }
+                            .listRowBackground(Color.clear)
                             .disabled(model.phase != "ready" || (action == .start && !projection.canStart))
                             .accessibilityIdentifier("playx.director.action.\(action.rawValue)")
                     }
@@ -170,7 +171,7 @@ import UIKit
             }
             Section {
                 if invalid { Text("playx.director.invalid").foregroundStyle(CYColor.dangerText) }
-                Button("playx.review") { prepare() }.accessibilityIdentifier("playx.director.review")
+                CYPillButton("playx.review") { prepare() }.listRowBackground(Color.clear).accessibilityIdentifier("playx.director.review")
             }
         }.cyGroupedSurface().navigationTitle("playx.director.title")
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("playx.cancel") { dismiss() }.accessibilityIdentifier("playx.director.cancelEditor") } }

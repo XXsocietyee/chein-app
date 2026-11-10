@@ -13,6 +13,8 @@ import SwiftUI
     }
     private var content: some View {
         Form {
+            CYHeroHeader("modInstallation.qaEdit.title", tableName: "ModInstallation")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Text("modInstallation.graph.qaBoundary", tableName: "ModInstallation")
                 Text("modInstallation.qaEdit.scope", tableName: "ModInstallation").font(.caption)
@@ -65,11 +67,11 @@ import SwiftUI
                         .disabled(editor.busy || !editor.isCurrent)
                 }
                 if let key = editor.messageKey { Text(LocalizedStringKey("modInstallation." + key), tableName: "ModInstallation") }
-                if editor.busy { ProgressView() }
+                if editor.busy { CYSkeleton() }
                 Button { Task { await editor.open() } } label: { Text("modInstallation.recover", tableName: "ModInstallation") }.disabled(editor.busy || !editor.isCurrent)
             }
         }
-        .navigationTitle(Text("modInstallation.qaEdit.title", tableName: "ModInstallation"))
+        .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button { dismiss() } label: { Text("modInstallation.back", tableName: "ModInstallation") } } }
         .task { await editor.open() }
         .sheet(item: $review) { original in

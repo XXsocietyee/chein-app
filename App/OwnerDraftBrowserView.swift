@@ -16,8 +16,7 @@ struct OwnerDraftDestination: View {
         Group {
             if let browser { OwnerDraftBrowserView(browser: browser).id(browser.identity) }
             else {
-                ContentUnavailableView("ownerDraft.notConfigured.title", systemImage: "icloud.slash",
-                    description: Text("ownerDraft.notConfigured.detail"))
+                CYEmptyState(systemImage: "icloud.slash", "ownerDraft.notConfigured.title", detail: "ownerDraft.notConfigured.detail")
                     .accessibilityIdentifier("ownerDraft.notConfigured")
             }
         }.appNavigationTitle("ownerDraft.title")
@@ -31,7 +30,7 @@ struct OwnerDraftGuestView: View {
         Form {
             Section {
                 Text("ownerDraft.signIn.detail").fixedSize(horizontal: false, vertical: true)
-                Button("ownerDraft.signIn") { showsLogin = true }.accessibilityIdentifier("ownerDraft.signIn")
+                CYPillButton("ownerDraft.signIn") { showsLogin = true }.listRowBackground(Color.clear).accessibilityIdentifier("ownerDraft.signIn")
             }
         }.appNavigationTitle("ownerDraft.title")
             .sheet(isPresented: $showsLogin) { LoginView(intent: .player) }
@@ -50,13 +49,13 @@ struct OwnerDraftBrowserView: View {
             }
             switch browser.phase {
             case .idle, .loading:
-                ProgressView("ownerDraft.loading").accessibilityIdentifier("ownerDraft.loading")
+                CYSkeleton().accessibilityIdentifier("ownerDraft.loading")
             case .empty:
-                Text("ownerDraft.empty").accessibilityIdentifier("ownerDraft.empty")
+                CYEmptyState(systemImage: "tray", "ownerDraft.empty", messageIdentifier: "ownerDraft.empty")
             case .failed, .invalidated:
                 OwnerDraftFailureView(issue: browser.issue)
                 if browser.phase != .invalidated {
-                    Button("action.retry") { Task { await browser.load() } }.accessibilityIdentifier("ownerDraft.retry")
+                    CYPillButton("action.retry", style: .secondary) { Task { await browser.load() } }.accessibilityIdentifier("ownerDraft.retry")
                 }
             case .ready:
                 ForEach(browser.rows) { row in
@@ -107,7 +106,7 @@ private struct OwnerDraftDetailView: View {
     var body: some View {
         Form {
             if browser.detailLoading {
-                ProgressView("ownerDraft.loading").accessibilityIdentifier("ownerDraft.detailLoading")
+                CYSkeleton().accessibilityIdentifier("ownerDraft.detailLoading")
             } else if let detail = browser.detail, detail.id == id {
                 Section("ownerDraft.metadata") {
                     LabeledContent("ownerDraft.id", value: String(detail.id))

@@ -13,8 +13,7 @@ struct PlayPlayerSubmissionStatusView: View {
                     .accessibilityIdentifier("playerSubmission.unconfirmed")
             case .record(let record):
                 VStack(alignment: .leading, spacing: 8) {
-                    Label(LocalizedStringKey(record.status.titleKey), systemImage: symbol(record.status))
-                        .font(.subheadline.weight(.semibold))
+                    CYStatusChip(LocalizedStringKey(record.status.titleKey), tone: tone(record.status), systemImage: symbol(record.status))
                         .accessibilityIdentifier("playerSubmission.status." + record.status.rawValue.lowercased())
                     if record.status == .pending {
                         LabeledContent("playerSubmission.number", value: String(record.submissionID))
@@ -33,6 +32,14 @@ struct PlayPlayerSubmissionStatusView: View {
             }
         }.privacySensitive().accessibilityElement(children: .contain)
             .accessibilityIdentifier("playerSubmission.readback")
+    }
+    private func tone(_ status: PlayPlayerSubmissionRecord.Status) -> CYStatusTone {
+        switch status {
+        case .pending: return .warning
+        case .approved: return .success
+        case .rejected: return .danger
+        case .recorded: return .neutral
+        }
     }
     private func symbol(_ status: PlayPlayerSubmissionRecord.Status) -> String {
         switch status {

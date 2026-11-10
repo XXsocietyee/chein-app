@@ -96,8 +96,7 @@ struct ParticipationIssueView: View {
                 if let message = issue.serverMessage { Text(verbatim: message) }
                 else { Text(LocalizedStringKey(issue.fallbackKey)) }
             }
-            Button("action.retry", action: retry)
-                .modifier(G01JourneyActionStyle())
+            CYPillButton("action.retry", style: .secondary, action: retry)
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.vertical, Theme.Space.s3)

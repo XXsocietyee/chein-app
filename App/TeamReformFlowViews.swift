@@ -88,7 +88,7 @@ struct TeamReformSheetHost: View {
                 }
                 switch flow.phase {
                 case .closed: CYEmptyState(systemImage: "lock", "teamReform.unavailable", messageIdentifier: "teamReform.invite.unavailable")
-                case .loading: ProgressView("teamReform.loading")
+                case .loading: CYSkeleton().accessibilityLabel(Text("teamReform.loading"))
                 case .failed:
                     CYStatusChip("teamReform.invite.loadFailed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("teamReform.invite.loadFailed")
                     CYPillButton("action.retry", style: .secondary) { Task { await box.run { await $0.open() } } }
@@ -133,7 +133,7 @@ struct TeamReformSheetHost: View {
                     CYPillButton("teamReform.invite.send", systemImage: "paperplane") { Task { await box.run { await $0.send() } } }
                         .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.send")
                 }
-                if flow.busy { ProgressView() }
+                if flow.busy { CYSkeleton() }
             }
             if batch.phase == .finished { summary(batch) }
         }
@@ -194,7 +194,7 @@ struct TeamReformSheetHost: View {
                 }
                 switch flow.phase {
                 case .closed: CYEmptyState(systemImage: "lock", "teamReform.unavailable", messageIdentifier: "teamReform.meeting.unavailable")
-                case .loading: ProgressView("teamReform.loading")
+                case .loading: CYSkeleton().accessibilityLabel(Text("teamReform.loading"))
                 case .notEligible: CYEmptyState(systemImage: "person.crop.circle.badge.xmark", "teamReform.meeting.notEligible", messageIdentifier: "teamReform.meeting.notEligible")
                 case .failed:
                     CYStatusChip("teamReform.meeting.loadFailed", tone: .danger, systemImage: "exclamationmark.triangle")

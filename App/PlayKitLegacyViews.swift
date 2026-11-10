@@ -13,7 +13,7 @@ extension PlayKitScreen {
         case .silentOrder:
             PlayKitSilentOrderBody(segment: raw, active: model.isCurrent, onDirty: { dirty = true })
             if let qr = raw["qrUrl"].text, !qr.isEmpty { artwork(qr) }
-            else { Label("playkitLegacy.silent.noWitnessCode", systemImage: "qrcode") }
+            else { CYStatusChip("playkitLegacy.silent.noWitnessCode", tone: .neutral, systemImage: "qrcode") }
         case .timeWindow:
             NativeTimeWindowHostView(advanced: model, segment: raw)
         default: EmptyView()
@@ -58,7 +58,7 @@ extension PlayKitScreen {
                 if revealed {
                     if let text = segment["unlockText"].text, !text.isEmpty { Text(verbatim: text).font(.title3) }
                     else { Text("playkitLegacy.slow.emptyReadback") }
-                } else { Button("playkitLegacy.slow.reveal") { revealed = true }.buttonStyle(.questifyPrimary) }
+                } else { CYPillButton("playkitLegacy.slow.reveal") { revealed = true } }
             } else if segment["started"].bool == true {
                 if let days = segment["daysLeft"].integer, days > 0 {
                     LabeledContent("playkitLegacy.slow.daysLeft") { Text(verbatim: String(days)) }

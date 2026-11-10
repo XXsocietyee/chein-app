@@ -15,7 +15,8 @@ import CryptoKit
     var body: some View {
         let _ = revision
         Form {
-            Section { CYHeroHeader("d7.imVideo.title").listRowBackground(Color.clear) }
+            CYHeroHeader("d7.imVideo.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -25,7 +26,7 @@ import CryptoKit
                             LabeledContent("d7.imVideo.maxSize") { IMByteCountText(bytes: policy.maximumSourceBytes) }
                             LabeledContent("d7.imVideo.maxLength") { IMDurationText(milliseconds: policy.maximumDurationMS) }
                             if owner.canUpload {
-                                CYPillButton("d7.imVideo.choose", style: .secondary, systemImage: "video.badge.plus") { picking = true }
+                                Button { picking = true } label: { Label("d7.imVideo.choose", systemImage: "video.badge.plus") }
                             }
                         } else if owner.service.policyEnabled {
                             // The current limits are read only on this explicit tap.
@@ -43,11 +44,11 @@ import CryptoKit
                     case .uploading: ProgressView("d7.imCompose.uploading")
                     case .unknown:
                         IMFlowStateMessage(text: Text("d7.imCompose.uploadUnknown"), symbol: "clock.arrow.circlepath")
-                        if owner.canRecover { CYPillButton("d7.imCompose.checkStatus", style: .secondary) { Task { await owner.recover() } } }
-                        if owner.canUpload { CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { Task { if available { await owner.uploadUnchanged() } } } }
+                        if owner.canRecover { Button("d7.imCompose.checkStatus") { Task { await owner.recover() } } }
+                        if owner.canUpload { Button("d7.chatInfo.tryAgain") { Task { if available { await owner.uploadUnchanged() } } } }
                     case .held:
                         IMFlowStateMessage(text: Text("d7.imCompose.inReview"), symbol: "clock")
-                        if owner.canRecover { CYPillButton("d7.imCompose.refresh", style: .secondary) { Task { await owner.recover() } } }
+                        if owner.canRecover { Button("d7.imCompose.refresh") { Task { await owner.recover() } } }
                     case .rejected:
                         IMFlowStateMessage(text: Text("d7.imVideo.rejected"), symbol: "xmark.octagon", tone: .attention)
                         Button("d7.imCompose.discard", role: .destructive) { owner.discardRejected() }
@@ -75,14 +76,14 @@ import CryptoKit
                         if case .video = intent.payload {
                             IMFlowStateMessage(text: Text("d7.imCompose.sendUnknown"), symbol: "clock.arrow.circlepath")
                             if owner.expanded.canRecoverVideo {
-                                CYPillButton("d7.imCompose.checkSent", style: .secondary) { Task { if available { await owner.expanded.recoverVideo() } } }
+                                Button("d7.imCompose.checkSent") { Task { if available { await owner.expanded.recoverVideo() } } }
                             }
-                            CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { Task { if available { await owner.expanded.retryUnchanged() } } }
+                            Button("d7.chatInfo.tryAgain") { Task { if available { await owner.expanded.retryUnchanged() } } }
                         }
                     case .acknowledged(.sent(let message)):
                         if IMVideoReference.read(message) != nil {
                             IMFlowStateMessage(text: Text("d7.imVideo.sent"), symbol: "checkmark.circle", tone: .success)
-                            CYPillButton("d7.imCompose.done", style: .secondary) { owner.finishAcknowledged() }
+                            Button("d7.imCompose.done") { owner.finishAcknowledged() }
                         }
                     default: EmptyView()
                     }
@@ -118,14 +119,15 @@ import CryptoKit
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMVideoReference.read(message) != nil }
     var body: some View {
         Form {
-            Section { CYHeroHeader("d7.imVideo.message").listRowBackground(Color.clear) }
+            CYHeroHeader("d7.imVideo.message")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let reference = IMVideoReference.read(message), available {
                 Section {
                     LabeledContent {
                         IMDurationText(milliseconds: reference.durationMS)
                     } label: { Label("d7.imVideo.message", systemImage: "video") }
                     if owner.service.previewEnabled && owner.service.previewStatusEnabled && player == nil {
-                        CYPillButton("d7.imVideo.load", style: .secondary, systemImage: "arrow.down.circle") { load() }.disabled(loading)
+                        Button { load() } label: { Label("d7.imVideo.load", systemImage: "arrow.down.circle") }.disabled(loading)
                     }
                 }
                 if cover != nil || player != nil {

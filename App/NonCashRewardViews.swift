@@ -28,38 +28,42 @@ import SwiftUI
     }
     @ViewBuilder private var liveRewardList: some View {
         if !reader.isAuthenticated {
-            List { AccountCollectionIssueView(issue: .login) }
-                .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
+            List { CYHeroHeader("rewards.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()); AccountCollectionIssueView(issue: .login) }
+                .listStyle(.insetGrouped).cyHeroScreen()
         } else if let pledge, pledge.current()?.read == true {
             RewardPledgeClaimHost(entry: pledge)
         } else {
             List {
-                ContentUnavailableView("rewards.unavailable", systemImage: "gift", description: Text("rewards.unavailableHint"))
+                CYHeroHeader("rewards.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                CYEmptyState(systemImage: "gift", "rewards.unavailable", detail: "rewards.unavailableHint")
                     .accessibilityIdentifier("rewards.unavailable")
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             }
-            .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
+            .listStyle(.insetGrouped).cyHeroScreen()
         }
     }
     private var offlinePage: some View {
         List {
+            CYHeroHeader("rewards.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if reader.isOfflineExample { Text("rewards.demo").font(.footnote).accessibilityIdentifier("rewards.demo") }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured {
-                ContentUnavailableView("rewards.unavailable", systemImage: "gift", description: Text("rewards.unavailableHint"))
+                CYEmptyState(systemImage: "gift", "rewards.unavailable", detail: "rewards.unavailableHint")
                     .accessibilityIdentifier("rewards.unavailable")
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             } else if model.state.isLoading || model.state.loadedScope != key.scope {
-                ProgressView("accountCollection.loading")
+                CYSkeleton()
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue)
                 if issue != .login {
-                    Button("accountCollection.refresh") { Task { await refresh() } }.accessibilityIdentifier("rewards.retry")
+                    CYPillButton("accountCollection.refresh", style: .secondary) { Task { await refresh() } }.accessibilityIdentifier("rewards.retry")
                 }
             } else {
                 if let asOf = model.state.asOf { LabeledContent("rewards.asOf") { Text(asOf, format: .dateTime) } }
                 if model.state.visibleRows(scope: key.scope).isEmpty {
-                    ContentUnavailableView("rewards.empty", systemImage: "gift")
+                    CYEmptyState(systemImage: "gift", "rewards.empty")
                 }
                 ForEach(model.state.visibleSelections(scope: key.scope)) { selection in
                     let destination = NonCashRewardDetailDestination(selection: selection)
@@ -69,16 +73,16 @@ import SwiftUI
                     .buttonStyle(QuestifyCardButtonStyle()).questifyCardListRow()
                     .accessibilityIdentifier("rewards.row.\(selection.reference.awardId)")
                 }
-                if model.state.isLoadingMore { ProgressView("accountCollection.loading") }
+                if model.state.isLoadingMore { CYSkeleton() }
                 else if let issue = model.state.moreIssue {
                     AccountCollectionIssueView(issue: issue, retry: { Task { await model.loadMore(reader: reader) } })
                 } else if model.state.nextCursor != nil {
-                    Button("accountCollection.loadMore") { Task { await model.loadMore(reader: reader) } }
+                    CYPillButton("accountCollection.loadMore", style: .secondary) { Task { await model.loadMore(reader: reader) } }
                         .accessibilityIdentifier("rewards.loadMore")
                 }
             }
         }
-        .listStyle(.insetGrouped).appNavigationTitle("rewards.title")
+        .listStyle(.insetGrouped).cyHeroScreen()
         .modifier(AccountCollectionReadLifecycle(key: key, refresh: refresh, cancel: model.cancelPending))
     }
     private func refresh() async {
@@ -127,7 +131,7 @@ private struct NonCashRewardCard: View {
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if model.state.selection.ownerScope != key.scope {
                 Text("rewards.read.reselect").accessibilityIdentifier("rewards.read.reselect")
-            } else if model.isLoading || model.loadedScope != key.scope { ProgressView("accountCollection.loading") }
+            } else if model.isLoading || model.loadedScope != key.scope { CYSkeleton() }
             else if let issue = model.issue(scope: key.scope) {
                 AccountCollectionIssueView(issue: issue, retry: { scheduleRefresh(presentation: presentation) })
             } else if let reward = model.value(scope: key.scope) {

@@ -11,9 +11,8 @@ struct ProfileBadgesView: View {
                 List {
                     if wall.isPartial {
                         Section {
-                            Label {
-                                Text("profile.badges.partial").accessibilityIdentifier("profile.badges.partial")
-                            } icon: { Image(systemName: "exclamationmark.triangle") }
+                            CYStatusChip("profile.badges.partial", tone: .warning, systemImage: "exclamationmark.triangle")
+                                .accessibilityIdentifier("profile.badges.partial")
                             if let message = wall.medalFailureMessage, !message.isEmpty { Text(verbatim: message) }
                             Text("profile.badges.partialHint").foregroundStyle(.secondary)
                         }
@@ -54,10 +53,9 @@ struct ProfileBadgesView: View {
                 ProfileBadgeImage(rawURL: badge.image, size: 44)
                 VStack(alignment: .leading, spacing: 5) {
                     ProfileBadgeTitle(badge: badge).font(.headline)
-                    Label {
-                        Text(badge.isLocked ? LocalizedStringKey("profile.badges.locked") : LocalizedStringKey("profile.badges.unlocked"))
-                    } icon: { Image(systemName: badge.isLocked ? "lock" : "checkmark.seal") }
-                        .font(.subheadline).foregroundStyle(.secondary)
+                    CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
+                                 tone: badge.isLocked ? .neutral : .success,
+                                 systemImage: badge.isLocked ? "lock" : "checkmark.seal")
                 }
             }.padding(.vertical, 5)
         }.accessibilityIdentifier(identifier)
@@ -92,9 +90,9 @@ struct ProfileBadgeDetailView: View {
                 VStack(spacing: 16) {
                     ProfileBadgeImage(rawURL: badge.image, size: 110)
                     ProfileBadgeTitle(badge: badge).font(.title2)
-                    Label {
-                        Text(badge.isLocked ? LocalizedStringKey("profile.badges.locked") : LocalizedStringKey("profile.badges.unlocked"))
-                    } icon: { Image(systemName: badge.isLocked ? "lock" : "checkmark.seal") }
+                    CYStatusChip(badge.isLocked ? "profile.badges.locked" : "profile.badges.unlocked",
+                                 tone: badge.isLocked ? .neutral : .success,
+                                 systemImage: badge.isLocked ? "lock" : "checkmark.seal")
                 }.frame(maxWidth: .infinity).padding(.vertical, 12)
             }
             Section("profile.badges.details") {

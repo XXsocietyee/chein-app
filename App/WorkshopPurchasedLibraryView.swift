@@ -32,12 +32,12 @@ struct WorkshopPurchasedAccountLink: View {
         let rendered = displayed.permit
         List {
             switch browser.phase {
-            case .idle, .loading: ProgressView { purchasedText("loading") }
+            case .idle, .loading: CYLoadingStateView(rows: 1).accessibilityLabel(purchasedText("loading"))
             case .notEnabled: PurchasedUnavailableView()
             case .empty: purchasedText("empty")
             case .failed, .invalidated:
                 purchasedText(browser.phase == .invalidated ? "sessionChanged" : "failed")
-                if browser.phase != .invalidated { Button { navigation.scheduleList(rendered) } label: { purchasedText("retry") } }
+                if browser.phase != .invalidated { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { navigation.scheduleList(rendered) } }
             case .ready:
                 if browser.issue == .unavailable { purchasedText("failed") }
                 ForEach(browser.rows) { item in
@@ -91,7 +91,7 @@ struct WorkshopPurchasedAccountLink: View {
         let displayed = navigation.detailAppearance
         let rendered = displayed.permit
         Form {
-            if browser.detailLoading { ProgressView { purchasedText("loading") } }
+            if browser.detailLoading { CYLoadingStateView(rows: 1).accessibilityLabel(purchasedText("loading")) }
             else if let detail = browser.detail, detail.item.id == licenseId {
                 let item = detail.item
                 Section {
@@ -118,7 +118,7 @@ struct WorkshopPurchasedAccountLink: View {
                 if let handlers = makeUpgrade() { WorkshopPurchasedUpgradeEntry(item: item, handlers: handlers) }
             } else if let issue = browser.detailIssue {
                 purchasedText(issue == .staleSession ? "sessionChanged" : issue == .notFound ? "notFound" : "failed")
-                if issue != .staleSession { Button { navigation.scheduleDetail(rendered, licenseId: licenseId) } label: { purchasedText("retry") } }
+                if issue != .staleSession { CYPillButton(LocalizedStringKey("workshopPurchased.retry"), style: .secondary, tableName: "WorkshopPurchased") { navigation.scheduleDetail(rendered, licenseId: licenseId) } }
             }
         }
         .modifier(PurchasedTitle("detail"))

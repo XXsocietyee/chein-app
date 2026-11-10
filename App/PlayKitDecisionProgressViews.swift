@@ -17,7 +17,7 @@ extension PlayKitScreen {
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
-        Button("playkit.coin.flip") { prepare("FLIP_COIN") }.buttonStyle(.questifyPrimary).disabled(!enabled)
+        CYPillButton("playkit.coin.flip", systemImage: "circle.circle") { prepare("FLIP_COIN") }.disabled(!enabled)
     }
     @ViewBuilder var diceFaces: some View {
         let values = (raw["pips"].array ?? []).compactMap(\.integer)
@@ -35,7 +35,7 @@ extension PlayKitScreen {
         if d20, let dc = raw["dc"].integer { LabeledContent("playkit.dice.target") { Text(verbatim: String(dc)) } }
         if d20, projection.complete, let success = raw["success"].bool { Text(success ? "playkit.result.passed" : "playkit.result.notPassed") }
         if !d20, values.count == 1, let pip = values.first, let faces = raw["faces"].array, faces.indices.contains(pip - 1), let task = faces[pip - 1].text { Text(verbatim: task) }
-        Button("playkit.dice.roll") { prepare("ROLL_DICE") }.buttonStyle(.questifyPrimary).disabled(!enabled)
+        CYPillButton("playkit.dice.roll", systemImage: "dice") { prepare("ROLL_DICE") }.disabled(!enabled)
     }
     @ViewBuilder var randomDeck: some View {
         if let name = raw["deckName"].text { Text(verbatim: name).font(.title2.bold()) }
@@ -51,7 +51,7 @@ extension PlayKitScreen {
             Image(systemName: "rectangle.stack").resizable().scaledToFit().frame(width: 80, height: 80).frame(maxWidth: .infinity).accessibilityHidden(true)
             LabeledContent("playkit.random.remaining") { Text(verbatim: String(count - drawn.count)) }
         }
-        Button("playkit.random.draw") { prepare("DRAW") }.buttonStyle(.questifyPrimary).disabled(!enabled || count <= drawn.count)
+        CYPillButton("playkit.random.draw") { prepare("DRAW") }.disabled(!enabled || count <= drawn.count)
     }
     @ViewBuilder var dailySignForm: some View {
         if let address = raw["address"].text { Text(verbatim: address).font(.headline) }
@@ -77,7 +77,7 @@ extension PlayKitScreen {
         if let goal = raw["goal"].integer, goal > 0 { LabeledContent("playkit.walk.goal") { Text(verbatim: goal.formatted()) } }
         // No native pedometer value substitutes for the service's WeChat encrypted proof, so there is
         // no sync button here; the reason is stated once.
-        Label("playkit.walk.providerGate", systemImage: "figure.walk")
+        CYStatusChip("playkit.walk.providerGate", tone: .neutral, systemImage: "figure.walk")
             .foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
     }
     @ViewBuilder var bingoBoard: some View {
