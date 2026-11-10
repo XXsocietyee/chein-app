@@ -40,6 +40,10 @@ final class DiscoveryPlayTemplatePresentationTests: XCTestCase {
             XCTAssertTrue(value.gallerySources.isEmpty); XCTAssertFalse(value.hasStory)
         }
         XCTAssertEqual(DiscoveryPlayTemplatePresentation(try decode(#"{"id":7,"useNum":0}"#)).useCount, 0)
+        XCTAssertEqual(DiscoveryPlayTemplatePresentation(try decode(#"{"id":7,"useNum":0}"#)).useCountText, "0")
+        for json in [#"{"id":7}"#, #"{"id":7,"useNum":null}"#] {
+            XCTAssertEqual(DiscoveryPlayTemplatePresentation(try decode(json)).useCountText, "—", json)
+        }
     }
     func testMalformedImageShapesAndCountsAreNotSilentlyCoerced() {
         for field in [#""imgUrl":[]"#, #""imgUrl":42"#, #""storyImg":{}"#, #""storyImg":true"#, #""storyText":[]"#, #""publisher":{}"#, #""useNum":-1"#, #""useNum":1.5"#, #""useNum":"2""#, #""useNum":false"#] {
