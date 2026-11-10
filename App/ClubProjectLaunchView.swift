@@ -60,6 +60,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     let club: ClubRecord
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyPalette) private var palette
     @StateObject private var model = ClubProjectLaunchModel()
     @State private var presented: ClubProjectEditorPresentation?
     private var context: ClubProjectLaunchContext { .init(club: club, reader: session, editorContextID: session.projectEditorContextID) }
@@ -67,27 +68,25 @@ import SwiftUI
         let scope = context
         List {
             Section {
-                CYHeroHeader("club.projectLaunch.title").listRowBackground(Color.clear)
-                Text("club.projectLaunch.localHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                Text(verbatim: club.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                LabeledContent("club.ops.clubID", value: String(club.id))
-            }
-            if !scope.canRead || model.phase == .denied { CYStatusChip("club.projectLaunch.ownerRequired", tone: .warning, systemImage: "lock") }
-            else {
-                if model.phase == .loading { ProgressView("club.loading") }
-                if model.phase == .failed { CYStatusChip("club.projectLaunch.failed", tone: .danger, systemImage: "exclamationmark.triangle") }
-                if model.phase == .editorUnavailable { CYStatusChip("club.projectLaunch.editorUnavailable", tone: .warning, systemImage: "slash.circle") }
-                if model.phase == .ready && model.target == nil {
-                    Section("club.projectLaunch.chooseMode") {
-                        CYPillButton("club.projectLaunch.city", systemImage: "building.2") { choose(.city, scope: scope) }.accessibilityIdentifier("club.projectLaunch.city")
-                        CYPillButton("club.projectLaunch.freeExplore", style: .secondary, systemImage: "figure.walk") { choose(.freeExplore, scope: scope) }.accessibilityIdentifier("club.projectLaunch.freeExplore")
-                    }
+                CYHeroHeader("club.projectLaunch.title") {
+                    ClubCloud14Banner(seed: clubBannerSeed, symbol: "map", imageURL: ClubCloud14HTTPS.url(club.cover))
                 }
-                CYPillButton(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"), style: .tertiary) { reload(scope) }
-                    .disabled(model.phase == .loading || presented != nil || model.permit(in: scope) == nil)
-                    .accessibilityIdentifier("club.projectLaunch.reload")
+                .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                Text("club.projectLaunch.localHint")
+                    .font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: shown(club.name))
+                    .font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                CYListRow("club.ops.clubID", trailing: .value(String(club.id))) { CYRowIcon(systemImage: "number") }
+            }
+            if !scope.canRead || model.phase == .denied {
+                CYStatusChip("club.projectLaunch.ownerRequired", tone: .warning, systemImage: "lock")
+            } else {
+                launchActions(scope)
             }
         }
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
         .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { model.leave(); dismiss() }.accessibilityIdentifier("club.projectLaunch.cancel") } }
@@ -113,6 +112,59 @@ import SwiftUI
             }
         }
     }
+    private var clubBannerSeed: String {
+        let name = club.name.trimmingCharacters(in: .whitespacesAndNewlines)
+        return name.isEmpty ? "club-\(club.id)" : name
+    }
+    private func shown(_ text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
+    }
+    @ViewBuilder private func launchActions(_ scope: ClubProjectLaunchContext) -> some View {
+        Section {
+            if model.phase == .loading { launchLoading }
+            if model.phase == .failed {
+                CYStatusChip("club.projectLaunch.failed", tone: .danger, systemImage: "exclamationmark.triangle")
+            }
+            if model.phase == .editorUnavailable {
+                CYStatusChip("club.projectLaunch.editorUnavailable", tone: .warning, systemImage: "square.and.pencil")
+            }
+            if model.phase == .ready && model.target == nil {
+                CYSectionHeader("club.projectLaunch.chooseMode")
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                modeButton(.city, "club.projectLaunch.city", "map", scope)
+                modeButton(.freeExplore, "club.projectLaunch.freeExplore", "figure.walk", scope)
+            }
+            reloadButton(scope)
+        }
+    }
+    private var launchLoading: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSkeleton().accessibilityHidden(true)
+            Text("club.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+        }
+        .accessibilityElement(children: .combine)
+    }
+    private func modeButton(_ product: ProjectEditProduct, _ title: LocalizedStringKey, _ symbol: String, _ scope: ClubProjectLaunchContext) -> some View {
+        let identifier = product == .city ? "club.projectLaunch.city" : "club.projectLaunch.freeExplore"
+        return Button { choose(product, scope: scope) } label: {
+            CYListRow(title, trailing: .chevron) { CYRowIcon(systemImage: symbol) }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(title))
+        .accessibilityIdentifier(identifier)
+    }
+    private func reloadButton(_ scope: ClubProjectLaunchContext) -> some View {
+        CYPillButton(
+            LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"),
+            style: model.phase == .failed ? .primary : .secondary,
+            systemImage: "arrow.clockwise"
+        ) { reload(scope) }
+        .disabled(model.phase == .loading || presented != nil || model.permit(in: scope) == nil)
+        .accessibilityIdentifier("club.projectLaunch.reload")
+        .listRowBackground(Color.clear)
+        .listRowSeparator(.hidden)
+    }
     private func current(_ selection: ClubProjectEditorPresentation) -> Bool {
         selection.hasCurrentSession && model.isCurrent(selection.target, context: context, reader: session, editorContextID: session.projectEditorContextID)
     }
@@ -131,3 +183,49 @@ import SwiftUI
         }
     }
 }
+
+/// Slim generated cover for a screen that has no photo. Text sits below it in `CYHeroHeader`.
+private struct ClubCloud14Banner: View {
+    let seed: String
+    var symbol: String? = nil
+    var imageURL: URL? = nil
+    var body: some View {
+        Color.clear
+            .aspectRatio(2.4, contentMode: .fit)
+            .overlay {
+                CYCoverArt(seed: seed, symbol: symbol)
+                if let imageURL {
+                    AsyncImage(url: imageURL) { phase in
+                        if let image = phase.image { image.resizable().scaledToFill() }
+                    }
+                }
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+private enum ClubCloud14HTTPS {
+    static func url(_ raw: String?) -> URL? {
+        guard let raw = raw?.trimmingCharacters(in: .whitespacesAndNewlines), !raw.isEmpty,
+              let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
+        return url
+    }
+}
+
+#if DEBUG
+#Preview("Project launch hero · player") {
+    CYHeroHeader("club.projectLaunch.title") { ClubCloud14Banner(seed: "preview-club", symbol: "map") }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+}
+#Preview("Project launch hero · merchant") {
+    CYHeroHeader("club.projectLaunch.title") { ClubCloud14Banner(seed: "preview-club", symbol: "map") }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .cyDomainPageBackground()
+        .themeDomain(.merchant)
+}
+#endif

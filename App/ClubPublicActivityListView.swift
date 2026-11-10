@@ -7,7 +7,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var onSignIn: (() -> Void)? = nil
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
     @StateObject private var model = ClubPublicActivityListModel()
     @State private var visible = false
     @State private var destination: ClubPublicTopicDestination?
@@ -35,39 +35,37 @@ import SwiftUI
     var body: some View {
         List {
             Section {
-                CYHeroHeader("publicTopics.title", tableName: "ClubPublicTopics").listRowBackground(Color.clear)
-                Text("publicTopics.scope", tableName: "ClubPublicTopics").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                CYHeroHeader("publicTopics.title", tableName: "ClubPublicTopics") {
+                    ClubCloud14Banner(seed: "public-topics-\(clubID)", symbol: "list.bullet.rectangle")
+                }
+                .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                Text("publicTopics.scope", tableName: "ClubPublicTopics")
+                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                 if !session.clubIdentity.isSignedIn {
-                    Text("publicTopics.guestHandoff", tableName: "ClubPublicTopics").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("publicTopics.guestHandoff", tableName: "ClubPublicTopics")
+                        .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
             if selectedUnavailable {
-                CYStatusChip(verbatim: String(localized: LocalizedStringResource("publicTopics.removed", table: "ClubPublicTopics", locale: locale)), tone: .warning, systemImage: "exclamationmark.circle")
+                CYStatusChip(verbatim: topicsCopy("publicTopics.removed"), tone: .warning, systemImage: "eye.slash")
                     .accessibilityIdentifier("club.publicTopics.selectionRevoked")
             }
             if scope == nil {
-                Section {
-                    CYEmptyState(systemImage: "lock", "publicTopics.unavailable", tableName: "ClubPublicTopics",
-                                 messageIdentifier: "club.publicTopics.unavailable")
-                }
+                CYEmptyState(systemImage: "lock.slash", "publicTopics.unavailable", tableName: "ClubPublicTopics", messageIdentifier: "club.publicTopics.unavailable")
             } else if model.loading {
-                ProgressView("club.loading").accessibilityIdentifier("club.publicTopics.loading")
+                activityLoading
             } else if let snapshot = accepted {
                 let renderedSnapshotID = model.snapshotID
                 ClubActivityListContent(rows: snapshot.rows, canOpen: visible && scenePhase == .active && opening == nil, open: { row in
                     select(row, from: snapshot, snapshotID: renderedSnapshotID)
                 })
             } else if model.issueScope == scope, let issue = model.issue {
-                Section {
-                    CYStatusChip(LocalizedStringKey(issue.titleKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.publicTopics.error")
-                    if let message = issue.message { Text(verbatim: message).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    else { Text(LocalizedStringKey(issue.hintKey)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-                    if issue.needsSignIn, let onSignIn { CYPillButton("club.signIn", action: onSignIn) }
-                    CYPillButton("action.retry", style: .secondary) { Task { await refresh() } }
-                        .accessibilityIdentifier("club.publicTopics.retry")
-                }
+                issueSection(issue)
             }
         }
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
         .cyHeroScreen()
         .refreshable { await refresh() }
@@ -85,7 +83,9 @@ import SwiftUI
                     // A list response is not a content-read or purchase entitlement.
                     SessionTopicDetailView(id: target.topicID, session: session)
                     if !session.clubIdentity.isSignedIn, let onSignIn {
-                        CYPillButton("club.signIn", action: onSignIn).padding()
+                        CYPillButton("club.signIn", style: .secondary, action: onSignIn)
+                            .padding(CYSpacing.pageHorizontal)
+                            .padding(.bottom, CYSpacing.lg)
                             .accessibilityIdentifier("club.publicTopics.detail.signIn")
                     }
                 }.id(target.id)
@@ -133,6 +133,50 @@ import SwiftUI
         guard scenePhase == .active, target.snapshotID == model.snapshotID,
               let snapshot = accepted, snapshot.scope == target.scope else { return false }
         return snapshot.rows.contains { $0.id == target.topicID }
+    }
+    @Environment(\.locale) private var locale
+    private func topicsCopy(_ key: String) -> String {
+        String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "ClubPublicTopics", locale: locale))
+    }
+    private var activityLoading: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSkeleton().accessibilityHidden(true)
+            Text("club.loading").font(CYTypography.meta).foregroundStyle(palette.textSecondary)
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("club.publicTopics.loading")
+    }
+    @ViewBuilder private func issueSection(_ issue: ClubLoadIssue) -> some View {
+        Section {
+            CYStatusChip(verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: issue.titleKey), locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle")
+                .accessibilityIdentifier("club.publicTopics.error")
+            if let message = issue.message {
+                Text(verbatim: message).font(CYTypography.body).foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text(LocalizedStringKey(issue.hintKey)).font(CYTypography.body).foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if issue.needsSignIn, let onSignIn {
+                CYPillButton("club.signIn", systemImage: "person.crop.circle", action: onSignIn)
+            }
+            CYPillButton("action.retry", style: issue.needsSignIn ? .secondary : .primary, systemImage: "arrow.clockwise") { Task { await refresh() } }
+                .accessibilityIdentifier("club.publicTopics.retry")
+                .listRowBackground(Color.clear).listRowSeparator(.hidden)
+        }
+    }
+}
+
+/// Slim generated cover. The page title stays in `CYHeroHeader`, below the art.
+private struct ClubCloud14Banner: View {
+    let seed: String
+    var symbol: String? = nil
+    var body: some View {
+        Color.clear
+            .aspectRatio(2.4, contentMode: .fit)
+            .overlay { CYCoverArt(seed: seed, symbol: symbol) }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityHidden(true)
     }
 }
 
