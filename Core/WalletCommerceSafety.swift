@@ -291,6 +291,15 @@ public struct WalletIncomeDetailSelection: Identifiable {
             }
         }
     }
+
+    /// Same loaded income page this pager already fetched. No second request and no new route.
+    public func incomeDetailListState() -> WalletIncomeDetailPageModel.State {
+        WalletIncomeDetailPageModel.list(loading: isLoading, failed: failed, hasLoadedPage: hasLoadedPage, rowCount: rows.count)
+    }
+
+    public func incomeDetailAmountState(_ amount: WalletAmount?) -> WalletIncomeDetailPageModel.State {
+        WalletIncomeDetailPageModel.amount(incomeDetailListState(), amount)
+    }
 }
 
 /// Exact read grant enforcement. This wrapper never accepts cart mutations or redemption.

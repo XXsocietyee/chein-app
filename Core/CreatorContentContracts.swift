@@ -1,5 +1,21 @@
 import Foundation
 
+/// A count from `api/project/my`. Missing and JSON null are unknown. A decoded integer, including 0, stays that integer.
+public enum MyProjectCountFact: Equatable, Sendable {
+    case unknown
+    case value(Int)
+
+    /// U+2014. Unknown is never rendered as 0 or any other guessed number.
+    public static let unknownText = "\u{2014}"
+
+    public var displayText: String {
+        switch self {
+        case .unknown: return Self.unknownText
+        case .value(let number): return String(number)
+        }
+    }
+}
+
 /// Source: my_project.dart. IDs are scoped by business type, never globally by integer.
 public struct CreatorContentProject: Decodable, Equatable, Identifiable {
     public let sourceID: Int
@@ -13,6 +29,10 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
     public let publishStatus: String?
     public let signupCount: Int
     public let viewCount: Int
+    /// Page readout for a missing signup count. The `signupCount` integer remains for the existing card interpolation and the sold gate.
+    public let signupCountFact: MyProjectCountFact
+    /// Page readout for a missing view count. The `viewCount` integer remains for the existing card interpolation.
+    public let viewCountFact: MyProjectCountFact
     public let ownerType: String?
     public let clubID: Int?
     public let acceptStatus: String?
@@ -51,6 +71,8 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         publishStatus = try c.decodeIfPresent(String.self, forKey: .publishStatus)
         signupCount = try c.decodeIfPresent(Int.self, forKey: .signupCount) ?? 0
         viewCount = try c.decodeIfPresent(Int.self, forKey: .viewCount) ?? 0
+        signupCountFact = try Self.countFact(c, .signupCount)
+        viewCountFact = try Self.countFact(c, .viewCount)
         ownerType = try c.decodeIfPresent(String.self, forKey: .ownerType)
         clubID = try c.decodeIfPresent(Int.self, forKey: .clubId)
         acceptStatus = try c.decodeIfPresent(String.self, forKey: .acceptStatus)
@@ -61,6 +83,12 @@ public struct CreatorContentProject: Decodable, Equatable, Identifiable {
         let address = rawAddress?.trimmingCharacters(in: .whitespacesAndNewlines)
         addressName = address?.isEmpty == false ? address : nil
         pendingVerifyCount = (try? c.decodeIfPresent(Int.self, forKey: .pendingVerifyCount)) ?? nil
+    }
+
+    /// Absent and null are unknown. A present non-integer still fails the row, same as `signupCount`.
+    private static func countFact(_ container: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) throws -> MyProjectCountFact {
+        guard container.contains(key), try container.decodeNil(forKey: key) == false else { return .unknown }
+        return .value(try container.decode(Int.self, forKey: key))
     }
 }
 public enum CreatorContentDestination: Equatable { case topic(Int), activity(Int), playTemplate(Int) }
