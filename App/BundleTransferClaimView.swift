@@ -6,42 +6,125 @@ import SwiftUI
 @MainActor struct BundleTransferClaimView: View {
     @ObservedObject var model: BundleTransferClaimModel
     @State private var code = ""
+    @State private var claimTick = 0
+    @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .largeTitle) private var artHeight: CGFloat = 112
     private let table = "BundleCommerce"
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
 
     var body: some View {
-        Form {
-            Section { CYHeroHeader(verbatim: W8Text.t("领取转赠", "Receive a transfer")) }.e1HeroRow()
-            switch model.phase {
-            case .claimed:
-                text("transfer.claim.done").accessibilityIdentifier("bundleTransfer.claimed")
-            case .unavailable:
-                text("transfer.unavailable").accessibilityIdentifier("bundleTransfer.unavailable")
-            default:
-                Section {
-                    TextField(text: $code) { text("transfer.claim.code") }
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                    CYPillButton("transfer.claim.action", tableName: table) {
-                        let typed = code
-                        code = ""
-                        Task { await model.claim(code: typed) }
-                    }
-                    .disabled(code.isEmpty || model.phase == .claiming)
-                    .e1ActionRow()
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                CYHeroHeader(verbatim: ChannelCopy.text("领取转赠", "Claim a transfer", locale: locale)) {
+                    CYCoverArt(seed: "bundle-claim", symbol: "arrow.left.arrow.right", showsDebugLabel: false)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: artHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .accessibilityHidden(true)
                 }
                 switch model.phase {
-                case .claiming: CYLoadingStateView(rows: 1).accessibilityLabel(text("transfer.claiming"))
-                case .codeNotAccepted: text("transfer.claim.rejected").accessibilityIdentifier("bundleTransfer.rejected")
-                case .outcomeUnknown: text("transfer.claim.unknown")
-                case .failed: text("transfer.error")
-                default: EmptyView()
+                case .claimed:
+                    claimed
+                case .unavailable:
+                    CYEmptyState(systemImage: "wifi.slash", "transfer.unavailable", tableName: table, messageIdentifier: "bundleTransfer.unavailable")
+                default:
+                    claimForm
+                    phaseNote
                 }
             }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.xxl)
         }
-        .formStyle(.grouped)
-        .cyGroupedSurface()
+        .cyDomainPageBackground()
+        .themeDomain(.player)
         .cyHeroScreen()
+        .cyAnimation(value: model.phase)
+        .cyHaptic(.success, trigger: model.phase) { _, new in
+            if case .claimed = new { return true }
+            return false
+        }
+        .cyHaptic(.warning, trigger: model.phase) { _, new in new == .codeNotAccepted }
         .onDisappear { code = "" }
     }
+
+    private var claimed: some View {
+        CYEmptyState(systemImage: "checkmark.circle", "transfer.claim.done", tableName: table, messageIdentifier: "bundleTransfer.claimed")
+    }
+
+    private var claimForm: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            TextField(text: $code) { text("transfer.claim.code") }
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
+                .font(CYTypography.body)
+                .padding(CYSpacing.md)
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .accessibilityLabel(text("transfer.claim.code"))
+            CYPillButton("transfer.claim.action", systemImage: "arrow.down.circle", tableName: table) {
+                let typed = code
+                code = ""
+                claimTick += 1
+                Task { await model.claim(code: typed) }
+            }
+            .disabled(code.isEmpty || model.phase == .claiming)
+            .accessibilityLabel(text("transfer.claim.action"))
+            .cyHaptic(.impactMedium, trigger: claimTick)
+        }
+    }
+
+    @ViewBuilder private var phaseNote: some View {
+        switch model.phase {
+        case .claiming:
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                CYSkeleton().accessibilityHidden(true)
+                text("transfer.claiming")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityElement(children: .combine)
+        case .codeNotAccepted:
+            CYNoteBanner(text: text("transfer.claim.rejected"), symbol: "exclamationmark.triangle", tone: .danger)
+                .accessibilityIdentifier("bundleTransfer.rejected")
+        case .outcomeUnknown:
+            CYNoteBanner(text: text("transfer.claim.unknown"), symbol: "questionmark.circle", tone: .warning)
+        case .failed:
+            CYNoteBanner(text: text("transfer.error"), symbol: "exclamationmark.circle", tone: .danger)
+        default:
+            EmptyView()
+        }
+    }
 }
+
+#if DEBUG
+#Preview("Claim · player dark") {
+    ClaimPreviewHost(domain: .player)
+}
+#Preview("Claim · merchant light") {
+    ClaimPreviewHost(domain: .merchant)
+}
+
+@MainActor private struct ClaimPreviewHost: View {
+    let domain: ThemeDomain
+    @StateObject private var model: BundleTransferClaimModel
+    init(domain: ThemeDomain) {
+        self.domain = domain
+        let session = try! FreeExploreLaunchSession(baseURL: URL(string: "https://example.test")!, accountID: 5, market: "CN",
+                                                    namespace: "preview", role: "player", epoch: 1, token: "synthetic-test-credential")
+        let pending = BundleTransferPendingStore(storage: ClaimPreviewStorage(), session: session)
+        _model = StateObject(wrappedValue: BundleTransferClaimModel(service: BundleTransferUnavailableClient(), pending: pending, makeKey: { "bc-preview" }))
+    }
+    var body: some View {
+        NavigationStack { BundleTransferClaimView(model: model) }
+            .themeDomain(domain)
+    }
+}
+
+@MainActor private final class ClaimPreviewStorage: TemplateAuthoringStorage {
+    private var values: [String: Data] = [:]
+    func read(_ key: String) throws -> Data? { values[key] }
+    func write(_ data: Data, key: String) throws { values[key] = data }
+    func remove(_ key: String) throws { values[key] = nil }
+}
+#endif
