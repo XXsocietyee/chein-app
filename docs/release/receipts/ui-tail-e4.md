@@ -58,3 +58,12 @@ Embedded editor sections (no own screen/title): kit buttons only. Confirm-save i
 | App/NativeConditionAuthorView.swift | done: hero (root list), CYPillButton save |
 | App/NativeChannelProgressPrivacyView.swift | done: hero, CYEmptyState closed, CYLoadingStateView, CYPillButton save/recover |
 | App/NativeChannelNotificationGlobalView.swift | done: hero, one visible title |
+
+## Batch 7 (reverse order)
+| File | Result |
+| --- | --- |
+| App/ModCreatorIncomeViews.swift | done: hero on list + detail, CYPillButton reads, CYStatusChip dispute flag |
+| App/MemberScoreAppealListView.swift | done: hero with boundary subtitle, CYEmptyState, CYPillButton |
+| App/MemberScoreAppealDetailView.swift | done: hero, CYPillButton refresh |
+| App/MemberReportProgressDetailView.swift | done: hero, CYPillButton refresh |
+| App/MemberIdentityAvatarView.swift | done: raised-token placeholder ground behind the avatar surface (lifecycle code untouched) |

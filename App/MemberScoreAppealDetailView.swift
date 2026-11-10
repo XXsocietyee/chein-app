@@ -10,6 +10,7 @@ import SwiftUI
     var body: some View {
         let rendered = readIntent()
         List {
+            Section { CYHeroHeader("score.detail.title", tableName: "MemberScoreAppealList").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if let flow, let row = flow.detailRow {
                 if let title = row.title { Text(verbatim: title) }
                 memberScoreText("score.kind.\(row.kind.rawValue)")
@@ -23,9 +24,9 @@ import SwiftUI
                 if let failure = flow.failure { memberScoreText("score.error.\(failure)") }
             } else { memberScoreText("score.error.disabled") }
             memberScoreText("score.detail.boundary").font(.footnote)
-            Button { load(rendered) } label: { memberScoreText("score.detail.refresh") }.disabled(rendered == nil || flow?.busy == true)
+            CYPillButton("score.detail.refresh", style: .secondary, tableName: "MemberScoreAppealList") { load(rendered) }.disabled(rendered == nil || flow?.busy == true)
         }
-        .navigationTitle(memberScoreText("score.detail.title")).privacySensitive()
+        .cyGroupedSurface().cyHeroScreen().privacySensitive()
         .accessibilityIdentifier("score.mine.detail")
         .onAppear { visible = true; start() }
         .onDisappear { visible = false; retire() }
