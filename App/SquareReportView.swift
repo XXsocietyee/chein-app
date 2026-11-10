@@ -39,16 +39,18 @@ extension EnvironmentValues {
     }
     var body: some View {
         Form {
+            CYHeroHeader("squareReport.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Text(LocalizedStringKey(context?.coordinator.service.synthetic == true ? "squareReport.synthetic" : "squareReport.boundary"))
                     .font(.footnote).accessibilityIdentifier("squareReport.boundary")
                 LabeledContent(target.type == "CONTENT" ? "social.targetPost" : "social.targetComment", value: String(target.id))
                 Text("squareReport.noRemoval").font(.footnote)
             }
-            if busy { ProgressView("social.loading").accessibilityIdentifier("squareReport.loading") }
+            if busy { CYSkeleton().accessibilityIdentifier("squareReport.loading") }
             if let message { Text(LocalizedStringKey(message)).accessibilityIdentifier("squareReport.message") }
             if let receipt { receiptSection(receipt) }
-            else if locked { Text("squareReport.locked").accessibilityIdentifier("squareReport.locked") }
+            else if locked { CYStatusChip("squareReport.locked", tone: .warning, systemImage: "lock").accessibilityIdentifier("squareReport.locked") }
             else if let snapshot {
                 if let contents = snapshot.subject.comment?.contents ?? snapshot.subject.post?.contents {
                     Section(target.type == "CONTENT" ? "social.targetPost" : "social.targetComment") {
@@ -75,18 +77,20 @@ extension EnvironmentValues {
                     Text("squareReport.noAttachments").font(.footnote)
                 }
                 Section {
-                    Button("social.review") { prepare(snapshot) }
+                    CYPillButton("social.review") { prepare(snapshot) }
+                        .listRowBackground(Color.clear)
                         .disabled(busy || selectedReason == nil || !validDescription)
                         .accessibilityIdentifier("squareReport.review")
                 }
             } else if !busy {
-                Button("action.retry") { actionTask = Task { await load() } }
+                CYPillButton("action.retry", style: .secondary) { actionTask = Task { await load() } }
+                    .listRowBackground(Color.clear)
                     .disabled(context?.coordinator.service.readsEnabled != true)
                     .accessibilityIdentifier("squareReport.retry")
             }
         }
         .cyGroupedSurface()
-        .navigationTitle("squareReport.title").navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .scrollDismissesKeyboard(.interactively).privacySensitive()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {

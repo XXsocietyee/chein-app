@@ -22,3 +22,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - VerificationCodeView: done (CYHeroHeader, CYPillButton, CYSkeleton, CYStatusChip)
 - UnifiedReleaseAuditHubView: done (CYStatusChip, AX stacking)
 - UltimateReleaseReadinessExecutiveSummaryView: done (CYStatusChip, AX stacking)
+
+## Batch 4 (reverse)
+- SquareWorkspaceView: done (CYHeroHeader, CYPillButton primary review, CYSkeleton)
+- SquareReportView: done (CYHeroHeader, CYPillButton, CYSkeleton, CYStatusChip)
+- SquareReportProgressView: done (CYHeroHeader, CYEmptyState, CYSkeleton, CYPillButton)
+- SquarePostVideoViews: done (CYStatusChip, CYSkeleton, CYPillButton)
+- SquareGovernanceViews: done (CYHeroHeader, CYPillButton, CYSkeleton)
