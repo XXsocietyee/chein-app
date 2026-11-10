@@ -6,76 +6,214 @@ import SwiftUI
     @ObservedObject var model: BundleReviewComposeModel
     @State private var rating = 5
     @State private var content = ""
+    @State private var submitTick = 0
+    @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .body) private var editorMin: CGFloat = 120
+    @ScaledMetric(relativeTo: .largeTitle) private var artHeight: CGFloat = 112
 
     private var inputValid: Bool { BundleReviewComposeModel.isValidInput(rating: rating, content: content) }
 
     var body: some View {
-        Form {
-            switch model.state {
-            case .idle, .loading:
-                Section { ProgressView() }
-            case .unavailable:
-                Section { Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews are not available yet")) }
-                    .accessibilityIdentifier("bundleReview.unavailable")
-            case .failed:
-                Section { Text(verbatim: W8Text.t("暂时无法评价，未发送任何内容", "Can't review right now. Nothing was sent.")) }
-            case .blocked(let reason):
-                Section {
-                    Text(verbatim: W8Text.t("当前订单暂不可评价", "This order can't be reviewed right now"))
-                    if let reason, !reason.isEmpty { Text(verbatim: reason).font(.caption) }
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                CYHeroHeader(verbatim: W8Text.t("评价", "Review")) {
+                    CYCoverArt(seed: "bundle-review", symbol: "star.bubble", showsDebugLabel: false)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: artHeight)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                        .accessibilityHidden(true)
                 }
-                .accessibilityIdentifier("bundleReview.blocked")
-            case .alreadyReviewed(let review):
-                Section { reviewSummary(review) }
-            case .submitted(let review):
-                Section { reviewSummary(review) }
-                    .accessibilityIdentifier("bundleReview.submitted")
-            case .ready, .submitting, .rejected:
-                composeSection
-            case .outcomeUnknown:
-                Section {
-                    Text(verbatim: W8Text.t("评价是否提交成功尚未确认", "We couldn't confirm whether your review was submitted"))
-                    Button { Task { await model.recover() } } label: {
-                        Text(verbatim: W8Text.t("查询提交结果", "Check status"))
-                    }
-                    if model.canRetryOriginal {
-                        Button { Task { await model.retryOriginal() } } label: {
-                            Text(verbatim: W8Text.t("重新提交", "Submit again"))
-                        }
-                    }
+                switch model.state {
+                case .idle, .loading:
+                    CYSkeleton()
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text(verbatim: W8Text.t("加载中…", "Loading…")))
+                case .unavailable:
+                    CYStateLayout(
+                        kind: .offline,
+                        title: Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews are not available yet"))
+                    )
+                    .accessibilityIdentifier("bundleReview.unavailable")
+                case .failed:
+                    CYStateLayout(
+                        kind: .failure,
+                        title: Text(verbatim: W8Text.t("暂时无法评价，未发送任何内容", "Can't review right now. Nothing was sent."))
+                    )
+                case .blocked(let reason):
+                    blocked(reason)
+                case .alreadyReviewed(let review):
+                    reviewSummary(review)
+                case .submitted(let review):
+                    reviewSummary(review)
+                        .accessibilityIdentifier("bundleReview.submitted")
+                case .ready, .submitting, .rejected:
+                    composeSection
+                case .outcomeUnknown:
+                    outcomeUnknown
                 }
             }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.xxl)
+        }
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .cyHeroScreen()
+        .cyAnimation(value: model.state)
+        .cyHaptic(.success, trigger: model.state) { _, new in
+            if case .submitted = new { return true }
+            return false
         }
         .task { await model.load() }
     }
 
-    @ViewBuilder private var composeSection: some View {
-        Section {
+    private var composeSection: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             Picker(selection: $rating) {
-                ForEach(Array(BundleReviewCommand.ratingRange), id: \.self) { Text(verbatim: String($0)).tag($0) }
+                ForEach(Array(BundleReviewCommand.ratingRange), id: \.self) { value in
+                    Text(verbatim: String(value)).monospacedDigit().tag(value)
+                }
             } label: { Text(verbatim: W8Text.t("评分", "Rating")) }
-            TextEditor(text: $content).frame(minHeight: 120)
-            Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)").font(.caption)
+            .pickerStyle(.menu)
+            .font(CYTypography.body)
+            .frame(minHeight: CYSpacing.minTouchTarget)
+            TextEditor(text: $content)
+                .font(CYTypography.body)
+                .frame(minHeight: editorMin)
+                .scrollContentBackground(.hidden)
+                .padding(CYSpacing.sm)
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .accessibilityLabel(Text(verbatim: W8Text.t("评价内容", "Review text")))
+            Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)")
+                .font(CYTypography.caption)
+                .monospacedDigit()
+                .foregroundStyle(palette.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityLabel(Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)"))
         }
         if case .rejected(let code) = model.state {
-            Section {
-                Text(verbatim: W8Text.t("评价未被接受", "Your review wasn't accepted"))
-                if let code, !code.isEmpty { Text(verbatim: code).font(.caption) }
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                CYNoteBanner(text: Text(verbatim: W8Text.t("评价未被接受", "Your review wasn't accepted")), symbol: "exclamationmark.triangle", tone: .danger)
+                if let code, !code.isEmpty {
+                    Text(verbatim: code)
+                        .font(CYTypography.caption)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .accessibilityIdentifier("bundleReview.rejected")
         }
-        Section {
-            Button { Task { await model.submit(rating: rating, content: content) } } label: {
-                Text(verbatim: W8Text.t("提交评价", "Submit review"))
-            }
-            .disabled(!inputValid || model.state != .ready)
+        if model.state == .submitting {
+            ProgressView()
+                .accessibilityLabel(Text(verbatim: W8Text.t("提交评价", "Submit review")))
+        }
+        CYPillButton(verbatim: W8Text.t("提交评价", "Submit review"), systemImage: "paperplane.fill") {
+            submitTick += 1
+            Task { await model.submit(rating: rating, content: content) }
+        }
+        .disabled(!inputValid || model.state != .ready)
+        .accessibilityLabel(Text(verbatim: W8Text.t("提交评价", "Submit review")))
+        .cyHaptic(.impactMedium, trigger: submitTick)
         }
     }
 
+    @ViewBuilder private var outcomeUnknown: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(verbatim: W8Text.t("评价是否提交成功尚未确认", "We couldn't confirm whether your review was submitted"))
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYPillButton(verbatim: W8Text.t("查询提交结果", "Check status")) { Task { await model.recover() } }
+                .accessibilityLabel(Text(verbatim: W8Text.t("查询提交结果", "Check status")))
+            if model.canRetryOriginal {
+                CYPillButton(verbatim: W8Text.t("重新提交", "Submit again"), style: .secondary) { Task { await model.retryOriginal() } }
+                    .accessibilityLabel(Text(verbatim: W8Text.t("重新提交", "Submit again")))
+            }
+        }
+    }
+
+    @ViewBuilder private func blocked(_ reason: String?) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text(verbatim: W8Text.t("当前订单暂不可评价", "This order can't be reviewed right now"))
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            if let reason, !reason.isEmpty {
+                Text(verbatim: reason)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("bundleReview.blocked")
+    }
+
     @ViewBuilder private func reviewSummary(_ review: BundleReview) -> some View {
-        LabeledContent { Text(verbatim: String(review.rating)) } label: { Text(verbatim: W8Text.t("评分", "Rating")) }
-        Text(verbatim: review.content)
-        Text(verbatim: review.statusKind.label).font(.footnote)
-            .accessibilityIdentifier("bundleReview.status")
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text(verbatim: W8Text.t("评分", "Rating"))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: String(review.rating))
+                    .font(CYTypography.dataXL)
+                    .monospacedDigit()
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .accessibilityElement(children: .combine)
+            Text(verbatim: review.content)
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYStatusChip(verbatim: review.statusKind.label, tone: reviewTone(review.statusKind), systemImage: reviewSymbol(review.statusKind))
+                .accessibilityIdentifier("bundleReview.status")
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(CYSpacing.lg)
+        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+    }
+
+    private func reviewTone(_ kind: BundleReviewStatusKind) -> CYStatusTone {
+        switch kind {
+        case .published: return .success
+        case .underReview: return .warning
+        case .rejected: return .danger
+        case .hidden, .unknown: return .neutral
+        }
+    }
+
+    private func reviewSymbol(_ kind: BundleReviewStatusKind) -> String {
+        switch kind {
+        case .published: return "checkmark.circle.fill"
+        case .underReview: return "clock.fill"
+        case .rejected: return "xmark.circle.fill"
+        case .hidden: return "eye.slash"
+        case .unknown: return "questionmark.circle"
+        }
     }
 }
+
+#if DEBUG
+#Preview("Review · player dark") {
+    ReviewComposePreviewHost(domain: .player)
+}
+#Preview("Review · merchant light") {
+    ReviewComposePreviewHost(domain: .merchant)
+}
+
+@MainActor private struct ReviewComposePreviewHost: View {
+    let domain: ThemeDomain
+    @StateObject private var model: BundleReviewComposeModel
+    init(domain: ThemeDomain) {
+        self.domain = domain
+        let id = try! FreeExploreLaunchID(1)
+        _model = StateObject(wrappedValue: BundleReviewComposeModel(registrationID: id, accountID: id, service: UnavailableBundleReviewClient()))
+    }
+    var body: some View {
+        NavigationStack { BundleReviewComposeView(model: model) }
+            .themeDomain(domain)
+    }
+}
+#endif

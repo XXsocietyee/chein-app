@@ -1,0 +1,27 @@
+[
+  {
+    "key": "cloud04.reservations.title",
+    "en": "Reservations",
+    "zh-Hans": "预约"
+  },
+  {
+    "key": "cloud04.review.title",
+    "en": "Review",
+    "zh-Hans": "评价"
+  },
+  {
+    "key": "cloud04.review.body",
+    "en": "Review text",
+    "zh-Hans": "评价内容"
+  },
+  {
+    "key": "cloud04.review.loading",
+    "en": "Loading…",
+    "zh-Hans": "加载中…"
+  },
+  {
+    "key": "cloud04.claim.title",
+    "en": "Claim a transfer",
+    "zh-Hans": "领取转赠"
+  }
+]
