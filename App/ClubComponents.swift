@@ -170,11 +170,15 @@ struct E3AvatarStack: View {
                     .zIndex(Double(seeds.count - i))
             }
             if let extra, extra > 0 {
+                // "+N" chip: never a truncated number. The chip widens into a capsule for 3+ digits and scales its text.
                 Text(verbatim: "+\(extra)").font(.caption.weight(.semibold)).monospacedDigit()
+                    .lineLimit(1).minimumScaleFactor(0.6).fixedSize(horizontal: true, vertical: false)
                     .foregroundStyle(CYColor.textPrimary)
-                    .frame(width: size, height: size)
-                    .background(CYColor.bgRaised, in: Circle())
-                    .overlay(Circle().strokeBorder(CYColor.bgPage, lineWidth: 2))
+                    .padding(.horizontal, extra >= 100 ? 6 : 0)
+                    .frame(minWidth: size, minHeight: size)
+                    .background(CYColor.bgRaised, in: Capsule())
+                    .overlay(Capsule().strokeBorder(CYColor.bgPage, lineWidth: 2))
+                    .zIndex(0)
             }
         }
     }

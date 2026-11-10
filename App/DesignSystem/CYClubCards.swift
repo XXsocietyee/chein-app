@@ -40,8 +40,11 @@ struct CYClubMemberStrip: View {
             Text(verbatim: text)
                 .font(CYTypography.meta).monospacedDigit()
                 .foregroundStyle(palette.textSecondary)
-                .fixedSize(horizontal: false, vertical: true)
+                // One line, never hyphen-wrapped ("12 / mem- / bers"): the parent stacks the strip above a wide pill instead.
+                .lineLimit(1).minimumScaleFactor(0.8)
+                .fixedSize(horizontal: true, vertical: true)
         }
+        .fixedSize(horizontal: true, vertical: false)
         .accessibilityElement(children: .combine)
     }
 }
@@ -97,14 +100,16 @@ struct CYClubPhotoCard: View {
     }
 
     private var footer: some View {
-        let layout = typeSize.isAccessibilitySize
-            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
-            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
-        return layout {
-            CYClubMemberStrip(seed: seed, count: memberCount)
-            if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
-            CYClubCardTrailing(action: action, onJoin: onJoin, joinIdentifier: identifier.map { $0 + ".join" })
+        let trailing = CYClubCardTrailing(action: action, onJoin: onJoin, joinIdentifier: identifier.map { $0 + ".join" })
+        let strip = CYClubMemberStrip(seed: seed, count: memberCount)
+        // Side by side while the strip and the pill both fit on one line; otherwise (wide pill, AX sizes) the pill drops below.
+        return ViewThatFits(in: .horizontal) {
+            if !typeSize.isAccessibilitySize {
+                HStack(alignment: .center, spacing: CYSpacing.sm) { strip; Spacer(minLength: CYSpacing.sm); trailing }
+            }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) { strip; trailing }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, CYSpacing.xs)
     }
 }
@@ -123,23 +128,27 @@ struct CYClubRowCard: View {
 
     var body: some View {
         Button(action: onOpen) {
-            let layout = typeSize.isAccessibilitySize
-                ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md))
-                : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
-            layout {
-                logo
-                VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                    Group {
-                        if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitled") }
-                        else { Text(verbatim: name) }
-                    }
-                    .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
-                    .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    CYClubMemberStrip(seed: seed, count: memberCount, avatarSize: 20)
+            let info = VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Group {
+                    if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text("club.untitled") }
+                    else { Text(verbatim: name) }
                 }
-                if !typeSize.isAccessibilitySize { Spacer(minLength: CYSpacing.sm) }
-                CYClubCardTrailing(action: action, onJoin: onOpen)
+                .font(CYTypography.sectionTitle).foregroundStyle(palette.textPrimary)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                .fixedSize(horizontal: false, vertical: true)
+                CYClubMemberStrip(seed: seed, count: memberCount, avatarSize: 20)
+            }
+            let trailing = CYClubCardTrailing(action: action, onJoin: onOpen)
+            // Logo | info | pill on one line when it fits; otherwise the pill moves under the info (always at AX sizes).
+            ViewThatFits(in: .horizontal) {
+                if !typeSize.isAccessibilitySize {
+                    HStack(alignment: .center, spacing: CYSpacing.md) { logo; info; Spacer(minLength: CYSpacing.sm); trailing }
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        HStack(alignment: .center, spacing: CYSpacing.md) { logo; info }
+                        trailing
+                    }
+                }
+                VStack(alignment: .leading, spacing: CYSpacing.md) { logo; info; trailing }
             }
             .padding(CYSpacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
