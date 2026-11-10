@@ -31,3 +31,8 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 ## Batch 8
 - ProjectStoryTemplateView (rows -> CYListRow, pills), PublisherIdentityRegistrationView (inline Section: pills + skeleton), SearchMapDetailViews (hero name, loading, chip), SearchMapExplorerView (LIGHT touch only: ContentUnavailableView -> CYEmptyState, spinners -> skeletons, nearby detail hero; the map/filters chrome is d6-owned and left alone).
 - RegistrationSheetView: already restyled in earlier e1 passes (ticket card, pinned bar, CY kit); no change.
+
+## Batch 9
+- DONE SearchRoutePreviewView: hero name, primary pill link for walking nav, numbered step rows with tabular numerals, skeleton, tokens. (New shared `CYPillButtonLabel` in E1CommerceComponents.swift.)
+- SKIPPED SecondRegistrationStatsView: operator/merchant analytics report (rates, exclusions), debug-fixture only, no player surface (light/merchant-side).
+- SKIPPED SessionGlobalSearchView, SessionHomeFeedView, SessionTopicBrowserView, SessionTopicSelfPlayView: pure host wiring (environment injection, toolbar menu entries, `Session*` is on the never-edit list); no restylable view content.

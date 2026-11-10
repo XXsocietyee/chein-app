@@ -165,3 +165,16 @@ extension View {
             .listRowBackground(Color.clear)
     }
 }
+
+/// Label-only pill content for a NavigationLink styled with CYPillButtonStyle.
+struct CYPillButtonLabel: View {
+    private let title: LocalizedStringKey
+    private let systemImage: String?
+    init(_ title: LocalizedStringKey, systemImage: String? = nil) { self.title = title; self.systemImage = systemImage }
+    var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            if let systemImage { Image(systemName: systemImage) }
+            Text(title)
+        }
+    }
+}
