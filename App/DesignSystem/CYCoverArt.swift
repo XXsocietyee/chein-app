@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 /// Circular progress ring with centred content. `progress` is 0...1; pass nil to draw only the dim track (unknown, never a fake value).
 struct CYProgressRing<Center: View>: View {
     let progress: Double?
@@ -38,7 +39,7 @@ struct CYFoilMedal<Face: View>: View {
             }
             Circle().fill(CYColor.bgElevated)
                 .frame(width: size, height: size)
-            face().frame(width: size * 0.78, height: size * 0.78).clipShape(Circle())
+            face().frame(width: size * 0.88, height: size * 0.88).clipShape(Circle())
                 .saturation(unlocked ? 1 : 0).opacity(unlocked ? 1 : 0.45)
             if unlocked {
                 Circle().strokeBorder(AngularGradient(colors: [.white, tint, Color(hue: 0.08, saturation: 0.8, brightness: 0.6), .white, tint, .white],

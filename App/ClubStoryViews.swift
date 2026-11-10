@@ -101,17 +101,16 @@ struct ClubStoryChapterHeader: View {
 @MainActor struct ClubStoryCover: View {
     let raw: String?
     let imageReader: (any RetainedPublicImageReading)?
+    var seed = "story"
     var body: some View {
         Group {
             if let raw {
                 NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
             } else {
-                ZStack {
-                    Rectangle().fill(.quaternary)
-                    Label("club.story.noImage", systemImage: "photo").font(.caption).foregroundStyle(.secondary)
-                }
+                // Generated cover art stands in for a missing photo so the card stays image-led.
+                CYIMCoverArt(seed: seed, systemImage: "map.fill", symbolSize: 40)
             }
-        }.frame(height: 132).clipShape(RoundedRectangle(cornerRadius: 12)).accessibilityHidden(true)
+        }.frame(height: 168).frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous)).accessibilityHidden(true)
     }
 }
 @MainActor struct ClubStoryStopCard: View {
@@ -126,9 +125,12 @@ struct ClubStoryChapterHeader: View {
                 }.accessibilityElement(children: .combine)
                     .accessibilityIdentifier("club.story.walk.\(stop.id)")
             }
-            Label("club.story.stop \(stop.sequence)", systemImage: "mappin.circle.fill").font(.caption.weight(.semibold))
-            ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader)
-            if let name = stop.name { Text(verbatim: name).font(.headline) }
+            ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader, seed: stop.name ?? String(stop.id))
+                .overlay(alignment: .topLeading) {
+                    Label("club.story.stop \(stop.sequence)", systemImage: "mappin.circle.fill").font(.caption.weight(.semibold)).foregroundStyle(.white)
+                        .padding(.horizontal, 10).frame(minHeight: 28).background(.black.opacity(0.55), in: Capsule()).padding(CYSpacing.sm)
+                }
+            if let name = stop.name { Text(verbatim: name).font(CYTypography.sectionTitle) }
             else { Text("club.story.unnamedStop").font(.headline) }
             if let time = stop.businessTime { Label { Text(verbatim: time) } icon: { Image(systemName: "clock") } }
             else { Text("club.story.hoursUnavailable").foregroundStyle(.secondary) }
@@ -143,7 +145,7 @@ struct ClubStoryChapterHeader: View {
     let imageReader: (any RetainedPublicImageReading)?
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            ClubStoryCover(raw: play.imgUrl, imageReader: imageReader)
+            ClubStoryCover(raw: play.imgUrl, imageReader: imageReader, seed: play.title ?? String(play.id))
             HStack(alignment: .firstTextBaseline) {
                 if let code = play.validationMethod, let method = TemplateAuthoringMethod(rawValue: code) { Text(LocalizedStringKey(method.labelKey)) }
                 else if let label = play.validationMethodLabel { Text(verbatim: label) }

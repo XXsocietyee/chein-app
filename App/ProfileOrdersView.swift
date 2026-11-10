@@ -29,7 +29,7 @@ struct ProfileOrdersView: View {
         ProfileReadScreen(reader: reader, accessibilityPrefix: "profile.orders", issueCopy: .orders, load: { try await reader.profileOrders() }) { orders in
             if orders.isEmpty {
                 VStack(spacing: 12) {
-                    ProfileEmptyState(title: "profile.orders.sourceEmpty", hint: "profile.orders.sourceEmptyHint", symbol: "ticket", identifier: "profile.orders.empty")
+                    CYEmptyState(systemImage: "ticket", "profile.orders.sourceEmpty", messageIdentifier: "profile.orders.empty", kind: .orders)
                     if let discoverRoutes {
                         Button("profile.orderParity.discover") { discoverRoutes() }
                             .buttonStyle(.questifyPrimary).frame(minHeight: 44)

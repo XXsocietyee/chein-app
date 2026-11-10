@@ -26,9 +26,10 @@ import UIKit
         Section {
             NavigationLink {
                 SettingsSoundPreferencesView(store: soundStore)
-            } label: { Label("settingsNative.sound.title", systemImage: "speaker.wave.2") }
+            } label: { Label("settingsNative.sound.title", systemImage: "speaker.wave.2.fill") }
             .accessibilityIdentifier("settingsNative.openSound")
         }
+        .environment(\.settingsTileTint, SettingsTint.pink)
         Section("settingsNative.legal.title") {
             ForEach(SettingsLegalType.allCases) { type in
                 NavigationLink {
@@ -41,9 +42,10 @@ import UIKit
         Section {
             NavigationLink {
                 SettingsAboutView(market: market, appInformation: appInformation, legalReader: legalReader, copyText: copyText)
-            } label: { Label("settingsNative.about.title", systemImage: "info.circle") }
+            } label: { Label("settingsNative.about.title", systemImage: "info.circle.fill") }
             .accessibilityIdentifier("settingsNative.openAbout")
         }
+        .environment(\.settingsTileTint, SettingsTint.blue)
         if let complianceCoordinator {
             AccountComplianceSettingsSection(makeCoordinator: { complianceCoordinator }, market: market, legalReader: legalReader, showsNPCChatDataEntry: showsNPCChatDataEntry)
         } else {
@@ -168,16 +170,17 @@ import UIKit
     }
 }
 
-/// iOS Settings style row icon: a 30pt rounded-square tile with a neutral raised fill (one accent, no rainbow).
+/// iOS Settings style row icon: a 30pt continuous rounded-square tile, filled with the group tint
+/// (`settingsTileTint`) and a white glyph. Rows in a group share a hue; the default is neutral gray.
 struct SettingsTileLabelStyle: LabelStyle {
-    @Environment(\.cyPalette) private var palette
+    @Environment(\.settingsTileTint) private var tint
     func makeBody(configuration: Configuration) -> some View {
         HStack(spacing: CYSpacing.md) {
             configuration.icon
                 .font(.system(.subheadline, weight: .semibold))
-                .foregroundStyle(palette.textPrimary)
+                .foregroundStyle(.white)
                 .frame(width: 30, height: 30)
-                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .background(tint.gradient, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .accessibilityHidden(true)
             configuration.title
         }

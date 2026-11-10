@@ -149,6 +149,19 @@ import SwiftUI
         LabeledContent("playkit.reaction.round") { Text(verbatim: PlayTimedDisplayLocalization.round(current: reaction.roundsMilliseconds.count, total: reaction.rounds, locale: locale)).monospacedDigit() }
         if let goal = segment["goalMs"].integer, goal > 0 { LabeledContent("playkit.reaction.goal") { Text(verbatim: PlayTimedDisplayLocalization.milliseconds(goal, locale: locale)) } }
         if reaction.phase == .idle || reaction.phase == .interrupted {
+            VStack(spacing: CYSpacing.lg) {
+                Image(systemName: "hand.tap.fill").font(.system(size: 44, weight: .semibold)).foregroundStyle(CYColor.textSecondary)
+                Text(verbatim: ChannelCopy.text("圆圈变绿时立刻点按，别抢跑。", "Tap the circle the moment it turns green. Don't jump the gun.", locale: locale))
+                    .font(CYTypography.body).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack(spacing: 10) {
+                    ForEach(0..<min(reaction.rounds, 10), id: \.self) { index in
+                        Circle().fill(index < reaction.roundsMilliseconds.count ? CYColor.successText : CYColor.bgRaised).frame(width: 12, height: 12)
+                    }
+                }.accessibilityHidden(true)
+            }
+            .frame(maxWidth: .infinity).padding(CYSpacing.xl)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous))
             CYPillButton("playkit.challenge.start") { start() }.disabled(!enabled)
         } else if reaction.phase == .waiting || reaction.phase == .signal {
             Button {

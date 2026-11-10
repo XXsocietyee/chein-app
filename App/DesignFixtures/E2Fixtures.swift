@@ -7,6 +7,8 @@ enum E2FixtureKind: String {
     case timedStopwatch = "timed-stopwatch", timedReaction = "timed-reaction", dice, journey
     case npcChat = "npc-chat", badgeLocked = "badge-locked", timedResult = "timed-result"
     case chapters, chaptersEmpty = "chapters-empty", stampCamera = "stamp-camera", badgeDetail = "badge-detail"
+    case cityRules = "city-rules", cityParticipation = "city-participation", cityParticipationConfirm = "city-participation-confirm", cityParticipationJoin = "city-participation-join"
+    case cityNeutral = "city-neutral", cityOnsite = "city-onsite", cityArrival = "city-arrival", cityMap = "city-map", bundle, journalDiagnostic = "journal-diagnostic", passportAnniversary = "passport-anniversary", passportRecap = "passport-recap"
 }
 
 struct E2Fixture: View {
@@ -49,6 +51,18 @@ struct E2Fixture: View {
         case .stampCamera: NavigationStack { RoamStampCameraView() }
         case .badgeDetail: E2BadgeDetailHost(locked: false)
         case .badgeLocked: E2BadgeDetailHost(locked: true)
+        case .cityRules: E2RulesHost()
+        case .cityParticipation: E2ParticipationHost(stage: 0)
+        case .cityParticipationConfirm: E2ParticipationHost(stage: 1)
+        case .cityParticipationJoin: E2ParticipationHost(stage: 2)
+        case .cityNeutral: E2NeutralHost()
+        case .cityOnsite: E2OnsiteHost()
+        case .cityArrival: E2ArrivalHost()
+        case .cityMap: E2OrderedMapHost()
+        case .bundle: E2BundleHost()
+        case .journalDiagnostic: NavigationStack { List { GameJournalCompositionAndPlaySummarySectionView() }.cyGroupedSurface().navigationTitle("游戏手账").navigationBarTitleDisplayMode(.inline) }
+        case .passportAnniversary: NavigationStack { RoamAnniversaryView(reader: RoamPassportToolsFixtureReader()) }
+        case .passportRecap: NavigationStack { RoamMonthlyRecapView(reader: RoamPassportToolsFixtureReader()) }
         case .timedResult:
             ScrollView {
                 VStack(spacing: CYSpacing.lg) {
@@ -61,13 +75,29 @@ struct E2Fixture: View {
     }
 }
 
-/// Readers live in @State: a reader rebuilt on every body pass changes the view owner and the list never loads.
+/// Immediate-result stub: the real list container only reads while the scene is foreground and never completed inside the fixture host,
+/// so this renders the real rows and cover header from synthetic tickets without any reader lifecycle.
 private struct E2ChaptersHost: View {
-    @State private var roam = RoamExperienceFixtureReader(scenario: .content)
-    @State private var tickets: TicketWalletFixtureReader
-    init(empty: Bool) { _tickets = State(initialValue: TicketWalletFixtureReader(scenario: empty ? .empty : .content)) }
-    /// The nested fixture host can mount before the scene reports .active; the chapters view only reads while foreground, so pin it.
-    var body: some View { NavigationStack { RoamEnrolledChaptersView(roam: roam, tickets: tickets) }.environment(\.scenePhase, .active) }
+    let empty: Bool
+    private var topics: [TicketWalletTicket] {
+        struct Envelope: Decodable { let data: [TicketWalletTicket] }
+        guard !empty,
+              let routes = try? JSONDecoder().decode(Envelope.self, from: Data(TicketWalletSyntheticFixtures.routeListJSON.utf8)).data,
+              let acts = try? JSONDecoder().decode(Envelope.self, from: Data(TicketWalletSyntheticFixtures.activityListJSON.utf8)).data,
+              let rows = try? RoamEnrolledChaptersProjection.topics(TicketWalletSnapshot(tickets: routes + acts)) else { return [] }
+        return rows
+    }
+    var body: some View {
+        NavigationStack {
+            List {
+                CYCoverHeaderSection("roam.chapters.title", symbol: "book.pages.fill", seed: "chapters")
+                if topics.isEmpty { CYEmptyState(systemImage: "map", "roam.chapters.empty") }
+                ForEach(topics) { ticket in
+                    RoamEnrolledChapterRow(ticket: ticket, showsActionNotice: ticket.action != .detail).questifyCardListRow()
+                }
+            }.cyGroupedSurface().navigationTitle("roam.chapters.title")
+        }
+    }
 }
 
 private struct E2BadgeDetailHost: View {

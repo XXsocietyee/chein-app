@@ -12,7 +12,7 @@ struct CYEmptyState: View {
     private let actionIdentifier: String?
     private let actionStyle: CYPillStyle
     private let action: (() -> Void)?
-    @Environment(\.cyPalette) private var palette
+    private let kind: CYStateKind?
 
     init(
         systemImage: String = "tray",
@@ -23,8 +23,10 @@ struct CYEmptyState: View {
         actionTitle: LocalizedStringKey? = nil,
         actionIdentifier: String? = nil,
         actionStyle: CYPillStyle = .secondary,
+        kind: CYStateKind? = nil,
         action: (() -> Void)? = nil
     ) {
+        self.kind = kind
         self.systemImage = systemImage
         self.message = message
         self.tableName = tableName
@@ -37,30 +39,15 @@ struct CYEmptyState: View {
     }
 
     var body: some View {
-        VStack(spacing: CYSpacing.lg) {
-            Image(systemName: systemImage)
-                .font(.system(size: 40, weight: .regular))
-                .foregroundStyle(palette.textTertiary)
-                .accessibilityHidden(true)
-            Text(message, tableName: tableName)
-                .font(CYTypography.body)
-                .foregroundStyle(palette.textSecondary)
-                .multilineTextAlignment(.center)
-                .cyIdentifier(messageIdentifier)
-            if let detail {
-                Text(detail)
-                    .font(CYTypography.body)
-                    .foregroundStyle(palette.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-            if let actionTitle, let action {
-                CYPillButton(actionTitle, style: actionStyle, fullWidth: false, action: action)
-                    .cyIdentifier(actionIdentifier)
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.xxl)
-        .padding(.horizontal, CYSpacing.xxl)
+        CYStateLayout(
+            kind: kind ?? CYStateKind(symbol: systemImage),
+            title: Text(message, tableName: tableName),
+            detail: detail.map { Text($0) },
+            primary: actionTitle.flatMap { title in action.map { (title: title, action: $0) } },
+            primaryStyle: actionStyle,
+            primaryIdentifier: actionIdentifier
+        )
+        .cyIdentifier(messageIdentifier)
     }
 }
 
@@ -74,16 +61,18 @@ private extension View {
 struct CYErrorState: View {
     private let message: LocalizedStringKey
     private let retryTitle: LocalizedStringKey
+    private let offline: Bool
     private let onRetry: () -> Void
 
-    init(_ message: LocalizedStringKey = "Couldn't load this. Check your connection.", retryTitle: LocalizedStringKey = "action.retry", onRetry: @escaping () -> Void) {
+    init(_ message: LocalizedStringKey = "Couldn't load this. Check your connection.", retryTitle: LocalizedStringKey = "action.retry", offline: Bool = false, onRetry: @escaping () -> Void) {
         self.message = message
         self.retryTitle = retryTitle
+        self.offline = offline
         self.onRetry = onRetry
     }
 
     var body: some View {
-        CYEmptyState(systemImage: "exclamationmark.triangle", message, actionTitle: retryTitle, action: onRetry)
+        CYEmptyState(systemImage: "exclamationmark.triangle", message, actionTitle: retryTitle, kind: offline ? .offline : .failure, action: onRetry)
     }
 }
 

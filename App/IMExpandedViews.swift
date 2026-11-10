@@ -849,3 +849,27 @@ private extension IMOutgoingPayload {
         consented=false;picked=nil;renderedCenter=nil;name="";address="";position = .rect(MKMapRect.world)
     }
 }
+
+// MARK: - Rich message card labels (player dark kit). Pure presentation over the existing references.
+
+private func imClock(_ ms: Int) -> String { let s = max(0, ms) / 1000; return "\(s / 60):" + String(format: "%02d", s % 60) }
+
+/// Voice message row label: play circle, waveform, duration. The enclosing NavigationLink keeps the playback route.
+struct IMVoiceCardLabel: View {
+    let reference: IMVoiceReference
+    var body: some View { E3VoiceCard(duration: imClock(reference.durationMS)).accessibilityLabel(Text("messaging.voice.play")) }
+}
+
+/// File message row label: type tile, name, size.
+struct IMFileCardLabel: View {
+    let reference: IMFileReference
+    var body: some View {
+        E3FileCard(name: reference.name, size: Int64(reference.size).formatted(.byteCount(style: .file)), kind: "doc.fill").accessibilityLabel(Text("messaging.file.open")).accessibilityValue(Text(verbatim: reference.name))
+    }
+}
+
+/// Video message row label: generated poster (the real cover is only fetched inside the player), play button, duration.
+struct IMVideoCardLabel: View {
+    let reference: IMVideoReference
+    var body: some View { E3VideoCard(seed: reference.attachmentID, duration: imClock(reference.durationMS)).accessibilityLabel(Text("messaging.video.play")) }
+}

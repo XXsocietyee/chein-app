@@ -18,72 +18,16 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     private let table = "CityNeutralTask"
     var body: some View {
-        Form {
-            CYCoverHeaderSection(Text("cityNeutral.title", tableName: table), symbol: "checklist", seed: "neutral")
-            Section {
-                Text("cityNeutral.boundary", tableName: table)
-                Text(LocalizedStringKey(controller.messageKey), tableName: table).accessibilityIdentifier("cityNeutral.status")
-                Button { selections = [:]; Task { await controller.load() } } label: { Text("cityNeutral.reload", tableName: table) }.disabled(controller.busy)
-            }
-            if controller.current, scenePhase == .active, let value = controller.snapshot {
-                if value.status == "JOIN_REQUIRED" { Text("cityNeutral.joinRequired", tableName: table) }
-                if value.status == "TEAM_NOT_READY" { Text("cityNeutral.teamNotReady", tableName: table) }
-                if let binding = value.binding {
-                    Section {
-                        Text(verbatim: binding.title)
-                        row("cityNeutral.release", binding.rulesReleaseId)
-                        row("cityNeutral.round", binding.rules.roundId)
-                        if let team = value.teamId { row("cityNeutral.team", team) }
-                        if let session = value.sessionId { row("cityNeutral.session", session) }
-                        Text("cityNeutral.sharedAttempts", tableName: table)
-                    } header: { Text("cityNeutral.frozen", tableName: table) }
-                }
-                if value.tasks.isEmpty && value.status != "JOIN_REQUIRED" { Text("cityNeutral.noTasks", tableName: table) }
-                ForEach(value.tasks) { task in
-                    Section {
-                        row("cityNeutral.task", task.id)
-                        Text(verbatim: task.definition.question)
-                        Text(LocalizedStringKey("cityNeutral.taskStatus." + task.status), tableName: table)
-                        row("cityNeutral.attempts", "\(task.attempts) / \(task.definition.maxAttempts)")
-                        if task.status == "NOT_ACCEPTED" {
-                            Button { controller.prepare(task) } label: { Text("cityNeutral.accept", tableName: table) }.disabled(!controller.allows(task))
-                        } else if task.status == "ACTIVE" {
-                            Picker(selection: Binding(get: { selections[task.id] ?? "" }, set: { selections[task.id] = $0; controller.cancelConfirmation() })) {
-                                Text("cityNeutral.chooseOption", tableName: table).tag("")
-                                ForEach(task.definition.options) { option in Text(verbatim: option.label).tag(option.id) }
-                            } label: { Text("cityNeutral.answer", tableName: table) }
-                            .disabled(!controller.allows(task))
-                            Button { controller.prepare(task, optionID: selections[task.id]) } label: { Text("cityNeutral.submit", tableName: table) }
-                                .disabled(!controller.allows(task) || !task.definition.options.contains(where: { $0.id == selections[task.id] }))
-                        }
-                        if let result = task.result {
-                            row("cityNeutral.result", result.resultId)
-                            row("cityNeutral.request", result.requestId)
-                            row("cityNeutral.completedAt", result.createdAt)
-                            Text("cityNeutral.resultBoundary", tableName: table)
-                        }
-                    } header: { Text(verbatim: task.definition.title) }
-                }
-            }
-            if controller.current, scenePhase == .active, let id = controller.pendingRequestID {
-                Section {
-                    row("cityNeutral.request", id.uuidString)
-                    Text("cityNeutral.pendingHint", tableName: table)
-                    Button { Task { await controller.recover() } } label: { Text("cityNeutral.recover", tableName: table) }.disabled(controller.busy || !controller.current)
-                }
-            }
-            if controller.current, scenePhase == .active, let receipt = controller.receipt {
-                Section {
-                    row("cityNeutral.request", receipt.requestId)
-                    Text(LocalizedStringKey(receipt.succeeded ? "cityNeutral.receiptRecorded" : "cityNeutral.receiptRejected"), tableName: table)
-                    if receipt.task != nil {
-                        Button { originalResult = controller.makeResultRecoveryController() } label: {
-                            Text("cityNeutralResult.open", tableName: "CityNeutralTaskResultRecovery")
-                        }.accessibilityIdentifier("cityNeutral.result.open")
-                    }
-                }
-            }
-        }.cyGroupedSurface()
+        let live = controller.current && scenePhase == .active
+        CityNeutralTaskContent(
+            snapshot: live ? controller.snapshot : nil, messageKey: controller.messageKey, busy: controller.busy,
+            pendingRequestID: live ? controller.pendingRequestID : nil, receipt: live ? controller.receipt : nil,
+            allows: { controller.allows($0) }, selections: $selections,
+            reload: { selections = [:]; Task { await controller.load() } },
+            accept: { controller.prepare($0) }, submit: { controller.prepare($0, optionID: selections[$0.id]) },
+            selectionChanged: { controller.cancelConfirmation() },
+            recover: { Task { await controller.recover() } }, canRecover: !controller.busy && controller.current,
+            openResult: { originalResult = controller.makeResultRecoveryController() })
         .navigationTitle(Text("cityNeutral.title", tableName: table))
         .accessibilityIdentifier("cityNeutral.screen")
         .task { await controller.load() }
@@ -115,4 +59,81 @@ import SwiftUI
         }
     }
     private func row(_ key: String, _ value: String) -> some View { LabeledContent { Text(verbatim: value).textSelection(.enabled) } label: { Text(LocalizedStringKey(key), tableName: table) } }
+}
+
+struct CityNeutralTaskContent: View {
+    let snapshot: CityNeutralTaskSnapshot?
+    let messageKey: String
+    let busy: Bool
+    let pendingRequestID: UUID?
+    let receipt: CityNeutralTaskReceipt?
+    let allows: (CityNeutralTask) -> Bool
+    @Binding var selections: [String: String]
+    let reload: () -> Void
+    let accept: (CityNeutralTask) -> Void
+    let submit: (CityNeutralTask) -> Void
+    let selectionChanged: () -> Void
+    let recover: () -> Void
+    let canRecover: Bool
+    let openResult: () -> Void
+    private let table = "CityNeutralTask"
+    @Environment(\.locale) private var locale
+    var body: some View {
+        CYCardPage {
+            CYArtCoverHeader(title: Text("cityNeutral.title", tableName: table), subtitle: Text("cityNeutral.boundary", tableName: table),
+                             symbol: "checklist", seed: "neutral") { EmptyView() }
+        } content: {
+            CYNoteBanner(text: Text(LocalizedStringKey(messageKey), tableName: table), symbol: busy ? "hourglass" : "info.circle")
+                .accessibilityIdentifier("cityNeutral.status")
+            if let value = snapshot {
+                if value.status == "JOIN_REQUIRED" { CYNoteBanner(text: Text("cityNeutral.joinRequired", tableName: table), symbol: "person.badge.plus") }
+                if value.status == "TEAM_NOT_READY" { CYNoteBanner(text: Text("cityNeutral.teamNotReady", tableName: table), symbol: "person.2.slash") }
+                if value.tasks.isEmpty && value.status != "JOIN_REQUIRED" {
+                    CYEmptyState(systemImage: "checklist", "cityNeutral.noTasks", tableName: table)
+                }
+                ForEach(value.tasks) { task in
+                    CityTaskCard(
+                        title: task.definition.title, question: task.definition.question, status: task.status,
+                        statusText: Text(LocalizedStringKey("cityNeutral.taskStatus." + task.status), tableName: table),
+                        attempts: task.attempts, maxAttempts: task.definition.maxAttempts,
+                        options: task.definition.options.map { .init(id: $0.id, label: $0.label) },
+                        selection: Binding(get: { selections[task.id] ?? "" }, set: { selections[task.id] = $0; selectionChanged() }),
+                        table: table, enabled: allows(task), note: task.status == "ACTIVE" ? Text("cityNeutral.sharedAttempts", tableName: table) : nil,
+                        resultNote: task.result == nil ? nil : Text("cityNeutral.resultBoundary", tableName: table),
+                        details: task.result.map { [(Text("cityNeutral.result", tableName: table), $0.resultId), (Text("cityNeutral.request", tableName: table), $0.requestId),
+                                                    (Text("cityNeutral.completedAt", tableName: table), $0.createdAt)] } ?? [],
+                        accept: { accept(task) }, submit: { submit(task) })
+                }
+                if let binding = value.binding {
+                    CYInfoCard {
+                        CYDetailsDisclosure(title: Text("cityNeutral.frozen", tableName: table)) {
+                            CYFactRow(label: Text("cityNeutral.release", tableName: table), value: binding.rulesReleaseId)
+                            CYFactRow(label: Text("cityNeutral.round", tableName: table), value: binding.rules.roundId)
+                            if let team = value.teamId { CYFactRow(label: Text("cityNeutral.team", tableName: table), value: team) }
+                            if let session = value.sessionId { CYFactRow(label: Text("cityNeutral.session", tableName: table), value: session) }
+                        }
+                    }
+                }
+            }
+            if let id = pendingRequestID {
+                CYInfoCard(title: Text("cityNeutral.pendingHint", tableName: table), symbol: "clock.badge.questionmark") {
+                    CYFactRow(label: Text("cityNeutral.request", tableName: table), value: id.uuidString)
+                    CYPillButton(LocalizedStringKey("cityNeutral.recover"), tableName: table, action: recover).disabled(!canRecover)
+                }
+            }
+            if let receipt {
+                CYInfoCard(title: Text(LocalizedStringKey(receipt.succeeded ? "cityNeutral.receiptRecorded" : "cityNeutral.receiptRejected"), tableName: table),
+                           symbol: receipt.succeeded ? "checkmark.seal.fill" : "xmark.octagon.fill") {
+                    CYFactRow(label: Text("cityNeutral.request", tableName: table), value: receipt.requestId)
+                    if receipt.task != nil {
+                        CYPillButton(LocalizedStringKey("cityNeutralResult.open"), style: .secondary, tableName: "CityNeutralTaskResultRecovery", action: openResult)
+                            .accessibilityIdentifier("cityNeutral.result.open")
+                    }
+                }
+            }
+            if snapshot != nil {
+                CYPillButton(LocalizedStringKey("cityNeutral.reload"), style: .tertiary, systemImage: "arrow.clockwise", tableName: table, action: reload).disabled(busy)
+            }
+        }
+    }
 }

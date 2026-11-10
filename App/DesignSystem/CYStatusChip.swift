@@ -10,6 +10,7 @@ struct CYStatusChip: View {
     private let systemImage: String?
 
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     init(_ text: LocalizedStringKey, tone: CYStatusTone = .neutral, systemImage: String? = nil) {
         self.text = text
@@ -38,7 +39,10 @@ struct CYStatusChip: View {
         .padding(.horizontal, CYSpacing.md)
         .padding(.vertical, CYSpacing.xs + 1)
         .background(Capsule(style: .continuous).fill(background))
-        .lineLimit(1)
+        // Accessibility sizes may wrap to a second line instead of truncating a status word.
+        .lineLimit(typeSize.isAccessibilitySize ? 3 : 1)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
     }
 
     private var foreground: Color {

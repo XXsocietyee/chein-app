@@ -16,7 +16,11 @@ enum E3Fixtures {
         case "e3-social": return wrap(SocialAccountFixtureHostView())
         case "e3-coop": return wrap(CooperationFixtureHostView())
         case "e3-club-community": return wrap(ClubCommunityFixtureRoot())
-        case "e3-club-detail": return wrap(E3ClubDetailFixture())
+        case "e3-club-detail": return wrap(D4ClubFixture(.detail(owner: false)))
+        case "e3-club-detail-spec": return wrap(E3ClubDetailFixture())
+        case "e3-club-events": return wrap(D4ClubFixture(.tab(.events)))
+        case "e3-club-overview": return wrap(D4ClubFixture(.tab(.overview)))
+        case "e3-club-story": return wrap(ClubStoryFixtureHost())
         case "e3-club-apply": return wrap(E3ClubApplyFixture())
         case "e3-club-calendar": return wrap(E3ClubCalendarFixture())
         case "e3-club-feed": return wrap(E3ClubFeedFixture())
@@ -24,6 +28,9 @@ enum E3Fixtures {
         case "e3-invite": return wrap(E3InviteFixture())
         case "e3-notices": return wrap(E3NoticesFixture())
         case "e3-people": return wrap(E3PeopleFixture())
+        case "e3-real-friends": return wrap(E3RealFriendsHost())
+        case "e3-real-follow": return wrap(E3RealFollowHost())
+        case "e3-real-imcards": return wrap(E3RealIMCardsHost())
         default: return nil
         }
     }
@@ -31,354 +38,6 @@ enum E3Fixtures {
 }
 
 
-// Social surface kit (e3): player-dark cards, avatars, follow states, rich chat cards, month grid, post cards.
-// Presentation only: every view takes plain values / closures; no reads, writes or authority live here.
-// Motion is spring-based and gated on Reduce Motion; haptics use sensoryFeedback.
-
-/// Press feedback: a small spring scale, disabled under Reduce Motion.
-struct E3PressStyle: ButtonStyle {
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.96 : 1)
-            .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.7), value: configuration.isPressed)
-    }
-}
-
-struct E3Avatar: View {
-    let seed: String
-    var systemImage = "person.fill"
-    var size: CGFloat = 44
-    var body: some View {
-        CYIMCoverArt(seed: seed, systemImage: systemImage, symbolSize: size * 0.42)
-            .frame(width: size, height: size).clipShape(Circle())
-            .overlay(Circle().strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
-    }
-}
-
-/// Overlapped member avatars with an optional "+N" count (nil = unknown, shows nothing rather than 0).
-struct E3AvatarStack: View {
-    let seeds: [String]
-    var extra: Int? = nil
-    var size: CGFloat = 32
-    var body: some View {
-        HStack(spacing: -size * 0.32) {
-            ForEach(Array(seeds.enumerated()), id: \.offset) { i, seed in
-                E3Avatar(seed: seed, size: size)
-                    .overlay(Circle().strokeBorder(CYColor.bgPage, lineWidth: 2))
-                    .zIndex(Double(seeds.count - i))
-            }
-            if let extra, extra > 0 {
-                Text(verbatim: "+\(extra)").font(.caption.weight(.semibold)).monospacedDigit()
-                    .foregroundStyle(CYColor.textPrimary)
-                    .frame(width: size, height: size)
-                    .background(CYColor.bgRaised, in: Circle())
-                    .overlay(Circle().strokeBorder(CYColor.bgPage, lineWidth: 2))
-            }
-        }
-    }
-}
-
-enum E3FollowState { case follow, following, requested, mutual }
-
-/// Pill follow button: filled for the action, outlined when already following. 44pt hit area.
-struct E3FollowButton: View {
-    let state: E3FollowState
-    let title: String
-    let action: () -> Void
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 4) {
-                if state == .following || state == .mutual { Image(systemName: state == .mutual ? "arrow.left.arrow.right" : "checkmark").font(.caption.weight(.bold)) }
-                if state == .requested { Image(systemName: "clock").font(.caption.weight(.bold)) }
-                Text(verbatim: title).font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
-            }
-            .foregroundStyle(state == .follow ? CYColor.textInverse : CYColor.textPrimary)
-            .padding(.horizontal, CYSpacing.lg).frame(minHeight: 36)
-            .background(state == .follow ? AnyShapeStyle(CYColor.textPrimary) : AnyShapeStyle(Color.clear), in: Capsule())
-            .overlay(Capsule().strokeBorder(state == .follow ? Color.clear : CYColor.borderStrong, lineWidth: 1))
-            .frame(minHeight: 44).contentShape(Rectangle())
-        }
-        .buttonStyle(E3PressStyle())
-        .sensoryFeedback(.success, trigger: state)
-        .animation(reduceMotion ? nil : .snappy(duration: 0.25), value: state)
-    }
-}
-
-/// Avatar row for friends / followers: avatar, name + meta, trailing follow button.
-struct E3PersonRow: View {
-    let name: String
-    let meta: String
-    let seed: String
-    let state: E3FollowState
-    let actionTitle: String
-    let action: () -> Void
-    @Environment(\.dynamicTypeSize) private var typeSize
-    var body: some View {
-        let text = VStack(alignment: .leading, spacing: 2) {
-            Text(verbatim: name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-            Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
-        }
-        // At accessibility sizes the follow button drops under the name so nothing truncates.
-        Group {
-            if typeSize.isAccessibilitySize {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    HStack(spacing: CYSpacing.md) { E3Avatar(seed: seed, size: 48); text }
-                    E3FollowButton(state: state, title: actionTitle, action: action)
-                }
-            } else {
-                HStack(spacing: CYSpacing.md) {
-                    E3Avatar(seed: seed, size: 48)
-                    text
-                    Spacer(minLength: CYSpacing.sm)
-                    E3FollowButton(state: state, title: actionTitle, action: action)
-                }
-            }
-        }
-        .padding(.vertical, CYSpacing.sm)
-        .accessibilityElement(children: .contain)
-    }
-}
-
-/// Notification row: tinted symbol tile, title, body, relative time, unread dot.
-struct E3NoticeRow: View {
-    let systemImage: String
-    let tint: Color
-    let title: String
-    let detail: String
-    let time: String
-    var unread = false
-    @Environment(\.dynamicTypeSize) private var typeSize
-    var body: some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
-        layout {
-            Image(systemName: systemImage).font(.body.weight(.semibold)).foregroundStyle(tint)
-                .frame(width: 44, height: 44).background(tint.opacity(0.16), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 3) {
-                Text(verbatim: title).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                Text(verbatim: detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
-            }
-            Spacer(minLength: 0)
-            if unread, !typeSize.isAccessibilitySize {
-                Circle().fill(CYChat.sent).frame(width: 9, height: 9).padding(.top, 6).accessibilityHidden(true)
-            }
-        }
-        .padding(.vertical, CYSpacing.sm)
-        .accessibilityElement(children: .combine)
-    }
-}
-
-// MARK: - Rich chat cards (bubble-width, received style or sent style)
-
-/// Location card: generated map tile, place name, address.
-struct E3LocationCard: View {
-    let place: String
-    let address: String
-    var isOwn = false
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ZStack {
-                LinearGradient(colors: [Color(red: 0.13, green: 0.30, blue: 0.27), Color(red: 0.07, green: 0.14, blue: 0.20)], startPoint: .topLeading, endPoint: .bottomTrailing)
-                Path { p in
-                    p.move(to: CGPoint(x: 0, y: 70)); p.addCurve(to: CGPoint(x: 260, y: 30), control1: CGPoint(x: 80, y: 20), control2: CGPoint(x: 160, y: 90))
-                    p.move(to: CGPoint(x: 40, y: 0)); p.addLine(to: CGPoint(x: 120, y: 120))
-                    p.move(to: CGPoint(x: 200, y: 0)); p.addLine(to: CGPoint(x: 170, y: 120))
-                }.stroke(Color.white.opacity(0.14), lineWidth: 6)
-                Image(systemName: "mappin.circle.fill").font(.system(size: 34)).foregroundStyle(.white, Color.red)
-                    .symbolRenderingMode(.palette)
-            }
-            .frame(height: 96).clipped().accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: place).font(CYTypography.bodyMedium).lineLimit(2)
-                Text(verbatim: address).font(CYTypography.meta).opacity(0.72).lineLimit(2)
-            }.padding(CYSpacing.md)
-        }
-        .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
-        .frame(width: 240, alignment: .leading).background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// Voice message: play circle, static waveform, duration.
-struct E3VoiceCard: View {
-    let duration: String
-    var isOwn = false
-    var played = false
-    private let heights: [CGFloat] = [8, 14, 22, 12, 26, 18, 10, 24, 16, 28, 12, 20, 9, 15, 22, 11]
-    var body: some View {
-        HStack(spacing: CYSpacing.md) {
-            Image(systemName: "play.fill").font(.subheadline).foregroundStyle(isOwn ? CYChat.sent : CYColor.textInverse)
-                .frame(width: 36, height: 36).background(isOwn ? Color.white : CYColor.textPrimary, in: Circle())
-            HStack(spacing: 3) {
-                ForEach(Array(heights.enumerated()), id: \.offset) { i, h in
-                    Capsule().frame(width: 3, height: h).opacity(i < (played ? 16 : 6) ? 1 : 0.4)
-                }
-            }.frame(height: 30).accessibilityHidden(true)
-            Text(verbatim: duration).font(CYTypography.meta).monospacedDigit()
-        }
-        .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
-        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm + 2)
-        .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: Capsule())
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// File card: type tile, name, size.
-struct E3FileCard: View {
-    let name: String
-    let size: String
-    var kind = "doc.fill"
-    var isOwn = false
-    @Environment(\.dynamicTypeSize) private var typeSize
-    var body: some View {
-        let layout = typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.md))
-        layout {
-            Image(systemName: kind).font(.title3).foregroundStyle(isOwn ? CYChat.sent : CYColor.textInverse)
-                .frame(width: 44, height: 44).background(isOwn ? Color.white : CYColor.textPrimary, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(verbatim: name).font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true)
-                Text(verbatim: size).font(CYTypography.meta).opacity(0.72)
-            }
-            if !typeSize.isAccessibilitySize { Spacer(minLength: 0) }
-            Image(systemName: "arrow.down.circle").font(.title3).opacity(0.8)
-        }
-        .foregroundStyle(isOwn ? CYChat.onSent : CYColor.textPrimary)
-        .padding(CYSpacing.md).frame(maxWidth: 260)
-        .background(isOwn ? CYChat.sent : CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .accessibilityElement(children: .combine)
-    }
-}
-
-/// Video card: generated poster with play button and duration pill.
-struct E3VideoCard: View {
-    let seed: String
-    let duration: String
-    var body: some View {
-        ZStack {
-            CYIMCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
-            LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
-            Image(systemName: "play.fill").font(.title3).foregroundStyle(.white)
-                .frame(width: 52, height: 52).background(.black.opacity(0.45), in: Circle())
-                .overlay(Circle().strokeBorder(.white.opacity(0.5), lineWidth: 1))
-        }
-        .frame(width: 240, height: 150)
-        .overlay(alignment: .bottomTrailing) {
-            Text(verbatim: duration).font(.caption.weight(.semibold)).monospacedDigit().foregroundStyle(.white)
-                .padding(.horizontal, 8).padding(.vertical, 3).background(.black.opacity(0.55), in: Capsule()).padding(CYSpacing.sm)
-        }
-        .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .accessibilityElement(children: .combine)
-    }
-}
-
-// MARK: - Month grid (club calendar)
-
-struct E3MonthGrid: View {
-    let weekdays: [String]
-    let daysInMonth: Int
-    let firstWeekdayOffset: Int
-    let eventDays: Set<Int>
-    let today: Int
-    @Binding var selected: Int
-    @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    private var cells: [Int?] { Array(repeating: nil, count: firstWeekdayOffset) + (1...daysInMonth).map { Optional($0) } }
-    var body: some View {
-        let cols = Array(repeating: GridItem(.flexible(), spacing: 0), count: 7)
-        VStack(spacing: CYSpacing.sm) {
-            LazyVGrid(columns: cols, spacing: 0) {
-                ForEach(weekdays, id: \.self) { Text(verbatim: $0).font(.caption.weight(.medium)).foregroundStyle(CYColor.textTertiary).frame(maxWidth: .infinity) }
-            }
-            LazyVGrid(columns: cols, spacing: 4) {
-                ForEach(Array(cells.enumerated()), id: \.offset) { _, day in
-                    if let day {
-                        Button { withAnimation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.75)) { selected = day } } label: {
-                            VStack(spacing: 3) {
-                                Text(verbatim: "\(day)").font(.body.weight(selected == day || today == day ? .semibold : .regular)).monospacedDigit()
-                                    .foregroundStyle(selected == day ? CYColor.textInverse : (today == day ? CYChat.sent : CYColor.textPrimary))
-                                    .frame(width: 38, height: 38)
-                                    .background(selected == day ? AnyShapeStyle(CYColor.textPrimary) : AnyShapeStyle(Color.clear), in: Circle())
-                                Circle().fill(eventDays.contains(day) ? CYChat.sent : Color.clear).frame(width: 5, height: 5)
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 48).contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel(Text(verbatim: "\(day)" + (eventDays.contains(day) ? " •" : "")))
-                        .accessibilityAddTraits(selected == day ? .isSelected : [])
-                    } else { Color.clear.frame(height: 48) }
-                }
-            }
-        }
-        .sensoryFeedback(.selection, trigger: selected)
-    }
-}
-
-// MARK: - Post card (photo-led)
-
-struct E3PostCard: View {
-    let author: String
-    let club: String
-    let time: String
-    let text: String
-    let coverSeed: String
-    var coverSymbol = "photo.fill"
-    let likes: Int?
-    let comments: Int?
-    @State private var liked = false
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack(spacing: CYSpacing.sm) {
-                E3Avatar(seed: author, size: 36)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text(verbatim: author).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary)
-                    Text(verbatim: club + " · " + time).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1)
-                }
-                Spacer(minLength: 0)
-            }.padding(CYSpacing.md)
-            CYIMCoverArt(seed: coverSeed, systemImage: coverSymbol, symbolSize: 54)
-                .aspectRatio(4.0 / 3.0, contentMode: .fit).frame(maxWidth: .infinity).clipped()
-            Text(verbatim: text).font(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
-                .padding(.horizontal, CYSpacing.md).padding(.top, CYSpacing.md)
-            HStack(spacing: CYSpacing.xl) {
-                Button { liked.toggle() } label: {
-                    Label { Text(verbatim: count(likes)).monospacedDigit() } icon: { Image(systemName: liked ? "heart.fill" : "heart").symbolEffect(.bounce, value: liked) }
-                        .foregroundStyle(liked ? Color.red : CYColor.textSecondary)
-                }.buttonStyle(E3PressStyle()).sensoryFeedback(.impact(weight: .light), trigger: liked)
-                Label { Text(verbatim: count(comments)).monospacedDigit() } icon: { Image(systemName: "bubble.left") }.foregroundStyle(CYColor.textSecondary)
-                Spacer(minLength: 0)
-            }
-            .font(CYTypography.meta).padding(CYSpacing.md).frame(minHeight: 44)
-        }
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-        .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
-    }
-    /// Unknown counts show an em dash, never 0.
-    private func count(_ v: Int?) -> String { v.map(String.init) ?? "—" }
-}
-
-/// Section title used across social pages.
-struct E3SectionTitle: View {
-    let title: String
-    var trailing: String? = nil
-    var body: some View {
-        HStack {
-            Text(verbatim: title).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textPrimary).accessibilityAddTraits(.isHeader)
-            Spacer()
-            if let trailing { Text(verbatim: trailing).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-        }
-    }
-}
-
-/// Elevated card surface (#1C1C1E on #000), continuous 22 radius.
-extension View {
-    func e3Card(padding: CGFloat = CYSpacing.lg) -> some View {
-        self.padding(padding).frame(maxWidth: .infinity, alignment: .leading)
-            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 22, style: .continuous))
-    }
-}
 
 
 // DEBUG-only design fixtures for the social family. All people, clubs and posts are synthetic and generated
@@ -736,6 +395,93 @@ struct E3PeopleFixture: View {
     }
     private func title(_ s: E3FollowState, _ t: (String, String) -> String) -> String {
         switch s { case .follow: return t("关注", "Follow"); case .following: return t("已关注", "Following"); case .requested: return t("已申请", "Requested"); case .mutual: return t("互相关注", "Friends") }
+    }
+}
+#endif
+
+
+// MARK: - Fifth pass: hosts that reach the REAL production views with stub data (DEBUG only)
+
+@MainActor private final class E3FriendService: NativeFriendDirectoryServing {
+    let viewerID: Int64 = 2
+    var isCurrent: Bool { true }
+    private let names = ["Mina Chen", "Jun Park", "林小满", "Aiko Tanaka", "周末骑行队长", "Sam Rivera", "Noor Haddad", "陈一鸣"]
+    private func item(_ i: Int) -> [String: Any] {
+        ["peer_id": 100 + i, "nickname": names[i], "state": 1, "version": 3, "msg": "", "expires_at_ms": 0, "starred": i < 2 ? 1 : 0]
+    }
+    func page(filter: NativeFriendDirectoryFilter, cursor: String?) async throws -> NativeFriendDirectoryPage {
+        let json: [String: Any] = [
+            "viewer_id": 2, "section": filter.section.rawValue, "group_id": NSNull(), "starred_only": filter.starredOnly,
+            "revision": String(repeating: "a", count: 64),
+            "groups": ["viewer_id": 2, "list": [["id": NSNull(), "name": "default", "position": 0, "version": 0, "is_default": 1]]],
+            "counts": ["all": names.count, "recent": 4, "together": 3], "total": names.count,
+            "items": (0..<names.count).map(item), "has_more": false, "next_cursor": NSNull()]
+        return try JSONDecoder().decode(NativeFriendDirectoryPage.self, from: JSONSerialization.data(withJSONObject: json))
+    }
+    func detail(peerID: Int64) async throws -> NativeFriendDirectoryDetail { throw NativeFriendDirectoryFailure.unavailablePeer }
+}
+
+@MainActor struct E3RealFriendsHost: View {
+    @State private var flow = NativeFriendDirectoryFlow(service: E3FriendService())
+    var body: some View {
+        NavigationStack { NativeFriendDirectoryView(flow: flow, conversation: { _ in AnyView(EmptyView()) }) }
+    }
+}
+
+@MainActor private final class E3FollowReader: ProfileFollowListReading {
+    private let base = SocialAccountFixtureReader(.content)
+    let scope = UUID()
+    var isCurrent: Bool { true }
+    var identity: SocialAccountIdentity { base.identity }
+    var isConfigured: Bool { true }
+    var isOfflineExample: Bool { true }
+    func publicProfile(memberID: Int) async throws -> SocialPublicProfile { try await base.publicProfile(memberID: memberID) }
+    func informationList() async throws -> [SocialInformation] { [] }
+    func information(id: Int) async throws -> SocialInformation { try await base.information(id: id) }
+    func invitationHistory(page: Int) async throws -> SocialInviteHistory { try await base.invitationHistory(page: page) }
+    func makePublicProfileReader(memberID: Int, isCurrent: @escaping () -> Bool) -> ProfilePublicInfoReader? { nil }
+    func page(kind: ProfileFollowListKind, cursor: Int) async throws -> ProfileFollowListPage {
+        let names = ["Mina Chen", "Jun Park", "林小满", "Aiko Tanaka", "周末骑行队长", "Sam Rivera"]
+        let rows: [[String: Any]] = names.enumerated().map { i, n in
+            ["id": 201 + i, "nickname": n, "avatar": NSNull(), "isFollow": kind == .following ? true : i % 2 == 0] }
+        let json: [String: Any] = ["owner_id": 81, "kind": kind.rawValue, "rows": rows, "has_more": false, "next_cursor": NSNull()]
+        return try JSONDecoder().decode(ProfileFollowListPage.self, from: JSONSerialization.data(withJSONObject: json))
+    }
+}
+
+@MainActor struct E3RealFollowHost: View {
+    @State private var flow = ProfileFollowListFlow(reader: E3FollowReader())
+    var body: some View {
+        NavigationStack { ProfileFollowListView(flow: flow, squareReader: SquareFixtureReader()) }
+    }
+}
+
+/// Real IM card label views inside the real ChatMessageBubble (voice / file / video / location).
+@MainActor struct E3RealIMCardsHost: View {
+    private func decode<T: Decodable>(_ json: String) -> T { try! JSONDecoder().decode(T.self, from: Data(json.utf8)) }
+    var body: some View {
+        let voice: IMVoiceReference = decode(#"{"uploadRequestID":"00000000-0000-4000-8000-000000000001","assetID":7,"durationMS":23000,"waveform":"AQIDBAUGBwgJCgsMDQ4PEA==","size":4000}"#)
+        let file: IMFileReference = decode(#"{"uploadRequestID":"00000000-0000-4000-8000-000000000002","attachmentID":"9","name":"Saturday-route.pdf","size":2411724,"mime":"application/pdf","ext":"pdf","sha256":"\#(String(repeating: "a", count: 64))"}"#)
+        let video: IMVideoReference = decode(#"{"uploadRequestID":"00000000-0000-4000-8000-000000000003","attachmentID":"11","sha256":"\#(String(repeating: "b", count: 64))","coverSHA256":"\#(String(repeating: "c", count: 64))","size":5000000,"coverSize":90000,"durationMS":12000,"width":1080,"height":1920}"#)
+        let place = try! IMStaticLocation(name: "East Gate, Riverside Park", address: "1 Riverside Road", latitude: 31.23, longitude: 121.47, datum: "WGS84")
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: Theme.Space.s2) {
+                    row(false, .first) { IMStaticLocationCardView(place: place) }
+                    row(false, .middle) { IMVoiceCardLabel(reference: voice) }
+                    row(false, .last) { IMFileCardLabel(reference: file) }
+                    row(true, .first) { IMVideoCardLabel(reference: video) }
+                    row(true, .last) { Text(verbatim: "See you at the gate") }
+                }.padding(.horizontal, Theme.Space.s4)
+            }.navigationTitle(Text(verbatim: "Weekend walks")).navigationBarTitleDisplayMode(.inline)
+        }
+    }
+    private func row<C: View>(_ own: Bool, _ pos: ChatGroupPosition, @ViewBuilder _ c: @escaping () -> C) -> some View {
+        HStack(alignment: .bottom, spacing: Theme.Space.s2) {
+            if own { Spacer(minLength: 40) }
+            ChatMessageBubble(isOwn: own, timestamp: pos.showsTail ? "19:2\(pos == .first ? 1 : 4)" : nil, position: pos) { EmptyView() } content: { c() }
+            if !own { Spacer(minLength: 40) }
+        }
     }
 }
 #endif

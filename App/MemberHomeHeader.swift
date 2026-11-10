@@ -33,11 +33,12 @@ import SwiftUI
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
                     .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                     .background(CYColor.bgRaised, in: Capsule(style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
-                    HStack(spacing: 10) {
+                    (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
                         Label { city } icon: { Image(systemName: "mappin.and.ellipse") }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
@@ -93,7 +94,15 @@ import SwiftUI
             case .ready: EmptyView()
             }
             }
-            .padding(.vertical, CYSpacing.xs)
+            .padding(CYSpacing.lg)
+            .background {
+                ZStack {
+                    CYCoverArt(seed: "member-" + account.nickname, symbol: "person", showsDebugLabel: false, showsGlyph: false).opacity(0.38)
+                    LinearGradient(colors: [.clear, CYColor.bgElevated.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.1), lineWidth: 1))
+            }
         }
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
