@@ -107,3 +107,8 @@ Merged origin/ui/main (twice, conflict in MessagingHistoryView resolved: CYIMCov
 - Calendar: month/day date badge on each agenda cover, friendly empty-day state, header trait.
 - Follow list: state pill (check + outline when followed) instead of a bare circle icon; friend directory row shows nickname under a remark.
 - EN shots: launch arg `-preferences.language en` (design-batch list lines contain no backslashes).
+
+## Fifth pass, final batch (after machine restart; full rebuild OK)
+Merged origin/rc/20261108. 16 shots, one run: EN x8 (club detail, events, story, inbox, real friends, real follow, real IM cards, club apply/enroll), zh x4, AX-XL x4. Contact sheet: /Users/fanning/chengyin-refs/design-reports/e3/contact-211604.png.
+Verified: EN renders with `-AppleLanguages (en)` list lines. Inbox shows Today/Earlier sections + unread dot; friends rows with star; follow list with state pill; IM voice/file/video/location cards.
+Issues seen: at AX-XL the club-detail chip overlaps the member-count line and the IM file/video cards wrap tightly (cosmetic, same as before); inbox row at AX-XL stacks fine. Scores unchanged: club detail 8, inbox 8, friends 8, follow 8, IM cards 7, calendar 7, apply 7.
