@@ -27,3 +27,21 @@ Notes: most files already used kit tokens/components from earlier waves; this pa
 | App/SocialActionViews.swift | done: CYLoadingStateView (review sheet already CYPillButton/CYStatusChip; toolbar close/done stay toolbar items) |
 | App/SocialArticleContentView.swift | skipped: article text runs only, already tokenised, no controls/states |
 | App/SocialInviteHistoryView.swift | done: CYLoadingStateView x2 (rest already kit) |
+
+## Batch 4 (82-86)
+| File | Result |
+| --- | --- |
+| App/SocialMessageMediaView.swift | done: CYLoadingStateView (load pill/hero already kit) |
+| App/SocialPublicProfileView.swift | skipped: already kit (CYHeroHeader/CYStatusChip/CYPillButton), no remaining plain controls |
+| App/TeamCreateView.swift | done: CYLoadingStateView |
+| App/TeamOrientBoardView.swift | done: inline progress spinner given an accessibilityLabel; rest already kit |
+| App/TeamPageParityViews.swift | skipped: already kit (CYPillButton/CYStatusChip), no remaining plain controls |
+
+## Batch 5 (87-88, remainder)
+| File | Result |
+| --- | --- |
+| App/TeamReformFlowViews.swift | done: CYLoadingStateView x2, CYPillButton secondary for check-result x2, labelled busy spinner; destructive/toolbar buttons kept |
+| App/TicketWalletTeamView.swift | done: CYLoadingStateView; row button kept |
+
+## Summary
+22 files in range 67-88: 15 touched, 7 skipped (SessionClubPublicActivityListView, SessionTeamViews: no UI wrappers; PlayPlayerTeamStatusView, SocialArticleContentView, SocialPublicProfileView, TeamPageParityViews: already fully kit; OrdinaryIM counted as touched). No merchant-only files in the range. No new string keys (`docs/release/ui-strings-e4-tail3.json` is `[]`). No local builds.

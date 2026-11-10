@@ -178,7 +178,7 @@ struct TicketWalletTeamContext: Hashable {
                             .disabled(offeredPresentation == nil)
                     }
                 }
-                if model.loading { ProgressView("ticketTeam.loading") }
+                if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("ticketTeam.loading")) }
                 if model.loaded && model.rows.isEmpty && model.issue == nil {
                     CYEmptyState(systemImage: "person.3", "ticketTeam.empty", detail: "ticketTeam.emptyHint")
                 }

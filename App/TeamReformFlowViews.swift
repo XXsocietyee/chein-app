@@ -88,7 +88,7 @@ struct TeamReformSheetHost: View {
                 }
                 switch flow.phase {
                 case .closed: CYEmptyState(systemImage: "lock", "teamReform.unavailable", messageIdentifier: "teamReform.invite.unavailable")
-                case .loading: ProgressView("teamReform.loading")
+                case .loading: CYLoadingStateView(rows: 1).accessibilityLabel(Text("teamReform.loading"))
                 case .failed:
                     CYStatusChip("teamReform.invite.loadFailed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("teamReform.invite.loadFailed")
                     CYPillButton("action.retry", style: .secondary) { Task { await box.run { await $0.open() } } }
@@ -133,7 +133,7 @@ struct TeamReformSheetHost: View {
                     CYPillButton("teamReform.invite.send", systemImage: "paperplane") { Task { await box.run { await $0.send() } } }
                         .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.send")
                 }
-                if flow.busy { ProgressView() }
+                if flow.busy { ProgressView().accessibilityLabel(Text("teamReform.loading")) }
             }
             if batch.phase == .finished { summary(batch) }
         }
@@ -194,7 +194,7 @@ struct TeamReformSheetHost: View {
                 }
                 switch flow.phase {
                 case .closed: CYEmptyState(systemImage: "lock", "teamReform.unavailable", messageIdentifier: "teamReform.meeting.unavailable")
-                case .loading: ProgressView("teamReform.loading")
+                case .loading: CYLoadingStateView(rows: 1).accessibilityLabel(Text("teamReform.loading"))
                 case .notEligible: CYEmptyState(systemImage: "person.crop.circle.badge.xmark", "teamReform.meeting.notEligible", messageIdentifier: "teamReform.meeting.notEligible")
                 case .failed:
                     CYStatusChip("teamReform.meeting.loadFailed", tone: .danger, systemImage: "exclamationmark.triangle")
@@ -224,7 +224,7 @@ struct TeamReformSheetHost: View {
                 if flow.cancelCase == .sentUnknown {
                     Text(verbatim: "确认已发出但结果未知，不能重发。请查原请求。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.sentUnknown")
                 }
-                Button("teamReform.meeting.checkResult") { Task { await box.run { await $0.readBackConfirmation() } } }
+                CYPillButton("teamReform.meeting.checkResult", style: .secondary) { Task { await box.run { await $0.readBackConfirmation() } } }
                     .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")
             case .met:
                 CYStatusChip("teamReform.meeting.met", tone: .success, systemImage: "checkmark.seal").accessibilityIdentifier("teamReform.meeting.met")
@@ -262,7 +262,7 @@ struct TeamReformSheetHost: View {
         }
         Text("teamReform.meeting.scannerNotWired").font(.footnote).foregroundStyle(.secondary)
         if flow.blocksResend {
-            Button("teamReform.meeting.checkResult") { Task { await box.run { await $0.readBackConfirmation() } } }
+            CYPillButton("teamReform.meeting.checkResult", style: .secondary) { Task { await box.run { await $0.readBackConfirmation() } } }
                 .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")
         } else if let simulatedPeerCode {
             Button("teamReform.meeting.simulateScan") {
