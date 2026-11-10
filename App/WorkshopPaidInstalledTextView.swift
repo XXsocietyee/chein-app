@@ -23,7 +23,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
             presentation.open(makeReference: makeReference, makeController: makeController)
         } label: { Label { paidText("entry") } icon: { Image(systemName: "doc.text.magnifyingglass") } }
         .accessibilityIdentifier("workshopPaidInstalledText.entry")
-        if presentation.unavailable { paidText("notConfigured").font(.footnote).fixedSize(horizontal: false, vertical: true) }
+        if presentation.unavailable { paidText("notConfigured").font(CYTypography.meta).fixedSize(horizontal: false, vertical: true) }
         Color.clear.frame(height: 0)
             .sheet(item: presented) { captured in
                 WorkshopPaidInstalledTextView(controller: captured.controller, appearance: captured.appearance) {
@@ -51,7 +51,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 } else if controller.phase == .invalidated {
                     paidText(controller.issue == .disabled ? "notConfigured" : "sessionChanged")
                 } else if controller.phase == .loading {
-                    ProgressView { paidText("loading") }
+                    CYSkeletonBlock(height: 18).accessibilityLabel(paidText("loading"))
                 } else if let content = controller.content {
                     Section {
                         paidFact("version", content.version)
@@ -92,7 +92,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 } else if controller.phase == .unavailable {
                     Section {
                         paidText(controller.issue == .disabled ? "notConfigured" : "unavailable").fixedSize(horizontal: false, vertical: true)
-                        Button { schedule(controller.offerReload(displayed)) } label: { paidText("retry") }
+                        Button { schedule(controller.offerReload(displayed)) } label: { paidText("retry") }.buttonStyle(CYPillButtonStyle(style: .secondary))
                             .accessibilityIdentifier("workshopPaidInstalledText.retry")
                     }
                 }

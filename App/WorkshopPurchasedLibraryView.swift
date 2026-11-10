@@ -32,21 +32,21 @@ struct WorkshopPurchasedAccountLink: View {
         let rendered = displayed.permit
         List {
             switch browser.phase {
-            case .idle, .loading: ProgressView { purchasedText("loading") }
+            case .idle, .loading: CYSkeletonBlock(height: 18).accessibilityLabel(purchasedText("loading"))
             case .notEnabled: PurchasedUnavailableView()
             case .empty: purchasedText("empty")
             case .failed, .invalidated:
                 purchasedText(browser.phase == .invalidated ? "sessionChanged" : "failed")
-                if browser.phase != .invalidated { Button { navigation.scheduleList(rendered) } label: { purchasedText("retry") } }
+                if browser.phase != .invalidated { Button { navigation.scheduleList(rendered) } label: { purchasedText("retry") }.buttonStyle(CYPillButtonStyle(style: .secondary)) }
             case .ready:
                 if browser.issue == .unavailable { purchasedText("failed") }
                 ForEach(browser.rows) { item in
                     Button { navigation.select(licenseId: item.id, presentation: rendered) } label: {
                         VStack(alignment: .leading, spacing: 6) {
-                            Text(verbatim: item.moduleId).font(.headline)
-                            Text(verbatim: item.purchasedVersionId).font(.caption)
+                            Text(verbatim: item.moduleId).font(CYTypography.cardTitle)
+                            Text(verbatim: item.purchasedVersionId).font(CYTypography.meta)
                             purchasedText("status." + item.status.rawValue)
-                            purchasedText("perpetual").font(.caption)
+                            purchasedText("perpetual").font(CYTypography.meta)
                         }.fixedSize(horizontal: false, vertical: true)
                     }.accessibilityIdentifier("workshopPurchased.row." + item.id)
                 }
@@ -91,7 +91,7 @@ struct WorkshopPurchasedAccountLink: View {
         let displayed = navigation.detailAppearance
         let rendered = displayed.permit
         Form {
-            if browser.detailLoading { ProgressView { purchasedText("loading") } }
+            if browser.detailLoading { CYSkeletonBlock(height: 18).accessibilityLabel(purchasedText("loading")) }
             else if let detail = browser.detail, detail.item.id == licenseId {
                 let item = detail.item
                 Section {
@@ -99,7 +99,7 @@ struct WorkshopPurchasedAccountLink: View {
                     PurchasedFact("version", item.purchasedVersionId)
                     purchasedText("status." + item.status.rawValue).accessibilityIdentifier("workshopPurchased.status")
                     PurchasedFact("acquiredAt", item.acquiredAt); PurchasedFact("checkedAt", detail.checkedAt)
-                    purchasedText("perpetual").font(.headline)
+                    purchasedText("perpetual").font(CYTypography.cardTitle)
                     purchasedText("durationScope").fixedSize(horizontal: false, vertical: true)
                 } header: { purchasedText("record") }
                 Section {
@@ -118,7 +118,7 @@ struct WorkshopPurchasedAccountLink: View {
                 if let handlers = makeUpgrade() { WorkshopPurchasedUpgradeEntry(item: item, handlers: handlers) }
             } else if let issue = browser.detailIssue {
                 purchasedText(issue == .staleSession ? "sessionChanged" : issue == .notFound ? "notFound" : "failed")
-                if issue != .staleSession { Button { navigation.scheduleDetail(rendered, licenseId: licenseId) } label: { purchasedText("retry") } }
+                if issue != .staleSession { Button { navigation.scheduleDetail(rendered, licenseId: licenseId) } label: { purchasedText("retry") }.buttonStyle(CYPillButtonStyle(style: .secondary)) }
             }
         }
         .modifier(PurchasedTitle("detail"))
