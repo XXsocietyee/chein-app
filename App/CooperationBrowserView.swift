@@ -25,6 +25,8 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             CooperationReadScreen(reader: reader, resource: "inbox.\(direction.rawValue)", operation: { try await reader.inbox(direction: direction) }) { snapshot in
+                let listPage = CoopListPageCoordinator.project(direction: direction, canRead: reader.isConfigured && reader.isAuthenticated,
+                                                               inbox: .success(snapshot), canComposeInvite: peerReader != nil, canReadFlowLegs: peerReader != nil)
                 Section {
                     Picker("cooperation.direction", selection: $direction) {
                         Text("cooperation.received").tag(CooperationDirection.received)
@@ -34,7 +36,7 @@ import SwiftUI
                         CooperationPoolView(reader: reader)
                     } label: { Label("cooperation.pool.title", systemImage: "rectangle.stack") }
                         .accessibilityIdentifier("cooperation.pool.open")
-                    if let peerReader {
+                    if let peerReader, listPage.showsNewInvite {
                         NavigationLink { CoopFlowNewInvitationView(reader: peerReader, operationScope: operationScope) } label: {
                             Label("cooperation.list.newInvite", systemImage: "plus.circle")
                         }.accessibilityIdentifier("cooperation.list.newInvite")
@@ -47,7 +49,9 @@ import SwiftUI
                         .accessibilityIdentifier("cooperation.partial")
                 }
                 invitationSection(snapshot.invitations, direction: snapshot.direction)
+                    .accessibilityValue(Text(verbatim: listPage.invitationCountText))
                 applicationSection(snapshot.applications, direction: snapshot.direction, sentInvites: { () -> [CooperationInvite] in if case .content(let list) = snapshot.invitations { return list.sent }; return [] }())
+                    .accessibilityValue(Text(verbatim: listPage.applicationCountText))
                 if let registrations = snapshot.registrations { registrationSection(registrations) }
                 if direction == .received, let peerReader { CoopOfficialInviteSection(reader: peerReader) }
                 Section { CooperationReadOnlyNotice() }
