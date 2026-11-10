@@ -5,17 +5,48 @@ import SwiftUI
     @EnvironmentObject private var session: AppSession
     @Bindable var owner: CityNeutralTaskRuntimeOwner
     let revision: UInt64
+    private let table = "CityNeutralTask"
+
     var body: some View {
         Group {
             if owner.isCurrent, let controller = owner.controller {
                 CityNeutralTaskView(controller: controller)
             } else {
-                Text("cityNeutral.status.disabled", tableName: "CityNeutralTask")
+                unavailable
             }
         }
         .onAppear { owner.synchronize() }
         .onChange(of: session.currentRuntimeDependencyContext) { _, _ in owner.synchronize() }
         .onChange(of: revision) { _, _ in owner.synchronize() }
         // Child handles foreground/disappearance. Retiring here would incorrectly destroy original-result navigation.
+    }
+
+    /// Approval is missing. One hero title, the existing disabled copy, no second bar title.
+    private var unavailable: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                CYHeroHeader("cityNeutral.title", subtitle: "cityNeutral.status.disabled", tableName: table) {
+                    Cloud07Cover(seed: "city-neutral-unavailable", symbol: "checklist")
+                }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.xxl)
+        }
+        .cyDomainPageBackground()
+    }
+}
+
+/// Generated cover for a screen with no photo. Height follows width, never a fixed text box.
+struct Cloud07Cover: View {
+    let seed: String
+    let symbol: String
+    var body: some View {
+        Color.clear
+            .aspectRatio(16.0 / 9.0, contentMode: .fit)
+            .overlay {
+                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.lg)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityHidden(true)
     }
 }

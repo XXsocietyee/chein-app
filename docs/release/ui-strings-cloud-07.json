@@ -1,0 +1,14 @@
+[
+  {
+    "key": "原参与请求已完成。",
+    "table": "Localizable",
+    "en": "The original participation request is complete.",
+    "zh-Hans": "原参与请求已完成。"
+  },
+  {
+    "key": "原参与请求未获接受。",
+    "table": "Localizable",
+    "en": "The original participation request was not accepted.",
+    "zh-Hans": "原参与请求未获接受。"
+  }
+]
