@@ -14,7 +14,7 @@ Most audited files were already compliant (icon-only buttons labelled, decorativ
 | ModVenueOperationsView | Busy `ProgressView` labelled (inline zh/en) |
 | ModInstallationTemplateEditorView | Field titles `.isHeader` |
 | NativeNotificationPermissionNudgeView | Status headline `.isHeader` |
-| NativeProgressPrivacyView | Loading/saving `ProgressView` labelled (new key `a11y.am.loading`) |
+| NativeProgressPrivacyView | Loading/saving `ProgressView` labelled (reuses `objects.loading`, no new key) |
 | NativeRpgResourceAuthorView | Resource name + group headings `.isHeader` |
 | NativeSharedRecoveryAuthorView | "恢复方式 N" heading `.isHeader` |
 
@@ -26,4 +26,4 @@ Remaining 18 audited files (Native*Author*, NearbyMapDiscovery, Cooperation, etc
 150 files, list = `tail-AM.txt` minus the 30 above.
 
 ## Strings
-New: `docs/release/ui-strings-a11y-AM.json` (table `A11yAM`, 1 key). Needs merging into `Resources/A11yAM.xcstrings` (not UI-owned).
+No new strings: the loading label reuses existing `objects.loading` (Localizable; EN "Loading" / zh "加载中").

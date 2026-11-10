@@ -10,6 +10,7 @@ import SwiftUI
     let viewerRevision: UInt64
     let isLeaderboard: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @Environment(\.themeDomain) private var domain
     @State private var mode: ClubPublicRosterMode
     @State private var snapshot: ClubPublicRosterSnapshot?
@@ -55,7 +56,7 @@ import SwiftUI
             if !reader.clubIdentity.isSignedIn {
                 CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.signInRequired")
             } else if source?.authorization == nil {
-                CYEmptyState(systemImage: "lock", "club.publicRoster.unavailable", tableName: "ClubPublicRoster")
+                CYEmptyState(systemImage: "lock", LocalizedStringKey("club.publicRoster.unavailable"), tableName: "ClubPublicRoster")
             } else {
                 List {
                     CYHeroHeader(LocalizedStringKey(isLeaderboard ? "club.detail.leaderboard.title" : "club.members"))
@@ -73,7 +74,7 @@ import SwiftUI
                     }
                     if loading { ProgressView("club.loading") }
                     if failed {
-                        CYStatusChip(verbatim: String(localized: "club.publicRoster.revoked", table: "ClubPublicRoster"), tone: .danger, systemImage: "exclamationmark.triangle")
+                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("club.publicRoster.revoked", table: "ClubPublicRoster", locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle")
                             .accessibilityIdentifier("club.publicRoster.error")
                         CYPillButton("action.retry", style: .secondary) { Task { await load() } }
                             .disabled(loading)

@@ -3,6 +3,7 @@ import SwiftUI
 /// Explicit source-only current snapshot host, not a navigation/action permission or geodetic renderer.
 @MainActor struct CityCurrentSnapshotView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @EnvironmentObject private var session: AppSession
     @Bindable var model: CityCurrentSnapshotPresentation
     var body: some View {
@@ -78,15 +79,15 @@ import SwiftUI
             .accessibilityIdentifier("city.currentSnapshot.refresh")
     }
     private func availability(_ value: String) -> String {
-        switch value { case "AVAILABLE": String(localized: "可用"); case "PAUSED": String(localized: "已暂停"); default: String(localized: "不可用") }
+        switch value { case "AVAILABLE": appLocalized("可用", locale: locale); case "PAUSED": appLocalized("已暂停", locale: locale); default: appLocalized("不可用", locale: locale) }
     }
     private func ownership(_ value: String) -> String {
         switch value {
-        case "UNOWNED": String(localized: "尚无归属")
-        case "OUR_TEAM": String(localized: "本队")
-        case "OTHER_TEAM": String(localized: "其他队伍")
-        case "RETAINED_REVIEW": String(localized: "保留审核")
-        default: String(localized: "尚未核定")
+        case "UNOWNED": appLocalized("尚无归属", locale: locale)
+        case "OUR_TEAM": appLocalized("本队", locale: locale)
+        case "OTHER_TEAM": appLocalized("其他队伍", locale: locale)
+        case "RETAINED_REVIEW": appLocalized("保留审核", locale: locale)
+        default: appLocalized("尚未核定", locale: locale)
         }
     }
 }

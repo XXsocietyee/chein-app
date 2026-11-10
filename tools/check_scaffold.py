@@ -183,7 +183,7 @@ validate_bilingual_catalog(catalog,'Localizable')
 ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 # Every dot-separated UI string is a localized key except explicit accessibility/storage IDs.
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
-localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier|messageIdentifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
+localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier|messageIdentifier|actionIdentifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'(?:confirmIdentifier|icon|submitID):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'(?<![\w.])id:\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)

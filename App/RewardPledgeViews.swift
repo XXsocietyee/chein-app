@@ -1090,6 +1090,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
 }
 
 @MainActor public struct RewardPledgeClaimView: View {
+    @Environment(\.locale) private var locale
     @ObservedObject var model: RewardPledgeModel
     var entry: RewardPledgeEntry?
     @State private var caseReason = ""
@@ -1102,7 +1103,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
 
     public var body: some View {
         Form {
-            CYHeroHeader(verbatim: String(localized: "rewards.pledge.title", defaultValue: "Reward pledges"))
+            CYHeroHeader(verbatim: String(localized: LocalizedStringResource("rewards.pledge.title", defaultValue: "Reward pledges", table: "Localizable", locale: locale)))
                 .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if entry?.current()?.read != true && entry?.current()?.catalog != true {
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")

@@ -185,6 +185,7 @@ struct NearbyMapDiscoveryInput: Equatable {
 }
 
 struct NearbyMapDiscoveryControls: View {
+    @Environment(\.locale) private var locale
     @Binding var filter: NearbyMapDiscoveryFilter
     let items: [RoamMapItem]
     var body: some View {
@@ -207,7 +208,7 @@ struct NearbyMapDiscoveryControls: View {
                 } else {
                     HStack {
                         Text(verbatim: filter.tag)
-                        CYPillButton("nearby.map.allTags", style: .secondary, fullWidth: false, tableName: "NearbyMapDiscovery") { filter.tag = "" }
+                        CYPillButton(verbatim: String(localized: LocalizedStringResource("nearby.map.allTags", table: "NearbyMapDiscovery", locale: locale)), style: .secondary, fullWidth: false) { filter.tag = "" }
                     }
                     Text("nearby.map.selectedCondition", tableName: "NearbyMapDiscovery").font(.caption)
                 }

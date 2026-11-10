@@ -12,6 +12,7 @@ import SwiftUI
 /// Host supplies an account-scoped coordinator and optional manual map context. No device-location APIs.
 @MainActor struct NearbyTeamsView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State private var ownedReadVisible = false
     @State private var ownedReadVisit = UUID()
     @StateObject private var discovery = NearbyMapDiscoveryModel()
@@ -101,7 +102,7 @@ import SwiftUI
                     if discoverySources != nil, discoveryFilter.layer != .team, discoveryItems.isEmpty,
                        discovery.placesPhase == .loaded,
                        discoveryFilter.layer == .shop || discovery.eventsPhase == .loaded {
-                        CYEmptyState(systemImage: "map", "nearby.map.empty", tableName: "NearbyMapDiscovery", messageIdentifier: "nearby.discovery.empty")
+                        CYEmptyState(systemImage: "map", LocalizedStringKey("nearby.map.empty"), tableName: "NearbyMapDiscovery", messageIdentifier: "nearby.discovery.empty")
                     }
                     NearbyTeamCornerBar(radius: displayedRadius,
                                         mineCount: joinedTeamsStatus.isLoaded ? NearbyTeamBridge.activeCount(NearbyTeamBridge.myRows(joined: joinedTeams, applications: coordinator.myApplications)) : 0) { tab = 1 }
@@ -293,7 +294,7 @@ import SwiftUI
             switch team.mode {
             case "leader":
                 Text("nearby.w208.leaderSub \(team.joinedCount) \(team.maxMembers) \(NearbyTeamPresentation.remainingSeats(team))").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-                CYPillButton(verbatim: String(localized: "nearby.applicants") + " · \(team.pendingCount)", style: .secondary, systemImage: "person.badge.plus") { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } }
+                CYPillButton(verbatim: String(localized: LocalizedStringResource("nearby.applicants", table: "Localizable", locale: locale)) + " · \(team.pendingCount)", style: .secondary, systemImage: "person.badge.plus") { Task { await model.run { await coordinator.loadApplicants(teamID: team.id) } } }
                     .disabled(model.running)
             case "joined": routeButton("nearby.enter", destination: .team(team.id))
             case "pending": expiry(team.applyExpireTime); actionButton(.withdraw(team.id))

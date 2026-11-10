@@ -3,6 +3,7 @@ import SwiftUI
 /// Mini pages/club/event-ops hub. It only orders existing governance reads; each pushed
 /// read re-checks access/me and owns its own writes, review/confirm and return reads.
 @MainActor struct ClubOpsEventView: View {
+    @Environment(\.locale) private var locale
     let scope: ClubGovernanceScope
     let identity: ClubReadIdentity?
     let access: any ClubGovernanceAccess
@@ -52,7 +53,7 @@ import SwiftUI
         case .occurrence:
             Section {
                 if model.rosterHiddenForManager {
-                    CYStatusChip(verbatim: String(localized: "clubOpsEvent.roster.hidden", table: "ClubOpsEvent"), tone: .neutral, systemImage: "eye.slash").accessibilityIdentifier("clubOpsEvent.roster.hidden")
+                    CYStatusChip(verbatim: String(localized: LocalizedStringResource("clubOpsEvent.roster.hidden", table: "ClubOpsEvent", locale: locale)), tone: .neutral, systemImage: "eye.slash").accessibilityIdentifier("clubOpsEvent.roster.hidden")
                 }
                 push(.occurrenceStatus, eventScope) {
                     VStack(alignment: .leading, spacing: 2) {

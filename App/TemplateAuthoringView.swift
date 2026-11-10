@@ -445,12 +445,13 @@ struct TemplateAuthoringReviewView: View {
 }
 
 @MainActor struct TemplateAuthoringPreviewView: View {
+    @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     let draft: TemplateAuthoringDraft
     @Environment(\.templateConfiguredRehearsals) private var configuredRehearsals
     var body: some View {
         List {
-            Section { CYHeroHeader(verbatim: draft.title.isEmpty ? String(localized: "templateAuthor.preview") : draft.title, subtitle: draft.description.isEmpty ? nil : draft.description) }.e1HeroRow()
+            Section { CYHeroHeader(verbatim: draft.title.isEmpty ? String(localized: LocalizedStringResource("templateAuthor.preview", table: "Localizable", locale: locale)) : draft.title, subtitle: draft.description.isEmpty ? nil : draft.description) }.e1HeroRow()
             Section("templateAuthor.finish") {
                 Text(LocalizedStringKey(draft.validationMethod.labelKey))
                 if draft.validationMethod.rawValue == 7 {
