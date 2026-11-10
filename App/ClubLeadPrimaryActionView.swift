@@ -67,7 +67,7 @@ import SwiftUI
     var body: some View {
         Section {
             if let snapshot, let action = ClubLeadPrimaryAction(stage: snapshot.stage) {
-                Button(LocalizedStringKey(action.titleKey)) {
+                CYPillButton(LocalizedStringKey(action.titleKey)) {
                     guard let permit = controller.permit(in: context) else { return }
                     let displayed = snapshot.stage
                     Task { await controller.prepare(permit, displayed: displayed, context: context,
@@ -76,7 +76,7 @@ import SwiftUI
                     .accessibilityIdentifier("club.leadPrimary.open")
             }
             if controller.preparing { ProgressView("club.leadPrimary.checking") }
-            if let notice = controller.notice { Text(LocalizedStringKey("club.leadPrimary." + notice.rawValue)).accessibilityIdentifier("club.leadPrimary.notice") }
+            if let notice = controller.notice { CYStatusChip(LocalizedStringKey("club.leadPrimary." + notice.rawValue), tone: .warning, systemImage: "exclamationmark.circle").accessibilityIdentifier("club.leadPrimary.notice") }
         }
         .task(id: context) { if scenePhase == .active { controller.activate(context) } }
         .onChange(of: context) { _, _ in controller.invalidate(); if scenePhase == .active { controller.activate(context) } }

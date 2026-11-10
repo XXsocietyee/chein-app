@@ -67,3 +67,7 @@ Build - iOS on batch 14 head (2a... all batches 1-14): success. Test - iOS actio
 ## Batch 15 (reverse)
 Done: ClubOpsSettlementViews, ClubOpsJoinNotifyViews, ClubOpsEventView, ClubOperationsReviewView, ClubNotificationAudienceView.
 Skipped: none.
+
+## Batch 16 (reverse; last of the list)
+Done: ClubMembersView, ClubMemberReportView, ClubLeadProgressView, ClubLeadPrimaryActionView, ClubInvitationFeedbackView, ClubHomeView.
+Skipped: none.
