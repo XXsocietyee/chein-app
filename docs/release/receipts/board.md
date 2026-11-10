@@ -38,3 +38,4 @@
 - S12 [x] ui/main 9979a6151 merged. Extra E3Fixtures #endif removed. Build not read yet.
 - wire29 [x] 26e87fbba. PR 1030. CRM campaigns read MerchantCrmCampaignsPage.phase. Not merged.
 - wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
+- ut-d4-gov [x] ba1318805. PR 1032. Fixture test only. Not merged. Not run on Xcode Cloud yet.
