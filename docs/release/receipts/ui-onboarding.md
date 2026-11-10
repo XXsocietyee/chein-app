@@ -16,4 +16,5 @@ Consent, guest path, gating and "no merchant choice" unchanged; password login n
 - Ticket step from the advisor spec was dropped (see motion spec).
 
 ## Verification
-Code-only. Local lint: `check_scaffold.py`, `check_design_lint.py`, `check_catalog_coverage.py`. Cloud: see the commit check-runs listed below.
+Code-only. Local lint: `check_scaffold.py`, `check_design_lint.py`, `check_catalog_coverage.py`. Also `xcrun swiftc -parse` on the three Swift files.
+Cloud: Xcode Cloud builds for 123c93dc7, d3fc4f475 and 66224530e were cancelled (superseded by pushes from the share worker in the same worktree, which also committed onto ui/e3); the merged tip e65d4e1fa (ui/e3 == ui/main) was re-run, result recorded below.
