@@ -23,3 +23,16 @@ No build or simulator run was done; verification is by reading only.
 | NonCashRewardFlowTests | ok | identifiers + helper only |
 
 Caveat: `welcome.settings` is a Menu item; tests that tap it directly assume it is exposed without opening `welcome.more`. Not changed; re-check on the next UITest run.
+
+## Follow-up (serial run leftovers)
+
+Read-only fixes, not re-run.
+
+| test | verdict | change |
+|---|---|---|
+| testUnconfiguredBuild...KeepsPhoneDisabledAfterInput | stale | `auth.channels.code` is a 0.02-opacity, possibly disabled overlay (AuthChannelView codeBoxes): match by identifier on any element type, type only if enabled+hittable; nil value treated as empty |
+| testChinesePreferenceSurvivesRelaunchAndSwitchesBack | stale | `welcome.settings` lives in the `welcome.more` Menu: new `revealWelcomeSettings(in:)` opens the menu first |
+| testSettingsReopensAfterRepeatedColdLaunch | stale | same helper via `openSettings` |
+| RegionalEntryFlowTests | stale | launch waits on `welcome.player`; settings opened via the helper |
+
+Not changed (same Menu assumption, outside this task): SettingsSignedOutProfileRowFlowTests, NativeSettingsReuseFlowTests, RetainedImageUITests.

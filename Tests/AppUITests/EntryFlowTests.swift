@@ -76,8 +76,10 @@ final class EntryFlowTests: XCTestCase {
         phoneEntry.tap()
         let phone=app.textFields["auth.channels.phone"]
         XCTAssertTrue(phone.waitForExistence(timeout:5));phone.tap();phone.typeText("10000000000")
-        let code=app.textFields["auth.channels.code"]
-        code.tap();code.typeText("123456")
+        // The code field is a near-transparent overlay behind the digit boxes (and disabled while the channel is
+        // locked), so match it by identifier on any element type and only type when it is actually enabled.
+        let code=app.descendants(matching:.any)["auth.channels.code"]
+        if code.waitForExistence(timeout:2),code.isEnabled,code.isHittable { code.tap();code.typeText("123456") }
         XCTAssertFalse(app.buttons["auth.channels.sendCode"].isEnabled)
         XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
         closeTopSheet()
@@ -85,7 +87,7 @@ final class EntryFlowTests: XCTestCase {
         phoneEntry.tap()
         XCTAssertTrue(phone.waitForExistence(timeout:5))
         XCTAssertTrue((phone.value as? String) == "" || (phone.value as? String) == phone.placeholderValue)
-        XCTAssertTrue((code.value as? String) == "" || (code.value as? String) == code.placeholderValue)
+        XCTAssertTrue(((code.value as? String) ?? "") == "" || (code.value as? String) == code.placeholderValue)
         XCTAssertFalse(app.buttons["auth.channels.phoneSignIn"].isEnabled)
         closeTopSheet()
         closeTopSheet()
@@ -124,6 +126,7 @@ final class EntryFlowTests: XCTestCase {
 
     private func openSettings(title:String,file:StaticString=#filePath,line:UInt=#line) {
         let button=app.buttons["welcome.settings"]
+        revealWelcomeSettings(in:app)
         let ready=XCTNSPredicateExpectation(predicate:NSPredicate(format:"exists == true AND hittable == true"),object:button)
         let outcome = XCTWaiter.wait(for: [ready], timeout: 10)
         if outcome != .completed && name.contains("testSettingsReopensAfterRepeatedColdLaunch") {

@@ -180,3 +180,16 @@ func skipOnboardingIfPresent(in app: XCUIApplication, timeout: TimeInterval = 10
     while Date() < deadline, !skip.exists, !player.exists { RunLoop.current.run(until: Date().addingTimeInterval(0.2)) }
     if skip.exists, !player.exists { skip.tap() }
 }
+
+/// `welcome.settings` is an item of the `welcome.more` Menu (onboarding and classic welcome), so it only exists
+/// in the accessibility tree while the menu is open: open the menu first when the item is not already hittable.
+@discardableResult
+func revealWelcomeSettings(in app: XCUIApplication, timeout: TimeInterval = 10) -> XCUIElement {
+    let item = app.buttons["welcome.settings"]
+    if item.exists, item.isHittable { return item }
+    let more = app.buttons["welcome.more"]
+    _ = more.waitForExistence(timeout: timeout)
+    if more.exists { more.tap() }
+    _ = item.waitForExistence(timeout: 5)
+    return item
+}

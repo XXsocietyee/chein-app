@@ -9,12 +9,12 @@ final class RegionalEntryFlowTests:XCTestCase {
         if first { app.launchArguments.append("--uitesting-first-launch-language") }
         app.launch()
         skipOnboardingIfPresent(in: app)
-        XCTAssertTrue(app.buttons["welcome.settings"].waitForExistence(timeout:15),app.debugDescription)
+        XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:15),app.debugDescription)
     }
     func testChinaDefaultsChineseAndLanguagePersistsWithoutChangingMarket() {
         launch("CN")
         XCTAssertTrue(app.staticTexts["出发吧"].waitForExistence(timeout:5),app.debugDescription)
-        app.buttons["welcome.settings"].tap()
+        revealWelcomeSettings(in:app).tap()
         XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout:5))
         XCTAssertEqual(app.staticTexts["region.market.value"].label,"CN")
         XCTAssertTrue(app.buttons["English"].isHittable,app.debugDescription)
@@ -41,7 +41,7 @@ final class RegionalEntryFlowTests:XCTestCase {
     }
     func testUSCanChooseChineseWithoutEnablingDomesticPhone() {
         launch("US")
-        app.buttons["welcome.settings"].tap()
+        revealWelcomeSettings(in:app).tap()
         XCTAssertTrue(app.navigationBars["Settings"].waitForExistence(timeout:5),app.debugDescription)
         app.buttons["简体中文"].tap()
         XCTAssertTrue(app.navigationBars["设置"].waitForExistence(timeout:5))
