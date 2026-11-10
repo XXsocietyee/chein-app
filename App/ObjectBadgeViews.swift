@@ -145,8 +145,8 @@ struct ObjectBadgeAlbumItem: Identifiable {
     }
     /// Unlocked pieces, newest first, at most eight, with unique ids for the pager.
     static func showcase(wall: ProfileBadgeWall) -> [ObjectBadgeAlbumItem] {
-        var candidates: [ProfileBadgeSelection] = wall.identities.filter(\.unlocked).map { .identity($0) }
-        candidates += (wall.medals ?? []).map { .medal($0) }
+        var candidates: [ProfileBadgeSelection] = wall.identities.filter(\.unlocked).map { ProfileBadgeSelection.identity($0) }
+        candidates.append(contentsOf: (wall.medals ?? []).map { ProfileBadgeSelection.medal($0) })
         candidates.sort { (CYAlbumRecency.date(obtainedRaw($0)) ?? .distantPast) > (CYAlbumRecency.date(obtainedRaw($1)) ?? .distantPast) }
         var used: Set<String> = []
         var items: [ObjectBadgeAlbumItem] = []
