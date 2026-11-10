@@ -149,6 +149,10 @@ public struct UnifiedReleaseAuditHubSnapshot: Equatable, Sendable {
 @MainActor
 public struct UnifiedReleaseAuditHubView: View {
     public let snapshot: UnifiedReleaseAuditHubSnapshot
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var rowLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout())
+    }
 
     public init(snapshot: UnifiedReleaseAuditHubSnapshot = .defaultVerified) {
         self.snapshot = snapshot
@@ -184,13 +188,12 @@ public struct UnifiedReleaseAuditHubView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
+            rowLayout {
                 Text(verbatim: "Unified Release Audit Hub (Batches 1–12)")
                     .font(.headline)
                 Spacer()
-                Text(verbatim: headerBadgeText)
-                    .font(.caption2.weight(.semibold))
-                    .foregroundStyle(snapshot.isAllGreen ? CYColor.successText : CYColor.warningText)
+                CYStatusChip(verbatim: headerBadgeText, tone: snapshot.isAllGreen ? .success : .warning,
+                             systemImage: snapshot.isAllGreen ? "checkmark.circle" : "exclamationmark.triangle")
                     .accessibilityIdentifier("unifiedReleaseAuditHub.statusBadge")
             }
 
@@ -210,13 +213,12 @@ public struct UnifiedReleaseAuditHubView: View {
         VStack(alignment: .leading, spacing: 8) {
             ForEach(snapshot.domainCards) { card in
                 VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+                    rowLayout {
                         Text(verbatim: card.title)
                             .font(.subheadline.weight(.semibold))
                         Spacer()
-                        Text(verbatim: card.statusBadgeText)
-                            .font(.caption2.monospaced())
-                            .foregroundStyle(card.isVerified ? CYColor.successText : CYColor.warningText)
+                        CYStatusChip(verbatim: card.statusBadgeText, tone: card.isVerified ? .success : .warning,
+                                     systemImage: card.isVerified ? "checkmark.circle" : "exclamationmark.triangle")
                             .accessibilityIdentifier("unifiedReleaseAuditHub.cardStatus.\(card.id)")
                     }
 

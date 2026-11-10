@@ -13,20 +13,22 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader("door.inviter.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Section {
                     Text("door.inviter.once")
                     TextField("door.inviter.placeholder", text: $input)
                         .keyboardType(.numberPad).accessibilityIdentifier("door.inviter.input")
                         .disabled(busy)
-                    if let errorKey { Text(LocalizedStringKey(errorKey)).foregroundStyle(.red).accessibilityIdentifier("door.inviter.error") }
+                    if let errorKey { CYStatusChip(LocalizedStringKey(errorKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("door.inviter.error") }
                     if !enabled { Text("door.disabled") }
-                    Button("door.inviter.review") { review = true }
+                    CYPillButton("door.inviter.review") { review = true }
                         .disabled(!enabled || busy || !session.restored || session.accountID == nil || DoorParsing.inviter(input) == nil || DoorParsing.inviter(input) == session.accountID)
                         .accessibilityIdentifier("door.inviter.review")
-                    if busy { ProgressView() }
+                    if busy { CYSkeleton() }
                 }
             }
-            .navigationTitle("door.inviter.title")
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("door.close") { task?.cancel(); dismiss() } } }
             .confirmationDialog("door.inviter.once", isPresented: $review, titleVisibility: .visible) {
                 Button("door.inviter.confirm") {
@@ -58,7 +60,8 @@ import SwiftUI
     let onDestination: (DoorDestination, String?) -> Void
     @State private var received: DoorIntent?
     var body: some View {
-        VStack(spacing: 16) { ProgressView(); Text("door.resolving") }
+        VStack(spacing: 16) { CYSkeleton(); Text("door.resolving") }
+            .padding(CYSpacing.lg)
             .accessibilityIdentifier("door.entry.loading")
             .task(id: TaskIdentity(intent: intent, session: session)) {
                 coordinator.updateSession(session)
@@ -82,11 +85,13 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader("door.fixture.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Text("door.fixture.offline")
                 TextField("door.fixture.scene", text: $text).accessibilityIdentifier("door.fixture.scene")
                 Text(DoorParsing.scene(text) ?? "invalid").accessibilityIdentifier("door.fixture.normalized")
                 Text(String(describing: DoorScanResult(action: "play", topicID: 42).destination))
-            }.navigationTitle("door.fixture.title")
+            }.cyHeroScreen()
         }
     }
 }
