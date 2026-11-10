@@ -11,9 +11,15 @@ import CryptoKit
     @State private var failed = false
     @State private var revision = 0
     private var available: Bool { current() && owner.isCurrent }
+    private var fileSendIsPrimary: Bool {
+        guard case .reviewing(.send(let intent)) = owner.expanded.visibleState else { return false }
+        if case .file = intent.payload { return true }
+        return false
+    }
     var body: some View {
         let _ = revision
         Form {
+            Section { IMScreenTitle(title: "d7.imFile.title") }
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -25,8 +31,8 @@ import CryptoKit
                             IMFlowStateMessage(text: Text("d7.imFile.unavailable"), symbol: "doc")
                         }
                         if case .draft(let file) = owner.visibleState {
-                            LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: file.name) }
-                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imFlowPrimaryAction()
+                            LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: imShownName(file.name)).fixedSize(horizontal: false, vertical: true) }
+                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imScreenPrimary(!fileSendIsPrimary)
                             Button("d7.imCompose.discard", role: .destructive) { owner.discardDraft() }
                         }
                     case .uploading: ProgressView("d7.imCompose.uploading")
@@ -43,9 +49,9 @@ import CryptoKit
                         Button("d7.imCompose.discard", role: .destructive) { owner.discardRejected() }
                     case .ready(let file):
                         IMFlowStateMessage(text: Text("d7.imCompose.approved"), symbol: "checkmark.seal", tone: .success)
-                        LabeledContent { IMByteCountText(bytes: file.size) } label: { Text(verbatim: file.name) }
+                        LabeledContent { IMByteCountText(bytes: file.size) } label: { Text(verbatim: imShownName(file.name)).fixedSize(horizontal: false, vertical: true) }
                         if owner.expanded.writer.canSendFile && owner.canRecover {
-                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imFlowPrimaryAction()
+                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imScreenPrimary(!fileSendIsPrimary)
                         }
                     case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                     }
@@ -56,7 +62,7 @@ import CryptoKit
                     case .reviewing(.send(let intent)):
                         if case .file = intent.payload {
                             IMMutationSummary(mutation: .send(intent))
-                            Button("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }.imFlowPrimaryAction()
+                            Button("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }.imScreenPrimary()
                             Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
                         }
                     case .submitting: ProgressView("d7.imCompose.sending")
@@ -77,7 +83,7 @@ import CryptoKit
                     }
                 }
             }
-        }.imFlowForm().navigationTitle(Text("d7.imFile.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         .fileImporter(isPresented: $picking, allowedContentTypes: IMFilePicker.types, allowsMultipleSelection: false) { result in
             guard available else { return }
@@ -102,28 +108,33 @@ import CryptoKit
     @State private var failed = false
     @State private var monitor: Task<Void, Never>?
     @State private var expiry: Task<Void, Never>?
+    @ScaledMetric(relativeTo: .title) private var previewHeight: CGFloat = 360
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMFileReference.read(message) != nil }
     var body: some View {
         Form {
+            Section { IMScreenTitle(title: "d7.imFile.previewTitle") }
             if let reference = IMFileReference.read(message), available {
                 Section {
                     LabeledContent { IMByteCountText(bytes: reference.size) } label: {
-                        Label { Text(verbatim: reference.name) } icon: { Image(systemName: "doc") }
+                        Label { Text(verbatim: imShownName(reference.name)).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "doc") }
                     }
                     if owner.service.previewEnabled && owner.service.previewStatusEnabled && file == nil {
-                        Button { load() } label: { Label("d7.imFile.open", systemImage: "eye") }.disabled(loading)
+                        Button { load() } label: { Label("d7.imFile.open", systemImage: "eye") }.imScreenPrimary().disabled(loading)
                     }
                 }
                 if let file {
                     Section {
-                        IMFileNativePreview(url: file).id(generation).frame(minHeight: 360).listRowInsets(EdgeInsets())
+                        IMFileNativePreview(url: file).id(generation)
+                            .frame(maxWidth: .infinity, minHeight: previewHeight)
+                            .listRowInsets(EdgeInsets())
+                            .accessibilityLabel(Text("d7.imFile.previewTitle"))
                         Button { stop() } label: { Label("d7.imFile.closePreview", systemImage: "xmark.circle") }
                     }
                 }
             } else { IMFlowStateMessage(text: Text("d7.imFile.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imFile.previewFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().navigationTitle(Text("d7.imFile.previewTitle"))
+        }.imFlowForm().privacySensitive().cyHeroScreen()
         .onDisappear { stop() }
         .onChange(of: available) { _, value in if !value { stop() } }
         .onChange(of: scenePhase) { _, value in if value != .active { stop() } }

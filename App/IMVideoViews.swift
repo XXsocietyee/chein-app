@@ -12,9 +12,15 @@ import CryptoKit
     @State private var failed = false
     @State private var revision = 0
     private var available: Bool { current() && owner.isCurrent }
+    private var videoSendIsPrimary: Bool {
+        guard case .reviewing(.send(let intent)) = owner.expanded.visibleState else { return false }
+        if case .video = intent.payload { return true }
+        return false
+    }
     var body: some View {
         let _ = revision
         Form {
+            Section { IMScreenTitle(title: "d7.imVideo.title") }
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -36,7 +42,7 @@ import CryptoKit
                         }
                         if case .draft(let file) = owner.visibleState {
                             LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: file.name) }
-                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imFlowPrimaryAction()
+                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imScreenPrimary(!videoSendIsPrimary)
                             Button("d7.imCompose.discard", role: .destructive) { owner.discardDraft() }
                         }
                     case .uploading: ProgressView("d7.imCompose.uploading")
@@ -55,7 +61,7 @@ import CryptoKit
                         LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: file.durationMS) }
                         LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: file.size) }
                         if owner.expanded.writer.canSendVideo && owner.canRecover {
-                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imFlowPrimaryAction()
+                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imScreenPrimary(!videoSendIsPrimary)
                         }
                     case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                     }
@@ -66,7 +72,7 @@ import CryptoKit
                     case .reviewing(.send(let intent)):
                         if case .video = intent.payload {
                             IMMutationSummary(mutation: .send(intent))
-                            Button("d7.imVideo.send") { Task { if available { await owner.expanded.confirm() } } }.imFlowPrimaryAction()
+                            Button("d7.imVideo.send") { Task { if available { await owner.expanded.confirm() } } }.imScreenPrimary()
                             Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
                         }
                     case .submitting: ProgressView("d7.imCompose.sending")
@@ -87,7 +93,7 @@ import CryptoKit
                     }
                 }
             }
-        }.imFlowForm().navigationTitle(Text("d7.imVideo.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         .fileImporter(isPresented: $picking, allowedContentTypes: IMVideoPicker.types, allowsMultipleSelection: false) { result in
             guard available else { return }
@@ -114,23 +120,29 @@ import CryptoKit
     @State private var failed = false
     @State private var monitor: Task<Void, Never>?
     @State private var expiry: Task<Void, Never>?
+    @ScaledMetric(relativeTo: .title) private var mediaHeight: CGFloat = 240
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMVideoReference.read(message) != nil }
     var body: some View {
         Form {
+            Section { IMScreenTitle(title: "d7.imVideo.message") }
             if let reference = IMVideoReference.read(message), available {
                 Section {
                     LabeledContent {
                         IMDurationText(milliseconds: reference.durationMS)
                     } label: { Label("d7.imVideo.message", systemImage: "video") }
                     if owner.service.previewEnabled && owner.service.previewStatusEnabled && player == nil {
-                        Button { load() } label: { Label("d7.imVideo.load", systemImage: "arrow.down.circle") }.disabled(loading)
+                        Button { load() } label: { Label("d7.imVideo.load", systemImage: "arrow.down.circle") }.imScreenPrimary().disabled(loading)
                     }
                 }
                 if cover != nil || player != nil {
                     Section {
-                        if let cover { Image(uiImage: cover).resizable().scaledToFit().frame(maxHeight: 240).accessibilityHidden(true) }
+                        if let cover {
+                            Image(uiImage: cover).resizable().scaledToFit().frame(maxWidth: .infinity, maxHeight: mediaHeight).accessibilityHidden(true)
+                        }
                         if let player {
-                            VideoPlayer(player: player).frame(minHeight: 200)
+                            VideoPlayer(player: player)
+                                .frame(maxWidth: .infinity, minHeight: mediaHeight)
+                                .accessibilityLabel(Text("d7.imVideo.message"))
                             Button {
                                 guard available else { stop(); return }
                                 Task { @MainActor in
@@ -143,7 +155,7 @@ import CryptoKit
                                         player.play()
                                     } catch { guard generation == stamp else { return }; stop(); failed = true }
                                 }
-                            } label: { Label("d7.imVideo.play", systemImage: "play.fill") }
+                            } label: { Label("d7.imVideo.play", systemImage: "play.fill") }.imScreenPrimary()
                         }
                         Button(role: .destructive) { stop() } label: { Label("d7.imVideo.stop", systemImage: "stop.fill") }
                     }
@@ -151,7 +163,7 @@ import CryptoKit
             } else { IMFlowStateMessage(text: Text("d7.imVideo.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imVideo.playFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().navigationTitle(Text("d7.imVideo.message"))
+        }.imFlowForm().privacySensitive().cyHeroScreen()
         .onDisappear { stop() }
         .onChange(of: available) { _, value in if !value { stop() } }
         .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
