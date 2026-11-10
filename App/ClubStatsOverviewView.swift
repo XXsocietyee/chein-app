@@ -90,41 +90,70 @@ import SwiftUI
               viewerRevision: governance.viewerRevision, authorizationGeneration: governance.access.authorizationGeneration,
               accessIdentity: ObjectIdentifier(governance.access))
     }
+    private var pageInsets: EdgeInsets {
+        EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal)
+    }
+    private var reloadTitle: LocalizedStringKey {
+        model.failure == nil ? LocalizedStringKey("club.gov.refresh") : LocalizedStringKey("action.retry")
+    }
     var body: some View {
         let expected = context
         let _ = model.bind(expected)
         let permit = model.permit(in: expected)
         List {
-            CYHeroHeader("club.statsOverview.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            Section {
+                CYHeroHeader("club.statsOverview.title")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(pageInsets)
+                    .listRowSeparator(.hidden)
+            }
             if model.loading || permit == nil {
-                ProgressView("club.loading").accessibilityIdentifier("club.statsOverview.loading")
+                CYSkeleton()
+                    .accessibilityLabel(Text("club.loading"))
+                    .accessibilityIdentifier("club.statsOverview.loading")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(pageInsets)
+                    .listRowSeparator(.hidden)
             }
             if permit != nil, let failure = model.failure {
-                CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.statsOverview.error")
+                CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failure.localizationKey),
+                             messageIdentifier: "club.statsOverview.error", kind: .failure)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(pageInsets)
+                    .listRowSeparator(.hidden)
             }
             if let overview = model.accepted(expected, access: governance.access) {
                 summary(overview)
-                Section("club.statsOverview.projects") {
+                Section {
                     if overview.projects.isEmpty {
-                        CYEmptyState(systemImage: "chart.bar", "club.statsOverview.empty", messageIdentifier: "club.statsOverview.empty").listRowBackground(Color.clear)
+                        CYEmptyState(systemImage: "square.stack.3d.up", "club.statsOverview.empty", messageIdentifier: "club.statsOverview.empty")
+                            .listRowBackground(Color.clear)
                     }
                     ForEach(overview.projects) { project in
-                        VStack(alignment: .leading, spacing: 8) {
-                            if let name = project.name { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                            else { Text("club.statsOverview.unnamed").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                            LabeledContent("club.statsOverview.participants") { count(project.participants) }
-                            LabeledContent("club.statsOverview.completed") { count(project.completed) }
-                            LabeledContent("club.statsOverview.rate") { rate(project.completion) }
-                        }.padding(.vertical, 4).accessibilityIdentifier("club.statsOverview.project.\(project.id)")
+                        projectCard(project)
                     }
-                    if overview.hasMoreProjects { Text("club.statsOverview.firstFive").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                    if overview.hasMoreProjects {
+                        Text("club.statsOverview.firstFive")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                } header: {
+                    CYSectionHeader("club.statsOverview.projects").textCase(nil)
                 }
             }
-            CYPillButton(LocalizedStringKey(model.failure == nil ? "club.gov.refresh" : "action.retry"), style: .secondary) {
-                guard let permit else { return }
-                Task { await model.load(permit, access: governance.access) }
-            }.disabled(model.loading || permit == nil).accessibilityIdentifier("club.statsOverview.reload")
+            Section {
+                CYPillButton(reloadTitle, systemImage: "arrow.clockwise") {
+                    guard let permit else { return }
+                    Task { await model.load(permit, access: governance.access) }
+                }
+                .disabled(model.loading || permit == nil)
+                .accessibilityIdentifier("club.statsOverview.reload")
+                .listRowBackground(Color.clear)
+                .listRowInsets(pageInsets)
+            }
         }
+        .listStyle(.insetGrouped)
         .cyGroupedSurface()
         .cyHeroScreen()
         .task(id: expected) {
@@ -140,25 +169,73 @@ import SwiftUI
     private func summary(_ overview: ClubStatsOverview) -> some View {
         Section {
             let columns = Array(repeating: GridItem(.flexible(), alignment: .leading), count: dynamicTypeSize.isAccessibilitySize ? 1 : 2)
-            LazyVGrid(columns: columns, alignment: .leading, spacing: 20) {
-                metric("club.statsOverview.topicCount") { count(overview.topicCount) }
-                metric("club.statsOverview.participants") { count(overview.participants) }
-                metric("club.statsOverview.completed") { count(overview.completed) }
-                metric("club.statsOverview.rate") { rate(overview.completion) }
+            LazyVGrid(columns: columns, alignment: .leading, spacing: CYSpacing.lg) {
+                metric("club.statsOverview.topicCount", systemImage: "square.stack") { count(overview.topicCount) }
+                metric("club.statsOverview.participants", systemImage: "person.2") { count(overview.participants) }
+                metric("club.statsOverview.completed", systemImage: "checkmark.circle") { count(overview.completed) }
+                metric("club.statsOverview.rate", systemImage: "percent") { rate(overview.completion) }
             }.accessibilityIdentifier("club.statsOverview.summary")
-            Text("club.statsOverview.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-            Text("club.statsOverview.rateScope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("club.statsOverview.scope")
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text("club.statsOverview.rateScope")
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
-    private func metric<Value: View>(_ title: LocalizedStringKey, @ViewBuilder value: () -> Value) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            value().font(CYTypography.sectionTitle).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            Text(title).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)
-        }.fixedSize(horizontal: false, vertical: true).accessibilityElement(children: .combine)
+    private func projectCard(_ project: ClubStatsProject) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                CYRowIcon(systemImage: "flag.checkered")
+                projectTitle(project)
+            }
+            countRow("club.statsOverview.participants", project.participants, systemImage: "person.2")
+            countRow("club.statsOverview.completed", project.completed, systemImage: "checkmark.circle")
+            rateRow(project.completion)
+        }
+        .padding(.vertical, CYSpacing.xs)
+        .accessibilityIdentifier("club.statsOverview.project.\(project.id)")
+    }
+    @ViewBuilder private func projectTitle(_ project: ClubStatsProject) -> some View {
+        Group {
+            if let name = project.name, !name.isEmpty { Text(verbatim: name) }
+            else if project.name == nil { Text("club.statsOverview.unnamed") }
+            else { Text(verbatim: "—").accessibilityLabel(Text("club.statsOverview.unnamed")) }
+        }
+        .font(CYTypography.cardTitle)
+        .foregroundStyle(CYColor.textPrimary)
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    private func countRow(_ title: LocalizedStringKey, _ value: Int?, systemImage: String) -> some View {
+        CYListRow(title, trailing: .value(countText(value))) { CYRowIcon(systemImage: systemImage) }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(countLabel(title, value))
+    }
+    private func rateRow(_ value: ClubStatsCompletion) -> some View {
+        CYListRow("club.statsOverview.rate", trailing: .value(rateText(value))) { CYRowIcon(systemImage: "percent") }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(rateLabel(value))
+    }
+    private func metric<Value: View>(_ title: LocalizedStringKey, systemImage: String, @ViewBuilder value: () -> Value) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Image(systemName: systemImage)
+                .font(CYTypography.meta.weight(.semibold))
+                .foregroundStyle(CYColor.textSecondary)
+                .accessibilityHidden(true)
+            value()
+                .font(CYTypography.dataXL)
+                .foregroundStyle(CYColor.textPrimary)
+            Text(title)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
     }
     @ViewBuilder private func count(_ value: Int?) -> some View {
         if let value { Text(value, format: .number) }
-        else { Text("club.statsOverview.unknown") }
+        else { Text(verbatim: "—").accessibilityLabel(Text("club.statsOverview.unknown")) }
     }
     @ViewBuilder private func rate(_ value: ClubStatsCompletion) -> some View {
         switch value {
@@ -166,9 +243,32 @@ import SwiftUI
             // Unit conversion for the standard percent formatter, not a new denominator.
             Text(sourcePercentage / 100, format: .percent.precision(.fractionLength(1)))
         case .noParticipants:
-            Text(verbatim: "—").accessibilityLabel("club.statsOverview.noParticipants")
+            Text(verbatim: "—").accessibilityLabel(Text("club.statsOverview.noParticipants"))
         case .unknown:
-            Text("club.statsOverview.unknown")
+            Text(verbatim: "—").accessibilityLabel(Text("club.statsOverview.unknown"))
+        }
+    }
+    private func countText(_ value: Int?) -> String { value?.formatted(.number) ?? "—" }
+    private func countLabel(_ title: LocalizedStringKey, _ value: Int?) -> Text {
+        if let value { return Text(title) + Text(verbatim: " ") + Text(value, format: .number) }
+        return Text(title) + Text(verbatim: " ") + Text("club.statsOverview.unknown")
+    }
+    private func rateText(_ value: ClubStatsCompletion) -> String {
+        switch value {
+        case .percentage(let sourcePercentage):
+            return (sourcePercentage / 100).formatted(.percent.precision(.fractionLength(1)))
+        case .noParticipants, .unknown:
+            return "—"
+        }
+    }
+    private func rateLabel(_ value: ClubStatsCompletion) -> Text {
+        switch value {
+        case .percentage(let sourcePercentage):
+            return Text("club.statsOverview.rate") + Text(verbatim: " ") + Text(sourcePercentage / 100, format: .percent.precision(.fractionLength(1)))
+        case .noParticipants:
+            return Text("club.statsOverview.rate") + Text(verbatim: " ") + Text("club.statsOverview.noParticipants")
+        case .unknown:
+            return Text("club.statsOverview.rate") + Text(verbatim: " ") + Text("club.statsOverview.unknown")
         }
     }
 }

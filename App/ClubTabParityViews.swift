@@ -4,17 +4,27 @@ import SwiftUI
 struct ClubTabTagLine: View {
     let club: ClubRecord
     let section: ClubTabPresentation.Section
-    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let tags = ClubTabPresentation.tags(club, in: section)
         let level = ClubTabPresentation.levelKey(club.level)
         if !tags.labels.isEmpty || tags.freeToJoin || level.key != nil || level.fallback != nil {
-            HStack(spacing: 6) {
-                if let key = level.key { Text(LocalizedStringKey(key)) } else if let fallback = level.fallback { Text(verbatim: fallback) }
-                ForEach(tags.labels.prefix(3), id: \.self) { Text(verbatim: $0) }
-                if tags.freeToJoin { Text("club.tab.freeToJoin") }
-            }.font(CYTypography.caption).foregroundStyle(palette.textSecondary).lineLimit(1)
-                .accessibilityElement(children: .combine).accessibilityIdentifier("clubTab.tags.\(club.id)")
+            chipLayout(tags: tags, level: level)
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("clubTab.tags.\(club.id)")
+        }
+    }
+    private func chipLayout(tags: (labels: [String], freeToJoin: Bool), level: (key: String?, fallback: String?)) -> some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.xs))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.xs))
+        return layout {
+            if let key = level.key { CYStatusChip(LocalizedStringKey(key), tone: .info, systemImage: "star") }
+            else if let fallback = level.fallback { CYStatusChip(verbatim: fallback, tone: .info, systemImage: "star") }
+            ForEach(tags.labels.prefix(3), id: \.self) { label in
+                CYStatusChip(verbatim: label)
+            }
+            if tags.freeToJoin { CYStatusChip("club.tab.freeToJoin", tone: .success, systemImage: "person.badge.plus") }
         }
     }
 }
@@ -24,6 +34,7 @@ struct ClubTabEmptyState: View {
     var body: some View {
         // Mini-program cy-empty shows only the title here; the create action sits in the row above.
         let keys = ClubTabPresentation.emptyKeys(merchant: merchant)
-        CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title), messageIdentifier: "clubTab.empty")
+        CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title))
+            .accessibilityIdentifier("clubTab.empty")
     }
 }
