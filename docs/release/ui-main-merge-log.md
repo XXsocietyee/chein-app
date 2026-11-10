@@ -31,3 +31,9 @@ Registry: union (e1, e2, e3 cases); project regenerated each time. design-batch 
 
 ## Cycle 2 (2026-11-09 ~12:15)
 Merged rc (no new), ui/e1, ui/e3, ui/e4 (ProfileParticipantsView: design side), ui/e5 ec87e4c6a (CreatorContentViews, FreeExploreBundleLaunchView: design side). Title sweep: `View.cyHeroScreen()` applied inside CYHeroHeader (inline + empty nav title); duplicate navigationTitle removed in 7 hero screens. design-batch int BUILD_EXIT=0, 14 shots.
+
+## Cycle 3 (2026-11-09 ~14:15) — compiled, BUILD_EXIT=0, 6 fixtures
+Merged: rc abc2fec0f, ui/e1, ui/e2, ui/e3, ui/e4, DES-e5 (b55631335 and later; note e5 lives on branch liboyang42-cpu/DES-e5, there is no ui/e5). Kit dedupes: CYCoverArt (CYSignature canonical, + cornerRadius; e3 variant -> CYIMCoverArt; e2 duplicate struct removed, CYProgressRing/other e2 kit types kept), e5 ring -> CYCountRing. Design side won on view conflicts (FreeExploreBundleLaunchView, ObjectBadgeViews, TicketWalletView, IMInboxViews, MessagingHistoryView, ObjectBadgeWallParityViews).
+
+## Cycle 4 (2026-11-09 ~15:50) — pushed before local build (Xcode Cloud is the compile check)
+Merged: rc 7c105ecd2, ui/e1 719238623, ui/e2 aa15d01fb, ui/e3 1b5bd2ec9, ui/e4 eb8b6ff90, DES-e5 cd5c9f89d. Fixes: CYIMCoverArt rename in Club*/IM callers; GlobalSearchView static stored property moved out of a generic type; `searchMap.routes.recent` merged into the catalog with tools/merge_localization_fragments.py.

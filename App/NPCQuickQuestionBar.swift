@@ -14,9 +14,8 @@ import SwiftUI
             if dynamicTypeSize.isAccessibilitySize {
                 VStack(alignment: .leading, spacing: 6) { questions }
             } else {
-                ViewThatFits(in: .horizontal) {
-                    HStack(spacing: 8) { questions }
-                    VStack(alignment: .leading, spacing: 6) { questions }
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) { questions }.padding(.vertical, 2)
                 }
             }
             Text("npcQuick.composeOnly").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
@@ -39,7 +38,7 @@ import SwiftUI
     private var questions: some View {
         ForEach(context.questions) { question in
             Button(LocalizedStringKey(question.titleKey)) { select(question) }
-                .buttonStyle(.cySecondary(fullWidth: false))
+                .buttonStyle(NPCQuickPillStyle())
                 .disabled(!enabled)
                 .accessibilityHint("npcQuick.accessibilityHint")
                 .accessibilityIdentifier("npcQuick." + question.rawValue)
@@ -58,6 +57,19 @@ import SwiftUI
         replacement = nil
         if let text = NPCQuickQuestionPolicy.confirm(pending, currentText: draft, context: context,
                                                      localeIdentifier: locale.identifier, enabled: enabled) { draft = text }
+    }
+}
+
+/// Outlined quick-reply pill (Venmo / Expedia assistant pattern): capsule, 44pt tall, no fill.
+struct NPCQuickPillStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label.font(CYTypography.bodyMedium).lineLimit(1)
+            .foregroundStyle(isEnabled ? CYColor.textPrimary : CYColor.textDisabled)
+            .padding(.horizontal, 18).frame(minHeight: 48)
+            .background(configuration.isPressed ? CYColor.bgElevated : .clear, in: Capsule())
+            .overlay(Capsule().stroke(CYColor.borderStrong, lineWidth: 1))
+            .contentShape(Capsule())
     }
 }
 

@@ -50,6 +50,7 @@ struct CYBadgeTile: View {
     var locked: Bool
     var name: Text
     var status: Text
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     var body: some View {
         VStack(spacing: CYSpacing.sm) {
@@ -58,8 +59,8 @@ struct CYBadgeTile: View {
                 .font(CYTypography.bodyCompact.weight(.semibold))
                 .foregroundStyle(locked ? CYColor.textSecondary : CYColor.textPrimary)
                 .multilineTextAlignment(.center)
-                .lineLimit(2)
-                .minimumScaleFactor(0.85)
+                .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                .minimumScaleFactor(typeSize.isAccessibilitySize ? 1 : 0.85)
             status
                 .font(CYTypography.meta)
                 .foregroundStyle(locked ? CYColor.textTertiary : CYColor.successText)
@@ -68,7 +69,9 @@ struct CYBadgeTile: View {
         .padding(.vertical, CYSpacing.lg)
         .padding(.horizontal, CYSpacing.sm)
         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        // One stop: "name, state". The medal art is decorative; locked tiles are announced as dimmed via their status text.
         .accessibilityElement(children: .combine)
+        .accessibilitySortPriority(locked ? 0 : 1)
     }
 }
 
@@ -179,7 +182,7 @@ private struct CYStampSlam: ViewModifier {
 }
 
 /// Collection progress ring (earned of total). Total 0 shows an empty ring and a dash, never a fake zero percent.
-struct CYProgressRing: View {
+struct CYCountRing: View {
     var value: Int
     var total: Int
     var size: CGFloat = 56

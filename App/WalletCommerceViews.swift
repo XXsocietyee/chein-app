@@ -381,7 +381,9 @@ enum WalletPayoutCapability { static let isOn = false }
 }
 @MainActor struct WalletLedgerView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     private var format: WalletFormatting { .init(locale: locale) }
     let reader: WalletCommerceReader
     let kind: WalletLedgerKind
@@ -397,12 +399,12 @@ enum WalletPayoutCapability { static let isOn = false }
     }
     var body: some View {
         List {
+            balanceHero
             Picker("wallet.direction", selection: $direction) {
                 Text("wallet.all").tag("all"); Text("wallet.inflow").tag("income"); Text("wallet.outflow").tag("expense")
             }.pickerStyle(.segmented)
             if points { NavigationLink("wallet.tasks") { WalletPointsTasksView(reader: reader) } }
             if model.pager.hasLoadedPage && model.pager.loadedScope == reader.scope {
-                if points { LabeledContent("wallet.pointsBalance", value: format.points(model.pager.rows.first?.afterPoints)) }
                 if filtered.isEmpty && !model.pager.isLoading && !model.pager.failed {
                     if income {
                         CYEmptyState(systemImage: "list.bullet", LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points)))
@@ -411,7 +413,7 @@ enum WalletPayoutCapability { static let isOn = false }
                         Text(LocalizedStringKey(WalletPointsLedgerEmptyState.key(direction: direction, isIncomeLedger: income, isPointsLedger: points))).accessibilityIdentifier("wallet.ledger.empty")
                     }
                 }
-                if points {
+                if points || kind == .balance {
                     ForEach(WalletPointsMonthGroup.group(filtered)) { group in
                         Text(verbatim: group.headerText(isEnglish: locale.language.languageCode?.identifier == "en"))
                             .font(CYTypography.caption.weight(.semibold))
@@ -486,6 +488,33 @@ enum WalletPayoutCapability { static let isOn = false }
                 }
             }
     }
+    /// Large balance hero (points or money). Unknown stays an em dash, never zero.
+    @ViewBuilder private var balanceHero: some View {
+        if !income, model.pager.hasLoadedPage, model.pager.loadedScope == reader.scope {
+            let first = model.pager.rows.first
+            let value = points ? first?.afterPoints : first?.afterBalance
+            let unit = points ? format.pointsUnit(for: value) : (first?.currency ?? "")
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(points ? "wallet.pointsBalance" : "wallet.balanceLedger")
+                    .font(.subheadline.weight(.medium)).foregroundStyle(CYColor.textSecondary)
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                    Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
+                        .font(.system(size: 44, weight: .bold, design: .rounded)).monospacedDigit()
+                        .minimumScaleFactor(0.5).lineLimit(1)
+                        .foregroundStyle(CYColor.textPrimary)
+                    if value != nil { Text(verbatim: unit).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textSecondary) }
+                }
+                .accessibilityElement(children: .combine)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(CYSpacing.xl)
+            .background(LinearGradient(colors: [CYColor.bgElevated, CYColor.bgRaised], startPoint: .topLeading, endPoint: .bottomTrailing),
+                        in: RoundedRectangle(cornerRadius: 24, style: .continuous))
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
+            .accessibilityIdentifier("wallet.ledger.hero")
+        }
+    }
     @ViewBuilder private func ledgerRowButton(_ row: WalletLedgerRow) -> some View {
         Button {
             incomeDetail = income ? model.pager.incomeDetail(rowID: row.id, reader: reader)
@@ -500,7 +529,18 @@ enum WalletPayoutCapability { static let isOn = false }
     /// Mini-program 积分明细 row: reason and time on the left, signed amount on the right.
     private func ledgerRow(_ row: WalletLedgerRow) -> some View {
         let direction = income ? row.incomeDirection : row.assetDirection
-        return HStack(alignment: .firstTextBaseline, spacing: 12) {
+        let stacked = dynamicTypeSize.isAccessibilitySize
+        let layout = stacked ? AnyLayout(VStackLayout(alignment: .leading, spacing: 8)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+        let isIn = direction.rawValue == "income"
+        return layout {
+            if !stacked {
+                Image(systemName: isIn ? "arrow.down.left" : "arrow.up.right")
+                    .font(.system(.subheadline, weight: .semibold))
+                    .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
+                    .frame(width: 36, height: 36)
+                    .background(CYColor.bgRaised, in: Circle())
+                    .accessibilityHidden(true)
+            }
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     if income, let badge = WalletReadFailurePresentation.incomeSourceBadge(for: row) {
@@ -519,14 +559,14 @@ enum WalletPayoutCapability { static let isOn = false }
                 if points, !income, let after = row.afterPoints { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + format.points(after)).font(.caption).foregroundStyle(.secondary) }
             }
             Spacer(minLength: 8)
-            VStack(alignment: .trailing, spacing: 4) {
+            VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
                 HStack(spacing: 2) {
                     Text(verbatim: format.signed(row, points: points, income: income))
                     if points { Text(verbatim: format.pointsUnit(for: row.changePoints)) }
                     else { Text(verbatim: row.currency ?? appLocalized("wallet.currencyUnknown", locale: locale)) }
                 }
                 .font(.body.weight(.semibold).monospacedDigit())
-                .foregroundStyle(direction.rawValue == "income" ? CYColor.successText : CYColor.textPrimary)
+                .foregroundStyle(isIn ? CYColor.successText : CYColor.textPrimary)
                 if !points, let balance = row.afterBalance {
                     Text(verbatim: format.amount(balance, currency: row.currency)).font(.caption).foregroundStyle(.secondary)
                 }

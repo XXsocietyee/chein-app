@@ -48,7 +48,7 @@ struct E5bBadgeWallFixture: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.lg) {
                     HStack(spacing: CYSpacing.lg) {
-                        CYProgressRing(value: 3, total: 6)
+                        CYCountRing(value: 3, total: 6)
                         Text(verbatim: tt("3 of 6 collected", "已收集 3 / 6")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     }
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {

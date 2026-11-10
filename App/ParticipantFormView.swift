@@ -238,16 +238,22 @@ struct ParticipantFormView: View {
                             .listRowBackground(Color.clear)
                     }
                     Section {
-                        TextField("profile.participants.name", text: $model.draft.fullName)
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("profile.participants.name", systemImage: "person").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            TextField("profile.participants.name", text: $model.draft.fullName)
                             .textContentType(.name).textInputAutocapitalization(.words)
                             .submitLabel(.next).focused($focusedField, equals: .name)
                             .onSubmit { focusedField = .phone }
                             .accessibilityIdentifier("participant.form.name")
-                        TextField("profile.participants.phone", text: $model.draft.mobilePhone)
+                        }
+                        VStack(alignment: .leading, spacing: 4) {
+                            Label("profile.participants.phone", systemImage: "phone").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            TextField("profile.participants.phone", text: $model.draft.mobilePhone)
                             .textContentType(.telephoneNumber).keyboardType(.phonePad)
                             .submitLabel(.done).focused($focusedField, equals: .phone)
                             .onSubmit { focusedField = model.reviewForSave() }
                             .accessibilityIdentifier("participant.form.phone")
+                        }
                         // Input errors sit in red under the fields (ui-spec States).
                         if let field = model.validationIssue {
                             Text(LocalizedStringKey(field.messageKey)).font(.footnote).foregroundStyle(CYColor.dangerText)

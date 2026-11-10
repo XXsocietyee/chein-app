@@ -43,25 +43,25 @@ struct MessagingMessageDetailView: View {
                             }.accessibilityIdentifier("messaging.message.preview")
                         }
                     }
-                    if IMVoiceReference.read(message) != nil, let owner = expanded?.voiceCoordinator?(message.conversationID) {
+                    if let ref = IMVoiceReference.read(message), let owner = expanded?.voiceCoordinator?(message.conversationID) {
                         Section {
-                            NavigationLink("messaging.voice.play") { IMVoicePlaybackView(message: message, owner: owner, current: {
+                            NavigationLink { IMVoicePlaybackView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
-                            }) }
+                            }) } label: { IMVoiceCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
                         }
                     }
-                    if IMFileReference.read(message) != nil, let owner = expanded?.fileCoordinator?(message.conversationID) {
+                    if let ref = IMFileReference.read(message), let owner = expanded?.fileCoordinator?(message.conversationID) {
                         Section {
-                            NavigationLink("messaging.file.open") { IMFilePreviewView(message: message, owner: owner, current: {
+                            NavigationLink { IMFilePreviewView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
-                            }) }
+                            }) } label: { IMFileCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
                         }
                     }
-                    if IMVideoReference.read(message) != nil, let owner = expanded?.videoCoordinator?(message.conversationID) {
+                    if let ref = IMVideoReference.read(message), let owner = expanded?.videoCoordinator?(message.conversationID) {
                         Section {
-                            NavigationLink("messaging.video.play") { IMVideoPlaybackView(message: message, owner: owner, current: {
+                            NavigationLink { IMVideoPlaybackView(message: message, owner: owner, current: {
                                 reader.identity == identity && currentSnapshot == message && message.isPayloadVisible
-                            }) }
+                            }) } label: { IMVideoCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
                         }
                     }
                     if message.isPayloadVisible, let reference = message.pollReference {

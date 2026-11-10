@@ -85,6 +85,7 @@ struct CYDomainTabLabel: View {
 /// Styles a native `TabView` like the mini-program bar for a role domain.
 struct CYDomainTabBarStyle: ViewModifier {
     let domain: ThemeDomain
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
 
     func body(content: Content) -> some View {
         if domain == .merchant {
@@ -105,7 +106,7 @@ struct CYDomainTabBarStyle: ViewModifier {
             // `.tabbar.dark .list`: rgba(28,28,30,.55) glass + blur(40rpx) + 0.5pt subtle top border.
             // Content tint is `CYScreenStyle` (domain brand). Selected tab violet is the appearance proxy.
             content
-                .toolbarBackground(.ultraThinMaterial, for: .tabBar)
+                .toolbarBackground(reduceTransparency ? AnyShapeStyle(Color(white: 0.06)) : AnyShapeStyle(.ultraThinMaterial), for: .tabBar)
                 .toolbarBackground(.visible, for: .tabBar)
                 .toolbarColorScheme(.dark, for: .tabBar)
         }

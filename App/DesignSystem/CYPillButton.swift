@@ -74,8 +74,11 @@ struct CYPillButtonStyle: ButtonStyle {
         let shape = Capsule(style: .continuous)
         configuration.label
             .font(.system(.body).weight(.bold))
+            .multilineTextAlignment(.center)
+            .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(foreground)
             .padding(.horizontal, CYSpacing.xxl)
+            .padding(.vertical, CYSpacing.sm)
             .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: height)
             .background(shape.fill(fill))
             .overlay(shape.strokeBorder(style == .secondary ? stroke : .clear, lineWidth: 1.5))
