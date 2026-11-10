@@ -160,11 +160,19 @@ public struct GameJournalCompositionAndPlaySummarySectionView: View {
                         .foregroundStyle(snapshot.standaloneLoadUserStampsIntact ? CYColor.successText : CYColor.warningText)
                 }
                 .accessibilityIdentifier("gameJournalComposition.standaloneNonRegression")
-                VStack(spacing: CYSpacing.md) {
-                    ForEach(snapshot.rows) { row in
-                        CYListRow(verbatim: row.title, meta: "\(row.itemCount) 项 · " + row.detail, trailing: .none) { CYRowIcon(systemImage: icon(row.kind)) }
-                            .accessibilityElement(children: .combine)
-                            .accessibilityIdentifier("gameJournalComposition.row.\(row.id)")
+                VStack(spacing: 0) {
+                    ForEach(Array(snapshot.rows.enumerated()), id: \.element.id) { index, row in
+                        CYTimelineItem(first: index == 0, last: index == snapshot.rows.count - 1, symbol: icon(row.kind),
+                                       tint: row.status == .ready ? CYColor.successText : (row.status == .failed ? CYColor.dangerText : CYColor.warningText)) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: row.title).font(CYTypography.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                                Text(verbatim: "\(row.itemCount) 项 · " + row.detail).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .frame(maxWidth: .infinity, alignment: .leading).padding(.top, 4)
+                        }
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("gameJournalComposition.row.\(row.id)")
                     }
                 }
                 CYDetailsDisclosure(title: Text(verbatim: "数据来源")) {

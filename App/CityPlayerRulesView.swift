@@ -54,6 +54,9 @@ struct CityPlayerRulesContent: View {
                                 "actionBudget": "bolt.fill", "acquisition": "flag.fill", "season": "calendar", "effectiveInterval": "clock.fill",
                                 "settlement": "banknote.fill", "taskDetails": "checklist", "locationDetails": "mappin.and.ellipse"]
     private static let technical: Set<String> = ["rulesId", "challengeId", "diceId", "roundId", "seasonId"]
+    /// Rule sections the player has opened; the first section starts open so the page never loads as a wall of closed cards.
+    @State private var opened: Set<String> = []
+    @State private var seeded = false
     var body: some View {
         CYCardPage {
             CYArtCoverHeader(title: Text("cityRules.title", tableName: table), subtitle: Text("cityRules.boundary", tableName: table),
@@ -115,7 +118,9 @@ struct CityPlayerRulesContent: View {
     private func sectionCard(_ section: CityPlayerRulesSection) -> some View {
         let shown = section.rows.filter { !Self.technical.contains($0.key) }
         let hidden = section.rows.filter { Self.technical.contains($0.key) }
-        return CYInfoCard(title: Text(LocalizedStringKey("cityRules.section." + section.id), tableName: table), symbol: Self.icons[section.id] ?? "doc.text") {
+        let isOpen = Binding(get: { opened.contains(section.id) || (!seeded && section.id == (snapshot?.sections.first?.id ?? "")) },
+                             set: { seeded = true; if $0 { opened.insert(section.id) } else { opened.remove(section.id) } })
+        return CYCollapsibleCard(title: Text(LocalizedStringKey("cityRules.section." + section.id), tableName: table), symbol: Self.icons[section.id] ?? "doc.text", expanded: isOpen) {
             if section.status != "PUBLISHED" {
                 Text(LocalizedStringKey("cityRules.disclosure." + section.status), tableName: table)
                     .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true)

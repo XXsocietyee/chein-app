@@ -20,7 +20,14 @@ import SwiftUI
     }
     var body: some View {
         CYCardPage {
-            CYArtCoverHeader(title: text("title"), symbol: "shippingbox.fill", seed: "bundle") { EmptyView() }
+            CYArtCoverHeader(title: text("title"), symbol: "shippingbox.fill", seed: "bundle") {
+                if let units = model.order?.bundle?.units.filter({ $0.status == "AVAILABLE" }).count, units > 0 {
+                    Label { Text(verbatim: ChannelCopy.text("\(units) 个章节可预约", "\(units) chapters ready to book", locale: locale)) } icon: { Image(systemName: "ticket.fill") }
+                        .font(CYTypography.meta.weight(.semibold)).foregroundStyle(.white)
+                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                        .background(.black.opacity(0.35), in: Capsule())
+                }
+            }
         } content: {
             if !model.current {
                 CYEmptyState(systemImage: "clock.arrow.circlepath", LocalizedStringKey("stale"), tableName: table)
@@ -45,25 +52,21 @@ import SwiftUI
                 }
                 if let order = model.order, let bundle = order.bundle {
                     CYInfoCard {
-                        choice(text("unit"), selected: unitID.map { $0.text }) {
-                            Picker(selection: $unitID) {
-                                text("choose").tag(Optional<FreeExploreLaunchID>.none)
-                                ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
-                                    Text(verbatim: chapterName(unit.chapterId) ?? unit.id.text).tag(Optional(unit.id))
-                                }
-                            } label: { text("unit") }
+                        // Chapters as selectable ticket rows (one tap, haptic) instead of two collapsed menus; the Review pill stays the only primary action.
+                        Text("unit", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                        ForEach(bundle.units.filter { $0.status == "AVAILABLE" }, id: \.id) { unit in
+                            CYChoiceRow(label: chapterName(unit.chapterId) ?? unit.id.text, selected: unitID == unit.id) {
+                                if unitID != unit.id { offerID = nil }
+                                unitID = unit.id
+                            }
                         }
-                        choice(text("offer"), selected: offerID.flatMap { id in model.catalog?.items.flatMap(\.stores).first(where: { $0.offerId == id }).map { $0.merchantName ?? id.text } }) {
-                            Picker(selection: $offerID) {
-                                text("choose").tag(Optional<FreeExploreLaunchID>.none)
-                                if let unit = bundle.units.first(where: { $0.id == unitID }),
-                                   let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
-                                    ForEach(item.stores, id: \.offerId) { store in
-                                        Text(verbatim: store.merchantName ?? store.offerId.text).tag(Optional(store.offerId))
-                                    }
-                                }
-                            } label: { text("offer") }
-                        }.disabled(unitID == nil)
+                        if let unit = bundle.units.first(where: { $0.id == unitID }),
+                           let item = model.catalog?.items.first(where: { $0.chapterId == unit.chapterId }) {
+                            Text("offer", tableName: table).font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textSecondary)
+                            ForEach(item.stores, id: \.offerId) { store in
+                                CYChoiceRow(label: store.merchantName ?? store.offerId.text, selected: offerID == store.offerId) { offerID = store.offerId }
+                            }
+                        }
                         DatePicker(selection: $date) { text("date").font(CYTypography.bodyCompact) }
                         CYPillButton(LocalizedStringKey("review"), style: .primary, tableName: table) {
                             guard let unitID, let offerID else { return }
