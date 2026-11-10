@@ -60,9 +60,10 @@ public struct CYCardSurfaceModifier: ViewModifier {
                 color: (variant == .elevated && colorScheme == .light)
                     ? Color.black.opacity(0.05)
                     : Color.clear,
-                radius: variant == .elevated ? 10 : 0,
+                // A clear shadow still costs an offscreen blur pass; zero it unless it is drawn.
+                radius: (variant == .elevated && colorScheme == .light) ? 10 : 0,
                 x: 0,
-                y: variant == .elevated ? 4 : 0
+                y: (variant == .elevated && colorScheme == .light) ? 4 : 0
             )
     }
 }
