@@ -174,7 +174,7 @@ struct E4LoginFixture: View {
     @StateObject private var session = AppSession()
     var body: some View {
         var view = LoginView(intent: .player)
-        view.designOverride = .init(showsPassword: true, username: "mia.chen", errorKey: error, working: working)
+        view.designOverride = .init(showsPassword: false, username: "", errorKey: error, working: working)
         return view.environmentObject(session)
     }
 }

@@ -93,6 +93,7 @@ struct PhoneSignInForm<AppleContent: View>: View {
     @ViewBuilder var apple: () -> AppleContent
     @FocusState private var focus: Field?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var shakes = 0
     private enum Field { case phone, code }
 
@@ -157,27 +158,43 @@ struct PhoneSignInForm<AppleContent: View>: View {
         }
     }
 
+    private var countryChip: some View {
+        HStack(spacing: CYSpacing.xs) {
+            Text(verbatim: "🇨🇳").font(.title3)
+            Text(verbatim: "+86").font(.system(.body, weight: .semibold)).foregroundStyle(CYColor.textPrimary).fixedSize()
+        }
+        .padding(.horizontal, CYSpacing.md).frame(minHeight: 40)
+        .background(CYColor.bgRaised, in: Capsule())
+        .accessibilityElement(children: .ignore).accessibilityLabel(Text("auth.phone.country"))
+    }
+
+    private var phoneInput: some View {
+        TextField("auth.channels.phone", text: $phone)
+            .font(.system(.title3, design: .rounded).monospacedDigit())
+            .keyboardType(.phonePad).textContentType(.telephoneNumber)
+            .textInputAutocapitalization(.never).autocorrectionDisabled()
+            .focused($focus, equals: .phone)
+            .disabled(locked)
+            .accessibilityIdentifier("auth.channels.phone")
+    }
+
+    /// Chip + number on one card; the code button sits under it (trailing) so the number never truncates.
+    /// At accessibility sizes the chip stacks above the number.
     private var phoneField: some View {
-        HStack(spacing: CYSpacing.md) {
-            HStack(spacing: CYSpacing.xs) {
-                Text(verbatim: "🇨🇳").font(.title3)
-                Text(verbatim: "+86").font(.system(.body, weight: .semibold)).foregroundStyle(CYColor.textPrimary)
+        VStack(alignment: .trailing, spacing: CYSpacing.xs) {
+            Group {
+                if dynamicTypeSize.isAccessibilitySize {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) { countryChip; phoneInput }
+                } else {
+                    HStack(spacing: CYSpacing.md) { countryChip; phoneInput }
+                }
             }
-            .padding(.horizontal, CYSpacing.md).frame(minHeight: 40)
-            .background(CYColor.bgRaised, in: Capsule())
-            .accessibilityElement(children: .ignore).accessibilityLabel(Text("auth.phone.country"))
-            TextField("auth.channels.phone", text: $phone)
-                .font(.system(.title3, design: .rounded).monospacedDigit())
-                .keyboardType(.phonePad).textContentType(.telephoneNumber)
-                .textInputAutocapitalization(.never).autocorrectionDisabled()
-                .focused($focus, equals: .phone)
-                .disabled(locked)
-                .accessibilityIdentifier("auth.channels.phone")
+            .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
+            .frame(maxWidth: .infinity, minHeight: 64, alignment: .leading)
+            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(focus == .phone ? CYColor.accent : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
             sendButton
         }
-        .padding(.leading, CYSpacing.md).padding(.trailing, CYSpacing.sm).frame(minHeight: 64)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 20, style: .continuous).strokeBorder(focus == .phone ? CYColor.accent : CYColor.textPrimary.opacity(0.08), lineWidth: focus == .phone ? 2 : 1))
     }
 
     private var sendButton: some View {
@@ -189,7 +206,8 @@ struct PhoneSignInForm<AppleContent: View>: View {
                     else { Text(hasSentBefore ? "auth.channels.resendCode" : "auth.channels.sendCode") }
                 }
                 .font(.system(.subheadline, weight: .semibold)).lineLimit(1).minimumScaleFactor(0.7)
-                .padding(.horizontal, CYSpacing.md).frame(minHeight: 44)
+                .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
+                .background(canSend ? CYColor.accent.opacity(0.16) : CYColor.bgRaised, in: Capsule())
             }
             .foregroundStyle(canSend ? CYColor.accentText : CYColor.textSecondary)
             .disabled(!canSend)

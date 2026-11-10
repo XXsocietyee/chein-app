@@ -36,10 +36,6 @@ import UIKit
                         .font(CYTypography.body)
                         .foregroundStyle(palette.textSecondary)
                         .multilineTextAlignment(.center)
-                    Text(verbatim: versionLine)
-                        .font(.footnote.monospacedDigit()).foregroundStyle(palette.textSecondary)
-                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
-                        .background(palette.bgRaised, in: Capsule())
                 }
                 .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)
@@ -47,8 +43,8 @@ import UIKit
                 .listRowInsets(EdgeInsets(top: CYSpacing.xl, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             }
             Section {
-                SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version, identifier: "settingsNative.about.version", systemImage: "number")
-                SettingsFactRow(title: "settingsNative.about.build", value: appInformation.build, identifier: "settingsNative.about.build", systemImage: "hammer.fill")
+                SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version.map { v in v + " (" + (appInformation.build ?? "—") + ")" },
+                                identifier: "settingsNative.about.version", systemImage: "number")
                 marketRow
             } header: { Text("settingsNative.about.appSection") }
             .labelStyle(SettingsTileLabelStyle())

@@ -81,8 +81,10 @@ Merge: origin/ui/main merged at start (43b3a24d1). Shots: /Users/fanning/chengyi
 - DEBUG hosts (App/DesignFixtures only, plus one `designOverride`/`designModel` hook on the real views): `e4-login`, `e4-login-error`, `e4-auth-phone`, `e4-auth-phone-error`, `e4-settings`, `e4-settings-search`, `e4-deregister`, `e4-deregister-blocked`, `e4-marketing`. Deregister and marketing mount the real `AccountComplianceSheet` on a real but inert `AccountComplianceCoordinator` (stub transport, temp journal) and stub its `ComplianceState`; no Core change.
 
 ## Not done / left
+- Process notes: the first batch rendered EN shots in Chinese (stored `preferences.language`); re-shot the whole batch with `-preferences.language en|zh-Hans`. After the review of that batch the phone form was reworked (code button under the field, stacked chip at XL) and re-shot with 2 extra shots (`batch-f4r-phone-{en,xl}.png`), so the budget was exceeded by 2 shots. Two blank XL shots in batch 1 were launch timing, not a render failure (they rendered in batch 2).
 - Creator application has no fixture host (coordinator needs wiring), so it is compile-checked only, not shot. Member and complaint were shot in zh only (batch limit).
-- The brief's brand string 'chein - 城瘾' was read as a typo for Chengyin; shipped "Chengyin - 城瘾". Tell me if the literal spelling is wanted.
+- Brand follows the store names per coordinator review: en "chein - 城瘾", zh "城瘾" (key `settingsNative.about.brandName`). Version row reads "0.1.0 (1)" (build row folded in).
+- Release login is phone-code (and gated Apple) only: the username/password form now compiles only in DEBUG (`showsPasswordForm`); the fixture shows the Release layout.
 - The Apple button in the phone fixture is the system button for layout review only; in the app it stays gated.
 - Settings search covers the entries that can open without extra context; the long tail (notifications, favourites…) is not indexed.
 
@@ -91,3 +93,6 @@ Merge: origin/ui/main merged at start (43b3a24d1). Shots: /Users/fanning/chengyi
 - Phone step: Lugg flow https://mobbin.com/flows/b10b360c-4b0f-4ebb-b591-ddba0d03cf84 (country chip + field, spinner inside the CTA) and Believe flow https://mobbin.com/flows/80f89842-5465-4828-9a36-541c297ac956.
 - Settings: Phantom https://mobbin.com/screens/6b70b1c1-0dee-4b6d-a7db-e0f8eb7c3696 (search + account card), Instagram https://mobbin.com/screens/f08baa0d-fca5-4c2c-bbd1-a1e10c367714 (search field, secondary footers), Google Calendar https://mobbin.com/screens/0ef5f2e4-f938-42d4-befc-82e71fe14de8 (tinted icon tiles).
 - Delete account: Quo https://mobbin.com/screens/96d639aa-7714-40e5-963e-c044cc5ff9ab (what you should know + type to continue), Kit https://mobbin.com/screens/52d49146-98ed-49b2-a816-7d7a07da444f and Grailed https://mobbin.com/screens/592c51aa-3f22-4cb4-976c-6aea3eb7310d (typed confirm in a confirm step), Manus https://mobbin.com/screens/f06ce2f1-dea4-495e-9717-90ffb223cbd0 (consequence bullets).
+
+## Self-score (delight / interaction / inclusivity / visuals / innovation / social)
+Phone sign-in 8/9/8/8/6/9 -> 8. Login 8/8/8/8/7/8 -> 8. Settings 7/8/8/9/6/8 -> 8. About 7/7/7/9/6/8 -> 8 (XL: bottom copy button bar is tall). Deregister 7/9/8/8/6/9 -> 8 (effect sentences in the fixture are English stub text). Marketing consent 7/8/8/8/5/9 -> 8 (toggles tinted green so on/off reads). Member card 7/8/7/8/6/8 -> 8 (zh shot only). Under 8: complaint 7 (empty text editor is still a dark slab, no counter), creator application 6 (restyled, never shot: no fixture host), settings search (indexes 8 destinations only).
