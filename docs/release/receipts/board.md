@@ -83,3 +83,6 @@
 - ut-d6-real-live [x] 2559f7a87. PR 1074. Fixture test only. Parent is the docs rc. Not merged.
 - ut-e1-bundle-shelf [x] 697a2d40c. PR 1075. Fixture test only. Parent is the docs rc. Not merged.
 - ut-e1-bundle-shelf-error [x] 29a4c813b. PR 1076. Fixture test only. Not merged.
+- ut-d4-stamps [x] d63d51b3b. PR 1077. Fixture test only. Not merged.
+- ut-d6-play [x] 14deab0ca. PR 1078. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-roam [x] 43317e132. PR 1079. Fixture test only. Parent is the docs rc. Not merged.
