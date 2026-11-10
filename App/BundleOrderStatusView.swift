@@ -80,7 +80,7 @@ enum BundleOrderStatusPresentation {
                 if let key = BundleOrderStatusPresentation.bannerKey(BundleOrderStatusPresentation.banner(for: poller.state)) {
                     Section {
                         HStack(spacing: CYSpacing.sm) {
-                            Image(systemName: poller.state == .failed ? "exclamationmark.triangle.fill" : "clock.arrow.circlepath").accessibilityHidden(true)
+                            Image(systemName: BundleOrderStatusPresentation.banner(for: poller.state) == .failed ? "exclamationmark.triangle.fill" : "clock.arrow.circlepath").accessibilityHidden(true)
                             text(key)
                         }
                         .font(CYTypography.cardTitle)
