@@ -203,22 +203,36 @@ enum CYPassCardPick {
         .accessibilityIdentifier("ticketPass.card")
     }
 
+    /// Cover-art band with the title on a scrim (same art as the wallet pass), then date and place. At accessibility
+    /// sizes the band shrinks and the title moves below it so nothing clips.
     private var header: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                .lineLimit(3).fixedSize(horizontal: false, vertical: true)
-                .padding(.trailing, typeSize.isAccessibilitySize ? 0 : 56)
-                .accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: 0) {
+            ZStack(alignment: .bottomLeading) {
+                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false)
+                LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
+                if !typeSize.isAccessibilitySize {
+                    title.foregroundStyle(.white).padding(CYSpacing.lg).padding(.trailing, 56)
+                }
+            }
+            .frame(height: typeSize.isAccessibilitySize ? 72 : 132)
+            .clipped()
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                if typeSize.isAccessibilitySize { title.foregroundStyle(CYColor.textPrimary).padding(.bottom, CYSpacing.xs) }
                 Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
                 Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
             }
             .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            .padding(CYSpacing.lg)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(CYSpacing.lg)
-        .padding(.top, typeSize.isAccessibilitySize ? CYSpacing.xxl : 0)
-        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var title: some View {
+        TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
+            .font(CYTypography.sectionTitle)
+            .lineLimit(3).fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("ticketPass.title")
     }
 
     /// Unknown reads as an em dash, never blank or 0.
