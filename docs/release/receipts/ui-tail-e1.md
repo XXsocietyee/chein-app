@@ -43,3 +43,6 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 
 ## Batch 11
 - TemplateAdvancedGameConfigurationView (hero, rehearse links -> CYListRow), TemplateAuthoringLaunchView (hero, primary pill + kit rows), TemplateAuthoringMineView (hero, kit rows/pills, skeleton, read-state copy), TemplateAuthoringView (hero for editor/review/preview, pills for secondary actions; existing questifyPrimary publish/continue kept), TemplateCoinFlipRehearsalView (hero, pills, data numerals). Creator/authoring = player surface, dark.
+
+## Batch 12
+- TemplateCreatorConfigurationView (hero, kit rows, check-preset screen pills; the deep nested field editors keep their native Form chrome), TemplateCreatorRehearsalView, TemplateD6RehearsalView, TemplateEffectListView, TemplateHotspotPlacementView: hero, grouped surface, pills, tokens, skeleton. Dynamic Type: inline button HStacks in effect/hotspot rows left as native borderless controls.
