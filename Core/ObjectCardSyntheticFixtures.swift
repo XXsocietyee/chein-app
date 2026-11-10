@@ -4,6 +4,8 @@ import Foundation
 public enum ObjectCardSyntheticFixtures {
     /// Reserved hosts are labels only. Offline fixture loaders never contact these URLs.
     public static let collectionJSON = #"{"list":[{"id":901,"title":"Synthetic notebook","category":"书籍文具","sourceUrl":"https://fixtures.invalid/notebook.png","frames":["https://fixtures.invalid/front.png","https://fixtures.invalid/back.png"],"caption":"Offline example","place":"Synthetic studio","cardStyle":"foil","genStatus":"QUEUED"},{"id":902,"title":"Synthetic cup","category":"日用杂物","sourceUrl":"","cutoutUrl":"","frames":[],"cardStyle":"plain","genStatus":"FAILED"}],"total":52}"#
+    /// 200 list whose `total` is JSON null. Offline only. Not a zero count.
+    public static let unknownTotalJSON = #"{"list":[{"id":903,"title":"Withheld total","sourceUrl":"https://fixtures.invalid/one.png","frames":["https://fixtures.invalid/one.png"]}],"total":null}"#
     public static func collection() throws -> ObjectCardCollection {
         try JSONDecoder().decode(ObjectCardCollection.self, from: Data(collectionJSON.utf8))
     }

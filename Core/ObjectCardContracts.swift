@@ -49,6 +49,11 @@ public struct ObjectCardCollection: Decodable, Equatable {
     public let total: Int
     public var isTruncated: Bool { total > cards.count }
     private enum CodingKeys: String, CodingKey { case list, total }
+    public init(cards: [ObjectCard], total: Int) throws {
+        guard total >= 0 else { throw APIError.malformedResponse }
+        self.cards = cards
+        self.total = total
+    }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         cards = try c.decode([ObjectCard].self, forKey: .list)

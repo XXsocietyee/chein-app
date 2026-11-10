@@ -177,3 +177,96 @@ public struct TemplateAuthoringDraft: Codable, Equatable {
         return d
     }
 }
+
+/// Read-only phase for the node-template editor. A missing read stays hidden.
+/// Unknown counts are an em dash. A literal zero stays "0". No route is added or sent.
+public struct TemplateAuthoringPageReadiness: Equatable {
+    public enum Phase: Equatable { case loading, empty, error, unknown, ready }
+    public static let unknownNumber = "—"
+    public let hidden: Bool
+    public let phase: Phase?
+    public let durationText: String
+    public let useCountText: String
+    public let title: String?
+    public static func text(_ value: Int?) -> String { value.map(String.init) ?? unknownNumber }
+    public static func editor(sessionPresent: Bool, submitting: Bool, blocked: Bool, uncertain: Bool, draft: TemplateAuthoringDraft, messageKey: String?) -> Self {
+        guard sessionPresent else { return .hidden() }
+        let duration = draft.duration
+        let shown = draft.title.trimmingCharacters(in: .whitespacesAndNewlines)
+        let title = shown.isEmpty ? nil : shown
+        if submitting { return .init(hidden: false, phase: .loading, duration: duration, uses: nil, title: title) }
+        if blocked || errorKeys.contains(messageKey ?? "") { return .init(hidden: false, phase: .error, duration: duration, uses: nil, title: title) }
+        if uncertain || unknownKeys.contains(messageKey ?? "") { return .init(hidden: false, phase: .unknown, duration: duration, uses: nil, title: title) }
+        let players = (draft.players ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let description = draft.description.trimmingCharacters(in: .whitespacesAndNewlines)
+        if title == nil && description.isEmpty && players.isEmpty && duration == nil {
+            return .init(hidden: false, phase: .empty, duration: nil, uses: nil, title: nil)
+        }
+        return .init(hidden: false, phase: .ready, duration: duration, uses: nil, title: title)
+    }
+    public static func libraryInfo(data: Data?, httpStatus: Int?, readable: Bool, inFlight: Bool) -> Self {
+        guard readable else { return .hidden() }
+        guard let data else {
+            if inFlight && httpStatus == nil { return .init(hidden: false, phase: .loading, duration: nil, uses: nil, title: nil) }
+            return httpStatus == nil
+                ? .init(hidden: false, phase: .unknown, duration: nil, uses: nil, title: nil)
+                : .init(hidden: false, phase: .error, duration: nil, uses: nil, title: nil)
+        }
+        if let httpStatus, !(200..<300).contains(httpStatus) {
+            return .init(hidden: false, phase: .error, duration: nil, uses: nil, title: nil)
+        }
+        guard let envelope = try? JSONDecoder().decode(LibraryInfoEnvelope.self, from: data) else {
+            return .init(hidden: false, phase: .error, duration: nil, uses: nil, title: nil)
+        }
+        guard let code = count(envelope.code) else {
+            return .init(hidden: false, phase: .unknown, duration: nil, uses: nil, title: nil)
+        }
+        guard code == 200 else { return .init(hidden: false, phase: .error, duration: nil, uses: nil, title: nil) }
+        switch envelope.data {
+        case .none:
+            return .init(hidden: false, phase: .unknown, duration: nil, uses: nil, title: nil)
+        case .some(.null):
+            return .init(hidden: false, phase: .empty, duration: nil, uses: nil, title: nil)
+        case .some(.array(let rows)):
+            return .init(hidden: false, phase: rows.isEmpty ? .empty : .unknown, duration: nil, uses: nil, title: nil)
+        case .some(.object(let fields)):
+            if fields.isEmpty { return .init(hidden: false, phase: .empty, duration: nil, uses: nil, title: nil) }
+            guard let id = count(fields["id"]), id > 0 else {
+                return .init(hidden: false, phase: .unknown, duration: nil, uses: nil, title: nil)
+            }
+            let rawTitle = fields["title"]?.string?.trimmingCharacters(in: .whitespacesAndNewlines)
+            let title = (rawTitle?.isEmpty == false) ? rawTitle : nil
+            return .init(hidden: false, phase: .ready, duration: count(fields["duration"]), uses: count(fields["useNum"]), title: title)
+        case .some(.string(_)), .some(.number(_)), .some(.bool(_)):
+            return .init(hidden: false, phase: .error, duration: nil, uses: nil, title: nil)
+        }
+    }
+    private static let errorKeys: Set<String> = ["templateAuthor.storageFailed", "templateAuthor.unavailable", "templateAuthor.listUnavailable"]
+    private static let unknownKeys: Set<String> = ["templateAuthor.uncertain", "templateAuthor.shelf.unknown"]
+    private static func hidden() -> Self { .init(hidden: true, phase: nil, duration: nil, uses: nil, title: nil) }
+    private init(hidden: Bool, phase: Phase?, duration: Int?, uses: Int?, title: String?) {
+        self.hidden = hidden
+        self.phase = hidden ? nil : phase
+        self.durationText = hidden ? Self.unknownNumber : Self.text(duration)
+        self.useCountText = hidden ? Self.unknownNumber : Self.text(uses)
+        self.title = hidden ? nil : title
+    }
+    /// Exact non-negative integers only. An empty string, a bool, and a fraction are unknown, not 0.
+    private static func count(_ value: TemplateAuthoringJSON?) -> Int? {
+        switch value {
+        case .some(.number(let raw)):
+            guard raw.isFinite, raw >= 0, raw < Double(Int.max), raw.rounded() == raw else { return nil }
+            return Int(raw)
+        case .some(.string(let raw)):
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let parsed = Int(trimmed), parsed >= 0, String(parsed) == trimmed else { return nil }
+            return parsed
+        case .none, .some(.bool), .some(.array), .some(.object), .some(.null):
+            return nil
+        }
+    }
+    private struct LibraryInfoEnvelope: Decodable {
+        var code: TemplateAuthoringJSON?
+        var data: TemplateAuthoringJSON?
+    }
+}

@@ -678,5 +678,37 @@
   "projectEdit.syncThemeDatesLegacy": {
     "en": "This saved date setting can't be changed here. It's kept as is.",
     "zh-Hans": "此已保存的日期设置无法在此修改，将原样保留。"
+  },
+  "projectEdit.fabu.loading": {
+    "en": "Loading editor…",
+    "zh-Hans": "正在加载编辑器…"
+  },
+  "projectEdit.fabu.empty": {
+    "en": "—",
+    "zh-Hans": "—"
+  },
+  "projectEdit.fabu.error": {
+    "en": "The project or secure draft could not be loaded. Retry before editing.",
+    "zh-Hans": "无法加载项目或安全草稿，请重试后再编辑。"
+  },
+  "projectEdit.fabu.unknown": {
+    "en": "—",
+    "zh-Hans": "—"
+  },
+  "projectEdit.fabu.ready": {
+    "en": "Professional theme editor",
+    "zh-Hans": "专业主题编辑器"
+  },
+  "projectEdit.fabu.hidden": {
+    "en": "Professional editor is hidden",
+    "zh-Hans": "专业编辑暂不显示"
+  },
+  "projectEdit.fabu.quota": {
+    "en": "Themes remaining",
+    "zh-Hans": "剩余主题额度"
+  },
+  "projectEdit.fabu.chapters": {
+    "en": "Chapters",
+    "zh-Hans": "章节"
   }
 }
