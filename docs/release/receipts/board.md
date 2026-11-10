@@ -39,3 +39,4 @@
 - wire29 [x] 26e87fbba. PR 1030. CRM campaigns read MerchantCrmCampaignsPage.phase. Not merged.
 - wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
 - ut-d4-gov [x] ba1318805. PR 1032. Fixture test only. Not merged. Not run on Xcode Cloud yet.
+- ut-d4-ops [x] b3805eb07. PR 1033. Fixture test only. Not merged. Not run on Xcode Cloud yet.
