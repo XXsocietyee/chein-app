@@ -122,6 +122,7 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader(LocalizedStringKey(controller.kind.labelKey)).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 if controller.mode == .sourceExample { Text("templateTimer.exampleOnly").font(.footnote) }
             }
@@ -167,30 +168,30 @@ typealias TemplateTimerCancellation = @MainActor () -> Void
                 Section {
                     if state.canStart {
                         if state.phase == .finished || state.phase == .result {
-                            Button("templateTimer.again", action: controller.action(.start)).accessibilityIdentifier("templateTimer.again")
+                            CYPillButton("templateTimer.again", style: .primary, action: controller.action(.start)).accessibilityIdentifier("templateTimer.again")
                         } else {
-                            Button("templateTimer.start", action: controller.action(.start)).accessibilityIdentifier("templateTimer.start")
+                            CYPillButton("templateTimer.start", style: .primary, action: controller.action(.start)).accessibilityIdentifier("templateTimer.start")
                         }
                     }
                     if state.canPauseResume {
                         if state.phase == .paused {
-                            Button("templateTimer.resume", action: controller.action(.pauseResume)).accessibilityIdentifier("templateTimer.resume")
+                            CYPillButton("templateTimer.resume", style: .primary, action: controller.action(.pauseResume)).accessibilityIdentifier("templateTimer.resume")
                         } else {
-                            Button("templateTimer.pause", action: controller.action(.pauseResume)).accessibilityIdentifier("templateTimer.pause")
+                            CYPillButton("templateTimer.pause", style: .secondary, action: controller.action(.pauseResume)).accessibilityIdentifier("templateTimer.pause")
                         }
-                        Button("templateTimer.stop", action: controller.action(.stop)).disabled(!state.canStop)
+                        CYPillButton("templateTimer.stop", style: .secondary, action: controller.action(.stop)).disabled(!state.canStop)
                             .accessibilityIdentifier("templateTimer.stop")
                     }
-                    Button("creator.reset", action: controller.action(.reset)).accessibilityIdentifier("templateTimer.reset")
+                    CYPillButton("creator.reset", style: .secondary, action: controller.action(.reset)).accessibilityIdentifier("templateTimer.reset")
                 }
             } else {
                 Section {
                     Text("templateTimer.unavailable")
-                    Button("templateTimer.reload") { controller.reload() }.disabled(!controller.canReload)
+                    CYPillButton("templateTimer.reload", style: .secondary) { controller.reload() }.disabled(!controller.canReload)
                         .accessibilityIdentifier("templateTimer.reload")
                 }
             }
-        }.navigationTitle(LocalizedStringKey(controller.kind.labelKey)).privacySensitive()
+        }.cyGroupedSurface().privacySensitive()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.close", action: controller.closeAction { dismiss() }).accessibilityIdentifier("templateTimer.close")
             } }

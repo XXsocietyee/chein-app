@@ -27,6 +27,7 @@ extension EnvironmentValues {
 
     var body: some View {
         List {
+            CYHeroHeader("cooperation.finance.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if reader.session == nil { failure(.authRequired) }
             else if loadedSession != reader.session { ProgressView("cooperation.loading").padding(.vertical, Theme.Space.s3).accessibilityIdentifier("cooperation.finance.loading") }
             else if let issue { failure(issue) }
@@ -34,7 +35,7 @@ extension EnvironmentValues {
             else { ProgressView("cooperation.loading") }
         }
         .cyGroupedSurface()
-        .appNavigationTitle("cooperation.finance.title")
+        .cyHeroScreen()
         .modifier(CoopOperationListPresentation())
         .labeledContentStyle(CoopFinancialRowStyle())
         .cyMiniListScreen()
@@ -71,10 +72,8 @@ extension EnvironmentValues {
         if profit.isOwner, let walletReader { CoopFinanceFundsStagesSection(reader: walletReader) }
         Section {
             // Mini puts 提现 beside the hero total as the one solid action.
-            Button { if profit.canWithdraw, loadedSession == reader.session { showsSupport = true } } label: {
-                Text("cooperation.finance.withdraw")
-            }
-            .buttonStyle(.cyPrimary).listRowBackground(Color.clear).disabled(!profit.canWithdraw)
+            CYPillButton("cooperation.finance.withdraw") { if profit.canWithdraw, loadedSession == reader.session { showsSupport = true } }
+            .listRowBackground(Color.clear).disabled(!profit.canWithdraw)
             .accessibilityLabel(Text(LocalizedStringKey(withdrawAccessibilityKey(profit.withdrawState))))
             .accessibilityIdentifier("cooperation.finance.withdraw")
             if profit.withdrawState == .unknown { Text("cooperation.finance.withdraw.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
@@ -82,8 +81,7 @@ extension EnvironmentValues {
         }
         if profit.topics.isEmpty {
             Section {
-                ContentUnavailableView("cooperation.finance.empty", systemImage: "tray")
-                    .accessibilityIdentifier("cooperation.finance.empty")
+                CYEmptyState(systemImage: "tray", "cooperation.finance.empty", messageIdentifier: "cooperation.finance.empty")
             }
         } else {
             Section {
@@ -151,7 +149,7 @@ extension EnvironmentValues {
             }.padding(.vertical, Theme.Space.s2).accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.finance.issue.\(key)")
             // Sign-in is owned by the account entry; this page never presents credentials itself.
             if issue != .authRequired || reader.session != nil {
-                Button("cooperation.refresh") { refresh = UUID() }.accessibilityIdentifier("cooperation.finance.retry")
+                CYPillButton("cooperation.refresh", style: .secondary) { refresh = UUID() }.accessibilityIdentifier("cooperation.finance.retry")
             }
         }
     }
@@ -188,10 +186,8 @@ struct CoopFinanceBadge: View {
     let status: CoopFinanceProfit.TopicStatus
     var body: some View {
         let badge: CoopFinanceProfit.Badge = settled ? .success : status.badge
-        Text(LocalizedStringKey(settled ? "cooperation.finance.settled" : "cooperation.finance.status." + status.rawValue))
-            .font(.caption.weight(.semibold)).padding(.horizontal, 8).padding(.vertical, 3)
-            .foregroundStyle(badge == .success ? CYColor.successText : badge == .warning ? CYColor.warningText : CYColor.textSecondary)
-            .background(Capsule().fill(badge == .success ? CYColor.successSoft : badge == .warning ? CYColor.warningSoft : CYColor.bgSurfaceSubtle))
+        CYStatusChip(LocalizedStringKey(settled ? "cooperation.finance.settled" : "cooperation.finance.status." + status.rawValue),
+                     tone: badge == .success ? .success : badge == .warning ? .warning : .neutral)
     }
 }
 
@@ -211,10 +207,10 @@ struct CoopFinanceBadge: View {
                     LabeledContent { Text(verbatim: amount(item.amount, stages.currency)) } label: { Text("wallet.complaintPeriod"); Text(verbatim: item.availableDate) }
                 }
                 if stages.disputed.value > 0 { LabeledContent("cooperation.finance.stages.disputed", value: amount(stages.disputed, stages.currency)) }
-                if !stages.amountsKnown { Text("cooperation.finance.stages.unknown").font(.footnote).foregroundStyle(.secondary) }
+                if !stages.amountsKnown { Text("cooperation.finance.stages.unknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             } else if failed {
-                Text("cooperation.finance.stages.failed")
-                Button("cooperation.refresh") { Task { await load() } }.accessibilityIdentifier("cooperation.finance.stages.retry")
+                CYStatusChip("cooperation.finance.stages.failed", tone: .danger, systemImage: "exclamationmark.triangle")
+                CYPillButton("cooperation.refresh", style: .secondary) { Task { await load() } }.accessibilityIdentifier("cooperation.finance.stages.retry")
             } else if reader.scope != nil {
                 ProgressView("cooperation.loading").font(.subheadline).padding(.vertical, Theme.Space.s2)
             }

@@ -27,6 +27,7 @@ import SwiftUI
     @State private var readSnapshot = false
     var body: some View {
         List {
+            Section { CYHeroHeader("templateAuthor.mine") }.e1HeroRow()
             Section {
                 readStateCopy
                 TextField("templateAuthor.shelf.keyword", text: $keyword)
@@ -34,19 +35,15 @@ import SwiftUI
                     .onSubmit { Task { await refresh() } }
                     .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.keyword")
                 if !keyword.isEmpty {
-                    Button {
+                    CYPillButton("templateAuthor.shelf.clearSearch", style: .tertiary, systemImage: "xmark.circle") {
                         guard !busy else { return }
                         let stamp = viewRequest
                         keyword = ""
                         Task { await refreshClearedKeyword(stamp: stamp, refreshUnfiltered: true) }
-                    } label: {
-                        Label {
-                            Text("templateAuthor.shelf.clearSearch")
-                        } icon: { Image(systemName: "xmark.circle") }
-                    }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.clearSearch")
+                    }.disabled(busy).accessibilityIdentifier("templateAuthor.shelf.clearSearch").e1ActionRow()
                 }
-                Button("templateAuthor.shelf.refresh") { Task { await refresh() } }
-                    .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.refresh")
+                CYPillButton("templateAuthor.shelf.refresh", style: .secondary, systemImage: "arrow.clockwise") { Task { await refresh() } }
+                    .disabled(busy).accessibilityIdentifier("templateAuthor.shelf.refresh").e1ActionRow()
             }
             ForEach(appliedKeyword == keyword ? rows : []) { row in
                 Section {
@@ -62,15 +59,19 @@ import SwiftUI
                         .accessibilityLabel(Text(verbatim: row.title))
                         .accessibilityIdentifier("memberTemplate.mine.\(row.id)")
                     } else {
-                        Text(verbatim: row.title).font(.headline)
+                        Text(verbatim: row.title).font(CYTypography.cardTitle)
                     }
                     if let id = MemberPlayTemplateID(rawValue: row.id), ownerConfiguration != nil {
-                        Button("templateOwnerConfig.open") { selectedConfiguration = id }
-                            .accessibilityIdentifier("templateOwnerConfig.open.\(row.id)")
+                        Button { selectedConfiguration = id } label: {
+                            CYListRow("templateOwnerConfig.open") { CYRowIcon(systemImage: "slider.horizontal.3") }
+                        }
+                        .accessibilityIdentifier("templateOwnerConfig.open.\(row.id)")
                     }
                     if let id = MemberPlayTemplateID(rawValue: row.id), creatorConsent != nil {
-                        Button(workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale)) { selectedCreatorConsent = WorkshopCreatorConsentSelection(source: id) }
-                            .accessibilityIdentifier("workshopCreator.open.\(row.id)")
+                        Button { selectedCreatorConsent = WorkshopCreatorConsentSelection(source: id) } label: {
+                            CYListRow(verbatim: workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale)) { CYRowIcon(systemImage: "person.badge.shield.checkmark") }
+                        }
+                        .accessibilityIdentifier("workshopCreator.open.\(row.id)")
                     }
                     if let text = row.description, !text.isEmpty { Text(verbatim: text).foregroundStyle(.secondary) }
                     let state = rowStates[row.id] ?? .unknown
@@ -101,7 +102,7 @@ import SwiftUI
                 Text(LocalizedStringKey(readMessageKey)).accessibilityIdentifier("templateAuthor.shelf.readStatus")
             }
             if appliedKeyword == keyword, let messageKey { Text(LocalizedStringKey(messageKey)).accessibilityIdentifier("templateAuthor.shelf.status") }
-        }.navigationTitle("templateAuthor.mine")
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
             .refreshable { await refresh() }
             // Stable typed destination survives invalidation of its source list on push.
             .navigationDestination(item: $selectedMember) { id in
@@ -138,7 +139,7 @@ import SwiftUI
                         Section {
                             if value.action == .remove {
                                 Text("templateOwnShelf.delete.title \(value.title)")
-                                    .font(.headline)
+                                    .font(CYTypography.sectionTitle)
                                     .accessibilityIdentifier("templateOwnShelf.delete.title")
                                 Text("templateOwnShelf.delete.irreversible")
                             } else if value.desiredPublishStatus == 1 {
@@ -197,7 +198,7 @@ import SwiftUI
         } else if readMessageKey == "templateOwnShelf.read.denied" || !coordinator.canRead {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.denied", subtitle: "templateOwnShelf.read.deniedHint", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, busy, rows.isEmpty, readMessageKey == nil {
-            ProgressView { Text("templateOwnShelf.read.loading") }.frame(maxWidth: .infinity).accessibilityIdentifier("templateOwnShelf.read.loading")
+            CYLoadingStateView(rows: 2).accessibilityLabel(Text("templateOwnShelf.read.loading")).accessibilityIdentifier("templateOwnShelf.read.loading")
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable", rows.isEmpty {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.failed", action: "templateOwnShelf.read.retry", identifier: "templateOwnShelf.read.retry") { Task { await refresh() } }
         } else if appliedKeyword == keyword, readMessageKey == "templateAuthor.listUnavailable" {
@@ -212,8 +213,8 @@ import SwiftUI
         } else if readMessageKey == "templateAuthor.shelf.moreFailed" {
             TemplateOwnShelfReadCopy(title: "templateOwnShelf.read.moreFailed", subtitle: "templateOwnShelf.read.moreFailedHint", action: "templateOwnShelf.read.retry", identifier: "templateAuthor.shelf.loadMore") { Task { await loadMore() } }
         } else {
-            Button("templateOwnShelf.read.loadMore") { Task { await loadMore() } }
-                .disabled(busy)
+            CYPillButton("templateOwnShelf.read.loadMore", style: .secondary) { Task { await loadMore() } }
+                .disabled(busy).e1ActionRow()
                 .accessibilityIdentifier("templateAuthor.shelf.loadMore")
                 .accessibilityLabel(Text("templateOwnShelf.read.loadMoreLabel"))
         }
@@ -276,12 +277,12 @@ private struct TemplateOwnShelfReadCopy: View {
     var identifier: String? = nil
     var perform: (() -> Void)? = nil
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text(title)
-            if let subtitle { Text(subtitle).font(.footnote).foregroundStyle(.secondary) }
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(title).font(CYTypography.cardTitle)
+            if let subtitle { Text(subtitle).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             if let action {
-                if let perform { Button(action, action: perform).accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action") }
-                else { Text(action).font(.footnote) }
+                if let perform { CYPillButton(action, style: .secondary, action: perform).accessibilityIdentifier(identifier ?? "templateOwnShelf.read.action").padding(.top, CYSpacing.xs) }
+                else { Text(action).font(CYTypography.meta) }
             }
         }
     }

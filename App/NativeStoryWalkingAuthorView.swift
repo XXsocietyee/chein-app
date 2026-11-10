@@ -89,7 +89,7 @@ private func storyWalkingAuthorText(_ key: String, locale: Locale) -> String {
                         else if available.isEmpty { Text(text("nodes.allAdded")) }
                         Section(text("confirmation.title")) {
                             Toggle(text("acknowledge"),isOn:Binding(get: { acknowledged }, set: { value in guard current, editToken == token else { return }; acknowledged = value; editToken = UUID() })).disabled(!current)
-                            Button(text("apply")) { apply(token) }.nativeAuthorPrimaryAction().disabled(!current || !acknowledged || validation?.canApply != true).accessibilityIdentifier("walkingAuthor.apply")
+                            CYPillButton(verbatim: text("apply")) { apply(token) }.listRowBackground(Color.clear).disabled(!current || !acknowledged || validation?.canApply != true).accessibilityIdentifier("walkingAuthor.apply")
                             Text(text("saveScope")).font(.footnote).foregroundStyle(.secondary)
                         }
                     }

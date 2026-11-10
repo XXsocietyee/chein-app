@@ -221,8 +221,9 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateAuthor.title") }.e1HeroRow()
             if model.coordinator.session == nil {
-                Section { Text("templateAuthor.signIn").accessibilityIdentifier("templateAuthor.signIn") }
+                Section { CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "templateAuthor.signIn", messageIdentifier: "templateAuthor.signIn").listRowBackground(Color.clear) }
             }
             restoreSection
             if model.coordinator.session != nil {
@@ -241,12 +242,10 @@ import Combine
                         Text(verbatim: receipt.state)
                         Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "保存/提审回执不等于审核通过、上架或媒体检查完成。" : "A save or review-submission receipt does not mean approval, listing, or completed media checks.")
                     }
-                    Button {
+                    CYPillButton(verbatim: locale.language.languageCode?.identifier == "zh" ? "查询原请求结果" : "Read original request result", style: .secondary, systemImage: "arrow.clockwise") {
                         Task { await model.readOriginalRequest(session: session, identity: identity, requestID: request.requestId) }
-                    } label: {
-                        Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "查询原请求结果" : "Read original request result")
                     }.disabled(!model.coordinator.canReadOriginalRequest || model.busy)
-                        .accessibilityIdentifier("templateAuthor.readOriginalRequest")
+                        .accessibilityIdentifier("templateAuthor.readOriginalRequest").e1ActionRow()
                 }
             }
             if let onSavedDraft {
@@ -254,15 +253,15 @@ import Combine
                     Text("projectNodeCreate.draftOnly", tableName: "ProjectNodeTemplateCreation")
                     if let saved = model.coordinator.savedDraft {
                         Text(verbatim: "#" + String(saved.memberTemplateID.rawValue))
-                        Button(action: { onSavedDraft(saved) }, label: { Text("projectNodeCreate.return", tableName: "ProjectNodeTemplateCreation") })
-                            .disabled(!canReturnSavedDraft(saved)).accessibilityIdentifier("projectNodeCreate.return")
+                        CYPillButton("projectNodeCreate.return", tableName: "ProjectNodeTemplateCreation") { onSavedDraft(saved) }
+                            .disabled(!canReturnSavedDraft(saved)).accessibilityIdentifier("projectNodeCreate.return").e1ActionRow()
                     } else if model.coordinator.locked {
                         Text("projectNodeCreate.noReceipt", tableName: "ProjectNodeTemplateCreation")
                     }
                 }
             }
         }
-        .navigationTitle("templateAuthor.title")
+        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
         .modifier(TemplateAuthoringExitGuard(model: model, overlaysOpen: { preview || discard || media.review != nil }))
         .disabled(model.busy)
         .task { model.load(); media.reload() }
@@ -288,8 +287,8 @@ import Combine
             Section("templateAuthor.restoreTitle") {
                 if case .ready = model.coordinator.restore {
                     Text("templateAuthor.restoreMessage")
-                    Button("templateAuthor.restore") { model.restore(); step = .edit }
-                        .disabled(model.coordinator.locked).accessibilityIdentifier("templateAuthor.restore")
+                    CYPillButton("templateAuthor.restore", style: .secondary, systemImage: "arrow.uturn.backward") { model.restore(); step = .edit }
+                        .disabled(model.coordinator.locked).accessibilityIdentifier("templateAuthor.restore").e1ActionRow()
                 } else { Text("templateAuthor.restoreFailed") }
                 Button("templateAuthor.discard", role: .destructive) { discard = true }.disabled(model.coordinator.locked)
             }
@@ -380,9 +379,9 @@ import Combine
                 }
             }
             Section {
-                Button("templateAuthor.reviewDraft") { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft")
-                Button("templateAuthor.preview") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview")
-                Button("templateAuthor.saveLocal") { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal")
+                CYPillButton("templateAuthor.reviewDraft", style: .secondary) { model.prepare(.saveDraft) }.disabled(!model.draft.canSave || model.draft.validationMethod.isLocalConfigurationOnly).accessibilityIdentifier("templateAuthor.reviewDraft").e1ActionRow()
+                CYPillButton("templateAuthor.preview", style: .secondary, systemImage: "play.circle") { preview = true }.disabled(!model.draft.publishIssues.isEmpty || model.draft.validationMethod == .preference).accessibilityIdentifier("templateAuthor.preview").e1ActionRow()
+                CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }.accessibilityIdentifier("templateAuthor.saveLocal").e1ActionRow()
             }
         }.disabled(!model.canEdit)
     }
@@ -414,8 +413,9 @@ struct TemplateAuthoringReviewView: View {
     let cancel: () -> Void
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateAuthor.reviewTitle") }.e1HeroRow()
             Section {
-                Text(verbatim: review.title).font(.headline)
+                Text(verbatim: review.title).font(CYTypography.sectionTitle)
                 Text(review.request.path.hasSuffix("publish") ? "templateAuthor.publishReview" : "templateAuthor.draftReview")
                 if !canSubmit && !canSimulate { Text("templateAuthor.unavailable").foregroundStyle(.secondary) }
             }
@@ -430,7 +430,7 @@ struct TemplateAuthoringReviewView: View {
             if canSimulate {
                 Section { Text("templateAuthor.fixtureNotice").foregroundStyle(.secondary) }
             }
-        }.navigationTitle("templateAuthor.reviewTitle").navigationBarTitleDisplayMode(.inline)
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .questifyBottomAction {
                 if canSimulate {
                     Button(action: confirm) { Text("templateAuthor.confirmSimulation").frame(maxWidth: .infinity) }
@@ -450,7 +450,7 @@ struct TemplateAuthoringReviewView: View {
     @Environment(\.templateConfiguredRehearsals) private var configuredRehearsals
     var body: some View {
         List {
-            Section { Text(verbatim: draft.title).font(.title2.bold()); Text(verbatim: draft.description) }
+            Section { CYHeroHeader(verbatim: draft.title.isEmpty ? String(localized: "templateAuthor.preview") : draft.title, subtitle: draft.description.isEmpty ? nil : draft.description) }.e1HeroRow()
             Section("templateAuthor.finish") {
                 Text(LocalizedStringKey(draft.validationMethod.labelKey))
                 if draft.validationMethod.rawValue == 7 {
@@ -501,7 +501,7 @@ struct TemplateAuthoringReviewView: View {
                     LabeledContent("templateAuthor.field.medalStyle", value: style)
                 }
             } }
-        }.navigationTitle("templateAuthor.preview")
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) { if let configuredRehearsals {
                 TemplateConfiguredRehearsalCloseButton(controller: configuredRehearsals)
             } else { Button("templateAuthor.close") { dismiss() } } } }

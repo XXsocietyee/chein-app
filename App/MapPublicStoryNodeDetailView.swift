@@ -50,7 +50,8 @@ struct MapPublicStoryNodeDetailView: View {
             if !reader.isConfigured {
                 TopicIssueView(issue: .notConfigured)
             } else if loading || loadedKey != key {
-                ProgressView(String(localized: LocalizedStringResource("mapPublicLayers.storyNode.loading", table: "MapPublicLayers", locale: locale)))
+                CYSkeleton()
+                    .accessibilityLabel(Text(String(localized: LocalizedStringResource("mapPublicLayers.storyNode.loading", table: "MapPublicLayers", locale: locale))))
                     .accessibilityIdentifier("mapPublicLayers.storyNode.loading")
             } else if let issue {
                 TopicIssueView(issue: issue) {

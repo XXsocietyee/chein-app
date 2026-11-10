@@ -20,12 +20,11 @@ struct ClubOpsJoinRequestLoadIssue: View {
     let disabled: Bool
     let retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(issue == .failed ? "clubOpsJoin.failed" : "clubOpsJoin.stale", tableName: "ClubOpsJoinNotify").font(.headline)
-            Button(action: retry) {
-                Text(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale", tableName: "ClubOpsJoinNotify")
-            }
-            .buttonStyle(.borderless).disabled(disabled)
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYStatusChip(verbatim: String(localized: issue == .failed ? "clubOpsJoin.failed" : "clubOpsJoin.stale", table: "ClubOpsJoinNotify"),
+                         tone: issue == .failed ? .danger : .warning, systemImage: "exclamationmark.triangle")
+            CYPillButton(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale", style: .secondary, tableName: "ClubOpsJoinNotify", action: retry)
+            .disabled(disabled)
             .accessibilityIdentifier(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale")
         }.accessibilityIdentifier(issue == .failed ? "clubOpsJoin.failed" : "clubOpsJoin.stale")
     }
@@ -34,10 +33,8 @@ struct ClubOpsJoinRequestLoadIssue: View {
 /// Mini notify `no-permission` state: no retry, because repeating the read cannot grant access.
 struct ClubOpsNotifyDeniedText: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("clubOpsNotify.denied.title", tableName: "ClubOpsJoinNotify").font(.headline)
-            Text("clubOpsNotify.denied.body", tableName: "ClubOpsJoinNotify").font(.footnote).foregroundStyle(.secondary)
-        }.accessibilityIdentifier("clubOpsNotify.denied")
+        CYEmptyState(systemImage: "lock", "clubOpsNotify.denied.title", tableName: "ClubOpsJoinNotify",
+                     detail: "clubOpsNotify.denied.body", messageIdentifier: "clubOpsNotify.denied")
     }
 }
 
@@ -47,9 +44,9 @@ struct ClubOpsPageFailureSection: View {
     let retry: () -> Void
     var body: some View {
         Section {
-            Text(LocalizedStringKey(copy.titleKey), tableName: copy.table).font(.headline)
+            CYStatusChip(verbatim: String(localized: String.LocalizationValue(copy.titleKey), table: copy.table), tone: .danger, systemImage: "exclamationmark.triangle")
                 .accessibilityIdentifier("clubOps.pageFailure.title")
-            Button(action: retry) { Text(LocalizedStringKey(copy.retryKey), tableName: copy.table) }
+            CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, tableName: copy.table, action: retry)
                 .accessibilityIdentifier("clubOps.pageFailure.retry")
         }
     }

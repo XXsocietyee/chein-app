@@ -7,12 +7,12 @@ struct TemplatePreferencePreviewView: View {
         if let preview = try? TemplatePreferencePreview(raw: raw) {
             ForEach(preview.dimensions.indices, id: \.self) { index in Text(verbatim: preview.dimensions[index]) }
             ForEach(preview.results) { result in
-                VStack(alignment: .leading) {
-                    Text(verbatim: result.id).font(.caption)
-                    Text(verbatim: result.title).font(.headline)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: result.id).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: result.title).font(CYTypography.cardTitle)
                     Text(verbatim: result.body)
                     Text(verbatim: result.nextStep)
-                    LabeledContent("templateAuthor.preference.days", value: String(result.nextStepDays))
+                    LabeledContent("templateAuthor.preference.days", value: String(result.nextStepDays)).monospacedDigit()
                 }
             }
             if let recipient = preview.recipientLabel, let purpose = preview.purpose {

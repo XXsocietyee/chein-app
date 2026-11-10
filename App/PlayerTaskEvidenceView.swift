@@ -31,7 +31,7 @@ import UIKit
                 if sameTarget, let offered = reviewOwner.review {
                     PlayerTaskEvidenceReviewCard(owner: reviewOwner, offered: offered) { clear(); dismiss() }.id(offered.id)
                 }
-                if reviewOwner.working { ProgressView("playerEvidence.working") }
+                if reviewOwner.working { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
             }.cyGroupedSurface().navigationTitle(target.kind == .scan ? "playerEvidence.scan.title" : "playerEvidence.photo.title")
                 .scrollDismissesKeyboard(.interactively)
                 .toolbar {
@@ -54,38 +54,42 @@ import UIKit
     }
     private func scanFields(_ opening: PlayerTaskEvidenceReviewController.InputTicket?, outputID: UUID?) -> some View {
         Section("playerEvidence.scan.title") {
-            Button("playerEvidence.scan.camera") { Task { await reviewOwner.captureDevice(.scan, offered: opening) } }
+            CYPillButton("playerEvidence.scan.camera", style: .secondary) { Task { await reviewOwner.captureDevice(.scan, offered: opening) } }
+                .listRowBackground(Color.clear)
                 .disabled(!valid || device?.supports(.scan) != true || device?.busy == true)
             if device?.supports(.scan) != true { Text("playerEvidence.deviceOff").font(.footnote) }
             if case .scan = device?.output {
-                Label("playerEvidence.scan.captured", systemImage: "checkmark.viewfinder")
-                Button("playx.review") { reviewOwner.prepareCapturedScan(outputID: outputID, offered: opening) }.disabled(!valid || device?.busy == true)
+                CYStatusChip("playerEvidence.scan.captured", tone: .success, systemImage: "checkmark.viewfinder")
+                CYPillButton("playx.review") { reviewOwner.prepareCapturedScan(outputID: outputID, offered: opening) }.listRowBackground(Color.clear).disabled(!valid || device?.busy == true)
             }
             TextField("playerEvidence.scan.manual", text: Binding(get: { sameTarget ? reviewOwner.manualText : "" }, set: { reviewOwner.updateManual($0, offered: opening) }), axis: .vertical)
                 .textInputAutocapitalization(.never).autocorrectionDisabled().disabled(!valid).focused($manualFocused)
                 .accessibilityIdentifier("playerEvidence.manual")
             Text("playerEvidence.scan.manualDetail").font(.footnote)
-            Button("playerEvidence.scan.reviewManual") { manualFocused = false; reviewOwner.prepareManual(reviewOwner.manualText, offered: opening) }
+            CYPillButton("playerEvidence.scan.reviewManual", style: .secondary) { manualFocused = false; reviewOwner.prepareManual(reviewOwner.manualText, offered: opening) }
+                .listRowBackground(Color.clear)
                 .disabled(!valid || reviewOwner.manualText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("playerEvidence.manual.review")
         }
     }
     private func photoFields(_ opening: PlayerTaskEvidenceReviewController.InputTicket?, outputID: UUID?) -> some View {
         Section("playerEvidence.photo.title") {
-            Button("playerEvidence.photo.capture") { Task { await reviewOwner.captureDevice(.photo, offered: opening) } }
+            CYPillButton("playerEvidence.photo.capture", style: .secondary) { Task { await reviewOwner.captureDevice(.photo, offered: opening) } }
+                .listRowBackground(Color.clear)
                 .disabled(!valid || device?.supports(.photo) != true || device?.busy == true)
-            Button("playerEvidence.photo.library") { Task { await reviewOwner.captureDevice(.photo, library: true, offered: opening) } }
+            CYPillButton("playerEvidence.photo.library", style: .secondary) { Task { await reviewOwner.captureDevice(.photo, library: true, offered: opening) } }
+                .listRowBackground(Color.clear)
                 .disabled(!valid || device?.supportsLibraryPhotos != true || device?.busy == true)
             if device?.supports(.photo) != true { Text("playerEvidence.deviceOff").font(.footnote) }
             if valid, case .photo(let bytes, _) = device?.output, let image = UIImage(data: bytes) {
                 Image(uiImage: image).resizable().scaledToFit().frame(maxHeight: 240)
                     .accessibilityLabel("playerEvidence.photo.preview")
-                Button("playerEvidence.photo.upload") { reviewOwner.prepareUpload(outputID: outputID, offered: opening) }.disabled(!valid || device?.canUpload != true)
+                CYPillButton("playerEvidence.photo.upload") { reviewOwner.prepareUpload(outputID: outputID, offered: opening) }.listRowBackground(Color.clear).disabled(!valid || device?.canUpload != true)
             }
-            if device?.busy == true { ProgressView("playerEvidence.working") }
+            if device?.busy == true { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
             if valid, device?.reviewedPhoto(expectedOutputID: outputID) != nil {
-                Label("playerEvidence.photo.uploaded", systemImage: "checkmark.circle")
-                Button("playx.review") { reviewOwner.prepareUploadedPhoto(outputID: outputID, offered: opening) }.disabled(!valid)
+                CYStatusChip("playerEvidence.photo.uploaded", tone: .success, systemImage: "checkmark.circle")
+                CYPillButton("playx.review") { reviewOwner.prepareUploadedPhoto(outputID: outputID, offered: opening) }.listRowBackground(Color.clear).disabled(!valid)
             }
         }
     }

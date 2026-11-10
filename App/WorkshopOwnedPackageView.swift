@@ -19,11 +19,11 @@ import SwiftUI
         Form {
           if navigation.isCurrentPackageVisit(route) {
             switch browser.phase {
-            case .idle, .loading: ProgressView { packageText("loading") }.accessibilityIdentifier("workshopOwned.package.loading")
+            case .idle, .loading: CYLoadingStateView(rows: 1).accessibilityLabel(packageText("loading")).accessibilityIdentifier("workshopOwned.package.loading")
             case .unavailable: packageText("unavailable").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("workshopOwned.package.unavailable")
             case .failed, .invalidated:
                 packageText(browser.issue == .staleSession ? "sessionChanged" : "error").fixedSize(horizontal: false, vertical: true)
-                if browser.phase != .invalidated { Button("action.retry") { navigation.schedulePackage(presentation, claimId: claimId) } }
+                if browser.phase != .invalidated { CYPillButton("action.retry", style: .secondary) { navigation.schedulePackage(presentation, claimId: claimId) } }
             case .ready:
                 if let value = browser.value, value.claimId == claimId, let info = value.packageInfo {
                     Section {

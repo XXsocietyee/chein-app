@@ -29,7 +29,7 @@ import SwiftUI
                 case .comments:
                     Button {
                         guard sourceActive, current(target) else { return }; openComments()
-                    } label: { referenceLabel }
+                    } label: { referenceLabel(true) }
                     .accessibilityHint("club.community.comments")
                     .accessibilityIdentifier("club.postReference.comments.\(post.id)")
                 case let .topic(topicID):
@@ -37,14 +37,14 @@ import SwiftUI
                         Button {
                             guard sourceActive, selected == nil, topics.destination != nil, current(target) else { return }
                             selected = target
-                        } label: { referenceLabel }
+                        } label: { referenceLabel(true) }
                         .accessibilityHint("roamEvent.openTopic")
                         .accessibilityIdentifier("club.postReference.open.\(post.id)")
                     } else if let open = model.context.onTopic {
-                        Button { if sourceActive && current(target) { open(topicID) } } label: { referenceLabel }
-                    } else { referenceLabel }
+                        Button { if sourceActive && current(target) { open(topicID) } } label: { referenceLabel(true) }
+                    } else { referenceLabel(false) }
                 }
-            } else { referenceLabel }
+            } else { referenceLabel(false) }
         }
         .buttonStyle(.borderless)
         .sheet(item: $selected) { target in
@@ -57,9 +57,10 @@ import SwiftUI
         .onAppear { sourceActive = true }
         .onDisappear { sourceActive = false }
     }
-    private var referenceLabel: some View {
-        Label { Text(verbatim: post.sportName) } icon: { Image(systemName: "doc.text.magnifyingglass") }
-            .frame(minHeight: 44, alignment: .leading)
+    private func referenceLabel(_ actionable: Bool) -> some View {
+        CYListRow(verbatim: post.sportName, trailing: actionable ? .chevron : .none, card: true) {
+            CYRowIcon(systemImage: "doc.text.magnifyingglass")
+        }
     }
 }
 

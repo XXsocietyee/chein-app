@@ -24,11 +24,9 @@ struct TopicSessionSelectionView: View {
             List {
                 switch resolution {
                 case .missingData:
-                    Text("topic.sessionSelection.missingData")
-                        .accessibilityIdentifier("topic.sessionSelection.missingData")
+                    CYEmptyState(systemImage: "calendar.badge.exclamationmark", "topic.sessionSelection.missingData", messageIdentifier: "topic.sessionSelection.missingData")
                 case .empty:
-                    Text("topic.sessionSelection.empty")
-                        .accessibilityIdentifier("topic.sessionSelection.empty")
+                    CYEmptyState(systemImage: "calendar", "topic.sessionSelection.empty", messageIdentifier: "topic.sessionSelection.empty")
                 case .destinationUnavailable(let activities):
                     Text("topic.sessionSelection.destinationUnavailable")
                         .accessibilityIdentifier("topic.sessionSelection.destinationUnavailable")

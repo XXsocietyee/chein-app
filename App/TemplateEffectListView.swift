@@ -96,12 +96,13 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader(LocalizedStringKey(titleKey)) }.e1HeroRow()
             Section {
                 if editor.needsReopen { Text("templateEffects.reopen").accessibilityIdentifier("creator.effects.reopen") }
             }
             ForEach(editor.rows) { row in
                 Section {
-                    Text("templateEffects.rowNumber \(row.id + 1)").font(.headline)
+                    Text("templateEffects.rowNumber \(row.id + 1)").font(CYTypography.cardTitle).monospacedDigit()
                     Picker("creator.field.op", selection: editor.operation(row.id)) {
                         if !TemplateEffectList.operations.contains(row.operation) {
                             if row.operation.isEmpty { Text("creator.choose").tag("") }
@@ -122,7 +123,7 @@ import Combine
                             .keyboardType(row.operation == "ADD_TAG" ? .default : .numbersAndPunctuation)
                             .accessibilityIdentifier("creator.effects.value.\(row.id)")
                         Text(LocalizedStringKey(row.operation == "ADD_TAG" ? "templateEffects.tagHint" : "templateEffects.numberHint"))
-                            .font(.caption).foregroundStyle(.secondary)
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     }
                     HStack {
                         Button(action: editor.moveAction(row.id, row.id - 1)) { Label("playkit.sort.up", systemImage: "arrow.up") }.disabled(row.id == 0)
@@ -134,9 +135,9 @@ import Combine
                 }
             }
             Section {
-                Button("templateEffects.add", systemImage: "plus", action: editor.addAction())
-                    .disabled(!editor.canAdd).accessibilityIdentifier("creator.effects.add")
-                if editor.rows.isEmpty { Text("templateEffects.empty").font(.caption) }
+                CYPillButton("templateEffects.add", style: .secondary, systemImage: "plus", action: editor.addAction())
+                    .disabled(!editor.canAdd).accessibilityIdentifier("creator.effects.add").e1ActionRow()
+                if editor.rows.isEmpty { Text("templateEffects.empty").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             }
             if !editor.issues.isEmpty {
                 Section("templateAuthor.validationTitle") {
@@ -145,7 +146,7 @@ import Combine
                     }
                 }
             }
-        }.navigationTitle(LocalizedStringKey(titleKey)).disabled(!editor.canEdit)
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().disabled(!editor.canEdit)
             .onAppear { editor.reload() }
             .onDisappear { editor.retire() }
             .onChange(of: model.mediaReviewGeneration) { _, _ in editor.reload() }

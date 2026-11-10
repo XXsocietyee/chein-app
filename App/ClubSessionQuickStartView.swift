@@ -109,23 +109,24 @@ import SwiftUI
         let _ = model.bind(scope)
         List {
             Section {
-                Text(verbatim: club.name).font(.headline)
+                CYHeroHeader("club.sessionStart.title").listRowBackground(Color.clear)
+                Text(verbatim: club.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 LabeledContent("club.ops.clubID", value: String(scope.clubID))
-                Text("club.sessionStart.hint").font(.footnote)
+                Text("club.sessionStart.hint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             }
-            if !scope.canRead || model.phase == .denied { Text("club.sessionStart.ownerRequired").accessibilityIdentifier("club.sessionStart.denied") }
+            if !scope.canRead || model.phase == .denied { CYStatusChip("club.sessionStart.ownerRequired", tone: .warning, systemImage: "lock").accessibilityIdentifier("club.sessionStart.denied") }
             else {
                 if model.phase == .loading { ProgressView("club.loading").accessibilityIdentifier("club.sessionStart.loading") }
-                if model.phase == .failed { Text("club.sessionStart.failed").accessibilityIdentifier("club.sessionStart.failed") }
-                if model.phase == .topicUnavailable { Text("club.sessionStart.topicUnavailable") }
+                if model.phase == .failed { CYStatusChip("club.sessionStart.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.sessionStart.failed") }
+                if model.phase == .topicUnavailable { CYStatusChip("club.sessionStart.topicUnavailable", tone: .warning, systemImage: "questionmark.circle") }
                 if let topics = accepted(scope) {
                     Section("club.sessionStart.chooseTopic") {
-                        if topics.rows.isEmpty { Text("club.sessionStart.empty").accessibilityIdentifier("club.sessionStart.empty") }
+                        if topics.rows.isEmpty { CYEmptyState(systemImage: "map", "club.sessionStart.empty", messageIdentifier: "club.sessionStart.empty").listRowBackground(Color.clear) }
                         ForEach(topics.rows) { topic in
                             Button { choose(topic.id, scope: scope) } label: {
                                 VStack(alignment: .leading, spacing: 5) {
-                                    if let name = topic.name { Text(verbatim: name).font(.headline) }
-                                    else { Text("club.sessionStart.unnamedTopic").font(.headline) }
+                                    if let name = topic.name { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                                    else { Text("club.sessionStart.unnamedTopic").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                                     LabeledContent("club.gov.field.topicId", value: String(topic.id))
                                     Text(LocalizedStringKey(topic.originKey(currentClubID: scope.clubID)))
                                     if let date = topic.startDate { LabeledContent("club.sessionStart.startDate") { Text(verbatim: date) } }
@@ -136,13 +137,13 @@ import SwiftUI
                         }
                     }
                 }
-                Button(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh")) { reload(scope) }
+                CYPillButton(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"), style: .secondary) { reload(scope) }
                     .disabled(model.phase == .loading || pendingSelection != nil || creation.holdsSource || model.permit(in: scope) == nil)
                     .accessibilityIdentifier("club.sessionStart.reload")
             }
         }
         .cyGroupedSurface()
-        .navigationTitle("club.sessionStart.title")
+        .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { pendingSelection = nil; creation.retire(); model.leave(scope); dismiss() }.accessibilityIdentifier("club.sessionStart.cancel") } }
         .onAppear { hostVisible = true; finishCreationReturn() }
         .task(id: ReadTrigger(context: scope, visible: hostVisible, active: scenePhase == .active)) {

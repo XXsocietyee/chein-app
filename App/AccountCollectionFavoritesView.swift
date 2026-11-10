@@ -70,7 +70,7 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
     var body: some View {
         List {
-            if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
+            if reader.isOfflineExample { CYStatusChip("accountCollection.offlineExample", tone: .neutral, systemImage: "testtube.2").listRowBackground(Color.clear).listRowSeparator(.hidden) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if model.state.isLoading || model.state.loadedScope != key.scope {
@@ -221,7 +221,7 @@ private struct AccountCollectionFavoriteCard: View {
                     isCurrent: { reader.isAuthenticated && reader.isConfigured && reader.scope == renderedScope },
                     onRemoved: { await refresh() })
             }
-            if reader.isOfflineExample { Text("accountCollection.offlineExample").font(.caption) }
+            if reader.isOfflineExample { CYStatusChip("accountCollection.offlineExample", tone: .neutral, systemImage: "testtube.2").listRowBackground(Color.clear).listRowSeparator(.hidden) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
             else if model.state.isLoading || model.state.loadedScope != key.scope {
@@ -240,6 +240,10 @@ private struct AccountCollectionFavoriteCard: View {
                         onOpenPost?(.init(id: post.id, generation: post.generation))
                     } label: {
                         SquarePostContent(post: post, compact: true, showImages: false)
+                            .padding(CYSpacing.lg)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).strokeBorder(CYColor.borderSubtle))
                     }
                     .buttonStyle(QuestifyCardButtonStyle())
                     .disabled(onOpenPost == nil)

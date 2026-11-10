@@ -26,7 +26,7 @@ import SwiftUI
                 }
                 if !question.finished && selection.revision != revision {
                     Text("playkit.compare.changed").font(.footnote)
-                    Button("playkit.compare.reload") { resetSelection = true }
+                    CYPillButton("playkit.compare.reload", style: .secondary) { resetSelection = true }
                         .disabled(!enabled).accessibilityIdentifier("playkit.compare.reload")
                 }
                 if typeSize.isAccessibilitySize {
@@ -39,13 +39,13 @@ import SwiftUI
                 }
                 if !question.finished {
                     LabeledContent("playkit.compare.marked") { Text(verbatim: String(selection.marked.count)).monospacedDigit() }
-                    Button("playkit.review") {
+                    CYPillButton("playkit.review") {
                         do {
                             let payload = try selection.payload(question, revision: currentRevision())
                             requestReview("SUBMIT_COMPARE", payload, {})
                             issue = nil
                         } catch { issue = error as? PlayExperienceError ?? .invalidAction }
-                    }.buttonStyle(.cyPrimary(fullWidth: true))
+                    }
                         .disabled(!enabled || selection.revision != revision)
                         .accessibilityIdentifier("playkit.submit.compare")
                 }

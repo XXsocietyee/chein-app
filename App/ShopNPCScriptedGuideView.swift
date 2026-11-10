@@ -33,8 +33,8 @@ import SwiftUI
                         }
                     }.padding(.top, 6)
                 }
-                Button("shopNPCGuide.return") { returnToNode() }
-                    .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("shopNPCGuide.return")
+                CYPillButton("shopNPCGuide.return", style: .secondary) { returnToNode() }
+                    .accessibilityIdentifier("shopNPCGuide.return")
             }
             .accessibilityIdentifier("shopNPCGuide.panel")
             .onAppear { expanded = fallbackNeeded }

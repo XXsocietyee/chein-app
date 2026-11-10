@@ -8,25 +8,21 @@ import SwiftUI
     var body: some View {
         List {
             // Source: the page title says 提现方式已调整; the body is one neutral notice and one action.
+            CYHeroHeader("cooperation.withdraw.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if isSignedIn {
-                ContentUnavailableView {
-                    Label("cooperation.finance.withdraw", systemImage: "bubble.left.and.text.bubble.right")
-                } description: {
-                    Text("cooperation.withdraw.detail")
-                }
-                .accessibilityElement(children: .combine)
-                .accessibilityIdentifier("cooperation.withdraw.notice")
+                CYEmptyState(systemImage: "bubble.left.and.text.bubble.right", "cooperation.finance.withdraw", detail: "cooperation.withdraw.detail",
+                             messageIdentifier: "cooperation.withdraw.notice")
+                    .listRowBackground(Color.clear)
             } else {
-                Section { Text("cooperation.login").font(CYTypography.body).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("cooperation.withdraw.login") }
+                Section { CYStatusChip("cooperation.login", tone: .neutral, systemImage: "person.crop.circle.badge.questionmark").accessibilityIdentifier("cooperation.withdraw.login") }
             }
         }
         .cyGroupedSurface()
         .cyMiniListScreen()
-        .appNavigationTitle("cooperation.withdraw.title")
+        .cyHeroScreen()
         .questifyBottomAction {
             if isSignedIn {
-                Button { showsSupport = true } label: { Text("cooperation.finance.withdraw") }
-                    .buttonStyle(.cyPrimary)
+                CYPillButton("cooperation.finance.withdraw") { showsSupport = true }
                     .accessibilityIdentifier("cooperation.withdraw.contact")
             }
         }
@@ -49,14 +45,10 @@ import SwiftUI
             if let reader = reader ?? composedReader {
                 WalletWithdrawalsView(reader: reader)
             } else {
-                ContentUnavailableView {
-                    Label("cooperation.withdrawRecords.failed.title", systemImage: "exclamationmark.triangle")
-                        .accessibilityIdentifier("cooperation.withdrawRecords.failed")
-                } description: {
-                    Text("cooperation.withdrawRecords.failed.detail")
-                } actions: {
-                    Button("cooperation.refresh") { attempt += 1 }.accessibilityIdentifier("cooperation.withdrawRecords.retry")
-                }
+                CYEmptyState(systemImage: "exclamationmark.triangle", "cooperation.withdrawRecords.failed.title",
+                             detail: "cooperation.withdrawRecords.failed.detail",
+                             messageIdentifier: "cooperation.withdrawRecords.failed",
+                             actionTitle: "cooperation.refresh", actionIdentifier: "cooperation.withdrawRecords.retry") { attempt += 1 }
             }
         }
         .id(attempt)

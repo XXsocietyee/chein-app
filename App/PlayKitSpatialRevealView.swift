@@ -21,12 +21,12 @@ import simd
     private var configuration: PlayKitSpatialRequest? { try? .init(segment: segment, approval: approval) }
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Button("playkitSpatial.open") { purpose = true }
+            CYPillButton("playkitSpatial.open") { purpose = true }
                 .disabled(configuration == nil || !active || working || failedThisVisit || !ARWorldTrackingConfiguration.isSupported)
             if configuration == nil { Text(LocalizedStringKey("playkitSpatial.error." + configurationError.rawValue)).font(.footnote) }
             if !ARWorldTrackingConfiguration.isSupported { Text("playkitSpatial.error.deviceUnavailable").font(.footnote) }
             if let issue { Text(LocalizedStringKey("playkitSpatial.error." + issue.rawValue)).font(.footnote) }
-            if working { ProgressView("playkitSpatial.loading") }
+            if working { CYSkeleton().accessibilityLabel(Text("playkitSpatial.loading")) }
         }
         .confirmationDialog("playkitSpatial.purpose", isPresented: $purpose, titleVisibility: .visible) {
             Button("playkitSpatial.open") { prepare() }

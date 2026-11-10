@@ -27,7 +27,7 @@ struct TopicDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-            else if loading || loadedKey != key { ProgressView("topic.loading") }
+            else if loading || loadedKey != key { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topic.loading")) }
             else if let issue { TopicIssueView(issue: issue) { loads.start { await load() } } }
             else if let detail { content(detail) }
         }
@@ -175,7 +175,7 @@ struct TopicDetailView: View {
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
                     if value.canOfferPurchase {
-                        Button("contextSelfPlay.title") { showingSelfPlay = true }
+                        CYPillButton("contextSelfPlay.title", style: .secondary) { showingSelfPlay = true }
                             .accessibilityIdentifier("contextSelfPlay.open")
                     }
                 }
@@ -188,7 +188,7 @@ struct TopicDetailView: View {
                         Text("topicXcx.reviews.emptyDetail").font(.footnote).foregroundStyle(.secondary)
                     }.accessibilityIdentifier("topic.reviews.emptyPrompt")
                 }
-                Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")
+                CYPillButton("context.review.title", style: .secondary) { showsReview = true }.accessibilityIdentifier("topic.openReview")
                 TopicReviewsContent(reviews: value.reviews)
             }
             Section("topic.chapters") {
@@ -216,7 +216,7 @@ struct TopicDetailView: View {
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
                     Text("topicXcx.paywall.detail").font(.footnote)
                     if value.selfPlay == 1 && value.canOfferPurchase {
-                        Button("topicXcx.paywall.unlock") { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
+                        CYPillButton("topicXcx.paywall.unlock", style: .primary) { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
                     }
                 }
             }

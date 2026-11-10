@@ -6,9 +6,8 @@ import SwiftUI
     let model: PlayExperienceCoordinator
     var body: some View {
         if model.snapshot != nil, PlayResyncPort.offersResync(for: model.issue) {
-            Button("playx.resync", systemImage: "arrow.clockwise") { Task { await model.load() } }
+            CYPillButton("playx.resync", style: .tertiary, systemImage: "arrow.clockwise", fullWidth: false) { Task { await model.load() } }
                 .disabled(model.phase == .submitting || model.phase == .loading)
-                .frame(minHeight: 44)
                 .accessibilityIdentifier("playx.resync")
         }
     }
