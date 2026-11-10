@@ -23,23 +23,24 @@ import SwiftUI
         List {
             Section {
                 LabeledContent("playx.state") { PlayRuntimePhaseText(phase: model.phase) }
-                Button("playx.refresh") {
+                CYPillButton("playx.refresh", style: .secondary) {
                     if let readback = submissionReadback { Task { await readback.refresh() } }
                 }
+                    .listRowBackground(Color.clear)
                     .disabled(submissionReadback?.canRefresh != true)
                 if let issue = model.issue ?? issue ?? actionReview.issue { PlayExperienceIssueView(issue: issue) }
                 if model.phase == "unknown" {
                     Text("playx.unknown.body")
-                    Button("playx.reconcile") { Task { await model.recover() } }.accessibilityIdentifier("playx.player.reconcile")
-                    Button("playx.retryExact") { Task { await model.retryExact() } }
+                    CYPillButton("playx.reconcile", style: .secondary) { Task { await model.recover() } }.listRowBackground(Color.clear).accessibilityIdentifier("playx.player.reconcile")
+                    CYPillButton("playx.retryExact", style: .tertiary) { Task { await model.retryExact() } }.listRowBackground(Color.clear)
                 }
             }
             if model.hasCurrentProjection, let projection = model.projection {
                 Section("playx.player.role") {
                     if let name = projection.role["name"].text { Text(verbatim: name).font(.headline) }
                     if let brief = projection.role["publicBrief"].text { Text(verbatim: brief) }
-                    if projection.roleConfirmed { Label("playx.player.role.confirmed", systemImage: "checkmark.seal") }
-                    else { Button("playx.player.role.confirm") { actionReview.prepare(.role, ticket: ticket) }.disabled(!canAct) }
+                    if projection.roleConfirmed { CYStatusChip("playx.player.role.confirmed", tone: .success, systemImage: "checkmark.seal") }
+                    else { CYPillButton("playx.player.role.confirm") { actionReview.prepare(.role, ticket: ticket) }.listRowBackground(Color.clear).disabled(!canAct) }
                 }
                 PlayPlayerTeamStatusView(state: teamReadback?.state ?? .unconfirmed)
                 PlayPlayerLeaderboardView(state: leaderboardReadback?.state ?? .hidden)
@@ -60,9 +61,9 @@ import SwiftUI
                         if node.task["inputType"].text == "TEXT" {
                             TextField("playx.answer.placeholder", text: Binding(get: { sameModel ? actionReview.text(nodeID: node.id) : "" }, set: { actionReview.setText($0, nodeID: node.id, ticket: ticket) }), axis: .vertical)
                                 .accessibilityIdentifier("playx.player.text.\(node.id)").disabled(!canAct).focused($focusedNode, equals: node.id)
-                            Button("playx.review") {
+                            CYPillButton("playx.review") {
                                 actionReview.prepare(.text(nodeID: node.id, answer: actionReview.text(nodeID: node.id)), ticket: ticket)
-                            }.disabled(!canAct)
+                            }.listRowBackground(Color.clear).disabled(!canAct)
                         } else if node.task["inputType"].text == "PHOTO" || node.task["inputType"].text == "SCAN" {
                             Button(node.task["inputType"].text == "SCAN" ? "playerEvidence.scan.title" : "playerEvidence.photo.title") {
                                 do { evidenceTarget = try model.evidenceTarget(nodeID: node.id) }
@@ -105,7 +106,7 @@ import SwiftUI
             if sameModel, let offered = actionReview.review {
                 PlayPlayerActionReviewCard(owner: actionReview, offered: offered).id(offered.id)
             }
-            if actionReview.working { ProgressView("playerEvidence.working") }
+            if actionReview.working { CYSkeleton().accessibilityLabel(Text("playerEvidence.working")) }
         }.cyGroupedSurface().privacySensitive().navigationTitle("playx.player.title").accessibilityIdentifier("playx.player.view")
             .task {
                 guard !Task.isCancelled else { return }

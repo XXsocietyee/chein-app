@@ -48,3 +48,6 @@ Build status: ui/e2 188fd8572 (batches 1-7 + CityActionBudget fix) Build - iOS =
 
 ## Batch 9 (reverse)
 - done: PlaySharedPlanLifecycleView, PlayRewardBadgeViews, PlayPreferenceViews, PlayPrefabRuntimeView, PlayPlayerSubmissionStatusView (CYPillButton, CYStatusChip, CYSkeleton, CYEmptyState, CYSectionHeader)
+
+## Batch 10 (reverse)
+- done: PlayPlayerLeaderboardView, PlayPlayerAndCircleViews, PlayKitSpatialRevealView, PlayKitSensorChallengeView, PlayKitLegacyViews (CYPillButton, CYStatusChip, CYSkeleton, CYEmptyState; sensor/AR logic untouched)
