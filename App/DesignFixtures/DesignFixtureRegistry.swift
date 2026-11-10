@@ -91,6 +91,8 @@ enum DesignFixtureRegistry {
         // D7 creator / publish (PublishDesignFixtures)
         case let n where PublishDesignFixtures.make(n) != nil: return PublishDesignFixtures.make(n)!
         case let n where n.hasPrefix("e1-") && E1Fixture.make(n) != nil: return E1Fixture.make(n)!
+        // W1-5 pass card lab: ui-pass-card[-pending|-used|-expired|-empty|-error] (cases live in E1Fixtures.swift)
+        case let n where n.hasPrefix("ui-pass-card") && E1Fixture.make(n) != nil: return E1Fixture.make(n)!
         case let n where n.hasPrefix("e3-") && E3Fixtures.make(n) != nil: return E3Fixtures.make(n)!
         // HERO collection album (AlbumFixtures): album-kit, album-stamps[-empty], album-badges[-new|-locked], album-cards, album-unlock
         case let n where n.hasPrefix("album-") && AlbumFixtures.make(n) != nil: return AlbumFixtures.make(n)!
