@@ -18,3 +18,12 @@ Notes: most files already used kit tokens/components from earlier waves; this pa
 | App/ProfileFollowListView.swift | done: CYLoadingStateView x2 (hero/empty/chips/pill already kit) |
 | App/RoamNearbyTeamsView.swift | done: CYLoadingStateView for inactive-scene placeholder |
 | App/SessionClubPublicActivityListView.swift | skipped: pure wrapper, no UI |
+
+## Batch 3 (77-81)
+| File | Result |
+| --- | --- |
+| App/SessionNearbyTeamView.swift | done: CYLoadingStateView |
+| App/SessionTeamViews.swift | skipped: pure session adapters/hooks, no UI |
+| App/SocialActionViews.swift | done: CYLoadingStateView (review sheet already CYPillButton/CYStatusChip; toolbar close/done stay toolbar items) |
+| App/SocialArticleContentView.swift | skipped: article text runs only, already tokenised, no controls/states |
+| App/SocialInviteHistoryView.swift | done: CYLoadingStateView x2 (rest already kit) |

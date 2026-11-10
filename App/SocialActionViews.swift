@@ -271,7 +271,7 @@ private struct SocialActionStateView: View {
         Group {
             switch state {
             case .idle, .reviewing: EmptyView()
-            case .preparing, .preflighting, .submitting: ProgressView("social.loading")
+            case .preparing, .preflighting, .submitting: CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading"))
             case .notSent: CYStatusChip("social.notSent", tone: .neutral, systemImage: "paperplane").accessibilityIdentifier("social.state.notSent")
             case .rejected: CYStatusChip("social.rejected", tone: .danger, systemImage: "xmark.circle").accessibilityIdentifier("social.state.rejected")
             case .outcomeUnknown: CYStatusChip("social.unknown", tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("social.state.unknown")
