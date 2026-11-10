@@ -50,3 +50,7 @@ Skipped: none.
 ## Batch 11 (reverse)
 Done: IMConversationRowActionsView, IMConversationReadAllView, IMCardPreviewViews, GroupPollOriginalResultView, IMStaticLocationCardView.
 Skipped: none.
+
+## Batch 12 (reverse)
+Done: CooperationDirectoryViews, CoopWithdrawShellViews, CoopSettlementDetailView, CoopRelationDiscoveryView, CoopFinanceProfitView.
+Cloud-owned, skipped (diff on origin/ui/cloud-*): ClubEventCalendarView, ClubGovernanceFeedPostView (plus the earlier ClubGovernanceViews, ClubManagementView, ClubOpsCustomerViews, CooperationBrowserView). ClubContextualViews, ClubDirectoryView and ClubEnrollmentView were restyled here first and are also touched by a cloud lane: expect merge conflicts there.
