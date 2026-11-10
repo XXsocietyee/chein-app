@@ -13,5 +13,15 @@
     "key": "roam.fog.toast.a11yUnknown",
     "en": "New area revealed, explored share unknown",
     "zh-Hans": "发现新区域，探索比例未知"
+  },
+  {
+    "key": "roam.fog.coverage.explored",
+    "en": "Explored",
+    "zh-Hans": "已探索"
+  },
+  {
+    "key": "roam.fog.coverage.unconfirmed %lld",
+    "en": "%lld unconfirmed",
+    "zh-Hans": "%lld 个未确认"
   }
 ]

@@ -242906,6 +242906,40 @@
           }
         }
       }
+    },
+    "roam.fog.coverage.explored": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Explored"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已探索"
+          }
+        }
+      }
+    },
+    "roam.fog.coverage.unconfirmed %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld unconfirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个未确认"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

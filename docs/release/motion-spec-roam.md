@@ -44,3 +44,10 @@ Accessibility: the grabber row is an adjustable element (swipe up / down moves b
 
 ## Budget check (motion-system 1.5)
 Roam screen at walking: independent groups = fog drift + GO breathing ring + status dot ping (3, the cap). Toast, sheet snap and pin ring are one-shot and never run with all three plus a fourth loop; the player-dot ping is fixture-only.
+
+## 5. Fog engine presentation stages (spec: roam-fog-engine.md stages 2 and 3, UI only)
+Code: `App/DesignSystem/CYFogEngine.swift`. Fixtures `roam-fog-engine`, `roam-fog-unknown`. Switches stay OFF; no location, Core, or Info.plist change. Core types (`FogCellBitmap`, Core `FogCoverageReading`) are not touched, so the view-side stand-ins carry a `CY` prefix.
+- `CYFogMaskRasterizer`: fixture grid to an 8-bit alpha mask (255 confirmed, 128 pending, 0 hidden), one 3x3 soften pass, max side 512, same data as a premultiplied-black image for `destinationOut`.
+- `CYFogOverlayLayer`: one Canvas, scrim, mask cut-out, hatch over unconfirmed cells (never colour-only), radial wipes; ticks (30 fps) only while wipes are in flight; hidden from VoiceOver; id `roam.fog.layer`.
+- `CYRevealChoreographer`: 480 ms ease-out radial wipe from the fix point, 40 ms stagger, 6 animated max (rest bake at once), haptics >= 150 ms apart (first of the session `.success`, then `.impactLight`), Reduce Motion or Low Power: no wipe, the cells bake and `crossfadeRevision` bumps (host crossfade 200 ms). Injected clock, no timers.
+- `CYFogCoverageReading` / `CYFogCoverageBadge`: unknown (any reason) prints an em dash, never 0; pending cells are counted apart as "N unconfirmed".
