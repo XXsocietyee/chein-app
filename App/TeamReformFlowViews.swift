@@ -44,17 +44,17 @@ struct TeamReformEntries: View {
         TeamOrientBoardSection(detail: detail)
         if let hooks {
             if hooks.capabilities.allows(.friendMultiInvite), TeamFriendInviteFlow.eligible(detail) {
-                Button { open(.invite(teamID: detail.team.id)) } label: { Label("teamReform.invite.open", systemImage: "person.2.badge.plus").frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(.bordered).accessibilityIdentifier("teamReform.invite.open")
+                CYPillButton("teamReform.invite.open", style: .secondary, systemImage: "person.2.badge.plus") { open(.invite(teamID: detail.team.id)) }
+                    .accessibilityIdentifier("teamReform.invite.open")
             }
             if hooks.capabilities.allows(.teamFirstMeeting), TeamMeetingFlow.mayOffer(detail) {
-                Button { open(.meeting(teamID: detail.team.id)) } label: { Label("teamReform.meeting.open", systemImage: "person.line.dotted.person").frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(.bordered).accessibilityIdentifier("teamReform.meeting.open")
+                CYPillButton("teamReform.meeting.open", style: .secondary, systemImage: "person.line.dotted.person") { open(.meeting(teamID: detail.team.id)) }
+                    .accessibilityIdentifier("teamReform.meeting.open")
             }
             if hooks.capabilities.allows(.teamFirstMeeting), let owner = hooks.meetingOwner, let journal = hooks.meetingJournal,
                journal.outstanding(owner: owner, teamId: String(detail.team.id)) != nil {
-                Button { open(.meeting(teamID: detail.team.id)) } label: { Text(verbatim: "查原会面请求").frame(maxWidth: .infinity, minHeight: 44) }
-                    .buttonStyle(.bordered).accessibilityIdentifier("teamReform.meeting.recovery")
+                CYPillButton(verbatim: "查原会面请求", style: .secondary) { open(.meeting(teamID: detail.team.id)) }
+                    .accessibilityIdentifier("teamReform.meeting.recovery")
             }
         }
     }
@@ -82,16 +82,19 @@ struct TeamReformSheetHost: View {
     var body: some View {
         NavigationStack {
             List {
-                Section { Text("teamReform.dormantNotice").font(.footnote).foregroundStyle(.secondary) }
+                Section {
+                    CYHeroHeader("teamReform.invite.title").listRowBackground(Color.clear)
+                    CYStatusChip("teamReform.dormantNotice", tone: .neutral, systemImage: "moon.zzz")
+                }
                 switch flow.phase {
-                case .closed: Text("teamReform.unavailable").accessibilityIdentifier("teamReform.invite.unavailable")
+                case .closed: CYEmptyState(systemImage: "lock", "teamReform.unavailable", messageIdentifier: "teamReform.invite.unavailable")
                 case .loading: ProgressView("teamReform.loading")
                 case .failed:
-                    Text("teamReform.invite.loadFailed").accessibilityIdentifier("teamReform.invite.loadFailed")
-                    Button("action.retry") { Task { await box.run { await $0.open() } } }.frame(minHeight: 44)
+                    CYStatusChip("teamReform.invite.loadFailed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("teamReform.invite.loadFailed")
+                    CYPillButton("action.retry", style: .secondary) { Task { await box.run { await $0.open() } } }
                 case .ready: content
                 }
-            }.appNavigationTitle("teamReform.invite.title")
+            }.cyHeroScreen()
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("team.close") { box.step { $0.close() }; dismiss() }.disabled(flow.busy) } }
                 .interactiveDismissDisabled(flow.busy)
         }.task { await box.run { await $0.open() } }
@@ -113,22 +116,22 @@ struct TeamReformSheetHost: View {
             } header: { Text("teamReform.invite.choose") } footer: {
                 Text(verbatim: "\(batch.selected.count) / \(batch.maximum)").accessibilityIdentifier("teamReform.invite.count")
             }
-            if flow.issue == .overLimit { Text("teamReform.invite.overLimit").foregroundStyle(.orange) }
+            if flow.issue == .overLimit { CYStatusChip("teamReform.invite.overLimit", tone: .warning, systemImage: "exclamationmark.circle") }
             if let reviewed = flow.reviewed {
                 Section("teamReform.invite.review") {
-                    Text(verbatim: "\(reviewed.count)").font(.headline).accessibilityIdentifier("teamReform.invite.reviewCount")
+                    Text(verbatim: "\(reviewed.count)").font(CYTypography.numericBody).monospacedDigit().accessibilityIdentifier("teamReform.invite.reviewCount")
                     ForEach(reviewed.names, id: \.self) { Text(verbatim: $0) }
-                    Text("teamReform.invite.reviewNote").font(.footnote).foregroundStyle(.secondary)
+                    Text("teamReform.invite.reviewNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 }
             }
             Section {
                 if batch.phase == .selecting {
-                    Button("teamReform.invite.reviewAction") { box.step { $0.review() } }.frame(minHeight: 44)
+                    CYPillButton("teamReform.invite.reviewAction", style: .secondary) { box.step { $0.review() } }
                         .disabled(batch.selected.isEmpty || flow.busy).accessibilityIdentifier("teamReform.invite.reviewAction")
                 }
                 if batch.phase == .reviewed {
-                    Button("teamReform.invite.send") { Task { await box.run { await $0.send() } } }.frame(minHeight: 44)
-                        .buttonStyle(.questifyPrimary).disabled(flow.busy).accessibilityIdentifier("teamReform.invite.send")
+                    CYPillButton("teamReform.invite.send", systemImage: "paperplane") { Task { await box.run { await $0.send() } } }
+                        .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.send")
                 }
                 if flow.busy { ProgressView() }
             }
@@ -144,13 +147,13 @@ struct TeamReformSheetHost: View {
             LabeledContent("teamReform.invite.unknown") { Text(verbatim: "\(summary.unknown)") }.accessibilityIdentifier("teamReform.invite.summary.unknown")
             LabeledContent("teamReform.invite.revoked") { Text(verbatim: "\(summary.revoked)") }.accessibilityIdentifier("teamReform.invite.summary.revoked")
             if summary.unknown > 0 {
-                Text("teamReform.invite.unknownNote").font(.footnote)
-                Button("teamReform.invite.checkUnknown") { Task { await box.run { await $0.readBackUnknown() } } }
-                    .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.invite.checkUnknown")
+                Text("teamReform.invite.unknownNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                CYPillButton("teamReform.invite.checkUnknown", style: .secondary) { Task { await box.run { await $0.readBackUnknown() } } }
+                    .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.checkUnknown")
             }
             if summary.retryable > 0 && summary.unknown == 0 {
-                Button("teamReform.invite.retryFailed") { Task { await box.run { await $0.send() } } }
-                    .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.invite.retryFailed")
+                CYPillButton("teamReform.invite.retryFailed", style: .secondary) { Task { await box.run { await $0.send() } } }
+                    .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.retryFailed")
             }
         }
         Section("teamReform.invite.sentList") {
@@ -160,13 +163,13 @@ struct TeamReformSheetHost: View {
                     Spacer()
                     switch batch.deliveries[friend.friendId] ?? .notSent {
                     case .sent:
-                        if flow.revokeUnknown.contains(friend.friendId) { Text("teamReform.invite.revokeUnknown").font(.caption) }
+                        if flow.revokeUnknown.contains(friend.friendId) { CYStatusChip("teamReform.invite.revokeUnknown", tone: .warning) }
                         Button("teamReform.invite.revoke", role: .destructive) { Task { await box.run { await $0.revoke(friendId: friend.friendId) } } }
                             .disabled(flow.busy).accessibilityIdentifier("teamReform.invite.revoke.\(friend.friendId)")
-                    case .revoked: Text("teamReform.invite.revokedState").font(.caption).accessibilityIdentifier("teamReform.invite.revoked.\(friend.friendId)")
-                    case .rejected: Text("teamReform.invite.rejected").font(.caption)
-                    case .unknown: Text("teamReform.invite.unknown").font(.caption)
-                    case .failed, .notSent: Text("teamReform.invite.retryable").font(.caption)
+                    case .revoked: CYStatusChip("teamReform.invite.revokedState", tone: .neutral).accessibilityIdentifier("teamReform.invite.revoked.\(friend.friendId)")
+                    case .rejected: CYStatusChip("teamReform.invite.rejected", tone: .danger)
+                    case .unknown: CYStatusChip("teamReform.invite.unknown", tone: .warning)
+                    case .failed, .notSent: CYStatusChip("teamReform.invite.retryable", tone: .warning)
                     }
                 }.frame(minHeight: 44)
             }
@@ -186,19 +189,19 @@ struct TeamReformSheetHost: View {
         NavigationStack {
             List {
                 Section {
-                    Text("teamReform.dormantNotice").font(.footnote).foregroundStyle(.secondary)
-                    Text("teamReform.meeting.scope").font(.footnote).fixedSize(horizontal: false, vertical: true)
+                    CYHeroHeader("teamReform.meeting.title", subtitle: "teamReform.meeting.scope").listRowBackground(Color.clear)
+                    CYStatusChip("teamReform.dormantNotice", tone: .neutral, systemImage: "moon.zzz")
                 }
                 switch flow.phase {
-                case .closed: Text("teamReform.unavailable").accessibilityIdentifier("teamReform.meeting.unavailable")
+                case .closed: CYEmptyState(systemImage: "lock", "teamReform.unavailable", messageIdentifier: "teamReform.meeting.unavailable")
                 case .loading: ProgressView("teamReform.loading")
-                case .notEligible: Text("teamReform.meeting.notEligible").accessibilityIdentifier("teamReform.meeting.notEligible")
+                case .notEligible: CYEmptyState(systemImage: "person.crop.circle.badge.xmark", "teamReform.meeting.notEligible", messageIdentifier: "teamReform.meeting.notEligible")
                 case .failed:
-                    Text("teamReform.meeting.loadFailed")
-                    Button("action.retry") { Task { await box.run { await $0.open() } } }.frame(minHeight: 44)
+                    CYStatusChip("teamReform.meeting.loadFailed", tone: .danger, systemImage: "exclamationmark.triangle")
+                    CYPillButton("action.retry", style: .secondary) { Task { await box.run { await $0.open() } } }
                 case .active: if let meeting = flow.meeting { active(meeting) }
                 }
-            }.appNavigationTitle("teamReform.meeting.title")
+            }.cyHeroScreen()
                 .toolbar { ToolbarItem(placement: .cancellationAction) { Button("team.close") { box.step { $0.close() }; dismiss() }.disabled(flow.busy) } }
                 .interactiveDismissDisabled(flow.busy)
         }.task { await box.run { await $0.open() } }
@@ -208,12 +211,12 @@ struct TeamReformSheetHost: View {
             switch meeting.phase {
             case .realNameRequired:
                 Text("teamReform.meeting.realName").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("teamReform.meeting.realName")
-                Button("teamReform.meeting.recheckRealName") { Task { await box.run { await $0.recheckRealName() } } }
-                    .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.recheckRealName")
+                CYPillButton("teamReform.meeting.recheckRealName", style: .secondary) { Task { await box.run { await $0.recheckRealName() } } }
+                    .disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.recheckRealName")
             case .readyToMeet:
                 Text("teamReform.meeting.ready")
-                Button("teamReform.meeting.start") { Task { await box.run { await $0.startHandshake() } } }
-                    .buttonStyle(.questifyPrimary).frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.start")
+                CYPillButton("teamReform.meeting.start") { Task { await box.run { await $0.startHandshake() } } }
+                    .disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.start")
             case .handshaking:
                 handshake
             case .confirmationPending:
@@ -224,25 +227,25 @@ struct TeamReformSheetHost: View {
                 Button("teamReform.meeting.checkResult") { Task { await box.run { await $0.readBackConfirmation() } } }
                     .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.checkResult")
             case .met:
-                Label("teamReform.meeting.met", systemImage: "checkmark.seal").accessibilityIdentifier("teamReform.meeting.met")
+                CYStatusChip("teamReform.meeting.met", tone: .success, systemImage: "checkmark.seal").accessibilityIdentifier("teamReform.meeting.met")
                 if flow.cancelCase == .confirmed {
                     Text(verbatim: "会面已确认，取消不会再次确认。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.confirmed")
                 }
             case .cancelled:
-                Label("teamReform.meeting.cancelled", systemImage: "xmark.octagon").accessibilityIdentifier("teamReform.meeting.cancelled")
+                CYStatusChip("teamReform.meeting.cancelled", tone: .neutral, systemImage: "xmark.octagon").accessibilityIdentifier("teamReform.meeting.cancelled")
                 if flow.cancelCase == .notSent {
                     Text(verbatim: "确认尚未发送，已在本地取消。").font(.footnote).accessibilityIdentifier("teamReform.meeting.cancel.notSent")
                 }
                 if flow.cancelUnknown { Text("teamReform.meeting.cancelUnknown").font(.footnote) }
-            case .expired: Label("teamReform.meeting.expired", systemImage: "clock.badge.xmark")
+            case .expired: CYStatusChip("teamReform.meeting.expired", tone: .warning, systemImage: "clock.badge.xmark")
             }
-            if let issue = flow.scanIssue { Text(LocalizedStringKey(scanIssueKey(issue))).foregroundStyle(.orange).accessibilityIdentifier("teamReform.meeting.issue") }
+            if let issue = flow.scanIssue { CYStatusChip(LocalizedStringKey(scanIssueKey(issue)), tone: .warning, systemImage: "exclamationmark.triangle").accessibilityIdentifier("teamReform.meeting.issue") }
         }
         if ![.met, .cancelled, .expired].contains(meeting.phase) {
             Section {
                 Button("teamReform.meeting.cancel", role: .destructive) { Task { await box.run { await $0.cancel() } } }
-                    .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.cancel")
-                Text("teamReform.meeting.cancelNote").font(.footnote).foregroundStyle(.secondary)
+                    .frame(minHeight: CYSpacing.minTouchTarget).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.cancel")
+                Text("teamReform.meeting.cancelNote").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             }
         }
     }
@@ -252,8 +255,8 @@ struct TeamReformSheetHost: View {
             TeamMeetingCodeImage(payload: [challenge.meetingId, challenge.issuerMemberId, challenge.nonce, challenge.keyVersion, challenge.signature].joined(separator: "."))
                 .frame(maxWidth: .infinity)
         } else { Text("teamReform.meeting.codeExpired") }
-        Button("teamReform.meeting.refreshCode") { Task { await box.run { await $0.refreshMyCode() } } }
-            .frame(minHeight: 44).disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.refreshCode")
+        CYPillButton("teamReform.meeting.refreshCode", style: .secondary, systemImage: "arrow.clockwise") { Task { await box.run { await $0.refreshMyCode() } } }
+            .disabled(flow.busy).accessibilityIdentifier("teamReform.meeting.refreshCode")
         ForEach(flow.handshakes, id: \.self) { method in
             Text(LocalizedStringKey(method == .dynamicQR ? "teamReform.meeting.methodQR" : "teamReform.meeting.methodNFC")).font(.footnote)
         }
