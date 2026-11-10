@@ -3025,6 +3025,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "DCCDC54EA0B2D688B267E692";
 		};
+		"A42FE37BA92DB11BAF84DFAC" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/E1TicketFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"64F67A14E1E2266540588B76" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "A42FE37BA92DB11BAF84DFAC";
+		};
 		"63D34C19DC34F5F3BDA50C08" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3424,6 +3434,16 @@
 		"0F84E8455E3AE9C5B52C097E" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "2FAA663B4078640434196980";
+		};
+		"B79F202B805F2836091F4731" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYTicketPass.swift";
+			"sourceTree" = "<group>";
+		};
+		"DADDBFFC23D588FBA15D587F" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "B79F202B805F2836091F4731";
 		};
 		"6D30BC01F5A5E489AB6ACBF0" = {
 			"isa" = "PBXFileReference";
@@ -14053,6 +14073,16 @@
 		"4ACBFC49459110D3A04BD611" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "58B8E9E87B7AEAA72F141AA2";
+		};
+		"4954CA6FB519918AFF34C94D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/TicketPassPresentView.swift";
+			"sourceTree" = "<group>";
+		};
+		"7EE895F67A3A6A1F999BED1E" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "4954CA6FB519918AFF34C94D";
 		};
 		"244BDBA595BA9586184D9FE7" = {
 			"isa" = "PBXFileReference";
@@ -35550,6 +35580,7 @@
 				"157BE3732C00EE23BAE4C233",
 				"D5B6BD987ADCEA15F903B05E",
 				"DCCDC54EA0B2D688B267E692",
+				"A42FE37BA92DB11BAF84DFAC",
 				"63D34C19DC34F5F3BDA50C08",
 				"3A5981A924FC86306EBBF6F6",
 				"EC9FE7E5343516D469E1AF87",
@@ -35590,6 +35621,7 @@
 				"E0F28B4989022A5B463A0865",
 				"6BEB12C7C283D6F8F1563CF8",
 				"2FAA663B4078640434196980",
+				"B79F202B805F2836091F4731",
 				"6D30BC01F5A5E489AB6ACBF0",
 				"BC3EF634F214F6A2D220551D",
 				"3FFA3958EDD157C5A3D94CAA",
@@ -36652,6 +36684,7 @@
 				"69936D08B9196D14ECC97B01",
 				"14A0CE502654AD0F44CA0565",
 				"58B8E9E87B7AEAA72F141AA2",
+				"4954CA6FB519918AFF34C94D",
 				"244BDBA595BA9586184D9FE7",
 				"2D1E822C485C2CC92C039498",
 				"2E4F2696E954D4A857A1485B",
@@ -40144,6 +40177,7 @@
 				"7921968AF207DEC8B2BB1D49",
 				"C185AAC650678F2E61882320",
 				"B7B1DE3919417E86151D4F40",
+				"64F67A14E1E2266540588B76",
 				"DAF5E5FF2AEFAFCE1F2C2595",
 				"B7A79EF39057FC1CD4EC1E82",
 				"8D07A35B332F6D9BDBE0F8E9",
@@ -40184,6 +40218,7 @@
 				"38A14AC99195D67D83C73550",
 				"24F6C459A2CE0DDDA05B214F",
 				"0F84E8455E3AE9C5B52C097E",
+				"DADDBFFC23D588FBA15D587F",
 				"B6613DF03F3A98A45BE6D658",
 				"985B2C5C5D720EF6D1FBFE71",
 				"69AB87740CE786288AB31FBB",
@@ -41246,6 +41281,7 @@
 				"50EB161173A4E7E56CA3978E",
 				"80D7D76112DE3B9D65DC0DE5",
 				"4ACBFC49459110D3A04BD611",
+				"7EE895F67A3A6A1F999BED1E",
 				"83CE49A435F67FEC2FB63293",
 				"AFA196D10BB371B40D3B5AED",
 				"CB0C5E1A9430FB5A3C0FC705",
@@ -43475,7 +43511,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E2CityFixtures.swift E2Fixtures.swift E3Fixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E3Fixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift";
 			};
 			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
 		};
