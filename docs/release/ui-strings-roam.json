@@ -1,0 +1,17 @@
+[
+  {
+    "key": "roam.fog.revealed",
+    "en": "New area revealed",
+    "zh-Hans": "发现新区域"
+  },
+  {
+    "key": "roam.fog.toast.a11y %lld",
+    "en": "New area revealed, %lld percent explored",
+    "zh-Hans": "发现新区域，已探索 %lld%%"
+  },
+  {
+    "key": "roam.fog.toast.a11yUnknown",
+    "en": "New area revealed, explored share unknown",
+    "zh-Hans": "发现新区域，探索比例未知"
+  }
+]

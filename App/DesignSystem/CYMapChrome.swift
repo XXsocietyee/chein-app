@@ -60,13 +60,20 @@ struct CYGlassCapsule<Content: View>: View {
 /// The white GO circle artwork (also used as a NavigationLink label).
 struct CYGoLabel: View {
     private let title: LocalizedStringKey
+    private let symbol: String?
     @Environment(\.colorSchemeContrast) private var contrast
     @ScaledMetric(relativeTo: .largeTitle) private var scaled: CGFloat = 96
     private var size: CGFloat { min(scaled, 112) }
-    init(_ title: LocalizedStringKey = "GO") { self.title = title }
+    /// `symbol` replaces the word with a glyph (the walking state shows a walking figure).
+    init(_ title: LocalizedStringKey = "GO", symbol: String? = nil) { self.title = title; self.symbol = symbol }
     var body: some View {
-        Text(title)
-            .font(.system(.title, design: .default).weight(.heavy).italic())
+        Group {
+            if let symbol {
+                Image(systemName: symbol).font(.system(.title).weight(.heavy))
+            } else {
+                Text(title).font(.system(.title, design: .default).weight(.heavy).italic())
+            }
+        }
             .minimumScaleFactor(0.6).lineLimit(1)
             .foregroundStyle(.black)
             .frame(width: size, height: size)
@@ -222,6 +229,9 @@ extension View {
 
 // MARK: - Map scaffold (real screens)
 
+/// Spring every map sheet / panel snaps with (response 0.42, damping 0.82: one soft settle, no wobble).
+let cyRoamSheetSnap = Animation.spring(response: 0.42, dampingFraction: 0.82)
+
 /// Fill of the map panel; content inside the panel stays clear so header and list share one surface.
 let cyMapPanelColor = Color.black
 
@@ -279,7 +289,8 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                     .opacity(peek != nil && !isPeeking ? 0 : 1)
                     .allowsHitTesting(!(peek != nil && !isPeeking))
                     .accessibilityHidden(peek != nil && !isPeeking)
-                    .animation(reduceMotion ? nil : .snappy, value: isPeeking)
+                    .animation(reduceMotion ? nil : cyRoamSheetSnap, value: isPeeking)
+                    .cyHaptic(.impactLight, trigger: effective)
                 VStack(spacing: 0) {
                     grabber(total: geo.size.height)
                     ZStack(alignment: .top) {
@@ -289,7 +300,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                             .accessibilityHidden(isPeeking)
                         if isPeeking, let peek {
                             peek.contentShape(Rectangle())
-                                .onTapGesture { withAnimation(reduceMotion ? nil : .snappy) { detent = .medium } }
+                                .onTapGesture { withAnimation(reduceMotion ? nil : cyRoamSheetSnap) { detent = .medium } }
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityHint(Text("map.panel.size"))
                         }
@@ -315,14 +326,14 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                 .updating($drag) { value, state, _ in state = value.translation.height }
                 .onEnded { value in
                     let target = height(effective, total: total) - value.translation.height
-                    withAnimation(reduceMotion ? nil : .snappy) { detent = pool.min { abs(height($0, total: total) - target) < abs(height($1, total: total) - target) } ?? .medium }
+                    withAnimation(reduceMotion ? nil : cyRoamSheetSnap) { detent = pool.min { abs(height($0, total: total) - target) < abs(height($1, total: total) - target) } ?? .medium }
                 })
             .accessibilityElement()
             .accessibilityLabel(Text("map.panel.size"))
             .accessibilityAdjustableAction { direction in
                 guard let i = pool.firstIndex(of: detent) else { return }
                 let next = direction == .increment ? min(i + 1, pool.count - 1) : max(i - 1, 0)
-                withAnimation(reduceMotion ? nil : .snappy) { detent = pool[next] }
+                withAnimation(reduceMotion ? nil : cyRoamSheetSnap) { detent = pool[next] }
             }
     }
 }

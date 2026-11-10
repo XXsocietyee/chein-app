@@ -241832,6 +241832,57 @@
           }
         }
       }
+    },
+    "roam.fog.revealed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New area revealed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发现新区域"
+          }
+        }
+      }
+    },
+    "roam.fog.toast.a11y %lld": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New area revealed, %lld percent explored"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发现新区域，已探索 %lld%%"
+          }
+        }
+      }
+    },
+    "roam.fog.toast.a11yUnknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New area revealed, explored share unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发现新区域，探索比例未知"
+          }
+        }
+      }
     }
   },
   "version": "1.0"
