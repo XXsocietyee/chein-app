@@ -29,6 +29,11 @@
 - wire42 [x] 1df583e72. PR 1026. Marketing board reads MerchantMarketingBoardPage.project. Not merged.
 - wire33 [x] c2a4966f1. PR 1027. Coop setting reads MerchantCoopSettingPage.project. Not merged.
 - wire39 [x] 2e531ba1a. PR 1028. Settlement batch reads MerchantSettlementBatchPage.make. Not merged.
-- wire41 sent back. PR 1029. Insight countText drops a numeric string, so a literal string 0 becomes an em dash.
+- wire16 [x] 52765b1ec. PR 1005. Nil notify capability now uses absent. Not merged.
+- wire22 [x] b974ca421. PR 1013. Member home reads the optional counts. Not merged.
+- wire30 [x] be30cf14f. PR 1018. Customer detail keeps non-count fields. Not merged.
+- wire36 [x] 2716fd1af. PR 1019. Perks List removed. Core type kept. Not merged.
+- wire41 [x] 945dda747. PR 1029. Insight string 0 stays 0. Not merged.
+- S13 Build red on fe078eb67 and 9a3d23676. App/DesignFixtures/E3Fixtures.swift:487 unexpected #endif. Wire merge batches wait.
 - wire29 [x] 26e87fbba. PR 1030. CRM campaigns read MerchantCrmCampaignsPage.phase. Not merged.
 - wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
