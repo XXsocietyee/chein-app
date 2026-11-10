@@ -19,6 +19,7 @@ struct CYCelebrationCopy {
     var kmUnit: String { "km" }
     var tilesUnit: String { copy("tiles", "格") }
     var stampsUnit: String { copy("stamps", "枚章") }
+    var tilesLit: String { copy("tiles lit", "格已点亮") }
     var shareWalk: String { copy("Share this walk", "分享这一趟") }
     var done: String { copy("Done", "完成") }
     var shareTitle: String { copy("Share", "分享") }
@@ -386,8 +387,10 @@ struct CYBadgeUnlockCover: View {
 
 // MARK: - Roam summary
 
-/// "This walk: 2.4 km · 31 tiles · 2 stamps". Three numbers roll up staggered 50 ms on `.numericText`; an unknown
-/// number is a dash and does not roll. At most three animations run at once.
+/// Hero km (rolling, very large) centered; the route in a rounded map-like card (no route: the tiles-lit stat over a fog
+/// glyph, never a made-up loop); tiles and stamps as two supporting tiles; the voice-table line; Share / Done pinned at
+/// the bottom. The three numbers roll up staggered 50 ms on `.numericText`, the route draws after them, so at most
+/// three animations run at once. An unknown number is a dash and does not roll.
 struct CYRoamSummaryView: View {
     let payload: CYRoamSummaryPayload
     var shareEnabled = true
@@ -399,22 +402,26 @@ struct CYRoamSummaryView: View {
 
     var body: some View {
         let copy = CYCelebrationCopy(locale: locale)
-        VStack(spacing: CYSpacing.xxl) {
+        VStack(spacing: CYSpacing.xl) {
             Text(verbatim: copy.walkTitle)
-                .font(CYTypography.sheetTitle)
-                .foregroundStyle(palette.textPrimary)
+                .font(CYTypography.label)
+                .textCase(.uppercase)
+                .foregroundStyle(palette.textSecondary)
                 .accessibilityAddTraits(.isHeader)
                 .padding(.top, CYSpacing.xxl)
-            ViewThatFits(in: .horizontal) {
-                HStack(alignment: .top, spacing: CYSpacing.lg) { stats(copy) }
-                VStack(spacing: CYSpacing.lg) { stats(copy) }
+            CYRollingStat(target: payload.kilometers, fractionDigits: 1, unit: copy.kmUnit, delay: 0, emphasis: .hero)
+            CYRoamRouteCard(payload: payload, copy: copy)
+                .frame(maxHeight: .infinity)
+            HStack(spacing: CYSpacing.md) {
+                supportTile(CYRollingStat(target: payload.tiles.map(Double.init), fractionDigits: 0, unit: copy.tilesUnit, delay: 0.05, emphasis: .tile))
+                supportTile(CYRollingStat(target: payload.stamps.map(Double.init), fractionDigits: 0, unit: copy.stampsUnit, delay: 0.10, emphasis: .tile))
             }
-            .frame(maxWidth: .infinity)
-            if !payload.route.isEmpty {
-                CYRouteDraw(points: payload.route, label: copy.routeLabel)
-                    .frame(maxWidth: .infinity, maxHeight: 220)
-            }
-            Spacer(minLength: CYSpacing.lg)
+            // The announcement already reads this line; keep it visual so VoiceOver does not hear it twice.
+            Text(verbatim: copy.roamLine(payload))
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .multilineTextAlignment(.center)
+                .accessibilityHidden(true)
             VStack(spacing: CYSpacing.sm) {
                 if shareEnabled {
                     CYPillButton(verbatim: copy.shareWalk) { onShare?(); sharing = true }
@@ -436,10 +443,60 @@ struct CYRoamSummaryView: View {
         .accessibilityIdentifier("cy.celebration.roam")
     }
 
-    @ViewBuilder private func stats(_ copy: CYCelebrationCopy) -> some View {
-        CYRollingStat(target: payload.kilometers, fractionDigits: 1, unit: copy.kmUnit, delay: 0)
-        CYRollingStat(target: payload.tiles.map(Double.init), fractionDigits: 0, unit: copy.tilesUnit, delay: 0.05)
-        CYRollingStat(target: payload.stamps.map(Double.init), fractionDigits: 0, unit: copy.stampsUnit, delay: 0.10)
+    private func supportTile(_ stat: CYRollingStat) -> some View {
+        stat
+            .padding(.vertical, CYSpacing.lg)
+            .frame(maxWidth: .infinity)
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
+    }
+}
+
+/// The route panel. With a route: faint map-like grid and the route drawn on. Without one: a fog glyph and the
+/// tiles-lit stat (a dash when unknown); nothing is invented.
+struct CYRoamRouteCard: View {
+    let payload: CYRoamSummaryPayload
+    let copy: CYCelebrationCopy
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).fill(palette.bgElevated)
+            if payload.route.isEmpty {
+                VStack(spacing: CYSpacing.sm) {
+                    Image(systemName: "cloud.fog.fill")
+                        .font(.system(size: 44, weight: .regular))
+                        .foregroundStyle(palette.textTertiary)
+                        .accessibilityHidden(true)
+                    Text(verbatim: "\(CYUnknown.count(payload.tiles)) \(copy.tilesLit)")
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(palette.textPrimary)
+                        .accessibilityHidden(true)
+                }
+                .padding(CYSpacing.lg)
+            } else {
+                CYRouteGrid().stroke(palette.borderSubtle.opacity(0.6), lineWidth: 1)
+                CYRouteDraw(points: payload.route, label: copy.routeLabel)
+                    .padding(CYSpacing.xl)
+            }
+        }
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous).strokeBorder(palette.borderSubtle, lineWidth: 1))
+        .frame(minHeight: 160)
+        .accessibilityIdentifier(payload.route.isEmpty ? "cy.celebration.roam.noroute" : "cy.celebration.roam.routecard")
+    }
+}
+
+/// Decorative street-grid hint for the route panel.
+private struct CYRouteGrid: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let step: CGFloat = 36
+        var x = step
+        while x < rect.width { path.move(to: CGPoint(x: x, y: 0)); path.addLine(to: CGPoint(x: x, y: rect.height)); x += step }
+        var y = step
+        while y < rect.height { path.move(to: CGPoint(x: 0, y: y)); path.addLine(to: CGPoint(x: rect.width, y: y)); y += step }
+        return path
     }
 }
 
@@ -449,8 +506,11 @@ struct CYRollingStat: View {
     let fractionDigits: Int
     let unit: String
     var delay: TimeInterval = 0
+    var emphasis: Emphasis = .tile
+    enum Emphasis { case hero, tile }
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.cyPalette) private var palette
+    @ScaledMetric(relativeTo: .largeTitle) private var heroSize: CGFloat = 96
     @State private var shown: Double = 0
     @State private var started = false
 
@@ -467,7 +527,7 @@ struct CYRollingStat: View {
     var body: some View {
         VStack(spacing: CYSpacing.xs) {
             Text(verbatim: text)
-                .font(CYTypography.data2XL)
+                .font(emphasis == .hero ? .system(size: heroSize, weight: .bold, design: .rounded) : CYTypography.dataXL)
                 .monospacedDigit()
                 .foregroundStyle(palette.textPrimary)
                 .lineLimit(1)
