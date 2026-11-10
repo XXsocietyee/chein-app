@@ -15,6 +15,16 @@ final class TicketWalletFlowTests: XCTestCase {
         XCTAssertTrue(element.exists, app.debugDescription, file: file, line: line)
         XCTAssertTrue(element.isHittable, app.debugDescription, file: file, line: line)
     }
+    /// Copy lookup by label across every element type, so a restyle (static text -> combined element) does not hide real copy.
+    private func element(labelContaining text: String) -> XCUIElement {
+        app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", text)).firstMatch
+    }
+    private func revealText(_ text: String, file: StaticString = #filePath, line: UInt = #line) {
+        let element = element(labelContaining: text)
+        _ = element.waitForExistence(timeout: 5)
+        for _ in 0..<8 { if element.exists { break }; app.swipeUp() }
+        XCTAssertTrue(element.exists, "Missing copy: \(text)\n\(app.debugDescription)", file: file, line: line)
+    }
     func testWalletDetailEntitlementsBackAndReopenNeverOffersCodeOrPayment() {
         launch()
         let row = app.buttons["ticketWallet.row.901"]
@@ -22,14 +32,13 @@ final class TicketWalletFlowTests: XCTestCase {
         attachFixtureScreenshot(self,app:app,name:"Ticket wallet initial content")
         row.tap()
         XCTAssertTrue(app.navigationBars["Ticket details"].waitForExistence(timeout: 5))
-        let pending = app.descendants(matching: .any)["ticketWallet.pendingChapters"]
-        reveal(pending)
-        XCTAssertTrue(app.staticTexts["Sample pending chapter"].exists)
+        revealText("Sample pending chapter")
         attachFixtureScreenshot(self,app:app,name:"Ticket detail entitlements")
-        reveal(app.staticTexts["ticketWallet.redemption.notice"])
-        XCTAssertTrue(app.staticTexts["Redemption codes are not available in this native version yet"].exists)
+        revealText("Redemption codes are not available in this native version yet")
+        // Protection: the detail never offers a redemption code or a payment action, under any label spelling.
         XCTAssertFalse(app.buttons["Show redemption code"].exists)
         XCTAssertFalse(app.buttons["Pay"].exists)
+        XCTAssertEqual(app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'redemption code' OR label MATCHES[c] '^pay.*'")).count, 0)
         app.navigationBars["Ticket details"].buttons.firstMatch.tap()
         XCTAssertTrue(row.waitForExistence(timeout: 5)); row.tap()
         XCTAssertTrue(app.staticTexts["Sample exploration ticket"].waitForExistence(timeout: 5))
@@ -38,7 +47,7 @@ final class TicketWalletFlowTests: XCTestCase {
         launch("partialEmpty")
         XCTAssertTrue(app.staticTexts["Activity tickets could not be loaded"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["No tickets found right now. Your ticket wallet may not show everything."].exists)
-        XCTAssertFalse(app.staticTexts["Your ticket wallet is empty"].exists)
+        XCTAssertFalse(app.staticTexts["No tickets yet. Join an activity and your ticket lands here."].exists)
         app.buttons["ticketWallet.retry"].tap()
         XCTAssertTrue(app.staticTexts["Activity tickets could not be loaded"].waitForExistence(timeout: 5))
     }
@@ -68,10 +77,10 @@ final class TicketWalletFlowTests: XCTestCase {
         XCTAssertFalse(app.staticTexts["Sample pending chapter"].exists)
     }
     func testEmptyFailureGuestAndConfigurationStatesAreDistinct() {
-        for (scenario, message) in [("empty", "Your ticket wallet is empty"), ("failure", "Tickets could not be loaded"), ("guest", "Sign in to see your tickets"), ("unconfigured", "Tickets aren't available right now.")] {
+        for (scenario, message) in [("empty", "No tickets yet. Join an activity and your ticket lands here."), ("failure", "Tickets could not be loaded"), ("guest", "Sign in to see your tickets"), ("unconfigured", "Tickets aren't available right now.")] {
             launch(scenario)
             XCTAssertTrue(app.staticTexts[message].waitForExistence(timeout: 10), "Scenario: \(scenario)")
-            if scenario != "empty" { XCTAssertFalse(app.staticTexts["Your ticket wallet is empty"].exists) }
+            if scenario != "empty" { XCTAssertFalse(app.staticTexts["No tickets yet. Join an activity and your ticket lands here."].exists) }
             XCTAssertFalse(app.staticTexts["Sample exploration ticket"].exists)
             app.terminate()
         }
