@@ -43,7 +43,7 @@ class CachedAsyncImageContract(unittest.TestCase):
         strings = json.loads(CATALOG.read_text())["strings"]
         expected = {
             "cy.cachedImage.placeholder": ("Image", "图片"),
-            "cy.cachedImage.failed": ("Image unavailable", "图片不可用"),
+            "cy.cachedImage.failed": ("Image didn't load", "图片没加载出来"),
         }
         for key, (en, zh) in expected.items():
             entry = strings[key]["localizations"]

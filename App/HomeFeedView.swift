@@ -15,6 +15,12 @@ import SwiftUI
     var onActionBanner: ((HomeIndexParityPresentation.ActionBanner) -> Void)? = nil
     var onContinuation: ((HomeIndexParityPresentation.ContinuationCard) -> Void)? = nil
     var onRetryContinuation: (() -> Void)? = nil
+    /// Today-card inputs. The host supplies what it already holds; nothing here is fetched by the feed.
+    var todayTicket: HomeTodayCandidate? = nil
+    var todayClubEvent: HomeTodayCandidate? = nil
+    var onOpenTodayTicket: (() -> Void)? = nil
+    var onOpenTodayClubEvent: (() -> Void)? = nil
+    var onStartRoam: (() -> Void)? = nil
     var onSelectCity: ((String?, Bool) -> Void)? = nil
     var onOpenUnifiedSearch: ((UnifiedSearchExperience.PresentationMode) -> Void)? = nil
     let onDestination: (HomeFeedDestination) -> Void
@@ -43,7 +49,8 @@ import SwiftUI
             } else if !model.matches(reader) {
                 Color.clear
             } else {
-                List {
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: CYSpacing.xxl) {
                     if hasHeroHeader {
                         HomeHeroHeaderSectionView(
                             nickname: viewerNickname,
@@ -61,6 +68,7 @@ import SwiftUI
                             onActionBanner?(banner)
                         }
                     }
+                    todayCard
                     bannerSection
                     feedSection(.recommended)
                     if !continuationCards.isEmpty || (continuationReadAvailability != .available && continuationReadAvailability != .unauthenticated) {
@@ -83,7 +91,8 @@ import SwiftUI
                     }
                     feedSection(.nearby)
                     feedSection(.upcoming)
-                    Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        sectionHeader(Text("homeFeed.explore"))
                         Picker("homeFeed.content", selection: $kind) {
                             Text("homeFeed.topics").tag(HomeFeedKind.topics)
                             Text("homeFeed.activities").tag(HomeFeedKind.activities)
@@ -102,7 +111,6 @@ import SwiftUI
                                 if streamSkeleton {
                                     CYLoadingStateView(rows: 3)
                                         .accessibilityLabel(Text("homeFeed.loading"))
-                                        .listRowBackground(Color.clear).listRowSeparator(.hidden).listRowInsets(EdgeInsets())
                                         .transition(.opacity)
                                 }
                             } else { ProgressView("homeFeed.loading") }
@@ -122,11 +130,11 @@ import SwiftUI
                                 .frame(maxWidth: .infinity, alignment: .center)
                                 .accessibilityIdentifier("homeFeed.noMoreFooter")
                         }
-                    } header: { sectionHeader(Text("homeFeed.explore")) }
+                    }
+                    }
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.vertical, CYSpacing.lg)
                 }
-                .listStyle(.insetGrouped)
-                .listSectionSpacing(CYSpacing.xxl)
-                .scrollContentBackground(.hidden)
                 .background(CYColor.bgPage)
                 .searchable(text: $keyword, placement: onOpenUnifiedSearch == nil ? .automatic : .navigationBarDrawer(displayMode: .automatic), prompt: Text("homeFeed.search"))
                 .onSubmit(of: .search) { submittedKeyword = keyword.trimmingCharacters(in: .whitespacesAndNewlines) }
@@ -148,7 +156,7 @@ import SwiftUI
         if model.bannerFailed { retry("homeFeed.bannersError", id: "banners") { model.schedule(.banners, reader: reader, permit: permit) } }
         if !model.banners.isEmpty {
             // Mirrors the mini-program hero swiper: full-width rounded covers, paged, dots, no captions.
-            Section {
+            VStack {
                 CYHeroBanner(items: model.banners.map { banner in
                     CYHeroBannerItem(id: banner.id, imageURL: QuestifyCardArtwork.safeURL(banner.picUrl), accessibilityLabel: "homeFeed.openFeatured",
                                      title: banner.contents.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : Text(verbatim: $0) },
@@ -157,9 +165,13 @@ import SwiftUI
                         switch destination { case .activity(let id): onDestination(.activity(id)); case .topic(let id): onDestination(.topic(id)) }
                     } })
                 })
-                .questifyCardListRow()
             }
         }
+    }
+    /// One focal point on the first fold: ticket within 24 h > club event today > start a roam.
+    @ViewBuilder private var todayCard: some View {
+        HomeTodayCard(choice: HomeTodayChoice.resolve(ticket: todayTicket, clubEvent: todayClubEvent, now: Date(), calendar: .current),
+                      onTicket: onOpenTodayTicket, onClubEvent: onOpenTodayClubEvent, onStartRoam: onStartRoam)
     }
     /// Mini-program `sec-reco` / `sec-nearby` / `sec-upcoming`: a titled horizontal rail each, with its own
     /// loading, failure and empty state. 即将上线 disappears once it has loaded with nothing in it.
@@ -169,7 +181,12 @@ import SwiftUI
         let failed = model.failedSections.contains(section)
         let hidesEmptyUpcoming = section == .upcoming && !failed && (items?.isEmpty ?? !model.loading)
         if !hidesEmptyUpcoming {
-            Section {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                switch section {
+                case .recommended: sectionHeader(Text("homeFeed.editorsPicks"))
+                case .nearby: sectionHeader(Text("homeFeed.activityHighlights"))
+                case .upcoming: sectionHeader(Text("homeFeed.upcoming"))
+                }
                 if failed {
                     retry("homeFeed.loadError", id: section.rawValue) { model.schedule(.section(section), reader: reader, permit: permit) }
                 } else if let items {
@@ -182,7 +199,6 @@ import SwiftUI
                     } else if section != .nearby {
                         // Glass carousel for the editor picks and upcoming rails (nearby keeps the compact shelf).
                         carouselRail(items, section: section)
-                            .questifyCardListRow()
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             LazyHStack(spacing: CYSpacing.md) {
@@ -195,16 +211,10 @@ import SwiftUI
                         }
                         .scrollClipDisabled()
                         .scrollTargetBehavior(.viewAligned)
-                        .questifyCardListRow()
+                        .padding(.horizontal, -CYSpacing.lg)
                     }
                 } else if model.loading {
                     CYSkeleton().padding(.vertical, CYSpacing.md).frame(maxWidth: .infinity, minHeight: 88)
-                }
-            } header: {
-                switch section {
-                case .recommended: sectionHeader(Text("homeFeed.editorsPicks"))
-                case .nearby: sectionHeader(Text("homeFeed.activityHighlights"))
-                case .upcoming: sectionHeader(Text("homeFeed.upcoming"))
                 }
             }
         }
@@ -233,7 +243,6 @@ import SwiftUI
             .font(.title2.weight(.bold))
             .foregroundStyle(CYColor.textPrimary)
             .textCase(nil)
-            .padding(.leading, -CYSpacing.xs)
             .accessibilityAddTraits(.isHeader)
     }
     private func row(_ item: HomeFeedItem, section: String, style: CYImageCard.Style? = nil) -> some View {
@@ -242,7 +251,6 @@ import SwiftUI
         }
             .buttonStyle(QuestifyCardButtonStyle())
             .accessibilityIdentifier("homeFeed.\(section).\(item.accessibilityKey)")
-            .questifyCardListRow()
     }
     private func retry(_ message: LocalizedStringKey, id: String, action: @escaping () -> Void) -> some View {
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
@@ -307,3 +315,135 @@ struct HomeFeedCard: View {
         return nil
     }
 }
+
+
+/// One thing the "Today" card can point at. Supplied by the host from data it already holds; the feed view never fetches it.
+struct HomeTodayCandidate: Equatable {
+    var id: String
+    var title: String
+    var start: Date?
+    var place: String?
+    var imageURL: URL?
+}
+
+/// Which single thing Explore's first fold shows (ux-strategy W1-6): ticket within 24 h > club event today > "start a roam".
+enum HomeTodayChoice: Equatable {
+    case ticket(HomeTodayCandidate)
+    case clubEvent(HomeTodayCandidate)
+    case roam
+
+    /// A ticket counts from 3 h before it starts (already underway) to 24 h ahead. A club event counts on the current calendar day.
+    /// Candidates without a start date never win: an unknown time is not "today".
+    static func resolve(ticket: HomeTodayCandidate?, clubEvent: HomeTodayCandidate?, now: Date, calendar: Calendar) -> HomeTodayChoice {
+        if let ticket, let start = ticket.start {
+            let delta = start.timeIntervalSince(now)
+            if delta >= -3 * 3600 && delta <= 24 * 3600 { return .ticket(ticket) }
+        }
+        if let clubEvent, let start = clubEvent.start, calendar.isDate(start, inSameDayAs: now) { return .clubEvent(clubEvent) }
+        return .roam
+    }
+}
+
+/// Full-bleed Today card: the single focal point of the Explore fold. One headline, one meta line, one pill.
+struct HomeTodayCard: View {
+    let choice: HomeTodayChoice
+    var onTicket: (() -> Void)?
+    var onClubEvent: (() -> Void)?
+    var onStartRoam: (() -> Void)?
+    @Environment(\.locale) private var locale
+    @Environment(\.timeZone) private var timeZone
+    @Environment(\.cyPalette) private var palette
+
+    private var copy: CYKitCopy { CYKitCopy(locale: locale) }
+
+    private struct Content {
+        var eyebrow: String
+        var title: String
+        var meta: String?
+        var pill: String
+        var symbol: String
+        var imageURL: URL?
+        var action: (() -> Void)?
+        var id: String
+    }
+
+    private var content: Content {
+        switch choice {
+        case .ticket(let c):
+            return Content(eyebrow: copy("Today · Your ticket", "今天 · 你的门票"), title: c.title, meta: meta(c),
+                           pill: copy("Show ticket", "出示门票"), symbol: "ticket", imageURL: c.imageURL, action: onTicket, id: "ticket")
+        case .clubEvent(let c):
+            return Content(eyebrow: copy("Today · Club event", "今天 · 俱乐部活动"), title: c.title, meta: meta(c),
+                           pill: copy("See event", "查看活动"), symbol: "person.3", imageURL: c.imageURL, action: onClubEvent, id: "clubEvent")
+        case .roam:
+            return Content(eyebrow: copy("Today", "今天"), title: copy("Start a roam", "开始一次漫游"),
+                           meta: copy("Walk somewhere new and light up the map.", "走去一个新地方，点亮地图"),
+                           pill: copy("Start a roam", "开始漫游"), symbol: "figure.walk", imageURL: nil, action: onStartRoam, id: "roam")
+        }
+    }
+
+    /// time · place, em dash when the time is unknown (never a fake value).
+    private func meta(_ c: HomeTodayCandidate) -> String {
+        let time = c.start.map { $0.formatted(Date.FormatStyle(date: .abbreviated, time: .shortened, locale: locale, timeZone: timeZone)) }
+        let place = c.place?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return [time ?? "—", (place?.isEmpty ?? true) ? nil : place].compactMap { $0 }.joined(separator: " · ")
+    }
+
+    var body: some View {
+        let c = content
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Label { Text(verbatim: c.eyebrow) } icon: { Image(systemName: c.symbol) }
+                .font(CYTypography.meta)
+                .opacity(0.85)
+            Text(verbatim: c.title)
+                .font(CYTypography.sectionTitle)
+                .lineLimit(3)
+                .accessibilityAddTraits(.isHeader)
+            if let meta = c.meta {
+                Text(verbatim: meta).font(CYTypography.meta).monospacedDigit().opacity(0.85)
+            }
+            if let action = c.action {
+                CYPillButton(verbatim: c.pill, style: .primary, fullWidth: false, action: action)
+                    .padding(.top, CYSpacing.xs)
+                    .accessibilityIdentifier("homeFeed.today.action")
+            }
+        }
+        .foregroundStyle(.white)
+        .padding(CYSpacing.lg)
+        .padding(.top, CYSpacing.jumbo)
+        .frame(maxWidth: .infinity, minHeight: 240, alignment: .bottomLeading)
+        .background { backdrop(c) }
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("homeFeed.today.\(c.id)")
+    }
+
+    private func backdrop(_ c: Content) -> some View {
+        ZStack {
+            CYCoverArt(seed: c.title)
+            if let url = c.imageURL, url.scheme?.lowercased() == "https" {
+                AsyncImage(url: url) { phase in
+                    if let image = phase.image { image.resizable().scaledToFill() } else { Color.clear }
+                }
+            }
+            LinearGradient(stops: [.init(color: .black.opacity(0.1), location: 0), .init(color: .black.opacity(0.78), location: 1)],
+                           startPoint: .top, endPoint: .bottom)
+        }
+    }
+}
+
+#if DEBUG
+#Preview("Today · ticket") {
+    HomeTodayCard(choice: .ticket(HomeTodayFixtures.ticket), onTicket: {}).padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+}
+#Preview("Today · club event") {
+    HomeTodayCard(choice: .clubEvent(HomeTodayFixtures.clubEvent), onClubEvent: {}).padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+}
+#Preview("Today · roam") {
+    HomeTodayCard(choice: .roam, onStartRoam: {}).padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+}
+#Preview("Today · unknown time, roam") {
+    HomeTodayCard(choice: HomeTodayChoice.resolve(ticket: HomeTodayFixtures.unknownTime, clubEvent: nil, now: HomeTodayFixtures.now, calendar: .current), onStartRoam: {})
+        .padding(CYSpacing.pageHorizontal).cyDomainPageBackground().themeDomain(.player)
+}
+#endif

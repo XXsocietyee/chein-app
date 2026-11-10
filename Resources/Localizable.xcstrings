@@ -5715,7 +5715,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apple sign-in could not be completed. Please try again."
+            "value": "Apple sign-in didn't finish. Try again."
           }
         },
         "zh-Hans": {
@@ -5749,7 +5749,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Apple sign-in didn't finish. Please try again."
+            "value": "Apple sign-in didn't finish. Try again."
           }
         },
         "zh-Hans": {
@@ -5970,7 +5970,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Too many requests. Please wait before trying again."
+            "value": "Too many requests. Wait a moment, then try again."
           }
         },
         "zh-Hans": {
@@ -6174,7 +6174,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your session has expired. Please sign in again."
+            "value": "Your session expired. Sign in again."
           }
         },
         "zh-Hans": {
@@ -6259,7 +6259,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unable to reach the service. Please try again."
+            "value": "Can't reach the service. Try again."
           }
         },
         "zh-Hans": {
@@ -6276,13 +6276,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This feature isn't available right now."
+            "value": "This isn't switched on yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "此功能暂不可用"
+            "value": "这项功能还没开通。"
           }
         }
       }
@@ -6395,7 +6395,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Secure storage is unavailable. Please try again."
+            "value": "Secure storage isn't responding. Try again."
           }
         },
         "zh-Hans": {
@@ -12416,13 +12416,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No club activities returned"
+            "value": "No club activities yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无俱乐部活动"
+            "value": "俱乐部还没有活动"
           }
         }
       }
@@ -27874,13 +27874,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No one in this city is organising explorations yet. Create your own club and be the first."
+            "value": "No clubs in your city yet. Start the first one."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本城暂无正在组织探索的同好，创建你自己的俱乐部，成为第一个"
+            "value": "你的城市还没有俱乐部，来开第一个。"
           }
         }
       }
@@ -27908,13 +27908,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No one in this city is organising explorations yet."
+            "value": "No clubs in your city yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "本城暂无正在组织探索的同好"
+            "value": "你的城市还没有俱乐部。"
           }
         }
       }
@@ -28792,13 +28792,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Clubs unavailable"
+            "value": "Clubs didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "俱乐部暂不可用"
+            "value": "俱乐部没加载出来"
           }
         }
       }
@@ -50005,13 +50005,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image unavailable"
+            "value": "Image didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片不可用"
+            "value": "图片没加载出来"
           }
         }
       }
@@ -50079,7 +50079,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "现在没有网络，先显示已保存的内容"
+            "value": "你离线了，先显示已保存的内容"
           }
         }
       }
@@ -61673,7 +61673,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无玩法模板"
+            "value": "还没有玩法模板"
           }
         }
       }
@@ -63405,13 +63405,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Discovery unavailable"
+            "value": "Discovery didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "发现暂不可用"
+            "value": "发现页没加载出来"
           }
         }
       }
@@ -122978,13 +122978,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "City lit up --%"
+            "value": "City lit up —"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "全城已点亮 --%"
+            "value": "全城已点亮 —"
           }
         }
       }
@@ -155101,7 +155101,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无勋章"
+            "value": "还没有徽章"
           }
         }
       }
@@ -161274,7 +161274,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please try again. Your saved information is unchanged."
+            "value": "Try again. Your saved information is unchanged."
           }
         },
         "zh-Hans": {
@@ -179416,7 +179416,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请输入地图搜索中心，此操作不会读取 GPS 或公开您的在线位置。"
+            "value": "请输入地图搜索中心，此操作不会读取 GPS 或公开你的在线位置。"
           }
         }
       }
@@ -180328,13 +180328,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No enrolled topics"
+            "value": "No enrolled topics yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无已报名主题"
+            "value": "还没有报名的主题"
           }
         }
       }
@@ -180752,13 +180752,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No stamps yet"
+            "value": "Your first stamp is waiting"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有邮票"
+            "value": "第一枚章在等你"
           }
         }
       }
@@ -180824,7 +180824,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无配文"
+            "value": "没有配文"
           }
         }
       }
@@ -181062,13 +181062,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No roaming records yet"
+            "value": "Your first stamp is waiting"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有漫游记录"
+            "value": "第一枚章在等你"
           }
         }
       }
@@ -181129,13 +181129,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Image unavailable"
+            "value": "Image didn't load"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图片暂不可用"
+            "value": "图片没加载出来"
           }
         }
       }
@@ -181194,13 +181194,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Starting a journey isn't available right now. We don't collect or simulate your location on this screen."
+            "value": "Starting a walk isn't open yet. We don't collect or simulate your location on this screen."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不支持开始漫游。本页不会采集或模拟你的位置。"
+            "value": "还不能在这里开始漫游。本页不会采集或模拟你的位置。"
           }
         }
       }
@@ -181274,13 +181274,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera, uploads and exchanges are unavailable"
+            "value": "Camera, uploads and exchanges aren't open yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "拍摄、上传和换票暂不可用"
+            "value": "拍摄、上传和换票还没开放"
           }
         }
       }
@@ -184186,13 +184186,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live Roam isn't available right now. You can still browse your saved history."
+            "value": "Live roam isn't open yet. Your saved history is still here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "实时漫游暂不可用，你仍可浏览已保存的历史。"
+            "value": "实时漫游还没开放，已存的历史照常能看。"
           }
         }
       }
@@ -184209,7 +184209,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "操作没有成功，请检查网络后重试。"
+            "value": "没成功，检查网络后再试一次。"
           }
         }
       }
@@ -184683,13 +184683,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start roaming"
+            "value": "Go"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始漫游"
+            "value": "走起"
           }
         }
       }
@@ -185644,13 +185644,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Map position unavailable"
+            "value": "No map position yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无地图位置"
+            "value": "还没有地图位置"
           }
         }
       }
@@ -185678,13 +185678,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Map isn't available right now"
+            "value": "The map isn't ready yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "地图暂不可用"
+            "value": "地图还没准备好"
           }
         }
       }
@@ -185695,13 +185695,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Live results aren't available right now."
+            "value": "Live results aren't ready yet."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "实时结果暂不可用。"
+            "value": "实时结果还没准备好。"
           }
         }
       }
@@ -185950,13 +185950,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unavailable"
+            "value": "—"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无可靠数据"
+            "value": "—"
           }
         }
       }
@@ -186187,13 +186187,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check-in successful!"
+            "value": "Stamped. You were here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "打卡成功！"
+            "value": "盖章成功，算你来过"
           }
         }
       }
@@ -188191,13 +188191,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No activities nearby"
+            "value": "Nothing nearby yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "附近暂无活动"
+            "value": "附近还没有活动"
           }
         }
       }
@@ -188565,13 +188565,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start roaming"
+            "value": "Go"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始漫游"
+            "value": "走起"
           }
         }
       }
@@ -188990,13 +188990,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This roam's record was recovered. Tap Start roaming to keep exploring."
+            "value": "We recovered your last walk. Tap Go to keep exploring."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已找回本次漫游记录，点击开始漫游继续探索。"
+            "value": "已找回上一趟的记录，点“走起”继续探索。"
           }
         }
       }
@@ -189041,13 +189041,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Start roaming"
+            "value": "Go"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "开始漫游"
+            "value": "走起"
           }
         }
       }
@@ -222867,13 +222867,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verified"
+            "value": "You're in"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "已核验"
+            "value": "已入场"
           }
         }
       }
@@ -229528,13 +229528,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No records"
+            "value": "No records yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无记录"
+            "value": "还没有记录"
           }
         }
       }
@@ -242663,7 +242663,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前离线"
+            "value": "你离线了"
           }
         }
       }
@@ -242881,13 +242881,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Stamp collected"
+            "value": "Stamped. You were here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "印章已收集"
+            "value": "盖章成功，算你来过"
           }
         }
       }
@@ -243158,6 +243158,41 @@
           "stringUnit": {
             "state": "translated",
             "value": "你的俱乐部"
+          }
+        }
+      }
+    },
+    "roam.passport.unknown.a11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
+          }
+        }
+      }
+    },
+    "GO": {
+      "comment": "Roam GO pill (voice table: GO)",
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "走起"
           }
         }
       }

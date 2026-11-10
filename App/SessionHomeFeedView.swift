@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct SessionHomeFeedView:View {
     @EnvironmentObject private var session:AppSession
     var onSignIn:(()->Void)? = nil
+    var onStartRoam:(()->Void)? = nil
     @State private var path:[HomeFeedDestination]=[]
     @State private var activeContinuationScope:PlaySessionScope?=nil
     @State private var continuationCoordinator = HomeContinuationCoordinator()
@@ -68,7 +69,8 @@ import SwiftUI
                 continuationReadAvailability: continuationReadAvailability,
                 onActionBanner: handleActionBanner,
                 onContinuation: handleContinuation,
-                onRetryContinuation: { Task { await reloadContinuationCards() } }
+                onRetryContinuation: { Task { await reloadContinuationCards() } },
+                onStartRoam: onStartRoam
             ) { path.append($0) }
                 .toolbar {
                     ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }

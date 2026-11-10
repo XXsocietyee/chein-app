@@ -108,9 +108,9 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
             guard announcesChanges, previous == .loading else { return }
             let t = CYKitCopy(locale: locale)
             switch new {
-            case .failed: Self.announce(t("Couldn't load. Retry is available.", "加载失败，可重试。"))
+            case .failed: Self.announce(t("Couldn't load. Try again.", "没加载出来，再试一次。"))
             case .loaded: Self.announce(t("Loaded", "已加载"))
-            case .empty: Self.announce(t("Nothing here yet", "暂无内容"))
+            case .empty: Self.announce(t("Nothing here yet", "这里还没有内容"))
             case .idle, .loading: break
             }
         }
