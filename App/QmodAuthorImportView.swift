@@ -211,19 +211,19 @@ struct QmodAuthorImportView: View {
     var body: some View {
         List {
             Section {
-                Text("qmodImport.intro")
+                CYHeroHeader("qmodImport.title", subtitle: "qmodImport.intro").listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                     .accessibilityIdentifier("qmod.authorImport.serverStatus")
             }
             Section {
-                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Label("qmodImport.pick", systemImage: "doc.badge.plus") }
+                CYPillButton("qmodImport.pick", systemImage: "doc.badge.plus") { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }
                     .accessibilityIdentifier("qmod.authorImport.pick")
-                Button(action: { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }) { Text("qmodImport.replace") }
+                CYPillButton("qmodImport.replace", style: .secondary) { activePicker = QmodFileImporterBinding(token: model.beginPicking()) }
                     .disabled(model.session.phase == .idle)
                     .accessibilityIdentifier("qmod.authorImport.replace")
-                Button(action: { model.recheck() }) { Text("qmodImport.recheck") }
+                CYPillButton("qmodImport.recheck", style: .secondary) { model.recheck() }
                     .disabled(!model.session.canRecheck)
                     .accessibilityIdentifier("qmod.authorImport.recheck")
-                Button(action: { model.cancel() }) { Text("qmodImport.cancel") }
+                CYPillButton("qmodImport.cancel", style: .tertiary) { model.cancel() }
                     .disabled(model.session.phase == .idle || model.session.phase == .cancelled)
                     .accessibilityIdentifier("qmod.authorImport.cancel")
             }
@@ -249,7 +249,8 @@ struct QmodAuthorImportView: View {
                 reportSections(report)
             }
         }
-        .navigationTitle(Text("qmodImport.title"))
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .accessibilityIdentifier("qmod.authorImport.root")
         .privacySensitive()
         .background {
@@ -282,7 +283,7 @@ struct QmodAuthorImportView: View {
                 ForEach(Array(report.issues.enumerated()), id: \.offset) { index, issue in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: qmodArchiveIssueTitle(issue, locale: locale))
-                            .font(.subheadline.weight(.semibold)).foregroundStyle(.red)
+                            .font(CYTypography.cardTitle).foregroundStyle(CYColor.dangerText)
                         Text(verbatim: qmodArchiveIssueDetail(issue, locale: locale))
                             .font(.footnote)
                         Text(verbatim: qmodArchiveIssueLocation(issue, locale: locale))

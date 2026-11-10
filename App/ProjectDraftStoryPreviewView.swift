@@ -55,9 +55,9 @@ import SwiftUI
         let captured = controller.capture(projection)
         let original = controller.presentation
         Section {
-            Button { if let captured { controller.open(captured) } } label: {
-                Text("projectDraftStoryPreview.open", tableName: "ProjectDraftStoryPreview")
-            }.disabled(captured == nil || original != nil).accessibilityIdentifier("projectDraftStoryPreview.open")
+            CYPillButton("projectDraftStoryPreview.open", style: .secondary, tableName: "ProjectDraftStoryPreview") {
+                if let captured { controller.open(captured) }
+            }.listRowBackground(Color.clear).disabled(captured == nil || original != nil).accessibilityIdentifier("projectDraftStoryPreview.open")
             if let reason = projection.reason {
                 Text(LocalizedStringKey("projectDraftStoryPreview.reason." + reason.rawValue), tableName: "ProjectDraftStoryPreview").font(.caption)
             }
@@ -96,11 +96,11 @@ import SwiftUI
                                     LabeledContent { Text(verbatim: String(projection.excludedPendingCount)) } label: { text("pendingExcluded") }
                                 }
                             }
-                            if projection.chapters.isEmpty { text("empty") }
+                            if projection.chapters.isEmpty { CYEmptyState(systemImage: "book", "projectDraftStoryPreview.empty", tableName: "ProjectDraftStoryPreview") }
                             else if projection.chapters.indices.contains(controller.selectedChapter) {
                                 chapter(projection.chapters[controller.selectedChapter])
                             }
-                        } else { text("stale") }
+                        } else { CYEmptyState(systemImage: "clock.arrow.circlepath", "projectDraftStoryPreview.stale", tableName: "ProjectDraftStoryPreview") }
                     }.padding().frame(maxWidth: .infinity, alignment: .leading)
                 }
                 .onChange(of: controller.selectedChapter) { _, _ in scroll.scrollTo("storyPreviewTop", anchor: .top) }
@@ -118,16 +118,16 @@ import SwiftUI
                         } label: { text("chapter") }
                         .accessibilityIdentifier("projectDraftStoryPreview.chapter")
                         HStack {
-                            Button { _ = controller.select(controller.selectedChapter - 1, in: original) } label: { text("previous") }
+                            CYPillButton("projectDraftStoryPreview.previous", style: .secondary, fullWidth: false, tableName: "ProjectDraftStoryPreview") { _ = controller.select(controller.selectedChapter - 1, in: original) }
                                 .disabled(controller.selectedChapter == 0).accessibilityIdentifier("projectDraftStoryPreview.previous")
                             Spacer()
                             Text(verbatim: "\(controller.selectedChapter + 1) / \(projection.chapters.count)")
                                 .accessibilityLabel(text("chapterPosition"))
                                 .accessibilityValue(Text(verbatim: "\(controller.selectedChapter + 1) / \(projection.chapters.count)"))
                             Spacer()
-                            Button { _ = controller.select(controller.selectedChapter + 1, in: original) } label: { text("next") }
+                            CYPillButton("projectDraftStoryPreview.next", style: .secondary, fullWidth: false, tableName: "ProjectDraftStoryPreview") { _ = controller.select(controller.selectedChapter + 1, in: original) }
                                 .disabled(controller.selectedChapter + 1 >= projection.chapters.count).accessibilityIdentifier("projectDraftStoryPreview.next")
-                        }.buttonStyle(.bordered)
+                        }
                     }.padding().background(.regularMaterial)
                 }
             }

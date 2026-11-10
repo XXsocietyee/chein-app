@@ -5,13 +5,15 @@ import SwiftUI
     @Bindable var model: CityOrientationOriginalRecoveryHost
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("cityOriginalRecovery.title").font(.headline)
+            CYSectionHeader("cityOriginalRecovery.title")
             if let receipt=model.visibleReceipt {
-                Text(LocalizedStringKey(receipt.succeeded ? "cityOriginalRecovery.applied" : "cityOriginalRecovery.failed"))
+                CYStatusChip(receipt.succeeded ? "cityOriginalRecovery.applied" : "cityOriginalRecovery.failed",
+                             tone: receipt.succeeded ? .success : .danger,
+                             systemImage: receipt.succeeded ? "checkmark.circle" : "exclamationmark.circle")
                 if let message=receipt.message { Text(verbatim: message) }
             } else {
                 switch model.phase {
-                case .loading: ProgressView("cityOriginalRecovery.loading")
+                case .loading: CYSkeleton().accessibilityLabel(Text("cityOriginalRecovery.loading"))
                 case .approvalRequired: Text("cityOriginalRecovery.approval")
                 case .unknown: Text("cityOriginalRecovery.unknown")
                 case .unavailable: Text("cityOriginalRecovery.storage")
@@ -21,10 +23,10 @@ import SwiftUI
             }
             if let issue=model.issue { PlayExperienceIssueView(issue:issue) }
             if model.current && model.phase != .loading && model.phase != .settled {
-                Button("cityOriginalRecovery.read") { Task { await model.load() } }
+                CYPillButton("cityOriginalRecovery.read", style: .secondary) { Task { await model.load() } }
             }
             if model.canAcknowledge {
-                Button("cityOriginalRecovery.acknowledge") { try? model.acknowledge() }
+                CYPillButton("cityOriginalRecovery.acknowledge") { try? model.acknowledge() }
             }
         }
         .padding().privacySensitive().accessibilityIdentifier("cityOriginalRecovery")

@@ -17,6 +17,9 @@ public struct Wave2AllPartialAndMissingRowsClosureView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(lane.laneID) · \(lane.title) (\(lane.currentAlignedOrSupersetCount)/\(lane.totalRows))")
                         .font(.subheadline.weight(.semibold))
+                    CYStatusChip(verbatim: "\(lane.currentAlignedOrSupersetCount)/\(lane.totalRows)",
+                                 tone: lane.currentAlignedOrSupersetCount >= lane.totalRows ? .success : .warning,
+                                 systemImage: lane.currentAlignedOrSupersetCount >= lane.totalRows ? "checkmark.circle" : "clock")
                     ForEach(lane.keyUpgradesDelivered, id: \.self) { item in
                         Text("• \(item)")
                             .font(.caption)

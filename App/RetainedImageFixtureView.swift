@@ -34,7 +34,7 @@ private final class RetainedImageFixtureTransport: HTTPTransport {
         NavigationStack {
             Form {
                 Text("image.retained.synthetic")
-                Button("image.retained.syntheticSelect") {
+                CYPillButton("image.retained.syntheticSelect", style: .secondary) {
                     let format = UIGraphicsImageRendererFormat(); format.scale = 1; format.opaque = true
                     let image = UIGraphicsImageRenderer(size: CGSize(width: 32, height: 32), format: format).image { context in
                         UIColor.systemBlue.setFill(); context.fill(CGRect(x: 0, y: 0, width: 32, height: 32))

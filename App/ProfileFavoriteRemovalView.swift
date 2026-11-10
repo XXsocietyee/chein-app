@@ -135,7 +135,7 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
             case .unreadable:
                 Section {
                     Text("profile.favoriteRecovery.unreadable", tableName: "ProfileSettingsFavorites")
-                    Button("action.retry") { readRevision &+= 1 }
+                    CYPillButton("action.retry", style: .tertiary) { readRevision &+= 1 }
                         .accessibilityIdentifier("profile.favoriteRecovery.retry")
                 }
             case .pending(let ids):
@@ -201,6 +201,7 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
     var body: some View {
         NavigationStack {
             Form {
+                Section { CYHeroHeader("profile.favoriteRemoval.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
                 Section {
                     if let contents { Text(verbatim: contents).lineLimit(6) }
                     LabeledContent("profile.favoriteRemoval.postID", value: String(presentation.postID))
@@ -220,22 +221,23 @@ private struct ProfileFavoriteRemovalLifecycleEvidence: ViewModifier {
                             }
                         case .failed:
                             Text("profile.favoriteRemoval.failed")
-                            Button("action.retry") {
+                            CYPillButton("action.retry", style: .secondary) {
                                 Task { guard scenePhase == .active, current else { return }; await controller.retryPreparation(presentation.id) }
                             }.accessibilityIdentifier("profile.favoriteRemoval.retry")
                         case .unknown:
                             Text("profile.favoriteRemoval.unknown")
-                            Button("profile.favoriteRemoval.check") {
+                            CYPillButton("profile.favoriteRemoval.check") {
                                 Task { guard scenePhase == .active, current else { return }; await controller.reconcile(presentation.id) }
                             }.accessibilityIdentifier("profile.favoriteRemoval.check")
                         case .removed:
                             Text("profile.favoriteRecovery.removed", tableName: "ProfileSettingsFavorites")
-                            Button("action.done") { close() }.accessibilityIdentifier("profile.favoriteRemoval.done")
+                            CYPillButton("action.done") { close() }.accessibilityIdentifier("profile.favoriteRemoval.done")
                         }
                     }
                 }
             }
-            .appNavigationTitle("profile.favoriteRemoval.title")
+            .cyGroupedSurface()
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("action.close") { close() }.accessibilityIdentifier("profile.favoriteRemoval.close")
             } }

@@ -10,12 +10,12 @@ struct RoamShareAlbumGuideView: View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Label("roam.albumGuide.saved", systemImage: "checkmark.circle")
-                        .font(.headline).accessibilityIdentifier("roam.albumGuide.saved")
+                    CYStatusChip("roam.albumGuide.saved", tone: .success, systemImage: "checkmark.circle")
+                        .accessibilityIdentifier("roam.albumGuide.saved")
                     Text(LocalizedStringKey(guide.destination == .moments ? "roam.albumGuide.momentsSteps" : "roam.albumGuide.xiaohongshuSteps"))
                     Text("roam.albumGuide.notPosted").foregroundStyle(.secondary)
                         .accessibilityIdentifier("roam.albumGuide.notPosted")
-                    Text("roam.albumGuide.copyTitle").font(.headline)
+                    CYSectionHeader("roam.albumGuide.copyTitle")
                     Text(verbatim: RoamShareAlbumGuideCopy.text(guide.copy, locale: locale))
                         .textSelection(.enabled)
                         .accessibilityIdentifier("roam.albumGuide.copy")

@@ -84,7 +84,13 @@ struct ClubManagementView: View {
                     } header: {
                         VStack(alignment: .leading, spacing: 2) {
                             Text("club.management.requests")
-                            if !snapshot.requests.isEmpty { ClubOpsJoinRequestsIntro(count: snapshot.requests.count).textCase(nil) }
+                            if !snapshot.requests.isEmpty,
+                               let pendingText = ClubJoinRequestsPageReady.pendingCountText(
+                                visibility: .init(reviewCapabilityPresent: contextMatches, canGovern: snapshot.club.isOwner || snapshot.club.viewerIsAdmin, playerFirstEntry: false),
+                                count: snapshot.requests.count) {
+                                ClubOpsJoinRequestsIntro(count: snapshot.requests.count).textCase(nil)
+                                    .accessibilityValue(Text(verbatim: pendingText))
+                            }
                         }
                     }
                     if snapshot.club.isOwner {

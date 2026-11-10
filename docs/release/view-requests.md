@@ -1,6 +1,101 @@
+# CB536 view requests
 
-## e5c (UI -> Cursor, one-liners)
-- `App/QuestifyApp.swift` `playerTabs` (and merchant TabView in `HomeSearchTabParityViews.swift`): append `.cyTabSelectionFeedback(selectedTab)` after `.cyDomainTabBar(.player)` (modifier exists in `CYDomainTabBar.swift`; selection haptic on tab change).
-- `Config/Base.xcconfig`: `INFOPLIST_KEY_UILaunchScreen_Generation = YES` gives a blank white launch; replace with a UILaunchScreen dict (`UIColorName` = `LaunchBackground` #000000, optional `UIImageName` = `LaunchMark`). Needs an asset catalog (none exists in the repo). See `docs/release/app-icon-spec.md`.
-- `App/ProfileSelfOrdersSection.swift`, `App/ProfileSelfProjectsSection.swift`: replace the bare `Text("...empty")` with `CYEmptyState(systemImage: "ticket"/"folder", "<key>", messageIdentifier: "<id>", kind: .orders/.projects).listRowBackground(Color.clear).listRowSeparator(.hidden)`; `App/ProfileReadScreen.swift` `ProfileEmptyState` body -> `CYEmptyState(systemImage: symbol, title, messageIdentifier: identifier)`; `App/AccountCollectionComponents.swift` `AccountCollectionIssueView` -> `CYStateLayout(kind: .failure, ...)`.
-- Permission priming adoption: `RoamStampCameraView` / `RoamLiveSessionView` denied blocks can use `CYPermissionDeniedCard(kind:onOpenSettings:)`; the first-run ask can present `CYPermissionPriming(kind:onAllow:onNotNow:)` before the system prompt (both in `CYStateKit.swift`).
+Base `rc/20261108` `e8299803711abd007e33731bdd534c40d6536ea2`. One row per Core page model whose page-map view does not reference the type. The view file is the `target_native_screen` already on `docs/parity/page-map.csv`. No route was added and none was marked live. `WelcomeView.showsMerchantChoice` stays false. `ReleaseMoneyWriteSwitch.paymentEnabled`, `payoutEnabled`, `withdrawalEnabled`, and `virtualGoodsEnabled` stay false. No view was edited. `tools/current_ci_manifest.json` was not refreshed. `xcodebuild` was not run.
+
+The property is the projection that view should call.
+
+| page | view file | model type | property the view should call |
+| --- | --- | --- | --- |
+| `pages/activity/detail/index` | `App/ActivityDetailView.swift` | `ActivityDetailPageModel` | `project` |
+| `pages/activity/list/index` | `App/OfficialEventsBrowserView.swift` | `OfficialActivityListPage` | `project` |
+| `pages/activity/official-inbox/index` | `App/OfficialPrivateViews.swift` | `OfficialInboxPageModel` | `state` |
+| `pages/activity/official-mine/index` | `App/OfficialPrivateViews.swift` | `OfficialMinePageModel` | `reload` |
+| `pages/address/address` | `App/ProfileParticipantsView.swift` | `ProfileParticipantListPage` | `project` |
+| `pages/agreement/index` | `App/SettingsLegalDocumentView.swift` | `SettingsLegalAgreementPage` | `facts` |
+| `pages/club/apply/index` | `App/ClubGovernanceViews.swift` | `ClubHostApplyPageModel` | `snapshot` |
+| `pages/club/checkin-detail/index` | `App/ClubGovernanceViews.swift` | `ClubCheckinDetailPage` | `bind` |
+| `pages/club/create/index` | `App/ClubOperationsViews.swift` | `ClubCreatePageModel` | `interpret` |
+| `pages/club/customer-detail/index` | `App/ClubOpsCustomerViews.swift` | `ClubCustomerDetailPage` | `project` |
+| `pages/club/detail/index` | `App/ClubDetailView.swift` | `ClubDetailPageModel` | `resolve` |
+| `pages/club/edit/index` | `App/ClubOperationsViews.swift` | `ClubEditPage` | `make` |
+| `pages/club/governance/index` | `App/ClubOpsGovernanceSections.swift` | `ClubOpsGovernancePage` | `project` |
+| `pages/club/group-code/index` | `App/ClubGovernanceViews.swift` | `ClubGroupCodePage` | `project` |
+| `pages/club/join-requests/index` | `App/ClubManagementView.swift` | `ClubJoinRequestsPageReady` | `pendingCountText` |
+| `pages/club/notify/index` | `App/ClubOpsNotifySections.swift` | `ClubNotifyPage` | `project` |
+| `pages/coop/invite-detail/index` | `App/CooperationInviteDetailView.swift` | `CooperationInviteDetailPage` | `project` |
+| `pages/coop/list/index` | `App/CooperationBrowserView.swift` | `CoopListPage` | `project` |
+| `pages/coop/nearby/index` | `App/NearbyMerchantView.swift` | `NearbyMerchantPage` | `resolve` |
+| `pages/crop/index` | `App/TemplateImageCropView.swift` | `CropPageModel` | `facts` |
+| `pages/deregister/index` | `App/AccountComplianceViews.swift` | `DeregisterIndexPageModel` | `page` |
+| `pages/member/index/index` | `App/AccountView.swift` | `MemberHomePageModel` | `state` |
+| `pages/merchant/aftercare/detail/index` | `App/MerchantAftercareProgressView.swift` | `MerchantAftercareDetailPage` | `load` |
+| `pages/merchant/aftercare/index` | `App/MerchantBusinessViews.swift` | `MerchantAftercareListPage` | `read` |
+| `pages/merchant/apply/index` | `App/MerchantOnboardingView.swift` | `MerchantOnboardingPage` | `project` |
+| `pages/merchant/citynode/create/index` | `App/MerchantCityNodeCreateView.swift` | `MerchantCityNodeCreatePage` | `project` |
+| `pages/merchant/citynode/index` | `App/MerchantCityNodeHubView.swift` | `MerchantCityNodeHubPage` | `project` |
+| `pages/merchant/coop-center/index` | `App/MerchantCoopCenterView.swift` | `MerchantCoopCenterPage` | `project` |
+| `pages/merchant/crm-campaigns/index` | `App/MerchantEngagementViews.swift` | `MerchantCrmCampaignsPage` | `phase` |
+| `pages/merchant/customer/detail/index` | `App/MerchantCustomerDetailSections.swift` | `MerchantCustomerDetailPage` | `project` |
+| `pages/merchant/customer/index` | `App/MerchantBusinessViews.swift` | `MerchantCustomerRosterPage` | `project` |
+| `pages/merchant/decor/ai-npc/index` | `App/MerchantStoreCharacterView.swift` | `MerchantStoreCharacterPage` | `phase` |
+| `pages/merchant/decor/coop-setting/index` | `App/MerchantOperationsViews.swift` | `MerchantCoopSettingPage` | `project` |
+| `pages/merchant/decor/gallery/index` | `App/MerchantOperationsViews.swift` | `MerchantGalleryPage` | `facts` |
+| `pages/merchant/decor/index` | `App/MerchantOperationsViews.swift` | `MerchantBrandCenterPage` | `reading` |
+| `pages/merchant/decor/perks/index` | `App/MerchantOperationsViews.swift` | `MerchantPerksPage` | `screen` |
+| `pages/merchant/game-node/index` | `App/MerchantGameNodeView.swift` | `MerchantGameNodePage` | `project` |
+| `pages/merchant/index/index` | `App/MerchantHomeView.swift` | `MerchantHomePage` | `project` |
+| `pages/merchant/ledger/batch-detail/index` | `App/MerchantSettlementProgressView.swift` | `MerchantSettlementBatchPage` | `make` |
+| `pages/merchant/ledger/order-detail/index` | `App/MerchantBusinessViews.swift` | `MerchantLedgerOrderPage` | `phase` |
+| `pages/merchant/marketing/ai-insight/index` | `App/MerchantMarketingView.swift` | `MerchantAiInsightPage` | `facts` |
+| `pages/merchant/marketing/index` | `App/MerchantMarketingView.swift` | `MerchantMarketingBoardPage` | `project` |
+| `pages/merchant/predict/index` | `App/MerchantPredictionInboxView.swift` | `MerchantPredictionInboxPage` | `project` |
+| `pages/merchant/profile/index` | `App/PublicMerchantHomeView.swift` | `PublicMerchantHomePage` | `bind` |
+| `pages/merchant/relation/index` | `App/CoopRelationDiscoveryView.swift` | `MerchantRelationPage` | `resolve` |
+| `pages/merchant/reviews/index` | `App/MerchantBusinessViews.swift` | `MerchantReviewsPage` | `resolve` |
+| `pages/merchant/team/index` | `App/MerchantBusinessViews.swift` | `MerchantStaffTeamPage` | `resolve` |
+| `pages/merchant/verify-records/index` | `App/MerchantBusinessViews.swift` | `MerchantVerifyRecordsPage` | `decode` |
+| `pages/mylike/mylike` | `App/AccountCollectionFavoritesView.swift` | `AccountCollectionFavoritesPageModel` | `resolvePosts` |
+| `pages/play/poi-challenge/index` | `App/PlayKitTimedChallengeView.swift` | `PlayKitTimedChallengePage` | `project` |
+| `pages/privacy/index` | `App/PrivacyProtectionView.swift` | `PrivacyProtectionPageModel` | `reload` |
+| `pages/publish/fabu/index` | `App/ProjectEditView.swift` | `PublishFabuPageModel` | `project` |
+| `pages/publish/simple/index` | `App/PublishingModesViews.swift` | `QuickPublishSimplePageModel` | `load` |
+| `pages/shezhi/about/index` | `App/SettingsAboutView.swift` | `SettingsAboutPageModel` | `playerCode` |
+| `pages/shezhi/marketing/index` | `App/MarketingConsentOriginalPresentation.swift` | `ShezhiMarketingIndexPageModel` | `shezhiMarketingIndexPage` |
+| `pages/shezhi/shezhi` | `App/SettingsView.swift` | `SettingsHomePage` | `facts` |
+| `pages/square/detail/index` | `App/SquareDetailView.swift` | `SquareDetailPageModel` | `resolvePost` |
+| `pages/talent/list/index` | `App/ClubHomeView.swift` | `ClubTabPageModel` | `project` |
+| `pages/template/index` | `App/DiscoveryTemplateBrowserView.swift` | `TemplateIndexPageModel` | `beginLoad` |
+| `pages/topic/merchantinfo/merchantinfo` | `App/MerchantContentViews.swift` | `TopicMerchantInfoPage` | `load` |
+| `subpackageA/pages/assetcenter/analysis/index` | `App/WalletCommerceViews.swift` | `AssetCenterAnalysisPageModel` | `moneyText` |
+| `subpackageA/pages/assetcenter/income-detail/income-detail` | `App/WalletCommerceViews.swift` | `WalletIncomeDetailPageModel` | `money` |
+| `subpackageA/pages/infomation/infomation` | `App/SocialGuideViews.swift` | `PlayGuideInformationListPage` | `project` |
+| `subpackageA/pages/infomationdetail/infomationdetail` | `App/SocialGuideViews.swift` | `InformationDetailPageModel` | `phase` |
+| `subpackageB/pages/im/chat/index` | `App/MessagingHistoryView.swift` | `IMChatSessionPage` | `project` |
+| `subpackageB/pages/im/list/index` | `App/MessagingHomeView.swift` | `IMListPageReady` | `project` |
+| `subpackageMember/character/index` | `App/CharacterCardReadbackView.swift` | `CharacterCardPageModel` | `pageModel` |
+| `subpackageMember/couponInfo/couponInfo` | `App/CouponManagementView.swift` | `CouponInfoSettingsPage` | `project` |
+| `subpackageMember/free-explore/index` | `App/FreeExploreBundleLaunchView.swift` | `FreeExploreBundlePageReady` | `screen` |
+| `subpackageMember/invoice-apply/index` | `App/InvoiceLaunchApplyView.swift` | `InvoiceLaunchApplyPage` | `project` |
+| `subpackageMember/invoice-titles/index` | `App/InvoiceLaunchTitlesView.swift` | `InvoiceLaunchTitlesPage` | `facts` |
+| `subpackageMember/mycanyu/mycanyu` | `App/PlayerJourneyViews.swift` | `ParticipationHistoryPage` | `project` |
+| `subpackageMember/mycanyu/mycanyu` | `App/PlayerJourneyViews.swift` | `ParticipationHistoryPageModel` | `project` |
+| `subpackageMember/myinvite/myinvite` | `App/SocialInviteHistoryView.swift` | `ProfileInviteHistoryPageReady` | `phase` |
+| `subpackageMember/orderinfo/orderinfo` | `App/OrderLifecycleView.swift` | `OrderInfoPageModel` | `phase` |
+| `subpackageMember/orient-score/index` | `App/OrientScoreView.swift` | `OrientScorePage` | `bind` |
+| `subpackageMember/points-history/index` | `App/ProfileWeeklyPointsSection.swift` | `PointsHistoryPageModel` | `load` |
+| `subpackageMember/report-detail/index` | `App/MemberReportProgressDetailView.swift` | `MemberReportProgressDetailPage` | `phase` |
+| `subpackageMember/signup/index` | `App/TicketWalletView.swift` | `SignupIndexPageModel` | `phase` |
+| `subpackageP3/pages/growthcenter/leaderboard/index` | `App/GrowthLeaderboardView.swift` | `GrowthLeaderboardPageModel` | `project` |
+| `subpackageP3/pages/stamp-album/index/index` | `App/RoamStampViews.swift` | `StampAlbumIndexPageModel` | `project` |
+| `subpackageP3/pages/stamp-camera/index/index` | `App/RoamStampCameraView.swift` | `StampCameraPageReady` | `project` |
+| `subpackageRoam/citystamp/index` | `App/RoamSubpageParityViews.swift` | `RoamCityStampPage` | `project` |
+| `subpackageRoam/my-teams/index` | `App/NearbyTeamViews.swift` | `RoamMyTeamsPageModel` | `resolve` |
+| `subpackageRoam/nearby/index` | `App/NearbyTeamViews.swift` | `RoamNearbyIndexPage` | `resolve` |
+| `subpackageRoam/official-route/index` | `App/RoamSubpageParityViews.swift` | `OfficialRouteDetailPage` | `facts` |
+| `subpackageTools/anniversary/index` | `App/RoamPassportToolsViews.swift` | `RoamAnniversaryIndexPage` | `facts` |
+| `subpackageTools/capsule/index` | `App/RoamPassportPrivateToolsViews.swift` | `CapsuleIndexPage` | `project` |
+| `subpackageTools/exploration-export/index` | `App/RoamExplorationExportView.swift` | `RoamExplorationExportPage` | `project` |
+| `subpackageTools/exploration-goals/index` | `App/RoamPassportPrivateToolsViews.swift` | `RoamExplorationGoalsPage` | `phase` |
+| `subpackageTools/monthly-recap/index` | `App/RoamPassportToolsViews.swift` | `MonthlyRecapPage` | `bind` |
+
+Row count: 91.

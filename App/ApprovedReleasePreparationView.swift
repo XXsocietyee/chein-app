@@ -44,28 +44,30 @@ import SwiftUI
         let confirmation = model.confirmation
         NavigationStack {
             Form {
+                CYHeroHeader(verbatim: String(localized: LocalizedStringResource("approvedRelease.title", defaultValue: "Approved snapshot", locale: locale)))
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Text(String(localized: LocalizedStringResource("approvedRelease.readOnly", defaultValue: "This is a captured server-approved summary, not your editable draft. Reading it creates no release.", locale: locale)))
                     .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("approvedRelease.readOnly")
                 if !model.flow.isCurrent {
                     Text(String(localized: LocalizedStringResource("approvedRelease.changedContext", defaultValue: "This review is no longer current. Close it and return to the current submission.", locale: locale)))
                 } else {
                     switch model.flow.state {
-                    case .idle, .loading: ProgressView().accessibilityIdentifier("approvedRelease.loading")
+                    case .idle, .loading: CYSkeleton().accessibilityIdentifier("approvedRelease.loading")
                     case .ready(let prepared): ApprovedReleaseSummarySection(coverSource: original.coverSource, coverSession: original.flow.session, coverContextCurrent: { original.flow.isCurrent && original.flow.state == .ready(prepared) }, prepared: prepared)
                     case .unauthorized:
                         Text(String(localized: LocalizedStringResource("approvedRelease.unauthorized", defaultValue: "Sign in again before checking the current approved snapshot.", locale: locale)))
                     case .failed:
                         Text(String(localized: LocalizedStringResource("approvedRelease.checkFailed", defaultValue: "No current approved snapshot could be verified. Review may be pending, changed, unsupported or unavailable. This check did not create or retry a release; any saved request is retained.", locale: locale)))
                             .accessibilityIdentifier("approvedRelease.failed")
-                        Button(String(localized: LocalizedStringResource("approvedRelease.retry", defaultValue: "Check again", locale: locale))) { Task { await model.load() } }
-                            .buttonStyle(.borderless).accessibilityIdentifier("approvedRelease.retry")
+                        CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.retry", defaultValue: "Check again", locale: locale)), style: .secondary) { Task { await model.load() } }
+                            .listRowBackground(Color.clear).accessibilityIdentifier("approvedRelease.retry")
                     case .closed: EmptyView()
                     }
                     if let publisher = model.publisher { publication(publisher) }
                 }
             }
             .p04LifecycleSurface()
-            .navigationTitle(String(localized: LocalizedStringResource("approvedRelease.title", defaultValue: "Approved snapshot", locale: locale)))
+            .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("approvedRelease.close", defaultValue: "Close", locale: locale))) { model.close(); close() }
@@ -86,7 +88,7 @@ import SwiftUI
             Text(String(localized: LocalizedStringResource("approvedRelease.publishScope", defaultValue: "Creating an immutable release records this exact approved version. It does not by itself prove public listing, player eligibility or successful play.", locale: locale)))
                 .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             switch publisher.state {
-            case .sending: ProgressView().accessibilityIdentifier("approvedRelease.publication.sending")
+            case .sending: CYSkeleton().accessibilityIdentifier("approvedRelease.publication.sending")
             case .known(let receipt):
                 Text(String(receipt.releaseID)).accessibilityIdentifier("approvedRelease.publication.releaseID")
                 Text(verbatim: receipt.manifestHash).textSelection(.enabled).accessibilityIdentifier("approvedRelease.publication.manifestHash")
@@ -105,16 +107,16 @@ import SwiftUI
             }
             if let captured, let record = captured.current {
                 Text(verbatim: record.command.requestID).textSelection(.enabled).accessibilityIdentifier("approvedRelease.publication.requestID")
-                Button(String(localized: LocalizedStringResource("approvedRelease.checkResult", defaultValue: "Check this request", locale: locale))) { Task { await model.check(captured) } }
-                    .buttonStyle(.borderless).disabled(!publisher.canCheckStatus).accessibilityIdentifier("approvedRelease.publication.check")
+                CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.checkResult", defaultValue: "Check this request", locale: locale)), style: .secondary) { Task { await model.check(captured) } }
+                    .listRowBackground(Color.clear).disabled(!publisher.canCheckStatus).accessibilityIdentifier("approvedRelease.publication.check")
                 if record.receipt == nil {
-                    Button(String(localized: LocalizedStringResource("approvedRelease.retryExact", defaultValue: "Retry the exact saved request", locale: locale))) { Task { await model.retry(captured) } }
-                        .buttonStyle(.borderless).disabled(!publisher.canRetryExact).accessibilityIdentifier("approvedRelease.publication.retry")
+                    CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.retryExact", defaultValue: "Retry the exact saved request", locale: locale)), style: .secondary) { Task { await model.retry(captured) } }
+                        .listRowBackground(Color.clear).disabled(!publisher.canRetryExact).accessibilityIdentifier("approvedRelease.publication.retry")
                 }
             }
             if case .ready(let prepared) = model.flow.state, publisher.canReview(prepared) {
-                Button(String(localized: LocalizedStringResource("approvedRelease.reviewPublication", defaultValue: "Review immutable release", locale: locale))) { model.review(prepared) }
-                    .buttonStyle(.borderless).accessibilityIdentifier("approvedRelease.publish")
+                CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.reviewPublication", defaultValue: "Review immutable release", locale: locale))) { model.review(prepared) }
+                    .listRowBackground(Color.clear).accessibilityIdentifier("approvedRelease.publish")
             }
         }
     }

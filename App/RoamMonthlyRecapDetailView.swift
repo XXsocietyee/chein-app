@@ -59,8 +59,7 @@ import SwiftUI
             table: "RoamMonthlyRecap", locale: locale))
     }
     private var unavailable: some View {
-        Label("topic.unavailable", systemImage: "exclamationmark.circle")
-            .foregroundStyle(.secondary)
+        CYEmptyState(systemImage: "exclamationmark.circle", "topic.unavailable")
             .accessibilityIdentifier("roam.tools.recap.detail.unavailable")
     }
 }

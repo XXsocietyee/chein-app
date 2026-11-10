@@ -25,22 +25,22 @@ extension EnvironmentValues {
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                Image(systemName: model.target.kind == .ticket ? "ticket" : "mappin.circle")
-                    .font(.largeTitle).accessibilityHidden(true)
                 if model.target.kind == .cityVoucher, autoIssue {
                     RoamCityVoucherHeading(title: title)
                 } else {
-                    Text(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title").font(.title2.bold())
+                    CYHeroHeader(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title")
                 }
                 content
                 if model.target.kind == .ticket, model.readback != nil {
-                    Button("verificationCode.checkOrder") { run { await model.checkOrder() } }
+                    CYPillButton("verificationCode.checkOrder", style: .secondary) { run { await model.checkOrder() } }
                         .disabled(model.checkingOrder || model.phase == .loading)
                         .accessibilityIdentifier("verificationCode.checkOrder")
-                    if model.checkingOrder { ProgressView("verificationCode.checking") }
+                    if model.checkingOrder { CYSkeleton() }
                     if model.readbackFailed { Text("verificationCode.readbackFailed").font(.footnote) }
                     if let detail = model.readback {
-                        Text(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended")
+                        CYStatusChip(detail.registrationStatus == 2 ? "verificationCode.order.active" : "verificationCode.order.ended",
+                                     tone: detail.registrationStatus == 2 ? .success : .neutral,
+                                     systemImage: detail.registrationStatus == 2 ? "checkmark.circle" : "clock")
                             .accessibilityIdentifier("verificationCode.orderState")
                     }
                 }
@@ -48,8 +48,7 @@ extension EnvironmentValues {
                     .font(.footnote).foregroundStyle(.secondary)
             }.padding().frame(maxWidth: .infinity)
         }
-        .navigationTitle(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title")
-        .navigationBarTitleDisplayMode(.inline).privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .task(id: scenePhase) {
             guard scenePhase == .active else { cancel(); return }
             while !Task.isCancelled {
@@ -69,7 +68,7 @@ extension EnvironmentValues {
     @ViewBuilder private var content: some View {
         if model.phase == .ready, let code = model.displayCode {
             VerificationLocalQRCode(code: code)
-            Button("verificationCode.retry") { run { await model.present() } }
+            CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
                 .accessibilityIdentifier("verificationCode.refresh")
             if model.target.kind == .cityVoucher, autoIssue {
                 Text("roamSub.w208.voucher.countdown \(model.remainingSeconds)").monospacedDigit()
@@ -78,13 +77,13 @@ extension EnvironmentValues {
                 LabeledContent("verificationCode.remaining") { Text(model.remainingSeconds, format: .number).monospacedDigit() }
             }
         } else if model.phase == .loading {
-            ProgressView("verificationCode.loading")
+            CYSkeleton()
         } else {
             Text(LocalizedStringKey(phaseKey))
                 .multilineTextAlignment(.center).accessibilityIdentifier("verificationCode.phase")
             if [.review, .expired, .paused, .failed, .invalid].contains(model.phase) {
-                Button(model.phase == .review ? "verificationCode.show" : "verificationCode.retry") { run { await model.present() } }
-                    .buttonStyle(.questifyPrimary).accessibilityIdentifier("verificationCode.show")
+                CYPillButton(model.phase == .review ? "verificationCode.show" : "verificationCode.retry") { run { await model.present() } }
+                    .accessibilityIdentifier("verificationCode.show")
             }
         }
     }

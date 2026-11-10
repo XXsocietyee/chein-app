@@ -60,7 +60,7 @@ import SwiftUI
                                 Text(row.title).font(Theme.Font.cardTitle)
                                 if row.selected { Label("已选定，尚须核对执行状态", systemImage: "checkmark.seal").font(.footnote) }
                                 Text(row.summary).font(.subheadline).foregroundStyle(.secondary)
-                                Text(String(localized: "需求：") + amounts(row.cost, p)).font(.footnote)
+                                Text("需求：" + amounts(row.cost, p)).font(.footnote)
                                 Text(row.conditionsMet ? "原公共前置已满足" : "原公共前置尚未满足").font(.footnote).foregroundStyle(.secondary)
                             }.modifier(SharedPlanSelectionMark(selected: selectedEnding == row.endingKey))
                         }.disabled(model.busy || model.pending != nil).accessibilityIdentifier("sharedPlan.row.\(row.endingKey)")
@@ -70,7 +70,7 @@ import SwiftUI
                 if let row = p.rows.first(where: { $0.endingKey == selectedEnding }) {
                     Section(row.title) {
                         if let proposal = row.proposalKey { Text("原提案 \(proposal) · 版本 \(row.version ?? 0)").font(.caption) }
-                        Text(String(localized: "本队私有意向：") + amounts(row.ownIntent, p))
+                        Text("本队私有意向：" + amounts(row.ownIntent, p))
                         Text(row.ownConfirmed ? "本队当前队长已确认托管" : row.signatureCurrent ? "本队当前队长已签署意向，尚未托管" : row.ownIntent.isEmpty ? "尚无本队投入意向" : "队长已变更，旧意向签名无效，须改案后重新签署")
                         ForEach(row.confirmed.keys.sorted(), id: \.self) { team in Text("原公开托管 · 队伍 \(team)：" + amounts(row.confirmed[team] ?? [], p)).font(.caption) }
                         if let reason = row.reason { Text("原状态：\(reason)").font(.caption) }
@@ -106,12 +106,12 @@ import SwiftUI
                     }
                 }
                 Section("本队签名与当前票轮") {
-                    if p.ownVote != .null { Text(String(localized: "本队首选：") + planName(p.ownVote["planKey"].text ?? "", p)); Text(signature(p.ownVote)) }
+                    if p.ownVote != .null { Text("本队首选：" + planName(p.ownVote["planKey"].text ?? "", p)); Text(signature(p.ownVote)) }
                     if p.ownAcceptance != .null {
-                        Text(String(localized: "本队接受：") + acceptanceText(p))
+                        Text("本队接受：" + acceptanceText(p))
                         Text(signature(p.ownAcceptance))
                     }
-                    if let vote = p.consensus[String(p.team.teamID)].text { Text(String(localized: "原公开共识票：") + planName(vote, p)); Text("当前签名效力与是否选定仍以原阶段及可用动作为准。").font(.caption) }
+                    if let vote = p.consensus[String(p.team.teamID)].text { Text("原公开共识票：" + planName(vote, p)); Text("当前签名效力与是否选定仍以原阶段及可用动作为准。").font(.caption) }
                     if p.ownRejectedAll { Text("本队当前队长已签署拒绝全部当前范围内方案。") }
                     ForEach(globalActions) { action in
                         if p.allows(action) { Button(action.title) { prepare(action) }.disabled(!enabled(action, p)) }
@@ -154,7 +154,7 @@ import SwiftUI
                         }
                         Text("确认前再次读取原队长、权限、版本与状态；变化则本次确认失效。")
                     }
-                    Button(String(localized: "确认：") + review.command.action.title, role: [.withdraw, .change, .rejectAll, .cancel].contains(review.command.action) ? .destructive : nil) {
+                    Button("确认：" + review.command.action.title, role: [.withdraw, .change, .rejectAll, .cancel].contains(review.command.action) ? .destructive : nil) {
                         Task { await model.commit(review); offered = nil }
                     }.buttonStyle(.borderedProminent).disabled(!model.canInteract || !model.writesEnabled || model.review != review)
                 }.cyGroupedSurface().modifier(SharedPlanFormAppearance()).navigationTitle("核对原动作").interactiveDismissDisabled(model.busy)

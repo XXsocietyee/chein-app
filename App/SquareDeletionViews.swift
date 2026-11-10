@@ -32,7 +32,7 @@ struct SquareDeletionConfirmView: View {
                 Button(role: .destructive) { Task { await coordinator.confirm() } } label: {
                     if case .post = target { Text("square.xcx.delete.postConfirm") } else { Text("square.xcx.delete.commentConfirm") }
                 }.disabled(coordinator.isBusy).accessibilityIdentifier("square.delete.confirm")
-                Button("action.cancel") { coordinator.cancel() }.disabled(coordinator.isBusy)
+                CYPillButton("action.cancel", style: .secondary) { coordinator.cancel() }.disabled(coordinator.isBusy)
             }
         }.accessibilityIdentifier("square.delete.sheet")
     }
@@ -51,17 +51,17 @@ struct SquareDeletionStatusView: View {
     var body: some View {
         switch coordinator.phase {
         case .done(let target):
-            if case .post = target { Text("square.xcx.delete.postDone").accessibilityIdentifier("square.delete.done") }
-            else { Text("square.xcx.delete.commentDone").accessibilityIdentifier("square.delete.done") }
+            if case .post = target { CYStatusChip("square.xcx.delete.postDone", tone: .success, systemImage: "checkmark.circle").accessibilityIdentifier("square.delete.done") }
+            else { CYStatusChip("square.xcx.delete.commentDone", tone: .success, systemImage: "checkmark.circle").accessibilityIdentifier("square.delete.done") }
         case .rejected(_, let message):
             VStack(alignment: .leading, spacing: 4) {
-                Text("square.xcx.delete.failed").accessibilityIdentifier("square.delete.failed")
+                CYStatusChip("square.xcx.delete.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("square.delete.failed")
                 if let message, !message.isEmpty { Text(verbatim: message).font(.caption) }
             }
         case .unknown:
             VStack(alignment: .leading, spacing: 6) {
                 Text("square.xcx.delete.unknown").accessibilityIdentifier("square.delete.unknown")
-                Button("square.xcx.delete.verify", action: verify).accessibilityIdentifier("square.delete.verify")
+                CYPillButton("square.xcx.delete.verify", style: .secondary, action: verify).accessibilityIdentifier("square.delete.verify")
             }
         case .disabled:
             Text("square.xcx.delete.unavailable").font(.footnote).foregroundStyle(.secondary).accessibilityIdentifier("square.delete.unavailable")

@@ -49,6 +49,7 @@ import SwiftUI
         let nodeLabels = CollectSetNodePresentation(nodes: nodes, locale: locale)
         let validation = isCurrent ? CollectSetAuthorValidation(values: values, draft: model.draft) : nil
         Form {
+            Section { CYHeroHeader(verbatim: "收集套组").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Text("每组集齐所选点位即可完成；历史收藏不计入本次游玩。")
             if let error { NativeAuthorNotice(text: Text(verbatim: error), tone: .failure) }
             if isCurrent {
@@ -89,7 +90,7 @@ import SwiftUI
                     NativeAuthorNotice(text: Text(verbatim: CollectSetAuthorValidation.text("collectSet.validation.originalContract", locale: locale)), tone: .attention)
                         .accessibilityIdentifier("collectSet.author.validation")
                 }
-                Button("保存到原草稿") { save(token) }.nativeAuthorPrimaryAction().disabled(!isCurrent || !model.fullEdit || validation?.canSave != true)
+                CYPillButton(verbatim: "保存到原草稿") { save(token) }.disabled(!isCurrent || !model.fullEdit || validation?.canSave != true)
                     .accessibilityIdentifier("collectSet.author.save")
                 Text("此处只保存到原草稿；云端保存和发布结果请返回原编辑器查看。离页或切换后台会丢弃本页尚未写入原草稿的套组修改。")
                     .font(.footnote).foregroundStyle(.secondary)
@@ -109,7 +110,8 @@ import SwiftUI
             }
         }
         .nativeAuthorSurface()
-        .navigationTitle("收集套组")
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .onAppear {
             guard !appeared else { return }; appeared = true; read(editToken)
         }

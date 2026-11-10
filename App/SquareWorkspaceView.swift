@@ -33,6 +33,8 @@ import UniformTypeIdentifiers
     var body: some View {
         // Disable editor actions, not the scroll container: busy content must remain readable.
         Form {
+            CYHeroHeader("squareWorkspace.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Group {
                 Section {
                     Text("squareWorkspace.boundary").font(.footnote)
@@ -116,7 +118,7 @@ import UniformTypeIdentifiers
                 Section("squareWorkspace.actions") {
                     Button("squareWorkspace.saveLocal") { run { try coordinator.saveLocal(draft, lane: lane) } }.accessibilityIdentifier("squareWorkspace.saveLocal")
                     Button("squareWorkspace.saveServer") { run { try await coordinator.saveServer(draft); if let resumed = coordinator.local.last(where: { $0.draft.postID == coordinator.lastPost?.id && !$0.pending && $0.receipt == nil }) { draft = resumed.draft } } }.disabled(!coordinator.grants.live || coordinator.busy || localMedia.hasSelection).accessibilityIdentifier("squareWorkspace.saveServer")
-                    Button("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
+                    CYPillButton("squareWorkspace.review") { run { _ = try await coordinator.prepare(draft, lane: lane); acceptsGuideline = false; showsReview = true } }
                         .disabled(!coordinator.grants.live || coordinator.busy || localMedia.hasSelection).accessibilityIdentifier("squareWorkspace.review")
                     Button("squareWorkspace.newDraft") { draft = .init(); coordinator.cancelReview(); localMedia.invalidate() }
                         .accessibilityIdentifier("squareWorkspace.newDraft")
@@ -150,7 +152,7 @@ import UniformTypeIdentifiers
                         }
                     }
                     if coordinator.hasMore { Button("squareWorkspace.more") { run { try await coordinator.loadServer(more: true) } } }
-                    if coordinator.revisionsLoading { ProgressView("square.loading") }
+                    if coordinator.revisionsLoading { CYSkeleton() }
                     if let postID = coordinator.revisionPostID, let data = coordinator.revisionData,
                        let text = String(data: data, encoding: .utf8) {
                         Text("#\(postID)").font(.caption)
@@ -159,7 +161,7 @@ import UniformTypeIdentifiers
                 }
             }.disabled(coordinator.busy || (initialPostID != nil && !editReady))
         }
-        .navigationTitle("squareWorkspace.title")
+        .cyHeroScreen()
         .task(id: initialPostID) {
             do {
                 try coordinator.refreshLocal()

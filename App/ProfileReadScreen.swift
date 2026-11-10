@@ -30,11 +30,9 @@ struct ProfileReadScreen<Value, Content: View>: View {
     var body: some View {
         ZStack {
             if reader.identity == nil {
-                ContentUnavailableView(LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), systemImage: "person.crop.circle.badge.exclamationmark", description: Text(LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired")))
-                    .accessibilityIdentifier(accessibilityPrefix + ".signIn")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), detail: LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired"), messageIdentifier: accessibilityPrefix + ".signIn")
             } else if !reader.isConfigured {
-                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
-                    .accessibilityIdentifier(accessibilityPrefix + ".unavailable")
+                CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: accessibilityPrefix + ".unavailable")
             } else if isLoading {
                 ProgressView(LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading")).accessibilityIdentifier(accessibilityPrefix + ".loading")
             } else if let issue {
@@ -47,7 +45,7 @@ struct ProfileReadScreen<Value, Content: View>: View {
                     else if !issue.detailKey.isEmpty { Text(LocalizedStringKey(issue.detailKey)) }
                 } actions: {
                     if issue.canRetry {
-                        Button("action.retry") { loadOwner.start { await reload() } }
+                        CYPillButton("action.retry", style: .secondary, fullWidth: false) { loadOwner.start { await reload() } }
                             .accessibilityIdentifier(accessibilityPrefix + ".retry")
                     }
                 }
