@@ -59,3 +59,10 @@ Build status: ui/e2 188fd8572 (batches 1-7 + CityActionBudget fix) Build - iOS =
 - done: PlayAdvancedView, NativeRpgGrowthAuthorView, NativeStoryWalkingAuthorView (apply = CYPillButton), JourneyRoleViewSection, MapPublicStoryNodeDetailView (CYSkeleton)
 - skipped (already on CY tokens, no row/button/state to convert): DiceD20View
 - skipped (read-only history sheet; copy comes from a String-returning localiser that CYEmptyState cannot take, system toolbar close only): PlayBranchHistoryView
+
+## Dedupe with Cursor ui/cloud-* lanes (coordinator instruction, applied at end)
+These files were also restyled on origin/ui/cloud-01/04/07/08/10, so my versions were REVERTED on ui/e2 to avoid a double edit/merge conflict (cloud-owned, take theirs from ui/main):
+CityNeutralTaskRuntimeHostView, CityOnsiteTaskRuntimeHostView, CityOrientationOriginalRecoveryView, CityParticipationRecoveryView (cloud-07);
+CityParticipationRuntimeHostView, CityPlayerValueNodeView, CityTaskHistoryRuntimeHostView (cloud-08);
+PlaySharedPlanLifecycleView, PlaySharedPlanR5HostView (cloud-01/04/07/08/10).
+Reading the receipts above: the "done" entries for these files describe work that is now superseded by the cloud lanes.
