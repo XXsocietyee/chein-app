@@ -47,3 +47,14 @@ Coordinator brief said e1 works from the END; ui/main already carried the e1 wor
 | App/SquareRelatedTopicView.swift | CYPillButton view-topic |
 | App/SupportTicketReadView.swift | CYHeroHeader, cyGroupedSurface, 6 CYPillButton, CYLoadingStateView |
 | App/SessionTopicSelfPlayView.swift, App/ShopNPCFixtureView.swift (#if DEBUG) | skipped: wrapper / DEBUG fixture |
+
+## Second worker, range 66-88 (coordinator: e1 owns 42-65)
+No file of 66-88 is on a ui/cloud-* branch.
+### Batch A (66-70)
+| File | Result |
+| --- | --- |
+| App/TemplatePreferencePreviewView.swift | skipped: result-row fragment inside host Form, no title/buttons/states |
+| App/TemplateReactionRehearsalView.swift | done: CYHeroHeader, cyGroupedSurface, CYPillButton reload/reset |
+| App/TemplateReasoningRehearsalView.swift | done: CYHeroHeader (table key), CYPillButton retry/reload |
+| App/TemplateRootAuthoringView.swift | done (light): CYPillButton add actions; editor titles stay in nav bar (EditButton toolbar), destructive clear stays role button |
+| App/TemplateRootRehearsalView.swift | done: CYHeroHeader x2, CYPillButton evaluate (primary)/reset |

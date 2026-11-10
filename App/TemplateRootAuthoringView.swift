@@ -22,7 +22,7 @@ import Combine
                     NavigationLink { TemplateVariantEditor(model: model, index: index) } label: { HStack { Text("creatorRoot.variant"); Text(verbatim: String(index + 1)) } }
                 }.onDelete { indexes in var rows = model.draft.advanced.rootVariants; for index in indexes.sorted(by: >) { rows.remove(at: index) }; model.draft.advanced.value["variants"] = .array(rows) }
                     .onMove { from, to in var rows = model.draft.advanced.rootVariants; rows.move(fromOffsets: from, toOffset: to); model.draft.advanced.value["variants"] = .array(rows) }
-                Button("creatorRoot.addVariant") { model.draft.advanced.appendRootVariant() }.disabled(model.draft.advanced.rootVariants.count >= 16)
+                CYPillButton("creatorRoot.addVariant", style: .secondary) { model.draft.advanced.appendRootVariant() }.disabled(model.draft.advanced.rootVariants.count >= 16)
                 if model.draft.advanced.value["variants"] != nil { Button("creatorRoot.clearVariants", role: .destructive) { model.draft.advanced.value.removeValue(forKey: "variants") } }
             }
             Section("creatorRoot.roleViews") {
@@ -133,7 +133,7 @@ private struct TemplateConditionEditor: View {
                         itemField(index, "label"); itemField(index, "text")
                     }
                 }.onDelete { indexes in var copy = items; for index in indexes.sorted(by: >) { copy.remove(at: index) }; write("items", .array(copy)) }
-                Button("creator.add") { var copy = items; copy.append(.object(["label": .string(""), "text": .string("")])); write("items", .array(copy)) }.disabled(items.count >= 8)
+                CYPillButton("creator.add", style: .secondary) { var copy = items; copy.append(.object(["label": .string(""), "text": .string("")])); write("items", .array(copy)) }.disabled(items.count >= 8)
             }
             if viewIndex == nil { Text("creatorRoot.validation.roles") }
         }.navigationTitle("creatorRoot.roleViews")
