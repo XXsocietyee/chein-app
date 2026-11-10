@@ -14,7 +14,7 @@ import SwiftUI
                     Section("行动额度") {
                         Text("仅记录掷骰结果，不移动、不发奖。")
                         if let state = model.state {
-                            Text(status(state.status))
+                            CYStatusChip(verbatim: status(state.status), tone: state.status == "EXHAUSTED" || state.status == "NOT_CONFIGURED" ? .warning : (state.status == "AVAILABLE" ? .success : .neutral), systemImage: "dice")
                             if let remaining = state.remainingUnits { Text("剩余额度：\(remaining)") }
                             if let cost = state.rules?.rollCost { Text("每次消耗：\(cost)") }
                             if let dice = state.dice { Text("骰子：\(dice.diceId)") }
@@ -55,12 +55,11 @@ import SwiftUI
                     }
                 }.cyGroupedSurface()
             } else {
-                VStack {
-                    ContentUnavailableView("行动额度暂不可用", systemImage: "dice", description: Text("保留原请求，不会自动重新提交。"))
-                    if session.currentRuntimeDependencyContext == context, scenePhase == .active {
-                        Button("重新打开") { Task { await model.open() } }
-                    }
-                }
+                let canReopen = session.currentRuntimeDependencyContext == context && scenePhase == .active
+                CYEmptyState(
+                    systemImage: "dice", "行动额度暂不可用", detail: "保留原请求，不会自动重新提交。",
+                    actionTitle: canReopen ? "重新打开" : nil,
+                    action: canReopen ? reopen : nil)
             }
         }
         .navigationTitle("行动额度")
@@ -70,6 +69,7 @@ import SwiftUI
         .onChange(of: scenePhase) { _, phase in if phase != .active { model.close() } }
         .onDisappear { model.close() }
     }
+    private func reopen() { Task { await model.open() } }
     private var complete: Bool { if case .complete = model.display { return true }; return false }
     private func status(_ value: String) -> String {
         switch value {

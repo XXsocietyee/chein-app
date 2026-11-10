@@ -10,7 +10,7 @@ import SwiftUI
             if owner.isCurrent, let controller = owner.controller {
                 CityTaskHistoryView(controller: controller)
             } else {
-                Text("cityHistory.status.disabled", tableName: "CityTaskHistory")
+                CYEmptyState(systemImage: "clock.arrow.circlepath", "cityHistory.status.disabled", tableName: "CityTaskHistory")
             }
         }
         .onAppear { owner.synchronize() }

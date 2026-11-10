@@ -85,11 +85,8 @@ import SwiftUI
                     }
                 }.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
                 if visible.isEmpty {
-                    ContentUnavailableView {
-                        Label(LocalizedStringKey(query.emptyTitleKey), systemImage: "sparkles")
-                    } description: {
-                        Text(LocalizedStringKey(query.emptyDetailKey))
-                    }
+                    CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))
+                        .listRowBackground(Color.clear)
                 }
             }
             ForEach(visible) { event in

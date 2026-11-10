@@ -1,0 +1,58 @@
+[
+  {
+    "key": "提交申诉",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Appeal a voucher",
+    "zh-Hans": "提交申诉"
+  },
+  {
+    "key": "商家忘记核销时，可提交审核。",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "If the merchant forgot to scan your voucher, send it for review.",
+    "zh-Hans": "商家忘记核销时，可提交审核。"
+  },
+  {
+    "key": "正在提交…",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Submitting…",
+    "zh-Hans": "正在提交…"
+  },
+  {
+    "key": "我的预约",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Reservations",
+    "zh-Hans": "我的预约"
+  },
+  {
+    "key": "评价",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Review",
+    "zh-Hans": "评价"
+  },
+  {
+    "key": "领取转赠",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Receive a transfer",
+    "zh-Hans": "领取转赠"
+  },
+  {
+    "key": "转赠",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Send as a gift",
+    "zh-Hans": "转赠"
+  },
+  {
+    "key": "次卡钱包",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Bundle wallet",
+    "zh-Hans": "次卡钱包"
+  }
+]

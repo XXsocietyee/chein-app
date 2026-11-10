@@ -15,6 +15,7 @@ import SwiftUI
     }
     var body: some View {
         List {
+            Section { CYHeroHeader("nativeCondition.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if let document = model.document {
                 if !model.canEdit { Section { Text("nativeCondition.readOnly") } }
                 if document.surface == .routeGraph {
@@ -47,7 +48,7 @@ import SwiftUI
                     }
                 }
                 Section {
-                    Button("nativeCondition.saveDraft", action: model.save)
+                    CYPillButton("nativeCondition.saveDraft", action: model.save)
                         .disabled(!model.canEdit || model.issues.count > 0 || !document.hasChanges)
                         .accessibilityIdentifier("nativeCondition.saveOriginalDraft")
                     if model.session?.state == .localSaved { Text("nativeCondition.localSaved").foregroundStyle(.secondary) }
@@ -55,7 +56,8 @@ import SwiftUI
             } else { Section { Text("nativeCondition.unavailable") } }
             if let key = model.errorKey { Section { Text(LocalizedStringKey(key)).foregroundStyle(CYColor.dangerText) } }
         }
-        .navigationTitle("nativeCondition.title")
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .toolbar {
             ToolbarItem { EditButton().disabled(!model.canEdit) }
             if close != nil {

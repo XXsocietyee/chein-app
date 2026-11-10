@@ -12,9 +12,10 @@ import SwiftUI
     }
     var body: some View {
         List {
+            Section { CYHeroHeader("wallet.withdrawals").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             switch model.phase {
             case .idle, .loading:
-                ProgressView("wallet.loading").accessibilityIdentifier("withdrawal.history.loading")
+                CYLoadingStateView(rows: 3).accessibilityIdentifier("withdrawal.history.loading")
             case .ready:
                 // Revolut-style: rows grouped by China calendar day, tap opens a read-only detail sheet.
                 ForEach(Array(WithdrawalHistoryGrouping.groups(model.rows).enumerated()), id: \.offset) { _, group in
@@ -34,8 +35,7 @@ import SwiftUI
                     Text("wallet.sourceLimited").font(.footnote).foregroundStyle(.secondary)
                 }
             case .empty:
-                ContentUnavailableView("wallet.withdrawals.emptyTitle", systemImage: "tray")
-                    .accessibilityIdentifier("withdrawal.history.empty")
+                CYEmptyState(systemImage: "tray", "wallet.withdrawals.emptyTitle", messageIdentifier: "withdrawal.history.empty")
             case .login:
                 state(title: "withdrawal.history.login.title", detail: "withdrawal.history.login.detail", image: "person.crop.circle", id: "login")
             case .denied:
@@ -46,7 +46,8 @@ import SwiftUI
                 state(title: "withdrawal.history.failed.title", detail: "withdrawal.history.failed.detail", image: "exclamationmark.triangle", id: "failed")
             }
         }
-        .appNavigationTitle("wallet.withdrawals")
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .task(id: reader.scope) { await model.load() }
         .refreshable { await model.load() }
         .onDisappear { model.cancel() }
@@ -54,13 +55,10 @@ import SwiftUI
         .accessibilityIdentifier("withdrawal.history")
     }
     @ViewBuilder private func state(title: LocalizedStringKey, detail: LocalizedStringKey, image: String, id: String) -> some View {
-        ContentUnavailableView(title, systemImage: image, description: Text(detail))
-            .accessibilityIdentifier("withdrawal.history." + id)
         // Login recovery belongs to the account surface; retry here only re-reads.
-        if model.phase == .failed {
-            Button("wallet.retry") { Task { await model.load() } }
-                .accessibilityIdentifier("withdrawal.history.retry")
-        }
+        CYEmptyState(systemImage: image, title, detail: detail, messageIdentifier: "withdrawal.history." + id,
+                     actionTitle: model.phase == .failed ? "wallet.retry" : nil, actionIdentifier: "withdrawal.history.retry",
+                     action: model.phase == .failed ? { Task { await model.load() } } : nil)
     }
 }
 
@@ -75,17 +73,17 @@ struct WithdrawalHistoryRowView: View {
             Spacer(minLength: 8)
             VStack(alignment: .trailing, spacing: 4) {
                 Text(verbatim: row.amountText ?? "—").font(.headline.monospacedDigit())
-                Text(LocalizedStringKey(row.statusKey)).font(.footnote).foregroundStyle(tint)
+                CYStatusChip(LocalizedStringKey(row.statusKey), tone: tone)
             }
         }
         .accessibilityElement(children: .combine)
     }
-    private var tint: Color {
+    private var tone: CYStatusTone {
         switch row.status {
-        case .processing: return .orange
-        case .succeeded: return .green
-        case .failed: return .red
-        case .unknown: return .secondary
+        case .processing: return .warning
+        case .succeeded: return .success
+        case .failed: return .danger
+        case .unknown: return .neutral
         }
     }
 }
@@ -113,6 +111,7 @@ struct WithdrawalHistoryDetailSheet: View {
                     }
                 } footer: { Text("withdrawal.history.detail.note") }
             }
+            .cyGroupedSurface()
             .navigationTitle("withdrawal.history.detail.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { dismiss() } } }

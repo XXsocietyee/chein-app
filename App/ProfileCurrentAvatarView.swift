@@ -51,10 +51,12 @@ import Observation
                     .accessibilityLabel(Text("profile.currentAvatar.saved", tableName: "ProfileCurrentMediaUI"))
             } else if let key, failedKey == key {
                 Label { Text("profile.currentAvatar.failed", tableName: "ProfileCurrentMediaUI") } icon: { Image(systemName: "person.crop.circle.badge.exclamationmark") }
-                Button("action.retry") { retry += 1 }
+                CYPillButton("action.retry", style: .secondary, fullWidth: false) { retry += 1 }
                     .accessibilityIdentifier("profile.avatar.current.retry")
             } else if key != nil {
-                ProgressView { Text("profile.currentAvatar.loading", tableName: "ProfileCurrentMediaUI") }
+                CYSkeletonBlock(height: 112, cornerRadius: 56).frame(width: 112)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("profile.currentAvatar.loading", tableName: "ProfileCurrentMediaUI"))
                     .accessibilityIdentifier("profile.avatar.current.loading")
             } else {
                 Image(systemName: "person.fill").font(.system(.largeTitle)).foregroundStyle(CYColor.textSecondary)

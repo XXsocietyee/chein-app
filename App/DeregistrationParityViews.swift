@@ -8,7 +8,7 @@ struct DeregistrationExecuteAfterRow: View {
     var phoneTimeZone: TimeZone = .current
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
             LabeledContent {
                 if let display = BeijingServerTime(raw).display(phoneTimeZone: phoneTimeZone) {
                     Text(verbatim: display.phone + (display.phoneZoneAbbreviation.map { " (" + $0 + ")" } ?? ""))
@@ -24,7 +24,8 @@ struct DeregistrationExecuteAfterRow: View {
                     Text(verbatim: beijing)
                 }.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).accessibilityElement(children: .combine)
             }
-            Text("authEntry.deregister.serverDecides", tableName: "AuthEntry").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            Label { Text("authEntry.deregister.serverDecides", tableName: "AuthEntry") } icon: { Image(systemName: "clock.badge.checkmark") }
+                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
         }
     }
 }
@@ -44,7 +45,7 @@ struct DeregistrationVerificationUnavailableSection: View {
                 Text("authEntry.deregister.verificationUnavailable", tableName: "AuthEntry")
                     .accessibilityIdentifier("authEntry.deregister.verificationUnavailable")
             }
-            Button(action: recheck) { Text("authEntry.deregister.recheck", tableName: "AuthEntry") }
+            CYPillButton("authEntry.deregister.recheck", style: .secondary, tableName: "AuthEntry", action: recheck)
                 .accessibilityIdentifier("authEntry.deregister.recheck")
         }
     }

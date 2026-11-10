@@ -11,6 +11,7 @@ import SwiftUI
 
     var body: some View {
         Form {
+            Section { CYHeroHeader(verbatim: W8Text.t("领取转赠", "Receive a transfer")) }.e1HeroRow()
             switch model.phase {
             case .claimed:
                 text("transfer.claim.done").accessibilityIdentifier("bundleTransfer.claimed")
@@ -21,15 +22,16 @@ import SwiftUI
                     TextField(text: $code) { text("transfer.claim.code") }
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                    Button {
+                    CYPillButton("transfer.claim.action", tableName: table) {
                         let typed = code
                         code = ""
                         Task { await model.claim(code: typed) }
-                    } label: { text("transfer.claim.action") }
-                        .disabled(code.isEmpty || model.phase == .claiming)
+                    }
+                    .disabled(code.isEmpty || model.phase == .claiming)
+                    .e1ActionRow()
                 }
                 switch model.phase {
-                case .claiming: ProgressView { text("transfer.claiming") }
+                case .claiming: CYLoadingStateView(rows: 1).accessibilityLabel(text("transfer.claiming"))
                 case .codeNotAccepted: text("transfer.claim.rejected").accessibilityIdentifier("bundleTransfer.rejected")
                 case .outcomeUnknown: text("transfer.claim.unknown")
                 case .failed: text("transfer.error")
@@ -37,6 +39,9 @@ import SwiftUI
                 }
             }
         }
+        .formStyle(.grouped)
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .onDisappear { code = "" }
     }
 }

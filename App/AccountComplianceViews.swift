@@ -357,7 +357,7 @@ enum ComplianceDestination: String, CaseIterable, Identifiable {
         case "ELIGIBLE": CYStatusChip("compliance.status.eligible", tone: .success)
         case "BLOCKED": CYStatusChip("compliance.status.blocked", tone: .danger)
         default:
-            Text(verbatim: raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw)
+            Text(verbatim: DeregisterIndexPageModel.statusText(raw))
         }
     }
     private var roam: some View {

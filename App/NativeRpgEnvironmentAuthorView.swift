@@ -65,7 +65,7 @@ import SwiftUI
     var body: some View {
         Section(copy.text("rpgEnvironment.copy.006")) {
             if editor == nil {
-                Button(copy.text("rpgEnvironment.copy.007")) { open() }.disabled(!available).accessibilityIdentifier("rpgEnvironment.open")
+                CYPillButton(verbatim: copy.text("rpgEnvironment.copy.007"), style: .secondary) { open() }.disabled(!available).accessibilityIdentifier("rpgEnvironment.open")
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
@@ -76,13 +76,13 @@ import SwiftUI
                     Button(copy.text("rpgEnvironment.copy.012")) { mutate(editorID, revision: editRevision) { $0.configure(enabled: draft.enabled, authorOverride: draft.authorOverride, location: draft.locationEnabled) } }
                     Text(copy.text("rpgEnvironment.copy.013")).nativeAuthorSupportingCopy()
                     Text(copy.text("rpgEnvironment.copy.014")).nativeAuthorSupportingCopy()
-                    Button(copy.text("rpgEnvironment.copy.015")) { preview(editorID, revision: editRevision) }.accessibilityIdentifier("rpgEnvironment.review")
+                    CYPillButton(verbatim: copy.text("rpgEnvironment.copy.015"), style: .secondary) { preview(editorID, revision: editRevision) }.accessibilityIdentifier("rpgEnvironment.review")
                     if let review {
                         Text(verbatim: review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("rpgEnvironment.preview")
-                        Button(saveUnconfirmed ? copy.text("rpgEnvironment.copy.016") : copy.text("rpgEnvironment.copy.017")) { apply(review) }.nativeAuthorPrimaryAction().accessibilityIdentifier("rpgEnvironment.confirm").accessibilityHint(Text(copy.text("rpgEnvironment.localOnly")))
+                        CYPillButton(verbatim: saveUnconfirmed ? copy.text("rpgEnvironment.copy.016") : copy.text("rpgEnvironment.copy.017")) { apply(review) }.accessibilityIdentifier("rpgEnvironment.confirm").accessibilityHint(Text(copy.text("rpgEnvironment.localOnly")))
                     }
                 }.disabled(!current)
-                Button(copy.text("rpgEnvironment.copy.018")) { close(editorID) }.accessibilityIdentifier("rpgEnvironment.close")
+                CYPillButton(verbatim: copy.text("rpgEnvironment.copy.018"), style: .tertiary) { close(editorID) }.accessibilityIdentifier("rpgEnvironment.close")
             }
             if let message { NativeAuthorNotice(text: Text(verbatim: copy.message(message))).accessibilityIdentifier("rpgEnvironment.notice") }
         }

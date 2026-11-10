@@ -1102,16 +1102,18 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
 
     public var body: some View {
         Form {
+            CYHeroHeader(verbatim: String(localized: "rewards.pledge.title", defaultValue: "Reward pledges"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if entry?.current()?.read != true && entry?.current()?.catalog != true {
                 Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.closed")
             } else if let entry {
                 if entry.current()?.read == true {
-                    if !model.awardsLoaded { ProgressView("accountCollection.loading") }
+                    if !model.awardsLoaded { CYSkeleton() }
                     else if model.listFailed {
-                        Button("accountCollection.refresh") { Task { await model.loadAwards(entry: entry) } }
+                        CYPillButton("accountCollection.refresh", style: .secondary) { Task { await model.loadAwards(entry: entry) } }
                             .accessibilityIdentifier("rewards.pledge.retry")
                     } else if model.awards.isEmpty {
-                        ContentUnavailableView("rewards.empty", systemImage: "gift")
+                        CYEmptyState(systemImage: "gift", "rewards.empty")
                     }
                     ForEach(model.awards) { row in
                         Button { Task { await model.selectAward(row, entry: entry) } } label: {
@@ -1151,7 +1153,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
                     Text("rewards.pledge.noSubject").accessibilityIdentifier("rewards.pledge.noSubject")
                 }
                 if entry.current()?.claim == true, model.selected?.themeSubjectID != nil {
-                    Button("rewards.pledge.confirm") { Task { await model.claim(entry: entry) } }
+                    CYPillButton("rewards.pledge.confirm") { Task { await model.claim(entry: entry) } }
                         .disabled(model.busy).accessibilityIdentifier("rewards.pledge.confirm")
                 } else {
                     Text("rewards.unavailable").accessibilityIdentifier("rewards.pledge.claimClosed")
@@ -1167,7 +1169,7 @@ public struct RewardPledgeReviewItem: Identifiable, Equatable {
                     Button("rewards.pledge.case") { Task { await model.openSupport(reason: caseReason, entry: entry) } }
                         .disabled(model.busy).accessibilityIdentifier("rewards.pledge.case")
                 }
-                Button("rewards.pledge.refresh") { Task { await model.loadDetail(entry: entry) } }
+                CYPillButton("rewards.pledge.refresh", style: .secondary) { Task { await model.loadDetail(entry: entry) } }
                     .disabled(model.busy).accessibilityIdentifier("rewards.pledge.refresh")
             }
             if let terms = model.terms {

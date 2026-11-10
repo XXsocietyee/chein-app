@@ -87,6 +87,7 @@ public struct ReformWorldHostWorkbenchView: View {
     public var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                CYHeroHeader(verbatim: "Reform World & Release Host Workbench")
                 inventoryOverviewCard
                 highRiskSwitchesCard
                 embeddedRunAuthorityCard
@@ -95,8 +96,7 @@ public struct ReformWorldHostWorkbenchView: View {
             }
             .padding(16)
         }
-        .navigationTitle(Text(verbatim: "Reform World & Release Host Workbench"))
-        .accessibilityElement(children: .contain)
+                .accessibilityElement(children: .contain)
         .accessibilityIdentifier("reformWorldWorkbench.root")
     }
 

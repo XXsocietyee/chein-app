@@ -16,6 +16,7 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
     var body: some View {
         let ticket = screenGeneration
         Form {
+            Section { CYHeroHeader(verbatim: model.scope?.isAccountDefault == true ? c("accountDefault.title") : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale)).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             NativeChannelNotificationStatusSection(model: model, perform: { perform($0, expected: ticket) })
             Section { NativeChannelUnreadSummaryContent(model: model) }
             if let row = model.preference {
@@ -29,8 +30,7 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
         .formStyle(.grouped)
         .nativeChannelScreen()
         .cyGroupedSurface()
-        .navigationTitle(model.scope?.isAccountDefault == true ? c("accountDefault.title")
-            : NativeChannelNotificationPresentation.localized("notification.channel.title", locale: locale))
+        .cyHeroScreen()
         .accessibilityIdentifier("notification.conversation.screen")
         .refreshable { await pullToRefresh(expected: ticket) }
         .onAppear { visible = true; reopen() }
@@ -91,9 +91,9 @@ typealias NativeChannelNotificationScreenOperation = @MainActor (NativeChannelNo
             }
             if model.directory == nil && !model.isBusy && model.state == .ready { Text(c("empty")) }
             if model.pendingRequestID != nil {
-                Button(c("recovery.check")) { run { await $0.checkReceipt() } }
+                CYPillButton(verbatim: c("recovery.check"), style: .secondary) { run { await $0.checkReceipt() } }
                     .disabled(!model.canCheckReceipt).accessibilityIdentifier("notification.receipt.check")
-                Button(c("recovery.retry")) { retryConfirmation = true }.disabled(!model.canCheckReceipt)
+                CYPillButton(verbatim: c("recovery.retry"), style: .tertiary) { retryConfirmation = true }.disabled(!model.canCheckReceipt)
                     .accessibilityIdentifier("notification.receipt.retry")
             }
             if let detail = NativeChannelNotificationCopy.failureDetail(model.lastFailure, state: model.state, locale: locale) {
@@ -250,7 +250,7 @@ enum NativeChannelNotificationCopy {
         .disabled(!model.canSave)
         Section {
             if let localIssue { Text(c(localIssue)).foregroundStyle(Theme.Color.danger(in: domain)) }
-            Button(c("editor.save")) { prepareSave() }.nativeChannelPrimaryAction().disabled(!model.canSave)
+            CYPillButton(verbatim: c("editor.save")) { prepareSave() }.disabled(!model.canSave)
                 .accessibilityIdentifier("notification.save")
         }
         .confirmationDialog(c("editor.confirmSave"), isPresented: $saveConfirmation, titleVisibility: .visible) {

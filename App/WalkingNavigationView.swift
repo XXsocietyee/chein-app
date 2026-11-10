@@ -43,13 +43,13 @@ import Observation
                                 actions(model)
                             }
                         } else {
-                            ContentUnavailableView("walking.error.unavailable", systemImage: "figure.walk")
+                            CYEmptyState(systemImage: "figure.walk", "walking.error.unavailable")
                                 .accessibilityIdentifier("walking.unavailable")
                             if restoringDestination != nil {
                                 let offered = restoreReadGate.ticket
                                 Text("walking.saved.restoreUnavailable").font(.footnote)
                                     .fixedSize(horizontal: false, vertical: true)
-                                Button("walking.saved.retryRead") { restoreSavedDestination(offered) }
+                                CYPillButton("walking.saved.retryRead", style: .secondary) { restoreSavedDestination(offered) }
                                     .disabled(offered == nil || !factory.available)
                                     .accessibilityIdentifier("walking.saved.retryRestore")
                             }
@@ -213,43 +213,39 @@ import Observation
             cameraControl(model, action: .target)
         }
         if model.route != nil {
-            Button("walking.steps") { showsSteps = true }
-                .buttonStyle(.bordered).frame(minHeight: 44)
+            CYPillButton("walking.steps", style: .secondary) { showsSteps = true }
                 .accessibilityIdentifier("walking.steps.open").accessibilityFocused($stepsFocused)
         }
         if model.phase == .nearDestination, let onOpenVerification {
-            Button("walking.openVerification", action: onOpenVerification)
-                .buttonStyle(.questifyPrimary).frame(minHeight: 44)
+            CYPillButton("walking.openVerification", action: onOpenVerification)
         }
         if model.phase.mayStart {
-            Button {
+            CYPillButton(LocalizedStringKey(model.phase == .ready ? "walking.start" : "walking.resume")) {
                 Task {
                     await model.start()
                     guard !offline, model.phase == .navigating || model.phase == .nearDestination else { return }
                     do { savedDestination = try factory.saveDestination(from: model); checkpointFailed = false }
                     catch { checkpointFailed = true }
                 }
-            } label: {
-                Text(LocalizedStringKey(model.phase == .ready ? "walking.start" : "walking.resume"))
-            }.buttonStyle(.questifyPrimary).frame(minHeight: 44).accessibilityIdentifier("walking.start")
+            }.accessibilityIdentifier("walking.start")
         }
         if model.phase.mayPause {
-            Button("walking.pause") { model.pause() }
-                .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("walking.pause")
+            CYPillButton("walking.pause", style: .secondary) { model.pause() }
+                .accessibilityIdentifier("walking.pause")
         }
         if checkpointFailed {
-            Text("walking.saved.failed").font(.footnote).accessibilityIdentifier("walking.saved.failed")
+            CYStatusChip("walking.saved.failed", tone: .warning, systemImage: "exclamationmark.triangle").accessibilityIdentifier("walking.saved.failed")
         } else if let savedDestination, factory.savedDestinationIsCurrent(savedDestination) {
             Text("walking.saved.notice").font(.footnote).accessibilityIdentifier("walking.saved.notice")
         }
-        Button("walking.cancel") {
+        CYPillButton("walking.cancel", style: .tertiary) {
             model.cancel()
             if let savedDestination {
                 do { try factory.removeSavedDestination(savedDestination); self.savedDestination = nil; checkpointFailed = false }
                 catch { checkpointFailed = true }
             }
         }
-            .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("walking.cancel")
+            .accessibilityIdentifier("walking.cancel")
     }
 }
 
@@ -292,7 +288,7 @@ import Observation
                     }
                 }
             } else {
-                ContentUnavailableView("walking.error.unavailable", systemImage: "figure.walk")
+                CYEmptyState(systemImage: "figure.walk", "walking.error.unavailable")
                     .accessibilityIdentifier("walking.steps.unavailable")
             }
             // One safety line; arrival and foreground rules are not repeated here.

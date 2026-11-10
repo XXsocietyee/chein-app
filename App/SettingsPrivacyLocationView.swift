@@ -32,6 +32,7 @@ import SwiftUI
 
     var body: some View {
         Form {
+            Section { CYHeroHeader("member.privacy.title", tableName: "MemberProfile").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             // Mini-program privacy sheet opens with the privacy guide link, then presence, roam and own media.
             Section {
                 NavigationLink {
@@ -46,7 +47,7 @@ import SwiftUI
             Section {
                 Text("member.privacy.roam.detail", tableName: "MemberProfile").font(.footnote).foregroundStyle(.secondary)
                 if compliance != nil {
-                    Button { showsRoam = true } label: { Text("member.privacy.roam.withdraw", tableName: "MemberProfile") }
+                    CYPillButton("member.privacy.roam.withdraw", style: .secondary, tableName: "MemberProfile") { showsRoam = true }
                         .accessibilityIdentifier("member.privacy.roam.withdraw")
                 }
             } header: { Text("member.privacy.roam.title", tableName: "MemberProfile") }
@@ -57,7 +58,7 @@ import SwiftUI
             } header: { Text("member.privacy.media.title", tableName: "MemberProfile") }
         }
         .cyGroupedSurface()
-        .navigationTitle(Text("member.privacy.title", tableName: "MemberProfile"))
+        .cyHeroScreen()
         .sheet(isPresented: $showsRoam) {
             if let compliance {
                 NavigationStack {
@@ -88,23 +89,22 @@ import SwiftUI
     }
     var body: some View {
         List {
+            Section { CYHeroHeader("member.privacy.media.title", tableName: "MemberProfile").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             switch controller.phase {
-            case .idle, .loading: ProgressView().accessibilityIdentifier("member.media.loading")
-            case .signedOut: Text("member.media.signedOut", tableName: "MemberProfile").accessibilityIdentifier("member.media.signedOut")
-            case .unavailable: Text("member.media.unavailable", tableName: "MemberProfile").foregroundStyle(.secondary)
-                    .accessibilityIdentifier("member.media.unavailable")
-            case .denied: Text("member.media.denied", tableName: "MemberProfile").accessibilityIdentifier("member.media.denied")
+            case .idle, .loading: CYLoadingStateView(rows: 3).accessibilityIdentifier("member.media.loading")
+            case .signedOut: CYEmptyState(systemImage: "person.crop.circle", "member.media.signedOut", tableName: "MemberProfile", messageIdentifier: "member.media.signedOut")
+            case .unavailable: CYEmptyState(systemImage: "nosign", "member.media.unavailable", tableName: "MemberProfile", messageIdentifier: "member.media.unavailable")
+            case .denied: CYEmptyState(systemImage: "lock", "member.media.denied", tableName: "MemberProfile", messageIdentifier: "member.media.denied")
             case .failed:
                 VStack(alignment: .leading, spacing: 6) {
                     Text("member.media.failed", tableName: "MemberProfile")
-                    Button { controller.retry() } label: { Text("member.media.refresh", tableName: "MemberProfile") }
+                    CYPillButton("member.media.refresh", style: .secondary, tableName: "MemberProfile") { controller.retry() }
                         .disabled(!controller.canRetry).accessibilityIdentifier("member.media.retry")
                 }.accessibilityElement(children: .contain)
                     .accessibilityIdentifier("member.media.failed")
             case .ready:
                 if controller.rows.isEmpty {
-                    Text("member.media.empty", tableName: "MemberProfile").foregroundStyle(.secondary)
-                        .accessibilityIdentifier("member.media.empty")
+                    CYEmptyState(systemImage: "photo.on.rectangle", "member.media.empty", tableName: "MemberProfile", messageIdentifier: "member.media.empty")
                 }
                 ForEach(controller.rows) { row in
                     OwnMediaRow(asset: row).accessibilityIdentifier("member.media.row.\(row.id)")
@@ -134,7 +134,8 @@ import SwiftUI
                 }
             }
         }
-        .navigationTitle(Text("member.privacy.media.title", tableName: "MemberProfile"))
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .privacySensitive()
         .toolbar {
             if controller.phase == .ready || controller.phase == .failed || controller.phase == .denied {

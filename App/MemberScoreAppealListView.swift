@@ -22,7 +22,7 @@ func memberScoreText(_ key: String) -> Text { Text(LocalizedStringKey(key), tabl
     var body: some View {
         let rendered = readIntent()
         List {
-            memberScoreText("score.mine.boundary").font(.footnote)
+            Section { CYHeroHeader("score.mine.title", subtitle: "score.mine.boundary", tableName: "MemberScoreAppealList").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Picker(selection: $filter) {
                 ForEach(MemberScoreAppealFilter.allCases) { memberScoreText("score.filter.\($0.rawValue)").tag($0) }
             } label: { memberScoreText("score.filter.title") }.pickerStyle(.segmented)
@@ -44,17 +44,17 @@ func memberScoreText(_ key: String) -> Text { Text(LocalizedStringKey(key), tabl
                         }
                     }.disabled(flow.busy || !row.canReadSession || !flow.client.allows(.sessionDetail))
                 }
-                if flow.loaded && flow.rows.isEmpty { memberScoreText("score.mine.empty") }
+                if flow.loaded && flow.rows.isEmpty { CYEmptyState(systemImage: "text.bubble", "score.mine.empty", tableName: "MemberScoreAppealList") }
                 if flow.hasMore {
-                    Button { load(rendered, more: true) } label: { memberScoreText("score.mine.more") }.disabled(flow.busy)
+                    CYPillButton("score.mine.more", style: .secondary, tableName: "MemberScoreAppealList") { load(rendered, more: true) }.disabled(flow.busy)
                 }
                 if flow.busy { ProgressView() }
                 if let failure = flow.failure { memberScoreText("score.error.\(failure)").accessibilityIdentifier("score.mine.status") }
                 memberScoreText("score.time.source").font(.footnote)
             } else { memberScoreText("score.error.disabled") }
-            Button { load(rendered) } label: { memberScoreText("score.mine.refresh") }.disabled(rendered == nil || flow?.busy == true)
+            CYPillButton("score.mine.refresh", style: .tertiary, tableName: "MemberScoreAppealList") { load(rendered) }.disabled(rendered == nil || flow?.busy == true)
         }
-        .navigationTitle(memberScoreText("score.mine.title")).privacySensitive()
+        .cyGroupedSurface().cyHeroScreen().privacySensitive()
         .accessibilityIdentifier("score.mine.list")
         .navigationDestination(item: $selection) { MemberScoreAppealDetailView(selection: $0, session: session) }
         .onAppear { visible = true; start() }
