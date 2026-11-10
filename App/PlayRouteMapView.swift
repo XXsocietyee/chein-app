@@ -54,19 +54,19 @@ struct RouteActionPageReadRequest {
                        let current = presentation.stops.first(where: { $0.id == id }) {
                         Label("playRoute.current", systemImage: "flag.fill").font(.headline).accessibilityAddTraits(.isHeader)
                         stopName(current)
-                        Button("playRoute.openCurrent") { choose(id, snapshot: snapshot, context: context) }
+                        CYPillButton("playRoute.openCurrent", style: .primary) { choose(id, snapshot: snapshot, context: context) }
                             .accessibilityIdentifier("playRoute.openCurrent")
                     } else { Text("playRoute.noCurrent").accessibilityIdentifier("playRoute.noCurrent") }
                 }
                 Section {
-                    Button(cameraControlsExpanded ? LocalizedStringKey("playRouteCamera.hideControls") : LocalizedStringKey("playRouteCamera.showControls")) { cameraControlsExpanded.toggle() }
-                        .frame(minHeight: 44).accessibilityIdentifier("playRouteCamera.controls")
+                    CYPillButton(cameraControlsExpanded ? LocalizedStringKey("playRouteCamera.hideControls") : LocalizedStringKey("playRouteCamera.showControls"), style: .tertiary) { cameraControlsExpanded.toggle() }
+                        .accessibilityIdentifier("playRouteCamera.controls")
                     if cameraControlsExpanded { cameraControls(presentation, snapshot: snapshot, context: context) }
                 } header: { Text("playRouteCamera.title") }
                 if !presentation.mappedStops.isEmpty {
                     Section("playRoute.map") {
-                        Button(showMap ? LocalizedStringKey("playRoute.hideMap") : LocalizedStringKey("playRoute.showMap")) { showMap.toggle() }
-                            .frame(minHeight: 44).accessibilityIdentifier("playRoute.toggleMap")
+                        CYPillButton(showMap ? LocalizedStringKey("playRoute.hideMap") : LocalizedStringKey("playRoute.showMap"), style: .tertiary) { showMap.toggle() }
+                            .accessibilityIdentifier("playRoute.toggleMap")
                         if showMap {
                             map(presentation, snapshot: snapshot, context: context)
                                 .frame(height: typeSize.isAccessibilitySize ? 240 : 320)
@@ -92,7 +92,7 @@ struct RouteActionPageReadRequest {
             } else {
                 Section {
                     Text("playRoute.unavailable").accessibilityIdentifier("playRoute.unavailable")
-                    if model.phase == .loading { ProgressView("playx.loading") }
+                    if model.phase == .loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("playx.loading")) }
                 }
             }
             if actionRead != nil {
@@ -109,7 +109,7 @@ struct RouteActionPageReadRequest {
                 }
             }
             Section {
-                Button("playx.refresh") {
+                CYPillButton("playx.refresh", style: .secondary) {
                     selected = nil
                     Task {
                         await model.load()
@@ -119,7 +119,7 @@ struct RouteActionPageReadRequest {
                 }
                     .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
                     .accessibilityIdentifier("playRoute.refresh")
-                Button("playRoute.back") { selected = nil; dismiss() }
+                CYPillButton("playRoute.back", style: .tertiary) { selected = nil; dismiss() }
                     .accessibilityIdentifier("playRoute.back")
             }
         }.cyGroupedSurface()

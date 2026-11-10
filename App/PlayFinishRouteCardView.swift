@@ -45,7 +45,7 @@ import SwiftUI
     @ViewBuilder private var price: some View {
                 switch card.price {
                 case .from(let amount)?: Text("playx.finishRoute.priceFrom \(NSDecimalNumber(decimal: amount).stringValue)")
-                case .free?: Text("playx.finishRoute.free")
+                case .free?: CYStatusChip("playx.finishRoute.free", tone: .success, systemImage: "gift")
                 case nil: EmptyView()
                 }
     }

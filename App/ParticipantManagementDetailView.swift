@@ -13,7 +13,7 @@ struct ParticipantManagementDetailView: View {
     var body: some View {
         Group {
             if model.reader.identity == nil || model.coordinator.identity == nil {
-                ContentUnavailableView("profile.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark", description: Text("auth.expired"))
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "profile.signInRequired", detail: "auth.expired")
             } else if model.showsOwnedUnknown {
                 Form {
                     ParticipantOperationSections(state: model.coordinator.state, readback: model.coordinator.readbackState, canReadAgain: model.canReadBack, actionIssue: model.issue) {
@@ -21,9 +21,9 @@ struct ParticipantManagementDetailView: View {
                     }
                 }
             } else if !model.reader.isConfigured || !model.coordinator.isConfigured {
-                ContentUnavailableView("profile.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+                CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured")
             } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
-                ProgressView("profile.loading").accessibilityIdentifier("participant.detail.loading")
+                CYLoadingStateView(rows: 3).accessibilityLabel(Text("profile.loading")).accessibilityIdentifier("participant.detail.loading")
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
@@ -41,7 +41,7 @@ struct ParticipantManagementDetailView: View {
                         Section("profile.participants.savedAddress") { Text(verbatim: address).textSelection(.enabled) }
                     }
                     Section {
-                        Button("participant.form.edit") { showsEditor = true }
+                        CYPillButton("participant.form.edit", style: .primary) { showsEditor = true }
                             .disabled(!model.canMutate).accessibilityIdentifier("participant.detail.edit")
                         Button("participant.form.delete", role: .destructive) { model.prepareDelete() }
                             .disabled(!model.canMutate).accessibilityIdentifier("participant.detail.delete")

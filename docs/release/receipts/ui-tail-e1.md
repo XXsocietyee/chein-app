@@ -57,3 +57,12 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/OwnedTemplateSensorConfigurationView.swift | skipped: a value-only Section fragment inside the owner host, no title/buttons/states of its own, already tokens |
 | App/OwnedTopicCoverAuthorView.swift | done: CYHeroHeader in main + confirm sheets, 13 buttons to CYPillButton (choose/review/confirm primary, rest secondary), CYLoadingStateView |
 | App/OwnedTopicCoverImageView.swift | done: CYLoadingStateView, CYPillButton retry; inline nav title kept (image sheet) |
+
+## Batch 7
+| File | Result |
+| --- | --- |
+| App/ParticipantManagementDetailView.swift | done: CYEmptyState (sign-in/unavailable), CYLoadingStateView, CYPillButton edit primary; delete stays destructive role + confirmation |
+| App/PlayFinishRouteCardView.swift | done: CYStatusChip for free price; card layout untouched (already Theme tokens) |
+| App/PlayRouteMapView.swift | done: CYPillButton (open-current primary, toggles tertiary, refresh secondary), CYLoadingStateView; map/camera code untouched |
+| App/PrivateHomeView.swift | done: CYHeroHeader, CYEmptyState gate, CYPillButton (set/confirm primary), delete stays destructive role, cyGroupedSurface |
+| App/ProfileOrderMeetingPointView.swift | done: CYPillButton open/confirm, CYLoadingStateView, hero in review sheet |

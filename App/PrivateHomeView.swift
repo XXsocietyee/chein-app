@@ -6,7 +6,7 @@ import SwiftUI
     var body: some View {
         NavigationLink {
             if let coordinator { PrivateHomeView(model: coordinator, mapAdapter: mapAdapter) }
-            else { ContentUnavailableView("privateHome.disabled", systemImage: "house", description: Text("privateHome.gate")) }
+            else { CYEmptyState(systemImage: "house", "privateHome.disabled", detail: "privateHome.gate") }
         } label: { Label("privateHome.title", systemImage: "house") }
         .accessibilityIdentifier("account.privateHome")
     }
@@ -37,6 +37,7 @@ import SwiftUI
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("privateHome.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 Text("privateHome.boundary").font(.footnote)
                 Text(LocalizedStringKey("privateHome.phase." + model.phase.rawValue)).accessibilityIdentifier("privateHome.phase")
@@ -50,7 +51,7 @@ import SwiftUI
                     Text(LocalizedStringKey("privateHome.map.issue." + issue.rawValue))
                         .accessibilityIdentifier("privateHome.map.confirmationIssue")
                 }
-                Button("privateHome.refresh") { Task { await model.load() } }
+                CYPillButton("privateHome.refresh", style: .secondary) { Task { await model.load() } }
                     .disabled(model.isBusy || model.phase == .review).accessibilityIdentifier("privateHome.refresh")
             }
             if model.canEdit {
@@ -60,8 +61,8 @@ import SwiftUI
                     TextField("privateHome.longitude", text: $longitude).keyboardType(.numbersAndPunctuation).accessibilityIdentifier("privateHome.longitude")
                     Text("privateHome.datum").font(.footnote)
                     Text("privateHome.gamePoint").font(.footnote)
-                    Button("privateHome.map.open") { picker.open() }.accessibilityIdentifier("privateHome.map.open")
-                    Button("privateHome.reviewSet") { prepare() }.accessibilityIdentifier("privateHome.reviewSet")
+                    CYPillButton("privateHome.map.open", style: .secondary) { picker.open() }.accessibilityIdentifier("privateHome.map.open")
+                    CYPillButton("privateHome.reviewSet", style: .primary) { prepare() }.accessibilityIdentifier("privateHome.reviewSet")
                     if invalidInput { Text("privateHome.invalid") }
                     if model.home?.status == .active {
                         Button("privateHome.reviewDelete", role: .destructive) { model.prepareDelete(); clearInput() }
@@ -77,20 +78,20 @@ import SwiftUI
                        let point = try? PrivateHomePoint(latitude: lat, longitude: lon) {
                         PrivateHomeCoordinateReview(point: point)
                     }
-                    Button("privateHome.confirm") {
+                    CYPillButton("privateHome.confirm", style: .primary) {
                         clearInput()
                         Task {
                             guard picker.authorizeOwnerConfirmation() else { return }
                             await model.confirm()
                         }
                     }.accessibilityIdentifier("privateHome.confirm")
-                    Button("privateHome.cancel") { model.cancelReview(); clearInput() }.accessibilityIdentifier("privateHome.cancel")
+                    CYPillButton("privateHome.cancel", style: .tertiary) { model.cancelReview(); clearInput() }.accessibilityIdentifier("privateHome.cancel")
                 }
             }
             if model.canRetry {
                 Section {
                     Text("privateHome.unknownPurpose")
-                    Button("privateHome.retry") { Task { await model.retryExact() } }.accessibilityIdentifier("privateHome.retry")
+                    CYPillButton("privateHome.retry", style: .secondary) { Task { await model.retryExact() } }.accessibilityIdentifier("privateHome.retry")
                 }
             }
             if let nativeHomeReturnSelection {
@@ -99,7 +100,7 @@ import SwiftUI
                 HomeReturnSection(model: homeReturn, home: model.home)
             }
         }
-        .navigationTitle("privateHome.title").privacySensitive().accessibilityIdentifier("privateHome.host")
+        .cyGroupedSurface().privacySensitive().accessibilityIdentifier("privateHome.host")
         .task { await model.load() }
         .task { await nativeHomeReturnSelection?.load() }
         .sheet(isPresented: Binding(get: { picker.isPresented }, set: { if !$0 { picker.close() } })) {

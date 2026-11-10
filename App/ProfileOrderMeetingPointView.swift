@@ -42,13 +42,13 @@ import SwiftUI
     let current: @MainActor () -> ProfileOrderMeetingPointContext?
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Button("profile.orderMap.open", systemImage: "map") { model.prepare(current: current()) }
+            CYPillButton("profile.orderMap.open", style: .secondary, systemImage: "map") { model.prepare(current: current()) }
                 .disabled(!model.canPrepare(current: current()))
-                .frame(minHeight: 44).accessibilityIdentifier("profile.orderMap.open")
+                .accessibilityIdentifier("profile.orderMap.open")
             if !model.matches(current()) {
                 Text("profile.orderMap.unavailable").font(.footnote).foregroundStyle(.secondary)
             } else if model.isOpening {
-                ProgressView("profile.orderMap.opening").accessibilityIdentifier("profile.orderMap.opening")
+                CYLoadingStateView(rows: 1).accessibilityLabel(Text("profile.orderMap.opening")).accessibilityIdentifier("profile.orderMap.opening")
             } else if let outcome = model.outcome {
                 Text(LocalizedStringKey(outcome == .opened ? "profile.orderMap.opened" : "profile.orderMap.failed"))
                     .font(.footnote).accessibilityIdentifier("profile.orderMap.result")
@@ -80,6 +80,7 @@ import SwiftUI
                    onDismiss: { model.cancel(id: review.id) }) { offered in
                 NavigationStack {
                     Form {
+                        Section { CYHeroHeader("profile.orderMap.review").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
                         Section {
                             Text("profile.orderMap.disclosure")
                             if !offered.context.destination.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
@@ -89,12 +90,12 @@ import SwiftUI
                                 Text(verbatim: "\(latitude), \(longitude)").monospacedDigit()
                             }
                         }
-                        Button("profile.orderMap.confirm") {
+                        CYPillButton("profile.orderMap.confirm", style: .primary) {
                             Task { await model.confirm(offered, current: current, open: open) }
                         }.disabled(!model.owns(offered, current: current()))
                             .accessibilityIdentifier("profile.orderMap.confirm")
                     }
-                    .navigationTitle("profile.orderMap.review")
+                    .cyGroupedSurface()
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button("action.cancel") { model.cancel(id: offered.id) }
                             .accessibilityIdentifier("profile.orderMap.cancel")
