@@ -137,14 +137,29 @@ private struct ActivityListDestination: Hashable { let id: Int }
     }
 }
 
+/// One formatter per locale: rows re-render on scroll and must not rebuild an ICU formatter each time.
+private final class AmountLabelFormatterCache: @unchecked Sendable {
+    private static let shared = AmountLabelFormatterCache()
+    private let lock = NSLock()
+    private var formatters: [String: NumberFormatter] = [:]
+    static func formatter(for locale: Locale) -> NumberFormatter { shared.cached(for: locale) }
+    private func cached(for locale: Locale) -> NumberFormatter {
+        lock.lock(); defer { lock.unlock() }
+        if let cached = formatters[locale.identifier] { return cached }
+        let formatter = NumberFormatter()
+        formatter.locale = locale; formatter.numberStyle = .decimal
+        formatter.minimumFractionDigits = 2; formatter.maximumFractionDigits = 2
+        formatters[locale.identifier] = formatter
+        return formatter
+    }
+}
+
 struct AmountLabel: View {
     let amount: Decimal?
     @Environment(\.locale) private var locale
     private var formatted: String? {
         guard let amount else { return nil }
-        let formatter=NumberFormatter();formatter.locale=locale;formatter.numberStyle = .decimal
-        formatter.minimumFractionDigits=2;formatter.maximumFractionDigits=2
-        return formatter.string(from:NSDecimalNumber(decimal:amount))
+        return AmountLabelFormatterCache.formatter(for: locale).string(from:NSDecimalNumber(decimal:amount))
     }
     var captionKey: String? = nil
     var body: some View {
