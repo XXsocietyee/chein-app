@@ -43,10 +43,10 @@ private struct ClubOpsTag: View {
 
 struct ClubOpsBanSection: View {
     let list: ClubOpsBanList
-    let unban: (ClubOpsBanRow) -> AnyView
     var scope: ClubGovernanceScope? = nil
     var capability: ClubOpsGovernanceCapability? = nil
     var document: ClubGovernanceValue? = nil
+    let unban: (ClubOpsBanRow) -> AnyView
     private var page: ClubOpsGovernancePage? {
         guard let scope, let capability else { return nil }
         return ClubOpsGovernancePage.project(bans: document, scope: scope, capability: capability)

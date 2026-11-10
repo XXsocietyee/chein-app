@@ -1306,7 +1306,7 @@ struct ClubGovernanceReadView: View {
                 else if let code = row["roleCode"].string { Text(LocalizedStringKey("club.gov.role." + code)) }
             } }
         } else if operation == .bans, let bans = try? ClubOpsBanList(snapshot: snapshot) {
-            ClubOpsBanSection(list: bans) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }
+            ClubOpsBanSection(list: bans, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope), document: snapshot.value) { row in AnyView(edit(.unban, seed: row.unbanSeed ?? [:])) }
             Section { link(.members) }
         } else if operation == .members, let members = try? ClubOpsGovernanceMembers(snapshot: snapshot) {
             ClubOpsGovernanceMembersSection(roster: members, ban: { AnyView(edit(.ban, seed: $0.seed)) }, transfer: { AnyView(edit(.transferOwner, seed: $0.seed)) })
