@@ -1,10 +1,11 @@
 import SwiftUI
 
 // Share composer (e3 share hero): a live card carousel with a springy template switcher, background swatches,
-// story/square ratio and a caption field. The caller owns the content, the privacy toggles (`controls`) and the
+// story / portrait / square ratio and a caption field. The caller owns the content, the privacy toggles (`controls`) and the
 // export actions (`actions`), so the kit never decides what leaves the device.
 // Motion: viewAligned paging, neighbours scale to 0.92 and fade; selection haptic on template, ratio and tint.
 // Reduce Motion: no scale or spring, instant page change, 0.18 s cross-fades only.
+// The carousel IS the live preview: style changes re-render SwiftUI, never a bitmap; `ImageRenderer` runs only on prepare.
 
 struct CYShareComposer<Controls: View, Actions: View>: View {
     let content: CYShareCardContent
@@ -91,6 +92,9 @@ struct CYShareComposer<Controls: View, Actions: View>: View {
         .scrollIndicators(.hidden)
         .scrollClipDisabled()
         .animation(animation, value: style.template)
+        // Ratio: the artboard frame (640 / 450 / 360 pt scaled) and its siblings reflow with `standard`; tint: the card ground cross-fades `quick`.
+        .animation(animation, value: style.ratio)
+        .animation(reduce ? CYMotion.reduced : .easeInOut(duration: CYMotion.Duration.quick), value: style.tint)
         .accessibilityIdentifier(accessibilityPrefix + ".carousel")
     }
 

@@ -28,19 +28,29 @@ enum CYShareCardTemplate: String, CaseIterable, Identifiable {
 }
 
 enum CYShareCardRatio: String, CaseIterable, Identifiable {
-    case story, square
+    case story, portrait, square
     var id: String { rawValue }
-    /// Artboard size in points. 3x export gives 1080×1920 and 1080×1080.
+    /// Artboard size in points. 3x export gives 1080×1920 (story), 1080×1350 (portrait) and 1080×1080 (square).
     var size: CGSize {
         switch self {
         case .story: return CGSize(width: 360, height: 640)
+        case .portrait: return CGSize(width: 360, height: 450)
         case .square: return CGSize(width: 360, height: 360)
         }
     }
     var isStory: Bool { self == .story }
+    /// Template metrics: the story value, the square value, and their midpoint for portrait.
+    func metric(_ story: CGFloat, _ square: CGFloat) -> CGFloat {
+        switch self {
+        case .story: return story
+        case .portrait: return ((story + square) / 2).rounded()
+        case .square: return square
+        }
+    }
     func name(_ locale: Locale) -> String {
         switch self {
         case .story: return locale.pick("竖版 9:16", "Story 9:16")
+        case .portrait: return locale.pick("竖版 4:5", "Portrait 4:5")
         case .square: return locale.pick("方形 1:1", "Square 1:1")
         }
     }
@@ -252,6 +262,7 @@ struct CYShareCardPreview: View {
 }
 
 /// Preview and export share one view, so what the user approves is what leaves the device.
+/// Budget: one 3x export in 120 ms or less (`CYShareRenderBudget`); call it from a `Task` after the press, never inside an animation frame.
 @MainActor enum CYShareCardRenderer {
     static func render(_ content: CYShareCardContent, style: CYShareCardStyle, scale: CGFloat = 3) -> UIImage? {
         let renderer = ImageRenderer(content: CYShareCard(content: content, style: style)
@@ -259,7 +270,10 @@ struct CYShareCardPreview: View {
             .environment(\.dynamicTypeSize, .large))
         renderer.scale = scale
         renderer.isOpaque = true
-        return renderer.uiImage
+        let started = CFAbsoluteTimeGetCurrent()
+        let image = renderer.uiImage
+        CYShareRenderBudget.check(CFAbsoluteTimeGetCurrent() - started, ratio: style.ratio)
+        return image
     }
 }
 
@@ -372,7 +386,7 @@ private struct CYShareCardPoster: View {
     let content: CYShareCardContent
     let style: CYShareCardStyle
     var body: some View {
-        let story = style.ratio.isStory
+        let ratio = style.ratio
         ZStack(alignment: .bottomLeading) {
             CYCoverArt(seed: content.artSeed, symbol: content.artSymbol, showsDebugLabel: content.debugArt, showsGlyph: content.kind != .medal)
             LinearGradient(colors: [style.tint.primary.opacity(0.22), style.tint.secondary.opacity(0.92)],
@@ -382,28 +396,28 @@ private struct CYShareCardPoster: View {
                 CYShareEyebrowRow(eyebrow: content.eyebrow, brand: content.brand, tint: .white.opacity(0.9))
                 Spacer(minLength: 12)
                 if content.kind == .medal {
-                    CYShareMedalArt(content: content, tint: style.tint, size: story ? 170 : 120)
+                    CYShareMedalArt(content: content, tint: style.tint, size: ratio.metric(170, 120))
                         .frame(maxWidth: .infinity)
                 } else if !content.silhouette.isEmpty {
-                    CYShareCardSilhouette(points: content.silhouette, stroke: .white, lineWidth: story ? 5 : 4)
-                        .frame(height: story ? 230 : 120)
+                    CYShareCardSilhouette(points: content.silhouette, stroke: .white, lineWidth: ratio.metric(5, 4))
+                        .frame(height: ratio.metric(230, 120))
                 }
                 Spacer(minLength: 12)
                 Text(verbatim: content.title)
-                    .font(.system(size: story ? 34 : 26, weight: .heavy))
-                    .lineLimit(story ? 3 : 2).minimumScaleFactor(0.7)
+                    .font(.system(size: ratio.metric(34, 26), weight: .heavy))
+                    .lineLimit(ratio == .square ? 2 : 3).minimumScaleFactor(0.7)
                     .fixedSize(horizontal: false, vertical: true)
                 CYShareMetaLine(content: content)
                     .padding(.top, 6)
                 if !content.stats.isEmpty {
-                    CYShareStatsRow(stats: content.stats, valueSize: story ? 24 : 20)
-                        .padding(.top, story ? 18 : 12)
+                    CYShareStatsRow(stats: content.stats, valueSize: ratio.metric(24, 20))
+                        .padding(.top, ratio.metric(18, 12))
                 }
                 CYShareCaption(caption: content.trimmedCaption)
-                    .padding(.top, story ? 16 : 10)
+                    .padding(.top, ratio.metric(16, 10))
             }
             .foregroundStyle(.white)
-            .padding(story ? 28 : 22)
+            .padding(ratio.metric(28, 22))
         }
     }
 }
@@ -416,7 +430,7 @@ private struct CYShareCardTicket: View {
     private let paper = Color(white: 0.98)
     private let inkText = Color(white: 0.10)
     var body: some View {
-        let story = style.ratio.isStory
+        let ratio = style.ratio
         let ground = style.tint.secondary
         ZStack {
             LinearGradient(colors: [style.tint.secondary, style.tint.secondary.opacity(0.75)], startPoint: .top, endPoint: .bottom)
@@ -427,23 +441,23 @@ private struct CYShareCardTicket: View {
                 VStack(alignment: .leading, spacing: 10) {
                     CYShareEyebrowRow(eyebrow: content.eyebrow, brand: content.brand, tint: style.tint.secondary, onLight: true)
                     Text(verbatim: content.title)
-                        .font(.system(size: story ? 28 : 22, weight: .heavy))
+                        .font(.system(size: ratio.metric(28, 22), weight: .heavy))
                         .foregroundStyle(inkText)
-                        .lineLimit(story ? 3 : 2).minimumScaleFactor(0.7)
+                        .lineLimit(ratio == .square ? 2 : 3).minimumScaleFactor(0.7)
                         .fixedSize(horizontal: false, vertical: true)
                     CYShareMetaLine(content: content, color: Color.black.opacity(0.6))
                     if content.kind == .medal {
-                        CYShareMedalArt(content: content, tint: style.tint, size: story ? 140 : 96)
+                        CYShareMedalArt(content: content, tint: style.tint, size: ratio.metric(140, 96))
                             .frame(maxWidth: .infinity)
                             .padding(.top, 6)
                     } else if !content.silhouette.isEmpty {
                         CYShareCardSilhouette(points: content.silhouette, stroke: style.tint.secondary, lineWidth: 4, glow: false)
-                            .frame(height: story ? 170 : 90)
+                            .frame(height: ratio.metric(170, 90))
                             .background(style.tint.primary.opacity(0.14), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
                             .padding(.top, 6)
                     }
                 }
-                .padding(story ? 22 : 18)
+                .padding(ratio.metric(22, 18))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(paper)
                 // Perforation: a gap that shows the ground, two notches, a dashed tear line.
@@ -462,17 +476,17 @@ private struct CYShareCardTicket: View {
                 // Lower stub: numbers.
                 VStack(alignment: .leading, spacing: 12) {
                     if !content.stats.isEmpty {
-                        CYShareStatsRow(stats: content.stats, valueColor: inkText, labelColor: Color.black.opacity(0.55), valueSize: story ? 28 : 22)
+                        CYShareStatsRow(stats: content.stats, valueColor: inkText, labelColor: Color.black.opacity(0.55), valueSize: ratio.metric(28, 22))
                     }
                     CYShareCaption(caption: content.trimmedCaption, color: Color.black.opacity(0.7))
                 }
-                .padding(story ? 22 : 18)
+                .padding(ratio.metric(22, 18))
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(paper)
             }
             .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
             .shadow(color: .black.opacity(0.35), radius: 18, y: 10)
-            .padding(story ? 26 : 20)
+            .padding(ratio.metric(26, 20))
             .frame(maxHeight: .infinity, alignment: .center)
         }
     }
@@ -489,14 +503,14 @@ private struct CYShareCardMinimal: View {
     let content: CYShareCardContent
     let style: CYShareCardStyle
     var body: some View {
-        let story = style.ratio.isStory
+        let ratio = style.ratio
         ZStack {
             style.tint.secondary
-            RadialGradient(colors: [style.tint.primary.opacity(0.35), .clear], center: UnitPoint(x: 0.15, y: 0.1), startRadius: 0, endRadius: story ? 420 : 300)
+            RadialGradient(colors: [style.tint.primary.opacity(0.35), .clear], center: UnitPoint(x: 0.15, y: 0.1), startRadius: 0, endRadius: ratio.metric(420, 300))
             VStack(alignment: .leading, spacing: 0) {
                 CYShareEyebrowRow(eyebrow: content.eyebrow, brand: content.brand, tint: style.tint.primary)
                 Text(verbatim: content.title)
-                    .font(.system(size: story ? 40 : 30, weight: .bold, design: .serif))
+                    .font(.system(size: ratio.metric(40, 30), weight: .bold, design: .serif))
                     .lineLimit(3).minimumScaleFactor(0.6)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.top, 14)
@@ -504,11 +518,11 @@ private struct CYShareCardMinimal: View {
                     .padding(.top, 8)
                 Spacer(minLength: 10)
                 if content.kind == .medal {
-                    CYShareMedalArt(content: content, tint: style.tint, size: story ? 160 : 100)
+                    CYShareMedalArt(content: content, tint: style.tint, size: ratio.metric(160, 100))
                         .frame(maxWidth: .infinity)
                 } else if !content.silhouette.isEmpty {
                     CYShareCardSilhouette(points: content.silhouette, stroke: style.tint.primary, lineWidth: 3)
-                        .frame(height: story ? 220 : 100)
+                        .frame(height: ratio.metric(220, 100))
                 }
                 Spacer(minLength: 10)
                 if !content.stats.isEmpty {
@@ -517,9 +531,9 @@ private struct CYShareCardMinimal: View {
                             HStack(alignment: .firstTextBaseline) {
                                 Text(verbatim: stat.label).font(.system(size: 13, weight: .medium)).foregroundStyle(.white.opacity(0.7))
                                 Spacer(minLength: 8)
-                                Text(verbatim: stat.display).font(.system(size: story ? 20 : 17, weight: .semibold, design: .rounded)).monospacedDigit()
+                                Text(verbatim: stat.display).font(.system(size: ratio.metric(20, 17), weight: .semibold, design: .rounded)).monospacedDigit()
                             }
-                            .padding(.vertical, story ? 8 : 5)
+                            .padding(.vertical, ratio.metric(8, 5))
                             if stat.id != content.stats.prefix(4).last?.id {
                                 Rectangle().fill(.white.opacity(0.14)).frame(height: 1)
                             }
@@ -527,10 +541,10 @@ private struct CYShareCardMinimal: View {
                     }
                 }
                 CYShareCaption(caption: content.trimmedCaption)
-                    .padding(.top, story ? 18 : 10)
+                    .padding(.top, ratio.metric(18, 10))
             }
             .foregroundStyle(.white)
-            .padding(story ? 32 : 24)
+            .padding(ratio.metric(32, 24))
         }
     }
 }

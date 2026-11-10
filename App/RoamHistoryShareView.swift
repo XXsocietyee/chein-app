@@ -5,6 +5,7 @@ import UIKit
 /// system-sheet recipient. No app upload, public-feed post, private URL or tracking token is generated here.
 /// Privacy: the neighbourhood name and the clipped route sketch are both opt-in toggles (default off);
 /// a missing value is an em dash, never a zero. Preview and export are the same `CYShareCard` view.
+/// Flow state lives in `CYShareComposerMachine`; the rendered-receipt fields below are privacy gates, not flow flags.
 @MainActor struct RoamHistoryShareView: View {
     let record: RoamHistoryRecord
     let reader: any RoamExperienceReading
@@ -12,6 +13,7 @@ import UIKit
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
     @Environment(\.openURL) private var openURL
+    @QuestifyReduceMotion private var reduceMotion
     @StateObject private var photoSave: RoamSharePhotoSaveModel
     @StateObject private var presentation: RoamSharePresentationLifetime
     @State private var includeRoute = false
@@ -19,8 +21,7 @@ import UIKit
     @State private var style = CYShareCardStyle(template: .poster, ratio: .story, tint: .ink)
     @State private var caption = ""
     @State private var channelPolicy = RoamShareChannelPolicy()
-    @State private var image: UIImage?
-    @State private var renderingFailed = false
+    @State private var machine = CYShareComposerMachine()
     @State private var renderedRecord: RoamHistoryRecord?
     @State private var renderedIncludeRoute = false
     @State private var renderedOwner: RoamHistoryLiveOwner?
@@ -28,8 +29,6 @@ import UIKit
     @State private var guideSourceChanged = false
     @State private var systemShare: RoamHistorySystemShareRequest?
     @State private var toast: LocalizedStringKey?
-    @State private var successTick = 0
-    @State private var readyTick = 0
     init(record: RoamHistoryRecord, reader: any RoamExperienceReading, photoSaveModel: RoamSharePhotoSaveModel? = nil) {
         let model = photoSaveModel ?? RoamSharePhotoSaveModel()
         _photoSave = StateObject(wrappedValue: model)
@@ -37,10 +36,7 @@ import UIKit
         self.record = record; self.reader = reader
         presentationOwner = RoamHistoryLiveOwner(reader: reader)
     }
-    private var isBusy: Bool { photoSave.inFlight || albumGuide.pending != nil }
-    private var hasPreparedImage: Bool {
-        image != nil && renderedRecord == record && renderedIncludeRoute == includeRoute && renderedOwner == RoamHistoryLiveOwner(reader: reader)
-    }
+    private var isBusy: Bool { photoSave.inFlight || albumGuide.pending != nil || machine.state.isExporting }
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.xl) {
@@ -51,6 +47,7 @@ import UIKit
                     privacyControls
                 } actions: {
                     actionsSection
+                        .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: machine.state)
                 }
                 RoamShareLinkDormantNotice()
             }.padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xxxl)
@@ -64,25 +61,30 @@ import UIKit
             .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in includeRoute = false; includePlace = false; channelPolicy.reset(); invalidateImage() }
             .onChange(of: includeRoute) { _, _ in invalidateImage() }
             .onChange(of: includePlace) { _, _ in invalidateImage() }
-            .onChange(of: style) { _, _ in invalidateImage() }
-            .onChange(of: caption) { _, _ in invalidateImage() }
+            .onChange(of: style) { _, _ in invalidateImage(.styleChanged) }
+            .onChange(of: caption) { _, _ in invalidateImage(.captionChanged) }
             .onChange(of: photoSave.state.phase) { _, phase in
                 receiveAlbumGuide(phase)
-                if phase == .saved { toast = "roam.share.savedPhotos"; successTick += 1 }
+                switch phase {
+                case .saved: finishExport(success: true, toastKey: "roam.share.savedPhotos")
+                case .permissionDenied, .restricted, .unavailable, .sourceChanged, .failed: machine.send(.exportFinished(false))
+                default: break
+                }
             }
-            .cyHaptic(.success, trigger: successTick)
-            .cyHaptic(.impactLight, trigger: readyTick)
+            .onChange(of: machine.readyTick) { _, _ in CYShareAnnouncer.announce(appLocalized("roam.share.ready", locale: locale)) }
+            .cyHaptic(.impactLight, trigger: machine.readyTick)
+            .cyHaptic(.success, trigger: machine.doneTick)
             .cyToast(message: $toast)
             .sheet(item: Binding(get: { albumGuide.guide }, set: { if $0 == nil { albumGuide.dismissGuide() } })) { guide in
                 if permitsAlbumGuide(guide.destination) { RoamShareAlbumGuideView(guide: guide) }
             }
-            .sheet(item: $systemShare) { request in
+            .sheet(item: $systemShare, onDismiss: { if machine.state.isExporting { machine.send(.exportFinished(false)) } }) { request in
                 // Recheck after the tap as well: a local record or owner may have
                 // changed before SwiftUI actually presents the system sheet.
-                if channelPolicy.permits(.systemShare), image === request.image,
+                if channelPolicy.permits(.systemShare), machine.image === request.image,
                    preparedSelection == request.selection, request.isCurrent(reader: reader) {
                     RoamHistorySystemShareSheet(request: request, reader: reader) { completed in
-                        if completed { toast = "roam.share.sharedToast"; successTick += 1 }
+                        if completed { finishExport(success: true, toastKey: "roam.share.sharedToast") } else { machine.send(.exportFinished(false)) }
                     }
                 } else {
                     Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary)
@@ -143,11 +145,12 @@ import UIKit
     }
 
     @ViewBuilder private var actionsSection: some View {
-        if renderingFailed { Text("roam.share.renderFailed").foregroundStyle(.secondary) }
+        if case .renderFailed = machine.state { Text("roam.share.renderFailed").foregroundStyle(.secondary) }
         if guideSourceChanged { Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary) }
-        if let image, renderedRecord == record, renderedIncludeRoute == includeRoute,
+        if let image = machine.image, renderedRecord == record, renderedIncludeRoute == includeRoute,
            renderedOwner == RoamHistoryLiveOwner(reader: reader) {
-            readyRow(image)
+            CYShareReadyRow(image: image, title: "roam.share.ready", hint: "roam.share.readyHint",
+                            previewLabel: "roam.share.previewLabel", previewIdentifier: "roam.share.preview")
             photoSaveControls(image)
             if !allowedAlbumDestinations.isEmpty { albumGuideControls(image) }
             if channelPolicy.permits(.systemShare) {
@@ -156,64 +159,57 @@ import UIKit
                     .accessibilityIdentifier("roam.share.system")
             }
         } else {
-            CYPillButton("roam.share.prepare", systemImage: "photo") {
-                guard sourceIsCurrent else { invalidateImage(); return }
-                let card = cardContent
-                image = CYShareCardRenderer.render(card, style: style)
-                renderingFailed = image == nil
-                renderedRecord = image == nil ? nil : record
-                renderedIncludeRoute = includeRoute
-                renderedOwner = image == nil ? nil : presentationOwner
-                if image != nil { readyTick += 1 }
-            }.accessibilityIdentifier("roam.share.prepare")
+            CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, accessibilityIdentifier: "roam.share.prepare") { prepare() }
         }
     }
 
-    private func readyRow(_ image: UIImage) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            Image(uiImage: image).resizable().scaledToFit()
-                .frame(height: 72)
-                .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
-                .accessibilityLabel(Text("roam.share.previewLabel"))
-                .accessibilityIdentifier("roam.share.preview")
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                CYStatusChip("roam.share.ready", tone: .success, systemImage: "checkmark.seal")
-                Text("roam.share.readyHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            Spacer(minLength: 0)
+    /// Render off the press frame: `.rendering` commits first, the bitmap and its receipt land in the next main-actor turn.
+    private func prepare() {
+        guard sourceIsCurrent else { invalidateImage(); return }
+        machine.send(.prepare)
+        let renderContent = cardContent, renderStyle = style, renderRoute = includeRoute, renderOwner = presentationOwner, renderRecord = record
+        Task { @MainActor in
+            let rendered = CYShareCardRenderer.render(renderContent, style: renderStyle)
+            renderedRecord = rendered == nil ? nil : renderRecord
+            renderedIncludeRoute = renderRoute
+            renderedOwner = rendered == nil ? nil : renderOwner
+            machine.send(.rendered(rendered))
         }
-        .padding(CYSpacing.md)
-        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
-        .cyEntrance()
+    }
+    private func finishExport(success: Bool, toastKey: String) {
+        machine.send(.exportFinished(success))
+        guard success else { return }
+        toast = LocalizedStringKey(toastKey)
+        CYShareAnnouncer.announce(appLocalized(String.LocalizationValue(stringLiteral: toastKey), locale: locale))
     }
 
     // MARK: Export plumbing (unchanged privacy gates)
 
-    private func invalidateImage() {
+    private func invalidateImage(_ event: CYShareComposerEvent = .invalidate) {
         photoSave.invalidate()
         albumGuide.invalidate()
         systemShare = nil
         guideSourceChanged = false
-        image = nil; renderedRecord = nil; renderingFailed = false
-        renderedOwner = nil
+        renderedRecord = nil; renderedOwner = nil
+        machine.send(event)
     }
     private func beginSystemShare(_ image: UIImage) {
         guard channelPolicy.permits(.systemShare), !photoSave.inFlight,
               albumGuide.pending == nil, albumGuide.guide == nil, systemShare == nil else { return }
-        guard self.image === image, let selection = preparedSelection,
+        guard machine.image === image, let selection = preparedSelection,
               let request = RoamHistorySystemShareRequest(image: image, selection: selection,
                   owner: presentationOwner, reader: reader, presentation: presentation) else {
             invalidateImage(); guideSourceChanged = true; return
         }
         systemShare = request
+        machine.send(.export(.system))
     }
     private var sourceIsCurrent: Bool {
         guard presentation.isActive, presentationOwner == RoamHistoryLiveOwner(reader: reader), presentationOwner.isAuthorized else { return false }
         return (try? reader.history().first { $0.ts == record.ts }) == record
     }
     private var preparedSelection: RoamSharePhotoSaveState.Selection? {
-        guard image != nil, renderedRecord == record, renderedIncludeRoute == includeRoute,
+        guard machine.image != nil, renderedRecord == record, renderedIncludeRoute == includeRoute,
               renderedOwner == presentationOwner else { return nil }
         return .init(record: record, includeRoute: includeRoute)
     }
@@ -249,6 +245,7 @@ import UIKit
             albumGuide.receive(request, phase: .saved, current: selection, sourceIsCurrent: sourceIsCurrent)
             return
         }
+        machine.send(.export(.albumGuide))
         photoSave.save(image, selection: selection) {
             permitsAlbumGuide(destination) && albumGuide.accepts(request) && preparedSelection == selection && sourceIsCurrent
         }
@@ -263,6 +260,7 @@ import UIKit
         let phase = photoSave.state.phase
         CYPillButton(LocalizedStringKey(saveButtonKey), systemImage: "square.and.arrow.down") {
             let selection = RoamSharePhotoSaveState.Selection(record: record, includeRoute: includeRoute)
+            machine.send(.export(.photos))
             photoSave.save(image, selection: selection) {
                 // Read the existing local history again after permission, before writing.
                 // A matching timestamp alone does not authorize an edited record.

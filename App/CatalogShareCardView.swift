@@ -3,29 +3,23 @@ import UIKit
 
 /// Share card composer for catalog content (official routes, activities). The data is public catalog
 /// content, yet the place name still sits behind an opt-in toggle (default off, unknown shows an em dash).
-/// The rendered PNG leaves through the system `ShareLink`; nothing is uploaded or linked by the app.
+/// The carousel is the live preview; `ImageRenderer` runs only on prepare (`CYShareComposerMachine`), and the
+/// rendered PNG leaves through the system `ShareLink`; nothing is uploaded or linked by the app.
 @MainActor struct CatalogShareCardView: View {
     private let base: CYShareCardContent
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var machine = CYShareComposerMachine()
     @State private var style: CYShareCardStyle
     @State private var caption = ""
     @State private var includePlace = false
-    @State private var rendered: UIImage?
-    @State private var renderFailed = false
     @State private var shareTick = 0
 
     init(content: CYShareCardContent, tint: CYShareCardTint = .ocean) {
         base = content
         _style = State(initialValue: CYShareCardStyle(template: .poster, ratio: .story, tint: tint))
     }
-
-    private struct RenderKey: Equatable {
-        let style: CYShareCardStyle
-        let caption: String
-        let includePlace: Bool
-    }
-    private var renderKey: RenderKey { RenderKey(style: style, caption: caption, includePlace: includePlace) }
 
     /// What the exported image contains: the base content with the user's caption and place choice applied.
     private var content: CYShareCardContent {
@@ -58,24 +52,8 @@ import UIKit
                             .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
                         }
                     } actions: {
-                        if let rendered {
-                            ShareLink(item: Image(uiImage: rendered),
-                                      preview: SharePreview(Text(verbatim: base.title), image: Image(uiImage: rendered))) {
-                                Label("share.card.share", systemImage: "square.and.arrow.up")
-                                    .font(CYTypography.cardTitle)
-                                    .frame(maxWidth: .infinity, minHeight: 56)
-                            }
-                            .buttonStyle(.cyPrimary)
-                            .simultaneousGesture(TapGesture().onEnded { shareTick += 1 })
-                            .accessibilityIdentifier("share.card.share")
-                            .cyEntrance()
-                        } else if renderFailed {
-                            Text("roam.share.renderFailed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        } else {
-                            ProgressView { Text("share.card.rendering") }
-                                .frame(maxWidth: .infinity, minHeight: 56)
-                                .accessibilityIdentifier("share.card.rendering")
-                        }
+                        actionsSection
+                            .animation(reduceMotion ? CYMotion.reduced : CYMotion.standard, value: machine.state)
                     }
                 }
                 .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xxxl)
@@ -87,16 +65,43 @@ import UIKit
                     Button("action.done") { dismiss() }.accessibilityIdentifier("share.card.done")
                 }
             }
-            // Re-render after each change, debounced so a carousel swipe does not raster three times.
-            .task(id: renderKey) {
-                rendered = nil; renderFailed = false
-                try? await Task.sleep(nanoseconds: 120_000_000)
-                guard !Task.isCancelled else { return }
-                let image = CYShareCardRenderer.render(content, style: style)
-                guard !Task.isCancelled else { return }
-                rendered = image; renderFailed = image == nil
-            }
+            .onChange(of: style) { _, _ in machine.send(.styleChanged) }
+            .onChange(of: caption) { _, _ in machine.send(.captionChanged) }
+            .onChange(of: includePlace) { _, _ in machine.send(.invalidate) }
+            .onChange(of: machine.readyTick) { _, _ in CYShareAnnouncer.announce(appLocalized("roam.share.ready", locale: locale)) }
+            .cyHaptic(.impactLight, trigger: machine.readyTick)
             .cyHaptic(.impactLight, trigger: shareTick)
+        }
+    }
+
+    @ViewBuilder private var actionsSection: some View {
+        if let rendered = machine.image {
+            CYShareReadyRow(image: rendered, title: "roam.share.ready", hint: "roam.share.readyHint",
+                            previewLabel: "roam.share.previewLabel", previewIdentifier: "share.card.preview")
+            // `ShareLink` has no completion callback, so this confirms the tap; the roam surfaces confirm the outcome.
+            ShareLink(item: Image(uiImage: rendered),
+                      preview: SharePreview(Text(verbatim: base.title), image: Image(uiImage: rendered))) {
+                Label("share.card.share", systemImage: "square.and.arrow.up")
+                    .font(CYTypography.cardTitle)
+                    .frame(maxWidth: .infinity, minHeight: 56)
+            }
+            .buttonStyle(.cyPrimary)
+            .simultaneousGesture(TapGesture().onEnded { shareTick += 1 })
+            .accessibilityIdentifier("share.card.share")
+        } else {
+            if case .renderFailed = machine.state {
+                Text("roam.share.renderFailed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            }
+            CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, accessibilityIdentifier: "share.card.prepare") { prepare() }
+        }
+    }
+
+    /// Render off the press frame: `.rendering` commits first, the bitmap lands in the next main-actor turn.
+    private func prepare() {
+        machine.send(.prepare)
+        let renderContent = content, renderStyle = style
+        Task { @MainActor in
+            machine.send(.rendered(CYShareCardRenderer.render(renderContent, style: renderStyle)))
         }
     }
 }
