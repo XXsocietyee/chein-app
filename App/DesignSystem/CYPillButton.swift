@@ -11,6 +11,7 @@ struct CYPillButton: View {
     private let style: CYPillStyle
     private let systemImage: String?
     private let fullWidth: Bool
+    private let compact: Bool
     private let action: () -> Void
 
     init(
@@ -18,6 +19,7 @@ struct CYPillButton: View {
         style: CYPillStyle = .primary,
         systemImage: String? = nil,
         fullWidth: Bool = true,
+        compact: Bool = false,
         tableName: String? = nil,
         action: @escaping () -> Void
     ) {
@@ -27,6 +29,7 @@ struct CYPillButton: View {
         self.style = style
         self.systemImage = systemImage
         self.fullWidth = fullWidth
+        self.compact = compact
         self.action = action
     }
 
@@ -36,6 +39,7 @@ struct CYPillButton: View {
         style: CYPillStyle = .primary,
         systemImage: String? = nil,
         fullWidth: Bool = true,
+        compact: Bool = false,
         action: @escaping () -> Void
     ) {
         self.title = ""
@@ -44,6 +48,7 @@ struct CYPillButton: View {
         self.style = style
         self.systemImage = systemImage
         self.fullWidth = fullWidth
+        self.compact = compact
         self.action = action
     }
 
@@ -58,18 +63,21 @@ struct CYPillButton: View {
                 }
             }
         }
-        .buttonStyle(CYPillButtonStyle(style: style, fullWidth: fullWidth))
+        .buttonStyle(CYPillButtonStyle(style: style, fullWidth: fullWidth, compact: compact))
     }
 }
 
 struct CYPillButtonStyle: ButtonStyle {
     var style: CYPillStyle = .primary
     var fullWidth: Bool = true
+    /// 44pt inline variant for card footers (still the minimum touch target).
+    var compact: Bool = false
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.isEnabled) private var isEnabled
     @QuestifyReduceMotion private var reduceMotion
     @ScaledMetric(relativeTo: .body) private var height: CGFloat = 56
+    @ScaledMetric(relativeTo: .body) private var compactHeight: CGFloat = 44
 
     func makeBody(configuration: Configuration) -> some View {
         let shape = Capsule(style: .continuous)
@@ -78,9 +86,9 @@ struct CYPillButtonStyle: ButtonStyle {
             .multilineTextAlignment(.center)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundStyle(foreground)
-            .padding(.horizontal, CYSpacing.xxl)
+            .padding(.horizontal, compact ? CYSpacing.xl : CYSpacing.xxl)
             .padding(.vertical, CYSpacing.sm)
-            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: height)
+            .frame(maxWidth: fullWidth ? .infinity : nil, minHeight: compact ? compactHeight : height)
             .background(shape.fill(fill))
             .overlay(shape.strokeBorder(style == .secondary ? stroke : .clear, lineWidth: 1.5))
             .contentShape(shape)

@@ -65,8 +65,9 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                         }
                         .clipped()
                         HStack(spacing: CYSpacing.sm) {
-                            if club.memberCount > 0 {
-                                E3AvatarStack(seeds: (0..<min(club.memberCount, 4)).map { "\(club.id)-m\($0)" }, extra: club.memberCount > 4 ? club.memberCount - 4 : nil, size: 28)
+                            // 5 avatars + "+N"; an unknown count shows no stack (the meta line carries the em dash).
+                            if let known = club.sourceMemberCount, known > 0 {
+                                E3AvatarStack(seeds: (0..<min(known, 5)).map { "\(club.id)-m\($0)" }, extra: known > 5 ? known - 5 : nil, size: 28)
                                     .accessibilityHidden(true)
                             }
                             Text(verbatim: headerMeta(club, count: facts.meta)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)

@@ -14,6 +14,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     /// Retained callback for hosts that own a value-based navigation path.
     var onTopicDestination: ((Int) -> Void)? = nil
     @State private var locality = MerchantClubDiscoveryState()
+    /// Card or inline Join pill tapped; both open the gated detail, which still owns the membership action.
+    @State private var openedClubID: Int? = nil
     @Environment(\.dynamicTypeSize) private var typeSize
     private var discoveryScope: ClubDiscoveryScope { reader.clubDiscoveryScope }
     /// Source talent/list top tabs 帖文 / 俱乐部; it opens on 俱乐部 and loads the feed only when chosen.
@@ -67,9 +69,16 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
                     Section { playerEmpty }
                 } else {
                     Section {
-                        clubRows(home.owned, identifier: "club.home.owned", section: .owned)
-                        clubRows(home.joined, identifier: "club.home.joined", section: .joined)
-                        clubRows(nearby, identifier: "club.home.nearby", section: .nearby)
+                        // 你的俱乐部 (row cards), then 发现 (photo cards with the inline Join pill).
+                        if !home.owned.isEmpty || !home.joined.isEmpty {
+                            clubSectionHeader("club.home.yours")
+                            clubRows(home.owned, identifier: "club.home.owned", section: .owned)
+                            clubRows(home.joined, identifier: "club.home.joined", section: .joined)
+                        }
+                        if !nearby.isEmpty {
+                            clubSectionHeader("club.home.discover")
+                            clubRows(nearby, identifier: "club.home.nearby", section: .nearby)
+                        }
                     }
                 }
                 Section {
@@ -115,6 +124,9 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             .cyGroupedSurface()
         }
         }
+        }
+        .navigationDestination(item: $openedClubID) { id in
+            ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
         }
         .cyHeroScreen()
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)
@@ -183,23 +195,40 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
             locality.fail(request, current: discoveryScope)
         }
     }
+    private func clubSectionHeader(_ title: LocalizedStringKey) -> some View {
+        CYSectionHeader(title)
+            .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.xs, trailing: CYSpacing.pageHorizontal))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .accessibilityAddTraits(.isHeader)
+    }
     @ViewBuilder private func clubRows(_ rows: [ClubRecord], identifier: String,
                                        section: ClubTabPresentation.Section) -> some View {
-        ForEach(Array(rows.enumerated()), id: \.offset) { _, club in
-            NavigationLink {
-                ClubDetailView(id: club.id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
-            } label: {
-                VStack(alignment: .leading, spacing: CYSpacing.sm) {
-                    ClubRow(club: club)
-                    ClubTabTagLine(club: club, section: section)
+        ForEach(Array(rows.enumerated()), id: \.offset) { index, club in
+            let action = club.cardAction(viewerIsMerchant: discoveryScope.isMerchantViewer)
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                if section == .nearby {
+                    CYClubPhotoCard(name: club.name, place: clubPlace(club), coverURL: QuestifyCardArtwork.safeURL(club.cover),
+                                    memberCount: club.sourceMemberCount, seed: "\(club.id)", prominent: index == 0,
+                                    action: action, onOpen: { openedClubID = club.id }, onJoin: { openedClubID = club.id },
+                                    identifier: identifier + ".\(club.id)")
+                } else {
+                    CYClubRowCard(name: club.name, logoURL: QuestifyCardArtwork.safeURL(club.logo), memberCount: club.sourceMemberCount,
+                                  seed: "\(club.id)", action: action, onOpen: { openedClubID = club.id },
+                                  identifier: identifier + ".\(club.id)")
                 }
+                ClubTabTagLine(club: club, section: section)
             }
-                .buttonStyle(QuestifyCardButtonStyle())
-                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-                .listRowSeparator(.hidden)
-                .listRowBackground(Color.clear)
-                .accessibilityIdentifier(identifier + ".\(club.id)")
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
         }
+    }
+    /// Style · city, blank parts dropped; the member count lives in the footer strip.
+    private func clubPlace(_ club: ClubRecord) -> String? {
+        let place = [club.style, club.city].compactMap { $0?.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }.joined(separator: " · ")
+        return place.isEmpty ? nil : place
     }
     private func eventRow(_ event: ClubHomeEvent) -> some View {
         let title = event.title.trimmingCharacters(in: .whitespacesAndNewlines)
