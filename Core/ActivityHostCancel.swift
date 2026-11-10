@@ -30,6 +30,13 @@ public enum ActivityHostCancelPreview: Equatable {
     case blocked(String?)
     /// Preview answered 200 without a usable integer count.
     case unknownCount
+
+    /// Display for the preview count. A missing, blocked, or negative count is an em dash.
+    /// Zero stays zero. This does not invent a refund total.
+    public var paidPlayerCountText: String {
+        if case .paidPlayers(let count) = self, count >= 0 { return String(count) }
+        return ActivityDetailPageModel.unknownDisplay
+    }
 }
 public enum ActivityHostCancelOutcome: Equatable { case cancelled(String?), rejected(String?) }
 /// `scope` request field of `/api/activity/cancel_preview` and `/api/activity/cancel`. The merchant host flow

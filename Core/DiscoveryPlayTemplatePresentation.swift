@@ -8,6 +8,8 @@ public struct DiscoveryPlayTemplatePresentation: Equatable {
     public let storyImage: String?
     public let gallerySources: [String]
     public let useCount: Int?
+    /// Missing uses are an em dash. A literal 0 stays `"0"`.
+    public var useCountText: String { useCount.map(String.init) ?? "—" }
     public var hasStory: Bool { storyText != nil || storyImage != nil }
 
     public init(_ item: DiscoveryPlayTemplate) {

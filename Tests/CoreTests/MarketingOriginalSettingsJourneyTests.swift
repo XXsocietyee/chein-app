@@ -263,4 +263,168 @@ import FoundationNetworking
         XCTAssertEqual(f.unauthorized, 0)
     }
 
+    func testShezhiMarketingIndexPageReadsLoadedStateWithoutAnotherRequest() async throws {
+        let f = try fixture()
+        let before = f.flow.shezhiMarketingIndexPage
+        XCTAssertEqual(before.phase, .unknown)
+        XCTAssertEqual(before.merchantCountText, ShezhiMarketingIndexPageModel.unknownMark)
+        XCTAssertEqual(before.unresolvedText, ShezhiMarketingIndexPageModel.unknownMark)
+        XCTAssertTrue(before.offersListRoute)
+        XCTAssertFalse(before.offersResultRoute)
+        let count = f.wire.requests.count
+        _ = f.flow.shezhiMarketingIndexPage
+        XCTAssertEqual(f.wire.requests.count, count)
+        await f.flow.loadMarketing()
+        let page = f.flow.shezhiMarketingIndexPage
+        XCTAssertEqual(page.phase, .ready)
+        XCTAssertEqual(page.merchantCountText, "1")
+        XCTAssertNil(page.unresolvedText)
+        XCTAssertEqual(page.preferences.first?.inAppText, "false")
+        XCTAssertNotEqual(page.preferences.first?.inAppText, "0")
+        XCTAssertNotEqual(page.preferences.first?.couponText, "0")
+        XCTAssertEqual(f.wire.requests.count, 1)
+        XCTAssertEqual(f.wire.requests.first?.httpMethod, "GET")
+        XCTAssertFalse(page.offersResultRoute)
+    }
+
+}
+
+final class ShezhiMarketingIndexPageTests: XCTestCase {
+    private func row(name: String? = "Synthetic shop", inApp: Bool = false, coupon: Bool = true, merchant: Int = 41, owner: Int = 7) throws -> ComplianceMarketingConsent {
+        var object: [String: Any] = ["merchantRowId": merchant, "merchantOwnerMemberId": owner, "inAppOptedIn": inApp, "couponOptedIn": coupon]
+        if let name { object["merchantName"] = name }
+        return try JSONDecoder().decode(ComplianceMarketingConsent.self, from: JSONSerialization.data(withJSONObject: object))
+    }
+
+    private func receipt(outcome: String = "NOT_OBSERVED", requestId: String = "original-choice", merchant: Int = 41, consentId: Int? = nil, recordedAt: Int64? = nil, event: String? = nil, channel: String = "IN_APP") throws -> MerchantMarketingConsentOriginalReceipt {
+        var object: [String: Any] = ["receiptVersion": 1, "actorId": 71, "merchantRowId": merchant, "merchantOwnerMemberId": 7, "channel": channel, "requestId": requestId, "outcome": outcome]
+        if let consentId { object["consentId"] = consentId }
+        if let recordedAt { object["recordedAt"] = recordedAt }
+        if let event { object["eventType"] = event }
+        return try JSONDecoder().decode(MerchantMarketingConsentOriginalReceipt.self, from: JSONSerialization.data(withJSONObject: object))
+    }
+
+    func testUnknownQuantityIsEmDashNeverZero() {
+        let mark = ShezhiMarketingIndexPageModel.unknownMark
+        XCTAssertEqual(mark, "—")
+        XCTAssertNotEqual(mark, "0")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.countText("0"), "0")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.countText("0 "), "0")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.countText(Int(0)), "0")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.countText("12"), "12")
+        for raw in [String?.none, "", " ", "UNKNOWN", "unknown", "00", "01", "-1", "1.5"] {
+            XCTAssertEqual(ShezhiMarketingIndexPageModel.countText(raw), mark, raw ?? "nil")
+        }
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.identifierText(Int(0)), mark)
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.identifierText(Int?.none), mark)
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.identifierText(Int64(0)), mark)
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.identifierText(Int(41)), "41")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.optedInText(nil), mark)
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.optedInText(false), "false")
+        XCTAssertNotEqual(ShezhiMarketingIndexPageModel.optedInText(false), "0")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.requestText("0"), "0")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.requestText("UNKNOWN"), mark)
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.requestText("  "), mark)
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.nameText("UNKNOWN"), mark)
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.nameText(nil), mark)
+    }
+
+    func testPhasesKeepUnknownCountsAsEmDashAndLoadedEmptyAsZero() throws {
+        let mark = ShezhiMarketingIndexPageModel.unknownMark
+        var loading = ComplianceState()
+        loading.busy = true
+        loading.error = "compliance.failed"
+        let loadingPage = ShezhiMarketingIndexPageModel(state: loading)
+        XCTAssertEqual(loadingPage.phase, .loading)
+        XCTAssertNil(loadingPage.errorKey)
+        XCTAssertEqual(loadingPage.loadingKey, "compliance.loading")
+        XCTAssertEqual(loadingPage.merchantCountText, mark)
+        XCTAssertTrue(loadingPage.preferences.isEmpty)
+
+        var failed = ComplianceState()
+        failed.error = "compliance.unavailable"
+        let errorPage = ShezhiMarketingIndexPageModel(state: failed)
+        XCTAssertEqual(errorPage.phase, .error(key: "compliance.unavailable"))
+        XCTAssertEqual(errorPage.merchantCountText, mark)
+        XCTAssertEqual(errorPage.unresolvedText, mark)
+
+        var blankError = ComplianceState()
+        blankError.error = "  "
+        blankError.marketingLoaded = true
+        let emptyPage = ShezhiMarketingIndexPageModel(state: blankError)
+        XCTAssertEqual(emptyPage.phase, .empty)
+        XCTAssertEqual(emptyPage.emptyKey, "compliance.marketing.empty")
+        XCTAssertEqual(emptyPage.merchantCountText, "0")
+        XCTAssertNil(emptyPage.unresolvedText)
+
+        var idle = ComplianceState()
+        let unknownPage = ShezhiMarketingIndexPageModel(state: idle)
+        XCTAssertEqual(unknownPage.phase, .unknown)
+        XCTAssertEqual(unknownPage.unknownKey, "compliance.marketing.unknown")
+        XCTAssertEqual(unknownPage.unconfirmedKey, "marketingOriginal.current.unconfirmed")
+        XCTAssertEqual(unknownPage.merchantCountText, mark)
+        XCTAssertNotEqual(unknownPage.merchantCountText, "0")
+
+        var pending = ComplianceState()
+        pending.marketingLoaded = true
+        pending.marketing = [try row()]
+        pending.marketingUnresolved = ["marketing|41|7|IN_APP"]
+        let pendingPage = ShezhiMarketingIndexPageModel(state: pending)
+        XCTAssertEqual(pendingPage.phase, .unknown)
+        XCTAssertEqual(pendingPage.merchantCountText, "1")
+        XCTAssertEqual(pendingPage.unresolvedText, mark)
+        XCTAssertEqual(pendingPage.preferences.first?.inAppUnresolved, true)
+        XCTAssertEqual(pendingPage.preferences.first?.couponUnresolved, false)
+        XCTAssertEqual(pendingPage.preferences.first?.inAppText, "false")
+        XCTAssertEqual(pendingPage.preferences.first?.couponText, "true")
+        XCTAssertEqual(pendingPage.preferences.first?.nameText, "Synthetic shop")
+
+        var unnamed = ComplianceState()
+        unnamed.marketingLoaded = true
+        unnamed.marketing = [try row(name: "  ", merchant: 0, owner: -3)]
+        let unnamedPage = ShezhiMarketingIndexPageModel(state: unnamed)
+        XCTAssertEqual(unnamedPage.phase, .ready)
+        XCTAssertEqual(unnamedPage.preferences.first?.nameText, mark)
+        XCTAssertEqual(unnamedPage.preferences.first?.merchantText, mark)
+        XCTAssertEqual(unnamedPage.preferences.first?.ownerText, mark)
+        XCTAssertEqual(unnamedPage.merchantCountText, "1")
+    }
+
+    func testReceiptUnknownIdentifiersStayEmDashAndLiteralZeroRequestIdStays() throws {
+        let mark = ShezhiMarketingIndexPageModel.unknownMark
+        var state = ComplianceState()
+        state.marketingOriginalResults = [
+            try receipt(consentId: 0, recordedAt: 0),
+            try receipt(outcome: "RECORDED", requestId: "0", consentId: 23, recordedAt: 1, event: "OPT_IN", channel: "NOPE")
+        ]
+        let page = ShezhiMarketingIndexPageModel(state: state)
+        let hidden = try XCTUnwrap(page.receipts.first)
+        XCTAssertEqual(hidden.recordText, mark)
+        XCTAssertEqual(hidden.recordedAtText, mark)
+        XCTAssertEqual(hidden.requestText, "original-choice")
+        XCTAssertEqual(hidden.merchantText, "41")
+        XCTAssertEqual(hidden.outcomeKey, "marketingOriginal.outcome.notObserved")
+        XCTAssertEqual(hidden.eventKey, "marketingOriginal.event.unknown")
+        XCTAssertEqual(hidden.channelKey, "marketingOriginal.channel.inApp")
+        let recorded = page.receipts[1]
+        XCTAssertEqual(recorded.requestText, "0")
+        XCTAssertEqual(recorded.recordText, "23")
+        XCTAssertEqual(recorded.recordedAtText, "1")
+        XCTAssertEqual(recorded.outcomeKey, "marketingOriginal.outcome.recorded")
+        XCTAssertEqual(recorded.eventKey, "marketingOriginal.event.optIn")
+        XCTAssertEqual(recorded.channelKey, "marketingOriginal.channel.unknown")
+        XCTAssertNotEqual(recorded.recordText, "0")
+    }
+
+    func testListRouteStaysTheExistingLiveContractAndResultStaysUnmarked() {
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.listPath, "/api/merchant/crm/marketing-consents")
+        XCTAssertEqual(ShezhiMarketingIndexPageModel.resultPath, "/api/merchant/crm/marketing-consents/result")
+        XCTAssertEqual(ChinaReviewedRouteCapability.mark(for: ShezhiMarketingIndexPageModel.listPath), .liveInProduction)
+        XCTAssertTrue(ShezhiMarketingIndexPageModel.routeIsLive(ShezhiMarketingIndexPageModel.listPath))
+        XCTAssertNil(ChinaReviewedRouteCapability.mark(for: ShezhiMarketingIndexPageModel.resultPath))
+        XCTAssertFalse(ShezhiMarketingIndexPageModel.routeIsLive(ShezhiMarketingIndexPageModel.resultPath))
+        let page = ShezhiMarketingIndexPageModel(state: ComplianceState())
+        XCTAssertTrue(page.offersListRoute)
+        XCTAssertFalse(page.offersResultRoute)
+    }
 }

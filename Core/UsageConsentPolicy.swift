@@ -114,3 +114,227 @@ public enum UsageConsentGateDecision {
     }
     public static func signInRequiresGate(granted: Bool) -> Bool { !granted }
 }
+
+/// pages/privacy/index consent record. The device choice stays on `UsageConsentPolicy`.
+/// The roam-location row is read through the existing latest-consent contract.
+/// A missing route stays hidden and is not marked live. Unknown numbers are an em dash.
+public enum PrivacyProtectionNumberFact: Equatable, Sendable {
+    case unknown
+    case value(Int)
+
+    public static let unknownDisplay = "—"
+
+    public var literal: Int? {
+        if case .value(let number) = self { return number }
+        return nil
+    }
+
+    public var displayText: String {
+        switch self {
+        case .unknown: return Self.unknownDisplay
+        case .value(let number): return String(number)
+        }
+    }
+
+    /// A canonical integer, including 0, stays a value. UNKNOWN, blank, and a padded or
+    /// fractional token stay unknown. Nothing here substitutes 0.
+    public static func parse(_ token: String?) -> PrivacyProtectionNumberFact {
+        guard let token else { return .unknown }
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let value = Int(trimmed), String(value) == trimmed else { return .unknown }
+        return .value(value)
+    }
+}
+
+public enum PrivacyProtectionPageAccessibility {
+    public static let title = "privacy.page.title"
+    public static let body = "privacy.page.body"
+    public static let guide = "authEntry.privacy.guide"
+    public static let agreement = "authEntry.privacy.agreement"
+    public static let guideUnavailable = "privacy.page.guideUnavailable"
+    public static let consentStatus = "authEntry.privacy.consentStatus"
+    public static let consentGranted = "privacy.page.consentGranted"
+    public static let consentMissing = "privacy.page.consentMissing"
+    public static let consentWithdrawn = "privacy.page.consentWithdrawn"
+    public static let manage = "privacy.page.manage"
+    public static let withdrawConsent = "authEntry.privacy.withdrawConsent"
+    public static let revoke = "privacy.page.revoke"
+    public static let collectionScopeTitle = "privacy.guide.collection_scope.title"
+    public static let collectionScopeDetail = "privacy.guide.collection_scope.detail"
+    public static let permissionUsageTitle = "privacy.guide.permission_usage.title"
+    public static let permissionUsageDetail = "privacy.guide.permission_usage.detail"
+    public static let revokeAndDeregisterTitle = "privacy.guide.revoke_and_deregister.title"
+    public static let revokeAndDeregisterDetail = "privacy.guide.revoke_and_deregister.detail"
+    public static let loading = "privacy.page.state.loading"
+    public static let empty = "privacy.page.state.empty"
+    public static let error = "privacy.page.state.error"
+    public static let unknown = "privacy.page.state.unknown"
+    public static let ready = "privacy.page.state.ready"
+    public static let summaryItems = "privacy.guide.summaryItems"
+}
+
+public struct PrivacyProtectionPageFailure: Equatable, Sendable {
+    public let token: String
+    public init(token: String) { self.token = token }
+}
+
+public struct PrivacyProtectionPageSnapshot: Equatable, Sendable {
+    public let deviceAgreementGranted: Bool
+    public let serverConsentHidden: Bool
+    public let roamLocationEvent: String?
+    public let usageRecordHistoryHidden: Bool
+    public var showsDeviceWithdrawal: Bool { deviceAgreementGranted }
+}
+
+public enum PrivacyProtectionPagePhase: Equatable, Sendable {
+    case loading
+    case empty
+    case error(PrivacyProtectionPageFailure)
+    case unknown
+    case ready(PrivacyProtectionPageSnapshot)
+
+    public var accessibilityIdentifier: String {
+        switch self {
+        case .loading: return PrivacyProtectionPageAccessibility.loading
+        case .empty: return PrivacyProtectionPageAccessibility.empty
+        case .error: return PrivacyProtectionPageAccessibility.error
+        case .unknown: return PrivacyProtectionPageAccessibility.unknown
+        case .ready: return PrivacyProtectionPageAccessibility.ready
+        }
+    }
+}
+
+@MainActor public protocol PrivacyProtectionLatestConsentReading: AnyObject {
+    func latestRoamConsent(session: ComplianceSession) async throws -> ComplianceConsent?
+}
+
+extension AccountComplianceService: PrivacyProtectionLatestConsentReading {
+    public func latestRoamConsent(session: ComplianceSession) async throws -> ComplianceConsent? {
+        try await latest(.roamLocation, session: session)
+    }
+}
+
+@MainActor public final class PrivacyProtectionPageModel {
+    public private(set) var phase: PrivacyProtectionPagePhase = .loading
+    public private(set) var serverConsentHidden = true
+    private let policy: UsageConsentPolicy
+    private let consent: (any PrivacyProtectionLatestConsentReading)?
+    private let session: () -> ComplianceSession?
+    private var generation: UInt64 = 0
+    private var lastConsent: ComplianceConsent?
+
+    public init(policy: UsageConsentPolicy, consent: (any PrivacyProtectionLatestConsentReading)? = nil,
+                session: @escaping () -> ComplianceSession? = { nil }) {
+        self.policy = policy
+        self.consent = consent
+        self.session = session
+    }
+
+    public var deviceAgreementGranted: Bool { policy.granted }
+
+    /// Usage-record history is hidden while that route is missing. This does not mark it live.
+    public static var usageRecordHistoryHidden: Bool {
+        ChinaReviewedRouteCapability.mark(for: UsageConsentReadRoute.history) != .liveInProduction
+    }
+
+    public static var latestConsentRouteIsLive: Bool {
+        ChinaReviewedRouteCapability.mark(for: PlayStoreDayService.consentLatestPath) == .liveInProduction
+    }
+
+    public var usageRecordHistoryHidden: Bool { Self.usageRecordHistoryHidden }
+
+    /// Nil while the usage-record route is missing, including when the fact is 0 or unknown.
+    public func usageRecordCountText(_ fact: PrivacyProtectionNumberFact) -> String? {
+        guard !Self.usageRecordHistoryHidden else { return nil }
+        return fact.displayText
+    }
+
+    public func reload() async {
+        generation &+= 1
+        let stamp = generation
+        phase = .loading
+        guard let consent, let session = session(), session.valid, Self.latestConsentRouteIsLive else {
+            apply(consent: nil, serverHidden: true)
+            return
+        }
+        do {
+            let latest = try await consent.latestRoamConsent(session: session)
+            guard stamp == generation else { return }
+            guard !Task.isCancelled, self.session() == session else {
+                fail("failed")
+                return
+            }
+            apply(consent: latest, serverHidden: false)
+        } catch let error as ComplianceFailure {
+            guard stamp == generation else { return }
+            if case .unavailable = error {
+                apply(consent: nil, serverHidden: true)
+            } else {
+                fail(Self.token(for: error))
+            }
+        } catch {
+            guard stamp == generation else { return }
+            fail("failed")
+        }
+    }
+
+    /// Local device withdrawal only. App-launch recording stays off, so this does not post a consent.
+    public func withdrawDeviceConsent() {
+        guard policy.granted else { return }
+        policy.decline()
+        switch phase {
+        case .loading, .error, .unknown:
+            return
+        case .empty, .ready:
+            apply(consent: lastConsent, serverHidden: serverConsentHidden)
+        }
+    }
+
+    private func apply(consent: ComplianceConsent?, serverHidden: Bool) {
+        lastConsent = consent
+        serverConsentHidden = serverHidden
+        if let consent {
+            phase = classify(consent)
+            return
+        }
+        phase = policy.granted ? .ready(snapshot(event: nil, serverHidden: serverHidden)) : .empty
+    }
+
+    private func classify(_ consent: ComplianceConsent) -> PrivacyProtectionPagePhase {
+        let agreed = consent.matches(.roamLocation, event: .agree)
+        let revoked = consent.matches(.roamLocation, event: .revoke)
+        guard agreed != revoked, let event = consent.eventType else { return .unknown }
+        return .ready(snapshot(event: event, serverHidden: false))
+    }
+
+    private func snapshot(event: String?, serverHidden: Bool) -> PrivacyProtectionPageSnapshot {
+        .init(deviceAgreementGranted: policy.granted, serverConsentHidden: serverHidden,
+              roamLocationEvent: event, usageRecordHistoryHidden: Self.usageRecordHistoryHidden)
+    }
+
+    private func fail(_ token: String) {
+        lastConsent = nil
+        serverConsentHidden = false
+        phase = .error(.init(token: token))
+    }
+
+    private static func token(for error: ComplianceFailure) -> String {
+        guard case .rejected(let message) = error else { return "failed" }
+        let trimmed = message.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "failed" : trimmed
+    }
+}
+
+#if DEBUG
+public enum PrivacyProtectionPageFixtureData {
+    public static let agreed = #"{"docType":"privacy_policy","scene":"roam_location","eventType":"AGREE","docVersion":"v2.1"}"#
+    public static let revoked = #"{"docType":"privacy_policy","scene":"roam_location","eventType":"REVOKE","docVersion":"v2.1"}"#
+    public static let unknownEvent = #"{"docType":"privacy_policy","scene":"roam_location","eventType":"UNKNOWN"}"#
+    public static let unknownCountToken = "UNKNOWN"
+    public static let literalZeroCountToken = "0"
+    public static let paddedZeroCountToken = "00"
+    public static func consent(_ json: String) throws -> ComplianceConsent {
+        try JSONDecoder().decode(ComplianceConsent.self, from: Data(json.utf8))
+    }
+}
+#endif

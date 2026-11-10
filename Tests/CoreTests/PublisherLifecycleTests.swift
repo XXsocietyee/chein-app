@@ -258,6 +258,26 @@ private actor LifecycleFakeHTTP: HTTPTransport {
         let requests = await wire.requests
         XCTAssertEqual(requests.count, 1); XCTAssertTrue(requests.allSatisfy { $0.url?.lastPathComponent == "preview" })
     }
+    func testMerchantPartnerProjectsHomeFactsAndDoesNotInventChargeOrCapacity() async throws {
+        let filled = #"{"id":31,"memberId":77,"name":"Owner-bound merchant","address":"拱墅","capacity":0,"sysCategoryList":[{"categoryName":"茶馆"}],"chargeType":1}"#
+        let reader = LifecycleMerchantOwnerReader()
+        reader.body = filled
+        let row = #"{"toType":"merchant","toId":77,"shareMode":2,"fixedFee":0}"#
+        let result = try await setup(LifecycleFakeHTTP([partnerPreview(row)]), merchantReader: reader).partner(topicID: 4, type: "merchant", id: 77)
+        let profile = try XCTUnwrap(result.profile.object)
+        XCTAssertEqual(profile["capacity"], .number(0))
+        XCTAssertEqual(profile["address"]?.text, "拱墅")
+        XCTAssertEqual(profile["sysCategoryList"], .array([.object(["categoryName": .string("茶馆")])]))
+        XCTAssertNil(profile["chargeType"])
+        XCTAssertEqual(result.terms.fixedFee, "0")
+        XCTAssertEqual(TopicPricingXcx.partnerPreviewPhase(loading: false, inspection: result, failed: false), .ready(result))
+        let bareReader = LifecycleMerchantOwnerReader()
+        bareReader.body = #"{"id":31,"memberId":77,"name":"Owner-bound merchant","chargeType":0}"#
+        let bare = try await setup(LifecycleFakeHTTP([partnerPreview(#"{"toType":"merchant","toId":77,"shareMode":0}"#)]), merchantReader: bareReader).partner(topicID: 4, type: "merchant", id: 77)
+        XCTAssertNil(bare.profile.object?["capacity"])
+        XCTAssertNil(bare.profile.object?["chargeType"])
+        XCTAssertEqual(TopicPricingXcx.partnerPreviewPhase(loading: false, inspection: bare, failed: false), .empty(bare))
+    }
     func testLegacyPublicDetailGrantCannotSubstituteForIndependentHomeReader() async throws {
         let row = #"{"toType":"merchant","toId":77,"shareMode":0}"#
         let readers: [LifecycleMerchantOwnerReader?] = [nil, LifecycleMerchantOwnerReader()]

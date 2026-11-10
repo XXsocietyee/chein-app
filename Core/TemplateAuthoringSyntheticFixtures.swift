@@ -48,4 +48,14 @@ public enum TemplateAuthoringSyntheticFixtures {
         return d
     }
 }
+
+/// DEBUG home documents for the intro read model. Inner home object only; no live route.
+public enum TemplateAuthoringIntroFixtureData {
+    public static let recommended = #"{"recommendList":[{"id":11,"title":"Synthetic example","sysCategoryList":[{"categoryName":"Synthetic"}],"useNum":3,"duration":10},{"id":12,"title":"Second"}],"hotList":[{"id":99,"title":"Other pool","useNum":1}],"total":2}"#
+    public static let empty = #"{"recommendList":[],"hotList":[],"latestList":[]}"#
+    public static let emptyZeroTotal = #"{"total":0}"#
+    public static let unknownCounts = #"{"recommendList":[{"id":11,"title":"Synthetic example","useNum":"UNKNOWN","duration":"UNKNOWN"}],"total":"UNKNOWN"}"#
+    public static let zeroCounts = #"{"recommendList":[{"id":12,"title":"Synthetic zero","useNum":0,"duration":0}],"total":0}"#
+    public static let malformed = "[]"
+}
 #endif

@@ -20,6 +20,58 @@ public enum ClubOpsJoinReviewReason {
     public static func count(_ raw: String) -> Int { normalized(raw)?.utf16.count ?? 0 }
 }
 
+/// Page-ready binding for the existing join-request review contract.
+/// Does not add a route. `api/club/join-requests/apply` stays hidden.
+/// A missing review capability, a viewer who cannot govern, a player-first entry,
+/// or a server denial stays hidden. Unknown counts are an em dash, never 0.
+public enum ClubJoinRequestsPageReady {
+    public static let routes = [
+        "api/club/join-requests",
+        ClubManagementAction.approve.path,
+        ClubManagementAction.reject.path,
+    ]
+    public static let hiddenApplyRoute = "api/club/join-requests/apply"
+    public static let revealsApplyRoute = false
+    public static let unknownCountText = "\u{2014}"
+
+    public struct Visibility: Equatable {
+        public let reviewCapabilityPresent: Bool
+        public let canGovern: Bool
+        public let playerFirstEntry: Bool
+        public init(reviewCapabilityPresent: Bool, canGovern: Bool, playerFirstEntry: Bool) {
+            self.reviewCapabilityPresent = reviewCapabilityPresent
+            self.canGovern = canGovern
+            self.playerFirstEntry = playerFirstEntry
+        }
+        public var shown: Bool { reviewCapabilityPresent && canGovern && !playerFirstEntry }
+    }
+
+    public enum Phase: Equatable {
+        case hidden, loading, empty, error, unknown, ready
+    }
+
+    public static func countText(_ count: Int?) -> String {
+        count.map(String.init) ?? unknownCountText
+    }
+
+    /// Nil hides the number. A shown unknown is an em dash. A literal 0 stays "0".
+    public static func pendingCountText(visibility: Visibility, count: Int?) -> String? {
+        guard visibility.shown else { return nil }
+        return countText(count)
+    }
+
+    public static func phase(visibility: Visibility, loading: Bool, failed: Bool, denied: Bool,
+                             list: [ClubManagementRequest]?) -> Phase {
+        guard visibility.shown, !denied else { return .hidden }
+        guard let list else {
+            if loading { return .loading }
+            if failed { return .error }
+            return .unknown
+        }
+        return list.isEmpty ? .empty : .ready
+    }
+}
+
 public enum ClubOpsJoinRequestPresentation {
     /// `N 条待审 · 可直接通过或拒绝`; zero pending shows only the action line (CU-C-96).
     public static func introPendingCount(_ count: Int) -> Int? { count > 0 ? count : nil }

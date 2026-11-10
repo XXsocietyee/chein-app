@@ -721,3 +721,193 @@ public enum TicketExpiryAndOrderStatusRules {
         return registrationStatus == 2 && paymentStatus == 2 && verificationStatus != 1 && refundable == true
     }
 }
+
+// MARK: - pages/activity/baoming/baoming read model
+
+/// Checkout phases for the activity registration sheet.
+/// UNKNOWN renders as `unknownMark` (an em dash). It is never 0 and never a guessed number.
+/// This projection reads the quote the coordinator already holds. It does not open a route,
+/// and payment, payout, withdrawal, and virtual goods stay hidden.
+public enum RegistrationBaomingReadPhase: String, Equatable {
+    case loading
+    case empty
+    case error
+    case unknown
+    case ready
+
+    public static let unknownMark = "—"
+}
+
+/// A server money field. Nil, NaN, and a negative value stay unknown.
+/// A literal zero stays zero.
+public struct RegistrationBaomingAmountFact: Equatable {
+    public enum Kind: Equatable {
+        case unknown
+        case amount(Decimal)
+    }
+
+    public let kind: Kind
+
+    public init(serverAmount: Decimal?) {
+        if let serverAmount, !serverAmount.isNaN, serverAmount >= .zero {
+            kind = .amount(serverAmount)
+        } else {
+            kind = .unknown
+        }
+    }
+
+    public var displayText: String {
+        switch kind {
+        case .unknown:
+            return RegistrationBaomingReadPhase.unknownMark
+        case .amount(let value):
+            return NSDecimalNumber(decimal: value).stringValue
+        }
+    }
+}
+
+/// A server count. Nil and a negative value stay unknown. A literal zero stays zero.
+public struct RegistrationBaomingCountFact: Equatable {
+    public enum Kind: Equatable {
+        case unknown
+        case count(Int)
+    }
+
+    public let kind: Kind
+
+    public init(serverCount: Int?) {
+        if let serverCount, serverCount >= 0 {
+            kind = .count(serverCount)
+        } else {
+            kind = .unknown
+        }
+    }
+
+    public var displayText: String {
+        switch kind {
+        case .unknown:
+            return RegistrationBaomingReadPhase.unknownMark
+        case .count(let value):
+            return String(value)
+        }
+    }
+}
+
+/// Facts the sheet can show from the existing `/api/registration/quote` contract
+/// and the activity payload the sheet was already given. Missing fields stay unknown.
+public struct RegistrationBaomingCheckoutFacts: Equatable {
+    public let phase: RegistrationBaomingReadPhase
+    public let payAmount: RegistrationBaomingAmountFact
+    public let orderAmount: RegistrationBaomingAmountFact
+    public let memberDiscount: RegistrationBaomingAmountFact
+    public let couponDeduction: RegistrationBaomingAmountFact
+    public let pointsDeduction: RegistrationBaomingAmountFact
+    public let remainingInventory: RegistrationBaomingCountFact
+
+    /// Quote totals never become a pay, payout, or virtual-goods action.
+    public var paymentStaysHidden: Bool { true }
+
+    public init(phase: RegistrationBaomingReadPhase,
+                payAmount: RegistrationBaomingAmountFact,
+                orderAmount: RegistrationBaomingAmountFact,
+                memberDiscount: RegistrationBaomingAmountFact,
+                couponDeduction: RegistrationBaomingAmountFact,
+                pointsDeduction: RegistrationBaomingAmountFact,
+                remainingInventory: RegistrationBaomingCountFact) {
+        self.phase = phase
+        self.payAmount = payAmount
+        self.orderAmount = orderAmount
+        self.memberDiscount = memberDiscount
+        self.couponDeduction = couponDeduction
+        self.pointsDeduction = pointsDeduction
+        self.remainingInventory = remainingInventory
+    }
+
+    /// `sessionReady` is the coordinator's current account. `quoteState` is that same
+    /// coordinator's quote. No second route is consulted.
+    public static func project(sessionReady: Bool,
+                               tickets: [ActivityTicket],
+                               quoteState: RegistrationQuoteState,
+                               selectedTicketID: Int?) -> Self {
+        let phase = resolvePhase(sessionReady: sessionReady, tickets: tickets, quoteState: quoteState)
+        guard phase == .ready, case .received(let quote) = quoteState else {
+            return hidden(phase)
+        }
+        let ticket = selectedTicket(tickets, id: selectedTicketID)
+        return Self(
+            phase: .ready,
+            payAmount: RegistrationBaomingAmountFact(serverAmount: quote.payAmount),
+            orderAmount: RegistrationBaomingAmountFact(serverAmount: ticket?.price),
+            memberDiscount: RegistrationBaomingAmountFact(serverAmount: quote.memberDiscountYuan),
+            couponDeduction: RegistrationBaomingAmountFact(serverAmount: quote.couponDeductYuan),
+            pointsDeduction: RegistrationBaomingAmountFact(serverAmount: quote.pointsDeductYuan),
+            remainingInventory: RegistrationBaomingCountFact(serverCount: ticket?.remainingInventory)
+        )
+    }
+
+    private static func resolvePhase(sessionReady: Bool,
+                                     tickets: [ActivityTicket],
+                                     quoteState: RegistrationQuoteState) -> RegistrationBaomingReadPhase {
+        if !sessionReady { return .loading }
+        switch quoteState {
+        case .loading:
+            return .loading
+        case .unavailable(_):
+            return .error
+        case .idle:
+            return tickets.isEmpty ? .empty : .unknown
+        case .received(let quote):
+            if tickets.isEmpty { return .empty }
+            return quote.payAmount == nil ? .unknown : .ready
+        }
+    }
+
+    private static func selectedTicket(_ tickets: [ActivityTicket], id: Int?) -> ActivityTicket? {
+        if let id { return tickets.first { $0.id == id } }
+        return tickets.first
+    }
+
+    private static func hidden(_ phase: RegistrationBaomingReadPhase) -> Self {
+        Self(
+            phase: phase,
+            payAmount: RegistrationBaomingAmountFact(serverAmount: nil),
+            orderAmount: RegistrationBaomingAmountFact(serverAmount: nil),
+            memberDiscount: RegistrationBaomingAmountFact(serverAmount: nil),
+            couponDeduction: RegistrationBaomingAmountFact(serverAmount: nil),
+            pointsDeduction: RegistrationBaomingAmountFact(serverAmount: nil),
+            remainingInventory: RegistrationBaomingCountFact(serverCount: nil)
+        )
+    }
+}
+
+@MainActor
+extension RegistrationCoordinator {
+    /// Projects this coordinator's current quote. It does not quote, create, or pay.
+    public func baomingCheckoutFacts(tickets: [ActivityTicket], selectedTicketID: Int?) -> RegistrationBaomingCheckoutFacts {
+        RegistrationBaomingCheckoutFacts.project(
+            sessionReady: accountID != nil,
+            tickets: tickets,
+            quoteState: quoteState,
+            selectedTicketID: selectedTicketID
+        )
+    }
+}
+
+#if DEBUG
+/// In-memory checkout samples. No URL, credential, payment parameter, or live route.
+public enum RegistrationBaomingFixtureData {
+    public static let activityEmpty = #"{"id":9400,"name":"Offline fixture activity","omsTicketList":[]}"#
+    public static let activityWithUnknownPrice = #"{"id":9400,"name":"Offline fixture activity","omsTicketList":[{"id":9401,"name":"Standard fixture ticket","price":null,"remainingInventory":null}]}"#
+    public static let quoteKnown = #"{"payAmount":12.5,"pointsDeductYuan":2.5,"memberDiscountYuan":1,"couponDeductYuan":0.5,"pointsUsable":true,"clubMember":true,"quoteSign":"offline-only","refundableNow":true}"#
+    public static let quoteKnownZero = #"{"payAmount":0,"pointsDeductYuan":0,"memberDiscountYuan":0,"couponDeductYuan":0,"pointsUsable":false,"clubMember":false,"quoteSign":"offline-only"}"#
+    public static let quoteUnknownPay = #"{"pointsUsable":true,"quoteSign":"offline-only"}"#
+
+    public static func activity(_ json: String) throws -> ActivityDetail {
+        try JSONDecoder().decode(ActivityDetail.self, from: Data(json.utf8))
+    }
+
+    public static func quote(_ json: String) throws -> RegistrationQuote {
+        try JSONDecoder().decode(RegistrationQuote.self, from: Data(json.utf8))
+    }
+}
+#endif

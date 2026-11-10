@@ -138,3 +138,172 @@ public struct RoamStampPending: Codable, Equatable {
         changed?()
     }
 }
+
+/// Page projection for the stamp camera. It does not register a route, mark a route live,
+/// upload a photo, or create or exchange a stamp. A missing write stays hidden.
+/// Unknown text is an em dash (U+2014). A missing number is never shown as 0.
+public enum StampCameraCapturePhase: String, Equatable, Sendable {
+    case ready, review, uploading, awaitingCreate, creating, unknown, created, unavailable, failed
+}
+
+public enum StampCameraPagePhase: String, Equatable, Sendable {
+    case loading, empty, error, unknown, ready
+}
+
+public struct StampCameraPageValue: Equatable, Sendable {
+    public let phase: StampCameraPagePhase
+    public let text: String
+    public let reason: String
+}
+
+public enum StampCameraPageFact: Equatable, Sendable {
+    case loading
+    case empty
+    case error(String)
+    case unknown
+    /// A present integer, including a measured zero. This is not a numeric string.
+    case count(Int)
+}
+
+public enum StampCameraPageReady {
+    public static let unknownMark = "\u{2014}"
+    public static let registersRoute = false
+    public static let marksRouteLive = false
+    public static let showsMerchantChoice = false
+    public static let paymentEnabled = false
+    public static let payoutEnabled = false
+    public static let withdrawalEnabled = false
+    public static let virtualGoodsEnabled = false
+
+    public static var createPath: String {
+        RoamExperienceMutation.createStamp(pictureURL: "", caption: "", idempotencyKey: "").path
+    }
+    public static var exchangePath: String {
+        RoamExperienceMutation.exchangeStamp(givenStampID: 1).path
+    }
+    public static var listPath: String { RoamAlbumMetadataReadRoute.path }
+
+    public static func project(_ fact: StampCameraPageFact) -> StampCameraPageValue {
+        switch fact {
+        case .loading:
+            return make(.loading, "", "loading")
+        case .empty:
+            return make(.empty, unknownMark, "empty")
+        case .unknown:
+            return make(.unknown, unknownMark, "unknown")
+        case .error(let token):
+            return errorValue(token)
+        case .count(let number):
+            guard number >= 0 else { return make(.unknown, unknownMark, "unknown") }
+            return make(.ready, String(number), "ready.count")
+        }
+    }
+
+    /// Loading wins over a stale failure. A confirmed empty album stays empty.
+    /// A missing total, a negative total, or a zero that is not an empty list stays unknown.
+    public static func albumTotal(loading: Bool, failure: String? = nil, confirmedTotal: Int? = nil, listIsEmpty: Bool = false) -> StampCameraPageValue {
+        if loading { return project(.loading) }
+        if let failure { return project(.error(failure)) }
+        guard let confirmedTotal, confirmedTotal >= 0 else { return project(.unknown) }
+        if confirmedTotal == 0 { return listIsEmpty ? project(.empty) : project(.unknown) }
+        return project(.count(confirmedTotal))
+    }
+
+    /// A missing, zero, or negative created id is unknown. The receipt contract already rejects non-positive ids.
+    public static func createdIdentifier(loading: Bool, failure: String? = nil, id: Int? = nil) -> StampCameraPageValue {
+        if loading { return project(.loading) }
+        if let failure { return project(.error(failure)) }
+        guard let id, id > 0 else { return project(.unknown) }
+        return project(.count(id))
+    }
+
+    /// A missing caption is unknown. A present caption, including an empty one, keeps its measured UTF-16 length.
+    public static func captionUnits(_ caption: String?) -> StampCameraPageValue {
+        guard let caption else { return project(.unknown) }
+        if caption.utf16.count > 30 { return project(.error("limit")) }
+        return project(.count(caption.utf16.count))
+    }
+
+    public static func screen(phase: StampCameraCapturePhase, hasSelection: Bool) -> StampCameraPageValue {
+        switch phase {
+        case .uploading, .creating:
+            return project(.loading)
+        case .failed:
+            return project(.error("failed"))
+        case .unknown, .unavailable:
+            return project(.unknown)
+        case .ready:
+            return hasSelection ? make(.ready, "", "ready") : project(.empty)
+        case .review, .awaitingCreate, .created:
+            return make(.ready, "", "ready")
+        }
+    }
+
+    public static func screen(coordinatorPhase: RoamStampCaptureCoordinator.Phase, hasSelection: Bool) -> StampCameraPageValue {
+        let mapped: StampCameraCapturePhase
+        switch coordinatorPhase {
+        case .ready: mapped = .ready
+        case .review: mapped = .review
+        case .uploading: mapped = .uploading
+        case .awaitingCreate: mapped = .awaitingCreate
+        case .creating: mapped = .creating
+        case .unknown: mapped = .unknown
+        case .created: mapped = .created
+        case .unavailable: mapped = .unavailable
+        case .failed: mapped = .failed
+        }
+        return screen(phase: mapped, hasSelection: hasSelection)
+    }
+
+    private static func make(_ phase: StampCameraPagePhase, _ text: String, _ reason: String) -> StampCameraPageValue {
+        StampCameraPageValue(phase: phase, text: text, reason: reason)
+    }
+
+    private static func errorValue(_ token: String) -> StampCameraPageValue {
+        let trimmed = token.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || trimmed.caseInsensitiveCompare("UNKNOWN") == .orderedSame
+            || trimmed == unknownMark || isNumericToken(trimmed) {
+            return make(.unknown, unknownMark, "unknown")
+        }
+        return make(.error, trimmed, "error")
+    }
+
+    private static func isNumericToken(_ text: String) -> Bool {
+        text.range(of: #"^-?\d+(\.\d+)?$"#, options: .regularExpression) != nil
+    }
+}
+
+/// Existing create, exchange, and list contracts. A false capability hides its path.
+/// This value does not register a route and does not mark a route live.
+public struct StampCameraPageContract: Equatable, Sendable {
+    public let showsCreate: Bool
+    public let showsExchange: Bool
+    public let createPath: String?
+    public let exchangePath: String?
+    public let listPath: String?
+    public let registersRoute: Bool
+    public let marksRouteLive: Bool
+
+    public init(hasAlbumReader: Bool) {
+        showsCreate = RoamExperienceCapabilities.mediaUpload
+        showsExchange = RoamExperienceCapabilities.stampExchange
+        createPath = showsCreate ? StampCameraPageReady.createPath : nil
+        exchangePath = showsExchange ? StampCameraPageReady.exchangePath : nil
+        listPath = hasAlbumReader ? StampCameraPageReady.listPath : nil
+        registersRoute = false
+        marksRouteLive = false
+    }
+}
+
+#if DEBUG
+public enum StampCameraPageFixtureData {
+    public static let unknownMark = StampCameraPageReady.unknownMark
+    public static let loading = StampCameraPageReady.albumTotal(loading: true, failure: "stale", confirmedTotal: 0, listIsEmpty: true)
+    public static let empty = StampCameraPageReady.albumTotal(loading: false, confirmedTotal: 0, listIsEmpty: true)
+    public static let unknown = StampCameraPageReady.albumTotal(loading: false, confirmedTotal: nil)
+    public static let failed = StampCameraPageReady.albumTotal(loading: false, failure: "unavailable")
+    public static let createdUnknown = StampCameraPageReady.createdIdentifier(loading: false, id: 0)
+    public static let hiddenContract = StampCameraPageContract(hasAlbumReader: false)
+    public static let readContract = StampCameraPageContract(hasAlbumReader: true)
+}
+#endif

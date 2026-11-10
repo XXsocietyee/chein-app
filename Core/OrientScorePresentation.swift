@@ -167,3 +167,232 @@ public enum OrientScorePresentation {
         return .failed(message: W8Text.t("计分暂时无法读取，请稍后重试。", "The score can't be loaded right now. Please try again."), retryable: true)
     }
 }
+
+// MARK: - Page binding for the existing score read
+// `OrientSessionService.score` already reads `api/orient/scoring/session/{id}`.
+// This type does not add a route and does not mark the page live. Appeal, dispute,
+// sync, and settle stay off. A missing client capability stays hidden.
+// UNKNOWN, null, a missing number, a numeric string, and a non-integral number
+// display as an em dash and are never stored as 0. A JSON integer 0 score stays
+// the existing centi zero ("0.00"). A JSON integer 0 for points or explore XP stays "0".
+
+public struct OrientScorePage: Equatable, Sendable {
+    public static let unknownDisplay = "—"
+    /// Same path `OrientSessionService.score` already sends. Not a new route.
+    public static let readPath = "api/orient/scoring/session/{}"
+
+    public enum Phase: Equatable, Sendable {
+        case loading
+        case empty
+        case error
+        case unknown
+        case ready(Facts)
+    }
+
+    public struct TimelineFact: Equatable, Sendable {
+        public let entryID: Int
+        public let deltaText: String
+        public let runningText: String
+
+        public init(entryID: Int, deltaText: String, runningText: String) {
+            self.entryID = entryID
+            self.deltaText = deltaText
+            self.runningText = runningText
+        }
+    }
+
+    public struct Facts: Equatable, Sendable {
+        public enum Settlement: Equatable, Sendable {
+            case absent
+            case unknown
+            case settled(total: String, points: String, xp: String)
+        }
+
+        public let sessionID: Int
+        public let phaseText: String
+        public let totalText: String
+        public let dimensions: [OrientScoreDimensionRow]
+        public let settlement: Settlement
+        /// False when the ledger is missing, null, or not an array. An empty array is a known empty ledger.
+        public let timelineKnown: Bool
+        public let timeline: [TimelineFact]
+
+        public init(sessionID: Int, phaseText: String, totalText: String, dimensions: [OrientScoreDimensionRow], settlement: Settlement, timelineKnown: Bool, timeline: [TimelineFact]) {
+            self.sessionID = sessionID
+            self.phaseText = phaseText
+            self.totalText = totalText
+            self.dimensions = dimensions
+            self.settlement = settlement
+            self.timelineKnown = timelineKnown
+            self.timeline = timeline
+        }
+    }
+
+    public let clientCapabilityPresent: Bool
+    public let serverFactPresent: Bool
+    public let phase: Phase?
+    public var showsContent: Bool {
+        switch phase {
+        case .empty, .error, .unknown, .ready: return true
+        case .loading, nil: return false
+        }
+    }
+    public var showsMerchantChoice: Bool { false }
+    public var appealEnabled: Bool { false }
+    public var disputeEnabled: Bool { false }
+    public var settleEnabled: Bool { false }
+    public var syncEnabled: Bool { false }
+    public var paymentEnabled: Bool { false }
+    public var payoutEnabled: Bool { false }
+    public var withdrawalEnabled: Bool { false }
+
+    public init(clientCapabilityPresent: Bool, serverFactPresent: Bool, phase: Phase?) {
+        self.clientCapabilityPresent = clientCapabilityPresent
+        self.serverFactPresent = serverFactPresent
+        let revealed = clientCapabilityPresent && serverFactPresent
+        if revealed {
+            switch phase {
+            case .loading, nil: self.phase = .unknown
+            case .empty, .error, .unknown, .ready: self.phase = phase
+            }
+        } else if clientCapabilityPresent, case .loading? = phase {
+            self.phase = .loading
+        } else {
+            self.phase = nil
+        }
+    }
+
+    /// A decoded score has only literal integers. Zero stays the existing centi zero.
+    /// Null settlement stays absent, so points are not filled in as 0.
+    public static func facts(from score: OrientSessionScore) -> Facts {
+        let summary = OrientScorePresentation.summary(from: score)
+        let settlement: Facts.Settlement
+        if let row = summary.settlement {
+            settlement = .settled(total: row.total, points: String(row.points), xp: String(row.xp))
+        } else {
+            settlement = .absent
+        }
+        return Facts(
+            sessionID: summary.sessionID,
+            phaseText: summary.phase,
+            totalText: summary.total,
+            dimensions: summary.dimensions,
+            settlement: settlement,
+            timelineKnown: true,
+            timeline: summary.timeline.map {
+                TimelineFact(entryID: $0.entryID, deltaText: $0.delta, runningText: $0.running)
+            })
+    }
+
+    /// `value == nil` with no failure and no load stays hidden: the read has not produced a fact.
+    /// `roundPresent == false` is the existing "no round of yours" empty state, not a zero score.
+    public static func bind(clientCapabilityPresent: Bool, loading: Bool = false, failed: Bool = false, roundPresent: Bool = true, value: OrientSessionJSON? = nil) -> Self {
+        guard clientCapabilityPresent else {
+            return Self(clientCapabilityPresent: false, serverFactPresent: false, phase: nil)
+        }
+        if failed {
+            return Self(clientCapabilityPresent: true, serverFactPresent: true, phase: .error)
+        }
+        if loading, value == nil {
+            return Self(clientCapabilityPresent: true, serverFactPresent: false, phase: .loading)
+        }
+        guard let value else {
+            if roundPresent {
+                return Self(clientCapabilityPresent: true, serverFactPresent: false, phase: nil)
+            }
+            return Self(clientCapabilityPresent: true, serverFactPresent: true, phase: .empty)
+        }
+        if case .object(let fields) = value {
+            if fields.isEmpty {
+                return Self(clientCapabilityPresent: true, serverFactPresent: true, phase: .empty)
+            }
+            if let facts = makeFacts(fields) {
+                return Self(clientCapabilityPresent: true, serverFactPresent: true, phase: .ready(facts))
+            }
+            return Self(clientCapabilityPresent: true, serverFactPresent: true, phase: .unknown)
+        }
+        return Self(clientCapabilityPresent: true, serverFactPresent: true, phase: .unknown)
+    }
+
+    /// Centi display. Only a JSON integer, or a finite number that is exactly an integer, is a score.
+    /// A literal 0 stays "0.00". UNKNOWN, null, a missing value, a numeric string, and a fraction are an em dash.
+    public static func scoreText(_ value: OrientSessionJSON?, signed: Bool = false) -> String {
+        guard let exact = exactScore(value) else { return unknownDisplay }
+        return OrientScoreFormat.centi(exact, signed: signed)
+    }
+
+    /// Points and explore XP. A literal 0 stays "0". A numeric string is an em dash, not 0.
+    public static func countText(_ value: OrientSessionJSON?) -> String {
+        guard let exact = exactScore(value) else { return unknownDisplay }
+        return String(exact)
+    }
+
+    private static func exactScore(_ value: OrientSessionJSON?) -> Int? {
+        guard let value else { return nil }
+        switch value {
+        case .integer(let number):
+            return number
+        case .number(let raw):
+            guard raw.isFinite, let exact = Int(exactly: raw) else { return nil }
+            return exact
+        case .string, .bool, .null, .object, .array:
+            return nil
+        }
+    }
+
+    private static func makeFacts(_ fields: [String: OrientSessionJSON]) -> Facts? {
+        guard case .integer(let sessionID) = fields["sessionId"], sessionID > 0 else { return nil }
+        let phaseText: String
+        if case .integer(let status) = fields["status"] {
+            phaseText = OrientScorePresentation.phase(status: status)
+        } else {
+            phaseText = unknownDisplay
+        }
+        let dimensions = object(fields["byDimension"]) ?? [:]
+        let rows = OrientScorePresentation.dimensionOrder.map { key in
+            OrientScoreDimensionRow(
+                key: key,
+                label: OrientScorePresentation.dimensionLabel(key),
+                value: scoreText(dimensions[key], signed: true))
+        }
+        let ledger = timelineFacts(fields["timeline"])
+        return Facts(
+            sessionID: sessionID,
+            phaseText: phaseText,
+            totalText: scoreText(fields["totalCenti"]),
+            dimensions: rows,
+            settlement: settlement(fields["settlement"]),
+            timelineKnown: ledger.known,
+            timeline: ledger.rows)
+    }
+
+    private static func settlement(_ value: OrientSessionJSON?) -> Facts.Settlement {
+        switch value {
+        case .none, .some(.null):
+            return .absent
+        case .some(.object(let body)):
+            return .settled(total: scoreText(body["totalCenti"]), points: countText(body["pointsAwarded"]), xp: countText(body["xpAwarded"]))
+        default:
+            return .unknown
+        }
+    }
+
+    private static func timelineFacts(_ value: OrientSessionJSON?) -> (known: Bool, rows: [TimelineFact]) {
+        guard let value, case .array(let rows) = value else { return (false, []) }
+        var facts: [TimelineFact] = []
+        for row in rows {
+            guard case .object(let item) = row,
+                  case .integer(let entryID) = item["entryId"], entryID > 0 else { continue }
+            facts.append(TimelineFact(
+                entryID: entryID,
+                deltaText: scoreText(item["deltaCenti"], signed: true),
+                runningText: scoreText(item["runningCenti"])))
+        }
+        return (true, facts)
+    }
+
+    private static func object(_ value: OrientSessionJSON?) -> [String: OrientSessionJSON]? {
+        guard let value, case .object(let fields) = value else { return nil }
+        return fields
+    }
+}

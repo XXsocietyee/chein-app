@@ -539,5 +539,96 @@ final class ActivityRegistrationParityW206Tests: XCTestCase {
         XCTAssertEqual(summary.ticketSummaryText, "1 个票种")
         XCTAssertEqual(summary.visibilityNotice, "默认公开：发布后会在活动列表展示，继续即按当前公开范围发布。")
     }
+
+    func testBaomingUnknownMoneyIsEmDashAndLiteralZeroStaysZero() {
+        let missing = RegistrationBaomingAmountFact(serverAmount: nil)
+        XCTAssertEqual(missing.kind, .unknown)
+        XCTAssertEqual(missing.displayText, RegistrationBaomingReadPhase.unknownMark)
+        XCTAssertEqual(missing.displayText, "—")
+        XCTAssertNotEqual(missing.displayText, "0")
+        XCTAssertEqual(RegistrationBaomingAmountFact(serverAmount: -1).displayText, "—")
+        XCTAssertEqual(RegistrationBaomingAmountFact(serverAmount: .zero).displayText, "0")
+        XCTAssertEqual(RegistrationBaomingCountFact(serverCount: nil).displayText, "—")
+        XCTAssertEqual(RegistrationBaomingCountFact(serverCount: -3).displayText, "—")
+        XCTAssertEqual(RegistrationBaomingCountFact(serverCount: 0).displayText, "0")
+        XCTAssertEqual(RegistrationBaomingCountFact(serverCount: 4).displayText, "4")
+    }
+
+    func testBaomingPagePhasesHideAmountsUntilAKnownQuote() throws {
+        let empty = try RegistrationBaomingFixtureData.activity(RegistrationBaomingFixtureData.activityEmpty)
+        let loading = RegistrationBaomingCheckoutFacts.project(
+            sessionReady: false, tickets: empty.tickets, quoteState: .idle, selectedTicketID: nil)
+        XCTAssertEqual(loading.phase, .loading)
+        XCTAssertEqual(loading.payAmount.displayText, "—")
+        XCTAssertTrue(loading.paymentStaysHidden)
+
+        let quoting = RegistrationBaomingCheckoutFacts.project(
+            sessionReady: true, tickets: empty.tickets, quoteState: .loading, selectedTicketID: nil)
+        XCTAssertEqual(quoting.phase, .loading)
+        XCTAssertEqual(quoting.orderAmount.displayText, "—")
+
+        let vacant = RegistrationBaomingCheckoutFacts.project(
+            sessionReady: true, tickets: [], quoteState: .idle, selectedTicketID: nil)
+        XCTAssertEqual(vacant.phase, .empty)
+        XCTAssertEqual(vacant.payAmount.displayText, "—")
+
+        let failed = RegistrationBaomingCheckoutFacts.project(
+            sessionReady: true, tickets: [], quoteState: .unavailable(.other), selectedTicketID: nil)
+        XCTAssertEqual(failed.phase, .error)
+        XCTAssertEqual(failed.pointsDeduction.displayText, "—")
+
+        let activity = try RegistrationBaomingFixtureData.activity(RegistrationBaomingFixtureData.activityWithUnknownPrice)
+        let idle = RegistrationBaomingCheckoutFacts.project(
+            sessionReady: true, tickets: activity.tickets, quoteState: .idle, selectedTicketID: 9401)
+        XCTAssertEqual(idle.phase, .unknown)
+        XCTAssertEqual(idle.remainingInventory.displayText, "—")
+
+        let unknownQuote = try RegistrationBaomingFixtureData.quote(RegistrationBaomingFixtureData.quoteUnknownPay)
+        XCTAssertEqual(unknownQuote.pointsUsed, 0)
+        XCTAssertNil(unknownQuote.payAmount)
+        XCTAssertNil(unknownQuote.pointsDeductYuan)
+        let unknown = RegistrationBaomingCheckoutFacts.project(
+            sessionReady: true, tickets: activity.tickets, quoteState: .received(unknownQuote), selectedTicketID: 9401)
+        XCTAssertEqual(unknown.phase, .unknown)
+        XCTAssertEqual(unknown.payAmount.displayText, "—")
+        XCTAssertEqual(unknown.pointsDeduction.displayText, "—")
+
+        let zeroQuote = try RegistrationBaomingFixtureData.quote(RegistrationBaomingFixtureData.quoteKnownZero)
+        let zero = RegistrationBaomingCheckoutFacts.project(
+            sessionReady: true, tickets: activity.tickets, quoteState: .received(zeroQuote), selectedTicketID: 9401)
+        XCTAssertEqual(zero.phase, .ready)
+        XCTAssertEqual(zero.payAmount.displayText, "0")
+        XCTAssertEqual(zero.orderAmount.displayText, "—")
+        XCTAssertEqual(zero.remainingInventory.displayText, "—")
+        XCTAssertTrue(zero.paymentStaysHidden)
+    }
+
+    func testBaomingCoordinatorProjectsTheExistingQuoteAndDoesNotCreateOrPay() async throws {
+        let service = ParitySliceService()
+        service.quoteJSON = RegistrationBaomingFixtureData.quoteKnown
+        let coordinator = RegistrationCoordinator(service: service, makeRequestID: { "baoming-page-ready" })
+        let activity = try RegistrationBaomingFixtureData.activity(RegistrationBaomingFixtureData.activityWithUnknownPrice)
+        XCTAssertEqual(coordinator.baomingCheckoutFacts(tickets: activity.tickets, selectedTicketID: 9401).phase, .loading)
+        try coordinator.setAccount(id: 1, token: "fixture-only-token")
+        let selection = try RegistrationQuoteRequest(ownerID: 9400, ticketID: 9401)
+        XCTAssertEqual(coordinator.select(selection), .applied)
+        XCTAssertEqual(coordinator.baomingCheckoutFacts(tickets: activity.tickets, selectedTicketID: 9401).phase, .unknown)
+        let action = await coordinator.requestQuote()
+        XCTAssertEqual(action, .applied)
+        let facts = coordinator.baomingCheckoutFacts(tickets: activity.tickets, selectedTicketID: 9401)
+        let quote = try RegistrationBaomingFixtureData.quote(RegistrationBaomingFixtureData.quoteKnown)
+        XCTAssertEqual(facts.phase, .ready)
+        XCTAssertEqual(facts.payAmount.displayText, NSDecimalNumber(decimal: quote.payAmount!).stringValue)
+        XCTAssertEqual(facts.pointsDeduction.displayText, NSDecimalNumber(decimal: quote.pointsDeductYuan!).stringValue)
+        XCTAssertEqual(facts.memberDiscount.displayText, NSDecimalNumber(decimal: quote.memberDiscountYuan!).stringValue)
+        XCTAssertEqual(facts.couponDeduction.displayText, NSDecimalNumber(decimal: quote.couponDeductYuan!).stringValue)
+        XCTAssertEqual(facts.orderAmount.displayText, "—")
+        XCTAssertNotEqual(facts.payAmount.displayText, "—")
+        XCTAssertNotEqual(facts.payAmount.displayText, "0")
+        XCTAssertTrue(facts.paymentStaysHidden)
+        XCTAssertEqual(service.quotes.count, 1)
+        XCTAssertTrue(service.creates.isEmpty)
+        XCTAssertTrue(service.reads.isEmpty)
+    }
 }
 #endif

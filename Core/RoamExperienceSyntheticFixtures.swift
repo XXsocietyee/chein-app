@@ -12,4 +12,16 @@ public enum RoamExperienceSyntheticFixtures {
     public static let tiles = #"{"tiles":["s00twy0","s00twy1"],"nextAfterId":2,"hasMore":false}"#
     public static let badge = #"{"code":"sample-badge","name":"Synthetic shop badge","threshold":3}"#
 }
+
+/// DEBUG bytes for `pages/roam/index` only. No host, token, device location, or live route.
+public enum RoamHomeIndexFixtureData {
+    public static let unknownText = "—"
+    public static let entryNearby = #"{"code":200,"data":{"radius":3000,"items":[{"kind":"activity","id":901,"topicId":801,"productType":1,"name":"Synthetic city clues","distance":1500},{"kind":"hangout","id":7,"title":"Retired hangout"}]}}"#
+    public static let entryNearbyEmpty = #"{"code":200,"data":{"radius":3000,"items":[]}}"#
+    public static let entryNearbyHTTPError = #"{"code":503}"#
+    public static let passportMissingMetrics = #"[{"ts":1700000000000}]"#
+    public static let passportUnknownDay = #"[{"ts":0}]"#
+    public static let passportKnownZero = #"[{"ts":1700000000000,"shops":0,"distance":0}]"#
+    public static let passportEmpty = "[]"
+}
 #endif

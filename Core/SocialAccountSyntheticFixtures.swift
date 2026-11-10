@@ -20,4 +20,16 @@ public enum SocialAccountSyntheticFixtures {
         try JSONDecoder().decode(MessagingMessage.self, from: Data(#"{"id":90,"conversationId":901,"senderId":82,"status":0,"msgType":2,"content":"https://media.example.test/synthetic.png"}"#.utf8))
     }
 }
+
+/// Offline document payloads for the play-detail page. Same existing detail contract; no host and no request.
+public enum InformationDetailFixtureData {
+    public static let contractPath = "api/common/infomation_detail"
+    public static let readyJSON = #"{"id":91,"title":"Example city guide / 示例城市指南","subtitle":"Synthetic route basics","contents":"Offline fixture body.","createTime":"2026-10-01 08:30:00"}"#
+    public static let removedJSON = "{}"
+    public static let noContentJSON = #"{"id":94,"title":"Empty fixture","subtitle":"Synthetic route basics","contents":""}"#
+    public static let blankDocumentJSON = #"{"id":95,"title":"","contents":""}"#
+    public static let literalZeroJSON = "0"
+    public static let missingCountJSON = "null"
+    public static let numericStringZeroJSON = "\"0\""
+}
 #endif

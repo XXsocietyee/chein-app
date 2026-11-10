@@ -49,6 +49,51 @@ final class DiscoveryPlayTemplateExtrasTests: XCTestCase {
         XCTAssertTrue(topic.isTopicTemplate)
         XCTAssertEqual(topic.stats.map(\.kind), [.chapters, .nodes, .totalTime])
         XCTAssertEqual(topic.stats.map(\.value), ["3", "6", "90"])
+        XCTAssertEqual(game.useCountText, "0")
+    }
+
+    func testMissingCountsAreEmDashAndLiteralZeroStaysZero() throws {
+        let missingTopic = DiscoveryPlayTemplateDetailPresentation(try read(#"{"id":2,"productType":2}"#), ownScope: false)
+        XCTAssertEqual(missingTopic.stats.map(\.kind), [.chapters, .nodes])
+        XCTAssertEqual(missingTopic.stats.map(\.value), ["—", "—"])
+        XCTAssertEqual(missingTopic.commentCountText, "—")
+        XCTAssertEqual(missingTopic.useCountText, "—")
+        XCTAssertNil(missingTopic.commentCount)
+        let zero = DiscoveryPlayTemplateDetailPresentation(try read(#"{"id":2,"productType":2,"chapterCount":0,"nodeCount":0,"commentCount":0,"useNum":0,"totalTime":""}"#), ownScope: false)
+        XCTAssertEqual(zero.stats.map(\.kind), [.chapters, .nodes])
+        XCTAssertEqual(zero.stats.map(\.value), ["0", "0"])
+        XCTAssertEqual(zero.commentCount, 0)
+        XCTAssertEqual(zero.commentCountText, "0")
+        XCTAssertEqual(zero.useCountText, "0")
+        let game = DiscoveryPlayTemplateDetailPresentation(try read(#"{"id":1}"#), ownScope: false)
+        XCTAssertEqual(game.stats.map(\.kind), [.uses])
+        XCTAssertEqual(game.stats.map(\.value), ["—"])
+        XCTAssertEqual(game.useCountText, "—")
+        XCTAssertEqual(game.commentCountText, "—")
+        let blank = DiscoveryPlayTemplateDetailPresentation(try read(#"{"id":2,"productType":2,"chapterCount":"  ","locationCount":null,"commentCount":"0"}"#), ownScope: false)
+        XCTAssertEqual(blank.stats.first?.value, "—")
+        XCTAssertEqual(blank.commentCount, 0)
+        XCTAssertEqual(blank.commentCountText, "0")
+    }
+
+    func testReadPhaseKeepsLoadingEmptyErrorAndUnknownApart() throws {
+        let zero = try read(#"{"id":1,"useNum":0,"commentCount":0}"#)
+        let ready = DiscoveryPlayTemplateDetailPhase.classify(isLoading: false, failure: nil, read: zero, ownScope: false)
+        guard case .ready(let presentation) = ready else { return XCTFail("expected ready") }
+        XCTAssertEqual(presentation.useCountText, "0")
+        XCTAssertEqual(presentation.commentCountText, "0")
+        let stale = DiscoveryPlayTemplateDetailPhase.classify(isLoading: true, failure: nil, read: zero, ownScope: false)
+        XCTAssertEqual(stale, .loading)
+        XCTAssertEqual(DiscoveryPlayTemplateDetailPhase.classify(isLoading: false, failure: nil, read: nil, ownScope: false), .empty)
+        XCTAssertEqual(DiscoveryPlayTemplateDetailPhase.classify(isLoading: false, failure: DiscoveryTemplateUnavailable.notFound, read: nil, ownScope: false), .error)
+        XCTAssertEqual(DiscoveryPlayTemplateDetailPhase.classify(isLoading: false, failure: APIError.malformedResponse, read: nil, ownScope: false), .error)
+        XCTAssertEqual(DiscoveryPlayTemplateDetailPhase.classify(isLoading: false, failure: DiscoveryTemplateUnavailable.unknown, read: zero, ownScope: false), .unknown)
+        let missing = try read(#"{"id":1}"#)
+        guard case .ready(let unknownCounts) = DiscoveryPlayTemplateDetailPhase.classify(isLoading: false, failure: nil, read: missing, ownScope: false) else {
+            return XCTFail("a template with a missing count is still ready")
+        }
+        XCTAssertEqual(unknownCounts.useCountText, "—")
+        XCTAssertEqual(unknownCounts.commentCountText, "—")
     }
 
     func testNodePreviewIsInertAndNeedsAnAnswer() throws {

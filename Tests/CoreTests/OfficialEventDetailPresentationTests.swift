@@ -164,4 +164,64 @@ final class OfficialEventDetailPresentationTests: XCTestCase {
         XCTAssertEqual(value.missions[1].binding?.sourceRefID, 501)
         XCTAssertEqual(value.detailCTA, .roamArrival)
     }
+
+    func testDetailPageStateKeepsLoadingEmptyErrorAndUnknownOffZero() throws {
+        let stale = try event(#","status":3,"participants":12,"signed":true,"myProgress":4"#)
+        let loading = OfficialEventDetailPageState.project(loading: true, error: URLError(.cancelled), event: stale)
+        XCTAssertEqual(loading.phase, .loading)
+        XCTAssertEqual(loading.participantsText, "")
+        XCTAssertEqual(loading.progressText, "")
+        XCTAssertFalse(loading.participantsText.contains("0"))
+        XCTAssertNotEqual(loading.participantsText, OfficialEventDetailPageState.unknownText)
+
+        let failed = OfficialEventDetailPageState.project(loading: false, error: URLError(.notConnectedToInternet), event: stale)
+        XCTAssertEqual(failed.phase, .error)
+        XCTAssertEqual(failed.participantsText, "—")
+        XCTAssertEqual(failed.progressText, "—")
+        XCTAssertFalse(failed.participantsText.contains("0"))
+
+        let blank = try decode(OfficialEvent.self, OfficialEventDetailFixtureData.empty)
+        let empty = OfficialEventDetailPageState.project(loading: false, event: blank)
+        XCTAssertEqual(empty.phase, .empty)
+        XCTAssertEqual(empty.participantsText, "—")
+        XCTAssertEqual(empty.progressText, "—")
+        let absent = OfficialEventDetailPageState.project(loading: false)
+        XCTAssertEqual(absent.phase, .empty)
+        XCTAssertEqual(absent.participantsText, "—")
+
+        let unknownEvent = try decode(OfficialEvent.self, OfficialEventDetailFixtureData.unknown)
+        let unknown = OfficialEventDetailPageState.project(loading: false, event: unknownEvent)
+        XCTAssertEqual(unknown.phase, .unknown)
+        XCTAssertEqual(unknown.participantsText, "—")
+        XCTAssertEqual(unknown.progressText, "")
+        XCTAssertFalse(unknown.participantsText.contains("0"))
+
+        let zero = try decode(OfficialEvent.self, OfficialEventDetailFixtureData.literalZero)
+        let ready = OfficialEventDetailPageState.project(loading: false, event: zero)
+        XCTAssertEqual(ready.phase, .ready)
+        XCTAssertEqual(ready.participantsText, "0")
+        XCTAssertEqual(ready.progressText, "0")
+
+        let counted = try decode(OfficialEvent.self, OfficialEventDetailFixtureData.countedTasks)
+        let tasks = OfficialEventDetailPageState.project(loading: false, event: counted)
+        XCTAssertEqual(tasks.phase, .ready)
+        XCTAssertEqual(tasks.participantsText, "0")
+        XCTAssertEqual(tasks.progressText, "0/1")
+
+        let missing = OfficialEventDetailPageState.project(loading: false, event: try event(#","status":3,"signed":true"#))
+        XCTAssertEqual(missing.phase, .ready)
+        XCTAssertEqual(missing.participantsText, "—")
+        XCTAssertEqual(missing.progressText, "—")
+
+        XCTAssertFalse(OfficialEventDetailPageState.registersRoute)
+        XCTAssertFalse(OfficialEventDetailPageState.marksRouteLive)
+        XCTAssertFalse(OfficialEventDetailPageState.showsMerchantChoice)
+        XCTAssertFalse(OfficialEventDetailPageState.paymentEnabled)
+        XCTAssertFalse(OfficialEventDetailPageState.payoutEnabled)
+        XCTAssertFalse(OfficialEventDetailPageState.withdrawalEnabled)
+        XCTAssertFalse(OfficialEventDetailPageState.virtualGoodsEnabled)
+        XCTAssertFalse(OfficialEventDetailPageState.shareVisible)
+        XCTAssertTrue(OfficialEventDetailPageState.usesExistingDetailRead)
+        XCTAssertEqual(OfficialEventDetailPageState.unknownText, "—")
+    }
 }

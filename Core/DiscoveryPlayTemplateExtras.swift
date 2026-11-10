@@ -139,6 +139,10 @@ public struct DiscoveryPlayTemplateDetailPresentation: Equatable {
     public let gallery: [String]
     public let rating: String?
     public let commentCount: Int?
+    /// Review count as shown. Missing is an em dash. A literal 0 stays `"0"`.
+    public let commentCountText: String
+    /// Adoption count as shown. Missing is an em dash. A literal 0 stays `"0"`.
+    public let useCountText: String
     public let nodePreview: NodePreview?
     public let isTopicTemplate: Bool
 
@@ -152,12 +156,23 @@ public struct DiscoveryPlayTemplateDetailPresentation: Equatable {
         else { publisher = .platform }
         reviewFeedback = ownScope ? extras.reason : nil
         isTopicTemplate = extras.isTopicTemplate
+        useCountText = Self.countText(item.useNum)
         if isTopicTemplate {
-            stats = [Stat(kind: .chapters, value: extras.chapterCount ?? ""), Stat(kind: .nodes, value: extras.locationCount ?? ""),
-                     Stat(kind: .totalTime, value: extras.totalTime ?? item.durationMinutes.map(String.init) ?? "")].filter { !$0.value.isEmpty }
+            // Chapter and node counts stay on the row when the server omits them.
+            // Duration text is not a count: a missing duration stays off the row.
+            var rows = [Stat(kind: .chapters, value: Self.countText(extras.chapterCount)),
+                        Stat(kind: .nodes, value: Self.countText(extras.locationCount))]
+            if let time = Self.present(extras.totalTime ?? item.durationMinutes.map(String.init) ?? "") {
+                rows.append(Stat(kind: .totalTime, value: time))
+            }
+            stats = rows
         } else {
-            stats = [Stat(kind: .uses, value: item.useNum.map(String.init) ?? ""), Stat(kind: .rating, value: extras.rating ?? ""),
-                     Stat(kind: .duration, value: item.durationMinutes.map(String.init) ?? "")].filter { !$0.value.isEmpty }
+            var rows = [Stat(kind: .uses, value: useCountText)]
+            if let rating = Self.present(extras.rating ?? "") { rows.append(Stat(kind: .rating, value: rating)) }
+            if let minutes = Self.present(item.durationMinutes.map(String.init) ?? "") {
+                rows.append(Stat(kind: .duration, value: minutes))
+            }
+            stats = rows
         }
         ruleSteps = (item.ruleInstructions ?? "").components(separatedBy: .newlines).compactMap(DiscoveryPlayTemplateExtras.text)
         verificationMethodText = extras.validationMethodText
@@ -169,6 +184,7 @@ public struct DiscoveryPlayTemplateDetailPresentation: Equatable {
         gallery = images
         rating = extras.rating
         commentCount = extras.commentCount
+        commentCountText = Self.countText(extras.commentCount)
         switch item.validationMethod {
         case nil, 0?: nodePreview = nil
         case 1?: nodePreview = .text(question: questionText)
@@ -177,10 +193,41 @@ public struct DiscoveryPlayTemplateDetailPresentation: Equatable {
         }
     }
 
+    /// Missing and blank counts are an em dash. A decoded 0 stays `"0"`.
+    static func countText(_ value: Int?) -> String { value.map(String.init) ?? "—" }
+    static func countText(_ value: String?) -> String {
+        guard let value, !value.isEmpty else { return "—" }
+        return value
+    }
+    private static func present(_ value: String) -> String? { value.isEmpty ? nil : value }
+
     /// `templatedetail.js splitValues`.
     static func splitValues(_ text: String?) -> [String] {
         let separators = CharacterSet(charactersIn: "·、,，;；/")
         return (text ?? "").components(separatedBy: separators).compactMap(DiscoveryPlayTemplateExtras.text)
+    }
+}
+
+/// One public template-detail read, classified for the existing info contract.
+/// Loading, empty, error, and an unrecognized refusal are separate. A ready template
+/// keeps a missing count as an em dash and a literal 0 as `"0"`. This does not send
+/// and does not register a route.
+public enum DiscoveryPlayTemplateDetailPhase: Equatable {
+    case loading
+    case empty
+    case error
+    /// The server refused, and the message is not one of the known template reasons.
+    case unknown
+    case ready(DiscoveryPlayTemplateDetailPresentation)
+
+    public static func classify(isLoading: Bool, failure: Error?, read: DiscoveryPlayTemplateRead?, ownScope: Bool) -> Self {
+        if isLoading { return .loading }
+        if let failure {
+            if (failure as? DiscoveryTemplateUnavailable) == .unknown { return .unknown }
+            return .error
+        }
+        guard let read else { return .empty }
+        return .ready(DiscoveryPlayTemplateDetailPresentation(read, ownScope: ownScope))
     }
 }
 

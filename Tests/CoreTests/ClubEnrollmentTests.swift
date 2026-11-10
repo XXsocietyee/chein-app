@@ -15,9 +15,40 @@ final class ClubEnrollmentTests: XCTestCase {
     func testMissingCountsAndVerificationAreUnknownNotZeroOrPending() throws {
         let team = try ClubEnrollmentTeam.list(raw("[{\"id\":91}]"), clubID: 81)[0]
         XCTAssertNil(team.signupCount)
+        XCTAssertEqual(team.signupCountText, ClubEnrollmentCountText.unknown)
         let value = try ClubEnrollmentRoster(value: roster(#""cmsRegistrationList":[{"id":121,"paymentStatus":2}]"#), scope: scope)
         XCTAssertEqual(value.tickets[0].registrants[0].checkin, .unknown)
         XCTAssertNil(value.refundableCount); XCTAssertNil(value.teamStatus)
+        XCTAssertEqual(value.refundableCountText, ClubEnrollmentCountText.unknown)
+    }
+    func testNumericStringAndUnknownTokenStayEmDashWhileLiteralZeroStaysZero() throws {
+        let stringZero = try ClubEnrollmentTeam.list(raw(#"[{"id":91,"signupCount":"0"}]"#), clubID: 81)[0]
+        XCTAssertNil(stringZero.signupCount)
+        XCTAssertEqual(stringZero.signupCountText, "\u{2014}")
+        let token = try ClubEnrollmentTeam.list(raw(#"[{"id":91,"signupCount":" UNKNOWN "}]"#), clubID: 81)[0]
+        XCTAssertNil(token.signupCount)
+        XCTAssertEqual(token.signupCountText, ClubEnrollmentCountText.unknown)
+        let literalZero = try ClubEnrollmentTeam.list(raw(#"[{"id":91,"signupCount":0}]"#), clubID: 81)[0]
+        XCTAssertEqual(literalZero.signupCount, 0)
+        XCTAssertEqual(literalZero.signupCountText, "0")
+        let counted = try ClubEnrollmentRoster(value: roster(#""totalInventory":"0","teamStatus":"1","cmsRegistrationList":[{"id":121,"paymentStatus":"2","verificationStatus":"0"}]"#), scope: scope)
+        XCTAssertNil(counted.tickets[0].capacity)
+        XCTAssertEqual(counted.tickets[0].capacityText, "\u{2014}")
+        XCTAssertNil(counted.tickets[0].teamStatus)
+        XCTAssertNil(counted.teamStatus)
+        XCTAssertNil(counted.tickets[0].registrants[0].paymentStatus)
+        XCTAssertEqual(counted.tickets[0].registrants[0].checkin, .unknown)
+        XCTAssertNil(counted.refundableCount)
+        XCTAssertEqual(counted.refundableCountText, "—")
+        let zeros = try ClubEnrollmentRoster(value: roster(#""totalInventory":0,"teamStatus":0,"cmsRegistrationList":null"#), scope: scope)
+        XCTAssertEqual(zeros.tickets[0].capacity, 0)
+        XCTAssertEqual(zeros.tickets[0].capacityText, "0")
+        XCTAssertEqual(zeros.teamStatus, 0)
+        XCTAssertEqual(zeros.paidCount, 0)
+        XCTAssertEqual(zeros.paidCountText, "0")
+        XCTAssertEqual(zeros.refundableCount, 0)
+        XCTAssertEqual(zeros.refundableCountText, "0")
+        XCTAssertThrowsError(try ClubEnrollmentTeam.list(raw(#"[{"id":91,"signupCount":"n/a"}]"#), clubID: 81))
     }
     func testSourceIntegerModeCapacityDeadlineAndCounts() throws {
         let value = try ClubEnrollmentRoster(value: roster(#""mode":1,"totalInventory":8,"signupDeadline":"2026-10-10T12:30:00","teamStatus":1,"cmsRegistrationList":[{"id":121,"paymentStatus":2,"verificationStatus":0},{"id":122,"paymentStatus":2,"verificationStatus":1}]"#), scope: scope)
@@ -63,6 +94,18 @@ final class ClubEnrollmentTests: XCTestCase {
     }
     func testGlobalGovernanceValidationUsesNestedRosterContract() {
         XCTAssertThrowsError(try ClubGovernanceValidation.validate(roster(#""cmsRegistrationList":{}"#), operation: .registrations, scope: scope))
+    }
+    @MainActor func testAcceptedEmptyTopicListIsEmptyNotAnError() async {
+        let access = ClubGovernanceFixtureAccess()
+        access.overrideValue[.topics] = raw("[]")
+        let reader = ClubEnrollmentReader(clubID: 81, access: access)
+        await reader.activate(identity: access.identity)
+        XCTAssertTrue(reader.hasLoaded)
+        XCTAssertFalse(reader.loading)
+        XCTAssertNil(reader.failure)
+        XCTAssertTrue(reader.teams.isEmpty)
+        XCTAssertTrue(reader.rosters.isEmpty)
+        XCTAssertEqual(reader.headerLine, "0 个团")
     }
     @MainActor func testFocusExpandsRequestedTeamWithoutFilteringOthers() async {
         let access = ClubGovernanceFixtureAccess()
