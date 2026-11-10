@@ -14,6 +14,7 @@ import SwiftUI
 
 @MainActor struct ProfileFollowListView: View {
     @Environment(\.themeDomain) private var domain
+    @Environment(\.locale) private var locale
     @State private var flow: ProfileFollowListFlow
     let squareReader: any SquareReading
     let actions: SocialActionCoordinator?
@@ -52,7 +53,7 @@ import SwiftUI
                                 // State pill (the row itself opens the profile): outlined + check when followed, never colour alone.
                                 HStack(spacing: 4) {
                                     if member.isFollow { Image(systemName: "checkmark").font(.caption.weight(.bold)) }
-                                    Text(member.isFollow ? "followList.followed" : "followList.notFollowed", tableName: "ProfileFollowList")
+                                    Text(verbatim: member.isFollow ? (flow.kind == .followers ? locale.pick("互相关注", "Mutual") : locale.pick("已关注", "Following")) : locale.pick("未关注", "Not following"))
                                         .font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
                                 }
                                 .foregroundStyle(member.isFollow ? CYColor.textPrimary : CYColor.textSecondary)
