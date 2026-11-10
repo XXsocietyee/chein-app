@@ -17,25 +17,55 @@ import MapKit
     var body: some View {
         Group {
             if let detail, loadedScope == reader.scope {
-                VStack(alignment: .leading, spacing: 4) {
-                    if isSignup { CYStatusChip("im.card.signupFlag", tone: .info, systemImage: "ticket") }
-                    Text(verbatim: detail.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                    if let summary = summary(detail) { summary.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    if isSignup {
+                        CYStatusChip("im.card.signupFlag", tone: .success, systemImage: "checkmark.seal")
+                    }
+                    CYImageCard(
+                        title: Text(verbatim: displayName(detail.name)),
+                        meta: summary(detail),
+                        imageURL: coverURL(detail),
+                        style: .hero
+                    )
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("im.card.route.loaded")
             } else if failed {
-                VStack(alignment: .leading, spacing: 6) {
-                    CYStatusChip("im.card.routeUnavailable", tone: .warning, systemImage: "exclamationmark.triangle")
-                        .accessibilityIdentifier("im.card.route.unavailable")
-                    CYPillButton("messaging.retry", style: .secondary, fullWidth: false) { Task { await load() } }
-                        .disabled(loading).accessibilityIdentifier("im.card.route.retry")
-                }
+                CYEmptyState(
+                    systemImage: "exclamationmark.triangle",
+                    "im.card.routeUnavailable",
+                    messageIdentifier: "im.card.route.unavailable",
+                    actionTitle: "messaging.retry",
+                    actionIdentifier: "im.card.route.retry",
+                    kind: .failure
+                ) { Task { await load() } }
+                .disabled(loading)
             } else {
-                ProgressView("im.card.routeLoading").accessibilityIdentifier("im.card.route.loading")
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Text("im.card.routeLoading")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    CYSkeleton().accessibilityHidden(true)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("im.card.route.loading")
             }
         }
         .task(id: reader.scope) { await load() }
+    }
+    private func displayName(_ name: String) -> String {
+        name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : name
+    }
+    /// HTTPS cover only. Anything else falls through to generated art inside `CYImageCard`.
+    private func coverURL(_ detail: TopicDetail) -> URL? {
+        let candidates = [detail.imageURL].compactMap { $0 } + detail.images
+        for raw in candidates {
+            let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard let url = URL(string: trimmed), url.scheme?.lowercased() == "https" else { continue }
+            return url
+        }
+        return nil
     }
     /// "x km · N 个点" with only the parts the server actually returned.
     private func summary(_ detail: TopicDetail) -> Text? {
@@ -76,12 +106,24 @@ struct IMLocationCardMap: View {
     let longitude: Double
     var body: some View {
         let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
-        Map(initialPosition: .region(MKCoordinateRegion(center: coordinate, latitudinalMeters: 800, longitudinalMeters: 800))) {
-            Marker(title ?? "", coordinate: coordinate)
+        let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Color.clear
+                .aspectRatio(16.0 / 10.0, contentMode: .fit)
+                .overlay {
+                    Map(initialPosition: .region(MKCoordinateRegion(center: coordinate, latitudinalMeters: 800, longitudinalMeters: 800))) {
+                        Marker(title ?? "", coordinate: coordinate)
+                    }
+                    .accessibilityHidden(true)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text("im.card.locationMap"))
+                .accessibilityIdentifier("im.card.locationMap")
+            Text(verbatim: trimmed.isEmpty ? "—" : trimmed)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .frame(height: 200)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-        .accessibilityLabel(Text("im.card.locationMap"))
-        .accessibilityIdentifier("im.card.locationMap")
     }
 }

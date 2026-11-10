@@ -60,18 +60,27 @@ struct IMSafetyCopy {
     }
     var body: some View {
         NavigationStack {
-            Form {
-                CYHeroHeader("im.safety.title")
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                content
-            }
-                .cyGroupedSurface()
-                .cyHeroScreen()
-                .toolbar {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("action.close") { close() }.disabled(isInFlight).accessibilityIdentifier("im.safety.close")
-                    }
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                    CYHeroHeader("im.safety.title")
+                    content
                 }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
+            .cyDomainPageBackground()
+            .cyHeroScreen()
+            .cyAnimation(value: model.state)
+            .cyHaptic(.success, trigger: model.state) { _, new in
+                if case .acknowledged = new { return true }
+                return false
+            }
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("action.close") { close() }.disabled(isInFlight).accessibilityIdentifier("im.safety.close")
+                }
+            }
         }
         .accessibilityIdentifier("im.safety.sheet")
         .presentationDetents([.medium, .large])
@@ -90,64 +99,125 @@ struct IMSafetyCopy {
     @ViewBuilder private var content: some View {
         switch model.state {
         case .idle:
-            Text("im.safety.idle").accessibilityIdentifier("im.safety.idle")
+            CYEmptyState(systemImage: "checkmark.shield", "im.safety.idle")
+                .accessibilityIdentifier("im.safety.idle")
         case .resolving:
-            ProgressView("im.safety.resolving").accessibilityIdentifier("im.safety.resolving")
+            loadingBlock("im.safety.resolving").accessibilityIdentifier("im.safety.resolving")
         case .unavailable(let message):
-            Section {
-                Label("im.safety.unavailable", systemImage: "exclamationmark.circle").accessibilityIdentifier("im.safety.unavailable")
-                if let message, !message.isEmpty { Text(verbatim: message) }
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYStatusChip("im.safety.unavailable", tone: .warning, systemImage: "exclamationmark.circle")
+                    .accessibilityIdentifier("im.safety.unavailable")
+                if let message, !message.isEmpty { serverMessage(message) }
             }
         case .reviewing(let action):
             let copy = IMSafetyCopy(action)
-            Section {
-                Text(LocalizedStringKey(copy.titleKey)).font(.headline).accessibilityIdentifier("im.safety.reviewTitle")
-                if let key = copy.contentKey { Text(LocalizedStringKey(key)) }
-                ForEach(copy.consequenceKeys, id: \.self) { key in
-                    Label(LocalizedStringKey(key), systemImage: "info.circle").font(.subheadline)
+            CYCard {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    Text(LocalizedStringKey(copy.titleKey))
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("im.safety.reviewTitle")
+                    if let key = copy.contentKey { bodyText(LocalizedStringKey(key)) }
+                    ForEach(copy.consequenceKeys, id: \.self) { key in
+                        Label {
+                            Text(LocalizedStringKey(key))
+                                .font(CYTypography.bodyCompact)
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: "info.circle").accessibilityHidden(true)
+                        }
+                        .foregroundStyle(CYColor.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             }
-            Section {
-                Button(role: .destructive) { run { await model.owner.confirm() } } label: { Text(LocalizedStringKey(copy.confirmKey)) }
-                    .accessibilityIdentifier("im.safety.confirm")
-                Button("action.cancel", role: .cancel) { close() }.accessibilityIdentifier("im.safety.cancel")
+            Button(role: .destructive) { run { await model.owner.confirm() } } label: {
+                Text(LocalizedStringKey(copy.confirmKey))
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
             }
+            .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+            .accessibilityIdentifier("im.safety.confirm")
+            Button("action.cancel", role: .cancel) { close() }
+                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+                .accessibilityIdentifier("im.safety.cancel")
         case .submitting:
-            ProgressView("im.safety.submitting").accessibilityIdentifier("im.safety.submitting")
+            loadingBlock("im.safety.submitting").accessibilityIdentifier("im.safety.submitting")
         case .verifying:
-            ProgressView("im.safety.verifying").accessibilityIdentifier("im.safety.verifying")
+            loadingBlock("im.safety.verifying").accessibilityIdentifier("im.safety.verifying")
         case .acknowledged(let action):
             let copy = IMSafetyCopy(action)
-            Section {
-                Label(LocalizedStringKey(copy.doneKey), systemImage: "checkmark.circle").accessibilityIdentifier("im.safety.done")
-                if let key = copy.doneDetailKey { Text(LocalizedStringKey(key)) }
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYStatusChip(LocalizedStringKey(copy.doneKey), tone: .success, systemImage: "checkmark.circle")
+                    .accessibilityIdentifier("im.safety.done")
+                if let key = copy.doneDetailKey { bodyText(LocalizedStringKey(key)) }
             }
-            CYPillButton("action.close") { close() }.accessibilityIdentifier("im.safety.doneClose")
+            CYPillButton("action.close", action: close)
+                .accessibilityIdentifier("im.safety.doneClose")
         case .rejected(let action, let message):
-            Section {
-                Label(LocalizedStringKey(IMSafetyCopy(action).failureKey), systemImage: "xmark.octagon").accessibilityIdentifier("im.safety.rejected")
-                if let message, !message.isEmpty { Text(verbatim: message) }
-                CYPillButton("im.safety.retrySame", style: .secondary) { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYStatusChip(LocalizedStringKey(IMSafetyCopy(action).failureKey), tone: .danger, systemImage: "xmark.octagon")
+                    .accessibilityIdentifier("im.safety.rejected")
+                if let message, !message.isEmpty { serverMessage(message) }
             }
+            retryButton(primary: true)
         case .outcomeUnknown(let action):
-            Section {
-                Label("im.safety.unknown", systemImage: "questionmark.circle").accessibilityIdentifier("im.safety.unknown")
-                if case .report = action {
-                    Text("im.safety.unknownReport")
-                } else if case .reportWithReason = action {
-                    Text("im.safety.unknownReport")
+            let isReport: Bool = {
+                if case .report = action { return true }
+                if case .reportWithReason = action { return true }
+                return false
+            }()
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYStatusChip("im.safety.unknown", tone: .warning, systemImage: "questionmark.circle")
+                    .accessibilityIdentifier("im.safety.unknown")
+                if isReport {
+                    bodyText("im.safety.unknownReport")
                 } else {
-                    Text("im.safety.unknownHint")
-                    CYPillButton("im.safety.verify", style: .secondary) { run { await model.owner.verify() } }.accessibilityIdentifier("im.safety.verify")
+                    bodyText("im.safety.unknownHint")
+                    CYPillButton("im.safety.verify", systemImage: "checkmark.shield") { run { await model.owner.verify() } }
+                        .accessibilityIdentifier("im.safety.verify")
                 }
-                CYPillButton("im.safety.retrySame", style: .secondary) { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
             }
+            retryButton(primary: isReport)
         case .notApplied:
-            Section {
-                Label("im.safety.notApplied", systemImage: "arrow.uturn.backward.circle").accessibilityIdentifier("im.safety.notApplied")
-                CYPillButton("im.safety.retrySame", style: .secondary) { run { await model.owner.retryUnchanged() } }.accessibilityIdentifier("im.safety.retry")
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYStatusChip("im.safety.notApplied", tone: .neutral, systemImage: "arrow.uturn.backward.circle")
+                    .accessibilityIdentifier("im.safety.notApplied")
             }
+            retryButton(primary: true)
         }
+    }
+    private func bodyText(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(CYTypography.body)
+            .foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private func serverMessage(_ message: String) -> some View {
+        Text(verbatim: message)
+            .font(CYTypography.body)
+            .foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    private func loadingBlock(_ key: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(key)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYSkeleton().accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+    /// Verify is the primary when the action can be read back. A report has no verify, so retry is the one primary.
+    private func retryButton(primary: Bool) -> some View {
+        CYPillButton("im.safety.retrySame", style: primary ? .primary : .secondary, systemImage: "arrow.clockwise") {
+            run { await model.owner.retryUnchanged() }
+        }
+        .accessibilityIdentifier("im.safety.retry")
     }
     private func run(_ body: @escaping @MainActor () async -> Void) {
         guard task == nil else { return }
