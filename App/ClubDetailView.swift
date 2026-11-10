@@ -21,6 +21,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
     @State private var detailGeneration: UInt64 = 0
     @Environment(\.clubBadgeHostFactory) private var badgeHost
     @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         ClubReadScreen(reader: reader, accessibilityPrefix: "club.detail", refreshRevision: managementRevision, onSignIn: onSignIn,
                        load: {
@@ -52,12 +53,12 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 .fixedSize(horizontal: false, vertical: true)
                                 .accessibilityIdentifier("club.detail.name")
                         }
-                        .padding(CYSpacing.lg).padding(.top, 120)
-                        .frame(maxWidth: .infinity, minHeight: 280, alignment: .bottomLeading)
+                        .padding(CYSpacing.lg).padding(.top, typeSize.isAccessibilitySize ? CYSpacing.lg : 120)
+                        .frame(maxWidth: .infinity, minHeight: typeSize.isAccessibilitySize ? 0 : 280, alignment: .bottomLeading)
                         // Cover + scrim grow with the text so large type never spills out of the hero.
                         .background {
                             ZStack {
-                                ClubDetailCover(source: club.cover, seed: club.name + String(club.id))
+                                ClubDetailCover(source: club.cover, seed: club.name + String(club.id), showsSymbol: !typeSize.isAccessibilitySize)
                                 LinearGradient(stops: [.init(color: .clear, location: 0.3), .init(color: .black.opacity(0.85), location: 1)], startPoint: .top, endPoint: .bottom)
                             }.accessibilityHidden(true)
                         }
@@ -357,10 +358,11 @@ private struct ClubDetailManageGrantKey: Hashable {
 private struct ClubDetailCover: View {
     let source: String?
     var seed: String = ""
+    var showsSymbol = true
     @QuestifyReduceMotion private var reduceMotion
     var body: some View {
         ZStack {
-            CYIMCoverArt(seed: seed, symbolSize: 48)
+            CYIMCoverArt(seed: seed, symbolSize: showsSymbol ? 48 : 0)
             if let url = QuestifyCardArtwork.safeURL(source) {
                 AsyncImage(url: url, transaction: Transaction(animation: reduceMotion ? nil : QuestifyMotion.content)) { phase in
                     if let image = phase.image { image.resizable().scaledToFill().transition(.opacity) }
