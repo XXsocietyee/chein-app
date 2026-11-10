@@ -9,19 +9,19 @@ import SwiftUI
             switch model.status {
             case .idle, .absent: EmptyView()
             case .loading:
-                Section("roleView.title") { ProgressView("roleView.loading") }
+                Section("roleView.title") { CYSkeleton().accessibilityLabel(Text("roleView.loading")) }
             case .closed:
-                Button("roleView.open") { Task { await model.refresh() } }.accessibilityIdentifier("roleView.reopen")
+                CYPillButton("roleView.open", style: .secondary) { Task { await model.refresh() } }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.reopen")
             case .unavailable:
                 Section("roleView.title") {
                     Text("roleView.unavailable").accessibilityIdentifier("roleView.unavailable")
-                    Button("roleView.refresh") { Task { await model.refresh() } }.accessibilityIdentifier("roleView.refresh")
+                    CYPillButton("roleView.refresh", style: .secondary) { Task { await model.refresh() } }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.refresh")
                 }
             case .ready:
                 if let projection = model.projection {
                     Section("roleView.title") {
                         if projection.assignment == .missing {
-                            Label("roleView.missing", systemImage: "person.crop.circle.badge.questionmark")
+                            CYStatusChip("roleView.missing", tone: .neutral, systemImage: "person.crop.circle.badge.questionmark")
                                 .accessibilityIdentifier("roleView.missing")
                             Text("roleView.missingDetail").font(.footnote)
                         } else {
@@ -44,8 +44,8 @@ import SwiftUI
                             }
                         }
                         Text("roleView.serverAssigned").font(.caption).foregroundStyle(.secondary)
-                        Button("roleView.refresh") { Task { await model.refresh() } }.accessibilityIdentifier("roleView.refresh")
-                        Button("roleView.close") { model.dismiss() }.accessibilityIdentifier("roleView.close")
+                        CYPillButton("roleView.refresh", style: .secondary) { Task { await model.refresh() } }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.refresh")
+                        CYPillButton("roleView.close", style: .tertiary) { model.dismiss() }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.close")
                     }.privacySensitive()
                 }
             }

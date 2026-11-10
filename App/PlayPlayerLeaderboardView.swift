@@ -15,7 +15,7 @@ struct PlayPlayerLeaderboardView: View {
                 }
             case .empty:
                 Section("playerLeaderboard.title") {
-                    Text("playerLeaderboard.empty").foregroundStyle(.secondary)
+                    CYEmptyState(systemImage: "trophy", "playerLeaderboard.empty")
                         .accessibilityIdentifier("playerLeaderboard.empty")
                 }
             case .entries(let entries):

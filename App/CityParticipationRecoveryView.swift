@@ -11,18 +11,18 @@ import SwiftUI
             switch model.display {
             case .hidden: EmptyView()
             case .unavailable: Text("参与恢复暂不可用，已保存的请求不会重发。")
-            case .empty: CYEmptyState(systemImage: "tray", "没有待确认的参与请求。")
+            case .empty: Text("没有待确认的参与请求。")
             case .storageBlocked: Text("无法核实本地请求，请保留记录。不会发起新请求。")
             case .unknown:
                 Text("原请求结果尚未确认。请查询原结果，不要重复提交。")
-                CYPillButton("查询原结果", style: .secondary) { Task { await model.recheck() } }
-                    .disabled(model.busy)
+                Button("查询原结果") { Task { await model.recheck() } }
+                    .disabled(model.busy).frame(minHeight: 44)
                     .accessibilityIdentifier("city.participation.recheckOriginal")
             case .complete(let status):
                 Text(status == 200 ? "原参与请求已完成。" : "原参与请求未获接受。")
                 Text("原记录已保留；此页面不会开启游戏或再次提交。")
             }
-            if model.busy { CYSkeleton().accessibilityLabel("正在查询原请求") }
+            if model.busy { ProgressView().accessibilityLabel("正在查询原请求") }
         }.cyGroupedSurface()
         .navigationTitle("参与请求恢复")
         .accessibilityIdentifier("city.participation.recovery")

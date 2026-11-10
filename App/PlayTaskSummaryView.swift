@@ -28,9 +28,8 @@ struct PlayTaskSummaryView: View {
                     .accessibilityIdentifier("referenceTask.phaseOnly")
             }
             if let selection = PlayBranchHistorySelection(snapshot: snapshot), phase == "ready" || phase == "unknown" {
-                Button { branchHistorySelection = selection } label: {
-                    Label(branchHistoryLocalized("branchHistory.open", locale: locale), systemImage: "list.bullet.rectangle")
-                        .fixedSize(horizontal: false, vertical: true)
+                CYPillButton(verbatim: branchHistoryLocalized("branchHistory.open", locale: locale), style: .tertiary, systemImage: "list.bullet.rectangle") {
+                    branchHistorySelection = selection
                 }.accessibilityIdentifier("branchHistory.open")
             }
         }

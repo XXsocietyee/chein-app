@@ -10,7 +10,7 @@ import SwiftUI
             if owner.isCurrent, let controller = owner.controller {
                 CityNeutralTaskView(controller: controller)
             } else {
-                CYEmptyState(systemImage: "figure.walk.circle", "cityNeutral.status.disabled", tableName: "CityNeutralTask")
+                Text("cityNeutral.status.disabled", tableName: "CityNeutralTask")
             }
         }
         .onAppear { owner.synchronize() }
