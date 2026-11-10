@@ -165,7 +165,7 @@ enum CYPassCardPick {
     }
 }
 
-/// The pass itself: header (title, date, place), tear line with notches, 240 pt code tile on white, status ribbon.
+/// The pass itself: header (title, date, place), tear line with notches, 240 pt code tile on white, status chip.
 @MainActor struct TicketPassCard: View {
     let ticket: TicketWalletTicket
     static let qrSide: CGFloat = 240
@@ -189,10 +189,6 @@ enum CYPassCardPick {
         .onPreferenceChange(TicketPassTopHeightKey.self) { topHeight = $0 }
         .frame(maxWidth: .infinity)
         .background(CYColor.bgElevated)
-        .overlay(alignment: .topTrailing) {
-            CYStatusRibbon(state: state, text: Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)))
-                .accessibilityIdentifier("ticketPass.ribbon")
-        }
         .clipShape(shape, style: FillStyle(eoFill: true))
         .overlay(shape.stroke(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
         .shadow(color: .black.opacity(0.40), radius: 16, y: 9)
@@ -203,21 +199,29 @@ enum CYPassCardPick {
         .accessibilityIdentifier("ticketPass.card")
     }
 
-    /// Cover-art band with the title on a scrim (same art as the wallet pass), then date and place. At accessibility
-    /// sizes the band shrinks and the title moves below it so nothing clips.
+    /// Cover-art band with the status chip top-right and the title on a scrim (same art as the wallet pass), then date
+    /// and place. At accessibility sizes the band shrinks and the chip and title move below it so nothing clips.
     private var header: some View {
         VStack(alignment: .leading, spacing: 0) {
-            ZStack(alignment: .bottomLeading) {
+            ZStack {
                 E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false)
                 LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
                 if !typeSize.isAccessibilitySize {
-                    title.foregroundStyle(.white).padding(CYSpacing.lg).padding(.trailing, 56)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        HStack(spacing: 0) { Spacer(minLength: 0); statusChip(singleLine: true) }
+                        Spacer(minLength: 0)
+                        title.foregroundStyle(.white).lineLimit(2)
+                    }
+                    .padding(CYSpacing.lg)
                 }
             }
             .frame(height: typeSize.isAccessibilitySize ? 72 : 132)
             .clipped()
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                if typeSize.isAccessibilitySize { title.foregroundStyle(CYColor.textPrimary).padding(.bottom, CYSpacing.xs) }
+                if typeSize.isAccessibilitySize {
+                    statusChip(singleLine: false).padding(.bottom, CYSpacing.xs)
+                    title.foregroundStyle(CYColor.textPrimary).padding(.bottom, CYSpacing.xs)
+                }
                 Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
                 Label { Text(verbatim: nonEmpty(ticket.addressName)).lineLimit(2) } icon: { Image(systemName: "mappin.and.ellipse") }
             }
@@ -225,6 +229,17 @@ enum CYPassCardPick {
             .padding(CYSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    /// Status chip in the existing status tones. A solid elevated backing keeps it readable over the cover art.
+    /// Never clipped: it sits inside the band's padding, shrinks before it truncates, and wraps at accessibility sizes.
+    @ViewBuilder private func statusChip(singleLine: Bool) -> some View {
+        let chip = CYStatusChip(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue), tone: state.tone, systemImage: state.systemImage)
+        Group { if singleLine { chip.singleLine() } else { chip } }
+            .background(CYColor.bgElevated, in: Capsule(style: .continuous))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)))
+            .accessibilityIdentifier("ticketPass.status")
     }
 
     private var title: some View {
