@@ -80,26 +80,73 @@ extension EnvironmentValues {
         if section == .posts, let postFeed {
             // The feed owns its own List, loading, empty and retry states; the picker stays pinned above it.
             VStack(spacing: 0) {
-                sectionPicker.padding(.horizontal).padding(.vertical, 8)
+                CYHeroHeader("coopflow.discovery")
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.top, CYSpacing.lg)
+                sectionPicker
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.vertical, CYSpacing.sm)
                 postFeed().accessibilityIdentifier("cooprelation.postFeed")
-            }.navigationTitle("coopflow.discovery")
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+            .cyDomainPageBackground()
+            .themeDomain(.player)
+            .cyHeroScreen()
+            .cyHaptic(.selection, trigger: section)
         } else { relationList }
     }
     private var relationList: some View {
         List {
-            CYHeroHeader("coopflow.discovery").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            Section {
+                CYHeroHeader("coopflow.discovery")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+            }
             CoopRelationContextLabel(context: displayContext)
-            Section { sectionPicker }
-            if reader.session == nil { CYStatusChip("cooperation.login", tone: .neutral, systemImage: "person.crop.circle.badge.questionmark") }
-            else if loadedKey == key && model.failed { CYStatusChip("coopflow.read.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("cooprelation.failed") }
+            Section { sectionPicker.padding(.vertical, CYSpacing.xs) }
+            if reader.session == nil {
+                Text("cooperation.login")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            else if loadedKey == key && model.failed {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(CYTypography.sectionTitle)
+                        .foregroundStyle(CYColor.warningText)
+                        .accessibilityHidden(true)
+                    Text("coopflow.read.failed")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("cooprelation.failed")
+                }
+                .padding(.vertical, CYSpacing.sm)
+            }
             else if loadedKey == key, model.isCurrent(reader: reader), let value = model.value {
                 Section {
-                    if value.hasInvalidRows(tab) { CYStatusChip("cooprelation.partial", tone: .warning, systemImage: "exclamationmark.circle").accessibilityIdentifier("cooprelation.partial") }
+                    if value.hasInvalidRows(tab) {
+                        Text("cooprelation.partial")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("cooprelation.partial")
+                    }
                     if value.rows(tab).isEmpty && !value.hasInvalidRows(tab) {
-                        CYEmptyState(systemImage: tab == .merchants ? "storefront" : "person.3",
-                                     tab == .merchants ? "cooprelation.emptyMerchants" : "cooprelation.emptyClubs",
-                                     messageIdentifier: "cooprelation.empty")
-                            .listRowBackground(Color.clear)
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Image(systemName: tab == .merchants ? "storefront" : "person.3")
+                                .font(CYTypography.sectionTitle)
+                                .foregroundStyle(CYColor.textSecondary)
+                                .accessibilityHidden(true)
+                            Text(tab == .merchants ? "cooprelation.emptyMerchants" : "cooprelation.emptyClubs")
+                                .font(CYTypography.body)
+                                .foregroundStyle(CYColor.textPrimary)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .accessibilityIdentifier("cooprelation.empty")
+                        }
+                        .padding(.vertical, CYSpacing.sm)
                     }
                     ForEach(value.rows(tab)) { row in
                         if let profiles, let choice = model.selection(row: row, reader: reader, scope: profiles.scope, context: displayContext), canOpen(choice) {
@@ -115,23 +162,35 @@ extension EnvironmentValues {
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(Text(verbatim: relationLabel(row)))
                             .accessibilityIdentifier("cooprelation.open.\(row.kind.rawValue).\(row.id)")
                         } else {
-                            VStack(alignment: .leading, spacing: 8) {
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
                                 card(row)
-                                CYStatusChip("cooprelation.unavailable", tone: .neutral, systemImage: "slash.circle")
+                                Text("cooprelation.unavailable")
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(CYColor.textSecondary)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }.accessibilityIdentifier("cooprelation.unavailable.\(row.kind.rawValue).\(row.id)")
                         }
                     }
                 }
-            } else { ProgressView("cooperation.loading") }
+            } else {
+                CYSkeleton()
+                    .padding(.vertical, CYSpacing.sm)
+                    .accessibilityLabel(Text("cooperation.loading"))
+            }
         }
         .cyGroupedSurface()
         .cyHeroScreen()
+        .themeDomain(.player)
+        .cyHaptic(.selection, trigger: section)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Button("cooperation.refresh", systemImage: "arrow.clockwise") { Task { await reload() } }
-                    .disabled(reader.session == nil || model.isLoading).accessibilityIdentifier("cooprelation.refresh")
+                    .disabled(reader.session == nil || model.isLoading)
+                    .accessibilityLabel(Text("cooperation.refresh"))
+                    .accessibilityIdentifier("cooprelation.refresh")
             }
         }
         .task(id: key) { await reload() }
@@ -154,7 +213,7 @@ extension EnvironmentValues {
         .navigationDestination(item: presentation.binding) { choice in
             if canOpen(choice), let profiles {
                 profiles.destination(choice.route, { presentation.isCurrent(choice) })
-                    .safeAreaInset(edge: .top) { CoopRelationContextLabel(context: choice.displayContext).padding(.horizontal) }
+                    .safeAreaInset(edge: .top) { CoopRelationContextLabel(context: choice.displayContext).padding(.horizontal, CYSpacing.pageHorizontal) }
             } else { Text("cooprelation.unavailable") }
         }
         .privacySensitive()
@@ -192,28 +251,57 @@ extension EnvironmentValues {
     }
     @ViewBuilder private func artwork(_ source: String) -> some View {
         if let image = profiles?.image { image(source).accessibilityLabel(Text("cooprelation.image")) }
-        else { Label("cooprelation.image", systemImage: "photo").foregroundStyle(.secondary) }
+        else {
+            Label("cooprelation.image", systemImage: "photo")
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .accessibilityLabel(Text("cooprelation.image"))
+        }
+    }
+    private func trimmed(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
+    }
+    private func relationLabel(_ row: CoopRelationDiscoveryRow) -> String {
+        let parts = [trimmed(row.name), trimmed(row.category), trimmed(row.address ?? row.city)].compactMap { $0 }
+        return parts.isEmpty ? "—" : parts.joined(separator: ", ")
+    }
+    private func metaLine(_ row: CoopRelationDiscoveryRow) -> String? {
+        let parts = [trimmed(row.category), trimmed(row.address ?? row.city)].compactMap { $0 }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
     }
     private func card(_ row: CoopRelationDiscoveryRow) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             // Only the existing injected, approved renderer may fetch artwork.
             if let cover = row.cover { artwork(cover).accessibilityIdentifier("cooprelation.cover") }
             if let logo = row.logo, logo != row.cover { artwork(logo).accessibilityIdentifier("cooprelation.logo") }
-            Text(verbatim: row.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-            if let category = row.category { Text(verbatim: category).font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
-            if let place = row.address ?? row.city { Text(verbatim: place).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if row.cover == nil && row.logo == nil {
+                CYImageCard(verbatim: row.name, fallback: "cooprelation.unavailable", meta: metaLine(row), style: .hero)
+                    .accessibilityLabel(Text(verbatim: relationLabel(row)))
+            } else {
+                CYListRow(verbatim: row.name, meta: metaLine(row), trailing: .none) {
+                    CYRowIcon(systemImage: row.kind == .merchants ? "storefront" : "person.3")
+                }
+            }
             if row.kind == .merchants { CoopRelationCardDetails(row: row) }
-        }.fixedSize(horizontal: false, vertical: true).padding(.vertical, 6)
+        }
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.vertical, CYSpacing.sm)
     }
 }
 private struct CoopRelationContextLabel: View {
     let context: CoopRelationDisplayContext
     var body: some View {
         if let topicID = context.topicID {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 LabeledContent("cooprelation.topic", value: context.topicName ?? String(topicID))
                 if let chapterID = context.chapterID { LabeledContent("cooprelation.chapter", value: String(chapterID)) }
-            }.font(.footnote).accessibilityIdentifier("cooprelation.displayContext")
+            }
+            .font(CYTypography.meta)
+            .monospacedDigit()
+            .foregroundStyle(CYColor.textSecondary)
+            .accessibilityIdentifier("cooprelation.displayContext")
         }
     }
 }

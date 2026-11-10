@@ -125,9 +125,7 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
     public let snapshot: CompleteWaveShowcaseSnapshot
     @Environment(\.dynamicTypeSize) private var typeSize
 
-    private var rowLayout: AnyLayout {
-        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout())
-    }
+    private var stacksForAccessibility: Bool { typeSize.isAccessibilitySize }
 
     public init(snapshot: CompleteWaveShowcaseSnapshot = .defaultComplete) {
         self.snapshot = snapshot
@@ -148,77 +146,88 @@ public struct CompleteWave1To3AndReformV9ShowcaseView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+            // One visible title. cyHeroScreen clears the bar so this headline is not repeated.
+            CYHeroHeader(verbatim: "Wave 1–3 & Reform Plan v9 Master Showcase")
             headerSection
             batchesSection
         }
-        .padding(14)
-        .background(
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(CYColor.textSecondary.opacity(0.08))
-        )
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .padding(.vertical, CYSpacing.lg)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .cyHeroScreen()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("completeWaveShowcase.root")
     }
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            rowLayout {
-                Text(verbatim: "Wave 1–3 & Reform Plan v9 Master Showcase")
-                    .font(.headline)
-                Spacer()
-                CYStatusChip(verbatim: headerBadgeText,
-                             tone: snapshot.isShowcaseComplete ? .success : .warning,
-                             systemImage: snapshot.isShowcaseComplete ? "checkmark.circle" : "exclamationmark.triangle")
-                    .accessibilityIdentifier("completeWaveShowcase.statusBadge")
-            }
-
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            statusChip(verbatim: headerBadgeText, complete: snapshot.isShowcaseComplete)
+                .accessibilityIdentifier("completeWaveShowcase.statusBadge")
             Text(verbatim: overallSummaryText)
-                .font(.caption.monospacedDigit())
-                .foregroundStyle(.secondary)
+                .font(CYTypography.meta)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("completeWaveShowcase.overallSummary")
-
             Text(verbatim: masterDocumentsSummaryText)
-                .font(.caption2.monospaced())
-                .foregroundStyle(.secondary)
+                .font(CYTypography.caption)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("completeWaveShowcase.documentsSummary")
         }
     }
 
     private var batchesSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             ForEach(snapshot.batches) { item in
-                VStack(alignment: .leading, spacing: 4) {
-                    rowLayout {
-                        Text(verbatim: "Batch \(item.batchNumber) · \(item.laneRangeText)")
-                            .font(.subheadline.weight(.semibold))
-                        Spacer()
-                        CYStatusChip(verbatim: item.statusBadgeText,
-                                     tone: item.isCompleted ? .success : .warning,
-                                     systemImage: item.isCompleted ? "checkmark.circle" : "exclamationmark.triangle")
-                            .accessibilityIdentifier("completeWaveShowcase.batchStatus.\(item.id)")
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    CYListRow(
+                        verbatim: "Batch \(item.batchNumber) · \(item.laneRangeText)",
+                        meta: item.scopeSummary,
+                        trailing: .none,
+                        card: true
+                    ) {
+                        CYCoverArt(seed: item.id, symbol: "square.stack.3d.up", showsDebugLabel: false)
+                            .frame(width: 40, height: 40)
+                            .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                            .accessibilityHidden(true)
                     }
-
-                    Text(verbatim: item.scopeSummary)
-                        .font(.caption)
-                        .foregroundStyle(.primary)
-
-                    Text(verbatim: "Parallel Lanes: \(item.laneCount)")
-                        .font(.caption2.monospacedDigit())
-                        .foregroundStyle(.secondary)
-                        .accessibilityIdentifier("completeWaveShowcase.batchLanes.\(item.id)")
+                    batchFacts(item)
                 }
-                .padding(10)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .fill(Color.primary.opacity(0.04))
-                )
-                .accessibilityElement(children: .combine)
+                .accessibilityElement(children: .contain)
                 .accessibilityIdentifier("completeWaveShowcase.batchRow.\(item.id)")
             }
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("completeWaveShowcase.batchesSection")
+    }
+
+    @ViewBuilder private func batchFacts(_ item: WaveBatchCompletionItem) -> some View {
+        let lanes = Text(verbatim: "Parallel Lanes: \(item.laneCount)")
+            .font(CYTypography.meta)
+            .monospacedDigit()
+            .foregroundStyle(CYColor.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("completeWaveShowcase.batchLanes.\(item.id)")
+        let chip = statusChip(verbatim: item.statusBadgeText, complete: item.isCompleted)
+            .accessibilityIdentifier("completeWaveShowcase.batchStatus.\(item.id)")
+        if stacksForAccessibility {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) { lanes; chip }
+        } else {
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                lanes
+                Spacer(minLength: CYSpacing.sm)
+                chip
+            }
+        }
+    }
+
+    private func statusChip(verbatim text: String, complete: Bool) -> some View {
+        CYStatusChip(verbatim: text, tone: complete ? .success : .warning, systemImage: complete ? "checkmark.circle" : "exclamationmark.triangle")
+            .accessibilityLabel(Text(verbatim: text))
     }
 }
