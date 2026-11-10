@@ -51,8 +51,15 @@ import XCTest
         let calls = loginView.components(separatedBy: "session.login(").count - 1
         XCTAssertEqual(calls, 1)
         // The single UI call is behind the same gate that is false in release.
-        XCTAssertTrue(loginView.contains("guard session.canUsePassword, !session.isWorking"))
-        XCTAssertTrue(loginView.contains("if session.canUsePassword {"))
+        // The e4 login restyle routes the form through `showsPasswordForm`: DEBUG defers to
+        // `session.canUsePassword`, release returns false, and submit() re-checks both gates.
+        XCTAssertTrue(loginView.contains("guard showsPasswordForm, session.canUsePassword, !session.isWorking"))
+        XCTAssertTrue(loginView.contains("if showsPasswordForm {"))
+        let gate = try XCTUnwrap(loginView.components(separatedBy: "private var showsPasswordForm: Bool {").dropFirst().first)
+            .components(separatedBy: "private var shownErrorKey").first ?? ""
+        XCTAssertTrue(gate.contains("#if DEBUG"))
+        XCTAssertTrue(gate.contains("return session.canUsePassword"))
+        XCTAssertTrue(gate.contains("#else\n        return false"))
     }
 
     func testPhoneWeChatAndAppleEntriesRemain() throws {
