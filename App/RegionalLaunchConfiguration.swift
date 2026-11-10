@@ -10,8 +10,10 @@ enum RegionalLaunchConfiguration {
     }
 
     /// China selection uses `ReviewedAppDeployment` through `reviewedComposition` and the
-    /// host already named by Config and `ReviewedMarketLaunch`. Password login, bank
-    /// withdrawal, virtual goods, and payment or payout writes are not switched on here.
+    /// host already named by Config and `ReviewedMarketLaunch`. The reviewed production gate
+    /// bundle is on (`productionGatesEnabled`): Apple and SMS sign-in, the legal catalog, and
+    /// wallet, orders, favorites and coupons reads. Password login, bank withdrawal, virtual
+    /// goods, and payment or payout writes are not switched on here.
     @MainActor static func shippedComposition(
         build: BuildMetadata = .current,
         storage: AppScopedStorageFactory? = nil,

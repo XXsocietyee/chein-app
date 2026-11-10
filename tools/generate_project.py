@@ -52,10 +52,33 @@ for path in sources + resources + headers:
     options = {'settings': {'COMPILER_FLAGS': '-fobjc-arc'}} if path.suffix == '.m' else {}
     build = obj('build:'+relative, isa='PBXBuildFile', fileRef=ref, **options)
     (source_builds if path in sources else resource_builds).append(build)
+# TestFlight/App Store inputs live in a Release-only layer on top of the debug-safe Base chain.
+release_config_ref = obj('release-base', isa='PBXFileReference', lastKnownFileType='text.xcconfig', path='Config/Release.xcconfig', sourceTree='<group>')
+# Fail-closed gate: Release builds stop when deployment identity is empty or a placeholder.
+# tools/check_release_config.py extracts this exact script and runs it against sample values.
+release_gate_script = r'''# Release-only deployment identity gate. Debug and test builds skip it.
+[ "${CONFIGURATION}" = "Release" ] || exit 0
+fail() { echo "error: Release build blocked: $1 Set it in Config/Release.xcconfig (see docs/release/testflight-internal.md)." >&2; exit 1; }
+trim() { printf '%s' "$1" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//'; }
+url=$(trim "${QUESTIFY_API_BASE_URL}")
+realm=$(trim "${QUESTIFY_SESSION_REALM}")
+bundle=$(trim "${PRODUCT_BUNDLE_IDENTIFIER}")
+[ -n "$url" ] || fail "QUESTIFY_API_BASE_URL is empty."
+case "$url" in https://*) ;; *) fail "QUESTIFY_API_BASE_URL must be an https:// URL." ;; esac
+[ -n "$realm" ] || fail "QUESTIFY_SESSION_REALM is empty."
+[ -n "$bundle" ] || fail "PRODUCT_BUNDLE_IDENTIFIER is empty."
+lower=$(printf '%s' "$bundle" | tr 'A-Z' 'a-z')
+case "$lower" in
+  invalid.*|*.invalid|*example*|*placeholder*|*changeme*|*todo*|*\$\(*) fail "PRODUCT_BUNDLE_IDENTIFIER '$bundle' is a placeholder." ;;
+esac
+printf '%s' "$bundle" | grep -Eq '^[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+$' || fail "PRODUCT_BUNDLE_IDENTIFIER '$bundle' is not a reverse-DNS identifier."
+exit 0
+'''
+release_gate=obj('release-gate', isa='PBXShellScriptBuildPhase', buildActionMask=2147483647, files=[], inputFileListPaths=[], inputPaths=[], name='Release Identity Gate', outputFileListPaths=[], outputPaths=[], runOnlyForDeploymentPostprocessing=0, shellPath='/bin/sh', shellScript=release_gate_script, alwaysOutOfDate=1)
 config_ref = obj('base', isa='PBXFileReference', lastKnownFileType='text.xcconfig', path='Config/Base.xcconfig', sourceTree='<group>')
 product = obj('product', isa='PBXFileReference', explicitFileType='wrapper.application', includeInIndex=0, path='Questify.app', sourceTree='BUILT_PRODUCTS_DIR')
 products = obj('products', isa='PBXGroup', children=[product], name='Products', sourceTree='<group>')
-group = obj('main-group', isa='PBXGroup', children=refs+[config_ref,products], sourceTree='<group>')
+group = obj('main-group', isa='PBXGroup', children=refs+[config_ref,release_config_ref,products], sourceTree='<group>')
 src_phase=obj('sources',isa='PBXSourcesBuildPhase',buildActionMask=2147483647,files=source_builds,runOnlyForDeploymentPostprocessing=0)
 res_phase=obj('resources',isa='PBXResourcesBuildPhase',buildActionMask=2147483647,files=resource_builds,runOnlyForDeploymentPostprocessing=0)
 # Vendored, immutable official source only. No SwiftPM binary target, package
@@ -84,10 +107,10 @@ def configurations(scope):
             settings['ENABLE_TESTABILITY']='YES'
         if scope=='target' and name=='Release':
             settings['EXCLUDED_SOURCE_FILE_NAMES']='$(inherited) '+release_excluded_names
-        extra={'baseConfigurationReference':config_ref} if scope=='target' else {}
+        extra={'baseConfigurationReference':release_config_ref if name=='Release' else config_ref} if scope=='target' else {}
         configs.append(obj(scope+name,isa='XCBuildConfiguration',name=name,buildSettings=settings,**extra))
     return obj(scope+'configs',isa='XCConfigurationList',buildConfigurations=configs,defaultConfigurationIsVisible=0,defaultConfigurationName='Release')
-target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[src_phase,framework_phase,res_phase,embed_phase],buildRules=[],dependencies=[gltf_dependency],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
+target=obj('target',isa='PBXNativeTarget',buildConfigurationList=configurations('target'),buildPhases=[release_gate,src_phase,framework_phase,res_phase,embed_phase],buildRules=[],dependencies=[gltf_dependency],name='Questify',productName='Questify',productReference=product,productType='com.apple.product-type.application')
 ui_files=[]
 for path in ui_source_paths:
     relative=str(path.relative_to(ROOT))
