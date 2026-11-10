@@ -20,33 +20,41 @@ enum WalletReadFailurePresentation {
     }
 }
 
+/// Why a wallet read failed; drives `WalletIssueView` (login prompt vs unavailable vs retry).
+struct WalletReadFailure: Equatable { var requiresLogin: Bool; var unavailable: Bool }
+
 @MainActor final class WalletScreen<Value>: ObservableObject {
-    @Published var value: Value?
-    @Published var failed = false
-    @Published var loading = false
-    @Published var requiresLogin = false
-    @Published var unavailable = false
+    /// One load lifecycle instead of `value` / `failed` / `loading` / `requiresLogin` / `unavailable`
+    /// (docs/release/state-machines/views.md). Impossible combinations (loading with a value, failed with a value) cannot exist.
+    @Published private(set) var phase: CYPhase<Value, WalletReadFailure> = .idle
     @Published var loadedScope: WalletCommerceScope?
+    var value: Value? { phase.value }
+    var failed: Bool { phase.isFailed }
+    var loading: Bool { phase.isLoading }
+    var requiresLogin: Bool { phase.failure?.requiresLogin ?? false }
+    var unavailable: Bool { phase.failure?.unavailable ?? false }
     private var generation = UUID()
-    func cancel() { generation = UUID(); loading = false }
-    func clear() { generation = UUID(); value = nil; failed = false; requiresLogin = false; unavailable = false; loading = false; loadedScope = nil }
+    func cancel() { generation = UUID(); if phase.isLoading { phase = .idle } }
+    func clear() { generation = UUID(); phase = .idle; loadedScope = nil }
+    /// Shows the skeleton immediately (a caller retired old results and a load is scheduled).
+    func markLoading() { phase = .loading }
     func load(_ reader: WalletCommerceReader, operation: (WalletCommerceService, String) async throws -> Value) async {
-        let stamp = UUID(); generation = stamp; value = nil; failed = false; requiresLogin = false; unavailable = false; loading = true
+        let stamp = UUID(); generation = stamp; phase = .loading
         let scope = reader.scope
         loadedScope = nil
-        defer { if stamp == generation { loading = false } }
+        defer { if stamp == generation, phase.isLoading { phase = .idle } }
         do {
             let result = try await reader.read(operation)
             guard stamp == generation else { return }
             guard scope == reader.scope else { clear(); return }
-            value = result; loadedScope = scope
+            phase = .loaded(result); loadedScope = scope
         } catch {
             guard stamp == generation else { return }
             guard scope == reader.scope else { clear(); return }
             if error is CancellationError { return }
             if (error as? WalletCommerceSafetyError) == .staleSession { clear(); return }
-            failed = true; requiresLogin = (error as? APIError) == .unauthorized
-            unavailable = WalletReadFailurePresentation.isUnavailable(error)
+            phase = .failed(WalletReadFailure(requiresLogin: (error as? APIError) == .unauthorized,
+                                              unavailable: WalletReadFailurePresentation.isUnavailable(error)), retry: nil)
         }
     }
 }
@@ -732,7 +740,7 @@ private struct WalletIncomeListCard: ViewModifier {
         pendingLoad?.cancel()
         // Retire old results synchronously, without painting an interim failure.
         model.clear()
-        model.loading = true
+        model.markLoading()
         let scope = reader.scope
         pendingLoad = Task {
             guard !Task.isCancelled, isVisible, scope == reader.scope else { return }
