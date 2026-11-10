@@ -119,3 +119,7 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - MasterThreeDocument312LaneCommandHubView: done (CYHeroHeader)
 - MiniCropView: done (CYPillButton primary confirm, tertiary cancel/use original)
 - ModCompositionInstallationReceiptView: done (CYStatusChip)
+
+## Summary
+All 84 files in tail-e5.txt handled: 72 restyled, 6 skipped with reason (SessionSquareBrowserView, SessionPublishingModesView, NativeVerificationView, NativeVerificationFixtureView, NativeNavigationFixtureView, ModVenueOperationsView, NativeChannelScreenPresentation) and NativeChannelManagementViews partial. Cloud lanes (ui/cloud-*) touched none of these files at any fetch.
+Cloud check on 4358447: Build - iOS has 1 error, `App/CityActionBudgetView.swift:10 Failed to produce diagnostic for expression` (file from UI-e2 tail batch 1 f5ce49c17, not in this list; same error is on ui/main head db7f300e6). Test - iOS: 2 errors in vendored GLTFKit2 ("unsupported Swift architecture"), identical on ui/main. No error names a file from this tail.
