@@ -80,3 +80,6 @@
 - ut-detail [x] 055d30793. PR 1071. Fixture test only. Parent is the docs rc. Not merged.
 - ut-d4-detail [x] b80e818b2. PR 1072. Fixture test only. Not merged.
 - ut-e1-activity-detail [x] a700c1a03. PR 1073. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-real-live [x] 2559f7a87. PR 1074. Fixture test only. Parent is the docs rc. Not merged.
+- ut-e1-bundle-shelf [x] 697a2d40c. PR 1075. Fixture test only. Parent is the docs rc. Not merged.
+- ut-e1-bundle-shelf-error [x] 29a4c813b. PR 1076. Fixture test only. Not merged.
