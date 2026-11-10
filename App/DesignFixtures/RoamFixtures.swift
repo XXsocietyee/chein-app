@@ -12,6 +12,8 @@ import SwiftUI
 /// | `roam-reveal` | walking + "new area revealed" toast, percent counting up, fog edge pushes out (loops every 5 s) |
 /// | `roam-sheet-half` | nearby sheet at half detent, second card selected, its pin highlighted |
 /// | `roam-paused` | paused: static fog edge, resume glyph on the circle |
+/// | `roam-fog-engine` | fog engine stages: mask scrim + hatch for unconfirmed cells, 480 ms radial wipes along a replayed walk, coverage badge |
+/// | `roam-fog-unknown` | same layer with coverage unknown: the badge prints an em dash, never 0 |
 enum RoamFixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
@@ -20,6 +22,8 @@ enum RoamFixtures {
         case "roam-reveal": return wrap(RoamFixtureStage(initial: .walking, loopReveal: true))
         case "roam-sheet-half": return wrap(RoamFixtureStage(initial: .idle, sheet: .half, selected: "b"))
         case "roam-paused": return wrap(RoamFixtureStage(initial: .paused))
+        case "roam-fog-engine": return wrap(RoamFogEngineFixture(unknown: nil))
+        case "roam-fog-unknown": return wrap(RoamFogEngineFixture(unknown: .permissionMissing))
         default: return nil
         }
     }
@@ -138,6 +142,66 @@ private struct RoamFixtureStage: View {
         case .walking: phase = .paused
         case .starting, .finishing, .finished, .blocked: break
         }
+    }
+}
+
+/// Fog engine stages 2 and 3 on a replayed walk over a synthetic grid (no location, no Core types, switches off).
+private struct RoamFogEngineFixture: View {
+    let unknown: CYFogCoverageReading.UnknownReason?
+    private static let cols = 16, rows = 24
+    private static let path: [CYFogPoint] = [(7, 12), (8, 12), (8, 11), (9, 11), (10, 11), (10, 10), (11, 10), (11, 9), (12, 9), (12, 8), (13, 8), (13, 7)].map { CYFogPoint(x: $0.0, y: $0.1) }
+    private static let seedCells: Set<CYFogPoint> = Set((5...8).flatMap { x in (11...13).map { CYFogPoint(x: x, y: $0) } })
+    @State private var confirmed: Set<CYFogPoint> = RoamFogEngineFixture.seedCells
+    @State private var pending: Set<CYFogPoint> = [CYFogPoint(x: 4, y: 14), CYFogPoint(x: 5, y: 14), CYFogPoint(x: 4, y: 15)]
+    @State private var choreo = CYRevealChoreographer()
+    @State private var mask = CYFogMaskRasterizer.rasterize(confirmed: RoamFogEngineFixture.seedCells, pending: [], cols: 16, rows: 24, revision: 0)
+    @State private var revision = 0
+    @QuestifyReduceMotion private var reduceMotion
+
+    private var reading: CYFogCoverageReading {
+        if let unknown { return .unknown(unknown) }
+        return .known(confirmed: confirmed.count, pending: pending.subtracting(confirmed).count, areaCells: Self.cols * Self.rows / 2)
+    }
+
+    var body: some View {
+        ZStack(alignment: .top) {
+            CYMapPlaceholder(fog: false)
+            CYFogOverlayLayer(mask: mask, grid: (Self.cols, Self.rows), wipes: choreo.active)
+                .ignoresSafeArea()
+                .animation(reduceMotion ? .easeOut(duration: 0.2) : nil, value: mask.revision)
+            VStack {
+                HStack {
+                    Text(verbatim: "Fog engine").font(.title2.weight(.heavy)).foregroundStyle(.white)
+                    Spacer()
+                    CYFogCoverageBadge(reading: reading)
+                }.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.xxl)
+                Spacer()
+            }
+        }
+        .onAppear { rebuild() }
+        .cyHaptic(.success, trigger: choreo.successSerial)
+        .cyHaptic(.impactLight, trigger: choreo.lightSerial)
+        .task {
+            var step = 0
+            while !Task.isCancelled {
+                try? await Task.sleep(for: .seconds(1.2))
+                let next = Self.path[step % Self.path.count]
+                // The fix point is the cell centre, normalized.
+                let origin = CGPoint(x: (CGFloat(next.x) + 0.5) / CGFloat(Self.cols), y: (CGFloat(next.y) + 0.5) / CGFloat(Self.rows))
+                let baked = choreo.enqueue([next], origin: origin, now: Date().timeIntervalSinceReferenceDate, reduceMotion: reduceMotion)
+                if !baked.isEmpty { confirmed.formUnion(baked); rebuild() }
+                try? await Task.sleep(for: .milliseconds(600))
+                let done = choreo.settle(at: Date().timeIntervalSinceReferenceDate)
+                if !done.isEmpty { confirmed.formUnion(done); rebuild() }
+                step += 1
+                if step % Self.path.count == 0 { confirmed = Self.seedCells; rebuild() }
+            }
+        }
+    }
+
+    private func rebuild() {
+        revision += 1
+        mask = CYFogMaskRasterizer.rasterize(confirmed: confirmed, pending: pending, cols: Self.cols, rows: Self.rows, revision: revision)
     }
 }
 #endif

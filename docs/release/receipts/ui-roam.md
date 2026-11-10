@@ -11,6 +11,8 @@ Spec: `docs/release/motion-spec-roam.md`. Base merged: `origin/ui/main` (conflic
 - Strings (EN + zh-Hans): `docs/release/ui-strings-roam.json`, merged into the catalog. Project regenerated.
 - No Core / Tests / Config edits; location and roam logic unchanged.
 
+- Fog engine UI stages (coordinator brief): `CYFogEngine.swift` (rasterizer, overlay layer, choreographer, coverage reading + badge), fixtures `roam-fog-engine`, `roam-fog-unknown`. Switches off; no Core / location / Info.plist change; Core model and pixel tests are for the Core owner.
+
 ## Cloud evidence
 See commit check-runs (filled in below).
 
