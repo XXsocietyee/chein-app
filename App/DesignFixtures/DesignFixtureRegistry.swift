@@ -115,6 +115,7 @@ enum E4Fixtures {
         case "e4-privacy": return wrap(OwnMediaFixtureHost(scenario: "ready"))
         case "e4-favorites": return wrap(TopicUnlikeFixtureHost(scenario: "ready"))
         case "e4-collection": return wrap(AccountCollectionFixtureHostView())
+        case "e4-creator-apply": return wrap(PublisherLifecycleFixtureRoot(creatorOnly: true))
         case "e4-complaint": return wrap(ProfileComplaintPreparationFixtureView(scenario: "content"))
         case "e4-member": return wrap(MemberHomeFixtureHost(scenario: "ready"))
         case "e4-participants": return wrap(ParticipantFixtureHostView())
