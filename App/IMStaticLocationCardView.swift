@@ -3,105 +3,34 @@ import MapKit
 
 struct IMStaticLocationCardView: View {
     let place: IMStaticLocation
-    @State private var showMap = false
-    @Environment(\.cyPalette) private var palette
-    @Environment(\.dynamicTypeSize) private var typeSize
-    private var placeTitle: String {
-        let name = place.name.trimmingCharacters(in: .whitespacesAndNewlines)
-        return name.isEmpty ? "—" : name
-    }
-
-    /// On the cover the label sits on a dark scrim, so it stays white. Below the cover it uses the role text color.
-    private var showMapLabel: some View {
-        Text("d7.imLocationCard.showMap")
-            .font(CYTypography.caption.weight(.semibold))
-            .foregroundStyle(typeSize.isAccessibilitySize ? palette.textPrimary : Color.white)
-            .fixedSize(horizontal: false, vertical: true)
-            .padding(.horizontal, CYSpacing.md)
-            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
-            .background {
-                if !typeSize.isAccessibilitySize { Capsule().fill(palette.overlay) }
-            }
-    }
-
+    @State private var showMap=false
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment:.leading,spacing:0) {
             if showMap {
-                Color.clear
-                    .aspectRatio(16.0 / 10.0, contentMode: .fit)
-                    .overlay {
-                        Map(initialPosition: .region(MKCoordinateRegion(
-                            center: CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng),
-                            span: MKCoordinateSpan(latitudeDelta: 0.01, longitudeDelta: 0.01)))) {
-                            Marker(placeTitle, coordinate: CLLocationCoordinate2D(latitude: place.lat, longitude: place.lng))
-                        }
-                        .allowsHitTesting(false)
-                    }
-                    .clipped()
-                    .accessibilityLabel(Text(verbatim: placeTitle))
+                Map(initialPosition:.region(MKCoordinateRegion(
+                    center:CLLocationCoordinate2D(latitude:place.lat,longitude:place.lng),
+                    span:MKCoordinateSpan(latitudeDelta:0.01,longitudeDelta:0.01)))) {
+                    Marker(place.name,coordinate:CLLocationCoordinate2D(latitude:place.lat,longitude:place.lng))
+                }.frame(height:150).allowsHitTesting(false)
             } else {
                 // The map service only sees this place once the person asks for the map: a drawn tile stands in until then.
-                Button { showMap = true } label: {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Color.clear
-                            .aspectRatio(16.0 / 10.0, contentMode: .fit)
-                            .overlay { CYCoverArt(seed: placeTitle, symbol: "mappin.and.ellipse") }
-                            .overlay(alignment: .bottomTrailing) {
-                                if !typeSize.isAccessibilitySize { showMapLabel.padding(CYSpacing.lg) }
-                            }
-                            .clipped()
-                        if typeSize.isAccessibilitySize {
-                            showMapLabel
-                                .padding(CYSpacing.lg)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(CYPressScaleStyle())
-                .accessibilityLabel(Text("d7.imLocationCard.showMap"))
+                Button { showMap=true } label: {
+                    ZStack {
+                        CYCoverArt(seed: place.name, symbol: "map", showsDebugLabel: false, showsGlyph: false)
+                        Image(systemName: "mappin.circle.fill").font(.system(size: 34)).symbolRenderingMode(.palette).foregroundStyle(.white, Color.red)
+                        CYStatusChip("d7.imLocationCard.showMap", tone: .neutral, systemImage: "map")
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing).padding(CYSpacing.sm)
+                    }.frame(height: 110).contentShape(Rectangle())
+                }.buttonStyle(.plain).accessibilityLabel(Text("d7.imLocationCard.showMap"))
             }
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(verbatim: placeTitle)
-                    .font(CYTypography.bodyMedium)
-                    .foregroundStyle(palette.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                if !place.address.isEmpty {
-                    Text(verbatim: place.address)
-                        .font(CYTypography.meta)
-                        .foregroundStyle(palette.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            .padding(CYSpacing.lg)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(verbatim: place.name).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                if !place.address.isEmpty { Text(verbatim: place.address).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).fixedSize(horizontal: false, vertical: true) }
+            }.padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
         }
-        .frame(maxWidth: typeSize.isAccessibilitySize ? .infinity : 280)
-        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous)
-                .strokeBorder(palette.borderSubtle, lineWidth: 1)
-                .allowsHitTesting(false)
-        }
+        .frame(maxWidth: 280)
+        .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
         .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
-        .privacySensitive()
-        .onDisappear { showMap = false }
+        .privacySensitive().onDisappear { showMap=false }
     }
 }
-
-#if DEBUG
-#Preview("Location card · player") {
-    IMStaticLocationCardView(place: try! IMStaticLocation(name: "Fixture Park", address: "1 Example Road", latitude: 31.23, longitude: 121.47, datum: "WGS84"))
-        .padding(CYSpacing.pageHorizontal)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
-        .themeDomain(.player)
-}
-#Preview("Location card · merchant") {
-    IMStaticLocationCardView(place: try! IMStaticLocation(name: "Fixture Park", address: "1 Example Road", latitude: 31.23, longitude: 121.47, datum: "WGS84"))
-        .padding(CYSpacing.pageHorizontal)
-        .frame(maxHeight: .infinity, alignment: .top)
-        .cyDomainPageBackground()
-        .themeDomain(.merchant)
-}
-#endif

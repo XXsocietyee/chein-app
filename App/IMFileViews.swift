@@ -11,15 +11,11 @@ import CryptoKit
     @State private var failed = false
     @State private var revision = 0
     private var available: Bool { current() && owner.isCurrent }
-    private var fileSendIsPrimary: Bool {
-        guard case .reviewing(.send(let intent)) = owner.expanded.visibleState else { return false }
-        if case .file = intent.payload { return true }
-        return false
-    }
     var body: some View {
         let _ = revision
         Form {
-            Section { IMScreenTitle(title: "d7.imFile.title") }
+            CYHeroHeader("d7.imFile.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -31,8 +27,8 @@ import CryptoKit
                             IMFlowStateMessage(text: Text("d7.imFile.unavailable"), symbol: "doc")
                         }
                         if case .draft(let file) = owner.visibleState {
-                            LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: imShownName(file.name)).fixedSize(horizontal: false, vertical: true) }
-                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imScreenPrimary(!fileSendIsPrimary)
+                            LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: file.name) }
+                            CYPillButton("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }
                             Button("d7.imCompose.discard", role: .destructive) { owner.discardDraft() }
                         }
                     case .uploading: ProgressView("d7.imCompose.uploading")
@@ -49,9 +45,9 @@ import CryptoKit
                         Button("d7.imCompose.discard", role: .destructive) { owner.discardRejected() }
                     case .ready(let file):
                         IMFlowStateMessage(text: Text("d7.imCompose.approved"), symbol: "checkmark.seal", tone: .success)
-                        LabeledContent { IMByteCountText(bytes: file.size) } label: { Text(verbatim: imShownName(file.name)).fixedSize(horizontal: false, vertical: true) }
+                        LabeledContent { IMByteCountText(bytes: file.size) } label: { Text(verbatim: file.name) }
                         if owner.expanded.writer.canSendFile && owner.canRecover {
-                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imScreenPrimary(!fileSendIsPrimary)
+                            CYPillButton("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }
                         }
                     case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                     }
@@ -62,7 +58,7 @@ import CryptoKit
                     case .reviewing(.send(let intent)):
                         if case .file = intent.payload {
                             IMMutationSummary(mutation: .send(intent))
-                            Button("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }.imScreenPrimary()
+                            CYPillButton("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }
                             Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
                         }
                     case .submitting: ProgressView("d7.imCompose.sending")
@@ -108,26 +104,23 @@ import CryptoKit
     @State private var failed = false
     @State private var monitor: Task<Void, Never>?
     @State private var expiry: Task<Void, Never>?
-    @ScaledMetric(relativeTo: .title) private var previewHeight: CGFloat = 360
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMFileReference.read(message) != nil }
     var body: some View {
         Form {
-            Section { IMScreenTitle(title: "d7.imFile.previewTitle") }
+            CYHeroHeader("d7.imFile.previewTitle")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let reference = IMFileReference.read(message), available {
                 Section {
                     LabeledContent { IMByteCountText(bytes: reference.size) } label: {
-                        Label { Text(verbatim: imShownName(reference.name)).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "doc") }
+                        Label { Text(verbatim: reference.name) } icon: { Image(systemName: "doc") }
                     }
                     if owner.service.previewEnabled && owner.service.previewStatusEnabled && file == nil {
-                        Button { load() } label: { Label("d7.imFile.open", systemImage: "eye") }.imScreenPrimary().disabled(loading)
+                        Button { load() } label: { Label("d7.imFile.open", systemImage: "eye") }.disabled(loading)
                     }
                 }
                 if let file {
                     Section {
-                        IMFileNativePreview(url: file).id(generation)
-                            .frame(maxWidth: .infinity, minHeight: previewHeight)
-                            .listRowInsets(EdgeInsets())
-                            .accessibilityLabel(Text("d7.imFile.previewTitle"))
+                        IMFileNativePreview(url: file).id(generation).frame(minHeight: 360).listRowInsets(EdgeInsets())
                         Button { stop() } label: { Label("d7.imFile.closePreview", systemImage: "xmark.circle") }
                     }
                 }
