@@ -316,11 +316,8 @@ struct ActivityDetailView: View {
             Section {
                 E1ActivityHero(summary:detail.summary)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
-                ActivityActionTiles(registerTitleKey: registrationEnabled ? primaryAction.titleKey : nil,
-                                    registerEnabled: primaryActionEnabled,
-                                    onRegister: performPrimaryAction,
-                                    onReview: { showsReview = true },
-                                    onShare: { showsShare = true })
+                ActivityActionTiles(onDirections: directionsAction(detail),
+                                    onReview: canReview(detail) ? { showsReview = true } : nil)
                     .listRowInsets(EdgeInsets()).listRowBackground(Color.clear).listRowSeparator(.hidden)
                 E1ActivityInfoCard(detail:detail)
                     .questifyCardListRow()
@@ -435,11 +432,13 @@ struct ActivityDetailView: View {
         }
         ActivityReviewsSection(reviews: detail.reviews)
         Section {
-            Button { showsReview = true } label: {
-                CYListRow("context.review.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+            if canReview(detail) {
+                Button { showsReview = true } label: {
+                    CYListRow("context.review.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+                }
+                .buttonStyle(.cyPressable)
+                .accessibilityIdentifier("activity.openReview")
             }
-            .buttonStyle(.cyPressable)
-            .accessibilityIdentifier("activity.openReview")
             // Mini-program `activity-points`, directly under the reviews.
             Label {
                 Text("activity.reviewPointsNote")
@@ -486,6 +485,22 @@ struct ActivityDetailView: View {
                   loadedProfileIdentity == identity, loadedPeopleSnapshotID == snapshotID else { return }
             profileSelection = ActivityPersonProfileSelection(activityID: id, memberID: memberID,
                                                               people: detail.people, identity: identity, snapshotID: snapshotID)
+        }
+    }
+    /// A review is offered only once the activity has started; an upcoming or undated activity has nothing to review yet.
+    private func canReview(_ detail: ActivityDetail) -> Bool {
+        guard let start = HomeFeedDate.parse(detail.summary.startDate, sourceTimeZone: nil)
+                ?? HomeFeedDate.parse(detail.summary.startDate, sourceTimeZone: TimeZone(secondsFromGMT: 0)) else { return false }
+        return start <= Date()
+    }
+    /// Directions only when the activity has a valid coordinate; otherwise the tile is hidden.
+    private func directionsAction(_ detail: ActivityDetail) -> (() -> Void)? {
+        guard detail.summary.hasValidCoordinates, let latitude = detail.summary.latitude, let longitude = detail.summary.longitude else { return nil }
+        let name = detail.summary.name
+        return {
+            let item = MKMapItem(placemark: MKPlacemark(coordinate: CLLocationCoordinate2D(latitude: latitude, longitude: longitude)))
+            item.name = name
+            item.openInMaps()
         }
     }
     private var primaryAction: ActivityPrimaryAction {
@@ -604,36 +619,37 @@ enum ActivityLocationAccessibility {
     }
 }
 
-/// Three equal action tiles under the poster: register (same action as the pinned pill), review, share.
-/// The register tile is absent when the caller has registration off. Every tile is at least 44 pt tall.
+/// Secondary action tiles under the poster: directions and review, each only when available. Sign up lives in the pinned pill
+/// and Share in the top bar, so neither repeats here. Every tile is at least 44 pt tall.
 private struct ActivityActionTiles: View {
-    let registerTitleKey: String?
-    let registerEnabled: Bool
-    let onRegister: () -> Void
-    let onReview: () -> Void
-    let onShare: () -> Void
+    let onDirections: (() -> Void)?
+    let onReview: (() -> Void)?
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
 
     var body: some View {
         let layout = dynamicTypeSize.isAccessibilitySize
             ? AnyLayout(VStackLayout(spacing: CYSpacing.sm))
             : AnyLayout(HStackLayout(spacing: CYSpacing.sm))
-        layout {
-            if let registerTitleKey {
-                tile(LocalizedStringKey(registerTitleKey), systemImage: "ticket", enabled: registerEnabled, id: "activity.tile.register", action: onRegister)
+        if onDirections != nil || onReview != nil {
+            layout {
+                if let onDirections {
+                    tile(Text(verbatim: CYKitCopy(locale: locale)("Directions", "路线")), systemImage: "arrow.triangle.turn.up.right.circle", enabled: true, id: "activity.tile.directions", action: onDirections)
+                }
+                if let onReview {
+                    tile(Text("context.review.title"), systemImage: "square.and.pencil", enabled: true, id: "activity.tile.review", action: onReview)
+                }
             }
-            tile("context.review.title", systemImage: "square.and.pencil", enabled: true, id: "activity.tile.review", action: onReview)
-            tile("activity.tile.share", systemImage: "square.and.arrow.up", enabled: true, id: "activity.tile.share", action: onShare)
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.sm)
         }
-        .padding(.horizontal, CYSpacing.pageHorizontal)
-        .padding(.vertical, CYSpacing.sm)
     }
 
-    private func tile(_ title: LocalizedStringKey, systemImage symbol: String, enabled: Bool, id: String, action: @escaping () -> Void) -> some View {
+    private func tile(_ title: Text, systemImage symbol: String, enabled: Bool, id: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             VStack(spacing: CYSpacing.xs) {
                 Image(systemName: symbol).font(.title3).accessibilityHidden(true)
-                Text(title).font(CYTypography.meta).multilineTextAlignment(.center)
+                title.font(CYTypography.meta).multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .foregroundStyle(enabled ? CYColor.textPrimary : CYColor.textTertiary)
