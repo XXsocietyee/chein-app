@@ -26,7 +26,7 @@ final class EntryUsageConsentFlowTests: XCTestCase {
         app.tabBars.buttons["Me"].tap()
         let player = app.buttons["welcome.player"]
         XCTAssertTrue(player.waitForExistence(timeout: 5)); player.tap()
-        XCTAssertTrue(app.navigationBars["Sign in"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["auth.otherChannels"].waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["authEntry.gate.requiredForSignIn"].exists)
         XCTAssertFalse(app.buttons["auth.otherChannels"].isEnabled)
         XCTAssertFalse(app.buttons["auth.wechat.signIn"].exists)
