@@ -93,13 +93,13 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
-    /// Load lifecycle (docs/release/state-machines/views.md). `.idle` renders the loading skeleton so the task host stays mounted.
-    @State private var phase: CYPhase<ActivityDetailAccess, Void> = .idle
-    private var access: ActivityDetailAccess? { phase.value }
-    /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
-    private func settleLoading() { if phase.isLoading { phase = .idle } }
+    @State private var access: ActivityDetailAccess?
+    @State private var loading=false
+    @State private var failed=false
     @State private var generation=0
     @State private var loads = SignedInContentDetailLoadOwner()
+    @State private var showsShare = false
+    @Environment(\.timeZone) private var shareTimeZone
     private var gateScope: ActivityRequiredClubScope? {
         guard gateActivityID == id, latestGateActivityID == id,
               gateReaderID == ObjectIdentifier(reader), latestGateReaderID == ObjectIdentifier(reader),
@@ -111,9 +111,8 @@ struct ActivityDetailView: View {
         // Group with nil access produces EmptyView, which cannot host the initial task.
         // Keep one concrete root for the task and navigation title through every state.
         ZStack {
-            switch phase {
-            case .loading, .idle, .empty: loadingState
-            case .failed:
+            if loading { loadingState }
+            else if failed {
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
                         CYStateArt(kind: .failure)
@@ -129,21 +128,32 @@ struct ActivityDetailView: View {
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.vertical, CYSpacing.xl)
                 }
-            case .loaded(let access):
+            } else if let access {
                 switch access {
                 case .clubRequired(_, let message):
                     clubGate(message)
                 case .allowed(let detail):
                     detailContent(detail)
                 }
-            }
+            } else { loadingState }
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let access, case .allowed = access {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showsShare = true } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
+                        .accessibilityIdentifier("activity.share")
+                }
+            }
+        }
+        .sheet(isPresented: $showsShare) {
+            if let access, case .allowed(let detail) = access { CatalogShareCardView(content: shareContent(detail), tint: .sunset) }
+        }
         .cyDomainPageBackground()
         .task(id:id) { await loads.run { await load() } }
         .onAppear { gateIsVisible = true; gatePresentationID = UUID() }
-        .onDisappear { loads.cancel(); generation += 1; settleLoading() }
+        .onDisappear { loads.cancel(); generation += 1; loading = false }
         .onDisappear { gateIsVisible = false; gatePresentationID = UUID() }
         .onChange(of: id) { _, value in
             latestGateActivityID = value; gateReadID = nil; requiredClubSelection = nil
@@ -197,6 +207,32 @@ struct ActivityDetailView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+    }
+    /// Share card content: name, date, price / spots / category, and the place name only behind the composer's toggle.
+    private func shareContent(_ detail: ActivityDetail) -> CYShareCardContent {
+        let summary = detail.summary
+        let price: String? = summary.minimumAmount == Decimal.zero
+            ? appLocalized("share.card.free", locale: locale)
+            : E1Money.yuan(summary.minimumAmount, locale: locale)
+        let place = ActivityPresentation.nonempty(summary.addressName) ?? ActivityPresentation.nonempty(summary.address)
+        // Spots left is the sum over tickets that report an inventory; no ticket reporting one stays unknown (em dash).
+        let inventories = detail.tickets.compactMap(\.remainingInventory)
+        let spotsLeft: String? = inventories.isEmpty ? nil : String(max(0, inventories.reduce(0, +)))
+        return CYShareCardContent(
+            kind: .activity,
+            eyebrow: appLocalized("share.card.activity.eyebrow", locale: locale),
+            title: ActivityPresentation.nonempty(summary.name) ?? "—",
+            subtitle: QuestifyCardText.date(summary.startDate, locale: locale, displayTimeZone: shareTimeZone),
+            place: place,
+            stats: [
+                CYShareStat(appLocalized("share.card.stat.price", locale: locale), price),
+                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), spotsLeft),
+                CYShareStat(appLocalized("share.card.stat.category", locale: locale), summary.categoryNames.first),
+            ],
+            silhouette: summary.hasValidCoordinates ? [CGPoint(x: 0.5, y: 0.5)] : [],
+            artSeed: summary.name,
+            artSymbol: ["figure.walk", "music.note", "camera", "leaf", "building.2", "moon.stars", "map"][abs(summary.id) % 7],
+            brand: appLocalized("share.card.brand", locale: locale))
     }
     private var loadingState: some View {
         ScrollView {
@@ -444,22 +480,22 @@ struct ActivityDetailView: View {
         latestGateReaderID = capturedReaderID; latestGateActivityID = capturedActivityID
         gateReadID = nil; gateActivityID = nil; gateReaderID = nil; gateReaderIdentity = nil; requiredClubSelection = nil
         let profileIdentity = peopleProfile?.reader.identity
-        phase = .loading;loadedProfileIdentity=nil
+        loading=true;failed=false;access=nil;loadedProfileIdentity=nil
         profileSelection=nil;loadedPeopleSnapshotID=nil
-        defer { if generation == operation { settleLoading() } }
+        defer { if generation == operation { loading=false } }
         do {
             let result=try await reader.activityDetail(id:id)
             try Task.checkCancellation()
             if generation == operation, profileIdentity == peopleProfile?.reader.identity,
                latestGateReaderID == capturedReaderID, latestGateActivityID == capturedActivityID,
                capturedReaderIdentity == reader.activityPresentationIdentity {
-                phase = .loaded(result); loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
+                access=result; loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
                 gateActivityID = capturedActivityID; gateReaderID = capturedReaderID
                 gateReaderIdentity = capturedReaderIdentity; gateReadID = UUID()
             }
         }
         catch is CancellationError { }
-        catch { if generation == operation, !Task.isCancelled { phase = .failed((), retry: nil) } }
+        catch { if generation == operation, !Task.isCancelled { failed=true } }
     }
 }
 

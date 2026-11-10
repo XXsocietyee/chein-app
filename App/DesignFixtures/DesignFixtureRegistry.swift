@@ -86,6 +86,7 @@ enum DesignFixtureRegistry {
         case let n where n.hasPrefix("carousel-") && CarouselFixtures.make(n) != nil: return CarouselFixtures.make(n)!
         default:
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
+            if let e4p = MainActor.assumeIsolated({ E4PurchaseFixtures.make(name) }) { return e4p }
             if let d3 = MainActor.assumeIsolated({ OrdersWalletFixtures.make(name) }) { return d3 }
             if let e5 = MainActor.assumeIsolated({ E5Fixtures.make(name) }) { return e5 }
             if let e5c = MainActor.assumeIsolated({ E5cFixtures.make(name) }) { return e5c }

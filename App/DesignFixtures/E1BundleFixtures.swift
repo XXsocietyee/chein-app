@@ -29,11 +29,16 @@ struct E1BundleFixture: View {
         }
         _model = State(initialValue: BundleShelfModel(client: E1ShelfClient(json: json)))
     }
+
+    /// Labelled offline bundle (3 items, 2 merchants, 2 compliance lines) shared with the e4 purchase-motion fixtures.
+    static func exampleDetail(saleEnabled: Bool) -> BundleDetailContent? {
+        try? BundleDetailContent.decode(Data(#"{"topicId":"1","topicName":"Old Town Night Walk bundle (offline example)","productType":2,"saleEnabled":\#(saleEnabled),"reservationEnabled":false,"items":[{"chapterId":"11","name":"Lantern alley tasting stop","termsMode":"1 redemption per holder","unitsPerHolder":1,"stores":[{"offerId":"21","merchantName":"Lantern Tea House"},{"offerId":"22","merchantName":"Courtyard Bakery"}]},{"chapterId":"12","name":"Night market dumpling set","termsMode":"Dine-in only","unitsPerHolder":1,"stores":[{"offerId":"23","merchantName":"Dumpling Street No. 7"}]},{"chapterId":"13","name":"Rooftop lantern viewing pass","termsMode":"Weekends","unitsPerHolder":1,"stores":[]}],"price":"199.00","validityDays":30,"merchants":[{"offerId":"21","merchantName":"Lantern Tea House","qualificationSummary":"Licensed food business (offline example)"},{"offerId":"23","merchantName":"Dumpling Street No. 7","qualificationSummary":"Licensed food business (offline example)"}],"compliance":{"declarations":["Offline example compliance line one.","Offline example compliance line two: unused bundles are refundable within 7 days."]}}"#.utf8))
+    }
     var body: some View {
         NavigationStack {
             switch kind {
             case .detail, .detailOff:
-                if let content = try? BundleDetailContent.decode(Data(#"{"topicId":"1","topicName":"Old Town Night Walk bundle (offline example)","productType":2,"saleEnabled":\#(kind == .detail),"reservationEnabled":false,"items":[{"chapterId":"11","name":"Lantern alley tasting stop","termsMode":"1 redemption per holder","unitsPerHolder":1,"stores":[{"offerId":"21","merchantName":"Lantern Tea House"},{"offerId":"22","merchantName":"Courtyard Bakery"}]},{"chapterId":"12","name":"Night market dumpling set","termsMode":"Dine-in only","unitsPerHolder":1,"stores":[{"offerId":"23","merchantName":"Dumpling Street No. 7"}]},{"chapterId":"13","name":"Rooftop lantern viewing pass","termsMode":"Weekends","unitsPerHolder":1,"stores":[]}],"price":"199.00","validityDays":30,"merchants":[{"offerId":"21","merchantName":"Lantern Tea House","qualificationSummary":"Licensed food business (offline example)"},{"offerId":"23","merchantName":"Dumpling Street No. 7","qualificationSummary":"Licensed food business (offline example)"}],"compliance":{"declarations":["Offline example compliance line one.","Offline example compliance line two: unused bundles are refundable within 7 days."]}}"#.utf8)) {
+                if let content = E1BundleFixture.exampleDetail(saleEnabled: kind == .detail) {
                     BundleDetailView(content: content, onPurchase: {})
                 }
             default:

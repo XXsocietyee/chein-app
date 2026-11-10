@@ -77,6 +77,12 @@ struct E1Fixture: View {
         case "e1-bundle-shelf-error": return AnyView(E1BundleFixture(.shelfError))
         case "e1-bundle-detail": return AnyView(E1BundleFixture(.detail))
         case "e1-bundle-detail-off": return AnyView(E1BundleFixture(.detailOff))
+        case "e1-ticket-holder": return AnyView(E1TicketHolderFixture(kind: .wallet))
+        case "e1-ticket-holder-valid": return AnyView(E1TicketHolderFixture(kind: .valid))
+        case "e1-ticket-holder-pending": return AnyView(E1TicketHolderFixture(kind: .pending))
+        case "e1-ticket-holder-used": return AnyView(E1TicketHolderFixture(kind: .used))
+        case "e1-ticket-holder-expired": return AnyView(E1TicketHolderFixture(kind: .expired))
+        case "e1-ticket-holder-present": return AnyView(E1TicketHolderFixture(kind: .present))
         default: return nil
         }
     }

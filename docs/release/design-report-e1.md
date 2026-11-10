@@ -57,3 +57,29 @@ Rework batch /Users/fanning/chengyin-refs/design-reports/e1/contact-143510.png (
 - Price breakdown on order detail: the order read model has only one payable amount, so no itemised rows were invented.
 - QR: the stub shows a QR symbol, never a code; real verification stays with venue staff (the model has no code field).
 - Debug fixture overlay ("Synthetic fixture · debug only") overlaps the title of orders-list at XL (fixture artifact only).
+
+## Fourth pass: ticket holder (hero, code-only, cloud-verified)
+Spec: `docs/release/motion-spec-tickets.md`. Kit: `App/DesignSystem/CYTicketPass.swift`. Fixtures: `e1-ticket-holder` (wallet stack), `e1-ticket-holder-valid | -pending | -used | -expired` (detail pass per ribbon state), `e1-ticket-holder-present` (present mode, honest staff tile). No local build or shots this pass (cloud build only); judge from the fixtures on device.
+
+### Benchmarks (Mobbin, patterns borrowed)
+- Luma ticket QR sheet https://mobbin.com/screens/fd60dbd4-6f2f-43e8-a2a8-dbf6954b3f59 (black backdrop, one white code tile, title small at top, X to close) -> present mode layout.
+- Fly Delta boarding pass https://mobbin.com/screens/8eddb26c-f76b-4aff-ac16-12e734aa78fe (code on the pass itself, header band, big digits for the thing staff read) -> registration number in display type when no code factory exists.
+- Fresha vouchers https://mobbin.com/screens/69616e9f-0d13-4ce1-961b-6e5201ec6231 (dark gradient passes, side notches, stacked in a list) -> wallet rows as notched passes with cover art and two sleeves behind.
+- Trainline ticket https://mobbin.com/screens/57e53ad4-d677-47a4-a8b2-6ad795714605 (tear line separating the header from the details) -> perforation holes (real even-odd cut-outs) between art band and stub.
+- X Money card https://mobbin.com/screens/924e3b0f-d877-45a2-8725-871c0c02addb (card stack peeking, light streaks on the material) -> stack depth and the scroll-driven light band.
+
+### Done (real views)
+- Wallet rows (`TicketWalletView`): notched + perforated pass shape, generated cover art (no grey gradient), corner status ribbon (valid / awaiting payment / verified / expired / cancelled / unknown; flat chip at AX sizes), stack sleeves, light band that moves with the scroll, first-screen stagger, iOS 18 zoom into the detail. Row identifiers unchanged (`ticketWallet.row.<id>`, pending-order button, schedule-sync and status-hint ids).
+- Detail pass (`E1TicketCard`): same shape family at card scale, ribbon, hold-and-drag tilt with a moving specular highlight, tap sheen, layered shadows, retired passes sit back at 0.74. No fixed font sizes left (glyphs via `@ScaledMetric`); the file and `TicketWalletView.swift` are now clean in the design lint and their allowlist entries were removed.
+- Present mode (`TicketPassPresentView`, full-screen cover zoomed from the pass): brightness to 100 % with restore on close / background, pass summary, real `VerificationCodeView` when the host injects the factory, otherwise the registration number in large type with the staff copy; code tile lands with the reveal (fade + scale + blur clear + one sheen) and a success tick. `Present pass` is the only primary on the detail; play start drops to the outlined style while it is shown.
+- `VerificationCodeView`: the real QR tile uses the same `cyCodeReveal()` everywhere it appears (play entry, order pass).
+- Honesty kept: no fake QR anywhere; the stub copy still says staff verify; the UI test expectation that the fixture detail never offers a code button holds (fixture ticket 901 is verified, so no Present button).
+
+### Self-score (6 ADA lenses)
+Wallet 8.5 (delight: stack + band + ribbon; interaction: native push, zoom; inclusivity: chip fallback, ids kept), detail pass 8.5 (tilt + sheen are the memorable moment, one primary), present mode 8 (the honest tile without a factory is plain by design; with the real code it is a 9). Nothing under 8.
+
+### Not done (honest list)
+- No stills this pass: code-only task, verified by the cloud build. Fixture names above are the review path.
+- The "one visible title" rule: the detail keeps the inline `Ticket details` nav title because `TicketWalletFlowTests` pins `navigationBars["Ticket details"]`; the card title is the only large title.
+- Tilt in the wallet rows was left out on purpose: the rows are NavigationLinks and a hold-then-drag there would fight the tap and the list scroll; the hero tilt lives on the detail pass.
+- A DEBUG QR in the present fixture would need a `RuntimeDependencyContext` and a stub issuer; the fixture shows the staff tile instead.

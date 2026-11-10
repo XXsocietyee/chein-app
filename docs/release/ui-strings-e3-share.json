@@ -1,0 +1,110 @@
+{
+  "roam.share.includePlace": {
+    "en": "Show neighbourhood name",
+    "zh-Hans": "显示街区名称"
+  },
+  "roam.share.includePlaceHint": {
+    "en": "Off by default. The card never includes your precise location; a hidden or unknown place shows as —.",
+    "zh-Hans": "默认关闭。卡片不含精确位置；未显示或未知的地点以 — 表示。"
+  },
+  "roam.share.caption.placeholder": {
+    "en": "Add a caption (optional)",
+    "zh-Hans": "写一句话（可选）"
+  },
+  "roam.share.card.eyebrow": {
+    "en": "Roam memory",
+    "zh-Hans": "漫游记忆"
+  },
+  "roam.share.ready": {
+    "en": "Card ready",
+    "zh-Hans": "卡片已生成"
+  },
+  "roam.share.readyHint": {
+    "en": "This exact image is what you save or share. Change the template or caption to redo it.",
+    "zh-Hans": "保存或分享的就是这张图。更改模板或文字可重新生成。"
+  },
+  "roam.share.previewLabel": {
+    "en": "Prepared share card",
+    "zh-Hans": "已生成的分享卡"
+  },
+  "roam.share.sharedToast": {
+    "en": "Shared",
+    "zh-Hans": "已分享"
+  },
+  "share.card.title": {
+    "en": "Share card",
+    "zh-Hans": "分享卡片"
+  },
+  "share.card.privacy": {
+    "en": "Only what you see on the card is shared: no link, no account, no precise location.",
+    "zh-Hans": "只分享卡片上显示的内容：不含链接、账号或精确位置。"
+  },
+  "share.card.caption.placeholder": {
+    "en": "Add a caption (optional)",
+    "zh-Hans": "写一句话（可选）"
+  },
+  "share.card.includePlace": {
+    "en": "Show place name",
+    "zh-Hans": "显示地点名称"
+  },
+  "share.card.includePlaceHint": {
+    "en": "Off by default. Unknown or hidden shows as —.",
+    "zh-Hans": "默认关闭。未知或未显示的地点以 — 表示。"
+  },
+  "share.card.share": {
+    "en": "Share image",
+    "zh-Hans": "分享图片"
+  },
+  "share.card.rendering": {
+    "en": "Preparing card…",
+    "zh-Hans": "正在生成卡片…"
+  },
+  "share.card.route.eyebrow": {
+    "en": "Official route",
+    "zh-Hans": "官方路线"
+  },
+  "share.card.activity.eyebrow": {
+    "en": "Event",
+    "zh-Hans": "活动"
+  },
+  "share.card.stat.duration": {
+    "en": "Duration",
+    "zh-Hans": "用时"
+  },
+  "share.card.stat.distance": {
+    "en": "Distance",
+    "zh-Hans": "距离"
+  },
+  "share.card.stat.stops": {
+    "en": "Stops",
+    "zh-Hans": "站点"
+  },
+  "share.card.stat.price": {
+    "en": "Price",
+    "zh-Hans": "价格"
+  },
+  "share.card.stat.spots": {
+    "en": "Spots left",
+    "zh-Hans": "剩余名额"
+  },
+  "share.card.stat.category": {
+    "en": "Category",
+    "zh-Hans": "分类"
+  },
+  "share.card.free": {
+    "en": "Free",
+    "zh-Hans": "免费"
+  },
+  "share.card.brand": {
+    "en": "城瘾",
+    "zh-Hans": "城瘾"
+  },
+  "officialRoute.share": {
+    "en": "Share route",
+    "zh-Hans": "分享路线"
+  },
+  "activity.share": {
+    "en": "Share event",
+    "zh-Hans": "分享活动"
+  }
+}

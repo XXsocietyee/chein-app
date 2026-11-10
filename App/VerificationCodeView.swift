@@ -67,7 +67,7 @@ extension EnvironmentValues {
     }
     @ViewBuilder private var content: some View {
         if model.phase == .ready, let code = model.displayCode {
-            VerificationLocalQRCode(code: code)
+            VerificationLocalQRCode(code: code).cyCodeReveal()
             CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
                 .accessibilityIdentifier("verificationCode.refresh")
             if model.target.kind == .cityVoucher, autoIssue {
