@@ -21,6 +21,11 @@ struct CYCelebrationCopy {
     var stampsUnit: String { copy("stamps", "枚章") }
     var shareWalk: String { copy("Share this walk", "分享这一趟") }
     var done: String { copy("Done", "完成") }
+    var shareTitle: String { copy("Share", "分享") }
+    var shareRendering: String { copy("Preparing your card", "正在生成卡片") }
+    var shareAction: String { copy("Share card", "分享卡片") }
+    var shareFailed: String { copy("Couldn't prepare the card. Try again.", "卡片生成失败，请再试一次") }
+    var routeLabel: String { copy("Route of this walk", "这一趟的路线") }
 
     func badgeLine(name: String) -> String { "\(badgeEyebrow) · \(CYUnknown.text(name))" }
 
@@ -119,14 +124,16 @@ final class CYCelebrationCenter {
 
 extension View {
     /// Mounts the celebration surfaces once, high in the tree (stamp overlay, badge cover, roam-summary sheet).
-    /// `onShare` receives the event behind the tapped Share button; pass nil to hide Share until the share card ships.
-    func cyCelebrations(_ center: CYCelebrationCenter, onShare: ((CYCelebrationEvent) -> Void)? = nil) -> some View {
-        modifier(CYCelebrationHost(center: center, onShare: onShare))
+    /// Share opens a `CYShareCard` sheet from the cover / summary itself; `onShare` is only an observer of the tap.
+    /// `shareEnabled: false` hides Share (Keep / Done become the one primary).
+    func cyCelebrations(_ center: CYCelebrationCenter, shareEnabled: Bool = true, onShare: ((CYCelebrationEvent) -> Void)? = nil) -> some View {
+        modifier(CYCelebrationHost(center: center, shareEnabled: shareEnabled, onShare: onShare))
     }
 }
 
 private struct CYCelebrationHost: ViewModifier {
     let center: CYCelebrationCenter
+    let shareEnabled: Bool
     let onShare: ((CYCelebrationEvent) -> Void)?
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.accessibilityVoiceOverEnabled) private var voiceOver
@@ -167,7 +174,8 @@ private struct CYCelebrationHost: ViewModifier {
                 if case .badge(let payload) = event.payload {
                     CYBadgeUnlockCover(
                         payload: payload,
-                        onShare: onShare.map { share in { share(event) } },
+                        shareEnabled: shareEnabled,
+                        onShare: { onShare?(event) },
                         onKeep: { center.dismiss(ifCurrent: event.id) }
                     )
                 }
@@ -176,7 +184,8 @@ private struct CYCelebrationHost: ViewModifier {
                 if case .roamSummary(let payload) = event.payload {
                     CYRoamSummaryView(
                         payload: payload,
-                        onShare: onShare.map { share in { share(event) } },
+                        shareEnabled: shareEnabled,
+                        onShare: { onShare?(event) },
                         onDone: { center.dismiss(ifCurrent: event.id) }
                     )
                     .presentationDetents([.large])
@@ -294,6 +303,7 @@ struct CYStampSlamView: View {
 /// the Share button is absent and Keep becomes the one primary.
 struct CYBadgeUnlockCover: View {
     let payload: CYBadgePayload
+    var shareEnabled = true
     var onShare: (() -> Void)?
     let onKeep: () -> Void
     @QuestifyReduceMotion private var reduceMotion
@@ -301,6 +311,7 @@ struct CYBadgeUnlockCover: View {
     @Environment(\.locale) private var locale
     @State private var landed = false
     @State private var burst = 0
+    @State private var sharing = false
 
     var body: some View {
         let copy = CYCelebrationCopy(locale: locale)
@@ -327,8 +338,8 @@ struct CYBadgeUnlockCover: View {
                 .fixedSize(horizontal: false, vertical: true)
                 Spacer(minLength: CYSpacing.lg)
                 VStack(spacing: CYSpacing.sm) {
-                    if let onShare {
-                        CYPillButton(verbatim: copy.shareBadge, action: onShare)
+                    if shareEnabled {
+                        CYPillButton(verbatim: copy.shareBadge) { onShare?(); sharing = true }
                         CYPillButton(verbatim: copy.keepBadge, style: .tertiary, action: onKeep)
                     } else {
                         CYPillButton(verbatim: copy.keepBadge, action: onKeep)
@@ -345,6 +356,9 @@ struct CYBadgeUnlockCover: View {
             }
         )
         .accessibilityAction(.escape, onKeep)
+        .sheet(isPresented: $sharing) {
+            CYCelebrationShareSheet(content: CYCelebrationShare.badge(payload, locale: locale))
+        }
         .accessibilityIdentifier("cy.celebration.badge")
         .task { await land() }
     }
@@ -376,10 +390,12 @@ struct CYBadgeUnlockCover: View {
 /// number is a dash and does not roll. At most three animations run at once.
 struct CYRoamSummaryView: View {
     let payload: CYRoamSummaryPayload
+    var shareEnabled = true
     var onShare: (() -> Void)?
     let onDone: () -> Void
     @Environment(\.cyPalette) private var palette
     @Environment(\.locale) private var locale
+    @State private var sharing = false
 
     var body: some View {
         let copy = CYCelebrationCopy(locale: locale)
@@ -394,10 +410,14 @@ struct CYRoamSummaryView: View {
                 VStack(spacing: CYSpacing.lg) { stats(copy) }
             }
             .frame(maxWidth: .infinity)
+            if !payload.route.isEmpty {
+                CYRouteDraw(points: payload.route, label: copy.routeLabel)
+                    .frame(maxWidth: .infinity, maxHeight: 220)
+            }
             Spacer(minLength: CYSpacing.lg)
             VStack(spacing: CYSpacing.sm) {
-                if let onShare {
-                    CYPillButton(verbatim: copy.shareWalk, action: onShare)
+                if shareEnabled {
+                    CYPillButton(verbatim: copy.shareWalk) { onShare?(); sharing = true }
                     CYPillButton(verbatim: copy.done, style: .tertiary, action: onDone)
                 } else {
                     CYPillButton(verbatim: copy.done, action: onDone)
@@ -408,6 +428,11 @@ struct CYRoamSummaryView: View {
         .padding(.bottom, CYSpacing.lg)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(palette.bgPage.ignoresSafeArea())
+        .sheet(isPresented: $sharing) {
+            CYCelebrationShareSheet(
+                content: CYCelebrationShare.walk(payload, locale: locale),
+                routeContent: payload.route.isEmpty ? nil : CYCelebrationShare.walk(payload, locale: locale, includeRoute: true))
+        }
         .accessibilityIdentifier("cy.celebration.roam")
     }
 

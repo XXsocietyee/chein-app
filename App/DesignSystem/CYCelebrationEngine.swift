@@ -1,3 +1,4 @@
+import CoreGraphics
 import Foundation
 
 // Celebration queue engine (e4). Spec: docs/release/motion-spec-celebration.md.
@@ -49,6 +50,8 @@ struct CYRoamSummaryPayload: Equatable, Sendable {
     var kilometers: Double?
     var tiles: Int?
     var stamps: Int?
+    /// Normalised route polyline (0...1, y down, see `CYShareCardContent.silhouette`). Empty = no route known: nothing is drawn.
+    var route: [CGPoint] = []
 }
 
 enum CYCelebrationKind: Int, Equatable, Comparable, Sendable {

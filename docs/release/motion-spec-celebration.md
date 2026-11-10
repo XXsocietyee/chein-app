@@ -70,3 +70,19 @@ Wired nowhere live. No existing screen was changed: the places that show empty o
 | `state-offline`, `state-server`, `state-empty`, `state-empty-compact` | the three states, plus the inline form beside live content |
 
 Add `--uitesting-reduce-motion` to any of them for the fallback.
+
+## 6. Peaks wiring: badge unlock cover (W2-3) and roam summary sheet (W2-4)
+Both surfaces were already built in the kit; this step mounts them on the existing success paths. Presentation only: no Core, Tests or Config edit, no gating or data change.
+
+| Peak | Hook | Gate (unchanged) | Payload |
+| --- | --- | --- | --- |
+| Badge unlock | `GrowthCenterView.readOverview` after `GrowthBadgeUnlockTracker.observe` | The tracker's own rule: only a successful center read in the same scope lights a badge; the first read never celebrates | `CYBadgePayload(id: badge code or name, name)` per newly lit badge; the queue plays them one at a time |
+| Roam summary | `RoamLiveSessionView` `.onChange(of: RoamSummaryCelebration.settledSessionID)` | Same guard as `RoamFinishedMedalsPresentation`: finished, available, foreground, not busy, archived, complete settlement for this session | km from the archived history record of this walk (nil = dash), tiles = settlement `newTiles`, stamps = `newPois`, route from `finishedRouteTrack` |
+
+Kept as is: the existing "newly lit" status row in Growth Center, and `RoamFinishedMedalsSection` (its hint says a missing field is not proof of no medal, which the sheet does not repeat). The old `.cyHaptic(.success)` on the Growth status was removed: the cover owns the haptic beat and two would stack. The summary is mounted with `.cyCelebrations(center)` on the roam view and de-duplicates by session id.
+
+Route draw (summary): the route polyline trims 0 to 1 over 0.60 s starting 0.70 s in, after the three numbers have rolled, so at most 3 animations run at once and only 1 during the draw. Reduce Motion: cross-fade. No route known = nothing drawn.
+
+Share CTA: Share on either surface opens `CYCelebrationShareSheet` (`.large`): live `CYShareCardPreview` (poster, 9:16), render after the sheet is up (`CYShareCardRenderer`), then one system `ShareLink` on the bitmap. No place on the card. The walk card has an "Include the route" toggle, off by default. Unknown numbers are card dashes. Shown by default; `cyCelebrations(center, shareEnabled: false)` hides it and `onShare` is only an observer of the tap.
+
+Fixtures (DEBUG): `celebration-badge`, `celebration-badge-long` (long name), `celebration-roam`, `celebration-roam-unknown`, `celebration-roam-route`, `celebration-share-walk`, `celebration-share-badge`, each with `-zh`.
