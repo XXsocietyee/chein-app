@@ -54,3 +54,14 @@
 - ut-e1-bundle-shelf-empty [x] f1e7470f4. PR 1045. Fixture test only. Parent is the docs rc. Not merged.
 - ut-d2-city [x] fae32fdc2. PR 1046. Fixture test only. Not merged.
 - ut-d4-owner-detail [x] 496b22302. PR 1047. Fixture test only. Not merged.
+- ut-d2-play [x] dccb003fe. PR 1048. Fixture test only. Not merged.
+- ut-d4-tab-posts [x] bbcaac99a. PR 1049. Fixture test only. Not merged.
+- ut-d2-roam [x] 53a99f0cf. PR 1050. Fixture test only. Not merged.
+- ut-d2-me [x] e684da31e. PR 1051. Fixture test only. Not merged.
+- ut-d2-inbox [x] 42255c2d1. PR 1052. Fixture test only. Not merged.
+- ut-d6-search [x] b4409ff51. PR 1053. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d6-play-loading [x] 3629a5850. PR 1054. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d2-square [x] 6d39863cb. PR 1055. Test plus a 12-line project registration. Not merged.
+- ut-d4-ops-create [x] 79a606663. PR 1056. Fixture test only. Not merged.
+- ut-d4-tab-overview [x] 7ee572702. PR 1057. Fixture test only. Not merged.
+- ut-d2-search-results [x] 934f276fc. PR 1058. Fixture test only. Not merged.
