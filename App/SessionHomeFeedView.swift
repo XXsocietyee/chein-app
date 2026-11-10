@@ -65,12 +65,12 @@ import SwiftUI
                 viewerAvatar: session.account?.avatar,
                 selectedCity: session.roamArea?.label,
                 showsHeroBanners: true,
-                onStartRoam: onStartRoam,
                 continuationCards: continuationCards,
                 continuationReadAvailability: continuationReadAvailability,
                 onActionBanner: handleActionBanner,
                 onContinuation: handleContinuation,
-                onRetryContinuation: { Task { await reloadContinuationCards() } }
+                onRetryContinuation: { Task { await reloadContinuationCards() } },
+                onStartRoam: onStartRoam
             ) { path.append($0) }
                 .toolbar {
                     ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }
