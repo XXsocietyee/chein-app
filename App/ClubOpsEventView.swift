@@ -173,6 +173,7 @@ import SwiftUI
 
 /// Mini series row: "{topic} · {单次/每周/自定义日期}" plus collision-only suffix and waitlist meta.
 @MainActor struct ClubOpsEventSeriesRowView: View {
+    @Environment(\.locale) private var locale
     let row: ClubOpsEventSeriesRow
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
