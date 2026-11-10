@@ -2,22 +2,28 @@ import SwiftUI
 
 @MainActor struct ApprovedReleasePublicationConfirmationView: View {
     @Environment(\.locale) private var locale
+    @State private var primaryPulse = 0
     let original: ApprovedTopicReleasePublishFlow.Confirmation
     let cancel: (ApprovedTopicReleasePublishFlow.Confirmation) -> Void
     let confirm: (ApprovedTopicReleasePublishFlow.Confirmation) -> Void
     var body: some View {
         NavigationStack {
             Form {
-                CYHeroHeader(verbatim: String(localized: LocalizedStringResource("approvedRelease.confirmTitle", defaultValue: "Publish this version?", locale: locale)))
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                Cloud02ScreenHeader(title: "approvedRelease.confirmTitle", seed: "approved-release-confirm", symbol: "paperplane")
+                    .cloud02GutterRow()
                 ApprovedReleaseSummarySection(prepared: original.prepared, identifierPrefix: "approvedRelease.confirm")
                 Section {
-                    CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.confirmCreate", defaultValue: "Publish", locale: locale))) { confirm(original) }
-                        .accessibilityIdentifier("approvedRelease.confirm.create")
+                    Cloud02ActionButton(title: "approvedRelease.confirmCreate", identifier: "approvedRelease.confirm.create", systemImage: "paperplane.fill", primary: true) {
+                        primaryPulse += 1
+                        confirm(original)
+                    }
+                    .cloud02GutterRow()
                 }
             }
             .p04LifecycleSurface()
             .cyHeroScreen()
+            .cyDomainPageBackground()
+            .cyHaptic(.impactMedium, trigger: primaryPulse)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("approvedRelease.confirmCancel", defaultValue: "Cancel", locale: locale))) { cancel(original) }
@@ -25,7 +31,7 @@ import SwiftUI
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .themeDomain(.player)
         .onDisappear { cancel(original) }
     }
 }

@@ -34,7 +34,10 @@ import SwiftUI
 
 @MainActor struct ApprovedReleasePreparationView: View {
     @Environment(\.locale) private var locale
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
     @StateObject private var model: ApprovedReleaseReadModel
+    @State private var primaryPulse = 0
     let original: ApprovedReleaseAuthorPresentation.Presentation
     let close: () -> Void
     init(original: ApprovedReleaseAuthorPresentation.Presentation, close: @escaping () -> Void) {
@@ -44,23 +47,30 @@ import SwiftUI
         let confirmation = model.confirmation
         NavigationStack {
             Form {
-                CYHeroHeader(verbatim: String(localized: LocalizedStringResource("approvedRelease.title", defaultValue: "Approved snapshot", locale: locale)))
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                Text(String(localized: LocalizedStringResource("approvedRelease.readOnly", defaultValue: "This is a captured server-approved summary, not your editable draft. Reading it creates no release.", locale: locale)))
-                    .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("approvedRelease.readOnly")
+                Cloud02ScreenHeader(title: "approvedRelease.title", seed: "approved-release", symbol: "checkmark.seal")
+                    .cloud02GutterRow()
+                Cloud02Note(key: "approvedRelease.readOnly", identifier: "approvedRelease.readOnly")
+                    .cloud02GutterRow()
                 if !model.flow.isCurrent {
-                    Text(String(localized: LocalizedStringResource("approvedRelease.changedContext", defaultValue: "This review is no longer current. Close it and return to the current submission.", locale: locale)))
+                    changedContext
                 } else {
                     switch model.flow.state {
-                    case .idle, .loading: CYSkeleton().accessibilityIdentifier("approvedRelease.loading")
-                    case .ready(let prepared): ApprovedReleaseSummarySection(coverSource: original.coverSource, coverSession: original.flow.session, coverContextCurrent: { original.flow.isCurrent && original.flow.state == .ready(prepared) }, prepared: prepared)
+                    case .idle, .loading:
+                        CYSkeleton()
+                            .accessibilityIdentifier("approvedRelease.loading")
+                            .accessibilityLabel(Text("wallet.loading"))
+                            .cloud02GutterRow()
+                    case .ready(let prepared):
+                        ApprovedReleaseSummarySection(coverSource: original.coverSource, coverSession: original.flow.session, coverContextCurrent: { original.flow.isCurrent && original.flow.state == .ready(prepared) }, prepared: prepared)
                     case .unauthorized:
-                        Text(String(localized: LocalizedStringResource("approvedRelease.unauthorized", defaultValue: "Sign in again before checking the current approved snapshot.", locale: locale)))
-                    case .failed:
-                        Text(String(localized: LocalizedStringResource("approvedRelease.checkFailed", defaultValue: "No current approved snapshot could be verified. Review may be pending, changed, unsupported or unavailable. This check did not create or retry a release; any saved request is retained.", locale: locale)))
-                            .accessibilityIdentifier("approvedRelease.failed")
-                        CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.retry", defaultValue: "Check again", locale: locale)), style: .secondary) { Task { await model.load() } }
-                            .listRowBackground(Color.clear).accessibilityIdentifier("approvedRelease.retry")
+                        stateCopy(art: .generic, key: "approvedRelease.unauthorized", identifier: nil)
+                    case .failed(_):
+                        stateCopy(art: .failure, key: "approvedRelease.checkFailed", identifier: "approvedRelease.failed")
+                        Cloud02ActionButton(title: "approvedRelease.retry", identifier: "approvedRelease.retry", systemImage: "arrow.clockwise", primary: cloudPrimary == .reload) {
+                            if cloudPrimary == .reload { primaryPulse += 1 }
+                            Task { await model.load() }
+                        }
+                        .cloud02GutterRow()
                     case .closed: EmptyView()
                     }
                     if let publisher = model.publisher { publication(publisher) }
@@ -68,6 +78,8 @@ import SwiftUI
             }
             .p04LifecycleSurface()
             .cyHeroScreen()
+            .cyDomainPageBackground()
+            .cyHaptic(.impactMedium, trigger: primaryPulse)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("approvedRelease.close", defaultValue: "Close", locale: locale))) { model.close(); close() }
@@ -75,50 +87,221 @@ import SwiftUI
                 }
             }
         }
-        .preferredColorScheme(.dark)
+        .themeDomain(.player)
         .task(id: original.id) { await model.load() }
         .sheet(item: model.confirmationBinding(confirmation)) { captured in
             ApprovedReleasePublicationConfirmationView(original: captured, cancel: model.cancel, confirm: model.confirm)
         }
         .onDisappear { original.publisher?.close(); original.flow.close() }
     }
+
+    private var cloudPrimary: Cloud02ReleasePrimary {
+        guard model.flow.isCurrent, let publisher = model.publisher else { return .reload }
+        if case .ready(let prepared) = model.flow.state, publisher.canReview(prepared) { return .review }
+        if publisher.snapshot?.current != nil { return .check }
+        return .reload
+    }
+
+    private var changedContext: some View {
+        stateCopy(art: .failure, key: "approvedRelease.changedContext", identifier: nil)
+    }
+
+    private func stateCopy(art: CYStateKind, key: LocalizedStringKey, identifier: String?) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYStateArt(kind: art, size: typeSize.isAccessibilitySize ? 84 : 120)
+            identifiedText(key, identifier: identifier)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .cloud02GutterRow()
+    }
+
+    private func identifiedText(_ key: LocalizedStringKey, identifier: String?) -> some View {
+        Text(key)
+            .font(CYTypography.body)
+            .foregroundStyle(palette.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .modifier(Cloud02Identifier(identifier))
+    }
+
     @ViewBuilder private func publication(_ publisher: ApprovedTopicReleasePublishFlow) -> some View {
         let captured = publisher.snapshot
         Section {
-            Text(String(localized: LocalizedStringResource("approvedRelease.publishScope", defaultValue: "Creating an immutable release records this exact approved version. It does not by itself prove public listing, player eligibility or successful play.", locale: locale)))
-                .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Cloud02Note(key: "approvedRelease.publishScope").cloud02GutterRow()
             switch publisher.state {
-            case .sending: CYSkeleton().accessibilityIdentifier("approvedRelease.publication.sending")
+            case .sending:
+                CYSkeleton()
+                    .accessibilityIdentifier("approvedRelease.publication.sending")
+                    .accessibilityLabel(Text("wallet.loading"))
+                    .cloud02GutterRow()
             case .known(let receipt):
-                Text(String(receipt.releaseID)).accessibilityIdentifier("approvedRelease.publication.releaseID")
-                Text(verbatim: receipt.manifestHash).textSelection(.enabled).accessibilityIdentifier("approvedRelease.publication.manifestHash")
-                Text(String(localized: LocalizedStringResource("approvedRelease.allocated", defaultValue: "The server returned an immutable release ID for this captured manifest.", locale: locale)))
-                Text(receipt.currentlyApproved
-                    ? String(localized: LocalizedStringResource("approvedRelease.receiptApproved", defaultValue: "Approved at the last server check", locale: locale))
-                    : String(localized: LocalizedStringResource("approvedRelease.receiptChanged", defaultValue: "The last server check did not confirm current approval", locale: locale)))
-                    .accessibilityIdentifier("approvedRelease.publication.approval")
+                knownReceipt(receipt).cloud02GutterRow()
             case .unconfirmed:
-                Text(String(localized: LocalizedStringResource("approvedRelease.unconfirmed", defaultValue: "The publication result is unconfirmed. The exact request is retained; check its result before creating another request.", locale: locale)))
-                    .accessibilityIdentifier("approvedRelease.publication.unconfirmed")
+                Cloud02Note(key: "approvedRelease.unconfirmed", identifier: "approvedRelease.publication.unconfirmed").cloud02GutterRow()
             case .unavailable:
-                Text(String(localized: LocalizedStringResource("approvedRelease.journalUnavailable", defaultValue: "The local publication record could not be safely read or saved. Existing bytes were not cleared. No new request is authorized by this error.", locale: locale)))
-                    .accessibilityIdentifier("approvedRelease.publication.unavailable")
+                Cloud02Note(key: "approvedRelease.journalUnavailable", identifier: "approvedRelease.publication.unavailable").cloud02GutterRow()
             case .idle, .reviewing, .closed: EmptyView()
             }
             if let captured, let record = captured.current {
-                Text(verbatim: record.command.requestID).textSelection(.enabled).accessibilityIdentifier("approvedRelease.publication.requestID")
-                CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.checkResult", defaultValue: "Check this request", locale: locale)), style: .secondary) { Task { await model.check(captured) } }
-                    .listRowBackground(Color.clear).disabled(!publisher.canCheckStatus).accessibilityIdentifier("approvedRelease.publication.check")
+                Text(verbatim: cloud02Known(record.command.requestID))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .textSelection(.enabled)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("approvedRelease.publication.requestID")
+                    .cloud02GutterRow()
+                Cloud02ActionButton(title: "approvedRelease.checkResult", identifier: "approvedRelease.publication.check", systemImage: "doc.text.magnifyingglass", primary: cloudPrimary == .check, isDisabled: !publisher.canCheckStatus) {
+                    if cloudPrimary == .check { primaryPulse += 1 }
+                    Task { await model.check(captured) }
+                }
+                .cloud02GutterRow()
                 if record.receipt == nil {
-                    CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.retryExact", defaultValue: "Retry the exact saved request", locale: locale)), style: .secondary) { Task { await model.retry(captured) } }
-                        .listRowBackground(Color.clear).disabled(!publisher.canRetryExact).accessibilityIdentifier("approvedRelease.publication.retry")
+                    Cloud02ActionButton(title: "approvedRelease.retryExact", identifier: "approvedRelease.publication.retry", systemImage: "arrow.clockwise", primary: false, isDisabled: !publisher.canRetryExact) {
+                        Task { await model.retry(captured) }
+                    }
+                    .cloud02GutterRow()
                 }
             }
             if case .ready(let prepared) = model.flow.state, publisher.canReview(prepared) {
-                CYPillButton(verbatim: String(localized: LocalizedStringResource("approvedRelease.reviewPublication", defaultValue: "Review immutable release", locale: locale))) { model.review(prepared) }
-                    .listRowBackground(Color.clear).accessibilityIdentifier("approvedRelease.publish")
+                Cloud02ActionButton(title: "approvedRelease.reviewPublication", identifier: "approvedRelease.publish", systemImage: "paperplane", primary: true) {
+                    primaryPulse += 1
+                    model.review(prepared)
+                }
+                .cloud02GutterRow()
             }
         }
     }
 
+    private func knownReceipt(_ receipt: ApprovedTopicReleasePublicationReceipt) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(verbatim: String(receipt.releaseID))
+                .font(CYTypography.dataXL)
+                .monospacedDigit()
+                .foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("approvedRelease.publication.releaseID")
+            Text(verbatim: cloud02Known(receipt.manifestHash))
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("approvedRelease.publication.manifestHash")
+            Text("approvedRelease.allocated")
+                .font(CYTypography.bodyCompact)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
+                Image(systemName: receipt.currentlyApproved ? "checkmark.seal.fill" : "exclamationmark.triangle.fill")
+                    .foregroundStyle(receipt.currentlyApproved ? palette.success : palette.warning)
+                    .accessibilityHidden(true)
+                Text(verbatim: receipt.currentlyApproved
+                    ? String(localized: LocalizedStringResource("approvedRelease.receiptApproved", defaultValue: "Approved at the last server check", locale: locale))
+                    : String(localized: LocalizedStringResource("approvedRelease.receiptChanged", defaultValue: "The last server check did not confirm current approval", locale: locale)))
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("approvedRelease.publication.approval")
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(CYSpacing.lg)
+        .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                .allowsHitTesting(false)
+        }
+    }
+}
+
+private enum Cloud02ReleasePrimary { case review, check, reload }
+
+struct Cloud02ScreenHeader: View {
+    let title: LocalizedStringKey
+    var tableName: String? = nil
+    let seed: String
+    let symbol: String
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .title3) private var coverHeight: CGFloat = 128
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if !typeSize.isAccessibilitySize {
+                CYCoverArt(seed: seed, symbol: symbol, showsDebugLabel: false)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: coverHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+                    .accessibilityHidden(true)
+            }
+            CYHeroHeader(title, tableName: tableName)
+        }
+    }
+}
+
+@MainActor struct Cloud02ActionButton: View {
+    let title: LocalizedStringKey
+    let identifier: String
+    let systemImage: String
+    var primary = true
+    var isDisabled = false
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: CYSpacing.sm) {
+                Image(systemName: systemImage).accessibilityHidden(true)
+                Text(title)
+                    .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .buttonStyle(CYPillButtonStyle(style: primary ? .primary : .secondary))
+        .disabled(isDisabled)
+        .accessibilityIdentifier(identifier)
+        .accessibilityLabel(Text(title))
+    }
+}
+
+struct Cloud02Note: View {
+    let key: LocalizedStringKey
+    var tableName: String? = nil
+    var identifier: String? = nil
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        Text(key, tableName: tableName)
+            .font(CYTypography.bodyCompact)
+            .foregroundStyle(palette.textSecondary)
+            .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(CYSpacing.lg)
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)
+                    .strokeBorder(palette.borderSubtle, lineWidth: 1)
+                    .allowsHitTesting(false)
+            }
+            .modifier(Cloud02Identifier(identifier))
+    }
+}
+
+struct Cloud02Identifier: ViewModifier {
+    let identifier: String?
+    init(_ identifier: String?) { self.identifier = identifier }
+    func body(content: Content) -> some View {
+        if let identifier, !identifier.isEmpty { content.accessibilityIdentifier(identifier) }
+        else { content }
+    }
+}
+
+extension View {
+    func cloud02GutterRow() -> some View {
+        listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+    }
+}
+
+func cloud02Known(_ text: String) -> String {
+    text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : text
 }
