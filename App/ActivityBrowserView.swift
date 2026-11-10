@@ -50,7 +50,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
                                 loads.start { await model.load(reader: reader, reset: false, keyword: query) }
                             }.frame(minHeight:44).disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
                         }
-                        if model.isLoading { ProgressView() }
+                        if model.isLoading { ProgressView().accessibilityLabel(Text("activity.loading")) }
                     }
                     .listStyle(.insetGrouped)
                     .listSectionSpacing(20)

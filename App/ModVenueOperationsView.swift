@@ -33,7 +33,7 @@ import CoreImage.CIFilterBuiltins
                 Text(t("地点所有权、隐私同意与本次模组运营同意不是同一授权。必须由场地有权方明确同意，并经原审核后才能运行。", "Place ownership and privacy consent do not authorize this module operation. Explicit venue authority consent and the original review are required."))
                 Text(model.installation.requestId).font(.caption.monospaced())
                 Button(t("只读刷新及查询原请求", "Refresh and read original receipt")) { clearReview(); run { await model.load() } }.disabled(model.busy || !model.isCurrent)
-                if model.busy { ProgressView() }
+                if model.busy { ProgressView().accessibilityLabel(Text(verbatim: t("处理中", "Working"))) }
                 if let issue = model.issue { Text(verbatim: issue).foregroundStyle(.orange) }
                 if !model.isCurrent { Text(t("会话或批准已变更；请关闭并从原安装重新打开。", "The session or approval changed. Reopen from the original installation.")) }
             }

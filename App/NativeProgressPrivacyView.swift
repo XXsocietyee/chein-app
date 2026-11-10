@@ -53,7 +53,7 @@ import SwiftUI
                 }
             }
             Section {
-                if flow.phase == .loading || flow.phase == .saving { ProgressView() }
+                if flow.phase == .loading || flow.phase == .saving { ProgressView().accessibilityLabel(Text("a11y.am.loading", tableName: "A11yAM")) }
                 if flow.phase == .closed { Text(copy.text("p31.closed")) }
                 if flow.phase == .unknown { Text(copy.text("p31.unknown")) }
                 if flow.phase == .unavailable { Text(copy.text("p31.unavailable")) }

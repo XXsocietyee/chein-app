@@ -26,14 +26,15 @@ import SwiftUI
                             Text("roleView.missingDetail").font(.footnote)
                         } else {
                             Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue)).font(.headline)
+                                .accessibilityAddTraits(.isHeader)
                                 .accessibilityIdentifier("roleView.assignment")
                             if let other = projection.otherRoleLabel {
                                 LabeledContent("roleView.otherRole") { Text(verbatim: other) }
                             }
                             ForEach(projection.views) { view in
                                 VStack(alignment: .leading, spacing: 8) {
-                                    if projection.assignment == .solo { Text(LocalizedStringKey("roleView.assignment." + view.roleID)).font(.headline) }
-                                    if !view.title.isEmpty { Text(verbatim: view.title).font(.title3).accessibilityIdentifier("roleView.title." + view.roleID) }
+                                    if projection.assignment == .solo { Text(LocalizedStringKey("roleView.assignment." + view.roleID)).font(.headline).accessibilityAddTraits(.isHeader) }
+                                    if !view.title.isEmpty { Text(verbatim: view.title).font(.title3).accessibilityAddTraits(.isHeader).accessibilityIdentifier("roleView.title." + view.roleID) }
                                     if !view.body.isEmpty { Text(verbatim: view.body).accessibilityIdentifier("roleView.body." + view.roleID) }
                                     ForEach(view.items) { item in
                                         VStack(alignment: .leading, spacing: 4) { Text(verbatim: item.label).font(.headline); Text(verbatim: item.text) }
