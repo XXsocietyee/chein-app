@@ -287,6 +287,7 @@ struct Cloud02Note: View {
 
 struct Cloud02Identifier: ViewModifier {
     let identifier: String?
+    init(_ identifier: String?) { self.identifier = identifier }
     func body(content: Content) -> some View {
         if let identifier, !identifier.isEmpty { content.accessibilityIdentifier(identifier) }
         else { content }
