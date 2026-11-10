@@ -93,11 +93,9 @@ struct ActivityDetailView: View {
     @State private var showsReview = false
     @State private var showsRegistration=false
     @State private var showsTicketWallet=false
-    /// Load lifecycle (docs/release/state-machines/views.md). `.idle` renders the loading skeleton so the task host stays mounted.
-    @State private var phase: CYPhase<ActivityDetailAccess, Void> = .idle
-    private var access: ActivityDetailAccess? { phase.value }
-    /// Guard: only an in-flight load falls back to idle; loaded/failed results are kept.
-    private func settleLoading() { if phase.isLoading { phase = .idle } }
+    @State private var access: ActivityDetailAccess?
+    @State private var loading=false
+    @State private var failed=false
     @State private var generation=0
     @State private var loads = SignedInContentDetailLoadOwner()
     @State private var showsShare = false
@@ -113,9 +111,8 @@ struct ActivityDetailView: View {
         // Group with nil access produces EmptyView, which cannot host the initial task.
         // Keep one concrete root for the task and navigation title through every state.
         ZStack {
-            switch phase {
-            case .loading, .idle, .empty: loadingState
-            case .failed:
+            if loading { loadingState }
+            else if failed {
                 ScrollView {
                     VStack(spacing: CYSpacing.lg) {
                         CYStateArt(kind: .failure)
@@ -131,14 +128,14 @@ struct ActivityDetailView: View {
                     .padding(.horizontal, CYSpacing.pageHorizontal)
                     .padding(.vertical, CYSpacing.xl)
                 }
-            case .loaded(let access):
+            } else if let access {
                 switch access {
                 case .clubRequired(_, let message):
                     clubGate(message)
                 case .allowed(let detail):
                     detailContent(detail)
                 }
-            }
+            } else { loadingState }
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
@@ -156,7 +153,7 @@ struct ActivityDetailView: View {
         .cyDomainPageBackground()
         .task(id:id) { await loads.run { await load() } }
         .onAppear { gateIsVisible = true; gatePresentationID = UUID() }
-        .onDisappear { loads.cancel(); generation += 1; settleLoading() }
+        .onDisappear { loads.cancel(); generation += 1; loading = false }
         .onDisappear { gateIsVisible = false; gatePresentationID = UUID() }
         .onChange(of: id) { _, value in
             latestGateActivityID = value; gateReadID = nil; requiredClubSelection = nil
@@ -218,6 +215,9 @@ struct ActivityDetailView: View {
             ? appLocalized("share.card.free", locale: locale)
             : E1Money.yuan(summary.minimumAmount, locale: locale)
         let place = ActivityPresentation.nonempty(summary.addressName) ?? ActivityPresentation.nonempty(summary.address)
+        // Spots left is the sum over tickets that report an inventory; no ticket reporting one stays unknown (em dash).
+        let inventories = detail.tickets.compactMap(\.remainingInventory)
+        let spotsLeft: String? = inventories.isEmpty ? nil : String(max(0, inventories.reduce(0, +)))
         return CYShareCardContent(
             kind: .activity,
             eyebrow: appLocalized("share.card.activity.eyebrow", locale: locale),
@@ -226,7 +226,7 @@ struct ActivityDetailView: View {
             place: place,
             stats: [
                 CYShareStat(appLocalized("share.card.stat.price", locale: locale), price),
-                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), spotsLeftText(detail)),
+                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), spotsLeft),
                 CYShareStat(appLocalized("share.card.stat.category", locale: locale), summary.categoryNames.first),
             ],
             silhouette: summary.hasValidCoordinates ? [CGPoint(x: 0.5, y: 0.5)] : [],
@@ -480,22 +480,22 @@ struct ActivityDetailView: View {
         latestGateReaderID = capturedReaderID; latestGateActivityID = capturedActivityID
         gateReadID = nil; gateActivityID = nil; gateReaderID = nil; gateReaderIdentity = nil; requiredClubSelection = nil
         let profileIdentity = peopleProfile?.reader.identity
-        phase = .loading;loadedProfileIdentity=nil
+        loading=true;failed=false;access=nil;loadedProfileIdentity=nil
         profileSelection=nil;loadedPeopleSnapshotID=nil
-        defer { if generation == operation { settleLoading() } }
+        defer { if generation == operation { loading=false } }
         do {
             let result=try await reader.activityDetail(id:id)
             try Task.checkCancellation()
             if generation == operation, profileIdentity == peopleProfile?.reader.identity,
                latestGateReaderID == capturedReaderID, latestGateActivityID == capturedActivityID,
                capturedReaderIdentity == reader.activityPresentationIdentity {
-                phase = .loaded(result); loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
+                access=result; loadedProfileIdentity=profileIdentity; loadedPeopleSnapshotID=UUID()
                 gateActivityID = capturedActivityID; gateReaderID = capturedReaderID
                 gateReaderIdentity = capturedReaderIdentity; gateReadID = UUID()
             }
         }
         catch is CancellationError { }
-        catch { if generation == operation, !Task.isCancelled { phase = .failed((), retry: nil) } }
+        catch { if generation == operation, !Task.isCancelled { failed=true } }
     }
 }
 
@@ -535,15 +535,4 @@ enum ActivityLocationAccessibility {
         }
         return parts.joined(separator: ", ")
     }
-}
-
-/// Sum of ticket inventory; unknown (nil) when no ticket or any ticket's inventory is unknown.
-private func spotsLeftText(_ detail: ActivityDetail) -> String? {
-    guard !detail.tickets.isEmpty else { return nil }
-    var total = 0
-    for ticket in detail.tickets {
-        guard let left = ticket.remainingInventory else { return nil }
-        total += max(0, left)
-    }
-    return String(total)
 }

@@ -54,14 +54,15 @@ struct CYShareComposer<Controls: View, Actions: View>: View {
     // MARK: Carousel
 
     private var carousel: some View {
-        ScrollView(.horizontal) {
+        let reduce = reduceMotion
+        return ScrollView(.horizontal) {
             HStack(spacing: CYSpacing.lg) {
                 ForEach(CYShareCardTemplate.allCases) { template in
                     CYShareCardPreview(content: content, style: style.with(template: template))
                         .containerRelativeFrame(.horizontal) { length, _ in max(160, length - 96) }
                         .scrollTransition(.interactive, axis: .horizontal) { view, phase in
                             view
-                                .scaleEffect(reduceMotion || phase.isIdentity ? 1 : 0.92)
+                                .scaleEffect(reduce || phase.isIdentity ? 1 : 0.92)
                                 .opacity(phase.isIdentity ? 1 : 0.65)
                         }
                         .shadow(color: .black.opacity(0.35), radius: 16, y: 8)
