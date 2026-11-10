@@ -212,6 +212,14 @@ struct ClubGovernanceReadView: View {
     private var title: LocalizedStringKey { LocalizedStringKey("club.gov." + operation.rawValue) }
     // Split into stages so the type checker handles the long modifier chain;
     // the modifiers apply in exactly the same order as one chain.
+
+    private func checkinRowsValue(_ value: ClubGovernanceValue, _ page: ClubCheckinDetailPage) -> ClubGovernanceValue {
+        guard case .ready(let facts) = page.phase, case .object(var fields) = value else { return value }
+        fields["registrationId"] = .string(facts.registrationIDText)
+        fields["paidAmountText"] = .string(facts.paidAmountText)
+        return .object(fields)
+    }
+
     var body: some View {
         bodyReturnOwners
         .task(id: readContext) { await synchronizeReadContext() }
@@ -1447,7 +1455,8 @@ struct ClubGovernanceReadView: View {
                     }
                 } else { Text("club.gov.malformed").accessibilityIdentifier("clubOps.customers.malformed") }
             } else if operation == .checkin {
-                ClubCheckinDetailRows(value: value)
+                let page = ClubCheckinDetailPage.bind(clientCapabilityPresent: access.isConfigured, loading: loading, failure: failure, value: value)
+                if page.showsContent { ClubCheckinDetailRows(value: checkinRowsValue(value, page)) }
             } else {
                 ClubGovernanceFactRows(value: value, fields: ClubGovernanceFactRows.summaryFields)
                 if operation == .series {
