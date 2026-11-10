@@ -72,7 +72,8 @@ struct ClubStoryEmptyState: View {
     let detail: LocalizedStringKey
     var body: some View {
         // Mini-program cy-empty: title only; the explanatory detail line is no longer shown.
-        Text(title).foregroundStyle(.secondary).padding(.vertical, 8)
+        let _ = detail
+        CYEmptyState(systemImage: "map", title)
     }
 }
 struct ClubStoryChapterTitle: View {
@@ -82,18 +83,31 @@ struct ClubStoryChapterTitle: View {
             if let name = chapter.name, name.hasPrefix("第"), name.contains("章") { Text(verbatim: name) }
             else if let name = chapter.name { Text("club.story.chapter \(chapter.id + 1)") + Text(verbatim: " · " + name) }
             else { Text("club.story.chapter \(chapter.id + 1)") }
-        }.accessibilityIdentifier("club.gov.fact.title")
+        }
+        .font(CYTypography.cardTitle)
+        .foregroundStyle(CYColor.textPrimary)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityIdentifier("club.gov.fact.title")
     }
 }
 struct ClubStoryChapterHeader: View {
     let chapter: ClubStoryChapter
     var body: some View {
-        VStack(alignment: .leading, spacing: 5) {
-            ClubStoryChapterTitle(chapter: chapter).font(.headline)
-            if chapter.stops.isEmpty { Text("club.story.awaitingMerchants") }
-            else {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            ClubStoryChapterTitle(chapter: chapter)
+            if chapter.stops.isEmpty {
+                Text("club.story.awaitingMerchants")
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
                 Text("club.story.stopCount \(chapter.stops.count)")
-                if let minutes = chapter.totalTime { Text("club.story.minutes \(minutes.formatted(.number.precision(.fractionLength(0...2))))") }
+                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let minutes = chapter.totalTime {
+                    Text("club.story.minutes \(minutes.formatted(.number.precision(.fractionLength(0...2))))")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }.textCase(nil)
     }
@@ -103,65 +117,116 @@ struct ClubStoryChapterHeader: View {
     let imageReader: (any RetainedPublicImageReading)?
     var seed = "story"
     var body: some View {
-        Group {
-            if let raw {
-                NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
-            } else {
-                // Generated cover art stands in for a missing photo so the card stays image-led.
-                CYIMCoverArt(seed: seed, systemImage: "map.fill", symbolSize: 40)
-            }
-        }.frame(height: 168).frame(maxWidth: .infinity).clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous)).accessibilityHidden(true)
+        Color.clear
+            .aspectRatio(16.0 / 10.0, contentMode: .fit)
+            .overlay { media }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityHidden(true)
+    }
+    @ViewBuilder private var media: some View {
+        if let raw {
+            NativeMediaImage(raw: raw, reader: imageReader ?? RetainedPublicImageReader(), zoomable: false)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            // Generated cover art stands in for a missing photo so the card stays image-led.
+            CYCoverArt(seed: seed, symbol: "map.fill")
+        }
     }
 }
 @MainActor struct ClubStoryStopCard: View {
     let stop: ClubStoryStop
     let imageReader: (any RetainedPublicImageReading)?
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             if let minutes = stop.estimatedWalkingMinutes {
-                VStack(alignment: .leading, spacing: 4) {
-                    LabeledContent("topic.itinerary.estimatedWalkMinutes") { Text(minutes, format: .number) }
-                    Text("topic.itinerary.estimateNotice").font(.caption).foregroundStyle(.secondary)
-                }.accessibilityElement(children: .combine)
-                    .accessibilityIdentifier("club.story.walk.\(stop.id)")
-            }
-            ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader, seed: stop.name ?? String(stop.id))
-                .overlay(alignment: .topLeading) {
-                    Label("club.story.stop \(stop.sequence)", systemImage: "mappin.circle.fill").font(.caption.weight(.semibold)).foregroundStyle(.white)
-                        .padding(.horizontal, 10).frame(minHeight: 28).background(.black.opacity(0.55), in: Capsule()).padding(CYSpacing.sm)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    CYListRow("topic.itinerary.estimatedWalkMinutes", trailing: .value(minutes.formatted(.number))) {
+                        CYRowIcon(systemImage: "figure.walk")
+                    }
+                    Text("topic.itinerary.estimateNotice")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            if let name = stop.name { Text(verbatim: name).font(CYTypography.sectionTitle) }
-            else { Text("club.story.unnamedStop").font(.headline) }
-            if let time = stop.businessTime { Label { Text(verbatim: time) } icon: { Image(systemName: "clock") } }
-            else { Text("club.story.hoursUnavailable").foregroundStyle(.secondary) }
-            if let address = stop.address { Label { Text(verbatim: address) } icon: { Image(systemName: "mappin.and.ellipse") } }
-            else { Text("club.story.addressUnavailable").foregroundStyle(.secondary) }
-        }.padding(.vertical, 6).fixedSize(horizontal: false, vertical: true)
-            .accessibilityElement(children: .contain).accessibilityIdentifier("club.story.stop.\(stop.id)")
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("club.story.walk.\(stop.id)")
+            }
+            ZStack(alignment: .topLeading) {
+                ClubStoryCover(raw: stop.imgUrl, imageReader: imageReader, seed: stop.name ?? String(stop.id))
+                CYStatusChip("club.story.stop \(stop.sequence)", tone: .neutral, systemImage: "mappin.circle.fill")
+                    .padding(CYSpacing.sm)
+            }
+            if let name = stop.name { Text(verbatim: name).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+            else { Text("club.story.unnamedStop").font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true) }
+            if let time = stop.businessTime {
+                CYListRow(verbatim: time, trailing: .none) { CYRowIcon(systemImage: "clock") }
+            } else {
+                CYListRow("club.story.hoursUnavailable", trailing: .none) { CYRowIcon(systemImage: "clock") }
+            }
+            if let address = stop.address {
+                CYListRow(verbatim: address, trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
+            } else {
+                CYListRow("club.story.addressUnavailable", trailing: .none) { CYRowIcon(systemImage: "mappin.and.ellipse") }
+            }
+        }
+        .padding(.vertical, CYSpacing.sm)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("club.story.stop.\(stop.id)")
     }
 }
 @MainActor struct ClubStoryGameplayCard: View {
     let play: ClubStoryGameplay
     let imageReader: (any RetainedPublicImageReading)?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             ClubStoryCover(raw: play.imgUrl, imageReader: imageReader, seed: play.title ?? String(play.id))
-            HStack(alignment: .firstTextBaseline) {
-                if let code = play.validationMethod, let method = TemplateAuthoringMethod(rawValue: code) { Text(LocalizedStringKey(method.labelKey)) }
-                else if let label = play.validationMethodLabel { Text(verbatim: label) }
-                else { Text("club.story.play") }
-                if !play.isAnswerable { Text("club.story.noAnswer").foregroundStyle(.secondary) }
-            }.font(.caption.weight(.semibold))
+            chipRow
             Group {
                 if let title = play.title { Text(verbatim: title) }
                 else { Text("discovery.untitledPlay") }
-            }.font(.headline).accessibilityIdentifier("club.gov.fact.title")
-            Text("club.story.stop \(play.sequence)").font(.subheadline)
+            }
+            .font(CYTypography.cardTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityIdentifier("club.gov.fact.title")
+            CYListRow("club.story.stop \(play.sequence)", trailing: .none) { CYRowIcon(systemImage: "mappin.circle") }
                 .accessibilityIdentifier("club.story.play.\(play.id)")
-            if let name = play.nodeName { Text(verbatim: name).font(.subheadline) }
-            if let players = play.players { Label { Text(verbatim: players) } icon: { Image(systemName: "person.2") } }
-            if let duration = play.duration { Label { Text("club.story.minutes \(duration.formatted(.number.precision(.fractionLength(0...2))))") } icon: { Image(systemName: "clock") } }
-            if let difficulty = play.difficulty { Text("club.story.difficulty \(difficulty)") }
-        }.fixedSize(horizontal: false, vertical: true)
+            if let name = play.nodeName {
+                CYListRow(verbatim: name, trailing: .none) { CYRowIcon(systemImage: "flag") }
+            }
+            if let players = play.players {
+                CYListRow(verbatim: players, trailing: .none) { CYRowIcon(systemImage: "person.2") }
+            }
+            if let duration = play.duration {
+                CYListRow("club.story.minutes \(duration.formatted(.number.precision(.fractionLength(0...2))))", trailing: .none) {
+                    CYRowIcon(systemImage: "clock")
+                }
+            }
+            if let difficulty = play.difficulty {
+                CYListRow("club.story.difficulty \(difficulty)", trailing: .none) { CYRowIcon(systemImage: "speedometer") }
+            }
+        }
+        .fixedSize(horizontal: false, vertical: true)
+    }
+    private var chipRow: some View {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
+        return layout {
+            methodChip
+            if !play.isAnswerable {
+                CYStatusChip("club.story.noAnswer", tone: .warning, systemImage: "questionmark.circle")
+            }
+        }
+    }
+    @ViewBuilder private var methodChip: some View {
+        if let code = play.validationMethod, let method = TemplateAuthoringMethod(rawValue: code) {
+            CYStatusChip(LocalizedStringKey(method.labelKey), tone: .info, systemImage: "checkmark.seal")
+        } else if let label = play.validationMethodLabel {
+            CYStatusChip(verbatim: label, tone: .info, systemImage: "checkmark.seal")
+        } else {
+            CYStatusChip("club.story.play", tone: .neutral, systemImage: "gamecontroller")
+        }
     }
 }

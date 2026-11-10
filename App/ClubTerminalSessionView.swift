@@ -209,13 +209,16 @@ extension EnvironmentValues {
         Section {
             if host.makeProvider != nil, host.approvalID != nil,
                (try? ClubTerminalSessionProjection.activities(snapshot, context: context)) != nil {
-                Button("club.terminal.open") {
+                Button {
                     presentation.open(source: source, host: host, access: access, sourceIsCurrent: sourceIsCurrent)
+                } label: {
+                    CYListRow("club.terminal.open", trailing: .chevron) { CYRowIcon(systemImage: "flag.checkered") }
                 }
+                .buttonStyle(.plain)
                 .disabled(!sourceIsCurrent() || !presentation.canOpen(source))
                 .accessibilityIdentifier("club.terminal.open")
             } else {
-                Text("club.terminal.unavailable").font(.footnote).foregroundStyle(.secondary)
+                CYListRow("club.terminal.unavailable", trailing: .none) { CYRowIcon(systemImage: "nosign") }
                     .accessibilityIdentifier("club.terminal.unavailable")
             }
         }
@@ -255,36 +258,80 @@ extension EnvironmentValues {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
     @State private var shownSettlement: ClubTerminalSessionFlow.Settlement?
+    private var pageInsets: EdgeInsets {
+        EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal)
+    }
     var body: some View {
         List {
-            if flow.loading { ProgressView("club.terminal.loading") }
-            if let failure = flow.failure { Text(LocalizedStringKey(failure.localizationKey)) }
-            if !flow.isCurrent { Text("club.terminal.changed") }
+            Section {
+                CYHeroHeader("club.terminal.title")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(pageInsets)
+                    .listRowSeparator(.hidden)
+            }
+            if flow.loading {
+                CYSkeleton()
+                    .accessibilityLabel(Text("club.terminal.loading"))
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(pageInsets)
+                    .listRowSeparator(.hidden)
+            }
+            if let failure = flow.failure {
+                CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failure.localizationKey), kind: .failure)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(pageInsets)
+            }
+            if !flow.isCurrent {
+                CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "club.terminal.changed")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(pageInsets)
+            }
             if flow.isCurrent {
-                if flow.activities.isEmpty, !flow.loading { Text("club.terminal.empty") }
+                if flow.activities.isEmpty, !flow.loading {
+                    CYEmptyState(systemImage: "flag.checkered", "club.terminal.empty")
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(pageInsets)
+                }
                 ForEach(flow.activities) { activity in
                     Button { Task { await flow.select(activity.id) } } label: {
-                        VStack(alignment: .leading) {
-                            Text(verbatim: activity.name ?? "#\(activity.id)")
-                            if let date = activity.startDate { Text(verbatim: date).font(.caption) }
-                            if flow.selectedID == activity.id { Label("club.terminal.selected", systemImage: "checkmark") }
-                        }
-                    }.disabled(flow.loading || shownSettlement != nil)
-                        .accessibilityIdentifier("club.terminal.activity.\(activity.id)")
+                        activityRow(activity)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(flow.loading || shownSettlement != nil)
+                    .accessibilityLabel(activityLabel(activity))
+                    .accessibilityIdentifier("club.terminal.activity.\(activity.id)")
                 }
                 if let projection = flow.projection {
-                    Text(verbatim: projection.status).accessibilityIdentifier("club.terminal.status")
+                    CYStatusChip(verbatim: projection.status, tone: statusTone(projection.status), systemImage: statusSymbol(projection.status))
+                        .accessibilityIdentifier("club.terminal.status")
+                        .listRowInsets(pageInsets)
                     if flow.terminal {
-                        Button("club.terminal.settlement") { Task { await flow.openSettlement(); shownSettlement = flow.settlement } }
-                            .disabled(flow.loading || shownSettlement != nil)
-                            .accessibilityIdentifier("club.terminal.settlement")
-                    } else { Text("club.terminal.notTerminal") }
+                        CYPillButton("club.terminal.settlement", systemImage: "list.bullet.rectangle") {
+                            Task { await flow.openSettlement(); shownSettlement = flow.settlement }
+                        }
+                        .disabled(flow.loading || shownSettlement != nil)
+                        .accessibilityIdentifier("club.terminal.settlement")
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(pageInsets)
+                    } else {
+                        Text("club.terminal.notTerminal")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                 }
-                Button("club.terminal.refresh") { Task { await flow.load() } }.disabled(flow.loading || shownSettlement != nil)
+                CYPillButton("club.terminal.refresh", style: flow.terminal ? .secondary : .primary, systemImage: "arrow.clockwise") {
+                    Task { await flow.load() }
+                }
+                .disabled(flow.loading || shownSettlement != nil)
+                .listRowBackground(Color.clear)
+                .listRowInsets(pageInsets)
             }
         }
+        .listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .navigationTitle("club.terminal.title").privacySensitive()
+        .cyHeroScreen()
+        .privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { flow.close(); dismiss() } } }
         .task { await flow.load() }
         .onDisappear { if shownSettlement == nil { flow.close() } }
@@ -300,5 +347,44 @@ extension EnvironmentValues {
         }
         .onChange(of: flow.isCurrent) { _, current in if !current { shownSettlement = nil; flow.close(); dismiss() } }
         .onChange(of: scenePhase) { _, phase in if phase != .active { shownSettlement = nil; flow.close(); dismiss() } }
+    }
+    private func activityTitle(_ activity: ClubTerminalActivity) -> String {
+        let name = activity.name?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? "#\(activity.id)" : name
+    }
+    private func activityDate(_ activity: ClubTerminalActivity) -> String {
+        activity.startDate?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+    }
+    private func activityRow(_ activity: ClubTerminalActivity) -> some View {
+        let date = activityDate(activity)
+        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYListRow(verbatim: activityTitle(activity), meta: date.isEmpty ? nil : date, trailing: .none) {
+                CYRowIcon(systemImage: "flag.checkered")
+            }
+            if flow.selectedID == activity.id {
+                CYStatusChip("club.terminal.selected", tone: .success, systemImage: "checkmark")
+            }
+        }
+    }
+    private func activityLabel(_ activity: ClubTerminalActivity) -> Text {
+        let date = activityDate(activity)
+        var label = Text(verbatim: activityTitle(activity))
+        if !date.isEmpty { label = label + Text(verbatim: ", ") + Text(verbatim: date) }
+        if flow.selectedID == activity.id { label = label + Text(verbatim: ", ") + Text("club.terminal.selected") }
+        return label
+    }
+    private func statusTone(_ status: String) -> CYStatusTone {
+        switch status {
+        case "FINISHED": return .success
+        case "CANCELLED": return .warning
+        default: return .neutral
+        }
+    }
+    private func statusSymbol(_ status: String) -> String {
+        switch status {
+        case "FINISHED": return "checkmark.circle.fill"
+        case "CANCELLED": return "xmark.circle.fill"
+        default: return "circle"
+        }
     }
 }
