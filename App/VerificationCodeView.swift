@@ -22,6 +22,7 @@ extension EnvironmentValues {
     var autoIssue = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var operation: Task<Void, Never>?
+    @State private var revealSweep = false
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -68,6 +69,13 @@ extension EnvironmentValues {
     @ViewBuilder private var content: some View {
         if model.phase == .ready, let code = model.displayCode {
             VerificationLocalQRCode(code: code)
+                .overlay { CYScanSweep(active: revealSweep, period: 1.4).allowsHitTesting(false) }
+                .task(id: code) {
+                    // One reveal pass over a freshly presented code, then the line rests.
+                    revealSweep = true
+                    try? await Task.sleep(for: .milliseconds(1400))
+                    revealSweep = false
+                }
             CYPillButton("verificationCode.retry", style: .secondary) { run { await model.present() } }
                 .accessibilityIdentifier("verificationCode.refresh")
             if model.target.kind == .cityVoucher, autoIssue {

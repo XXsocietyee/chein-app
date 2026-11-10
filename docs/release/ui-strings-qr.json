@@ -1,0 +1,188 @@
+[
+  {
+    "key": "scan.done",
+    "table": "Localizable",
+    "en": "Done",
+    "zh-Hans": "完成"
+  },
+  {
+    "key": "scan.verifying",
+    "table": "Localizable",
+    "en": "Verifying…",
+    "zh-Hans": "核验中…"
+  },
+  {
+    "key": "scan.retry",
+    "table": "Localizable",
+    "en": "Retry",
+    "zh-Hans": "重试"
+  },
+  {
+    "key": "scan.manual",
+    "table": "Localizable",
+    "en": "Enter code",
+    "zh-Hans": "手动输入"
+  },
+  {
+    "key": "scan.viewPass",
+    "table": "Localizable",
+    "en": "View pass",
+    "zh-Hans": "查看票"
+  },
+  {
+    "key": "scan.settings",
+    "table": "Localizable",
+    "en": "Settings",
+    "zh-Hans": "去设置"
+  },
+  {
+    "key": "scan.back",
+    "table": "Localizable",
+    "en": "Back",
+    "zh-Hans": "返回"
+  },
+  {
+    "key": "scan.stamp.created",
+    "table": "Localizable",
+    "en": "Stamp collected",
+    "zh-Hans": "印章已收集"
+  },
+  {
+    "key": "scan.fail.notChein.title",
+    "table": "Localizable",
+    "en": "Not a chein code",
+    "zh-Hans": "不是城瘾二维码"
+  },
+  {
+    "key": "scan.fail.notChein.body",
+    "table": "Localizable",
+    "en": "Point at the venue's chein QR.",
+    "zh-Hans": "请对准场地的城瘾二维码。"
+  },
+  {
+    "key": "scan.fail.invalid.title",
+    "table": "Localizable",
+    "en": "Code not recognized",
+    "zh-Hans": "无法识别"
+  },
+  {
+    "key": "scan.fail.invalid.body",
+    "table": "Localizable",
+    "en": "This code is not in our system. Ask staff.",
+    "zh-Hans": "系统里没有这个码，请联系现场工作人员。"
+  },
+  {
+    "key": "scan.fail.used.title",
+    "table": "Localizable",
+    "en": "Already checked in",
+    "zh-Hans": "已核验"
+  },
+  {
+    "key": "scan.fail.used.body %@",
+    "table": "Localizable",
+    "en": "This ticket was used at %@.",
+    "zh-Hans": "这张票已在 %@ 核验。"
+  },
+  {
+    "key": "scan.fail.used.bodyNoTime",
+    "table": "Localizable",
+    "en": "This ticket was already used.",
+    "zh-Hans": "这张票已核验过。"
+  },
+  {
+    "key": "scan.fail.expired.title",
+    "table": "Localizable",
+    "en": "Ticket expired",
+    "zh-Hans": "票已过期"
+  },
+  {
+    "key": "scan.fail.expired.body %@",
+    "table": "Localizable",
+    "en": "Valid until %@.",
+    "zh-Hans": "有效期至 %@。"
+  },
+  {
+    "key": "scan.fail.expired.bodyNoDate",
+    "table": "Localizable",
+    "en": "This ticket is no longer valid.",
+    "zh-Hans": "这张票已失效。"
+  },
+  {
+    "key": "scan.fail.wrongVenue.title",
+    "table": "Localizable",
+    "en": "Wrong venue",
+    "zh-Hans": "场地不符"
+  },
+  {
+    "key": "scan.fail.wrongVenue.body %@",
+    "table": "Localizable",
+    "en": "This ticket is for %@.",
+    "zh-Hans": "这张票属于 %@。"
+  },
+  {
+    "key": "scan.fail.wrongVenue.bodyNoVenue",
+    "table": "Localizable",
+    "en": "This ticket is for a different venue.",
+    "zh-Hans": "这张票属于其他场地。"
+  },
+  {
+    "key": "scan.fail.offline.title",
+    "table": "Localizable",
+    "en": "You're offline",
+    "zh-Hans": "当前离线"
+  },
+  {
+    "key": "scan.fail.offline.body",
+    "table": "Localizable",
+    "en": "Check-in needs a connection. We'll retry when you're back.",
+    "zh-Hans": "核验需要网络，恢复后自动重试。"
+  },
+  {
+    "key": "scan.fail.timeout.title",
+    "table": "Localizable",
+    "en": "Taking too long",
+    "zh-Hans": "响应超时"
+  },
+  {
+    "key": "scan.fail.timeout.body",
+    "table": "Localizable",
+    "en": "The venue didn't answer. Try again.",
+    "zh-Hans": "场地未响应，请重试。"
+  },
+  {
+    "key": "scan.fail.cameraDenied.title",
+    "table": "Localizable",
+    "en": "Camera is off",
+    "zh-Hans": "相机未开启"
+  },
+  {
+    "key": "scan.fail.cameraDenied.body",
+    "table": "Localizable",
+    "en": "Allow camera in Settings to scan, or enter the code.",
+    "zh-Hans": "请在「设置」中允许相机，或手动输入。"
+  },
+  {
+    "key": "scan.fail.club.title",
+    "table": "Localizable",
+    "en": "Club unavailable",
+    "zh-Hans": "俱乐部暂不可加入"
+  },
+  {
+    "key": "scan.fail.club.body",
+    "table": "Localizable",
+    "en": "This club is full or closed to new members.",
+    "zh-Hans": "俱乐部已满或暂不开放加入。"
+  },
+  {
+    "key": "scan.queued.title",
+    "table": "Localizable",
+    "en": "Saved, will sync",
+    "zh-Hans": "已保存，待同步"
+  },
+  {
+    "key": "scan.queued.body",
+    "table": "Localizable",
+    "en": "Your stamp is kept and uploads when you're online.",
+    "zh-Hans": "印章已记录，联网后自动上传。"
+  }
+]
