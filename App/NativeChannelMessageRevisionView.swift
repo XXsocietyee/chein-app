@@ -14,29 +14,30 @@ import SwiftUI
     @State private var generation = 0
     var body: some View {
         List {
+            CYHeroHeader("revisions.title", tableName: "NativeChannelMessage").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if phase == .active && identity != nil && client.identity == identity && client.allows(.revisions) {
                 ForEach(rows) { row in
                     VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                        Text("d7.channelRevisions.version \(row.revision_no)").font(.footnote).foregroundStyle(.secondary).monospacedDigit()
-                        if let content = row.content { Text(verbatim: content).fixedSize(horizontal: false, vertical: true).textSelection(.enabled) }
-                        else { Text("message.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                        CYStatusChip("d7.channelRevisions.version \(row.revision_no)", tone: .neutral, systemImage: "clock.arrow.circlepath")
+                        if let content = row.content { Text(verbatim: content).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true).textSelection(.enabled) }
+                        else { Text("message.unavailable", tableName: "NativeChannelMessage").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                     }
                 }
-                if hasMore { Button { Task { await load() } } label: { Text("search.more", tableName: "NativeChannelMessage") }.disabled(loading) }
+                if hasMore { CYPillButton("search.more", style: .secondary, tableName: "NativeChannelMessage") { Task { await load() } }.disabled(loading) }
                 if rows.isEmpty && !loading && !failed && !hasMore {
-                    ContentUnavailableView { Label("d7.channelRevisions.empty", systemImage: "clock.arrow.circlepath") }
+                    CYEmptyState(systemImage: "clock.arrow.circlepath", "d7.channelRevisions.empty")
                 }
             }
             if loading { ProgressView().frame(maxWidth: .infinity) }
             if failed {
-                Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
-                Button { Task { await load() } } label: { Text("messaging.retry") }
+                CYStatusChip(verbatim: String(localized: "load.failed", table: "NativeChannelMessage"), tone: .danger, systemImage: "exclamationmark.triangle")
+                CYPillButton("messaging.retry", style: .secondary) { Task { await load() } }
                     .disabled(phase != .active || loading || identity == nil || client.identity != identity || !client.allows(.revisions))
                     .accessibilityIdentifier("ncm47.revisions.retry")
             }
         }.nativeChannelScreen().listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .navigationTitle(Text("revisions.title", tableName: "NativeChannelMessage"))
+        .cyHeroScreen()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         .task(id: phase) {
             clear()

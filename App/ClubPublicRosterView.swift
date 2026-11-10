@@ -53,11 +53,13 @@ import SwiftUI
     var body: some View {
         Group {
             if !reader.clubIdentity.isSignedIn {
-                ContentUnavailableView("club.signInRequired", systemImage: "person.crop.circle.badge.exclamationmark")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.signInRequired")
             } else if source?.authorization == nil {
-                ContentUnavailableView { Label { Text("club.publicRoster.unavailable", tableName: "ClubPublicRoster") } icon: { Image(systemName: "lock") } }
+                CYEmptyState(systemImage: "lock", "club.publicRoster.unavailable", tableName: "ClubPublicRoster")
             } else {
                 List {
+                    CYHeroHeader(LocalizedStringKey(isLeaderboard ? "club.detail.leaderboard.title" : "club.members"))
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     if isLeaderboard {
                         Picker("club.gov.sort", selection: $mode) {
                             ForEach([ClubPublicRosterMode.composite, .mileage, .pace, .duration], id: \.self) { value in
@@ -71,12 +73,9 @@ import SwiftUI
                     }
                     if loading { ProgressView("club.loading") }
                     if failed {
-                        Text("club.publicRoster.revoked", tableName: "ClubPublicRoster")
-                            .font(Theme.Font.body).foregroundColor(Theme.Generated.color("--cy-color-status-danger", in: domain))
-                            .fixedSize(horizontal: false, vertical: true)
+                        CYStatusChip(verbatim: String(localized: "club.publicRoster.revoked", table: "ClubPublicRoster"), tone: .danger, systemImage: "exclamationmark.triangle")
                             .accessibilityIdentifier("club.publicRoster.error")
-                        Button("action.retry") { Task { await load() } }
-                            .buttonStyle(.bordered).font(Theme.Font.button).frame(minHeight: 44)
+                        CYPillButton("action.retry", style: .secondary) { Task { await load() } }
                             .disabled(loading)
                     } else if let current = accepted {
                         Section {
@@ -138,7 +137,7 @@ import SwiftUI
         }
         .font(Theme.Font.body)
         .tint(Theme.Generated.color("--cy-color-accent", in: domain))
-        .appNavigationTitle(isLeaderboard ? "club.detail.leaderboard.title" : "club.members")
+        .cyHeroScreen()
         .accessibilityIdentifier("club.publicRoster.root")
         .toolbar { ToolbarItem(placement: .topBarTrailing) { Button("club.refresh", systemImage: "arrow.clockwise") { Task { await load() } }.disabled(loading) } }
         .refreshable { await load() }
@@ -161,8 +160,7 @@ import SwiftUI
     @ViewBuilder private func memberLink<Detail: View>(id: Int, nickname: String?, @ViewBuilder detail: () -> Detail) -> some View {
         Button { Task { await load(selecting: id) } } label: {
             HStack(alignment: .top, spacing: Theme.Space.s3) {
-                Image(systemName: "person.crop.circle.fill").font(Theme.Font.sectionTitle)
-                    .foregroundStyle(Theme.Color.textSecondary(in: domain)).accessibilityHidden(true)
+                E3Avatar(seed: nickname ?? String(id), size: 40).accessibilityHidden(true)
                 VStack(alignment: .leading, spacing: Theme.Space.s1) {
                     Group {
                         if let nickname, !nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Text(verbatim: nickname) }

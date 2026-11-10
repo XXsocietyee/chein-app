@@ -4,18 +4,18 @@ import SwiftUI
     let reader: any CooperationReading
     var body: some View {
         CooperationReadScreen(reader: reader, resource: "pool", operation: { try await reader.pool() }) { pool in
+            Section { CYHeroHeader("cooperation.pool.title").listRowBackground(Color.clear) }
             if !pool.hasClub {
                 Section {
-                    Label("cooperation.pool.clubRequired", systemImage: "person.3")
-                        .accessibilityIdentifier("cooperation.pool.clubRequired")
-                    Text("cooperation.pool.clubHint").foregroundStyle(.secondary)
+                    CYEmptyState(systemImage: "person.3", "cooperation.pool.clubRequired", detail: "cooperation.pool.clubHint",
+                                 messageIdentifier: "cooperation.pool.clubRequired")
                 }
             } else {
                 Section {
-                    if pool.rows.isEmpty { Text("cooperation.pool.empty").foregroundStyle(.secondary) }
+                    if pool.rows.isEmpty { CYEmptyState(systemImage: "tray", "cooperation.pool.empty").listRowBackground(Color.clear) }
                     ForEach(Array(pool.rows.enumerated()), id: \.offset) { _, row in
                         VStack(alignment: .leading, spacing: 8) {
-                            CooperationName(name: row.name, fallback: "cooperation.unnamedTopic").font(.headline)
+                            CooperationName(name: row.name, fallback: "cooperation.unnamedTopic").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                             CooperationStatus(key: row.stateKey)
                             CooperationField(key: "cooperation.about", value: row.subtitle)
                             CooperationTopicReference(id: row.topicId)
@@ -28,7 +28,7 @@ import SwiftUI
                 }
                 Section { CooperationReadOnlyNotice() }
             }
-        }.appNavigationTitle("cooperation.pool.title").navigationBarTitleDisplayMode(.inline)
+        }.cyHeroScreen()
     }
 }
 @MainActor struct CooperationCandidatesView: View {
@@ -40,14 +40,15 @@ import SwiftUI
             return try await reader.candidates(topicID: topicID)
         }) { directory in
             Section {
+                CYHeroHeader("cooperation.candidates.title").listRowBackground(Color.clear)
                 CooperationTopicReference(id: topicID)
-                Label("cooperation.candidates.ownerOnly", systemImage: "lock").font(.footnote).foregroundStyle(.secondary)
+                CYStatusChip("cooperation.candidates.ownerOnly", tone: .neutral, systemImage: "lock")
             }
             Section("cooperation.candidates.clubs") {
-                if directory.clubApplies.isEmpty { Text("cooperation.applications.empty").foregroundStyle(.secondary) }
+                if directory.clubApplies.isEmpty { CYEmptyState(systemImage: "person.3", "cooperation.applications.empty").listRowBackground(Color.clear) }
                 ForEach(Array(directory.clubApplies.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: 8) {
-                        CooperationName(name: row.clubName, fallback: "cooperation.unnamedClub").font(.headline)
+                        CooperationName(name: row.clubName, fallback: "cooperation.unnamedClub").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                         CooperationStatus(key: row.statusKey)
                         CooperationField(key: "cooperation.message", value: row.message)
                         CooperationField(key: "cooperation.inviteState", value: row.inviteStatus)
@@ -56,16 +57,16 @@ import SwiftUI
                 }
             }
             Section("cooperation.candidates.merchants") {
-                if directory.registrations.isEmpty { Text("cooperation.registrations.empty").foregroundStyle(.secondary) }
+                if directory.registrations.isEmpty { CYEmptyState(systemImage: "storefront", "cooperation.registrations.empty").listRowBackground(Color.clear) }
                 ForEach(Array(directory.registrations.enumerated()), id: \.offset) { _, row in
                     VStack(alignment: .leading, spacing: 8) {
-                        CooperationName(name: row.name, fallback: "cooperation.unnamedMerchant").font(.headline)
+                        CooperationName(name: row.name, fallback: "cooperation.unnamedMerchant").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                         // CandidateRegistration.status has no audited presentation mapping; do not borrow auditStatus semantics.
                         if let status = row.status { CooperationField(key: "cooperation.sourceStatus", value: String(status)) }
                     }.padding(.vertical, 4)
                 }
             }
             Section { CooperationReadOnlyNotice() }
-        }.appNavigationTitle("cooperation.candidates.title").navigationBarTitleDisplayMode(.inline)
+        }.cyHeroScreen()
     }
 }

@@ -16,17 +16,18 @@ import SwiftUI
     var locateOriginal: ((NativeChannelMessageID) -> Void)?
     var body: some View {
         List {
+            CYHeroHeader("pins.title", tableName: "NativeChannelMessage").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if coordinator.pins.loading { ProgressView().frame(maxWidth: .infinity) }
             else if !coordinator.pins.isCurrent {
-                ContentUnavailableView { Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") } }
+                CYEmptyState(systemImage: "lock", "access.closed", tableName: "NativeChannelMessage")
             }
             else {
                 if coordinator.pins.rows.isEmpty && !coordinator.pins.failed {
-                    ContentUnavailableView { Label { Text("pins.empty", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pin") } }
+                    CYEmptyState(systemImage: "pin", "pins.empty", tableName: "NativeChannelMessage")
                 }
                 ForEach(coordinator.pins.rows) { pin in
                     Button { if coordinator.pins.isCurrent { locateOriginal?(pin.message_id) } } label: {
-                        Label { Text(verbatim: pin.summary).lineLimit(typeSize.isAccessibilitySize ? nil : 3).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "pin.fill").foregroundStyle(.secondary) }
+                        Label { Text(verbatim: pin.summary).font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 3).fixedSize(horizontal: false, vertical: true) } icon: { Image(systemName: "pin.fill").foregroundStyle(CYColor.textTertiary) }
                     }.disabled(locateOriginal == nil)
                     .accessibilityIdentifier("ncm47.pin.\(pin.id.rawValue)")
                     .swipeActions {
@@ -41,8 +42,8 @@ import SwiftUI
             if selecting { ProgressView(copy.text("p23.selecting")) }
             if coordinator.pins.failed {
                 Section {
-                    Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
-                    Button(copy.text("p23.reload")) { reload() }
+                    CYStatusChip(verbatim: String(localized: "load.failed", table: "NativeChannelMessage"), tone: .danger, systemImage: "exclamationmark.triangle")
+                    CYPillButton(verbatim: copy.text("p23.reload"), style: .secondary) { reload() }
                         .disabled(!coordinator.pins.isCurrent || phase != .active)
                 }
             }
@@ -50,7 +51,7 @@ import SwiftUI
         }
         .nativeChannelScreen().listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .navigationTitle(Text("pins.title", tableName: "NativeChannelMessage"))
+        .cyHeroScreen()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } }
             if coordinator.client.allows(.mutate(.sort)) {

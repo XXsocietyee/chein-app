@@ -14,6 +14,7 @@ import SwiftUI
         // Observe revisions without replacing the recording/upload presentation identity.
         let _ = revision
         Form {
+            Section { CYHeroHeader("d7.imVoice.title").listRowBackground(Color.clear) }
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -32,7 +33,7 @@ import SwiftUI
                                 Button { do { try device?.play(clip.bytes, interrupted: {} ) } catch { self.error = true } } label: {
                                     Label("d7.imVoice.play", systemImage: "play")
                                 }
-                                Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imFlowPrimaryAction()
+                                CYPillButton("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }
                                 Button("d7.imCompose.discard", role: .destructive) { device?.cancel(); owner.discardDraft() }
                             }
                         } else {
@@ -54,7 +55,7 @@ import SwiftUI
                         IMFlowStateMessage(text: Text("d7.imCompose.approved"), symbol: "checkmark.seal", tone: .success)
                         LabeledContent("d7.imSummary.duration") { IMDurationText(milliseconds: reference.durationMS) }
                         if owner.expanded.writer.canSendVoice && owner.canRecoverOriginalSend {
-                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }
                         }
                     case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                     }
@@ -77,7 +78,7 @@ import SwiftUI
                     case .reviewing(.send(let intent)):
                         if case .voice = intent.payload {
                             IMMutationSummary(mutation: .send(intent))
-                            Button("d7.imVoice.send") { Task { if available { await owner.expanded.confirm() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imVoice.send") { Task { if available { await owner.expanded.confirm() } } }
                             Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
                         }
                     case .submitting: ProgressView("d7.imCompose.sending")
@@ -100,7 +101,7 @@ import SwiftUI
                     }
                 }
             }
-        }.imFlowForm().navigationTitle(Text("d7.imVoice.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         .onAppear {
             device = IMVoiceDevice(enabled: { available })
@@ -142,13 +143,14 @@ import SwiftUI
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMVoiceReference.read(message) != nil }
     var body: some View {
         Form {
+            Section { CYHeroHeader("d7.imVoice.message").listRowBackground(Color.clear) }
             if let voice = IMVoiceReference.read(message), available {
                 Section {
                     LabeledContent {
                         IMDurationText(milliseconds: voice.durationMS)
                     } label: { Label("d7.imVoice.message", systemImage: "waveform") }
                     if owner.service.playbackEnabled && owner.service.playbackStatusEnabled {
-                        Button {
+                        CYPillButton("d7.imVoice.play", systemImage: "play.fill") {
                             guard available, !loading else { return }
                             stop(); let stamp = generation; loading = true; failed = false
                             Task { @MainActor in
@@ -162,15 +164,15 @@ import SwiftUI
                                     monitorPlayback(stamp: stamp, durationMS: voice.durationMS)
                                 } catch { if generation == stamp { failPlayback(error) } }
                             }
-                        } label: { Label("d7.imVoice.play", systemImage: "play.fill") }
+                        }
                         .disabled(loading)
                     }
-                    Button { stop() } label: { Label("d7.imVoice.stop", systemImage: "stop.fill") }
+                    CYPillButton("d7.imVoice.stop", style: .secondary, systemImage: "stop.fill") { stop() }
                 }
             } else { IMFlowStateMessage(text: Text("d7.imVoice.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imVoice.playFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().navigationTitle(Text("d7.imVoice.message"))
+        }.imFlowForm().privacySensitive().cyHeroScreen()
         .onReceive(NotificationCenter.default.publisher(for: IMVoiceCoordinator.consumptionRetiredNotification)) { event in
             if let retired = event.object as? IMVoiceCoordinator, retired === owner { stop() }
         }

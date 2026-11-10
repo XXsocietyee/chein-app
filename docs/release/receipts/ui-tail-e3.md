@@ -30,3 +30,44 @@ Skipped (host/adapter, no visible presentation of their own): SessionTeamViews, 
 ## Batch 6 (reverse)
 Done: NearbyTeamMapViews, NearbyTeamViews, OrdinaryIMSendReceiptRecoveryView, PlayAdvancedTeamViews, PlayPlayerTeamStatusView.
 Skipped: none.
+
+## Batch 7 (reverse)
+Done: NativeFriendRemovalView, NativeFriendProgressCardView, NativeFriendPickerView, NativeFriendMetadataView, NativeFriendHomeView.
+Skipped: none.
+
+## Batch 8 (reverse)
+Done: NativeClubNotificationDefaultView, NativeChannelMessageSearchView, NativeChannelMessageRevisionView, NativeChannelMessagePinsView, NativeChannelMessageContextView.
+Skipped: none.
+
+## Batch 9 (reverse)
+Done: NativeChannelMessageBubbleView, NativeChannelMessageAttachmentView, NPCChatDataView, MessagingMessageDetailView, IMVoiceViews. IMFlowStateMessage (shared IM flow state row) now renders on CYPalette soft fills.
+Skipped: none.
+
+## Batch 10 (reverse)
+Done: IMVideoViews, IMFileViews, IMExpandedViews, IMCoopInviteStripView, IMConversationSafetyViews.
+Skipped: none.
+
+## Batch 11 (reverse)
+Done: IMConversationRowActionsView, IMConversationReadAllView, IMCardPreviewViews, GroupPollOriginalResultView, IMStaticLocationCardView.
+Skipped: none.
+
+## Batch 12 (reverse)
+Done: CooperationDirectoryViews, CoopWithdrawShellViews, CoopSettlementDetailView, CoopRelationDiscoveryView, CoopFinanceProfitView.
+Cloud-owned, skipped (diff on origin/ui/cloud-*): ClubEventCalendarView, ClubGovernanceFeedPostView (plus the earlier ClubGovernanceViews, ClubManagementView, ClubOpsCustomerViews, CooperationBrowserView). ClubContextualViews, ClubDirectoryView and ClubEnrollmentView were restyled here first and are also touched by a cloud lane: expect merge conflicts there.
+
+## Batch 13 (reverse)
+Done: ClubTerminalSessionView, ClubTabParityViews, ClubStoryViews, ClubStatsOverviewView, ClubSessionQuickStartView.
+Skipped: none.
+
+## Batch 14 (reverse)
+Done: ClubPublicRosterView, ClubPublicActivityListView, ClubProjectLaunchView, ClubPostReferenceView, ClubOwnerRefundFixtureView (DEBUG-only fixture host; buttons moved to CYPillButton).
+Skipped: none.
+Build - iOS on batch 14 head (2a... all batches 1-14): success. Test - iOS action_required with 2 errors that are the GLTFKit2 vendor module errors only.
+
+## Batch 15 (reverse)
+Done: ClubOpsSettlementViews, ClubOpsJoinNotifyViews, ClubOpsEventView, ClubOperationsReviewView, ClubNotificationAudienceView.
+Skipped: none.
+
+## Batch 16 (reverse; last of the list)
+Done: ClubMembersView, ClubMemberReportView, ClubLeadProgressView, ClubLeadPrimaryActionView, ClubInvitationFeedbackView, ClubHomeView.
+Skipped: none.

@@ -175,6 +175,7 @@ struct IMExpandedSubmission: Equatable {
     private var displayedMuted: Bool? { acknowledgedMuted ?? isMuted }
     var body: some View {
         Form {
+            Section { CYHeroHeader("im.full.title").listRowBackground(Color.clear) }
             if hasPendingState {
                 Section { pendingRows }
             }
@@ -220,7 +221,7 @@ struct IMExpandedSubmission: Equatable {
                         }
                         .accessibilityIdentifier("context.im.chooseRoute")
                         if let selectedTopic {
-                            Button("d7.chatInfo.sendRoute") {
+                            CYPillButton("d7.chatInfo.sendRoute", style: .secondary) {
                                 if let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .route(topicID: selectedTopic.id)) { review(.send(intent)) }
                             }
                         }
@@ -231,14 +232,14 @@ struct IMExpandedSubmission: Equatable {
                     TextField("im.full.address", text: $address)
                     TextField("im.full.latitude", text: $latitude).keyboardType(.numbersAndPunctuation)
                     TextField("im.full.longitude", text: $longitude).keyboardType(.numbersAndPunctuation)
-                    Button("d7.chatInfo.sendLocation") {
+                    CYPillButton("d7.chatInfo.sendLocation", style: .secondary) {
                         if let lat = Double(latitude), let lng = Double(longitude), (-90...90).contains(lat), (-180...180).contains(lng),
                            let intent = try? IMOutgoingIntent(scope: model.owner.scope, payload: .location(name: name, address: address, latitude: lat, longitude: lng)) { review(.send(intent)) }
                     }
                 }
             }
             if !writerReady && !showsAdmissionEntry && !replyPolicy.isSystemNotice && !hasPendingState {
-                ContentUnavailableView("d7.chatInfo.unavailable", systemImage: "bubble.left.and.exclamationmark.bubble.right")
+                CYEmptyState(systemImage: "bubble.left.and.exclamationmark.bubble.right", "d7.chatInfo.unavailable")
             }
         }
         .disabled(identity != model.owner.scope.identity || !isConversationCurrent())
@@ -253,7 +254,7 @@ struct IMExpandedSubmission: Equatable {
             }
         }
         .cyGroupedSurface()
-        .navigationTitle(Text("im.full.title")).privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .accessibilityIdentifier("im.full.controls")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.muted(let value)) = state { acknowledgedMuted = value } }
@@ -267,13 +268,13 @@ struct IMExpandedSubmission: Equatable {
         case .reviewing(let mutation):
             if permits(mutation) {
                 IMMutationSummary(mutation: mutation)
-                Button("d7.chatInfo.confirm") { submit(.confirm) }.fontWeight(.semibold).accessibilityIdentifier("im.full.confirm")
+                CYPillButton("d7.chatInfo.confirm") { submit(.confirm) }.accessibilityIdentifier("im.full.confirm")
                 Button("action.cancel", role: .cancel) { model.owner.cancelReview() }
             } else { Text("d7.chatInfo.replyUnavailable") }
         case .submitting: ProgressView("im.full.submitting")
         case .outcomeUnknown(let mutation):
             Text("d7.chatInfo.unknown")
-            if permits(mutation) { Button("d7.chatInfo.tryAgain") { submit(.retry) } }
+            if permits(mutation) { CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { submit(.retry) } }
             else { Text("d7.chatInfo.replyUnavailable") }
         case .rejected: Text("d7.chatInfo.rejected")
         case .closed: Text("im.full.closed")
@@ -415,33 +416,34 @@ struct IMMutationSummary: View {
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("d7.newChat.title").listRowBackground(Color.clear) }
             if model.owner.writer.isConfigured {
                 Section {
                     TextField("d7.newChat.memberID", text: $target).keyboardType(.numberPad)
-                    Button("d7.newChat.next") { if let id = Int(target) { model.owner.review(targetMemberID: id) } }
+                    CYPillButton("d7.newChat.next", style: .secondary) { if let id = Int(target) { model.owner.review(targetMemberID: id) } }
                         .disabled(Int(target) == nil)
                 }
                 switch model.state {
                 case .reviewing(let mutation):
                     Section {
                         IMMutationSummary(mutation: mutation)
-                        Button("d7.newChat.start") { Task { await model.owner.confirm() } }.imFlowPrimaryAction()
+                        CYPillButton("d7.newChat.start") { Task { await model.owner.confirm() } }
                     }
                 case .submitting: Section { ProgressView("im.full.submitting") }
                 case .outcomeUnknown:
                     Section {
                         Text("d7.chatInfo.unknown")
-                        Button("d7.chatInfo.tryAgain") { Task { await model.owner.retryUnchanged() } }
+                        CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { Task { await model.owner.retryUnchanged() } }
                     }
                 case .acknowledged: Section { Label("d7.chatInfo.done", systemImage: "checkmark.circle") }
                 default: EmptyView()
                 }
             } else {
-                ContentUnavailableView("d7.newChat.unavailable", systemImage: "bubble.left.and.bubble.right")
+                CYEmptyState(systemImage: "bubble.left.and.bubble.right", "d7.newChat.unavailable")
             }
         }.disabled(identity != model.owner.identity || !model.owner.writer.isConfigured)
         .cyGroupedSurface()
-        .navigationTitle(Text("d7.newChat.title")).privacySensitive().accessibilityIdentifier("im.full.start")
+        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.start")
         .onAppear { model.observe() }
         .onChange(of: model.state) { _, state in if case .acknowledged(.started(let id)) = state { onStarted(id) } }
         .onChange(of: identity) { _, _ in target = ""; model.state = model.owner.visibleState }
@@ -505,6 +507,7 @@ struct IMUploadSubmission: Equatable {
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("d7.imPhoto.title").listRowBackground(Color.clear) }
             if model.owner.isConfigured {
                 Section {
                     switch model.state {
@@ -515,24 +518,23 @@ struct IMUploadSubmission: Equatable {
                         Button { submit(.select) } label: { Label("d7.imPhoto.choose", systemImage: "photo") }
                     case .selected(let selection):
                         LabeledContent("d7.imSummary.size") { IMByteCountText(bytes: selection.bytes.count) }
-                        Button("d7.imCompose.upload") { submit(.upload) }.imFlowPrimaryAction()
+                        CYPillButton("d7.imCompose.upload") { submit(.upload) }
                         Button("action.cancel", role: .cancel) { model.invalidateQueued(); model.owner.clear() }
                     case .selecting: ProgressView()
                     case .uploading: ProgressView("d7.imCompose.uploading")
                     case .uploaded(let url):
                         Label("d7.imPhoto.ready", systemImage: "checkmark.circle")
-                        Button("d7.imCompose.continue") { if model.apply(url, canReply: canReply(), consume: onReviewImage) { dismiss() } }
-                            .imFlowPrimaryAction()
+                        CYPillButton("d7.imCompose.continue") { if model.apply(url, canReply: canReply(), consume: onReviewImage) { dismiss() } }
                     case .outcomeUnknown:
                         IMFlowStateMessage(text: Text("d7.imCompose.uploadUnknown"), symbol: "clock.arrow.circlepath")
                     }
                 }
             } else {
-                ContentUnavailableView("d7.imPhoto.unavailable", systemImage: "photo")
+                CYEmptyState(systemImage: "photo", "d7.imPhoto.unavailable")
             }
         }.disabled(identity != model.owner.scope.identity || !model.owner.isConfigured || !canReply())
         .cyGroupedSurface()
-        .navigationTitle(Text("d7.imPhoto.title")).privacySensitive().accessibilityIdentifier("im.full.imageCompose")
+        .cyHeroScreen().privacySensitive().accessibilityIdentifier("im.full.imageCompose")
         .onAppear { model.observe() }
         .onChange(of: identity) { _, _ in model.invalidateQueued(); model.owner.clear() }
         .onChange(of: canReply()) { _, allowed in if !allowed { model.invalidateQueued(); model.owner.clear() } }
@@ -570,6 +572,7 @@ private extension IMOutgoingPayload {
     private var available: Bool { phase == .active && current() && model.owner.isCurrent }
     var body: some View {
         Form {
+            Section { CYHeroHeader("d7.imLocation.title").listRowBackground(Color.clear) }
             if available {
                 switch model.state {
                 case .idle:
@@ -585,21 +588,21 @@ private extension IMOutgoingPayload {
                             Toggle("d7.imLocation.gpsCoordinates",isOn:$confirmedDatum)
                         }
                         Section {
-                            Button("d7.imCompose.continue") {
+                            CYPillButton("d7.imCompose.continue") {
                                 guard available,confirmedDatum,let lat=Double(latitude),let lng=Double(longitude),
                                       let place=try? IMStaticLocation(name:name,address:address,latitude:lat,longitude:lng,datum:"WGS84"),
                                       let intent=try? IMOutgoingIntent(scope:model.owner.scope,payload:.staticLocation(place)) else { return }
                                 _ = model.owner.review(.send(intent))
-                            }.imFlowPrimaryAction().disabled(!confirmedDatum)
+                            }.disabled(!confirmedDatum)
                         }
                     } else {
-                        ContentUnavailableView("d7.imLocation.unavailable", systemImage: "mappin.slash")
+                        CYEmptyState(systemImage: "mappin.slash", "d7.imLocation.unavailable")
                     }
                 case .reviewing(let mutation):
                     if isLocation(mutation) {
                         Section { IMMutationSummary(mutation:mutation) }
                         Section {
-                            Button("d7.imLocation.send") { submit(.confirm) }.imFlowPrimaryAction()
+                            CYPillButton("d7.imLocation.send") { submit(.confirm) }
                             Button("action.cancel",role:.cancel) { model.owner.cancelReview() }
                         }
                     } else { Text("d7.imCompose.otherPending") }
@@ -610,9 +613,9 @@ private extension IMOutgoingPayload {
                             IMFlowStateMessage(text: Text("d7.imCompose.sendUnknown"), symbol: "clock.arrow.circlepath")
                         }
                         Section {
-                            if model.owner.canRecoverStaticLocation { Button("d7.imCompose.checkSent") { submit(.recoverStaticLocation) } }
+                            if model.owner.canRecoverStaticLocation { CYPillButton("d7.imCompose.checkSent", style: .secondary) { submit(.recoverStaticLocation) } }
                             // Recovery never grants new SEND. Explicit retry remains the same original key and bytes.
-                            if model.owner.writer.canSendStaticLocation { Button("d7.chatInfo.tryAgain") { submit(.retry) } }
+                            if model.owner.writer.canSendStaticLocation { CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { submit(.retry) } }
                         }
                     } else { Text("d7.imCompose.otherPending") }
                 case .submitting: ProgressView("d7.imCompose.sending")
@@ -620,14 +623,14 @@ private extension IMOutgoingPayload {
                     Section {
                         IMFlowStateMessage(text: Text("d7.imLocation.sent"), symbol: "checkmark.circle", tone: .success)
                         if model.owner.writer.canSendStaticLocation {
-                            Button("d7.imLocation.sendAnother") { clear();model.owner.finishStaticLocationResult() }
+                            CYPillButton("d7.imLocation.sendAnother", style: .secondary) { clear();model.owner.finishStaticLocationResult() }
                         }
                     }
                 case .rejected: IMFlowStateMessage(text: Text("d7.imCompose.rejected"), symbol: "exclamationmark.circle", tone: .attention)
                 case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
             } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
-        }.imFlowForm().navigationTitle(Text("d7.imLocation.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
          .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
          .onChange(of:latitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
          .onChange(of:longitude) { _,_ in if pickedMapSignature != latitude+"|"+longitude { confirmedDatum=false;pickedMapSignature=nil } }
@@ -678,6 +681,7 @@ private extension IMOutgoingPayload {
     private var canShare:Bool { model.owner.writer.canReadRouteShareSource && model.owner.writer.canSendRoute }
     var body:some View {
         Form {
+            Section { CYHeroHeader("d7.imRoute.title").listRowBackground(Color.clear) }
             if available {
                 switch model.state {
                 case .idle:
@@ -693,17 +697,17 @@ private extension IMOutgoingPayload {
                         }
                         if selected != nil {
                             Section {
-                                Button("d7.imCompose.continue") { reviewSelectedSource() }.imFlowPrimaryAction()
+                                CYPillButton("d7.imCompose.continue") { reviewSelectedSource() }
                             }
                         }
                     } else {
-                        ContentUnavailableView("d7.imRoute.unavailable", systemImage: "map")
+                        CYEmptyState(systemImage: "map", "d7.imRoute.unavailable")
                     }
                 case .reviewing(let mutation):
                     if isRoute(mutation),let source=model.owner.selectedRouteShareSource {
                         Section { Label { Text(verbatim:source.name) } icon: { Image(systemName:"map") } }
                         Section {
-                            Button("d7.imRoute.send") { submit(.confirm) }.imFlowPrimaryAction()
+                            CYPillButton("d7.imRoute.send") { submit(.confirm) }
                             Button("action.cancel",role:.cancel) { model.owner.cancelReview() }
                         }
                     } else { Text("d7.imCompose.otherPending") }
@@ -714,21 +718,21 @@ private extension IMOutgoingPayload {
                             IMFlowStateMessage(text: Text("d7.imCompose.sendUnknown"), symbol: "clock.arrow.circlepath")
                         }
                         Section {
-                            if model.owner.canRecoverRoute { Button("d7.imCompose.checkSent") { submit(.recoverRoute) } }
-                            if model.owner.writer.canSendRoute { Button("d7.chatInfo.tryAgain") { submit(.retry) } }
+                            if model.owner.canRecoverRoute { CYPillButton("d7.imCompose.checkSent", style: .secondary) { submit(.recoverRoute) } }
+                            if model.owner.writer.canSendRoute { CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { submit(.retry) } }
                         }
                     } else { Text("d7.imCompose.otherPending") }
                 case .submitting:ProgressView("d7.imCompose.sending")
                 case .acknowledged:
                     Section {
                         IMFlowStateMessage(text: Text("d7.imRoute.sent"), symbol: "checkmark.circle", tone: .success)
-                        Button("d7.imRoute.sendAnother") { selected=nil;model.owner.finishRouteResult() }
+                        CYPillButton("d7.imRoute.sendAnother", style: .secondary) { selected=nil;model.owner.finishRouteResult() }
                     }
                 case .rejected:IMFlowStateMessage(text: Text("d7.imCompose.rejected"), symbol: "exclamationmark.circle", tone: .attention)
                 case .closed:IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                 }
             } else { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
-        }.imFlowForm().navigationTitle(Text("d7.imRoute.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.close") { dismiss() } } }
         .sheet(isPresented:$picking) {
             if available { NavigationStack { ContextualTopicPicker(reader:reader) { row in
@@ -789,12 +793,13 @@ private extension IMOutgoingPayload {
     var body:some View {
         NavigationStack {
             Form {
+                Section { CYHeroHeader("d7.imMap.title").listRowBackground(Color.clear) }
                 if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
                 else if !consented {
                     // Loading tiles sends the browsed area to the map service; the consent gate stays explicit.
                     Section {
                         Text("d7.imMap.consent")
-                        Button("d7.imMap.load") { if available { consented=true } }
+                        CYPillButton("d7.imMap.load", style: .secondary) { if available { consented=true } }
                     }
                 } else {
                     Section {
@@ -826,14 +831,14 @@ private extension IMOutgoingPayload {
                             TextField("d7.imLocation.addressOptional",text:$address)
                         }
                         Section {
-                            Button("d7.imMap.use") {
+                            CYPillButton("d7.imMap.use") {
                                 guard available,consented,let value else{return}
                                 selected(value);dismiss()
-                            }.imFlowPrimaryAction().disabled(value == nil)
+                            }.disabled(value == nil)
                         }
                     }
                 }
-            }.imFlowForm().navigationTitle(Text("d7.imMap.title")).privacySensitive()
+            }.imFlowForm().cyHeroScreen().privacySensitive()
             .toolbar { ToolbarItem(placement:.cancellationAction) { Button("action.cancel") { dismiss() } } }
             .onDisappear { retire() }
             .onChange(of:available) { _,valid in if !valid { retire() } }

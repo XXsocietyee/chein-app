@@ -209,13 +209,13 @@ extension EnvironmentValues {
         Section {
             if host.makeProvider != nil, host.approvalID != nil,
                (try? ClubTerminalSessionProjection.activities(snapshot, context: context)) != nil {
-                Button("club.terminal.open") {
+                CYPillButton("club.terminal.open", style: .secondary) {
                     presentation.open(source: source, host: host, access: access, sourceIsCurrent: sourceIsCurrent)
                 }
                 .disabled(!sourceIsCurrent() || !presentation.canOpen(source))
                 .accessibilityIdentifier("club.terminal.open")
             } else {
-                Text("club.terminal.unavailable").font(.footnote).foregroundStyle(.secondary)
+                CYStatusChip("club.terminal.unavailable", tone: .neutral, systemImage: "slash.circle")
                     .accessibilityIdentifier("club.terminal.unavailable")
             }
         }
@@ -257,34 +257,35 @@ extension EnvironmentValues {
     @State private var shownSettlement: ClubTerminalSessionFlow.Settlement?
     var body: some View {
         List {
+            CYHeroHeader("club.terminal.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if flow.loading { ProgressView("club.terminal.loading") }
-            if let failure = flow.failure { Text(LocalizedStringKey(failure.localizationKey)) }
-            if !flow.isCurrent { Text("club.terminal.changed") }
+            if let failure = flow.failure { CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle") }
+            if !flow.isCurrent { CYStatusChip("club.terminal.changed", tone: .warning, systemImage: "arrow.triangle.2.circlepath") }
             if flow.isCurrent {
-                if flow.activities.isEmpty, !flow.loading { Text("club.terminal.empty") }
+                if flow.activities.isEmpty, !flow.loading { CYEmptyState(systemImage: "calendar", "club.terminal.empty").listRowBackground(Color.clear) }
                 ForEach(flow.activities) { activity in
                     Button { Task { await flow.select(activity.id) } } label: {
-                        VStack(alignment: .leading) {
-                            Text(verbatim: activity.name ?? "#\(activity.id)")
-                            if let date = activity.startDate { Text(verbatim: date).font(.caption) }
-                            if flow.selectedID == activity.id { Label("club.terminal.selected", systemImage: "checkmark") }
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            Text(verbatim: activity.name ?? "#\(activity.id)").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                            if let date = activity.startDate { Text(verbatim: date).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                            if flow.selectedID == activity.id { CYStatusChip("club.terminal.selected", tone: .info, systemImage: "checkmark") }
                         }
                     }.disabled(flow.loading || shownSettlement != nil)
                         .accessibilityIdentifier("club.terminal.activity.\(activity.id)")
                 }
                 if let projection = flow.projection {
-                    Text(verbatim: projection.status).accessibilityIdentifier("club.terminal.status")
+                    CYStatusChip(verbatim: projection.status, tone: .info).accessibilityIdentifier("club.terminal.status")
                     if flow.terminal {
-                        Button("club.terminal.settlement") { Task { await flow.openSettlement(); shownSettlement = flow.settlement } }
+                        CYPillButton("club.terminal.settlement") { Task { await flow.openSettlement(); shownSettlement = flow.settlement } }
                             .disabled(flow.loading || shownSettlement != nil)
                             .accessibilityIdentifier("club.terminal.settlement")
-                    } else { Text("club.terminal.notTerminal") }
+                    } else { CYStatusChip("club.terminal.notTerminal", tone: .neutral, systemImage: "hourglass") }
                 }
-                Button("club.terminal.refresh") { Task { await flow.load() } }.disabled(flow.loading || shownSettlement != nil)
+                CYPillButton("club.terminal.refresh", style: .secondary) { Task { await flow.load() } }.disabled(flow.loading || shownSettlement != nil)
             }
         }
         .cyGroupedSurface()
-        .navigationTitle("club.terminal.title").privacySensitive()
+        .cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { flow.close(); dismiss() } } }
         .task { await flow.load() }
         .onDisappear { if shownSettlement == nil { flow.close() } }

@@ -23,42 +23,41 @@ import SwiftUI
     private var eventScope: ClubGovernanceScope { .init(clubID: scope.clubID, topicID: scope.topicID, activityID: scope.activityID) }
     var body: some View {
         List {
+            CYHeroHeader("clubOpsEvent.title", tableName: "ClubOpsEvent").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if loading { ProgressView().accessibilityIdentifier("clubOpsEvent.loading") }
             else if failure == .forbidden || (loadedKey == key && model?.permitted == false) { denied }
             else if let failure {
                 Section {
-                    Label(LocalizedStringKey(failure.localizationKey), systemImage: "exclamationmark.triangle")
+                    CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle")
                         .accessibilityIdentifier("clubOpsEvent.error")
-                    Button("action.retry") { Task { await load() } }.accessibilityIdentifier("clubOpsEvent.retry")
+                    CYPillButton("action.retry", style: .secondary) { Task { await load() } }.accessibilityIdentifier("clubOpsEvent.retry")
                 }
             } else if loadedKey == key, let model {
                 ForEach(model.sections, id: \.self) { section in self.section(section, model: model) }
             }
         }
         .cyGroupedSurface()
-        .navigationTitle(Text("clubOpsEvent.title", tableName: "ClubOpsEvent"))
+        .cyHeroScreen()
         .accessibilityIdentifier("clubOpsEvent.root")
         .task(id: key) { await load() }
         .refreshable { await load() }
     }
     private var denied: some View {
-        ContentUnavailableView {
-            Label { Text("clubOpsEvent.denied.title", tableName: "ClubOpsEvent") } icon: { Image(systemName: "lock") }
-        } description: { Text("clubOpsEvent.denied.body", tableName: "ClubOpsEvent") }
+        CYEmptyState(systemImage: "lock", "clubOpsEvent.denied.title", tableName: "ClubOpsEvent",
+                     detail: "clubOpsEvent.denied.body", messageIdentifier: "clubOpsEvent.denied")
             .listRowBackground(Color.clear)
-            .accessibilityIdentifier("clubOpsEvent.denied")
     }
     @ViewBuilder private func section(_ section: ClubOpsEventSection, model: ClubOpsEventAccess) -> some View {
         switch section {
         case .occurrence:
             Section {
                 if model.rosterHiddenForManager {
-                    Text("clubOpsEvent.roster.hidden", tableName: "ClubOpsEvent").accessibilityIdentifier("clubOpsEvent.roster.hidden")
+                    CYStatusChip(verbatim: String(localized: "clubOpsEvent.roster.hidden", table: "ClubOpsEvent"), tone: .neutral, systemImage: "eye.slash").accessibilityIdentifier("clubOpsEvent.roster.hidden")
                 }
                 push(.occurrenceStatus, eventScope) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("club.gov.action.cancelOccurrence")
-                        Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(.footnote).foregroundStyle(.secondary)
+                        Text("clubOpsEvent.cancel.subtitle", tableName: "ClubOpsEvent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     }
                 }
             } header: { Text("clubOpsEvent.section.occurrence", tableName: "ClubOpsEvent") }

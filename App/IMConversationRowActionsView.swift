@@ -99,6 +99,7 @@ struct IMConversationRowButtonToken: Equatable {
         let appearance = model.appearance
         NavigationStack {
             Form {
+                Section { CYHeroHeader(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title")).listRowBackground(Color.clear) }
                 if model.actions.isCurrent {
                     Section {
                         MessagingConversationName(conversation: model.actions.conversation).lineLimit(1)
@@ -106,17 +107,17 @@ struct IMConversationRowButtonToken: Equatable {
                     Section {
                         switch model.state {
                         case .reviewing:
-                            Button {
+                            CYPillButton(LocalizedStringKey(model.actions.action?.titleKey ?? "im.full.confirm")) {
                                 guard let token = model.prepare(.confirm, appearance: appearance) else { return }
                                 Task { _ = await model.perform(token) }
-                            } label: { Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.full.confirm")) }
+                            }
                             .disabled(model.isActionPending)
                             .accessibilityIdentifier("im.row.confirm")
                         case .submitting:
                             ProgressView("im.full.submitting").accessibilityIdentifier("im.row.submitting")
                         case .outcomeUnknown:
-                            Text("d7.rowActions.unknown")
-                            Button("d7.rowActions.retry") {
+                            CYStatusChip("d7.rowActions.unknown", tone: .warning, systemImage: "questionmark.circle")
+                            CYPillButton("d7.rowActions.retry", style: .secondary) {
                                 guard let token = model.prepare(.retryUnchanged, appearance: appearance) else { return }
                                 Task { _ = await model.perform(token) }
                             }
@@ -124,22 +125,21 @@ struct IMConversationRowButtonToken: Equatable {
                             .accessibilityIdentifier("im.row.retrySame")
                         case .acknowledged:
                             if model.actions.hasMatchingAcknowledgment {
-                                Label("d7.rowActions.done", systemImage: "checkmark.circle")
+                                CYStatusChip("d7.rowActions.done", tone: .success, systemImage: "checkmark.circle")
                                     .accessibilityIdentifier("im.row.acknowledged")
-                            } else { Text("d7.rowActions.mismatch") }
+                            } else { CYStatusChip("d7.rowActions.mismatch", tone: .warning, systemImage: "exclamationmark.triangle") }
                         case .rejected:
-                            Text("d7.rowActions.rejected")
+                            CYStatusChip("d7.rowActions.rejected", tone: .danger, systemImage: "xmark.octagon")
                         case .closed:
-                            Text("im.full.closed")
+                            CYStatusChip("im.full.closed", tone: .neutral, systemImage: "lock")
                         case .idle:
-                            Text("im.full.disabled")
+                            CYStatusChip("im.full.disabled", tone: .neutral, systemImage: "slash.circle")
                         }
                     }
-                } else { Text("messaging.signInHint") }
+                } else { CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "messaging.signInHint") }
             }
             .cyGroupedSurface()
-            .navigationTitle(Text(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title")))
-            .navigationBarTitleDisplayMode(.inline)
+            .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(isReviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }

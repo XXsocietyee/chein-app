@@ -18,9 +18,9 @@ import SwiftUI
     var openExistingType: ((NativeChannelMessageSnapshot) -> Void)?
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s1_5) {
-            if !isCurrent() { Text("message.unavailable", tableName: "NativeChannelMessage") }
-            else if snapshot.status == 1 { Text("message.recalled", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
-            else if snapshot.status != 0 { Text("message.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+            if !isCurrent() { CYStatusChip(verbatim: String(localized: "message.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "lock") }
+            else if snapshot.status == 1 { CYStatusChip(verbatim: String(localized: "message.recalled", table: "NativeChannelMessage"), tone: .neutral, systemImage: "arrow.uturn.backward") }
+            else if snapshot.status != 0 { CYStatusChip(verbatim: String(localized: "message.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "lock") }
             else {
                 if let quote = snapshot.reply {
                     Button { if isCurrent(), quote.state == "VISIBLE" { locateOriginal(quote.id) } } label: {
@@ -40,7 +40,7 @@ import SwiftUI
                     MessagingMessageContent(message: snapshot.message)
                     if let attachmentPreview {
                         NavigationLink { NativeChannelAttachmentPreviewEntry(flow:attachmentPreview,current:isCurrent) } label: { Text("attachment.open", tableName: "NativeChannelMessage") }
-                    } else { Text("attachment.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    } else { CYStatusChip(verbatim: String(localized: "attachment.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "photo") }
                 case .text, .poll:
                     MessagingMessageContent(message: snapshot.message)
                 case .card:
@@ -51,32 +51,32 @@ import SwiftUI
                                 NativeChannelCheckinLaunchView(makeFlow: { checkinCoordinator(snapshot.message.conversationID) },
                                     current: isCurrent, reminderDate: day)
                             } label: { Text("checkin.open", tableName: "NativeChannelMessage") }
-                        } else { Text("checkin.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                        } else { CYStatusChip(verbatim: String(localized: "checkin.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "calendar") }
                     } else { MessagingMessageContent(message: snapshot.message) }
                 case .joined, .left, .renamed, .pinned, .pollResult:
                     Text(snapshot.content ?? String(localized: LocalizedStringResource("message.system", table: "NativeChannelMessage", locale: locale)))
                         .font(Theme.Font.label).foregroundStyle(.secondary).frame(maxWidth: .infinity)
                 case .location:
                     if let place=IMStaticLocation.read(snapshot.message) { IMStaticLocationCardView(place:place) }
-                    else { Text("location.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    else { CYStatusChip(verbatim: String(localized: "location.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "mappin.slash") }
                 case .voice:
                     if let voiceOwner, IMVoiceReference.read(snapshot.message) != nil {
                         if let ref = IMVoiceReference.read(snapshot.message) {
                             NavigationLink { IMVoicePlaybackView(message: snapshot.message, owner: voiceOwner, current: isCurrent) } label: { IMVoiceCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
                         }
-                    } else { Text("voice.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    } else { CYStatusChip(verbatim: String(localized: "voice.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "waveform.slash") }
                 case .file:
                     if let fileOwner, IMFileReference.read(snapshot.message) != nil {
                         if let ref = IMFileReference.read(snapshot.message) {
                             NavigationLink { IMFilePreviewView(message: snapshot.message, owner: fileOwner, current: isCurrent) } label: { IMFileCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
                         }
-                    } else { Text("file.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    } else { CYStatusChip(verbatim: String(localized: "file.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "doc") }
                 case .video:
                     if let videoOwner, IMVideoReference.read(snapshot.message) != nil {
                         if let ref = IMVideoReference.read(snapshot.message) {
                             NavigationLink { IMVideoPlaybackView(message: snapshot.message, owner: videoOwner, current: isCurrent) } label: { IMVideoCardLabel(reference: ref) }.buttonStyle(E3PressStyle())
                         }
-                    } else { Text("video.unavailable", tableName: "NativeChannelMessage").foregroundStyle(.secondary) }
+                    } else { CYStatusChip(verbatim: String(localized: "video.unavailable", table: "NativeChannelMessage"), tone: .neutral, systemImage: "video.slash") }
                 case .chain:
                     Label { Text("type.14", tableName: "NativeChannelMessage") } icon: { Image(systemName: "list.number") }
                     if let content = snapshot.content { Text(verbatim: content).lineLimit(typeSize.isAccessibilitySize ? nil : 3) }
@@ -93,7 +93,7 @@ import SwiftUI
                     if let openExistingType {
                         Button { if isCurrent() { openExistingType(snapshot) } } label: { Text("type.open", tableName: "NativeChannelMessage") }
                     } else { Text("type.sourceRequired", tableName: "NativeChannelMessage").font(Theme.Font.label).foregroundStyle(.secondary) }
-                case .unknown: Text("type.unknown", tableName: "NativeChannelMessage").foregroundStyle(.secondary)
+                case .unknown: CYStatusChip(verbatim: String(localized: "type.unknown", table: "NativeChannelMessage"), tone: .neutral, systemImage: "questionmark.circle")
                 }
                 if let reference = snapshot.message.pollReference,
                    let owner = pollCoordinator?(snapshot.message.conversationID, reference),
@@ -102,7 +102,7 @@ import SwiftUI
                         GroupPollOriginalResultView(owner: owner, reference: reference, current: isCurrent)
                     } label: { Text("poll.results", tableName: "NativeChannelMessage") }.accessibilityIdentifier("ncm47.originalPollResult")
                 }
-                if snapshot.editedAt != nil { Label { Text("message.edited", tableName: "NativeChannelMessage") } icon: { Image(systemName: "pencil").accessibilityHidden(true) }.font(Theme.Font.caption).foregroundStyle(.secondary) }
+                if snapshot.editedAt != nil { CYStatusChip(verbatim: String(localized: "message.edited", table: "NativeChannelMessage"), tone: .neutral, systemImage: "pencil") }
             }
         }
         .font(Theme.Font.body)

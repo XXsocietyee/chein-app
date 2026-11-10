@@ -51,11 +51,12 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                            return directory
                        }) { directory in
             if directory.members.isEmpty {
-                ClubEmptyState(title: directory.isReportedListUnavailable ? "club.membersUnavailable" : "club.emptyMembers",
-                               hint: directory.isReportedListUnavailable ? "club.membersUnavailableHint" : "club.emptyMembersHint",
-                               identifier: "club.members.empty")
+                CYEmptyState(systemImage: "person.2", directory.isReportedListUnavailable ? "club.membersUnavailable" : "club.emptyMembers",
+                             detail: directory.isReportedListUnavailable ? "club.membersUnavailableHint" : "club.emptyMembersHint",
+                             messageIdentifier: "club.members.empty")
             } else {
                 List {
+                    CYHeroHeader("club.members").listRowBackground(Color.clear).listRowSeparator(.hidden)
                     Section {
                         ForEach(Array(directory.members.enumerated()), id: \.offset) { _, member in
                             HStack(spacing: 12) {
@@ -79,7 +80,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                 }
                 .cyGroupedSurface()
             }
-        }.appNavigationTitle("club.members")
+        }.cyHeroScreen()
         .sheet(item: $memberReport) { target in
             if let governance, currentReport(target) {
                 NavigationStack { ClubMemberReportView(target: target, identity: reader.clubIdentity, governance: governance) }
@@ -153,18 +154,18 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     }
     private func memberRow(_ member: ClubMember) -> some View {
         HStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.tertiary).accessibilityHidden(true)
+            E3Avatar(seed: member.trimmedNickname ?? String(member.memberId), size: 44).accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
-                if let nickname = member.trimmedNickname { Text(verbatim: nickname) }
-                else { Text("club.memberNumber \(member.memberId)") }
-                if member.isOwner { Text("club.role.creator").font(Theme.Font.label).foregroundStyle(.secondary) }
-                else if member.isAdmin { Text("club.role.administrator").font(Theme.Font.label).foregroundStyle(.secondary) }
+                if let nickname = member.trimmedNickname { Text(verbatim: nickname).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                else { Text("club.memberNumber \(member.memberId)").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                if member.isOwner { CYStatusChip("club.role.creator", tone: .info, systemImage: "crown") }
+                else if member.isAdmin { CYStatusChip("club.role.administrator", tone: .info, systemImage: "shield") }
                 if let level = member.displayedLevel {
-                    Text("club.memberLevel \(level)").font(Theme.Font.label).foregroundStyle(.secondary)
+                    Text("club.memberLevel \(level)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("club.member.level.\(member.memberId)")
                 }
                 if let joined = member.displayedJoinTime {
-                    Text("club.memberJoined \(joined)").font(Theme.Font.label).foregroundStyle(.secondary)
+                    Text("club.memberJoined \(joined)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("club.member.joined.\(member.memberId)")
                 }
             }
