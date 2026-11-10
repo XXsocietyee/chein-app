@@ -1,0 +1,1 @@
+UI-CLOUD-13 d27eec5617fa4820283ffdc18a0e1574841c71d7 PASS restyled App/ClubOpsCustomerViews.swift, App/ClubOpsEventView.swift, App/ClubOpsJoinNotifyViews.swift, App/ClubOwnerRefundFixtureView.swift; skipped App/ClubOpsSettlementViews.swift
