@@ -72,8 +72,8 @@ import SwiftUI
                 DisclosureGroup("本次原项目读取基线：\(saved.recoveries.count)种恢复") {
                     ForEach(Array(saved.recoveries.enumerated()),id:\.offset) { index,_ in
                         Text(saved.text(index,"recoveryKey") + " · " + saved.text(index,"kind") + " · " + saved.text(index,"limit") + "次")
-                        if saved.text(index,"kind") == "REST" { Text(String(localized: "生命增加量：") + saved.text(index,"hpDelta")) }
-                        else { Text(String(localized: "生命下限：") + saved.text(index,"hpFloor")) }
+                        if saved.text(index,"kind") == "REST" { Text("生命增加量：" + saved.text(index,"hpDelta")) }
+                        else { Text("生命下限：" + saved.text(index,"hpFloor")) }
                         Text(saved.actKeys(index).isEmpty ? "原规则：不限定幕" : "原限用幕：" + saved.actKeys(index).joined(separator:", "))
                     }
                     Text(saved.noEffectPolicy == "true" ? "原规则：无效果仍消耗次数。" : "原规则：无效果不消耗次数。")

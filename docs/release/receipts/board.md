@@ -35,5 +35,7 @@
 - wire36 [x] 2716fd1af. PR 1019. Perks List removed. Core type kept. Not merged.
 - wire41 [x] 945dda747. PR 1029. Insight string 0 stays 0. Not merged.
 - S13 Build red on fe078eb67 and 9a3d23676. App/DesignFixtures/E3Fixtures.swift:487 unexpected #endif. Wire merge batches wait.
+- S12 [x] ui/main 9979a6151 merged. Extra E3Fixtures #endif removed. Build not read yet.
 - wire29 [x] 26e87fbba. PR 1030. CRM campaigns read MerchantCrmCampaignsPage.phase. Not merged.
 - wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
+- ut-d4-gov [x] ba1318805. PR 1032. Fixture test only. Not merged. Not run on Xcode Cloud yet.
