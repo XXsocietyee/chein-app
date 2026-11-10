@@ -260,7 +260,7 @@ struct SessionRootView: View {
     #endif
 
     @ViewBuilder private var homeTab: some View {
-                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine }).tabItem { rootTabLabel(.home) }.tag(RootTab.home)
+                    SessionHomeFeedView(onSignIn:{ selectedTab = .mine },onStartRoam:{ selectedTab = .roam }).tabItem { rootTabLabel(.home) }.tag(RootTab.home)
     }
 
     @ViewBuilder private var roamTab: some View {

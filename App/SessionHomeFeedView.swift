@@ -3,6 +3,7 @@ import SwiftUI
 @MainActor struct SessionHomeFeedView:View {
     @EnvironmentObject private var session:AppSession
     var onSignIn:(()->Void)? = nil
+    var onStartRoam:(()->Void)? = nil
     @State private var path:[HomeFeedDestination]=[]
     @State private var activeContinuationScope:PlaySessionScope?=nil
     @State private var continuationCoordinator = HomeContinuationCoordinator()
@@ -64,6 +65,7 @@ import SwiftUI
                 viewerAvatar: session.account?.avatar,
                 selectedCity: session.roamArea?.label,
                 showsHeroBanners: true,
+                onStartRoam: onStartRoam,
                 continuationCards: continuationCards,
                 continuationReadAvailability: continuationReadAvailability,
                 onActionBanner: handleActionBanner,

@@ -41,7 +41,11 @@ import SwiftUI
     @State private var reader: HomeFeedFixtureReader
     @State private var path: [HomeFeedDestination] = []
     private let hero: Bool
+    /// `--design-today ticket|club` seeds the Today card; anything else shows the start-a-roam prompt.
+    private let todayState: String?
     init(forceHero: Bool = false) {
+        let todayIndex = ProcessInfo.processInfo.arguments.firstIndex(of: "--design-today")
+        todayState = todayIndex.flatMap { ProcessInfo.processInfo.arguments.indices.contains($0 + 1) ? ProcessInfo.processInfo.arguments[$0 + 1] : nil }
         hero = forceHero || ProcessInfo.processInfo.arguments.contains("--design-hero")
         let args = ProcessInfo.processInfo.arguments
         let index = args.firstIndex(of: "--uitesting-home-feed-scenario")
@@ -54,6 +58,9 @@ import SwiftUI
                          showsHeroBanners: hero,
                          continuationCards: hero ? [.init(id: "fx-continue", kind: .continueExploration, destination: .topic(7), title: "Old Town: ten hidden spots", subtitle: "Stop 4 of 10 · 18 min in")] : [],
                          onActionBanner: hero ? { _ in } : nil,
+                         todayTicket: todayState == "ticket" ? HomeTodayFixtures.ticket : nil,
+                         todayClubEvent: todayState == "club" ? HomeTodayFixtures.clubEvent : nil,
+                         onOpenTodayTicket: {}, onOpenTodayClubEvent: {}, onStartRoam: {},
                          onOpenUnifiedSearch: hero ? { _ in } : nil) { path.append($0) }
                 .navigationDestination(for: HomeFeedDestination.self) { destination in
                     switch destination {
@@ -63,6 +70,14 @@ import SwiftUI
                 }
         }
     }
+}
+
+/// Design fixtures for the three Today states (and an unknown-time ticket that must fall back to roam).
+enum HomeTodayFixtures {
+    static var now: Date { Date() }
+    static var ticket: HomeTodayCandidate { HomeTodayCandidate(id: "fx-ticket", title: "Riverside lantern walk", start: now.addingTimeInterval(5 * 3600), place: "West Bund", imageURL: nil) }
+    static var clubEvent: HomeTodayCandidate { HomeTodayCandidate(id: "fx-club", title: "Old Town photo walk", start: now.addingTimeInterval(0), place: "Old Town", imageURL: nil) }
+    static var unknownTime: HomeTodayCandidate { HomeTodayCandidate(id: "fx-unknown", title: "Mystery ticket", start: nil, place: nil, imageURL: nil) }
 }
 
 #endif
