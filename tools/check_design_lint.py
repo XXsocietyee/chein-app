@@ -35,6 +35,7 @@ ALLOWLIST = {
     'App/E1CommerceComponents.swift': {FIXED_FONT: 2},
     'App/E1TicketCard.swift': {FIXED_FONT: 3},
     'App/HomeSearchTabParityViews.swift': {FIXED_FONT: 1},
+    'App/IMStaticLocationCardView.swift': {FIXED_FONT: 1},
     'App/IMInboxViews.swift': {FIXED_FONT: 1},
     'App/MerchantBusinessEditor.swift': {RAW_HEX: 1},
     'App/ObjectBadgeViews.swift': {FIXED_FONT: 1},
