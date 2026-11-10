@@ -31,7 +31,7 @@ import SwiftUI
                 }.accessibilityIdentifier("sensorDraft.type")
                 ForEach(value.kind?.parameters ?? [], id: \.rawValue) { parameter in
                     VStack(alignment: .leading) {
-                        Text(LocalizedStringKey(parameter.labelKey)).font(.subheadline.weight(.semibold))
+                        Text(LocalizedStringKey(parameter.labelKey)).font(CYTypography.label)
                         TextField(LocalizedStringKey(parameter.labelKey), text: Binding(get: { value.input(parameter) }, set: { model.setSensorInput(parameter, $0) }))
                             .focused($focusedParameter, equals: parameter.rawValue)
                             .keyboardType(.numberPad).accessibilityIdentifier("sensorDraft.input." + parameter.rawValue)
@@ -44,12 +44,12 @@ import SwiftUI
                                     }
                                 }
                             }
-                        Text("1…\(parameter.maximum)").font(.caption).foregroundStyle(.secondary)
-                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(.caption).foregroundStyle(.secondary) }
+                        Text("1…\(parameter.maximum)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit()
+                        if value.integer(parameter) == nil { Text("sensorDraft.invalidField").font(CYTypography.meta).foregroundStyle(CYColor.warningText) }
                     }
                 }
             } else { Text("sensorDraft.preserved").foregroundStyle(.secondary).accessibilityIdentifier("sensorDraft.preserved") }
-            NavigationLink("sensorDraft.preview") { TemplateSensorDraftPreviewView(model: model) }
+            NavigationLink { TemplateSensorDraftPreviewView(model: model) } label: { CYListRow("sensorDraft.preview", trailing: .none) { CYRowIcon(systemImage: "waveform.path") } }
                 .accessibilityIdentifier("sensorDraft.preview")
         }
     }
@@ -59,10 +59,11 @@ import SwiftUI
     @ObservedObject var model: TemplateAuthoringModel
     var body: some View {
         List {
+            Section { CYHeroHeader("sensorDraft.preview") }.e1HeroRow()
             if model.canEdit, model.draft.id == nil, model.draft.validationMethod.rawValue == 7 {
                 TemplateSensorDraftPreviewContent(draft: model.draft.sensorDraft ?? .init())
-            } else { Text("sensorDraft.unavailable") }
-        }.navigationTitle("sensorDraft.preview")
+            } else { CYEmptyState(systemImage: "waveform.path", "sensorDraft.unavailable") }
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
     }
 }
 

@@ -72,9 +72,11 @@ import Combine
     init(model: TemplateAuthoringModel, game: TemplateAdvancedGame) {
         self.model = model; _controller = StateObject(wrappedValue: .init(model: model, game: game))
     }
+    private var sensorTitle: String { String(localized: "templateSensor.title", table: "TemplateSensorRehearsal") }
     var body: some View {
         Form {
-            Section { sensorText("boundary"); sensorText("virtualTime").font(.footnote) }
+            Section { CYHeroHeader(verbatim: sensorTitle) }.e1HeroRow()
+            Section { sensorText("boundary"); sensorText("virtualTime").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             if let state = controller.visibleState {
                 TemplateSensorRehearsalInputs(state: state, advance: controller.advanceAction())
                     .id(controller.formID)
@@ -84,17 +86,19 @@ import Combine
                     LabeledContent { Text(verbatim: String(format: "%.1f / %.1f", state.heldSeconds, state.duration)) }
                         label: { sensorText("held") }
                     Button(action: controller.resetAction()) { sensorText("retry") }
-                        .accessibilityIdentifier("templateSensor.retry")
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .accessibilityIdentifier("templateSensor.retry").e1ActionRow()
                 }
             } else {
                 Section {
                     sensorText("unavailable")
                     Button { controller.reload() } label: { sensorText("reload") }
-                        .disabled(!controller.canReload)
+                        .buttonStyle(CYPillButtonStyle(style: .secondary))
+                        .disabled(!controller.canReload).e1ActionRow()
                 }
             }
         }
-        .navigationTitle(sensorText("title"))
+        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
         .privacySensitive()
         .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onDisappear { controller.viewDisappeared() }
@@ -109,7 +113,7 @@ import Combine
     @State private var peak = 0.1
     var body: some View {
         Section {
-            if !state.title.isEmpty { Text(verbatim: state.title).font(.headline) }
+            if !state.title.isEmpty { Text(verbatim: state.title).font(CYTypography.sectionTitle) }
             if state.game == .compass {
                 LabeledContent { Text(verbatim: "\(Int(state.targetBearing))° ± \(Int(state.tolerance))°") }
                     label: { sensorText("target") }
@@ -120,7 +124,7 @@ import Combine
                 Slider(value: $accuracy, in: 0...180, step: 1) { sensorText("accuracy") }
                     .accessibilityIdentifier("templateSensor.accuracy")
             } else {
-                sensorText("baseline").font(.footnote)
+                sensorText("baseline").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 LabeledContent { Text(verbatim: String(format: "%.2f", state.loudThreshold)) }
                     label: { sensorText("threshold") }
                 LabeledContent { Text(verbatim: String(format: "%.2f", peak)) } label: { sensorText("peak") }
@@ -128,7 +132,8 @@ import Combine
                     .accessibilityIdentifier("templateSensor.peak")
             }
             Button { advance(bearing, accuracy, peak) } label: { sensorText("advance") }
-                .disabled(state.finished).accessibilityIdentifier("templateSensor.advance")
+                .buttonStyle(CYPillButtonStyle())
+                .disabled(state.finished).accessibilityIdentifier("templateSensor.advance").e1ActionRow()
         }
     }
 }

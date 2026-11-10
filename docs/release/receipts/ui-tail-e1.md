@@ -52,3 +52,6 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 
 ## Batch 14
 - TemplateReactionRehearsalView (raw .green/.red/.secondary -> CY tokens, data numerals, pills), TemplateReasoningRehearsalView, TemplateRootAuthoringView (rules form + low-HP preset), TemplateRootRehearsalView (+ D20), TemplateSampleBrowserView: hero, grouped surface, kit rows, pills.
+
+## Batch 15
+- TemplateSensorDraftConfigurationView (fragment + preview screen), TemplateSensorRehearsalView, TemplateTimerRehearsalView (+ outcome editor), TopicDetailView (already kit-ported earlier: loading skeleton, single hero via cover/name, pills for review/self-play/unlock, chapter hero), TopicSessionSelectionView (hero, kit empty states, icon rows).
