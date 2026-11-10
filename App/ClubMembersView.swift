@@ -7,6 +7,7 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
     var profile: ClubEnrollmentProfileContext? = nil
     var governance: ClubGovernanceContext? = nil
     @Environment(\.clubEnrollmentProfile) private var inheritedProfile
+    @Environment(\.dynamicTypeSize) private var typeSize
     private struct ProfileDestination: Hashable {
         let selectionID = UUID()
         let clubID: Int
@@ -50,37 +51,45 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                            reportDirectory = directory
                            return directory
                        }) { directory in
-            if directory.members.isEmpty {
-                CYEmptyState(systemImage: "person.2", directory.isReportedListUnavailable ? "club.membersUnavailable" : "club.emptyMembers",
-                             detail: directory.isReportedListUnavailable ? "club.membersUnavailableHint" : "club.emptyMembersHint",
-                             messageIdentifier: "club.members.empty")
-            } else {
-                List {
-                    CYHeroHeader("club.members").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            List {
+                Section {
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        CYHeroHeader("club.members")
+                        ClubName(value: directory.club.name)
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .listRowInsets(Self.rowInsets)
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                }
+                if directory.members.isEmpty {
+                    CYEmptyState(
+                        systemImage: "person.3",
+                        directory.isReportedListUnavailable ? LocalizedStringKey("club.membersUnavailable") : LocalizedStringKey("club.emptyMembers"),
+                        detail: directory.isReportedListUnavailable ? LocalizedStringKey("club.membersUnavailableHint") : LocalizedStringKey("club.emptyMembersHint"),
+                        messageIdentifier: "club.members.empty",
+                        kind: .generic
+                    )
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                } else {
                     Section {
                         ForEach(Array(directory.members.enumerated()), id: \.offset) { _, member in
-                            HStack(spacing: 12) {
-                                if member.memberId > 0, let profileContext, matches(profileContext, reader.clubIdentity) {
-                                    Button {
-                                        let target = ProfileDestination(clubID: id, viewerRevision: governance?.viewerRevision, memberID: member.memberId, identity: reader.clubIdentity)
-                                        if directory.club.id == id, directory.club.canGovern, matchesGovernance(target.identity) {
-                                            choice = target; choosing = true
-                                        } else { destination = target }
-                                    } label: { memberRow(member) }
-                                    .accessibilityIdentifier("club.member.\(member.memberId)")
-                                    .accessibilityHint(Text(directory.club.canGovern && matchesGovernance(reader.clubIdentity) ? "club.members" : "social.profile"))
-                                } else {
-                                    memberRow(member).accessibilityIdentifier("club.member.\(member.memberId)")
-                                }
-                                Spacer(minLength: 0)
-                                reportButton(member, directory: directory)
-                            }.buttonStyle(.borderless).multilineTextAlignment(.leading)
+                            memberLine(member, directory: directory)
+                                .listRowInsets(Self.rowInsets)
+                                .listRowBackground(Color.clear)
+                                .listRowSeparator(.hidden)
                         }
-                    } header: { ClubName(value: directory.club.name) }
+                    }
                 }
-                .cyGroupedSurface()
             }
-        }.cyHeroScreen()
+            .listStyle(.plain)
+            .scrollContentBackground(.hidden)
+            .cyDomainPageBackground()
+        }
+        .cyHeroScreen()
         .sheet(item: $memberReport) { target in
             if let governance, currentReport(target) {
                 NavigationStack { ClubMemberReportView(target: target, identity: reader.clubIdentity, governance: governance) }
@@ -123,6 +132,36 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         .onChange(of: id) { _, _ in destination = nil; choice = nil; choosing = false }
         .onChange(of: governance?.viewerRevision) { _, _ in destination = nil; choice = nil; choosing = false }
     }
+    @ViewBuilder private func memberLine(_ member: ClubMember, directory: ClubMemberDirectory) -> some View {
+        if typeSize.isAccessibilitySize {
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                memberIdentity(member, directory: directory)
+                reportButton(member, directory: directory)
+            }
+            .buttonStyle(.borderless)
+        } else {
+            HStack(alignment: .center, spacing: CYSpacing.sm) {
+                memberIdentity(member, directory: directory)
+                Spacer(minLength: 0)
+                reportButton(member, directory: directory)
+            }
+            .buttonStyle(.borderless)
+        }
+    }
+    @ViewBuilder private func memberIdentity(_ member: ClubMember, directory: ClubMemberDirectory) -> some View {
+        if member.memberId > 0, let profileContext, matches(profileContext, reader.clubIdentity) {
+            Button {
+                let target = ProfileDestination(clubID: id, viewerRevision: governance?.viewerRevision, memberID: member.memberId, identity: reader.clubIdentity)
+                if directory.club.id == id, directory.club.canGovern, matchesGovernance(target.identity) {
+                    choice = target; choosing = true
+                } else { destination = target }
+            } label: { memberRow(member).cyPressTracking() }
+            .accessibilityIdentifier("club.member.\(member.memberId)")
+            .accessibilityHint(Text(directory.club.canGovern && matchesGovernance(reader.clubIdentity) ? "club.members" : "social.profile"))
+        } else {
+            memberRow(member).accessibilityIdentifier("club.member.\(member.memberId)")
+        }
+    }
     @ViewBuilder private func reportButton(_ member: ClubMember, directory: ClubMemberDirectory) -> some View {
         if let governance, governance.access.isConfigured, governance.access.identity == reader.clubIdentity,
            let target = ClubMemberReportTarget(member: member, directory: directory, context: reportContext) {
@@ -130,7 +169,13 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
                 guard reportSourceActive, memberReport == nil, destination == nil, !choosing, choice == nil,
                       reportDirectory == directory, currentReport(target) else { return }
                 memberReport = target
-            } label: { Image(systemName: "flag").frame(minWidth: 44, minHeight: 44) }
+            } label: {
+                Image(systemName: "flag")
+                    .font(CYTypography.body.weight(.semibold))
+                    .foregroundStyle(CYColor.textSecondary)
+                    .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                    .cyPressTracking()
+            }
             .accessibilityLabel(reportLabel(target))
             .disabled(reportDirectory != directory || !reportSourceActive || memberReport != nil || destination != nil || choosing)
             .accessibilityIdentifier("club.memberReport.open.\(member.memberId)")
@@ -153,22 +198,42 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         var selected = target; selected.customer = customer; destination = selected
     }
     private func memberRow(_ member: ClubMember) -> some View {
-        HStack(spacing: 12) {
-            E3Avatar(seed: member.trimmedNickname ?? String(member.memberId), size: 44).accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: 4) {
-                if let nickname = member.trimmedNickname { Text(verbatim: nickname).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                else { Text("club.memberNumber \(member.memberId)").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                if member.isOwner { CYStatusChip("club.role.creator", tone: .info, systemImage: "crown") }
-                else if member.isAdmin { CYStatusChip("club.role.administrator", tone: .info, systemImage: "shield") }
+        HStack(alignment: .center, spacing: CYSpacing.md) {
+            CYAvatarView(url: QuestifyCardArtwork.safeURL(member.avatar), name: member.trimmedNickname ?? "\(member.memberId)", size: .md)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                if let nickname = member.trimmedNickname {
+                    Text(verbatim: nickname)
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("club.memberNumber \(member.memberId)")
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if member.isOwner { CYStatusChip("club.role.creator", tone: .info, systemImage: "star") }
+                else if member.isAdmin { CYStatusChip("club.role.administrator", tone: .neutral, systemImage: "shield") }
                 if let level = member.displayedLevel {
-                    Text("club.memberLevel \(level)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    Text("club.memberLevel \(level)")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .monospacedDigit()
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.member.level.\(member.memberId)")
                 }
                 if let joined = member.displayedJoinTime {
-                    Text("club.memberJoined \(joined)").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("club.memberJoined \(joined)")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.member.joined.\(member.memberId)")
                 }
             }
-        }.padding(.vertical, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
     }
+    private static var rowInsets: EdgeInsets { EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal) }
 }

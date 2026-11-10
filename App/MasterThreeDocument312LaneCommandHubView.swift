@@ -11,7 +11,8 @@ public struct MasterThreeDocument312LaneCommandHubView: View {
     public var body: some View {
         List {
             CYHeroHeader(verbatim: "三文档312轨全量闭环中枢")
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: CYSpacing.lg, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
             UnifiedOPT001To003FoundationSectionView()
             UnifiedOPT010To014CommerceLedgerSectionView()
             UnifiedOPT020To023PrivacyModerationSectionView()
@@ -26,6 +27,8 @@ public struct MasterThreeDocument312LaneCommandHubView: View {
             Wave2AllPartialAndMissingRowsClosureView()
             BaseUISuiteFailureRemediationSectionView()
         }
+        .listStyle(.plain)
+        .cyGroupedSurface()
         .cyHeroScreen()
     }
 }

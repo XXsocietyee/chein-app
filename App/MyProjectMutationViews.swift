@@ -11,6 +11,7 @@ import QuestifyCore
 
 /// Confirm dialog + honest result banner for `MyProjectMutationModel`. Attach to the list screen and call
 /// `model.begin(...)` from the row menu; re-read the list when `model.reloadToken` changes.
+/// This is a status strip on the host list, not its own screen, so it does not set a navigation title.
 @MainActor struct MyProjectMutationStatusView: View {
     @ObservedObject var model: MyProjectMutationModel
 
@@ -18,25 +19,33 @@ import QuestifyCore
         VStack(alignment: .leading, spacing: CYSpacing.sm) {
             switch model.state {
             case .working:
-                CYSkeleton().accessibilityIdentifier("myProject.mutation.working")
+                CYSkeleton()
+                    .accessibilityIdentifier("myProject.mutation.working")
             case .done:
-                Label(W8Text.t("已完成", "Done"), systemImage: "checkmark.circle.fill")
-                    .foregroundStyle(CYColor.successText)
+                CYStatusChip(verbatim: W8Text.t("已完成", "Done"), tone: .success, systemImage: "checkmark.circle.fill")
                     .accessibilityIdentifier("myProject.mutation.done")
             case .failed(_, let message):
-                Label(message, systemImage: "exclamationmark.triangle.fill")
-                    .foregroundStyle(CYColor.dangerText)
-                    .accessibilityIdentifier("myProject.mutation.failed")
+                Label {
+                    Text(LocalizedStringKey(message))
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                }
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.dangerText)
+                .accessibilityIdentifier("myProject.mutation.failed")
             case .unavailable:
                 Label(W8Text.t("暂未开放：此操作暂时无法在 App 内完成。", "Not available yet: this action can't be done in the app yet."),
                       systemImage: "exclamationmark.circle")
+                    .font(CYTypography.body)
                     .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("myProject.mutation.unavailable")
             case .idle, .awaitingConfirmation:
                 EmptyView()
             }
         }
-        .font(CYTypography.bodyCompact)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .confirmationDialog(
             confirmationText,
             isPresented: Binding(

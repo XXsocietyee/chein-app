@@ -30,26 +30,50 @@ import SwiftUI
     var body: some View {
         List {
             Section { CYHeroHeader("memberTemplate.title") }.e1HeroRow()
-            if loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("memberTemplate.loading")).listRowBackground(Color.clear) }
+            if loading {
+                CYSkeleton()
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("memberTemplate.loading"))
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+            }
             if let failure {
                 Section {
-                    if let message { Text(verbatim: message) } else { Text(LocalizedStringKey(failure)) }
-                    CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise") { Task { await load() } }
-                        .disabled(loading).e1ActionRow()
+                    if let message {
+                        Text(verbatim: message)
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } else {
+                        CYEmptyState(systemImage: "exclamationmark.triangle", LocalizedStringKey(failure), kind: .failure)
+                    }
+                    CYPillButton("action.retry", systemImage: "arrow.clockwise") { Task { await load() } }
+                        .disabled(loading)
+                        .e1ActionRow()
                 }
             }
             if let detail {
                 let item = detail.overview
                 Section {
-                    if !item.title.isEmpty { Text(verbatim: item.title).font(CYTypography.sectionTitle) }
-                    else { Text("discovery.untitledPlay").font(CYTypography.sectionTitle) }
+                    CYImageCard(
+                        verbatim: item.title,
+                        fallback: "discovery.untitledPlay",
+                        meta: item.description,
+                        imageURL: TemplateBrowserPort.coverURL(detail.gallery.first ?? item.imgUrl)
+                    )
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
                     DiscoveryPlayMetadata(item: item)
                     if let draft = detail.draftStatus {
                         if draft == 0 { CYStatusChip("memberTemplate.draft", tone: .neutral, systemImage: "pencil") }
                         else if draft == 1 { CYStatusChip("memberTemplate.published", tone: .success, systemImage: "checkmark.circle.fill") }
                     }
                     if let feedback = detail.reviewFeedback {
-                        Text("discovery.templateDetail.reviewFeedback \(feedback)").foregroundStyle(CYColor.warningText)
+                        Text("discovery.templateDetail.reviewFeedback \(feedback)")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.warningText)
+                            .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("memberTemplate.reviewFeedback")
                     }
                     if !detail.gallery.isEmpty {
@@ -61,19 +85,38 @@ import SwiftUI
                 textSection("discovery.rules", value: item.ruleInstructions)
                 textSection("discovery.materials", value: item.requiredMaterials)
                 textSection("discovery.location", value: item.usageLocation)
-                if let verification = item.verification { Section("discovery.verification") { Text(verification.label) } }
+                if let verification = item.verification {
+                    Section {
+                        Text(verification.label)
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    } header: {
+                        CYSectionHeader("discovery.verification")
+                    }
+                }
                 if !detail.story.isEmpty {
-                    Section("memberTemplate.story") {
+                    Section {
                         ForEach(detail.story) { part in
-                            VStack(alignment: .leading, spacing: 10) {
-                                if let tag = part.tag { Text(verbatim: tag).font(.caption.weight(.semibold)) }
-                                if let text = part.text { Text(verbatim: text).textSelection(.enabled) }
+                            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                                if let tag = part.tag, !tag.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    CYStatusChip(verbatim: tag, tone: .neutral, systemImage: "tag")
+                                }
+                                if let text = part.text, !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                    Text(verbatim: text)
+                                        .font(CYTypography.body)
+                                        .foregroundStyle(CYColor.textPrimary)
+                                        .fixedSize(horizontal: false, vertical: true)
+                                        .textSelection(.enabled)
+                                }
                                 if !part.images.isEmpty {
                                     NativeMediaGalleryEntry(sources: part.images, scope: reader.scope,
                                         titleKey: "memberTemplate.story", reader: imageReader)
                                 }
                             }
                         }
+                    } header: {
+                        CYSectionHeader("memberTemplate.story")
                     }
                 } else { textSection("memberTemplate.story", value: item.storyText) }
                 textSection("discovery.creator", value: item.publisher)
@@ -85,7 +128,17 @@ import SwiftUI
         .onDisappear { generation = UUID(); detail = nil }
     }
     @ViewBuilder private func textSection(_ label: LocalizedStringKey, value: String?) -> some View {
-        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { Section(label) { Text(verbatim: value).textSelection(.enabled) } }
+        if let value, !value.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            Section {
+                Text(verbatim: value)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
+            } header: {
+                CYSectionHeader(label)
+            }
+        }
     }
     private func load() async {
         let request = UUID(); generation = request; let scope = reader.scope
