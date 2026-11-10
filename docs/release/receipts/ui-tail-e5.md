@@ -78,3 +78,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - NativeWebhookInboundLogView: done (CYHeroHeader, CYEmptyState, CYPillButton)
 - NativeWebhookDeliveryLogView: done (CYHeroHeader, CYEmptyState, CYPillButton)
 - NativeVerificationView: SKIPPED (merchant staff voucher verification, merchant-only surface)
+
+## Batch 12 (reverse)
+- NativeVerificationFixtureView: SKIPPED (merchant redemption fixture, merchant-only)
+- NativeNavigationFixtureView: SKIPPED (DEBUG routing harness with no chrome of its own; it only hosts screens restyled elsewhere)
+- NativeMotionReminderViews: done (CYPillButton primary send/read, CYSkeleton, CYHeroHeader on purpose sheet)
+- NativeEnrollmentView: done (CYHeroHeader, CYPillButton, CYSkeleton)
+- NativeChannelWelcomeView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
