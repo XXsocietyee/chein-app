@@ -8,3 +8,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - ApprovedReleaseSummaryResultView: done (CYHeroHeader, CYStatusChip)
 - ChannelAdmissionGovernanceView: done (CYHeroHeader, CYPillButton, CYStatusChip)
 - CompleteWave1To3AndReformV9ShowcaseView: done (CYStatusChip, AX stacking)
+
+## Batch 2
+- ComputedLocalizationFixtureView: done (DEBUG fixture, CYPillButton)
+- DoorReferralViews: done (CYHeroHeader, CYPillButton, CYStatusChip, CYSkeleton)
+- MapCoreEntryHubView: done (CYHeroHeader, CYPillButton)
+- MapPublicLayerCallerView: done (CYHeroHeader, CYPillButton, CYStatusChip)
+- MasterReleaseSignoffDashboardView: done (CYStatusChip, AX stacking)

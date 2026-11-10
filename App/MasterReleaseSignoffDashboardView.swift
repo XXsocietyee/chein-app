@@ -191,6 +191,11 @@ public struct MasterReleaseSignoffDashboardSnapshot: Equatable, Sendable {
 @MainActor
 public struct MasterReleaseSignoffDashboardView: View {
     public let snapshot: MasterReleaseSignoffDashboardSnapshot
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var rowLayout: AnyLayout {
+        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
+    }
 
     public init(snapshot: MasterReleaseSignoffDashboardSnapshot = .verifiedDefault) {
         self.snapshot = snapshot
@@ -228,19 +233,19 @@ public struct MasterReleaseSignoffDashboardView: View {
 
     public var body: some View {
         VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .firstTextBaseline) {
+            rowLayout {
                 Text(verbatim: "Master Release & Parity Sign-off Dashboard")
                     .font(.headline)
                     .accessibilityIdentifier("masterReleaseDashboard.title")
                 Spacer()
-                Text(verbatim: pillarsBadgeText)
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(snapshot.isReadyForSignoff ? CYColor.successText : CYColor.warningText)
+                CYStatusChip(verbatim: pillarsBadgeText,
+                             tone: snapshot.isReadyForSignoff ? .success : .warning,
+                             systemImage: snapshot.isReadyForSignoff ? "checkmark.circle" : "exclamationmark.triangle")
                     .accessibilityIdentifier("masterReleaseDashboard.pillarsBadge")
             }
 
             VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 12) {
+                rowLayout {
                     Text(verbatim: miniProgramPagesMetricText)
                         .font(.caption.monospacedDigit())
                         .accessibilityIdentifier("masterReleaseDashboard.miniProgramPagesMetric")
@@ -251,7 +256,7 @@ public struct MasterReleaseSignoffDashboardView: View {
                         .font(.caption.monospacedDigit())
                         .accessibilityIdentifier("masterReleaseDashboard.wave3LanesMetric")
                 }
-                HStack(spacing: 12) {
+                rowLayout {
                     Text(verbatim: reformPackagesMetricText)
                         .font(.caption.monospacedDigit())
                         .accessibilityIdentifier("masterReleaseDashboard.reformPackagesMetric")
@@ -262,21 +267,21 @@ public struct MasterReleaseSignoffDashboardView: View {
             }
             .foregroundStyle(.secondary)
 
-            Text(verbatim: highRiskSwitchesBannerText)
-                .font(.footnote.weight(.semibold))
-                .foregroundStyle(snapshot.allHighRiskSwitchesFailClosed ? CYColor.successText : CYColor.dangerText)
+            CYStatusChip(verbatim: highRiskSwitchesBannerText,
+                         tone: snapshot.allHighRiskSwitchesFailClosed ? .success : .danger,
+                         systemImage: snapshot.allHighRiskSwitchesFailClosed ? "lock.shield" : "exclamationmark.octagon")
                 .accessibilityIdentifier("masterReleaseDashboard.highRiskSwitchesBanner")
 
             VStack(alignment: .leading, spacing: 6) {
                 ForEach(snapshot.pillars) { item in
                     VStack(alignment: .leading, spacing: 2) {
-                        HStack(alignment: .firstTextBaseline) {
+                        rowLayout {
                             Text(verbatim: "#\(item.index) \(item.title)")
                                 .font(.subheadline.weight(.medium))
                             Spacer()
-                            Text(verbatim: item.statusBadgeText)
-                                .font(.caption2.monospaced())
-                                .foregroundStyle((item.isVerified && item.isFailClosed) ? CYColor.successText : CYColor.warningText)
+                            CYStatusChip(verbatim: item.statusBadgeText,
+                                         tone: (item.isVerified && item.isFailClosed) ? .success : .warning,
+                                         systemImage: (item.isVerified && item.isFailClosed) ? "checkmark.circle" : "exclamationmark.triangle")
                         }
                         Text(verbatim: item.coverageSummary)
                             .font(.caption)
