@@ -22,8 +22,10 @@ final class RetainedImageUITests: XCTestCase {
             app.launchArguments = ["--uitesting-reset-language"] + arguments
             app.launch()
             defer { attachFailureScreenshot(self, app: app); app.terminate() }
-            XCTAssertTrue(app.buttons["welcome.settings"].waitForExistence(timeout: 5))
-            app.buttons["welcome.settings"].tap()
+            skipOnboardingIfPresent(in: app)
+            let settings = revealWelcomeSettings(in: app)
+            XCTAssertTrue(settings.waitForExistence(timeout: 5))
+            settings.tap()
             let choice = app.buttons[language == "en" ? "English" : "简体中文"]
             XCTAssertTrue(choice.waitForExistence(timeout: 5)); choice.tap()
             XCTAssertTrue(app.navigationBars[language == "en" ? "Settings" : "设置"].waitForExistence(timeout: 5))

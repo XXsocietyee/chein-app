@@ -8,7 +8,8 @@ final class SettingsSignedOutProfileRowFlowTests: XCTestCase {
     func testGuestSettingsShowSignInRowInsteadOfProfile() {
         app.launchArguments = ["--uitesting-reset-language", "-AppleLanguages", "(zh-Hans)", "-AppleLocale", "zh_CN"]
         app.launch()
-        let settings = app.buttons["welcome.settings"]
+        skipOnboardingIfPresent(in: app)
+        let settings = revealWelcomeSettings(in: app)
         XCTAssertTrue(settings.waitForExistence(timeout: 10)); settings.tap()
         XCTAssertTrue(app.descendants(matching: .any)["settingsNative.profileSignedOut"].waitForExistence(timeout: 10))
         XCTAssertTrue(app.staticTexts["登录后查看账号信息"].exists)

@@ -6,6 +6,7 @@ final class NativeSettingsReuseFlowTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false; app = XCUIApplication() }
     override func tearDownWithError() throws { attachFailureScreenshot(self, app: app); app.terminate(); app = nil }
     private func tap(_ identifier: String, file: StaticString = #filePath, line: UInt = #line) {
+        if identifier == "welcome.settings" { skipOnboardingIfPresent(in: app); revealWelcomeSettings(in: app) }
         let button = app.buttons[identifier]
         XCTAssertTrue(button.waitForExistence(timeout: 10), app.debugDescription, file: file, line: line)
         for _ in 0..<12 { if button.isHittable { break }; app.swipeUp() }
