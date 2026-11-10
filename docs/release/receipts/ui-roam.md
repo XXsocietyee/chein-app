@@ -14,7 +14,7 @@ Spec: `docs/release/motion-spec-roam.md`. Base merged: `origin/ui/main` (conflic
 - Fog engine UI stages (coordinator brief): `CYFogEngine.swift` (rasterizer, overlay layer, choreographer, coverage reading + badge), fixtures `roam-fog-engine`, `roam-fog-unknown`. Switches off; no Core / location / Info.plist change; Core model and pixel tests are for the Core owner.
 
 ## Cloud evidence
-See commit check-runs (filled in below).
+Pushes a89f4f84a and f877c99c4: Xcode Cloud reported cancelled (no compile result, not a code failure). Re-triggered by a follow-up commit; `xcrun swiftc -parse` passed on all changed files.
 
 ## Not verified
 Nothing run on a device or simulator. Fog look at real map scale, 120 Hz canvas cost, haptic feel and VoiceOver paging need a device pass. `CYRoamNearbySheet` and `CYRoamNearbyCard` are in the fixtures only; the real roam list rows are unchanged.
