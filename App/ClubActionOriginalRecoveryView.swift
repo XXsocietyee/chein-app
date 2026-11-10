@@ -18,7 +18,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if case .outcomeUnknown = state {
                     CYStatusChip("club.action.unknown", tone: .warning, systemImage: "questionmark.circle")
-                    CYPillButton(verbatim: String(localized: LocalizedStringResource("club.admission.original.read", table: "ClubAdmissionRecovery", locale: locale)), style: .secondary, tableName: "ClubAdmissionRecovery") { recover() }
+                    CYPillButton(verbatim: String(localized: LocalizedStringResource("club.admission.original.read", table: "ClubAdmissionRecovery", locale: locale)), style: .secondary) { recover() }
                     .disabled(working || !coordinator.canRecoverOriginal(clubID: clubID))
                     .accessibilityIdentifier("club.admission.original.read")
                     if !coordinator.canRecoverOriginal(clubID: clubID) {
