@@ -67,3 +67,13 @@ Embedded editor sections (no own screen/title): kit buttons only. Confirm-save i
 | App/MemberScoreAppealDetailView.swift | done: hero, CYPillButton refresh |
 | App/MemberReportProgressDetailView.swift | done: hero, CYPillButton refresh |
 | App/MemberIdentityAvatarView.swift | done: raised-token placeholder ground behind the avatar surface (lifecycle code untouched) |
+
+## Batch 8 (reverse order, remainder)
+| File | Result |
+| --- | --- |
+| App/NativeAttributeAuthorViews.swift | done: hero on root list, CYPillButton (check-save / confirm / keep primary), grouped surface |
+| App/NativeChannelNotificationConversationView.swift | done: hero, CYPillButton save/recovery, one visible title |
+| App/SettingsLegalDocumentView.swift | done: CYLoadingStateView, CYEmptyState missing document, CYPillButton retry (document keeps its own title) |
+
+## Summary
+38 files in list: 37 restyled, 1 skipped (SessionBankWithdrawalView: pure wrapper, no UI). No merchant-only files in the list. No cloud-owned files (no origin/ui/cloud-* branches existed). No new string keys (all existing keys reused); `docs/release/ui-strings-e4-tail.json` is `[]`. No local builds; cloud results below.

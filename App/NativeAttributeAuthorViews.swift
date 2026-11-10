@@ -41,6 +41,7 @@ private func nativeAttributeText(_ key: String) -> String {
     @Environment(\.dismiss) private var dismiss
     var body: some View {
         List {
+            Section { CYHeroHeader(verbatim: nativeAttributeText("nativeAttribute.title")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 LabeledContent(nativeAttributeText("nativeAttribute.topic"), value: String(coordinator.binding.topicID))
                 LabeledContent(nativeAttributeText("nativeAttribute.version"), value: String(coordinator.draft?.binding.sourceConfigVersion ?? coordinator.binding.sourceConfigVersion))
@@ -87,20 +88,20 @@ private func nativeAttributeText(_ key: String) -> String {
                         Button { _ = coordinator.add() } label: { Label(nativeAttributeText("nativeAttribute.add"), systemImage: "plus") }
                             .accessibilityIdentifier("nativeAttribute.add")
                         if coordinator.usesVersionedDefinitions {
-                            Button(nativeAttributeText("nativeAttribute.addBasicRegistration")) { _ = coordinator.add(registrationOnly: true) }
+                            CYPillButton(verbatim: nativeAttributeText("nativeAttribute.addBasicRegistration"), style: .secondary) { _ = coordinator.add(registrationOnly: true) }
                             Text(nativeAttributeText(coordinator.localDraftOnly ? "nativeAttribute.localDraftNotice" : "nativeAttribute.versionedSaveNotice")).font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
                         } else {
-                            Button(nativeAttributeText("nativeAttribute.addDefinitionDraft")) { _ = coordinator.add(registrationOnly: false) }
+                            CYPillButton(verbatim: nativeAttributeText("nativeAttribute.addDefinitionDraft"), style: .secondary) { _ = coordinator.add(registrationOnly: false) }
                             Text(nativeAttributeText("nativeAttribute.extensionLocalOnly")).font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
                         }
                     }
                 }
                 if !coordinator.binding.isLocked && !coordinator.localDraftOnly {
                     Section {
-                        Button(nativeAttributeText("nativeAttribute.checkSave")) { Task { await coordinator.prepareSave() } }
+                        CYPillButton(verbatim: nativeAttributeText("nativeAttribute.checkSave")) { Task { await coordinator.prepareSave() } }
                             .disabled(!coordinator.canSave).accessibilityIdentifier("nativeAttribute.checkSave")
                         if coordinator.pending != nil {
-                            Button(nativeAttributeText("nativeAttribute.readback")) { Task { await coordinator.readback() } }
+                            CYPillButton(verbatim: nativeAttributeText("nativeAttribute.readback"), style: .secondary) { Task { await coordinator.readback() } }
                                 .disabled(coordinator.busy).accessibilityIdentifier("nativeAttribute.readback")
                         }
                         if coordinator.canRecoverUnsentDraft && coordinator.draft?.binding != coordinator.binding {
@@ -143,13 +144,13 @@ private func nativeAttributeText(_ key: String) -> String {
                 Section(nativeAttributeText("nativeAttribute.review")) {
                     ForEach(Array(coordinator.warnings.enumerated()), id: \.offset) { _, warning in Text(verbatim: nativeAttributeText(warning)) }
                     Text(nativeAttributeText(coordinator.reviewDeletesKey == nil ? "nativeAttribute.saveReview" : "nativeAttribute.deleteReview"))
-                    Button(nativeAttributeText("nativeAttribute.confirm")) { Task { await coordinator.confirm() } }
+                    CYPillButton(verbatim: nativeAttributeText("nativeAttribute.confirm")) { Task { await coordinator.confirm() } }
                         .accessibilityIdentifier("nativeAttribute.confirm")
                     Button(nativeAttributeText("nativeAttribute.cancel"), role: .cancel) { coordinator.cancelReview() }
                 }
             }
         }
-        .font(Theme.Font.body).tint(Theme.Color.accent(in: domain)).navigationTitle(nativeAttributeText("nativeAttribute.title"))
+        .font(Theme.Font.body).tint(Theme.Color.accent(in: domain)).cyGroupedSurface().cyHeroScreen()
         .toolbar {
             if coordinator.canEdit { ToolbarItem { EditButton() } }
             ToolbarItem(placement: .topBarTrailing) {
@@ -278,7 +279,7 @@ private func nativeAttributeText(_ key: String) -> String {
             Section {
                 if !row.sourceIsSupported { Text(nativeAttributeText("nativeAttribute.unsupported")) }
                 if row.unsupportedReason != nil && row.sourceIsSupported { Text(nativeAttributeText("nativeAttribute.invalid")) }
-                Button(nativeAttributeText("nativeAttribute.keepChanges")) { if coordinator.replace(row) { dismiss() } }
+                CYPillButton(verbatim: nativeAttributeText("nativeAttribute.keepChanges")) { if coordinator.replace(row) { dismiss() } }
                     .disabled(!editable || row.unsupportedReason != nil)
                     .accessibilityIdentifier("nativeAttribute.keepChanges")
                 if row.existingKey == nil {

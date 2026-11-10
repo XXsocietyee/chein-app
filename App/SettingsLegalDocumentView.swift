@@ -26,20 +26,16 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.xxl) {
                 switch model.state {
                 case .idle, .loading:
-                    ProgressView("settingsNative.loading").frame(maxWidth: .infinity)
+                    CYLoadingStateView(rows: 3)
                         .accessibilityIdentifier("settingsNative.legal.loading")
                 case .failed:
                     Label {
                         Text("settingsNative.legal.loadFailed").accessibilityIdentifier("settingsNative.legal.error")
                     } icon: { Image(systemName: "exclamationmark.triangle").accessibilityHidden(true) }
-                    Button("settingsNative.retry") { Task { await model.load(type: type, market: market) } }
+                    CYPillButton("settingsNative.retry", style: .secondary) { Task { await model.load(type: type, market: market) } }
                         .accessibilityIdentifier("settingsNative.legal.retry")
                 case .loaded(.missing(let reason)):
-                    Label {
-                        Text("settingsNative.legal.missingTitle").accessibilityIdentifier("settingsNative.legal.missing")
-                    } icon: { Image(systemName: "doc.questionmark").accessibilityHidden(true) }
-                    .font(.headline)
-                    Text(LocalizedStringKey(reason.messageKey)).foregroundStyle(.secondary)
+                    CYEmptyState(systemImage: "doc.questionmark", "settingsNative.legal.missingTitle", detail: LocalizedStringKey(reason.messageKey), messageIdentifier: "settingsNative.legal.missing")
                 case .loaded(.sourceDocument(let document)):
                     Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("settingsNative.legal.sourceNotice")
