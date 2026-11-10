@@ -82,7 +82,7 @@ struct RoamRunCardParityMeta: View {
         }.buttonStyle(.bordered)
     }
     private func tool(_ key: LocalizedStringKey, _ symbol: String) -> some View {
-        VStack(spacing: 4) { Image(systemName: symbol); Text(key).font(.caption) }
+        VStack(spacing: 4) { Image(systemName: symbol).accessibilityHidden(true); Text(key).font(.caption) }
             .frame(maxWidth: .infinity, minHeight: 44)
     }
 }
@@ -101,7 +101,7 @@ struct RoamSessionParityHeader: View {
     let record: RoamHistoryRecord
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            Text("roamSub.w208.session.title").font(.title2.bold())
+            Text("roamSub.w208.session.title").font(.title2.bold()).accessibilityAddTraits(.isHeader)
             if let date = record.recordedAt {
                 HStack(spacing: 4) {
                     Text(date, format: .dateTime.month().day().weekday(.abbreviated))
@@ -199,12 +199,12 @@ struct RoamShareLinkDormantNotice: View {
     }
     private func snapshotCard(_ snapshot: RoamShareSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(verbatim: snapshot.routeName).font(.title2.bold()).accessibilityIdentifier("roamSub.w208.shared.routeName")
+            Text(verbatim: snapshot.routeName).font(.title2.bold()).accessibilityAddTraits(.isHeader).accessibilityIdentifier("roamSub.w208.shared.routeName")
             Text("roamSub.w208.session.completeFact")
             HStack(spacing: 4) {
                 Text(Date(timeIntervalSince1970: Double(snapshot.ts) / 1000), format: .dateTime.month().day().weekday(.abbreviated))
                 Text(verbatim: "· " + snapshot.time)
-            }.foregroundStyle(.secondary)
+            }.foregroundStyle(.secondary).accessibilityElement(children: .combine)
             HStack(spacing: 20) {
                 metric(snapshot.distance.map { String(format: "%.1f", $0) } ?? "—", Text(verbatim: "km"))
                 metric(snapshot.explorePct.map { "\(Int($0))%" } ?? "--%", Text("roamSub.w208.share.explore"))
@@ -356,7 +356,7 @@ struct RoamPOIMissingView: View {
     private var writeStep: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Text("roamSub.w208.stamp.noteHeader").font(.headline)
+                Text("roamSub.w208.stamp.noteHeader").font(.headline).accessibilityAddTraits(.isHeader)
                 Spacer()
                 Text(verbatim: "\(note.count)/\(RoamStampSlip.captionLimit)").font(.caption.monospacedDigit())
                     .accessibilityIdentifier("roamSub.w208.stamp.counter")

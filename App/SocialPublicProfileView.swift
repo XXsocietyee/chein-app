@@ -92,8 +92,8 @@ import SwiftUI
                         HStack(spacing: CYSpacing.lg) {
                             ProfilePublicAvatar(source: profile.avatar, name: profile.nickname)
                             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                if let name = profile.nickname { Text(verbatim: name).font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary) }
-                                else { Text("square.unknownAuthor").font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary) }
+                                if let name = profile.nickname { Text(verbatim: name).font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
+                                else { Text("square.unknownAuthor").font(CYTypography.pageTitle).accessibilityAddTraits(.isHeader).foregroundStyle(CYColor.textPrimary) }
                                 if let level = profile.level {
                                     HStack(spacing: 6) {
                                         Text(verbatim: "Lv.\(level)")

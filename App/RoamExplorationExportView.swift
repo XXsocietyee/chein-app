@@ -324,7 +324,7 @@ private struct RoamExportFileSaveLink: View {
                 Spacer()
                 Text("roam.export.readCount \(model.read) \(model.expected)").font(.subheadline).foregroundStyle(.secondary).monospacedDigit()
             }.accessibilityElement(children: .combine).accessibilityIdentifier("roam.export.progress")
-            ProgressView(value: Double(model.percent), total: 100)
+            ProgressView(value: Double(model.percent), total: 100).accessibilityLabel(Text("roam.export.title"))
         }
         if model.phase == .complete && model.expected == 0 {
             Section { CYEmptyState(systemImage: "doc", "roam.export.noRecords").accessibilityIdentifier("roam.export.noRecords") }

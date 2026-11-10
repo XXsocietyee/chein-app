@@ -130,7 +130,7 @@ import SwiftUI
                 } else if controller.nextCursor != nil {
                     Button { controller.more() } label: {
                         if controller.loadingMore { ProgressView() } else { Text("member.media.older", tableName: "MemberProfile") }
-                    }.disabled(!controller.canLoadMore).accessibilityIdentifier("member.media.older")
+                    }.disabled(!controller.canLoadMore).accessibilityLabel(Text("member.media.older", tableName: "MemberProfile")).accessibilityIdentifier("member.media.older")
                 }
             }
         }

@@ -190,7 +190,7 @@ public struct UnifiedReleaseAuditHubView: View {
         VStack(alignment: .leading, spacing: 4) {
             rowLayout {
                 Text(verbatim: "Unified Release Audit Hub (Batches 1–12)")
-                    .font(.headline)
+                    .font(.headline).accessibilityAddTraits(.isHeader)
                 Spacer()
                 CYStatusChip(verbatim: headerBadgeText, tone: snapshot.isAllGreen ? .success : .warning,
                              systemImage: snapshot.isAllGreen ? "checkmark.circle" : "exclamationmark.triangle")

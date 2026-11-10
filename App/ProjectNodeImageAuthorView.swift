@@ -73,7 +73,7 @@ import UIKit
                     CYPillButton("projectNodeImage.choose",style:(flow.review==nil && flow.receipt==nil) ? .primary : .secondary,systemImage:"photo",tableName:"ProjectNodeImageAuthor"){Task{await model.choose()}}
                         .disabled(!model.canChoose).accessibilityIdentifier("projectNodeImage.choose")
                     if let draft=model.crop.draft{ProjectNodeImageCropView(draft:draft,confirm:model.confirmCrop,cancel:model.cancelCrop).id(draft.id)}
-                    if let preview=model.preview{Image(uiImage:preview).resizable().scaledToFit().accessibilityIdentifier("projectNodeImage.localPreview")}
+                    if let preview=model.preview{Image(uiImage:preview).resizable().scaledToFit().accessibilityLabel(Text("image.retained.preview")).accessibilityIdentifier("projectNodeImage.localPreview")}
                     if let review=flow.review{
                         Text("projectNodeImage.uploadReview",tableName:"ProjectNodeImageAuthor")
                         CYPillButton("projectNodeImage.upload",systemImage:"arrow.up.circle",tableName:"ProjectNodeImageAuthor"){model.upload(review)}

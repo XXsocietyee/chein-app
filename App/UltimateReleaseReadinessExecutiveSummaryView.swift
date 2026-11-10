@@ -150,7 +150,7 @@ public struct UltimateReleaseReadinessExecutiveSummaryView: View {
     private var headerView: some View {
         rowLayout {
             Text(verbatim: snapshot.sectionTitle)
-                .font(.headline)
+                .font(.headline).accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("ultimateExecutiveSummary.title")
             Spacer()
             CYStatusChip(verbatim: snapshot.releaseTagText, tone: .neutral, systemImage: "tag")

@@ -41,12 +41,12 @@ import SwiftUI
             Section { CYHeroHeader("officialAction.review") }.e1HeroRow()
             Section {
                 Label("officialAction.reviewNotice", systemImage: "lock.shield")
-                Text(LocalizedStringKey(command.titleKey)).font(CYTypography.sectionTitle)
+                Text(LocalizedStringKey(command.titleKey)).font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
                 Text("officialAction.noOutcomePromise").foregroundStyle(.secondary)
             }
             if noticeTitleKey != nil || noticeBodyKey != nil {
                 Section {
-                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline) }
+                    if let noticeTitleKey { Text(LocalizedStringKey(noticeTitleKey)).font(.headline).accessibilityAddTraits(.isHeader) }
                     if let noticeBodyKey { Text(LocalizedStringKey(noticeBodyKey)).foregroundStyle(.secondary) }
                 }.accessibilityIdentifier("official.inbox.confirmation.\(command.scope)")
             }
@@ -174,7 +174,7 @@ import SwiftUI
                 Toggle("officialAction.split", isOn: $draft.split)
                 if draft.split {
                     ForEach(OfficialAudience.allCases.filter { draft.audience.contains($0) }, id: \.self) { role in
-                        Text(LocalizedStringKey("officialAction.role." + role.rawValue)).font(.headline)
+                        Text(LocalizedStringKey("officialAction.role." + role.rawValue)).font(.headline).accessibilityAddTraits(.isHeader)
                         TextField("officialAction.title", text: roleBinding(role, title: true))
                         TextField("officialAction.subtitle", text: roleBinding(role, title: false), axis: .vertical)
                     }

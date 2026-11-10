@@ -142,7 +142,7 @@ struct ProjectStoryImagePreparedReferences: View {
                         CreatorCropExportView(draft: draft, confirm: { model.confirmCrop($0, $1) }, cancel: { model.cancelCrop($0) })
                     }
                     if let preview = model.preview {
-                        Image(uiImage: preview).resizable().scaledToFit().accessibilityIdentifier("projectStoryImage.localPreview")
+                        Image(uiImage: preview).resizable().scaledToFit().accessibilityLabel(Text("image.retained.preview")).accessibilityIdentifier("projectStoryImage.localPreview")
                         Text(text("projectStoryImage.previewScope", "Preview of the selected, sanitized image on this device. The uploaded bytes are not fetched through this preview."))
                     }
                     if let review {

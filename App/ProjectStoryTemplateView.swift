@@ -17,7 +17,7 @@ import SwiftUI
                 }
                 if let review = controller.review {
                     Section("projectStoryTemplate.previewTitle") {
-                        Text(verbatim: review.source.row.title).font(CYTypography.sectionTitle).accessibilityIdentifier("projectStoryTemplate.preview.title")
+                        Text(verbatim: review.source.row.title).font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader).accessibilityIdentifier("projectStoryTemplate.preview.title")
                         Group {
                             if nodeSelection { ProjectStoryTemplatePreview(source: review.source, nodeSelection: true) }
                             else { ProjectStoryTemplatePreview(source: review.source) }
