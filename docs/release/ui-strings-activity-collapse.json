@@ -1,0 +1,44 @@
+[
+  {
+    "key": "activity.tile.share",
+    "table": "Localizable",
+    "en": "Share",
+    "zh-Hans": "分享"
+  },
+  {
+    "key": "activity.more.show",
+    "table": "Localizable",
+    "en": "More info",
+    "zh-Hans": "更多信息"
+  },
+  {
+    "key": "activity.more.hide",
+    "table": "Localizable",
+    "en": "Fewer details",
+    "zh-Hans": "收起"
+  },
+  {
+    "key": "activity.more.expanded",
+    "table": "Localizable",
+    "en": "Expanded",
+    "zh-Hans": "已展开"
+  },
+  {
+    "key": "activity.more.collapsed",
+    "table": "Localizable",
+    "en": "Collapsed",
+    "zh-Hans": "已收起"
+  },
+  {
+    "key": "activity.pinned.price %@",
+    "table": "Localizable",
+    "en": "From %@",
+    "zh-Hans": "%@ 起"
+  },
+  {
+    "key": "activity.pinned.going %lld",
+    "table": "Localizable",
+    "en": "%lld going",
+    "zh-Hans": "%lld 人已报名"
+  }
+]
