@@ -153,15 +153,16 @@ import SwiftUI
     var body: some View {
         let token = editor.editToken
         Form {
+            Section { CYHeroHeader(verbatim: copy.text("zeroHP.copy.030")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 Text(copy.text("zeroHP.copy.012")).nativeAuthorSupportingCopy()
                 if editor.busy { NativeAuthorLoading(text: Text(copy.text("zeroHP.copy.013"))).accessibilityIdentifier("zeroHPAuthor.loading") }
                 if let message = editor.message { NativeAuthorNotice(text: Text(verbatim: copy.message(message)), tone: .attention).accessibilityIdentifier("zeroHPAuthor.notice") }
                 if !editor.current {
                     Text(copy.text("zeroHP.copy.014"))
-                    Button(copy.text("zeroHP.copy.015")) { guard editor.editToken == token else { return }; editor.open() }.disabled(!model.fullEdit).accessibilityIdentifier("zeroHPAuthor.reloadProject")
+                    CYPillButton(verbatim: copy.text("zeroHP.copy.015"), style: .secondary) { guard editor.editToken == token else { return }; editor.open() }.disabled(!model.fullEdit).accessibilityIdentifier("zeroHPAuthor.reloadProject")
                 } else if editor.staged?.readOnly != true {
-                    Button(copy.text("zeroHP.copy.016")) { guard editor.editToken == token else { return }; editor.reload() }.disabled(editor.busy).accessibilityIdentifier("zeroHPAuthor.reloadInputs")
+                    CYPillButton(verbatim: copy.text("zeroHP.copy.016"), style: .secondary) { guard editor.editToken == token else { return }; editor.reload() }.disabled(editor.busy).accessibilityIdentifier("zeroHPAuthor.reloadInputs")
                 }
             }
             if editor.current, let staged = editor.staged {
@@ -199,7 +200,8 @@ import SwiftUI
             }
         }
         .nativeAuthorSurface()
-        .navigationTitle(copy.text("zeroHP.copy.030"))
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button(copy.text("zeroHP.copy.031")) { guard editor.editToken == token else { return }; editor.retire(); dismiss() }.accessibilityIdentifier("zeroHPAuthor.cancel") }
             ToolbarItem(placement: .confirmationAction) { Button(copy.text("zeroHP.copy.032")) { Task { if await editor.finish(token) { dismiss() } } }.disabled(!editor.canFinish).accessibilityIdentifier("zeroHPAuthor.done").accessibilityHint(Text(copy.completionHint(readOnly: editor.staged?.readOnly == true))) }

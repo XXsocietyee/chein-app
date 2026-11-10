@@ -25,16 +25,18 @@ import SwiftUI
     var body: some View {
         ScrollViewReader { proxy in
             List {
+                CYHeroHeader("followList.title", tableName: "ProfileFollowList")
+                    .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 if !flow.isConfigured {
-                    Text("followList.unavailable", tableName: "ProfileFollowList")
-                        .accessibilityIdentifier("profile.followList.unavailable")
+                    CYEmptyState(systemImage: "person.2", "followList.unavailable", tableName: "ProfileFollowList",
+                                 messageIdentifier: "profile.followList.unavailable")
                 } else {
                     Picker(selection: Binding(get: { flow.kind }, set: { flow.selectKind($0) })) {
                         Text("followList.following", tableName: "ProfileFollowList").tag(ProfileFollowListKind.following)
                         Text("followList.followers", tableName: "ProfileFollowList").tag(ProfileFollowListKind.followers)
                     } label: { Text("followList.title", tableName: "ProfileFollowList") }
                     .pickerStyle(.segmented).padding(.vertical, Theme.Space.s1).accessibilityIdentifier("profile.followList.kind")
-                    Text("followList.notFriends", tableName: "ProfileFollowList").font(.footnote).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                    Text("followList.notFriends", tableName: "ProfileFollowList").font(CYTypography.meta).foregroundStyle(Theme.Color.textSecondary(in: domain))
                     if let error = flow.error {
                         SocialIssueView(error: error, retry: flow.canRetry ? { flow.retry() } : nil)
                     }
@@ -51,14 +53,9 @@ import SwiftUI
                                 }
                                 Spacer(minLength: Theme.Space.s2)
                                 // State pill (the row itself opens the profile): outlined + check when followed, never colour alone.
-                                HStack(spacing: 4) {
-                                    if member.isFollow { Image(systemName: "checkmark").font(.caption.weight(.bold)) }
-                                    Text(verbatim: member.isFollow ? (flow.kind == .followers ? locale.pick("互相关注", "Mutual") : locale.pick("已关注", "Following")) : locale.pick("未关注", "Not following"))
-                                        .font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
-                                }
-                                .foregroundStyle(member.isFollow ? CYColor.textPrimary : CYColor.textSecondary)
-                                .padding(.horizontal, Theme.Space.s3).frame(minHeight: 32)
-                                .overlay(Capsule().strokeBorder(member.isFollow ? CYColor.borderStrong : CYColor.borderSubtle, lineWidth: 1))
+                                CYStatusChip(verbatim: member.isFollow ? (flow.kind == .followers ? locale.pick("互相关注", "Mutual") : locale.pick("已关注", "Following")) : locale.pick("未关注", "Not following"),
+                                             tone: member.isFollow ? .success : .neutral,
+                                             systemImage: member.isFollow ? "checkmark" : nil)
                             }.frame(minHeight: 56).foregroundStyle(CYColor.textPrimary)
                         }.disabled(flow.loading || flow.error != nil)
                         .id(member.id)
@@ -68,13 +65,12 @@ import SwiftUI
                     }
                     if flow.loading { ProgressView("social.loading") }
                     else if flow.hasLoaded && flow.visibleRows.isEmpty && flow.error == nil {
-                        Text(flow.kind == .following ? "followList.emptyFollowing" : "followList.emptyFollowers", tableName: "ProfileFollowList")
-                            .accessibilityIdentifier("profile.followList.empty")
+                        CYEmptyState(systemImage: "person.2", flow.kind == .following ? "followList.emptyFollowing" : "followList.emptyFollowers",
+                                     tableName: "ProfileFollowList", messageIdentifier: "profile.followList.empty")
                     }
                     if flow.hasMore && !flow.loading && flow.error == nil {
-                        Button { flow.more() } label: {
-                            Text("square.loadMore").frame(maxWidth: .infinity, minHeight: 44)
-                        }.modifier(ProfileFollowListMoreStyle()).accessibilityIdentifier("profile.followList.more")
+                        CYPillButton("square.loadMore", style: .secondary) { flow.more() }
+                            .accessibilityIdentifier("profile.followList.more")
                     }
                 }
             }
@@ -82,7 +78,7 @@ import SwiftUI
             .listStyle(.plain)
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
-            .navigationTitle(Text("followList.title", tableName: "ProfileFollowList"))
+            .cyHeroScreen()
             .privacySensitive().accessibilityIdentifier("profile.followList")
             .refreshable { await flow.refresh() }
             .onAppear { flow.appear(foreground: scenePhase == .active) }
@@ -120,7 +116,7 @@ import SwiftUI
     @State private var reader: ProfilePublicInfoReader?
     var body: some View {
         Group {
-            if !flow.owns(selected) { Text("social.changed") }
+            if !flow.owns(selected) { CYEmptyState(systemImage: "arrow.clockwise", "social.changed") }
             else if let reader {
                 ProfilePublicInfoHost(reader: reader) { currentReader in
                     SocialPublicProfileView(memberID: selected.memberID, reader: currentReader, squareReader: squareReader,

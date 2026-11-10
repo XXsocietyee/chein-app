@@ -9,29 +9,29 @@ import SwiftUI
     @State private var working = false
     @State private var checked = false
     @State private var task: Task<Void, Never>?
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         let _ = revision
         let state = coordinator.state(clubID: clubID)
         if coordinator.identity == identity, identity.isSignedIn {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if case .outcomeUnknown = state {
-                    Text("club.action.unknown")
-                    Button { recover() } label: {
-                        Text("club.admission.original.read", tableName: "ClubAdmissionRecovery")
-                    }
+                    CYStatusChip("club.action.unknown", tone: .warning, systemImage: "questionmark.circle")
+                    CYPillButton("club.admission.original.read", style: .secondary, tableName: "ClubAdmissionRecovery") { recover() }
                     .disabled(working || !coordinator.canRecoverOriginal(clubID: clubID))
                     .accessibilityIdentifier("club.admission.original.read")
                     if !coordinator.canRecoverOriginal(clubID: clubID) {
-                        Text("club.action.unavailable").foregroundStyle(.secondary)
+                        Text("club.action.unavailable").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                     }
                 } else if checked, case .acknowledged = state {
-                    Text("club.admission.original.applied", tableName: "ClubAdmissionRecovery")
+                    Label { Text("club.admission.original.applied", tableName: "ClubAdmissionRecovery") } icon: { Image(systemName: "checkmark.circle") }
+                        .font(CYTypography.bodyCompact).foregroundStyle(palette.success)
                         .accessibilityIdentifier("club.admission.original.applied")
                 }
                 if working { ProgressView() }
             }
-            .padding(.horizontal)
-            .background(.regularMaterial)
+            .padding(CYSpacing.lg)
+            .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
             .onDisappear { revision &+= 1; task?.cancel(); task = nil; working = false }
         }
     }

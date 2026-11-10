@@ -9,13 +9,14 @@ import SwiftUI
     private func text(_ zh: String, _ en: String) -> String { locale.language.languageCode?.identifier == "zh" ? zh : en }
     var body: some View {
         List {
+            Section { CYHeroHeader(verbatim: text("MOD 原收入事实", "Original MOD income facts")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             ModCreatorIncomeBoundary()
             if model.loading { ProgressView() }
             if let issue = model.issue {
                 Section {
                     Text(modSettlementText(issue.localizationKey, locale: locale))
                     Text(text("本次读取未确认；不按空列表或零金额处理。已读旧页不是新的渠道观察。", "This read is unconfirmed, not an empty ledger or zero amount. Earlier pages are not a new provider observation."))
-                    Button(text("重读原事实首页", "Read original first page")) { Task { await model.refresh() } }.disabled(model.loading)
+                    CYPillButton(verbatim: text("重读原事实首页", "Read original first page"), style: .secondary) { Task { await model.refresh() } }.disabled(model.loading)
                 }
             }
             if model.hasCurrentPage {
@@ -30,12 +31,12 @@ import SwiftUI
                                 Text(verbatim: fact.modReleaseId).font(Theme.Font.cardTitle)
                                 Text(verbatim: fact.currency + " " + String(fact.creatorAmount) + " · " + text("原分配最小币种单位", "allocated minor units")).font(Theme.Font.sectionTitle).monospacedDigit()
                                 Text(text("原事实修订 ", "Original revision ") + String(fact.revision)).font(Theme.Font.label).foregroundStyle(.secondary)
-                                if fact.disputed { Label(text("原事实有争议标记", "Original dispute flag"), systemImage: "exclamationmark.shield") }
+                                if fact.disputed { CYStatusChip(verbatim: text("原事实有争议标记", "Original dispute flag"), tone: .warning, systemImage: "exclamationmark.shield") }
                             }.fixedSize(horizontal: false, vertical: true)
                         }.buttonStyle(.plain).accessibilityIdentifier("modCreatorIncome.order." + fact.orderKey)
                     }
                     if model.nextCursor != nil {
-                        Button(text("读取下一页原事实", "Read next original page")) { Task { await model.more() } }
+                        CYPillButton(verbatim: text("读取下一页原事实", "Read next original page"), style: .secondary) { Task { await model.more() } }
                             .disabled(model.loading || model.loadingMore)
                     }
                     if model.loadingMore { ProgressView() }
@@ -44,7 +45,7 @@ import SwiftUI
             }
         }
         .walletContentList()
-        .navigationTitle(text("MOD 原收入事实", "Original MOD income facts"))
+        .cyHeroScreen()
         .privacySensitive()
         .task { await model.refresh() }
         .refreshable { await model.refresh() }
@@ -71,6 +72,7 @@ import SwiftUI
     private func text(_ zh: String, _ en: String) -> String { locale.language.languageCode?.identifier == "zh" ? zh : en }
     var body: some View {
         List {
+            Section { CYHeroHeader(verbatim: text("原单收入事实", "Original income fact")).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             ModCreatorIncomeBoundary()
             if model.loading { ProgressView() }
             if !model.isCurrentScope {
@@ -93,24 +95,24 @@ import SwiftUI
                         if let issue = model.historyIssue {
                             Text(modSettlementText(issue.localizationKey, locale: locale))
                             Text(text("历史本次未确认；保留独立读到的原单事实，不补造缺失修订。", "History is unconfirmed. The separately read order fact is retained; missing revisions are not synthesized."))
-                            Button(text("重读同一历史范围", "Retry same history scope")) { Task { await model.retryHistory() } }.disabled(model.loading || model.loadingMore)
+                            CYPillButton(verbatim: text("重读同一历史范围", "Retry same history scope"), style: .secondary) { Task { await model.retryHistory() } }.disabled(model.loading || model.loadingMore)
                         }
                         ForEach(model.revisions, id: \.revision) { fact in
                             DisclosureGroup(text("原修订 ", "Original revision ") + String(fact.revision)) { ModCreatorIncomeFactView(fact: fact) }
                         }
                         if model.nextBeforeRevision != nil {
-                            Button(text("读取更早原修订", "Read earlier original revisions")) { Task { await model.moreHistory() } }.disabled(model.loading || model.loadingMore)
+                            CYPillButton(verbatim: text("读取更早原修订", "Read earlier original revisions"), style: .secondary) { Task { await model.moreHistory() } }.disabled(model.loading || model.loadingMore)
                         }
                         if model.loadingMore { ProgressView() }
                         Text(text("刷新原单会重新取得当前原事实；历史页面不把旧累计数当作现在状态。", "Refreshing the order obtains its current original fact. History does not treat older totals as current state."))
                             .font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     }
                 }
-                Button(text("只读刷新同一原单", "Refresh same original order")) { Task { await model.refresh() } }.disabled(model.loading)
+                CYPillButton(verbatim: text("只读刷新同一原单", "Refresh same original order"), style: .tertiary) { Task { await model.refresh() } }.disabled(model.loading)
             }
         }
         .walletContentList()
-        .navigationTitle(text("原单收入事实", "Original income fact"))
+        .cyHeroScreen()
         .privacySensitive()
         .task { await model.refresh() }
         .refreshable { await model.refresh() }

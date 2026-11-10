@@ -34,6 +34,7 @@ struct NativeChannelNotificationGlobalNavigation {
     var body: some View {
         let ticket = screenGeneration
         Form {
+            Section { CYHeroHeader(verbatim: NativeChannelNotificationPresentation.localized("notification.global.title", locale: locale)).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             NativeChannelNotificationStatusSection(model: model, perform: { perform($0, expected: ticket) })
             Section { NativeChannelUnreadSummaryContent(model: model) }
             Section {
@@ -67,7 +68,7 @@ struct NativeChannelNotificationGlobalNavigation {
         .nativeChannelScreen()
         .tint(Theme.Color.accent(in: domain))
         .cyGroupedSurface()
-        .navigationTitle(NativeChannelNotificationPresentation.localized("notification.global.title", locale: locale))
+        .cyHeroScreen()
         .accessibilityIdentifier("notification.global.screen")
         .refreshable { await pullToRefresh(expected: ticket) }
         // Outside directory/ForEach: parent deactivation must still purge rows, but must

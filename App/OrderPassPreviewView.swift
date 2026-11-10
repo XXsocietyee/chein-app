@@ -11,11 +11,9 @@ import SwiftUI
                 VerificationCodeView(model: codeFactory(.init(kind: .ticket, id: orderID)))
                     .id(coordinator.scope)
             } else {
-                ContentUnavailableView {
-                    Label("verificationCode.ticket.title", systemImage: "ticket").accessibilityIdentifier("orderLifecycle.pass.preview")
-                } description: {
-                    Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")
-                }
+                CYEmptyState(systemImage: "ticket", "verificationCode.ticket.title", detail: "verificationCode.phase.disabled",
+                             messageIdentifier: "orderLifecycle.pass.preview")
+                    .accessibilityIdentifier("verificationCode.disabled")
             }
         }
     }
@@ -28,8 +26,9 @@ struct OrderVerificationPreviewView: View {
     @State private var selected: Int?
     var body: some View {
         List {
+            Section { CYHeroHeader("orderLifecycle.pass.verification") }.e1HeroRow()
             Section {
-                Text("orderLifecycle.verification.preview").font(.headline)
+                Text("orderLifecycle.verification.preview").font(CYTypography.sectionTitle)
                 Text(LocalizedStringKey("orderLifecycle.verification." + receipt.outcome.rawValue))
                     .accessibilityIdentifier("orderLifecycle.verification.outcome")
                 if let message = receipt.message, !message.isEmpty { Text(verbatim: message) }
@@ -46,7 +45,7 @@ struct OrderVerificationPreviewView: View {
                                 if let name = choice.name, !name.isEmpty { Text(verbatim: name) }
                                 else { Text(verbatim: "#\(choice.id)") }
                                 Spacer(minLength: 8)
-                                if selected == choice.id { Image(systemName: "checkmark").accessibilityHidden(true) }
+                                if selected == choice.id { Image(systemName: "checkmark.circle.fill").foregroundStyle(CYColor.successText).accessibilityHidden(true) }
                             }.fixedSize(horizontal: false, vertical: true)
                         }.accessibilityAddTraits(selected == choice.id ? [.isSelected] : [])
                             .accessibilityIdentifier("orderLifecycle.verification.choice.\(choice.id)")
@@ -56,9 +55,9 @@ struct OrderVerificationPreviewView: View {
             Section {
                 Text("orderLifecycle.verification.role")
                 Text("orderLifecycle.hardOff").font(.footnote).foregroundStyle(.secondary)
-                Button("orderLifecycle.verification.disabled", action: {}).disabled(true)
-                    .accessibilityIdentifier("orderLifecycle.verification.disabled")
+                CYPillButton("orderLifecycle.verification.disabled", action: {}).disabled(true)
+                    .accessibilityIdentifier("orderLifecycle.verification.disabled").e1ActionRow()
             }
-        }.appNavigationTitle("orderLifecycle.pass.verification")
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
     }
 }

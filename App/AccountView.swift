@@ -25,6 +25,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                Section { CYHeroHeader("account.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTickets = true }, refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
                 if let invoice = session.makeInvoiceLaunchPresentation() {
@@ -155,7 +156,8 @@ import SwiftUI
                 }
             }
             .refreshable { memberRefreshToken += 1 }
-            .appNavigationTitle("account.title")
+            .cyGroupedSurface()
+            .cyHeroScreen()
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
                 ToolbarItem(placement:.topBarTrailing) {

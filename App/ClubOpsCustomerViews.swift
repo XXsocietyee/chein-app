@@ -112,9 +112,9 @@ struct ClubOpsCustomerRowView: View {
         Section {
             // Mini-program customer-detail: three metric tiles (到店 / 待核销 / 已退款), numerals first.
             HStack(spacing: CYSpacing.sm) {
-                ClubOpsCustomerMetricTile(value: detail.arrivedCount, label: "clubOps.customer.arrived")
-                ClubOpsCustomerMetricTile(value: detail.pendingCount, label: "clubOps.customer.pending")
-                ClubOpsCustomerMetricTile(value: detail.refundedCount, label: "clubOps.customer.refunded")
+                ClubOpsCustomerMetricTile(value: .known(detail.arrivedCount), label: "clubOps.customer.arrived")
+                ClubOpsCustomerMetricTile(value: .known(detail.pendingCount), label: "clubOps.customer.pending")
+                ClubOpsCustomerMetricTile(value: .known(detail.refundedCount), label: "clubOps.customer.refunded")
             }
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowBackground(Color.clear)
@@ -149,11 +149,11 @@ struct ClubOpsCustomerRowView: View {
 }
 
 struct ClubOpsCustomerMetricTile: View {
-    let value: Int
+    let value: ClubCustomerDetailCount
     let label: LocalizedStringKey
     var body: some View {
         VStack(spacing: CYSpacing.xs) {
-            Text(value, format: .number).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value.displayText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
             Text(label, tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
         }
         .frame(maxWidth: .infinity)

@@ -114,8 +114,9 @@ import UIKit
                     .accessibilityElement(children: .combine).accessibilityIdentifier("cooperation.detail.parties")
                 LabeledContent { CooperationInviteTermsText(terms: view.terms) } label: { Text("cooperation.detail.share") }
                     .accessibilityIdentifier("cooperation.detail.terms")
-                if let occupancy = detail.occupancy {
-                    CooperationField(key: occupancy.kind == .gamePending ? "cooperation.slot.game" : "cooperation.slot.topic", value: "\(occupancy.count) / \(occupancy.capacity)")
+                let slotPage = CooperationInviteDetailPage.project(key: key, result: .success(detail))
+                if case .text(let slotCount) = slotPage.slotCount, case .text(let slotCapacity) = slotPage.slotCapacity, let kind = detail.slotLine?.kind {
+                    CooperationField(key: kind == .gamePending ? "cooperation.slot.game" : "cooperation.slot.topic", value: "\(slotCount) / \(slotCapacity)")
                 }
                 LabeledContent { CooperationInviteDepositText(deposit: view.deposit) } label: { Text("cooperation.detail.section.deposit") }
                     .accessibilityIdentifier("cooperation.detail.deposit")

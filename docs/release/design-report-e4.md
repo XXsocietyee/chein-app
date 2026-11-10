@@ -96,3 +96,21 @@ Merge: origin/ui/main merged at start (43b3a24d1). Shots: /Users/fanning/chengyi
 
 ## Self-score (delight / interaction / inclusivity / visuals / innovation / social)
 Phone sign-in 8/9/8/8/6/9 -> 8. Login 8/8/8/8/7/8 -> 8. Settings 7/8/8/9/6/8 -> 8. About 7/7/7/9/6/8 -> 8 (XL: bottom copy button bar is tall). Deregister 7/9/8/8/6/9 -> 8 (effect sentences in the fixture are English stub text). Marketing consent 7/8/8/8/5/9 -> 8 (toggles tinted green so on/off reads). Member card 7/8/7/8/6/8 -> 8 (zh shot only). Under 8: complaint 7 (empty text editor is still a dark slab, no counter), creator application 6 (restyled, never shot: no fixture host), settings search (indexes 8 destinations only).
+
+---
+# Fourth pass, restart follow-up (branch ui/e4)
+Merge: origin/ui/main merged again after the machine restart (conflict in Localizable.xcstrings resolved, both keys kept). Fixed a stray `#endif` in `App/DesignFixtures/E3Fixtures.swift` that came from ui/main and broke the build.
+Shots: design-reports/e4/batch-f5-* (16: EN 6, zh 6, XL 4) and contact-214521.png. Fixtures: creator-apply (new host `e4-creator-apply`), complaint, member, deregister, marketing, login, settings.
+
+## Done
+- Creator application now has a DEBUG host (reuses the lifecycle fixture, creator page only) and was shot in EN/zh/XL.
+- Complaint reason field: hidden editor background plus live `n/500` counter (turns red over the limit).
+- Member EN/zh/XL, deregister EN/zh/XL, marketing EN/zh shot and read.
+
+## Left
+- Creator page showed an empty dark row above "Refresh status" (empty message row); fixed by hiding the row when empty, not re-shot (a full rebuild is ~15 min under the lock).
+- Complaint shots show a "Synthetic sign out" fixture toast over the form; it is host noise, not production UI.
+- Member card XL is dominated by the fixture's large stat tiles stacked vertically; acceptable but not 9.
+
+## Self-score
+Creator application 7 (was 6), complaint 8 (counter), member 8, deregister 8, marketing 8, login 8, settings 8. All at or above 7; nothing below 7, so no rework this pass.

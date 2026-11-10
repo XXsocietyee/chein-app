@@ -133,7 +133,7 @@ private final class MemberIdentityAvatarLifecycle: @unchecked Sendable {
     }
     var body: some View {
         MemberIdentityAvatarSurfaceView(model: model)
-            .frame(width: 56, height: 56).clipShape(Circle()).accessibilityHidden(true).privacySensitive()
+            .frame(width: 56, height: 56).background(CYColor.bgRaised, in: Circle()).clipShape(Circle()).accessibilityHidden(true).privacySensitive()
             .onAppear { model.appear(active: scenePhase == .active) }
             .onDisappear { model.disappear() }
             .onChange(of: scenePhase) { _, value in model.scene(active: value == .active) }

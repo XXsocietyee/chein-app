@@ -9,6 +9,8 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader(verbatim: String(localized: LocalizedStringResource("approvedRelease.history.title", defaultValue: "Saved publication requests", table: "ApprovedReleaseHistory", locale: locale)))
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Section {
                     Text(String(localized: LocalizedStringResource("approvedRelease.history.scope", defaultValue: "This is the exact version saved with this request, not the latest draft or preparation. A saved request alone is not proof of publication or player access.", table: "ApprovedReleaseHistory", locale: locale)))
                         .accessibilityIdentifier("approvedRelease.history.scope")
@@ -17,9 +19,11 @@ import SwiftUI
                     if let receipt = original.record.receipt {
                         Text(String(receipt.releaseID)).accessibilityIdentifier("approvedRelease.history.releaseID")
                         Text(verbatim: receipt.manifestHash).textSelection(.enabled).accessibilityIdentifier("approvedRelease.history.receiptHash")
-                        Text(receipt.currentlyApproved
+                        CYStatusChip(verbatim: receipt.currentlyApproved
                             ? String(localized: LocalizedStringResource("approvedRelease.receiptApproved", defaultValue: "Approved at the last server check", locale: locale))
-                            : String(localized: LocalizedStringResource("approvedRelease.receiptChanged", defaultValue: "The last server check did not confirm current approval", locale: locale)))
+                            : String(localized: LocalizedStringResource("approvedRelease.receiptChanged", defaultValue: "The last server check did not confirm current approval", locale: locale)),
+                            tone: receipt.currentlyApproved ? .success : .warning,
+                            systemImage: receipt.currentlyApproved ? "checkmark.seal" : "exclamationmark.triangle")
                     } else {
                         Text(String(localized: LocalizedStringResource("approvedRelease.unconfirmed", defaultValue: "The publication result is unconfirmed. The exact request is retained; check its result before creating another request.", locale: locale)))
                             .accessibilityIdentifier("approvedRelease.history.unconfirmed")
@@ -29,7 +33,7 @@ import SwiftUI
                 ApprovedReleaseSummarySection(prepared: original.record.prepared, identifierPrefix: "approvedRelease.history")
             }
             .p04LifecycleSurface()
-            .navigationTitle(String(localized: LocalizedStringResource("approvedRelease.history.title", defaultValue: "Saved publication requests", table: "ApprovedReleaseHistory", locale: locale)))
+            .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(String(localized: LocalizedStringResource("approvedRelease.close", defaultValue: "Close", locale: locale))) { close(original) }
