@@ -1,0 +1,44 @@
+[
+  {
+    "key": "cloud03.appeal.title",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Appeal",
+    "zh-Hans": "申诉"
+  },
+  {
+    "key": "cloud03.appeal.submitting",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Submitting",
+    "zh-Hans": "正在提交"
+  },
+  {
+    "key": "cloud03.cancel.checking",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Checking cancellation",
+    "zh-Hans": "正在查询取消结果"
+  },
+  {
+    "key": "cloud03.cancel.cancelling",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Cancelling",
+    "zh-Hans": "正在取消"
+  },
+  {
+    "key": "cloud03.order.title",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Order status",
+    "zh-Hans": "订单状态"
+  },
+  {
+    "key": "cloud03.order.empty",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "No order to show",
+    "zh-Hans": "还没有可显示的订单"
+  }
+]

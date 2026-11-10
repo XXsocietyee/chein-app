@@ -67,38 +67,106 @@ enum BundleOrderStatusPresentation {
     let order: BundleOrderReadModel?
     var poller: BundleReceiptPollerBinding?
     private let table = BundleOrderStatusPresentation.table
-    private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
+    @Environment(\.locale) private var locale
 
     init(order: BundleOrderReadModel?, poller: BundleReceiptPoller? = nil) {
         self.order = order; self.poller = poller.map(BundleReceiptPollerBinding.init)
     }
 
     var body: some View {
-        Form {
-            if let poller {
-                if let key = BundleOrderStatusPresentation.bannerKey(BundleOrderStatusPresentation.banner(for: poller.state)) {
-                    Section {
-                        text(key).accessibilityIdentifier("bundle.order.receiptBanner")
-                        if poller.state == .stillUnconfirmed || poller.state == .readUnavailable {
-                            Button { poller.poller.start() } label: { text("order.receipt.recheck") }
+        let banner = poller.map { BundleOrderStatusPresentation.banner(for: $0.state) } ?? .none
+        Cloud03Screen(
+            title: Cloud03Copy.line("订单状态", "Order status", locale: locale),
+            seed: order?.registrationId.text ?? "bundle-order",
+            symbol: "shippingbox"
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                if banner == .confirming {
+                    CYSkeleton()
+                        .accessibilityHidden(true)
+                }
+                if let key = BundleOrderStatusPresentation.bannerKey(banner) {
+                    CYNoteBanner(text: Text(verbatim: catalog(key)), symbol: bannerSymbol(banner), tone: bannerTone(banner))
+                        .accessibilityIdentifier("bundle.order.receiptBanner")
+                    if poller?.state == .stillUnconfirmed || poller?.state == .readUnavailable {
+                        CYPillButton(verbatim: catalog("order.receipt.recheck"), systemImage: "arrow.clockwise") {
+                            poller?.poller.start()
                         }
+                        .accessibilityLabel(Text(verbatim: catalog("order.receipt.recheck")))
                     }
                 }
-            }
-            if let order {
-                Section {
-                    LabeledContent { Text(verbatim: order.registrationId.text) } label: { text("order.number") }
-                    if let number = order.registrationNo { Text(verbatim: number).textSelection(.enabled) }
-                    if order.isLegacy {
-                        text("order.legacy").accessibilityIdentifier("bundle.order.legacy")
-                    } else {
-                        LabeledContent { text(BundleOrderStatusPresentation.activationKey(order.activation)) } label: { text("order.status") }
-                            .accessibilityIdentifier("bundle.order.activation")
-                    }
+                if let order {
+                    orderBody(order)
+                } else if banner == .none {
+                    CYStateLayout(
+                        kind: .orders,
+                        title: Text(verbatim: Cloud03Copy.line("还没有可显示的订单", "No order to show", locale: locale))
+                    )
                 }
             }
         }
+        .cyAnimation(value: poller?.state)
         .onDisappear { poller?.poller.stop() }
+    }
+
+    private func orderBody(_ order: BundleOrderReadModel) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYListRow(
+            verbatim: catalog("order.number"),
+            trailing: .value(Cloud03Copy.shown(order.registrationId.text)),
+            card: true
+        ) { CYRowIcon(systemImage: "number") }
+        if let number = order.registrationNo {
+            Text(verbatim: Cloud03Copy.shown(number))
+                .font(CYTypography.numericBody)
+                .foregroundStyle(CYColor.textPrimary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        if order.isLegacy {
+            CYNoteBanner(text: Text(verbatim: catalog("order.legacy")), symbol: "doc.text", tone: .neutral)
+                .accessibilityIdentifier("bundle.order.legacy")
+        } else {
+            let key = BundleOrderStatusPresentation.activationKey(order.activation)
+            CYListRow(
+                verbatim: catalog("order.status"),
+                trailing: .value(catalog(key)),
+                card: true
+            ) { CYRowIcon(systemImage: activationSymbol(order.activation)) }
+            .accessibilityIdentifier("bundle.order.activation")
+            }
+        }
+    }
+
+    private func catalog(_ key: String) -> String {
+        Cloud03Copy.catalog(key, table: table, locale: locale)
+    }
+
+    private func bannerSymbol(_ banner: BundleOrderStatusPresentation.Banner) -> String {
+        switch banner {
+        case .none: return "info.circle"
+        case .confirming, .stillConfirming: return "clock"
+        case .failed: return "exclamationmark.triangle"
+        case .unavailable: return "wifi.exclamationmark"
+        }
+    }
+
+    private func bannerTone(_ banner: BundleOrderStatusPresentation.Banner) -> CYStatusTone {
+        switch banner {
+        case .none, .confirming: return .info
+        case .stillConfirming, .unavailable: return .warning
+        case .failed: return .danger
+        }
+    }
+
+    private func activationSymbol(_ activation: BundleActivation) -> String {
+        switch activation {
+        case .pending: return "clock"
+        case .active: return "checkmark.circle"
+        case .expired: return "calendar.badge.exclamationmark"
+        case .refunded: return "arrow.uturn.backward"
+        case .unknown: return "questionmark.circle"
+        }
     }
 }
 
@@ -107,4 +175,83 @@ enum BundleOrderStatusPresentation {
     let poller: BundleReceiptPoller
     init(_ poller: BundleReceiptPoller) { self.poller = poller }
     var state: BundleReceiptPollState { poller.state }
+}
+
+// MARK: - Shared chrome for this lane (player dark, one hero title, 16pt gutters)
+
+enum Cloud03Copy {
+    static let dash = "—"
+
+    /// Empty and raw catalog keys become an em dash. A real 0, including `0.00`, stays.
+    static func shown(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || isRawKey(trimmed) { return dash }
+        return trimmed
+    }
+
+    /// Lowercase dotted catalog keys (`order.status`). Decimals such as `0` and `0.00` are not keys.
+    static func isRawKey(_ value: String) -> Bool {
+        value.range(of: #"^[a-z][a-z0-9]*(\.[a-z][a-z0-9]*)+$"#, options: .regularExpression) != nil
+    }
+
+    static func catalog(_ key: String, table: String, locale: Locale) -> String {
+        let resolved = String(
+            localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: table, locale: locale)
+        )
+        if resolved == key || isRawKey(resolved) { return dash }
+        return resolved
+    }
+
+    static func line(_ zh: String, _ en: String, locale: Locale) -> String {
+        if locale.language.languageCode?.identifier == "zh" { return zh }
+        if locale.language.languageCode == nil { return W8Text.t(zh, en) }
+        return en
+    }
+}
+
+struct Cloud03Cover: View {
+    let seed: String
+    let symbol: String
+
+    var body: some View {
+        Color.clear
+            .aspectRatio(1.6, contentMode: .fit)
+            .overlay {
+                CYCoverArt(seed: seed, symbol: symbol, cornerRadius: CYRadius.lg)
+            }
+            .clipShape(RoundedRectangle(cornerRadius: CYRadius.lg, style: .continuous))
+            .accessibilityHidden(true)
+    }
+}
+
+/// One visible title, from `CYHeroHeader` / `cyHeroScreen`. Page gutters are 16pt.
+struct Cloud03Screen<Content: View>: View {
+    let title: String
+    var subtitle: String?
+    let seed: String
+    let symbol: String
+    let content: () -> Content
+
+    init(title: String, subtitle: String? = nil, seed: String, symbol: String, @ViewBuilder content: @escaping () -> Content) {
+        self.title = title
+        self.subtitle = subtitle
+        self.seed = seed
+        self.symbol = symbol
+        self.content = content
+    }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                Cloud03Cover(seed: seed, symbol: symbol)
+                CYHeroHeader(verbatim: title, subtitle: subtitle)
+                content()
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.bottom, CYSpacing.jumbo)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+    }
 }
