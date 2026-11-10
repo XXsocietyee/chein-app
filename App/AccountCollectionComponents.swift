@@ -74,19 +74,15 @@ struct AccountCollectionLoadKey: Hashable {
 struct AccountCollectionIssueView: View {
     let issue: AccountCollectionIssue
     var retry: (() -> Void)? = nil
+    private var canRetry: Bool { retry != nil && issue != .login && issue != .notConfigured }
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Label {
-                if case .server(let message) = issue, !message.isEmpty { Text(verbatim: message) }
-                else { Text(LocalizedStringKey(issue.localizationKey)) }
-            } icon: { Image(systemName: issue == .login ? "lock" : "exclamationmark.circle") }
-            .accessibilityIdentifier("accountCollection.issue")
-            if let retry, issue != .login, issue != .notConfigured {
-                Button("accountCollection.retry", action: retry)
-                    .buttonStyle(.cyPrimary(fullWidth: false))
-                    .accessibilityIdentifier("accountCollection.retry")
-            }
-        }.padding(.vertical, 10)
+        CYStateLayout(
+            kind: issue == .login ? .generic : .failure,
+            title: { if case .server(let message) = issue, !message.isEmpty { Text(verbatim: message) } else { Text(LocalizedStringKey(issue.localizationKey)) } }(),
+            primary: canRetry ? (title: "accountCollection.retry", action: { retry?() }) : nil,
+            primaryIdentifier: "accountCollection.retry"
+        )
+        .accessibilityIdentifier("accountCollection.issue")
     }
 }
 struct AccountCollectionTitle: View {
