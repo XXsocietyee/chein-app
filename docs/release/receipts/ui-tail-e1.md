@@ -27,3 +27,7 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 
 ## Batch 7
 - ParticipantManagementDetailView, PlayFinishRouteCardView, PlayRouteMapView (list chrome only; map annotations untouched), PrivateHomeView, ProfileOrderMeetingPointView: hero, pills, CYEmptyState, skeletons, kit tokens on the finish route card.
+
+## Batch 8
+- ProjectStoryTemplateView (rows -> CYListRow, pills), PublisherIdentityRegistrationView (inline Section: pills + skeleton), SearchMapDetailViews (hero name, loading, chip), SearchMapExplorerView (LIGHT touch only: ContentUnavailableView -> CYEmptyState, spinners -> skeletons, nearby detail hero; the map/filters chrome is d6-owned and left alone).
+- RegistrationSheetView: already restyled in earlier e1 passes (ticket card, pinned bar, CY kit); no change.
