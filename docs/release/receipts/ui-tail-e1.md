@@ -21,3 +21,6 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 
 ## Batch 5
 - MemberTemplateDetailView, ModInstallationTemplateEditorView, NearbyMapDiscoveryView (controls/status/row pieces), OfficialActionViews (action sheet, publish/broadcast/invite editors; organizer-side = player surface, dark), OfficialEventsBrowserView: hero, grouped surface, pills, skeletons, CYEmptyState, tokens.
+
+## Batch 6
+- OrderPassPreviewView, OwnedTemplateConfigurationView, OwnedTemplateSensorConfigurationView (Section fragment: tokens), OwnedTopicCoverAuthorView (13 borderless buttons -> pills, one primary per section), OwnedTopicCoverImageView: hero, grouped surface, pills, skeleton, rounded image previews.
