@@ -126,9 +126,7 @@ struct ClubEmptyState: View {
     let hint: LocalizedStringKey
     let identifier: String
     var body: some View {
-        ContentUnavailableView {
-            Label { Text(title).accessibilityIdentifier(identifier) } icon: { Image(systemName: "person.3") }
-        } description: { Text(hint) }
+        CYEmptyState(systemImage: "person.3", title, detail: hint, messageIdentifier: identifier)
     }
 }
 

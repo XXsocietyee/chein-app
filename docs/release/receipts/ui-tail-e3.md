@@ -5,3 +5,7 @@ Social tail, list `/Users/fanning/chengyin-refs/tail-e3.txt` (88 files), batches
 ## Batch 1
 Done: ClubAIDesignFeedbackViews, ClubActionOriginalRecoveryView, ClubActivityReportView, ClubBadgeManagementView, ClubChatEntryView.
 Skipped: none.
+
+## Batch 2
+Done: ClubCheckinRailView, ClubCommunityViews, ClubContextualViews, ClubDirectoryView, ClubEnrollmentView. ClubEmptyState (ClubComponents) now renders CYEmptyState.
+Skipped: none.

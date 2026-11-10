@@ -18,23 +18,25 @@ struct ClubOperatingRulesView: View {
         ("cancel", ["whole"])]
     var body: some View {
         List {
+            CYHeroHeader("context.rules.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             Text("context.rules.notice").clubStatus("info.circle")
             ForEach(sections, id: \.0) { section in
                 Section(LocalizedStringKey("context.rules." + section.0)) {
                     ForEach(section.1, id: \.self) { row in
                         VStack(alignment: .leading, spacing: Theme.Space.s2) {
-                            Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".title")).font(.headline)
+                            Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".title")).font(CYTypography.cardTitle)
                             Text(LocalizedStringKey("context.rules." + section.0 + "." + row + ".body"))
                         }.fixedSize(horizontal: false, vertical: true).padding(.vertical, Theme.Space.s2)
                     }
                 }
             }
-        }.clubPageSurface().navigationTitle("context.rules.title").accessibilityIdentifier("club.context.rules")
+        }.clubPageSurface().cyHeroScreen().accessibilityIdentifier("club.context.rules")
     }
 }
 
 @MainActor struct ClubOpsTimeView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.cyPalette) private var palette
     let activityID: Int
     let original: String
     let owner: ClubOpsTimeCoordinator?
@@ -54,27 +56,28 @@ struct ClubOperatingRulesView: View {
     var body: some View {
         Form {
             Section {
+                CYHeroHeader("context.ops.title").listRowBackground(Color.clear)
                 Text("context.ops.policy")
-                Text("context.ops.timezone").font(.caption)
+                Text("context.ops.timezone").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                 DatePicker("context.ops.time", selection: $date, displayedComponents: [.date, .hourAndMinute])
                     .environment(\.timeZone, TimeZone(identifier: "Asia/Shanghai")!)
                     .disabled(busy || state == .unknown)
                 if let serverDate { LabeledContent("context.ops.serverTime", value: serverDate) }
             }
-            if owner?.service.isConfigured != true { Text("context.ops.disabled") }
-            if state == .unknown { Text("context.ops.unknown").clubStatus("clock", emphasized: true) }
-            if state == .acknowledged { Text("context.ops.acknowledged") }
-            if state == .rejected { Text("context.ops.rejected").clubStatus("exclamationmark.circle") }
-            if readFailed { Text("context.ops.readFailed").clubStatus("arrow.clockwise") }
+            if owner?.service.isConfigured != true { CYStatusChip("context.ops.disabled", tone: .neutral, systemImage: "slash.circle") }
+            if state == .unknown { CYStatusChip("context.ops.unknown", tone: .warning, systemImage: "clock") }
+            if state == .acknowledged { CYStatusChip("context.ops.acknowledged", tone: .success, systemImage: "checkmark") }
+            if state == .rejected { CYStatusChip("context.ops.rejected", tone: .danger, systemImage: "exclamationmark.circle") }
+            if readFailed { CYStatusChip("context.ops.readFailed", tone: .warning, systemImage: "arrow.clockwise") }
             if busy { ProgressView() }
-            Button {
+            CYPillButton("context.review.preview") {
                 review = try? ClubOpsTimeRequest(activityID: activityID, startDate: ClubOpsTimeRequest.submissionTime(date))
                 captured = owner?.service.session
-            } label: { ClubControlLabel("context.review.preview") }.disabled(busy || state == .unknown || ClubOpsTimeRequest.date(original) == nil)
+            }.disabled(busy || state == .unknown || ClubOpsTimeRequest.date(original) == nil)
             if owner?.service.isConfigured == true {
-                Button { Task { await readback() } } label: { ClubControlLabel("context.ops.readback") }.disabled(busy)
+                CYPillButton("context.ops.readback", style: .secondary) { Task { await readback() } }.disabled(busy)
             }
-        }.clubPageSurface().navigationTitle("context.ops.title")
+        }.clubPageSurface().cyHeroScreen()
             .confirmationDialog("context.ops.confirm", isPresented: Binding(get: { review != nil }, set: { if !$0 { review = nil; captured = nil } })) {
                 Button("context.ops.save") { Task { await save() } }.disabled(owner?.canSave != true)
                 Button("action.cancel", role: .cancel) { review = nil; captured = nil }
