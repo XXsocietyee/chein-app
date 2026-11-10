@@ -73,3 +73,10 @@
 - ut-e1-bundle-detail [x] cc4a7fb1c. PR 1064. Fixture test only. Parent is the docs rc. Not merged.
 - ut-d6-live [x] b200cb770. PR 1065. Fixture test only. Parent is the docs rc. Not merged.
 - ut-d2-npc [x] ee582e7c4. PR 1066. Fixture test only. Not merged.
+- ut-d4-join-confirm [x] a737ba37f. PR 1067. Fixture test only. Not merged.
+- ut-d4-settings [x] b38975847. PR 1068. Test plus a 12-line project registration. Not merged.
+- ut-e1-activities [x] 3feaeac4b. PR 1069. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d4-leaderboard [x] d080ef62b. PR 1070. Fixture test only. Not merged.
+- ut-detail [x] 055d30793. PR 1071. Fixture test only. Parent is the docs rc. Not merged.
+- ut-d4-detail [x] b80e818b2. PR 1072. Fixture test only. Not merged.
+- ut-e1-activity-detail [x] a700c1a03. PR 1073. Fixture test only. Parent is the docs rc. Not merged.
