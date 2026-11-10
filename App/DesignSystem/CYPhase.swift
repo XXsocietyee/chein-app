@@ -52,6 +52,8 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
     var failureMessage: LocalizedStringKey = "Couldn't load this. Check your connection."
     var offline: (Failure) -> Bool = { _ in false }
     var announcesChanges = true
+    /// Accessibility identifier on the skeleton, for screens whose UI tests wait on a `.loading` element.
+    var loadingIdentifier: String?
     @ViewBuilder var content: (Value) -> Content
 
     @QuestifyReduceMotion private var reduceMotion
@@ -70,6 +72,7 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
         failureMessage: LocalizedStringKey = "Couldn't load this. Check your connection.",
         offline: @escaping (Failure) -> Bool = { _ in false },
         announcesChanges: Bool = true,
+        loadingIdentifier: String? = nil,
         @ViewBuilder content: @escaping (Value) -> Content
     ) {
         self.phase = phase
@@ -82,6 +85,7 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
         self.failureMessage = failureMessage
         self.offline = offline
         self.announcesChanges = announcesChanges
+        self.loadingIdentifier = loadingIdentifier
         self.content = content
     }
 
@@ -114,7 +118,10 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
 
     private var skeleton: some View {
         CYLoadingStateView(rows: skeletonRows)
+            .padding(.top, CYSpacing.sm)
+            .frame(maxHeight: .infinity, alignment: .top)
             .accessibilityLabel(Text(loadingLabel))
+            .accessibilityIdentifier(loadingIdentifier ?? "cy.phase.loading")
             .transition(.opacity)
     }
 

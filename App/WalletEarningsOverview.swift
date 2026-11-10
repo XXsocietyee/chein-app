@@ -110,7 +110,9 @@ enum WalletFundsStagePhase: Equatable {
                     .accessibilityIdentifier("wallet.earnings.stages.disputed")
             }
         }
-        LabeledContent("wallet.available", value: format.amount(value.withdrawable, currency: value.currency))
+        LabeledContent {
+            CYStatNumber(text: format.amount(value.withdrawable, currency: value.currency), font: CYTypography.bodyMedium, color: CYColor.textSecondary)
+        } label: { Text("wallet.available") }
             .accessibilityIdentifier("wallet.earnings.stages.available")
             .accessibilityLabel(Text("wallet.available"))
             .accessibilityValue(Text(verbatim: format.amount(value.withdrawable, currency: value.currency)))

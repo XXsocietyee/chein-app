@@ -90,6 +90,33 @@ enum CYStaggerLimit {
     static let rows = 6
 }
 
+// MARK: - Load slot (flag-driven screens)
+
+/// `CYPhaseView` for screens that keep their own empty / failure UI and only expose a loading flag:
+/// `isLoading` shows the timed skeleton (120 ms delay, 350 ms hold, 0.20 s cross-fade); anything else is `content`.
+/// Wrap the WHOLE branch chain, not just the placeholder, so the cross-fade has both sides to blend. While the load
+/// has not shown its skeleton yet, `content` is rendered with its own loading branch (use `Color.clear` there).
+struct CYLoadSlot<Content: View>: View {
+    let isLoading: Bool
+    var skeletonRows = 3
+    let label: LocalizedStringKey
+    var identifier: String? = nil
+    /// Screens with several slots announce from only one of them.
+    var announces = false
+    @ViewBuilder var content: () -> Content
+
+    var body: some View {
+        CYPhaseView<Void, Never, Content>(
+            phase: isLoading ? .loading : .loaded(()),
+            skeletonRows: skeletonRows,
+            loadingLabel: label,
+            emptyMessage: "",
+            announcesChanges: announces,
+            loadingIdentifier: identifier
+        ) { _ in content() }
+    }
+}
+
 // MARK: - Stat number
 
 /// Header stat (balance, count, km, streak) whose changed digits roll (`contentTransition(.numericText)`).

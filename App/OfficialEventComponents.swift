@@ -104,15 +104,21 @@ struct OfficialIssueView: View {
         Key(scope: reader.scope, configured: reader.isConfigured, authenticated: reader.isAuthenticated,
             requestID: requestID, isPrivate: isPrivate)
     }
+    private var isShowingLoad: Bool {
+        if isPrivate && !reader.isAuthenticated { return false }
+        return reader.isConfigured && (loadedKey != key || loading)
+    }
     var body: some View {
         // Own loading/cancellation on a stable container, not Group's changing
         // branches, which can restart the initial read when an error appears.
-        ZStack(alignment: .topLeading) {
-            if isPrivate && !reader.isAuthenticated { OfficialIssueView(issue: .unauthorized, onLogin: onLogin) }
-            else if !reader.isConfigured { OfficialIssueView(issue: .unconfigured) }
-            else if loadedKey != key || loading { ProgressView("official.loading").frame(maxWidth: .infinity, maxHeight: .infinity) }
-            else if let issue { OfficialIssueView(issue: issue, onLogin: onLogin, retry: { Task { await refresh() } }, copy: copy, onBack: onBack) }
-            else if let value { content(value) }
+        CYLoadSlot(isLoading: isShowingLoad, label: "official.loading", announces: true) {
+            ZStack(alignment: .topLeading) {
+                if isPrivate && !reader.isAuthenticated { OfficialIssueView(issue: .unauthorized, onLogin: onLogin) }
+                else if !reader.isConfigured { OfficialIssueView(issue: .unconfigured) }
+                else if loadedKey != key || loading { Color.clear }
+                else if let issue { OfficialIssueView(issue: issue, onLogin: onLogin, retry: { Task { await refresh() } }, copy: copy, onBack: onBack) }
+                else if let value { content(value) }
+            }
         }
         .task(id: key) { await refresh() }
         .refreshable { await refresh() }

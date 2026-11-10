@@ -25,6 +25,9 @@ import SwiftUI
     @State private var keyword = ""
     @State private var categoryID: Int?
     @State private var submittedKeyword = ""
+    /// Loading-to-content choreography (docs/release/motion-spec-loading.md).
+    @State private var streamSkeleton = false
+    @State private var stagger = CYStaggerGate()
     @State private var localSelectedCity: String? = nil
     @State private var localIsNationwide: Bool = false
     private var hasHeroHeader: Bool { showsHeroBanners || viewerNickname != nil || selectedCity != nil || onActionBanner != nil }
@@ -32,12 +35,12 @@ import SwiftUI
     var body: some View {
         let binding = model.bind(reader, available: unavailableMessageKey == nil)
         let permit = model.permit(reader)
-        ZStack {
+        CYLoadSlot(isLoading: reader.isConfigured && unavailableMessageKey == nil && !model.matches(reader), skeletonRows: 4, label: "homeFeed.loading", announces: true) {
             if !reader.isConfigured || unavailableMessageKey != nil {
                 ContentUnavailableView("homeFeed.unavailable", systemImage: "network.slash", description: Text(LocalizedStringKey(unavailableMessageKey ?? "auth.notConfigured")))
                     .accessibilityIdentifier("homeFeed.configurationUnavailable")
             } else if !model.matches(reader) {
-                ProgressView("homeFeed.loading")
+                Color.clear
             } else {
                 List {
                     if hasHeroHeader {
@@ -89,10 +92,21 @@ import SwiftUI
                             ForEach(model.categories) { category in Text(verbatim: category.name).tag(Optional(category.id)) }
                         }.accessibilityIdentifier("homeFeed.category")
                         if model.categoryFailed { retry("homeFeed.categoriesError", id: "categories") { model.schedule(.categories, reader: reader, permit: permit) } }
-                        ForEach(model.pagination.items) { item in row(item, section: "stream") }
+                        ForEach(Array(model.pagination.items.enumerated()), id: \.element.id) { index, item in
+                            row(item, section: "stream").cyStaggeredAppear(index: index, gate: stagger)
+                        }
                         if model.pageFailed { retry("homeFeed.loadError", id: "page") { model.schedule(.page, reader: reader, permit: permit) } }
-                        if model.loadingPage { ProgressView("homeFeed.loading") }
-                        else if !model.pageFailed && model.pagination.items.isEmpty {
+                        if model.loadingPage {
+                            if model.pagination.items.isEmpty {
+                                if streamSkeleton {
+                                    CYLoadingStateView(rows: 3)
+                                        .accessibilityLabel(Text("homeFeed.loading"))
+                                        .listRowBackground(Color.clear).listRowSeparator(.hidden).listRowInsets(EdgeInsets())
+                                        .transition(.opacity)
+                                }
+                            } else { ProgressView("homeFeed.loading") }
+                        }
+                        else if !model.pageFailed && model.pagination.items.isEmpty && !streamSkeleton {
                             CYEmptyStateView(systemImage: "magnifyingglass", title: "homeFeed.empty", description: "homeFeed.emptyHint")
                                 .accessibilityIdentifier("homeFeed.empty")
                         }
@@ -118,6 +132,8 @@ import SwiftUI
                 .onChange(of: keyword) { _, value in if value.isEmpty { submittedKeyword = "" } }
                 .onChange(of: query) { _, value in model.schedule(.query(value), reader: reader, permit: permit) }
                 .refreshable { await model.reload(reader: reader, query: query) }
+                .cySkeletonTiming(isLoading: model.loadingPage && model.pagination.items.isEmpty, visible: $streamSkeleton)
+                .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: streamSkeleton)
             }
         }
         .appNavigationTitle("homeFeed.title")

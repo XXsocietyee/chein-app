@@ -22,6 +22,11 @@ import SwiftUI
     @State private var isVisible = false
     /// Search lifecycle (docs/release/state-machines/views.md); results live in `retainedResults`.
     @State private var phase: CYPhase<Void, String> = .idle
+    /// Loading-to-content choreography (docs/release/motion-spec-loading.md): timed skeleton + first-screen stagger.
+    @State private var skeletonShown = false
+    @State private var stagger = CYStaggerGate()
+    /// The skeleton is being held for its minimum time after the results arrived.
+    private var holdingSkeleton: Bool { skeletonShown && !loading }
     private var issue: String? { phase.failure }
     private var loading: Bool { phase.isLoading }
     /// Guard: only an in-flight search falls back to idle; a failure stays visible.
@@ -83,11 +88,20 @@ import SwiftUI
             if !reader.isConfigured {
                 Section { SearchMapIssue(key: "searchMap.notConfigured").questifyCardListRow() }
             } else {
-                if loading {
-                    Section { ProgressView("searchMap.loading").frame(maxWidth: .infinity).accessibilityIdentifier("searchMap.loading") }
+                if skeletonShown {
+                    Section {
+                        CYLoadingStateView(rows: 3)
+                            .accessibilityLabel(Text("searchMap.loading"))
+                            .accessibilityIdentifier("searchMap.loading")
+                            .listRowInsets(EdgeInsets())
+                            .listRowBackground(Color.clear)
+                            .transition(.opacity)
+                    }
                 }
-                if let issue { Section { SearchMapIssue(key: issue) { Task { await search() } }.questifyCardListRow() } }
-                if let snapshot = retainedResults.snapshot(in: resultContext) {
+                if let issue, !holdingSkeleton { Section { SearchMapIssue(key: issue) { Task { await search() } }.questifyCardListRow() } }
+                if holdingSkeleton {
+                    EmptyView()
+                } else if let snapshot = retainedResults.snapshot(in: resultContext) {
                     results(snapshot.results, retainedKinds: snapshot.retainedKinds)
                 } else if !loading && issue == nil { suggestions }
             }
@@ -96,6 +110,8 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .scrollContentBackground(.hidden)
         .background(CYColor.bgPage)
+        .cySkeletonTiming(isLoading: loading, visible: $skeletonShown)
+        .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         .appNavigationTitle("searchMap.title")
         .navigationDestination(item: $mapRoute) { route in
             let _ = recordRoute(route)
@@ -404,10 +420,11 @@ import SwiftUI
             if value.showsEmptyState(for: selectedKind, isLoading: loading) {
                 CYEmptyStateView(systemImage: "magnifyingglass", title: "searchMap.empty")
             }
-            ForEach(visible) { row in
+            ForEach(Array(visible.enumerated()), id: \.element.id) { index, row in
                 NavigationLink { destination(row.destination) } label: { SearchMapCard(row: row, offline: reader.isOfflineExample) }
                     .buttonStyle(QuestifyCardButtonStyle()).accessibilityIdentifier("searchMap.result.\(row.id)")
                     .questifyHidesLinkIndicator()
+                    .cyStaggeredAppear(index: index, gate: stagger)
                     .questifyCardListRow()
             }
         }
