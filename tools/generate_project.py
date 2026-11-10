@@ -42,11 +42,11 @@ for target_name, paths in [('Questify', sources), ('QuestifyUITests', ui_source_
                            ('QuestifyAppUnitTests', unit_source_paths)]:
     validate_swift_basenames(target_name, paths)
 headers = sorted(ROOT.glob('App/*.h'))
-resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt'), *ROOT.glob('Resources/PrivacyInfo.xcprivacy'), *ROOT.glob('Resources/SettingsBrandMark.png')])
+resources = sorted([*ROOT.glob('Resources/*.xcstrings'), *ROOT.glob('Resources/*Notices.txt'), *ROOT.glob('Resources/PrivacyInfo.xcprivacy'), *ROOT.glob('Resources/SettingsBrandMark.png'), *ROOT.glob('App/Assets.xcassets')])
 refs, source_builds, resource_builds = [], [], []
 for path in sources + resources + headers:
     relative = str(path.relative_to(ROOT))
-    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h', '.xcprivacy': 'text.xml', '.png': 'image.png'}.get(path.suffix, 'text.json.xcstrings' if path.suffix == '.xcstrings' else 'text'), path=relative, sourceTree='<group>')
+    ref = obj(relative, isa='PBXFileReference', lastKnownFileType={'.swift': 'sourcecode.swift', '.m': 'sourcecode.c.objc', '.h': 'sourcecode.c.h', '.xcprivacy': 'text.xml', '.png': 'image.png', '.xcassets': 'folder.assetcatalog'}.get(path.suffix, 'text.json.xcstrings' if path.suffix == '.xcstrings' else 'text'), path=relative, sourceTree='<group>')
     refs.append(ref)
     if path in headers: continue
     options = {'settings': {'COMPILER_FLAGS': '-fobjc-arc'}} if path.suffix == '.m' else {}

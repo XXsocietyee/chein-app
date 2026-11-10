@@ -14,6 +14,7 @@ import SwiftUI
 
 @MainActor struct ProfileFollowListView: View {
     @Environment(\.themeDomain) private var domain
+    @Environment(\.locale) private var locale
     @State private var flow: ProfileFollowListFlow
     let squareReader: any SquareReading
     let actions: SocialActionCoordinator?
@@ -47,12 +48,17 @@ import SwiftUI
                                 VStack(alignment: .leading, spacing: 2) {
                                     if let name = SocialText.nonempty(member.nickname) { Text(verbatim: name).font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true) }
                                     else { Text("square.unknownAuthor").font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true) }
-                                    Text(member.isFollow ? "followList.followed" : "followList.notFollowed", tableName: "ProfileFollowList")
-                                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 }
                                 Spacer(minLength: Theme.Space.s2)
-                                Image(systemName: member.isFollow ? "checkmark.circle.fill" : "plus.circle").font(.title3)
-                                    .foregroundStyle(member.isFollow ? CYColor.textSecondary : CYColor.textPrimary).accessibilityHidden(true)
+                                // State pill (the row itself opens the profile): outlined + check when followed, never colour alone.
+                                HStack(spacing: 4) {
+                                    if member.isFollow { Image(systemName: "checkmark").font(.caption.weight(.bold)) }
+                                    Text(verbatim: member.isFollow ? (flow.kind == .followers ? locale.pick("互相关注", "Mutual") : locale.pick("已关注", "Following")) : locale.pick("未关注", "Not following"))
+                                        .font(.subheadline.weight(.semibold)).lineLimit(1).minimumScaleFactor(0.8)
+                                }
+                                .foregroundStyle(member.isFollow ? CYColor.textPrimary : CYColor.textSecondary)
+                                .padding(.horizontal, Theme.Space.s3).frame(minHeight: 32)
+                                .overlay(Capsule().strokeBorder(member.isFollow ? CYColor.borderStrong : CYColor.borderSubtle, lineWidth: 1))
                             }.frame(minHeight: 56).foregroundStyle(CYColor.textPrimary)
                         }.disabled(flow.loading || flow.error != nil)
                         .id(member.id)

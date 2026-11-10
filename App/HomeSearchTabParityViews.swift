@@ -1219,6 +1219,7 @@ struct SessionMerchantRootContainerView: View {
         .id(coordinator.merchantContainerGeneration)
         .cyScreenStyle()
         .cyDomainTabBar(.merchant)
+        .cyTabSelectionFeedback(coordinator.selectedMerchantTab)
         .roleTheme(.merchant)
         .onChange(of: recommendationOrigin) { _, _ in selectedMarketingSuggestion = nil }
         .onChange(of: session.merchantMarketingCoordinator.scopeIdentity) { _, _ in selectedMarketingSuggestion = nil }

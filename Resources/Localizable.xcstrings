@@ -925,7 +925,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questify"
+            "value": "城瘾"
           }
         },
         "zh-Hans": {
@@ -14288,7 +14288,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Reported hours and evidence are reviewed by Questify. Confirmation and reconciliation aren't available here yet."
+            "value": "Reported hours and evidence are reviewed by 城瘾. Confirmation and reconciliation aren't available here yet."
           }
         },
         "zh-Hans": {
@@ -27857,13 +27857,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No clubs yet"
+            "value": "You haven't joined a club yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有俱乐部"
+            "value": "你还没有加入俱乐部"
           }
         }
       }
@@ -28151,7 +28151,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "场次上下文已变化，请从专题重新进入。"
+            "value": "场次上下文已变化，请从主题重新进入。"
           }
         }
       }
@@ -28167,7 +28167,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这个专题还没有场次"
+            "value": "这个主题还没有场次"
           }
         }
       }
@@ -29477,7 +29477,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submitting may sign you out on all devices. Sign in again to check or cancel a pending application. Eligibility and the deletion date are confirmed by Questify."
+            "value": "Submitting may sign you out on all devices. Sign in again to check or cancel a pending application. Eligibility and the deletion date are confirmed by 城瘾."
           }
         },
         "zh-Hans": {
@@ -42066,7 +42066,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dates are for reference only. Eligibility and status are confirmed by Questify."
+            "value": "Dates are for reference only. Eligibility and status are confirmed by 城瘾."
           }
         },
         "zh-Hans": {
@@ -50039,13 +50039,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Loading"
+            "value": "Loading…"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "正在加载"
+            "value": "加载中…"
           }
         }
       }
@@ -50079,7 +50079,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前无网络连接，仅显示已保存的内容"
+            "value": "现在没有网络，先显示已保存的内容"
           }
         }
       }
@@ -62812,7 +62812,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questify"
+            "value": "城瘾"
           }
         },
         "zh-Hans": {
@@ -64559,13 +64559,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No badges lit up yet"
+            "value": "No badges yet. Finish a route to light your first one."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有点亮任何徽章"
+            "value": "还没有徽章。走完一条路线，点亮第一枚。"
           }
         }
       }
@@ -66313,7 +66313,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "Beta"
+            "value": "测试版"
           }
         }
       }
@@ -66437,13 +66437,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No matching results"
+            "value": "Nothing matches yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无匹配内容"
+            "value": "还没有合适的内容"
           }
         }
       }
@@ -66453,13 +66453,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try another search or category"
+            "value": "Try another keyword or category."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "试试其他关键词或分类"
+            "value": "换个关键词或分类试试。"
           }
         }
       }
@@ -72597,13 +72597,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow camera access in Settings to take a stamp photo. Photos are only taken when you tap the shutter."
+            "value": "Allow the camera in Settings to take a stamp photo. We only use it when you tap the shutter."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请在设置中允许相机后再拍摄印章照片。仅在你点击快门时拍照。"
+            "value": "到“设置”里允许相机，就能拍邮票照片。只有你按下快门时才会拍照。"
           }
         }
       }
@@ -72614,13 +72614,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Camera access is off"
+            "value": "Camera is off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "相机权限未开启"
+            "value": "相机未开启"
           }
         }
       }
@@ -81811,7 +81811,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Approval means admission only; it isn't an endorsement by Questify."
+            "value": "Approval means admission only; it isn't an endorsement by 城瘾."
           }
         },
         "zh-Hans": {
@@ -94444,7 +94444,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send your store details, contact phone, address, business hours and uploaded business license to Questify for review. Submitting doesn't mean approval or merchant access."
+            "value": "Send your store details, contact phone, address, business hours and uploaded business license to 城瘾 for review. Submitting doesn't mean approval or merchant access."
           }
         },
         "zh-Hans": {
@@ -94546,7 +94546,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Send the selected business-license image to the configured Chengyin service for merchant application review. The document may include personal information. Uploading alone does not submit your application."
+            "value": "Send the selected business-license image to the configured 城瘾 service for merchant application review. The document may include personal information. Uploading alone does not submit your application."
           }
         },
         "zh-Hans": {
@@ -104226,7 +104226,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "在已查看的页面中没有找到这条点评。"
+            "value": "在已查看的页面中没有找到这条评价。"
           }
         }
       }
@@ -104243,7 +104243,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看点评 #%lld 的回复结果"
+            "value": "查看评价 #%lld 的回复结果"
           }
         }
       }
@@ -104311,7 +104311,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂未确认你的回复是否已保存，下面是这条点评现在的状态。"
+            "value": "暂未确认你的回复是否已保存，下面是这条评价现在的状态。"
           }
         }
       }
@@ -113939,13 +113939,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No conversations yet"
+            "value": "No messages yet. Say hi to a teammate."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有会话"
+            "value": "还没有消息，和队友打个招呼吧。"
           }
         }
       }
@@ -114956,7 +114956,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questify Assistant"
+            "value": "城瘾 assistant"
           }
         },
         "zh-Hans": {
@@ -120891,7 +120891,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请在“设置”中允许定位后再次查找附近商家。"
+            "value": "到“设置”里允许定位，就能找到附近商家。然后再搜一次。"
           }
         }
       }
@@ -120902,13 +120902,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location access is off"
+            "value": "Location is off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "定位权限未开启"
+            "value": "定位未开启"
           }
         }
       }
@@ -121038,7 +121038,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Not yet on Questify"
+            "value": "Not yet on 城瘾"
           }
         },
         "zh-Hans": {
@@ -124270,7 +124270,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hosted by Questify"
+            "value": "Hosted by 城瘾"
           }
         },
         "zh-Hans": {
@@ -128888,13 +128888,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load this route"
+            "value": "Couldn't load this route. Check your connection and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "线路加载失败"
+            "value": "这条路线没加载出来。检查网络后再试一次。"
           }
         }
       }
@@ -128911,7 +128911,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条线路还没有节点"
+            "value": "这条路线还没有节点"
           }
         }
       }
@@ -128979,7 +128979,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这条线路不存在或已下架"
+            "value": "这条路线不存在或已下架"
           }
         }
       }
@@ -129013,7 +129013,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "线路详情"
+            "value": "路线详情"
           }
         }
       }
@@ -129047,7 +129047,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方线路"
+            "value": "官方路线"
           }
         }
       }
@@ -129064,7 +129064,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城市官方推荐线路"
+            "value": "城市官方推荐路线"
           }
         }
       }
@@ -129081,7 +129081,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有上架的官方线路"
+            "value": "还没有上架的官方路线"
           }
         }
       }
@@ -129092,13 +129092,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load routes"
+            "value": "Couldn't load routes. Check your connection and try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "线路加载失败"
+            "value": "路线没加载出来。检查网络后再试一次。"
           }
         }
       }
@@ -129115,7 +129115,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看线路 %@"
+            "value": "查看路线 %@"
           }
         }
       }
@@ -129166,7 +129166,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "官方线路"
+            "value": "官方路线"
           }
         }
       }
@@ -143443,7 +143443,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The waiting time is tracked by Questify, so changing your device date won't unlock this task."
+            "value": "The waiting time is tracked by 城瘾, so changing your device date won't unlock this task."
           }
         },
         "zh-Hans": {
@@ -144211,7 +144211,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The countdown is for reference only. Timeout and completion are confirmed by Questify."
+            "value": "The countdown is for reference only. Timeout and completion are confirmed by 城瘾."
           }
         },
         "zh-Hans": {
@@ -159554,7 +159554,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无订单"
+            "value": "还没有订单"
           }
         }
       }
@@ -180617,13 +180617,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nothing to show here"
+            "value": "Nothing here yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "这里暂时没有结果"
+            "value": "这里还没有内容"
           }
         }
       }
@@ -186136,13 +186136,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow location in Settings to check in. Your location is only read when you tap Check in."
+            "value": "Allow location in Settings to check in. We only read it when you tap Check in."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请在设置中允许定位后再打卡。仅在你点击打卡时读取位置。"
+            "value": "到“设置”里允许定位，就能打卡。只有你点“打卡”时才会读取位置。"
           }
         }
       }
@@ -186153,13 +186153,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Allow location in Settings to reveal the fog as you walk. Location is only used while the app is open."
+            "value": "Allow location in Settings to clear the fog as you walk. It's only used while the app is open."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请在设置中允许定位，行走时才能点亮迷雾。仅在应用打开时使用定位。"
+            "value": "到“设置”里允许定位，边走边点亮迷雾。仅在应用打开时使用定位。"
           }
         }
       }
@@ -186170,13 +186170,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Location access is off"
+            "value": "Location is off"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "定位权限未开启"
+            "value": "定位未开启"
           }
         }
       }
@@ -186361,7 +186361,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "NEW"
+            "value": "新"
           }
         }
       }
@@ -186542,13 +186542,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No exchanged stamps received yet"
+            "value": "No stamps received yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有收到交换的城市签"
+            "value": "还没有收到邮票"
           }
         }
       }
@@ -192278,13 +192278,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No matching results"
+            "value": "No places match"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "没有匹配结果"
+            "value": "没有找到匹配的地点"
           }
         }
       }
@@ -192294,13 +192294,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try another keyword or adjust the filters"
+            "value": "Try a different keyword, or loosen the filters."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "换个关键词或调整筛选条件"
+            "value": "换个关键词，或放宽筛选条件。"
           }
         }
       }
@@ -195249,7 +195249,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your Questify identity code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready."
+            "value": "Your 城瘾 identity code, used to show who you are at events. It's still being set up and will appear here automatically once it's ready."
           }
         },
         "zh-Hans": {
@@ -195334,7 +195334,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Credits for artwork used in Questify."
+            "value": "Credits for artwork used in 城瘾."
           }
         },
         "zh-Hans": {
@@ -199094,13 +199094,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No posts found"
+            "value": "No posts yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无动态"
+            "value": "还没有动态"
           }
         }
       }
@@ -199416,13 +199416,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unable to complete. Refresh to retry reading; nothing is assumed successful."
+            "value": "That didn't go through. Refresh to check, then try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未能完成。可刷新重试读取；不假定操作成功。"
+            "value": "没有完成。刷新确认状态后再试一次。"
           }
         }
       }
@@ -201623,7 +201623,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questify player"
+            "value": "城瘾 player"
           }
         },
         "zh-Hans": {
@@ -205934,7 +205934,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "TEAM INVITATION"
+            "value": "组队邀请"
           }
         }
       }
@@ -221925,13 +221925,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your ticket wallet is empty"
+            "value": "No tickets yet. Join an activity and your ticket lands here."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有票"
+            "value": "票夹还是空的。报名活动后，票会放在这里。"
           }
         }
       }
@@ -223172,13 +223172,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No routes found"
+            "value": "No routes here yet"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂无路线"
+            "value": "这里还没有路线"
           }
         }
       }
@@ -226991,7 +226991,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Scanning reads the code. Questify then checks that it's valid and has uses left."
+            "value": "Scanning reads the code. 城瘾 then checks that it's valid and has uses left."
           }
         },
         "zh-Hans": {
@@ -230544,7 +230544,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Choose how you would like to join Questify."
+            "value": "Choose how you would like to join 城瘾."
           }
         },
         "zh-Hans": {
@@ -238912,6 +238912,413 @@
           "stringUnit": {
             "state": "translated",
             "value": "最近路线"
+          }
+        }
+      }
+    },
+    "纬度": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Latitude",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "纬度",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "经度": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Longitude",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "经度",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "坐标系": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Coordinate system",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "坐标系",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "你的队伍": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Your team",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "你的队伍",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "已退出，可恢复原队伍": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "You left. You can rejoin your team.",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "已退出，可恢复原队伍",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "原请求已完成，请重新读取参与信息。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "That request went through. Reload your sign-up details.",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "原请求已完成，请重新读取参与信息。",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "原请求未获接受，请重新读取参与信息。": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "That request wasn't accepted. Reload your sign-up details.",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "原请求未获接受，请重新读取参与信息。",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "确认": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Confirm",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "确认",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "移除此可选条件：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Remove optional condition: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "移除此可选条件：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "配置原条件：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Set condition: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "配置原条件：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "配置原结果效果：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Set outcome effect: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "配置原结果效果：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "原值（不可用）：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Previous value (unavailable): ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "原值（不可用）：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "需求：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Needs: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "需求：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "本队私有意向：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Your team's private preference: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "本队私有意向：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "本队首选：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Your team's first choice: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "本队首选：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "本队接受：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Your team accepts: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "本队接受：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "原公开共识票：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Public team vote: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "原公开共识票：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "确认：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Confirm: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "确认：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "原有效截止：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Valid until: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "原有效截止：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "原行更新时间：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Updated: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "原行更新时间：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "当前原退出原因：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "Reason for leaving: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "当前原退出原因：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "生命增加量：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "HP gained: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "生命增加量：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "生命下限：": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "value": "HP floor: ",
+            "state": "translated"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "value": "生命下限：",
+            "state": "translated"
+          }
+        }
+      }
+    },
+    "settingsNative.about.brandName": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "chein - 城瘾"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城瘾"
           }
         }
       }

@@ -318,6 +318,7 @@ struct SessionRootView: View {
                 }.id(session.account?.id ?? 0).environment(\.rootTabSwitch, RootTabSwitch { selectedTab = $0 })
                 .cyScreenStyle()
                 .cyDomainTabBar(.player)
+                .cyHaptic(.selection, trigger: selectedTab)
                 .roleTheme(.player)
     }
 

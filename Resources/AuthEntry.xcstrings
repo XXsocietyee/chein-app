@@ -54,7 +54,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The cooling-off deadline is in Beijing time and is set by Questify."
+            "value": "The cooling-off deadline is in Beijing time and is set by 城瘾."
           }
         },
         "zh-Hans": {
@@ -102,7 +102,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This account has no bound phone number, so deletion needs WeChat re-confirmation, which the app cannot do. Bind a phone number first, or apply in the Questify mini program."
+            "value": "This account has no bound phone number, so deletion needs WeChat re-confirmation, which the app cannot do. Bind a phone number first, or apply in the 城瘾 mini program."
           }
         },
         "zh-Hans": {
@@ -198,7 +198,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Questify uses your location only after you start roaming or confirm location during play, to check in at points and record your trail. Recording continues while the screen is locked or the app is in the background, and stops when you end roaming or pause or end play. Home reads your current location only after you grant location access, and only to recommend nearby activities. Sharing your location with nearby users is off by default and needs separate consent; when on, it shows a blurred neighbourhood location, your nickname, avatar and this roam's information, and you can turn it off at any time without affecting your own trail. Photo judging, object cards, NPC chat and the AI creation assistant send the photos or text you submit to a third-party model provider (DeepSeek); voice cloning sends your recording to Alibaba Cloud's speech model (Tongyi CosyVoice) to create a voice. Photo and voice processing each need separate consent, and results are used only for that feature."
+            "value": "城瘾 uses your location only after you start roaming or confirm location during play, to check in at points and record your trail. Recording continues while the screen is locked or the app is in the background, and stops when you end roaming or pause or end play. Home reads your current location only after you grant location access, and only to recommend nearby activities. Sharing your location with nearby users is off by default and needs separate consent; when on, it shows a blurred neighbourhood location, your nickname, avatar and this roam's information, and you can turn it off at any time without affecting your own trail. Photo judging, object cards, NPC chat and the AI creation assistant send the photos or text you submit to a third-party model provider (DeepSeek); voice cloning sends your recording to Alibaba Cloud's speech model (Tongyi CosyVoice) to create a voice. Photo and voice processing each need separate consent, and results are used only for that feature."
           }
         },
         "zh-Hans": {
@@ -214,13 +214,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Please read and check the User Service Agreement first."
+            "value": "Tick the box to continue."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先阅读并勾选用户服务协议"
+            "value": "请先勾选，再继续。"
           }
         }
       }
@@ -358,13 +358,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "We only process the information a feature needs, when you use it. Roam location is used for live position, check-ins and trails, and never collected in the background when you are not using the app."
+            "value": "We only use the information a feature needs, when you use it. Location is used for your live position, check-ins and trail. We never collect it in the background when you are not roaming."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "城瘾只在你使用相关功能时处理必要信息。漫游定位仅用于实时位置展示、到点打卡和轨迹记录；不使用时不会在后台持续采集。"
+            "value": "城瘾只在你用到某个功能时，才处理它需要的信息。定位仅用于实时位置、到点打卡和轨迹；没在漫游时，不会在后台采集。"
           }
         }
       }

@@ -68,6 +68,7 @@ struct CYPillButtonStyle: ButtonStyle {
 
     @Environment(\.cyPalette) private var palette
     @Environment(\.isEnabled) private var isEnabled
+    @QuestifyReduceMotion private var reduceMotion
     @ScaledMetric(relativeTo: .body) private var height: CGFloat = 56
 
     func makeBody(configuration: Configuration) -> some View {
@@ -83,7 +84,7 @@ struct CYPillButtonStyle: ButtonStyle {
             .background(shape.fill(fill))
             .overlay(shape.strokeBorder(style == .secondary ? stroke : .clear, lineWidth: 1.5))
             .contentShape(shape)
-            .opacity(configuration.isPressed ? 0.8 : 1)
+            .cyPressEffect(configuration.isPressed && isEnabled, reduceMotion: reduceMotion)
     }
 
     private var foreground: Color {

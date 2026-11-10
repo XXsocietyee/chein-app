@@ -1,6 +1,7 @@
 import SwiftUI
 
 @MainActor struct CooperationBrowserView: View {
+    @Environment(\.locale) private var locale
     let reader: any CooperationReading
     var onClose:(()->Void)? = nil
     var peerReader: (any CoopFlowReading)? = nil
@@ -119,8 +120,15 @@ import SwiftUI
                                 }.font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
                             }
                             CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))
-                            if let id = row.topicId { CooperationTopicReference(id: id) }
-                            CooperationTimeField(key: "cooperation.created", value: row.createTime)
+                            // One compact meta line (topic · created) instead of two tall inset rows.
+                            let created: String? = row.createTime.flatMap { time -> String? in
+                                switch time {
+                                case .text(let text): return text
+                                case .milliseconds: return time.date?.formatted(.dateTime.year().month().day().hour().minute().locale(locale))
+                                }
+                            }
+                            let meta = [row.topicId.map { "#\($0)" }, created].compactMap { $0 }.joined(separator: " · ")
+                            if !meta.isEmpty { Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).monospacedDigit() }
                         }.padding(.vertical, CYSpacing.xs)
                         .opacity((row.status ?? 0) >= 3 ? 0.6 : 1)
                     }.accessibilityIdentifier("cooperation.invite.\(direction.rawValue).\(row.id).\(index)")

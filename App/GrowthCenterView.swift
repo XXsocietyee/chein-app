@@ -78,7 +78,7 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("growth.refresh")
             }
         }
-        .sensoryFeedback(.success, trigger: newlyLitBadges)
+        .cyHaptic(.success, trigger: newlyLitBadges)
         .modifier(GrowthCenterReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
         .onAppear { badgeVisible = true; badgeExploreConsumed = false; badgePresentationID = UUID(); latestReaderID = ObjectIdentifier(reader) }
         .onDisappear { badgeVisible = false; badgePresentationID = UUID() }

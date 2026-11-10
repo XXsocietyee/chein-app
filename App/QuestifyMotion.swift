@@ -35,8 +35,7 @@ struct QuestifyCardButtonStyle: ButtonStyle {
         configuration.label
             .frame(minHeight: 44)
             .contentShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
-            .scaleEffect(configuration.isPressed && !reduceMotion && isEnabled ? 0.98 : 1)
-            .opacity(configuration.isPressed && isEnabled ? 0.88 : 1)
-            .animation(reduceMotion ? nil : (configuration.isPressed ? QuestifyMotion.press : QuestifyMotion.release), value: configuration.isPressed)
+            .environment(\.cyPressHandled, true)
+            .cyPressEffect(configuration.isPressed && isEnabled, reduceMotion: reduceMotion)
     }
 }

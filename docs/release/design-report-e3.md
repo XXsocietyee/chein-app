@@ -87,3 +87,23 @@ Verified: club detail EN/zh/XL, overview, chat, inbox, social, story. Hero fixed
 ## Not done / honest scores
 Club apply/create and notices have no real-view change beyond tokens; follow list, friend directory, calendar month grid, IM rich cards have no fixture reaching the real view (need hosts in non-UI files) so unverified by shot. Scores: club detail 8, story 7, calendar 7 (events fixture empty), IM cards 7, follow/friends 7, apply 6, notices 7. Under 8 as listed.
 Re-shot after hero fix (contact-144713.png, EN + XL zh): builds, hero grows with type; at XL the chip still sits over the decorative cover icon (cosmetic).
+
+
+# FIFTH PASS (real-view fixtures, rework)
+
+Merged origin/ui/main (twice, conflict in MessagingHistoryView resolved: CYIMCoverArt + run-grouped avatar tail).
+
+## Benchmarks (new Mobbin searches, ios)
+- Community detail: Venmo group https://mobbin.com/screens/e91634c3-acc1-46b1-82b4-22af17ff8a7f (avatar + name + single primary action), Reddit Communities https://mobbin.com/screens/d5f8357a-24e8-49ab-a401-a07406cdfd50 (round Join pill on rows), Cal AI Groups https://mobbin.com/screens/e9595ac2-f0b8-4b49-93ab-9fe58cb1deea. Borrowed: avatar stack + member count under the hero, one primary join action.
+- Notification center: Expedia Inbox https://mobbin.com/screens/bfa3457c-e3a6-44ee-8ae2-58c6fd869078 (blue unread dot, underline tabs), Reddit Inbox https://mobbin.com/screens/67818216-72aa-4a0e-ad61-6ffe747d79f6 (section headers by recency), Snapchat https://mobbin.com/screens/418c887e-3d28-4a8b-bae0-3d3a6b825741 ("Today" header). Borrowed: Today / Yesterday / Earlier sections, unread dot on avatar, underline tab bar.
+- Contacts / follow list: Polarsteps https://mobbin.com/screens/da1692c8-35d7-46a0-a97a-4847675449fa (Following / Requested pills, location meta), Alta https://mobbin.com/screens/11a14887-d736-46fb-bb2d-54a5b3153d26 (avatar rows, trailing pill). Borrowed: outlined state pill with check mark on follow rows.
+- Group join request: Cal AI https://mobbin.com/screens/2853cdcc-3872-44fd-97ef-c0bcb9f3b1c3 (floating-label fields, one dark Continue), Discord https://mobbin.com/screens/f71c99bd-aa7a-45bc-bbbf-8b26ee4e1932 (one primary + one quiet alternative).
+- Event calendar: Lightyear https://mobbin.com/screens/9949ee8e-90d7-4ec5-a721-e823204135e0 (date tile at row start), Partiful https://mobbin.com/screens/5fb14339-0f69-418c-919a-1c1912925c49 ("events on this day" with thumbnails, friendly empty day). Borrowed: month/day badge on the cover tile, empty-day state with icon.
+
+## Done in code
+- Fixtures reaching REAL views (App/DesignFixtures/E3Fixtures.swift, DEBUG): e3-real-friends (NativeFriendDirectoryView with a stub NativeFriendDirectoryServing), e3-real-follow (ProfileFollowListView with a stub ProfileFollowListReading), e3-real-imcards (real ChatMessageBubble + IMStaticLocationCardView / IMVoiceCardLabel / IMFileCardLabel / IMVideoCardLabel). Club apply/create are reached by existing d4-enroll / d4-ops-create (real ClubEnrollmentView / ops create); notices by e3-inbox (real MessagingHomeView).
+- Club detail: member avatar stack + count under the hero (generated avatars, count unknown shows nothing), custom underline tab bar (matchedGeometryEffect, selection haptic, 44pt, Reduce Motion gated) replacing the segmented picker.
+- Inbox / notices: Today / Yesterday / Earlier day sections, unread dot on avatar, existing swipe actions kept.
+- Calendar: month/day date badge on each agenda cover, friendly empty-day state, header trait.
+- Follow list: state pill (check + outline when followed) instead of a bare circle icon; friend directory row shows nickname under a remark.
+- EN shots: launch arg `-preferences.language en` (design-batch list lines contain no backslashes).
