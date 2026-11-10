@@ -57,7 +57,7 @@ import Observation
                             Spacer()
                             Text(Measurement(value: step.distanceMeters, unit: UnitLength.meters), format: .measurement(width: .abbreviated))
                                 .font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)
-                        }
+                        }.accessibilityElement(children: .combine)
                     }
                 } else if owner != nil, loader.failed {
                     SearchMapIssue(key: "walking.previewUnavailable") {

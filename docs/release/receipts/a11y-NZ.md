@@ -9,3 +9,12 @@ Most files were already annotated (combined cards, hidden decoration, selection 
 - Progress bars with a name: roam goal detail (metric), exploration export (`roam.export.title`).
 - RoamHistoryToolsRow: tool symbol hidden so "calendar"/"list bullet" is not spoken beside the title.
 - SquareDetailView: like button carries `.isSelected` when liked.
+
+## Batch 2
+- Image previews with no description now carry one (existing keys `image.retained.preview`, `ownedCover.authorImage`): OwnedTopicCoverAuthorView (local, server), ProjectNodeImageAuthorView, ProjectStoryImageAuthorView.
+- SearchRoutePreviewView: each turn step is one stop (number, instruction, distance).
+- RoamPassportPrivateToolsViews: capsule unlock presets expose `.isSelected` (was colour only).
+- PublisherLifecycleViews: price slider has a label and a "¥N" value.
+- RoamSubpageParityViews: shared-walk date line is one stop.
+- SettingsPrivacyLocationView: "older" button keeps its label while its spinner shows.
+- Audited, no change needed: kit skeleton/loading states (label already in kit), Map views (annotations are labelled buttons; a container label could hide them, left alone), stamp slip (VoiceOver path with plain buttons already present).

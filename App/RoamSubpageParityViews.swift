@@ -204,7 +204,7 @@ struct RoamShareLinkDormantNotice: View {
             HStack(spacing: 4) {
                 Text(Date(timeIntervalSince1970: Double(snapshot.ts) / 1000), format: .dateTime.month().day().weekday(.abbreviated))
                 Text(verbatim: "· " + snapshot.time)
-            }.foregroundStyle(.secondary)
+            }.foregroundStyle(.secondary).accessibilityElement(children: .combine)
             HStack(spacing: 20) {
                 metric(snapshot.distance.map { String(format: "%.1f", $0) } ?? "—", Text(verbatim: "km"))
                 metric(snapshot.explorePct.map { "\(Int($0))%" } ?? "--%", Text("roamSub.w208.share.explore"))

@@ -448,6 +448,7 @@ struct RoamPrivatePageScope: Hashable {
                 ForEach(options) { option in
                     Button { unlockDate = option.date; custom = false } label: { Text(presetKey(option.preset)) }
                         .buttonStyle(.bordered).tint(!custom && unlockDate == option.date ? Color.accentColor : Color.secondary)
+                        .accessibilityAddTraits(!custom && unlockDate == option.date ? .isSelected : [])
                         .accessibilityIdentifier("roam.capsule.unlock.\(option.preset.rawValue)")
                 }
             }.disabled(model.isBusy)

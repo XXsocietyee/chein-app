@@ -128,7 +128,7 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
                     CYPillButton(verbatim: text("ownedCover.choose","Choose an image")) { Task { await model.choose() } }
                         .disabled(!flow.canPick).accessibilityIdentifier("ownedCover.choose").e1ActionRow()
                     if let local {
-                        if let image = UIImage(data:local.image.jpeg) { Image(uiImage:image).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).accessibilityIdentifier("ownedCover.localPreview") }
+                        if let image = UIImage(data:local.image.jpeg) { Image(uiImage:image).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).accessibilityLabel(Text("image.retained.preview")).accessibilityIdentifier("ownedCover.localPreview") }
                         Text(text("ownedCover.localOnly","This preview uses only the selected, sanitized image on this device. It has not been uploaded."))
                             .accessibilityIdentifier("ownedCover.localOnly")
                         CYPillButton(verbatim: text("ownedCover.upload","Upload this image for checks"), style: .secondary) { model.upload(local) }
@@ -153,7 +153,7 @@ extension RetainedNativeImagePicker: OwnedTopicCoverSelecting {}
                 }
                 if let image = model.image, let asset = model.renderedAsset, flow.isCurrent {
                     Section {
-                        Image(uiImage:image).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).accessibilityIdentifier("ownedCover.serverPreview")
+                        Image(uiImage:image).resizable().scaledToFit().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous)).accessibilityLabel(Text("ownedCover.authorImage")).accessibilityIdentifier("ownedCover.serverPreview")
                         Text(text("ownedCover.verifiedBytes","These bytes were read through this account's exact asset reference and matched its SHA-256. This does not approve or publish the topic."))
                         if flow.current == nil {
                             if flow.hasUnstoredReceipt {

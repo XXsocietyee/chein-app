@@ -56,6 +56,8 @@ import SwiftUI
                     let maximum = TopicPricingXcx.sliderMax(floor: preview.minimum, reference: preview.reference)
                     Slider(value: Binding(get: { Double(price) ?? Double(floorValue) }, set: { price = String(Int($0.rounded())) }),
                            in: Double(floorValue)...Double(max(maximum, floorValue + 1)), step: 1)
+                        .accessibilityLabel(Text(text("publisherPricing.finalPrice")))
+                        .accessibilityValue(Text(verbatim: "¥" + (Int(price).map(String.init) ?? String(floorValue))))
                     HStack {
                         Text(verbatim: text("publisherPricing.minimum") + " ¥" + NSDecimalNumber(decimal: preview.minimum).stringValue)
                         Spacer(); Text(verbatim: "¥\(maximum)")
