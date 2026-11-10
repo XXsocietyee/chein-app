@@ -13,6 +13,9 @@ import SwiftUI
     var avatarAccess: MemberIdentityAvatarAccess? = nil
     @State private var readOwner = MemberIdentityCardReadOwner()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.dynamicTypeSize) private var typeSize
+    /// Rows become columns at accessibility sizes so labels never truncate or overflow.
+    private var rowLayout: AnyLayout { typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm)) : AnyLayout(HStackLayout(spacing: CYSpacing.sm)) }
     enum Phase: Equatable { case loading, ready(MemberIdentitySnapshot), failed(signedOut: Bool) }
     @State private var phase: Phase = .loading
     @State private var level: Int?
@@ -21,7 +24,7 @@ import SwiftUI
     var body: some View {
         Section {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-            HStack(alignment: .center, spacing: CYSpacing.lg) {
+            (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.md)) : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.lg))) {
                 avatar
                 VStack(alignment: .leading, spacing: 6) {
                     name.font(.system(.title2, design: .rounded).weight(.heavy)).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("member.card.name")
@@ -30,11 +33,12 @@ import SwiftUI
                         Text("member.card.levelTitle", tableName: "MemberProfile")
                     }
                     .font(CYTypography.meta.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
                     .background(CYColor.bgRaised, in: Capsule(style: .continuous))
                     .accessibilityElement(children: .combine)
                     .accessibilityIdentifier("member.card.level")
-                    HStack(spacing: 10) {
+                    (typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 6)) : AnyLayout(HStackLayout(spacing: 10))) {
                         Label { city } icon: { Image(systemName: "mappin.and.ellipse") }
                             .accessibilityIdentifier("member.card.city")
                         if let streakDays {
@@ -49,13 +53,13 @@ import SwiftUI
                 }
                 Spacer(minLength: 0)
             }
-            HStack(spacing: CYSpacing.sm) {
+            rowLayout {
                 stat(snapshot?.friendCount, id: "friends") { Text("member.card.friends", tableName: "MemberProfile") }
                 stat(snapshot?.followCount, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
                 stat(snapshot?.fansCount, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
             }
             // Quick actions as tiles: tickets (opens) and balance (read-only preview, em dash when unknown).
-            HStack(spacing: CYSpacing.sm) {
+            rowLayout {
                 if let onOpenTickets {
                     Button(action: onOpenTickets) {
                         tile(symbol: "ticket.fill") { Text("member.card.tickets", tableName: "MemberProfile") } value: { Image(systemName: "chevron.right").font(.caption.weight(.bold)) }
@@ -90,7 +94,15 @@ import SwiftUI
             case .ready: EmptyView()
             }
             }
-            .padding(.vertical, CYSpacing.xs)
+            .padding(CYSpacing.lg)
+            .background {
+                ZStack {
+                    CYCoverArt(seed: "member-" + account.nickname, symbol: "person", showsDebugLabel: false, showsGlyph: false).opacity(0.38)
+                    LinearGradient(colors: [.clear, CYColor.bgElevated.opacity(0.85)], startPoint: .top, endPoint: .bottom)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
+                .overlay(RoundedRectangle(cornerRadius: 24, style: .continuous).strokeBorder(CYColor.textPrimary.opacity(0.1), lineWidth: 1))
+            }
         }
         .listRowBackground(Color.clear)
         .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))

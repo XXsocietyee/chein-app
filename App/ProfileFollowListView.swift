@@ -40,15 +40,20 @@ import SwiftUI
                     ForEach(flow.visibleRows) { member in
                         Button { flow.open(member) } label: {
                             HStack(spacing: Theme.Space.s3) {
-                                if let avatar = member.avatar { SquareImage(source: avatar).frame(width: 42, height: 42).clipShape(Circle()) }
-                                VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                                    if let name = SocialText.nonempty(member.nickname) { Text(verbatim: name).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                                    else { Text("square.unknownAuthor").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                                    Text(member.isFollow ? "followList.followed" : "followList.notFollowed", tableName: "ProfileFollowList")
-                                        .font(Theme.Font.label).foregroundStyle(Theme.Color.textSecondary(in: domain))
+                                Group {
+                                    if let avatar = member.avatar { SquareImage(source: avatar).frame(width: 48, height: 48).clipShape(Circle()) }
+                                    else { E3Avatar(seed: SocialText.nonempty(member.nickname) ?? String(member.id), size: 48) }
                                 }
-                                Spacer(); Image(systemName: "chevron.right").font(Theme.Font.label).foregroundStyle(Theme.Color.textTertiary(in: domain))
-                            }.frame(minHeight: 44).foregroundStyle(Theme.Color.textPrimary(in: domain))
+                                VStack(alignment: .leading, spacing: 2) {
+                                    if let name = SocialText.nonempty(member.nickname) { Text(verbatim: name).font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true) }
+                                    else { Text("square.unknownAuthor").font(CYTypography.bodyMedium).fixedSize(horizontal: false, vertical: true) }
+                                    Text(member.isFollow ? "followList.followed" : "followList.notFollowed", tableName: "ProfileFollowList")
+                                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                                }
+                                Spacer(minLength: Theme.Space.s2)
+                                Image(systemName: member.isFollow ? "checkmark.circle.fill" : "plus.circle").font(.title3)
+                                    .foregroundStyle(member.isFollow ? CYColor.textSecondary : CYColor.textPrimary).accessibilityHidden(true)
+                            }.frame(minHeight: 56).foregroundStyle(CYColor.textPrimary)
                         }.disabled(flow.loading || flow.error != nil)
                         .id(member.id)
                         .listRowInsets(EdgeInsets(top: Theme.Space.s2, leading: Theme.Space.pageX, bottom: Theme.Space.s2, trailing: Theme.Space.pageX))

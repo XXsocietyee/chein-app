@@ -31,7 +31,9 @@ import SwiftUI
     private let reader: OrderLifecycleFixtureReader
     private let coordinator: OrderLifecycleCoordinator
     @State private var revision = 0
-    init() {
+    private let autoReview: OrderLifecycleAction?
+    init(autoReview: OrderLifecycleAction? = nil) {
+        self.autoReview = autoReview
         let arguments = ProcessInfo.processInfo.arguments
         let index = arguments.firstIndex(of: "--uitesting-order-lifecycle-scenario")
         let raw = index.flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
@@ -54,6 +56,12 @@ import SwiftUI
                     } else { Text("orderLifecycle.issue.malformed") }
                 } else { OrderLifecycleView(id: 9701, coordinator: coordinator) }
             }.id(revision)
+        }
+        .task {
+            guard let autoReview else { return }
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            coordinator.prepare(autoReview, orderID: 9701)
+            if coordinator.review == nil, let d = coordinator.detail, let a = [OrderLifecycleAction.cancel, .refund, .payment].first(where: { OrderLifecycleCoordinator.isReviewable($0, detail: d) }) { coordinator.prepare(a, orderID: 9701) }
         }
     }
 }

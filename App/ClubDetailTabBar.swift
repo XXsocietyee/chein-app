@@ -7,19 +7,36 @@ struct ClubDetailTabBar: View {
     let select: (ClubDetailTab) -> Void
     var body: some View {
         Section {
-            Picker("club.detail", selection: Binding(get: { selection }, set: { select($0) })) {
+            HStack(spacing: 0) {
                 ForEach(tabs) { tab in
-                    Text(tab.titleKey)
-                        .accessibilityIdentifier("club.detail.tab." + tab.rawValue)
-                        .tag(tab)
+                    Button { select(tab) } label: {
+                        VStack(spacing: 6) {
+                            Text(tab.titleKey)
+                                .font(selection == tab ? CYTypography.bodyMedium.weight(.semibold) : CYTypography.bodyMedium)
+                                .foregroundStyle(selection == tab ? CYColor.textPrimary : CYColor.textSecondary)
+                                .lineLimit(1).minimumScaleFactor(0.8)
+                            ZStack {
+                                Capsule().fill(Color.clear).frame(height: 3)
+                                if selection == tab { Capsule().fill(Theme.Color.accent(in: domain)).frame(height: 3).matchedGeometryEffect(id: "club.tab.underline", in: ns) }
+                            }
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                        .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityAddTraits(selection == tab ? [.isSelected] : [])
+                    .accessibilityIdentifier("club.detail.tab." + tab.rawValue)
                 }
             }
-            .pickerStyle(.segmented)
-            .labelsHidden()
-            .listRowInsets(EdgeInsets(top: 4, leading: 0, bottom: 4, trailing: 0))
+            .animation(reduceMotion ? nil : .spring(response: 0.3, dampingFraction: 0.8), value: selection)
+            .sensoryFeedback(.selection, trigger: selection)
+            .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg))
             .listRowBackground(Color.clear)
         }
     }
+    @Namespace private var ns
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.themeDomain) private var domain
 }
 
 extension ClubDetailTab {

@@ -296,24 +296,13 @@ public struct CYEmptyStateView: View {
     }
 
     public var body: some View {
-        ContentUnavailableView {
-            Label(title, systemImage: systemImage)
-                .font(CYTypography.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
-        } description: {
-            if let description {
-                Text(description)
-                    .font(CYTypography.bodyCompact)
-                    .foregroundStyle(CYColor.textSecondary)
-            }
-        } actions: {
-            if let actionTitle, let action {
-                Button(actionTitle, action: action)
-                    .buttonStyle(.cyPrimary(fullWidth: false))
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.xxl)
+        CYStateLayout(
+            kind: CYStateKind(symbol: systemImage),
+            title: Text(title),
+            detail: description.map { Text($0) },
+            primary: actionTitle.flatMap { t in action.map { (title: t, action: $0) } },
+            primaryStyle: .primary
+        )
     }
 }
 
@@ -342,22 +331,13 @@ public struct CYErrorStateView: View {
     }
 
     public var body: some View {
-        ContentUnavailableView {
-            Label(title, systemImage: systemImage)
-                .font(CYTypography.sectionTitle)
-                .foregroundStyle(CYColor.textPrimary)
-        } description: {
-            Text(message)
-                .font(CYTypography.bodyCompact)
-                .foregroundStyle(CYColor.textSecondary)
-        } actions: {
-            if let onRetry {
-                Button(retryTitle, action: onRetry)
-                    .buttonStyle(.cySecondary(fullWidth: false))
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.xxl)
+        CYStateLayout(
+            kind: CYStateKind(symbol: systemImage) == .offline ? .offline : .failure,
+            title: Text(title),
+            detail: Text(message),
+            primary: onRetry.map { (title: retryTitle, action: $0) },
+            primaryStyle: .secondary
+        )
     }
 }
 

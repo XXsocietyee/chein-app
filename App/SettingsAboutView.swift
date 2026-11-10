@@ -16,52 +16,54 @@ import UIKit
     var body: some View {
         Form {
             Section {
-                VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                    CYHeroHeader("settingsNative.about.title", subtitle: "settingsNative.about.tagline") {
-                        Image("SettingsBrandMark")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 54, height: 54)
-                            .accessibilityHidden(true)
-                    }
+                VStack(spacing: CYSpacing.md) {
+                    Image(uiImage: UIImage(named: "SettingsBrandMark") ?? UIImage())
+                        .resizable()
+                        .scaledToFit()
+                        .padding(CYSpacing.lg)
+                        .frame(width: 112, height: 112)
+                        .background {
+                            ZStack {
+                                CYCoverArt(seed: "about-brand", symbol: "mappin", showsDebugLabel: false, showsGlyph: false)
+                                Color.black.opacity(0.35)
+                            }.clipShape(RoundedRectangle(cornerRadius: 26, style: .continuous))
+                        }
+                        .overlay(RoundedRectangle(cornerRadius: 26, style: .continuous).strokeBorder(.white.opacity(0.25), lineWidth: 1))
+                        .shadow(color: .black.opacity(0.35), radius: 14, y: 8)
+                        .accessibilityHidden(true)
                     appName
-                }
-                .listRowBackground(Color.clear)
-                .listRowSeparator(.hidden)
-                .listRowInsets(EdgeInsets(top: CYSpacing.lg, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
-            }
-            Section {
-                SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version, identifier: "settingsNative.about.version", systemImage: "number")
-                SettingsFactRow(title: "settingsNative.about.build", value: appInformation.build, identifier: "settingsNative.about.build", systemImage: "hammer")
-                marketRow
-            }
-            Section {
-                VStack(spacing: CYSpacing.sm) {
-                    CYEmptyState(systemImage: "qrcode", "settingsNative.about.playerCode")
-                    Text("settingsNative.about.playerCodeUnavailable")
+                    Text("settingsNative.about.tagline")
                         .font(CYTypography.body)
                         .foregroundStyle(palette.textSecondary)
                         .multilineTextAlignment(.center)
-                        .frame(maxWidth: .infinity)
-                        .accessibilityIdentifier("settingsNative.about.codeUnavailable")
+                    Text(verbatim: versionLine)
+                        .font(.footnote.monospacedDigit()).foregroundStyle(palette.textSecondary)
+                        .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.xs)
+                        .background(palette.bgRaised, in: Capsule())
                 }
+                .frame(maxWidth: .infinity)
                 .listRowBackground(Color.clear)
                 .listRowSeparator(.hidden)
+                .listRowInsets(EdgeInsets(top: CYSpacing.xl, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             }
+            Section {
+                SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version, identifier: "settingsNative.about.version", systemImage: "number")
+                SettingsFactRow(title: "settingsNative.about.build", value: appInformation.build, identifier: "settingsNative.about.build", systemImage: "hammer.fill")
+                marketRow
+            } header: { Text("settingsNative.about.appSection") }
+            .labelStyle(SettingsTileLabelStyle())
             Section {
                 ForEach([SettingsLegalType.userAgreement, .privacyPolicy]) { type in
                     NavigationLink {
                         SettingsLegalDocumentView(type: type, market: market, reader: legalReader)
                     } label: {
-                        CYListRow(LocalizedStringKey(type.titleKey), trailing: .none, card: true) {
-                            CYRowIcon(systemImage: "doc.text")
-                        }
+                        Label(LocalizedStringKey(type.titleKey), systemImage: type == .privacyPolicy ? "hand.raised.fill" : "doc.text.fill")
+                            .environment(\.settingsTileTint, type == .privacyPolicy ? SettingsTint.blue : SettingsTint.gray)
                     }
                     .accessibilityIdentifier("settingsNative.about.openLegal.\(type.rawValue)")
-                    .listRowBackground(Color.clear)
-                    .listRowSeparator(.hidden)
                 }
-            }
+            } header: { Text("settingsNative.about.linksSection") }
+            .labelStyle(SettingsTileLabelStyle())
             if let phone = SettingsSourceContact.phone(market: market) {
                 Section("settingsNative.about.contact") {
                     Text(verbatim: phone)
@@ -100,32 +102,29 @@ import UIKit
         .onDisappear { copyStatus = nil }
     }
 
-    @ViewBuilder private var appName: some View {
-        if let name = appInformation.displayName {
-            Text(verbatim: name)
-                .font(CYTypography.pageTitle)
-                .foregroundStyle(palette.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .accessibilityAddTraits(.isHeader)
-                .accessibilityIdentifier("settingsNative.about.appName")
-        } else {
-            Text("settingsNative.about.nameMissing")
-                .font(CYTypography.pageTitle)
-                .foregroundStyle(palette.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-        }
+    private var appName: some View {
+        Text(verbatim: "Chengyin - 城瘾")
+            .font(CYTypography.pageTitle)
+            .foregroundStyle(palette.textPrimary)
+            .multilineTextAlignment(.center)
+            .accessibilityAddTraits(.isHeader)
+            .accessibilityIdentifier("settingsNative.about.appName")
+    }
+
+    private var versionLine: String {
+        "v" + (appInformation.version ?? "—") + " (" + (appInformation.build ?? "—") + ")"
     }
 
     private var marketRow: some View {
-        CYListRow("region.market", trailing: .value(market?.rawValue ?? "—"), card: true) {
-            CYRowIcon(systemImage: "globe")
+        LabeledContent {
+            Text(verbatim: market?.rawValue ?? "—").font(CYTypography.numericBody).foregroundStyle(palette.textSecondary)
+        } label: {
+            Label("region.market", systemImage: "globe").environment(\.settingsTileTint, SettingsTint.teal)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("region.market"))
         .accessibilityValue(Text(verbatim: market?.rawValue ?? "—"))
         .accessibilityIdentifier("settingsNative.about.market")
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
     }
 
     private func copy(_ phone: String) {
@@ -150,16 +149,12 @@ private struct SettingsFactRow: View {
     private var shown: String { value ?? "—" }
 
     var body: some View {
-        ZStack(alignment: .trailing) {
-            CYListRow(title, trailing: .value(shown), card: true) {
-                CYRowIcon(systemImage: systemImage)
-            }
-            .accessibilityHidden(true)
+        LabeledContent {
             labeledValue
-                .padding(.trailing, CYSpacing.lg)
+        } label: {
+            Label(title, systemImage: systemImage).environment(\.settingsTileTint, SettingsTint.blue)
         }
-        .listRowBackground(Color.clear)
-        .listRowSeparator(.hidden)
+        .accessibilityElement(children: .combine)
     }
 
     @ViewBuilder private var labeledValue: some View {

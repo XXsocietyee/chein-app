@@ -1,0 +1,18 @@
+# Board receipts
+
+- S1 [x] 281346a89. Wire rows 1-14 rebased. PRs 990-1003. Build not re-read for those branches.
+- S4 [x] 281346a89. Build PASS, 143 warnings, 0 errors. Test action_required, 0 failures, 2 GLTFKit2 errors.
+- wire17 [x] dc851f082. PR 1004. Invite detail reads CooperationInviteDetailPage.project. Not merged.
+- wire15 [x] 4c4fabd74. PR 1007. Join requests read ClubJoinRequestsPageReady.pendingCountText. Not merged.
+- wire24 [x] ef96b6633. PR 1006. Aftercare list reads MerchantAftercareListPage.read. Not merged.
+- wire28 [x] 854005d19. PR 1008. Coop center reads MerchantCoopCenterPage.project. Not merged.
+- wire16 sent back. PR 1005. A nil notify capability currently defaults to canRead true.
+- wire27 [x] 4f8d35149. PR 1009. City-node hub reads MerchantCityNodeHubPage.project. Not merged.
+- wire20 [x] 00435acf7. PR 1010. Crop page reads CropPageModel.facts. Not merged.
+- wire18 [x] 1dde0ac7b. PR 1011. Coop list reads CoopListPage.project. Not merged.
+- wire26 [x] 4120e4adf. PR 1012. City-node create reads MerchantCityNodeCreatePage.project. Not merged.
+- wire22 sent back. PR 1013. Member home passes nil for every count, so a literal 0 becomes an em dash.
+- wire25 [x] 9b79c45a0. PR 1014. Onboarding reads MerchantOnboardingPage.project. Not merged.
+- wire21 [x] 14e2cfbda. PR 1016. Deregister reads DeregisterIndexPageModel.page. Not merged.
+- wire19 [x] f1868e9dc. PR 1015. Nearby page total reads NearbyMerchantPage.resolve. Distance line restored. Not merged.
+- wire23 [x] 3236cb774. PR 1017. Aftercare detail reads the refund amount. A missing amount is an em dash. Not merged.

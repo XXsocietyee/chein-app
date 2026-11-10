@@ -89,6 +89,13 @@ struct IMInboxRow: View {
             CYIMCoverArt(seed: "\(conversation.id)", systemImage: symbol, symbolSize: avatarSize * 0.4)
                 .frame(width: typeSize.isAccessibilitySize ? 44 : avatarSize, height: typeSize.isAccessibilitySize ? 44 : avatarSize)
                 .clipShape(Circle())
+                .overlay(alignment: .topTrailing) {
+                    // Unread dot on the avatar; the count badge stays on the preview line.
+                    if (conversation.unread ?? 0) > 0 && conversation.muted != true {
+                        Circle().fill(CYChat.sent).frame(width: 12, height: 12)
+                            .overlay(Circle().strokeBorder(CYColor.bgPage, lineWidth: 2)).offset(x: 2, y: -2)
+                    }
+                }
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 if typeSize.isAccessibilitySize {

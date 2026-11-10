@@ -80,8 +80,13 @@ private struct MessagingConversationListView: View {
                             }
                         }
                     } else {
-                        Section {
-                            ForEach(visible) { conversation in conversationRow(conversation) }
+                        // Day groups (today / yesterday / earlier), newest first as the server orders them.
+                        ForEach(daySections(visible), id: \.id) { section in
+                            Section {
+                                ForEach(section.rows) { conversation in conversationRow(conversation) }
+                            } header: {
+                                Text(verbatim: section.title).font(CYTypography.meta.weight(.semibold)).textCase(nil)
+                            }
                         }
                     }
                     if displayLimit < rows.count {
@@ -166,6 +171,22 @@ private struct MessagingConversationListView: View {
             rowActions(for: conversation)
         }
         .contextMenu { rowActions(for: conversation) }
+    }
+    private struct DaySection { let id: Int; let title: String; let rows: [MessagingConversation] }
+    private func daySections(_ rows: [MessagingConversation]) -> [DaySection] {
+        var calendar = Calendar(identifier: .gregorian); calendar.timeZone = IMInboxTime.chinaZone
+        let now = Date()
+        func bucket(_ row: MessagingConversation) -> Int {
+            guard let date = IMInboxTime.parse(row.lastMessageAt) else { return 2 }
+            if calendar.isDate(date, inSameDayAs: now) { return 0 }
+            if let y = calendar.date(byAdding: .day, value: -1, to: now), calendar.isDate(date, inSameDayAs: y) { return 1 }
+            return 2
+        }
+        let titles = [locale.pick("今天", "Today"), locale.pick("昨天", "Yesterday"), locale.pick("更早", "Earlier")]
+        return (0...2).compactMap { b in
+            let group = rows.filter { bucket($0) == b }
+            return group.isEmpty ? nil : DaySection(id: b, title: titles[b], rows: group)
+        }
     }
     private struct ChannelSection { let id: String; let title: LocalizedStringKey?; let rows: [MessagingConversation] }
     /// Presentation grouping only: theme, club, then team spaces in server order;
