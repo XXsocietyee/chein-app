@@ -196,3 +196,197 @@ public enum IMInboxTime {
         return String(format: "%02d:%02d", calendar.component(.hour, from: date), calendar.component(.minute, from: date))
     }
 }
+
+/// Page-ready projection for `subpackageB/pages/im/list`. It reads the conversations
+/// already returned by `MessagingReading.messagingConversations` (`api/im/conversations`).
+/// A missing grant stays hidden. This type does not open a route or draw a view.
+/// Unknown numbers are an em dash. A literal 0 stays 0.
+public enum IMListPageReady {
+    public static let unknownMark = "—"
+    public static let conversationsPath = "api/im/conversations"
+
+    public struct Grants: Equatable {
+        public var readAll: Bool
+        public var square: Bool
+        public var coopInviteStrip: Bool
+        public init(readAll: Bool = false, square: Bool = false, coopInviteStrip: Bool = false) {
+            self.readAll = readAll
+            self.square = square
+            self.coopInviteStrip = coopInviteStrip
+        }
+        public static let none = Grants()
+    }
+
+    public struct IMListEmptyProjection: Equatable {
+        public let showsSquare: Bool
+        public let showsCoopInviteStrip: Bool
+        public init(showsSquare: Bool, showsCoopInviteStrip: Bool) {
+            self.showsSquare = showsSquare
+            self.showsCoopInviteStrip = showsCoopInviteStrip
+        }
+    }
+
+    public struct IMListRowProjection: Equatable {
+        public let id: Int
+        public let kind: MessagingConversationKind
+        public let tab: IMInboxTab
+        /// Nil when the server sent 0. An em dash when unread was absent.
+        public let unreadBadge: String?
+        public let unreadExact: String
+        public let muted: Bool?
+        public init(id: Int, kind: MessagingConversationKind, tab: IMInboxTab, unreadBadge: String?, unreadExact: String, muted: Bool?) {
+            self.id = id
+            self.kind = kind
+            self.tab = tab
+            self.unreadBadge = unreadBadge
+            self.unreadExact = unreadExact
+            self.muted = muted
+        }
+    }
+
+    public struct IMListSnapshot: Equatable {
+        public let rows: [IMListRowProjection]
+        public let visibleTabs: [IMInboxTab]
+        public let directUnread: String
+        public let systemUnread: String
+        public let groupUnread: String
+        public let showsGroupTab: Bool
+        public let showsReadAll: Bool
+        public let showsSquare: Bool
+        public let showsCoopInviteStrip: Bool
+        public init(rows: [IMListRowProjection], visibleTabs: [IMInboxTab], directUnread: String, systemUnread: String, groupUnread: String, showsGroupTab: Bool, showsReadAll: Bool, showsSquare: Bool, showsCoopInviteStrip: Bool) {
+            self.rows = rows
+            self.visibleTabs = visibleTabs
+            self.directUnread = directUnread
+            self.systemUnread = systemUnread
+            self.groupUnread = groupUnread
+            self.showsGroupTab = showsGroupTab
+            self.showsReadAll = showsReadAll
+            self.showsSquare = showsSquare
+            self.showsCoopInviteStrip = showsCoopInviteStrip
+        }
+    }
+
+    public enum Phase: Equatable {
+        case loading
+        case empty(IMListEmptyProjection)
+        case error
+        case unknown
+        case ready(IMListSnapshot)
+    }
+
+    public static func rowUnreadExact(_ unread: Int?) -> String {
+        guard let unread, unread >= 0 else { return unknownMark }
+        return String(unread)
+    }
+
+    public static func rowUnreadBadge(_ unread: Int?) -> String? {
+        guard let unread else { return unknownMark }
+        guard unread > 0 else { return nil }
+        return unread > 99 ? "99+" : String(unread)
+    }
+
+    /// Muted rows are excluded. One absent unread on a counted row makes the total unknown.
+    public static func unreadTotalText(_ conversations: [MessagingConversation], tab: IMInboxTab) -> String {
+        let counts = conversations.filter { IMInboxTab.tab(for: $0) == tab && $0.muted != true }.map(\.unread)
+        if counts.contains(where: { $0 == nil }) { return unknownMark }
+        return String(counts.compactMap { $0 }.reduce(0, +))
+    }
+
+    public static func project(_ conversations: [MessagingConversation], grants: Grants = .none) -> Phase {
+        if conversations.isEmpty {
+            return .empty(IMListEmptyProjection(showsSquare: grants.square, showsCoopInviteStrip: grants.coopInviteStrip))
+        }
+        let summary = IMInboxSummary(conversations: conversations)
+        let rows = conversations.map { conversation in
+            IMListRowProjection(
+                id: conversation.id,
+                kind: conversation.kind,
+                tab: IMInboxTab.tab(for: conversation),
+                unreadBadge: rowUnreadBadge(conversation.unread),
+                unreadExact: rowUnreadExact(conversation.unread),
+                muted: conversation.muted)
+        }
+        return .ready(IMListSnapshot(
+            rows: rows,
+            visibleTabs: summary.visibleTabs,
+            directUnread: unreadTotalText(conversations, tab: .direct),
+            systemUnread: unreadTotalText(conversations, tab: .system),
+            groupUnread: unreadTotalText(conversations, tab: .group),
+            showsGroupTab: summary.visibleTabs.contains(.group),
+            showsReadAll: grants.readAll && summary.hasUnread,
+            showsSquare: false,
+            showsCoopInviteStrip: grants.coopInviteStrip))
+    }
+
+    public static func countText(for phase: Phase) -> String {
+        switch phase {
+        case .ready(let snapshot): return String(snapshot.rows.count)
+        case .empty: return "0"
+        case .loading, .error, .unknown: return unknownMark
+        }
+    }
+
+    public static func unreadText(for phase: Phase, tab: IMInboxTab) -> String {
+        switch phase {
+        case .ready(let snapshot):
+            switch tab {
+            case .direct: return snapshot.directUnread
+            case .system: return snapshot.systemUnread
+            case .group: return snapshot.groupUnread
+            }
+        case .empty: return "0"
+        case .loading, .error, .unknown: return unknownMark
+        }
+    }
+}
+
+/// Applies one existing conversations read. Keeps a loaded snapshot when a later
+/// read fails. An unconfigured or signed-out reader stays unknown and is not called.
+public struct IMListPageCoordinator: Equatable {
+    public private(set) var phase: IMListPageReady.Phase
+    public var grants: IMListPageReady.Grants
+    public init(grants: IMListPageReady.Grants = .none) {
+        self.grants = grants
+        phase = .loading
+    }
+    public var hasSnapshot: Bool {
+        switch phase {
+        case .ready, .empty: return true
+        case .loading, .error, .unknown: return false
+        }
+    }
+    @MainActor
+    public mutating func reload(using reader: any MessagingReading) async {
+        let keep = hasSnapshot
+        if !keep { phase = .loading }
+        guard reader.isConfigured, reader.identity != nil else {
+            if !keep { phase = .unknown }
+            return
+        }
+        do {
+            phase = IMListPageReady.project(try await reader.messagingConversations(), grants: grants)
+        } catch is CancellationError {
+            if !keep { phase = .unknown }
+        } catch {
+            if !keep { phase = .error }
+        }
+    }
+}
+
+#if DEBUG
+/// Synthetic conversations for the message-center list. No host, credential, or personal record.
+public enum IMListFixtureData {
+    public static let direct = #"{"conversationId":901,"type":1,"unread":3,"muted":0,"counterparty":{"nickname":"Fixture direct"}}"#
+    public static let system = #"{"conversationId":902,"type":2,"unread":0,"muted":0}"#
+    public static let merchant = #"{"conversationId":903,"type":3,"unread":2,"muted":0,"counterparty":{"nickname":"Fixture merchant"}}"#
+    public static let group = #"{"conversationId":904,"type":4,"unread":1,"muted":1}"#
+    public static let unknownKind = #"{"conversationId":905,"type":9,"unread":4,"muted":0}"#
+    public static let unknownUnread = #"{"conversationId":906,"type":1,"muted":0}"#
+    public static let list = "[\(direct),\(system),\(merchant),\(group),\(unknownKind),\(unknownUnread)]"
+    public static let empty = "[]"
+    public static func conversations(_ json: String) throws -> [MessagingConversation] {
+        try JSONDecoder().decode([MessagingConversation].self, from: Data(json.utf8))
+    }
+}
+#endif

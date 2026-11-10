@@ -171,11 +171,21 @@ private struct ProfileComplaintPresentationKey: Hashable {
                     }
                 }.accessibilityIdentifier("profile.complaint.kind")
             }
-            Section("profile.complaint.reason") {
+            Section {
                 TextEditor(text: Binding(get: { model.draft.reason }, set: { value in model.change { $0.reason = value } }))
                     .frame(minHeight: 140).focused($focused, equals: .reason)
+                    .scrollContentBackground(.hidden)
                     .accessibilityLabel(Text("profile.complaint.reason"))
                     .accessibilityIdentifier("profile.complaint.reason")
+            } header: {
+                Text("profile.complaint.reason")
+            } footer: {
+                // Counter mirrors the 500 UTF-16 unit rule enforced by the draft validation.
+                let used = model.draft.reason.utf16.count
+                Text(verbatim: "\(used)/500").monospacedDigit()
+                    .foregroundStyle(used > 500 ? CYColor.dangerText : CYColor.textSecondary)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .accessibilityIdentifier("profile.complaint.reasonCount")
             }
             Section("profile.complaint.contact") {
                 TextField("profile.complaint.optional", text: Binding(get: { model.draft.contact },

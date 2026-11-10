@@ -145,12 +145,62 @@ public struct ClubBadgeManagementRoute {
     }
 }
 
+/// A server literal, including 0, stays a decimal string. Nil and UNKNOWN stay an em dash, never a guessed 0.
+public enum ClubBadgeCountText {
+    public static let unknown = "—"
+    public static func literal(_ value: Int?) -> String {
+        guard let value, value >= 0 else { return unknown }
+        return String(value)
+    }
+    public static func literal(_ value: Int64?) -> String {
+        guard let value, value >= 0 else { return unknown }
+        return String(value)
+    }
+}
+
+/// Accessibility identifiers for pages/club/badges/index. The host already uses `entry`.
+/// The remaining identifiers are the page contract; the view file is not changed here.
+public enum ClubBadgePageAccessibility {
+    public static let entry = "club.badges.entry"
+    public static let loading = "club.badges.loading"
+    public static let empty = "club.badges.empty"
+    public static let error = "club.badges.error"
+    public static let unknown = "club.badges.unknown"
+    public static let ready = "club.badges.ready"
+    public static let notAvailable = "club.badges.notAvailable"
+    public static let retry = "club.badges.retry"
+    public static let refresh = "club.badges.refresh"
+    public static let create = "club.badges.create"
+    public static let grant = "club.badges.grant"
+    public static let ownerOnly = "club.badges.ownerOnly"
+    public static let membersLoading = "club.badges.members.loading"
+    public static let membersEmpty = "club.badges.members.empty"
+    public static let membersError = "club.badges.members.error"
+    public static let catalog: [String: String] = [
+        "entry": entry, "loading": loading, "empty": empty, "error": error, "unknown": unknown,
+        "ready": ready, "notAvailable": notAvailable, "retry": retry, "refresh": refresh,
+        "create": create, "grant": grant, "ownerOnly": ownerOnly,
+        "membersLoading": membersLoading, "membersEmpty": membersEmpty, "membersError": membersError
+    ]
+}
+
 public struct ClubBadgeOriginalReceipt: Codable, Equatable, Identifiable {
     public var id: String { requestId }
     public let protocolVersion: Int, clubId: Int, actorMemberId: Int
     public let requestId: String, operation: String, sourceSHA256: String, state: String
     public let badgeId: Int?, badgeCode: String?, memberId: Int?, appliedAt: Int64?, auditId: Int?
     public var isTerminal: Bool { ["CREATED", "GRANTED", "ALREADY_GRANTED"].contains(state) }
+    /// UNKNOWN stays an em dash even when a zero was stored beside it. A confirmed literal, including 0, stays a number.
+    public var badgeIDText: String { Self.countText(state: state, value: badgeId) }
+    public var memberIDText: String { Self.countText(state: state, value: memberId) }
+    public var auditIDText: String { Self.countText(state: state, value: auditId) }
+    public var appliedAtText: String { Self.countText(state: state, value: appliedAt) }
+    private static func countText(state: String, value: Int?) -> String {
+        state == "UNKNOWN" ? ClubBadgeCountText.unknown : ClubBadgeCountText.literal(value)
+    }
+    private static func countText(state: String, value: Int64?) -> String {
+        state == "UNKNOWN" ? ClubBadgeCountText.unknown : ClubBadgeCountText.literal(value)
+    }
     public var message: String {
         switch state {
         case "CREATED": return "勋章已创建。"
@@ -176,3 +226,43 @@ public struct ClubBadgeOriginalReceipt: Codable, Equatable, Identifiable {
         }
     }
 }
+
+#if DEBUG
+/// Offline bytes for pages/club/badges/index. No URL, host, token, transport, or production grant.
+/// Not installed on the player-first launch screen.
+public enum ClubBadgeManagementFixtureData {
+    public static let clubID = 7
+    public static let badgeCode = "CLUB7_FIXTURE"
+    public static let requestID = "11111111-1111-4111-8111-111111111111"
+    public static let sourceSHA256 = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    public static func readyList() throws -> Data {
+        try envelope(data: [[
+            "badgeCode": badgeCode, "badgeName": "Fixture trail badge",
+            "badgeDesc": "Synthetic club badge", "clubId": clubID
+        ] as [String: Any]] as [Any])
+    }
+    public static func emptyList() throws -> Data { try envelope(data: [] as [Any]) }
+    public static func errorEnvelope() throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["code": 500, "msg": "fixture read failed"], options: [.sortedKeys])
+    }
+    public static func unknownReceipt(actorMemberId: Int) throws -> Data {
+        let value: [String: Any] = [
+            "protocolVersion": 1, "clubId": clubID, "actorMemberId": actorMemberId,
+            "requestId": requestID, "operation": "CREATE", "sourceSHA256": sourceSHA256,
+            "state": "UNKNOWN", "badgeId": NSNull(), "badgeCode": NSNull(), "memberId": NSNull(),
+            "appliedAt": NSNull(), "auditId": NSNull()
+        ]
+        return try JSONSerialization.data(withJSONObject: value, options: [.sortedKeys])
+    }
+    public static func records(from envelope: Data) throws -> [ClubBadgeRecord] {
+        guard let object = try JSONSerialization.jsonObject(with: envelope) as? [String: Any],
+              let rows = object["data"] as? [Any] else { throw ClubBadgeManagementFailure.invalid }
+        return try rows.map { row in
+            try JSONDecoder().decode(ClubBadgeRecord.self, from: JSONSerialization.data(withJSONObject: row))
+        }
+    }
+    private static func envelope(data: [Any]) throws -> Data {
+        try JSONSerialization.data(withJSONObject: ["code": 200, "data": data], options: [.sortedKeys])
+    }
+}
+#endif

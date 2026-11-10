@@ -1,0 +1,10 @@
+# pages/club/topic-detail/index — CB253
+Already complete on rc/20261108. Map status stays partial. This note records the existing Core wiring and stops.
+Contract already wired: `ClubGovernanceRead.topicOverview` → `api/topic/info-to-user`, `topicStats` → `api/club/crm/topic-manage-stats`. Both were already live. No route was invented and none was newly marked live. A missing `canViewVerify`, `canDirect`, or `canManageSessions` fact stays hidden.
+`ClubTopicDetailPort` already maps audit and session state, the verify gate, the primary plan, and structure text. Loading, empty sessions (`club.topic.noSessions`), and governance error keys already bind on the shared read. UNKNOWN verify counts render as an em dash (`—`). A literal 0 stays 0. A missing count is not stored as 0.
+The host console stays off the player-first entry. `ClubGovernanceHomeEntries` opens host status and the feed only. `showsMerchantChoice` and the money switches were left false. No US URL and no secret was added.
+Missing EN+zh-Hans keys: none. Requested status, primary, verify, merchant, terminal, and failure keys already have both locales. `club.topic.status.selfrun` is not in the catalog, and the status pill does not request it.
+Tests already present and unchanged: `Tests/CoreTests/Port1ClubTopicDetailTests.swift` (audit, cancelled session, verify gate, em dash versus literal 0, primary plan, structure). No test was deleted or weakened. Swift was not run. No Xcode Cloud result is claimed.
+Left: director sheets (unlock, roles, broadcast, incident, plan fallback) stay hidden. The primary footer is computed and not mounted. Overview links are not yet hidden by the capability flags. Masked phone, copy, and the three inline setting toggles stay out. `.endTopic` still does not send `cancellationEpoch`.
+View files, ui-strings JSON, `Localizable.xcstrings`, the xcodeproj, and `tools/current_ci_manifest.json` were not edited.
+Welcome, the player home, and the session root do not mount `.topicOverview`. The existing topics list inside the club governance workspace was left where it is.

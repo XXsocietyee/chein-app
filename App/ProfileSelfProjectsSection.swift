@@ -70,7 +70,7 @@ struct ProfileSelfProjectSelection: Identifiable, Hashable {
                         let today = ProfileSelfProjectCalendar.today()
                         let preview = ProfileSelfProjectsPreview(page: page, today: today)
                         if preview.rows.isEmpty && model.issue == nil && !model.isLoading {
-                            Text("profile.selfProjects.empty").accessibilityIdentifier("profile.selfProjects.empty")
+                            CYEmptyState(systemImage: "folder", "profile.selfProjects.empty", messageIdentifier: "profile.selfProjects.empty", kind: .projects).listRowBackground(Color.clear).listRowSeparator(.hidden)
                         }
                         if preview.sourceTruncated {
                             Text("profile.selfProjects.truncated").font(.caption)

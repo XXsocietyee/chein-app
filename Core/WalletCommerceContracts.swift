@@ -204,3 +204,74 @@ public struct WalletPointsTask: Decodable, Equatable, Identifiable {
     public let status: Int?
     public var isEarnTask: Bool { status == 1 && eventType != 14 }
 }
+
+/// Read-only phase for `subpackageA/pages/assetcenter/analysis/index`.
+/// The income table stays `api/user/balance/list` through `WalletCommerceService.ledger`.
+/// This type does not register a route, mark one live, or enable payment, payout, withdrawal, or virtual goods.
+/// Unknown money is an em dash. A known zero stays zero.
+public struct AssetCenterAnalysisPageModel: Equatable {
+    public enum Phase: String, Equatable {
+        case loading
+        case empty
+        case error
+        case unknown
+        case ready
+    }
+    public static let unknownMoney = "—"
+    public static let incomeListPath = "api/user/balance/list"
+    public let phase: Phase
+    public let moneyText: String
+
+    /// A phase with no slice. `.ready` fails closed so a missing slice cannot be shown as zero.
+    public init(_ phase: Phase) {
+        switch phase {
+        case .ready:
+            self.phase = .unknown
+            self.moneyText = Self.unknownMoney
+        case .loading, .empty, .error, .unknown:
+            self.phase = phase
+            self.moneyText = Self.unknownMoney
+        }
+    }
+
+    public init(rows: [WalletLedgerRow]) {
+        if rows.isEmpty {
+            self.phase = .empty
+            self.moneyText = Self.unknownMoney
+            return
+        }
+        var totals: [String: Decimal] = [:]
+        for row in rows {
+            guard let direction = row.changeType, direction == 1 || direction == 2,
+                  let amount = row.changeBalance, let code = Self.currencyCode(row.currency) else { continue }
+            var magnitude = amount.value < 0 ? -amount.value : amount.value
+            if var current = totals[code] {
+                var next = Decimal()
+                guard NSDecimalAdd(&next, &current, &magnitude, .plain) == .noError else { continue }
+                totals[code] = next
+            } else {
+                totals[code] = magnitude
+            }
+        }
+        guard totals.count == 1, let total = totals.values.first else {
+            self.phase = totals.isEmpty ? .unknown : .ready
+            self.moneyText = Self.unknownMoney
+            return
+        }
+        self.phase = .ready
+        self.moneyText = total == 0 ? "0" : NSDecimalNumber(decimal: total).stringValue
+    }
+
+    public static func moneyText(amount: WalletAmount?) -> String {
+        guard let amount else { return unknownMoney }
+        if amount.value == 0 { return "0" }
+        return NSDecimalNumber(decimal: amount.value).stringValue
+    }
+
+    private static func currencyCode(_ raw: String?) -> String? {
+        guard let value = raw?.trimmingCharacters(in: .whitespacesAndNewlines),
+              value.utf8.count == 3,
+              value.utf8.allSatisfy({ (65...90).contains($0) || (97...122).contains($0) }) else { return nil }
+        return value.uppercased()
+    }
+}

@@ -117,3 +117,172 @@ private final class OrganizerTransport: HTTPTransport, @unchecked Sendable {
         XCTAssertTrue(t.requests.isEmpty)
     }
 }
+
+final class OfficialOrganizerConsoleStateTests: XCTestCase {
+    private func knownCheck() -> OfficialOrganizerCheck {
+        OfficialOrganizerCheck(known: true, blockers: [], risks: [], risksKnown: true)
+    }
+
+    func testUnknownCountsStayAnEmDashAndZeroStaysZero() {
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.unknownMark, "—")
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.countText(known: false, count: 0), "—")
+        XCTAssertNotEqual(OfficialOrganizerConsoleSnapshot.countText(known: false, count: 0), "0")
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.countText(known: true, count: 0), "0")
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.countText(known: false, count: 3), "—")
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.statusText(nil), "—")
+        XCTAssertNotEqual(OfficialOrganizerConsoleSnapshot.statusText(nil), "0")
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.statusText(0), "0")
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.controlText(nil), "—")
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.controlText(.paused), "PAUSED")
+        XCTAssertFalse(OfficialOrganizerConsoleSnapshot.showsPlayerEntry)
+    }
+
+    func testDisabledCapabilityStaysHiddenOffThePlayerEntry() {
+        let event = OfficialOrganizerEventState(status: 2, control: .normal, title: "Synthetic")
+        let snap = OfficialOrganizerConsoleSnapshot.resolve(enabled: false, load: .allowed(knownCheck(), event))
+        XCTAssertEqual(snap.state, .hidden)
+        XCTAssertFalse(snap.showsPlayerEntry)
+        XCTAssertNil(snap.accessibilityIdentifier)
+        XCTAssertEqual(snap.statusText, "—")
+        XCTAssertEqual(snap.controlText, "—")
+        XCTAssertEqual(snap.blockerCountText, "—")
+        XCTAssertNotEqual(snap.statusText, "0")
+    }
+
+    func testLoadingEmptyErrorDeniedUnknownAndReady() {
+        let loading = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .loading)
+        XCTAssertEqual(loading.state, .loading)
+        XCTAssertEqual(loading.accessibilityIdentifier, "official.organizer.loading")
+        XCTAssertEqual(loading.statusText, "—")
+        XCTAssertFalse(loading.showsPlayerEntry)
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .idle).state, .loading)
+
+        let failed = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .failed)
+        XCTAssertEqual(failed.state, .error)
+        XCTAssertEqual(failed.accessibilityIdentifier, "official.organizer.error")
+        XCTAssertEqual(failed.statusText, "—")
+
+        let denied = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .denied)
+        XCTAssertEqual(denied.state, .denied)
+        XCTAssertEqual(denied.accessibilityIdentifier, "official.organizer.denied")
+        XCTAssertFalse(denied.showsPlayerEntry)
+
+        let empty = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(knownCheck(), nil))
+        XCTAssertEqual(empty.state, .empty)
+        XCTAssertEqual(empty.accessibilityIdentifier, "official.organizer.empty")
+        XCTAssertEqual(empty.statusText, "—")
+        XCTAssertEqual(empty.blockerCountText, "0")
+        XCTAssertEqual(empty.riskCountText, "0")
+        XCTAssertNotEqual(empty.statusText, "0")
+
+        let partial = OfficialOrganizerEventState(status: nil, control: .normal)
+        let unknown = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(knownCheck(), partial))
+        XCTAssertEqual(unknown.state, .unknown)
+        XCTAssertEqual(unknown.accessibilityIdentifier, "official.organizer.unknown")
+        XCTAssertEqual(unknown.statusText, "—")
+        XCTAssertEqual(unknown.controlText, "NORMAL")
+        XCTAssertNotEqual(unknown.statusText, "0")
+
+        let omitted = OfficialOrganizerCheck(known: false, blockers: [], risks: [])
+        let row = OfficialOrganizerEventState(status: 2, control: .normal)
+        let counts = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(omitted, row))
+        XCTAssertEqual(counts.state, .unknown)
+        XCTAssertEqual(counts.blockerCountText, "—")
+        XCTAssertEqual(counts.riskCountText, "—")
+        XCTAssertNotEqual(counts.blockerCountText, "0")
+        XCTAssertNotEqual(counts.riskCountText, "0")
+
+        let draft = OfficialOrganizerEventState(status: 0, control: .normal)
+        let ready = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(knownCheck(), draft))
+        XCTAssertEqual(ready.state, .ready)
+        XCTAssertEqual(ready.statusText, "0")
+        XCTAssertEqual(ready.controlText, "NORMAL")
+        XCTAssertEqual(ready.blockerCountText, "0")
+        XCTAssertEqual(ready.accessibilityIdentifier, "official.organizer.content")
+        XCTAssertFalse(ready.showsPlayerEntry)
+    }
+}
+
+#if DEBUG
+@MainActor final class OfficialOrganizerConsoleFixtureTests: XCTestCase {
+    private func access(_ transport: OrganizerTransport, enabled: Bool = true) throws -> OfficialOrganizerHTTPAccess {
+        OfficialOrganizerHTTPAccess(configuration: try APIConfiguration(baseURL: URL(string: "https://example.test/prod-api")!),
+                                    transport: transport, enabled: { enabled }, session: { (7, "synthetic-token") })
+    }
+
+    func testFixtureBytesUseTheExistingPublishCheckAndDoNotOpenAPlayerEntry() async throws {
+        let transport = OrganizerTransport()
+        transport.replies = [(String(decoding: OfficialOrganizerConsoleFixtureData.omittedCounts, as: UTF8.self), 200)]
+        let reader = try access(transport)
+        guard case .allowed(let omitted) = try await reader.publishCheck(eventID: 5) else { return XCTFail() }
+        XCTAssertFalse(omitted.known)
+        XCTAssertFalse(omitted.risksKnown)
+        XCTAssertEqual(transport.requests[0].url?.path, "/prod-api/api/official/v2/events/5/publish-check")
+        XCTAssertEqual(transport.requests[0].httpMethod, "GET")
+        let empty = OfficialOrganizerConsoleSnapshot.resolve(enabled: reader.enabled, load: .allowed(omitted, nil))
+        XCTAssertEqual(empty.state, .empty)
+        XCTAssertEqual(empty.blockerCountText, "—")
+        XCTAssertEqual(empty.riskCountText, "—")
+        XCTAssertFalse(empty.showsPlayerEntry)
+
+        transport.replies = [(String(decoding: OfficialOrganizerConsoleFixtureData.allowedCheck, as: UTF8.self), 200),
+                             (String(decoding: OfficialOrganizerConsoleFixtureData.draftEvent, as: UTF8.self), 200)]
+        guard case .allowed(let draftCheck) = try await reader.publishCheck(eventID: 5) else { return XCTFail() }
+        XCTAssertTrue(draftCheck.known)
+        XCTAssertTrue(draftCheck.risksKnown)
+        XCTAssertEqual(draftCheck.blockers.count, 0)
+        let draft = try await reader.eventState(eventID: 5)
+        XCTAssertEqual(draft?.status, 0)
+        XCTAssertEqual(draft?.control, .normal)
+        let ready = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(draftCheck, draft))
+        XCTAssertEqual(ready.state, .ready)
+        XCTAssertEqual(ready.statusText, "0")
+        XCTAssertEqual(ready.controlText, "NORMAL")
+        XCTAssertEqual(transport.requests[2].url?.path, "/prod-api/api/official/events/5")
+
+        transport.replies = [(String(decoding: OfficialOrganizerConsoleFixtureData.allowedCheck, as: UTF8.self), 200),
+                             (String(decoding: OfficialOrganizerConsoleFixtureData.readyEvent, as: UTF8.self), 200)]
+        guard case .allowed(let liveCheck) = try await reader.publishCheck(eventID: 5) else { return XCTFail() }
+        let live = try await reader.eventState(eventID: 5)
+        XCTAssertEqual(live?.status, 2)
+        let liveSnap = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(liveCheck, live))
+        XCTAssertEqual(liveSnap.state, .ready)
+        XCTAssertEqual(liveSnap.statusText, "2")
+        XCTAssertFalse(liveSnap.showsPlayerEntry)
+
+        transport.replies = [(#"{"code":404}"#, 200),
+                             (String(decoding: OfficialOrganizerConsoleFixtureData.emptyPublished, as: UTF8.self), 200)]
+        let missing = try await reader.eventState(eventID: 5)
+        XCTAssertNil(missing)
+        XCTAssertTrue(transport.requests.contains { $0.url?.path == "/prod-api/api/official/my-published" })
+        XCTAssertFalse(transport.requests.contains { $0.url?.path == "/prod-api/api/official/v2/events" })
+        let missingSnap = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(liveCheck, missing))
+        XCTAssertEqual(missingSnap.state, .empty)
+        XCTAssertEqual(missingSnap.statusText, "—")
+        XCTAssertNotEqual(missingSnap.statusText, "0")
+
+        transport.replies = [(String(decoding: OfficialOrganizerConsoleFixtureData.unknownEvent, as: UTF8.self), 200)]
+        let unknownEvent = try await reader.eventState(eventID: 5)
+        XCTAssertNil(unknownEvent?.status)
+        XCTAssertNil(unknownEvent?.control)
+        let unknown = OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .allowed(draftCheck, unknownEvent))
+        XCTAssertEqual(unknown.state, .unknown)
+        XCTAssertEqual(unknown.statusText, "—")
+        XCTAssertNotEqual(unknown.statusText, "0")
+
+        transport.replies = [(String(decoding: OfficialOrganizerConsoleFixtureData.denied, as: UTF8.self), 200)]
+        let denied = try await reader.publishCheck(eventID: 5)
+        XCTAssertEqual(denied, .denied("synthetic host gate"))
+        let hidden = OfficialOrganizerConsoleSnapshot.resolve(enabled: false, load: .denied)
+        XCTAssertEqual(hidden.state, .hidden)
+        XCTAssertNil(hidden.accessibilityIdentifier)
+        XCTAssertFalse(hidden.showsPlayerEntry)
+
+        transport.replies = [("{}", 503)]
+        do { _ = try await reader.publishCheck(eventID: 5); XCTFail() }
+        catch { XCTAssertEqual(error as? OfficialOrganizerFailure, .network) }
+        XCTAssertEqual(OfficialOrganizerConsoleSnapshot.resolve(enabled: true, load: .failed).state, .error)
+        XCTAssertEqual(transport.requests.count, 10)
+    }
+}
+#endif

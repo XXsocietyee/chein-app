@@ -176,4 +176,60 @@ public enum TeamPagePresentation {
         if hasDetail { return page == .invitation ? "team.page.checkingInvite" : "team.loading" }
         return page == .invitation ? "team.page.readingInvite" : "team.page.loadingDetail"
     }
+
+    /// Shown for a member count the server omitted. Never a hyphen, and never 0.
+    public static let unknownMetricDisplay = "—"
+
+    /// Missing joined count or capacity stays unknown. The glyph is an em dash, never a substituted 0.
+    public static let unknownCountText = "—"
+
+    /// `joined / max` from the server. A missing or negative side is an em dash.
+    /// A literal zero stays "0". This does not invent a count from the roster.
+    public static func memberCountText(joined: Int?, maximum: Int?) -> String {
+        guard let joined, let maximum, joined >= 0, maximum > 0 else { return unknownCountText }
+        return "\(joined) / \(maximum)"
+    }
+
+    public static func memberCountText(_ team: OwnedTeam) -> String {
+        memberCountText(joined: team.joinedCount, maximum: team.maxMembers)
+    }
+
+    /// Detail-page phase from facts `TeamCoordinator` already holds.
+    /// A refresh that still has a snapshot keeps that snapshot's phase.
+    /// A failed read with no snapshot is `.error`. No snapshot and no failure is `.empty`.
+    /// An omitted member count is `.unknown` even when the roster is empty.
+    /// Writes stay on `TeamAction.isAllowed`; this phase does not open a route.
+    public static func detailPhase(loading: Bool, detail: TeamDetail?, readFailed: Bool) -> TeamDetailPagePhase {
+        if loading, detail == nil { return .loading }
+        guard let detail else { return readFailed ? .error : .empty }
+        if memberCountText(joined: detail.team.joinedCount, maximum: detail.team.maxMembers) == unknownMetricDisplay {
+            return .unknown
+        }
+        if detail.members.isEmpty { return .empty }
+        if readFailed { return .error }
+        return .ready
+    }
+
+    /// Empty roster is a section fact. It does not rewrite a missing count as zero.
+    public static func rosterIsEmpty(_ detail: TeamDetail) -> Bool { detail.members.isEmpty }
+
+    /// Invitation shell. A retained snapshot stays ready while a refresh is in flight.
+    /// Unknown member numbers stay on `.ready` and render through `memberCountText`.
+    public static func invitationReadout(loading: Bool, detail: TeamDetail?, messageKey: String?, failure: TeamReadFailureKind?, legacyTeamID: Bool = false) -> TeamJoinPageReadout {
+        if loading, detail == nil { return .loading }
+        if let state = blockingState(kind: .invitation, messageKey: messageKey, hasDetail: detail != nil, legacyTeamID: legacyTeamID, failure: failure) {
+            return .error(state)
+        }
+        return detail == nil ? .empty : .ready
+    }
+}
+
+/// Body state for `pages/team/detail`. Unknown is the em dash above, not a zero.
+public enum TeamDetailPagePhase: Equatable, Sendable {
+    case loading, empty, error, unknown, ready
+}
+
+/// `pages/team/join/index` shell. Numeric unknown is not a shell case; see `unknownCountText`.
+public enum TeamJoinPageReadout: Equatable, Sendable {
+    case loading, empty, error(TeamPageState), ready
 }

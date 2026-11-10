@@ -24,6 +24,9 @@ import XCTest
         XCTAssertFalse(detail.members[0].hasCompleted(taskID: 30))
         XCTAssertEqual(detail.completedCount, 2)
         XCTAssertEqual(detail.summaryText, "全队已完成 2 / 3 个节点")
+        XCTAssertEqual(detail.completedCountText, "2")
+        XCTAssertEqual(detail.progressText, "2 / 3")
+        XCTAssertEqual(TeamOrientBoardRules.phase(loading: false, failed: false, detail: detail), .ready)
     }
 
     func testDecodeRankingAndMyTeamFlag() {
@@ -39,5 +42,45 @@ import XCTest
         XCTAssertTrue(rows[0].isMyTeam(currentTeamID: 88))
         XCTAssertFalse(rows[1].isMyTeam(currentTeamID: 88))
         XCTAssertEqual(rows[1].durationText, "18m 00s")
+        XCTAssertEqual(rows[0].rankText, "1")
+        XCTAssertEqual(rows[0].progressText, "5 / 5")
+        XCTAssertEqual(rows[1].progressText, "3 / 5")
+    }
+
+    func testOmittedCountsAreEmDashAndLiteralZeroStaysZero() throws {
+        let omittedBoard = TeamOrientBoardRules.decodeDetail([
+            "tasks": [["id": 10, "name": "外滩钟楼"]],
+            "members": [["memberId": 101, "nickname": "阿明", "completedTaskIds": [10]]]
+        ])
+        let board = try XCTUnwrap(omittedBoard)
+        XCTAssertEqual(board.completedCountText, "—")
+        XCTAssertEqual(board.progressText, "—")
+        XCTAssertNotEqual(board.progressText, "0 / 1")
+        XCTAssertNotEqual(board.progressText, "1 / 1")
+        XCTAssertEqual(TeamOrientBoardRules.phase(loading: false, failed: false, detail: board), .unknown)
+        XCTAssertEqual(TeamOrientBoardRules.phase(loading: true, failed: false, detail: nil), .loading)
+        XCTAssertEqual(TeamOrientBoardRules.phase(loading: false, failed: false, detail: nil), .empty)
+        XCTAssertEqual(TeamOrientBoardRules.phase(loading: false, failed: true, detail: nil), .error)
+        let empty = TeamOrientBoardDetail(tasks: [], members: [], completedCount: 0)
+        XCTAssertEqual(TeamOrientBoardRules.phase(loading: false, failed: false, detail: empty), .empty)
+        XCTAssertEqual(empty.summaryText, "当前场次暂无定向任务")
+
+        let rows = TeamOrientBoardRules.decodeRanking([["teamId": 7, "teamName": "Synthetic"]])
+        XCTAssertEqual(rows.count, 1)
+        XCTAssertEqual(rows[0].rankText, "—")
+        XCTAssertEqual(rows[0].progressText, "—")
+        XCTAssertNotEqual(rows[0].progressText, "0 / 0")
+        XCTAssertNotEqual(rows[0].rankText, "0")
+        XCTAssertNotEqual(rows[0].rankText, "1")
+        let zero = TeamOrientBoardRules.decodeRanking([[
+            "rank": 0, "teamId": 7, "teamName": "Synthetic", "completedCount": 0, "totalTasks": 5
+        ]])
+        XCTAssertEqual(zero[0].rankText, "0")
+        XCTAssertEqual(zero[0].progressText, "0 / 5")
+        let negative = TeamOrientBoardRules.decodeRanking([[
+            "rank": -2, "teamId": 7, "teamName": "Synthetic", "completedCount": -1, "totalTasks": 5
+        ]])
+        XCTAssertEqual(negative[0].rankText, "—")
+        XCTAssertEqual(negative[0].progressText, "—")
     }
 }

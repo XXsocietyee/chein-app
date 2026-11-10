@@ -202,3 +202,383 @@ public struct ClubOpsFailureCopy: Equatable {
         }
     }
 }
+
+/// Page model for pages/club/customer-detail/index.
+/// Uses the existing `ClubGovernanceRead.customer` contract (`api/club/crm/customers/detail`).
+/// A missing directory capability stays hidden. This type does not register a route and is not a player-first entry.
+public struct ClubCustomerDetailCapability: Equatable {
+    public let granted: Bool
+    public init(granted: Bool) { self.granted = granted }
+    public static let absent = Self(granted: false)
+    public static let granted = Self(granted: true)
+    /// Same local preflight as the customer read. Event-only grants do not count.
+    public init(permissions: ClubGovernancePermissions?, scope: ClubGovernanceScope) {
+        granted = permissions?.allows(ClubGovernanceRead.customer.permission, scope: scope) == true
+    }
+}
+
+/// A count the server actually sent. Unknown is never stored as 0.
+public enum ClubCustomerDetailCount: Equatable {
+    case known(Int)
+    case unknown
+    public static let unknownDisplay = "—"
+    /// The server literal, including 0. Unknown is nil.
+    public var literal: Int? {
+        if case .known(let number) = self { return number }
+        return nil
+    }
+    /// Unknown, null, a numeric string, and a non-integer are an em dash, never 0.
+    public var displayText: String {
+        switch self {
+        case .known(let number): return String(number)
+        case .unknown: return Self.unknownDisplay
+        }
+    }
+    public static func parse(_ value: ClubGovernanceValue) -> Self {
+        if case .integer(let number) = value, number >= 0 { return .known(number) }
+        return .unknown
+    }
+}
+
+/// Null and "" stay withheld (the existing detail contract). UNKNOWN and a numeric string are an em dash.
+public enum ClubCustomerDetailPaidAmount: Equatable {
+    case withheld
+    case unknown
+    case amount(String)
+    public var displayText: String? {
+        switch self {
+        case .withheld: return nil
+        case .unknown: return ClubCustomerDetailCount.unknownDisplay
+        case .amount(let text): return text
+        }
+    }
+    public static func parse(_ value: ClubGovernanceValue) -> Self {
+        switch value {
+        case .null: return .withheld
+        case .string(let raw): return raw.isEmpty ? .withheld : .unknown
+        case .integer(let number):
+            guard number >= 0 else { return .unknown }
+            return .amount(ClubOpsCustomerDetailPresentation.money(Double(number)))
+        case .decimal(let number):
+            guard number.isFinite, number >= 0 else { return .unknown }
+            return .amount(ClubOpsCustomerDetailPresentation.money(number))
+        case .bool, .array, .object: return .unknown
+        }
+    }
+    static func from(detail: ClubOpsCustomerDetailPresentation) -> Self {
+        if let text = detail.paidAmountText { return .amount(text) }
+        return .withheld
+    }
+}
+
+public struct ClubCustomerDetailMetrics: Equatable {
+    public let arrived: ClubCustomerDetailCount
+    public let pending: ClubCustomerDetailCount
+    public let refunded: ClubCustomerDetailCount
+    public var containsUnknown: Bool { arrived.literal == nil || pending.literal == nil || refunded.literal == nil }
+    public init(arrived: ClubCustomerDetailCount, pending: ClubCustomerDetailCount, refunded: ClubCustomerDetailCount) {
+        self.arrived = arrived; self.pending = pending; self.refunded = refunded
+    }
+    init(detail: ClubOpsCustomerDetailPresentation) {
+        self.init(arrived: .known(detail.arrivedCount), pending: .known(detail.pendingCount), refunded: .known(detail.refundedCount))
+    }
+}
+
+public struct ClubCustomerDetailPage: Equatable {
+    public enum Phase: Equatable {
+        case loading
+        case empty
+        case error(ClubGovernanceFailure)
+        case unknown
+        case ready
+    }
+    public static let unknownDisplay = ClubCustomerDetailCount.unknownDisplay
+    /// Existing backend read. Not a new route.
+    public static let readOperation = ClubGovernanceRead.customer
+    public static let includedInPlayerFirstEntry = false
+    public static let routeMarkedLive = false
+    public enum Copy {
+        public static let loading = "club.customerDetail.page.loading"
+        public static let empty = "club.customerDetail.page.empty"
+        public static let error = "clubOps.customer.failed"
+        public static let unknown = "club.customerDetail.page.unknown"
+        public static let retry = "clubOps.customers.retry"
+        public static let forbidden = "clubOps.customers.forbidden"
+        public static let forbiddenDetail = "clubOps.customers.forbiddenDetail"
+        public static let recordsEmpty = "clubOps.customer.recordsEmpty"
+        public static let amountHidden = "clubOps.customer.amountHidden"
+    }
+    public enum Accessibility {
+        public static let loading = "club.customerDetail.page.loading"
+        public static let empty = "club.customerDetail.page.empty"
+        public static let error = "club.customerDetail.page.error"
+        public static let unknown = "club.customerDetail.page.unknown"
+        public static let arrived = "club.customerDetail.metric.arrived"
+        public static let pending = "club.customerDetail.metric.pending"
+        public static let refunded = "club.customerDetail.metric.refunded"
+        public static let paidAmount = "clubOps.customer.paidAmount"
+    }
+    public let clientCapabilityPresent: Bool
+    public let serverFactPresent: Bool
+    public let phase: Phase?
+    public let metrics: ClubCustomerDetailMetrics?
+    public let paidAmount: ClubCustomerDetailPaidAmount?
+    public let recordCount: Int?
+    public let hasTagsOrRemark: Bool
+    public let displayName: String?
+    /// Set only for a revealed empty or ready body. Hidden and unknown pages do not carry it.
+    public let detail: ClubOpsCustomerDetailPresentation?
+    public var hidden: Bool { !(clientCapabilityPresent && serverFactPresent) }
+
+    public static func loading(clientCapabilityPresent: Bool) -> Self {
+        Self(clientCapabilityPresent: clientCapabilityPresent, serverFactPresent: false, phase: .loading,
+             metrics: nil, paidAmount: nil, recordCount: nil, hasTagsOrRemark: false, displayName: nil, detail: nil)
+    }
+
+    /// Projects one returned customer document. Does not invent counts.
+    public static func project(value: ClubGovernanceValue, memberID: Int?, capability: ClubCustomerDetailCapability) -> Self {
+        guard capability.granted else { return .loading(clientCapabilityPresent: false) }
+        guard let memberID, memberID > 0 else {
+            return revealed(phase: .error(.invalidRequest))
+        }
+        if let detail = try? ClubOpsCustomerDetailPresentation(value: value, memberID: memberID) {
+            let bodyEmpty = detail.records.isEmpty && detail.tags.isEmpty && detail.remark == nil
+            return revealed(phase: bodyEmpty ? .empty : .ready, metrics: .init(detail: detail),
+                            paidAmount: .from(detail: detail), recordCount: detail.records.count,
+                            hasTagsOrRemark: !detail.tags.isEmpty || detail.remark != nil,
+                            displayName: detail.displayName, detail: detail)
+        }
+        let summary = value["summary"]
+        guard summary.object != nil, ClubCustomerHistoryTopicRoute.positiveID(summary["memberId"]) == memberID else {
+            return revealed(phase: .error(.malformed))
+        }
+        let metrics = ClubCustomerDetailMetrics(arrived: .parse(summary["arrivedCount"]), pending: .parse(summary["pendingCount"]), refunded: .parse(summary["refundedCount"]))
+        let paid = ClubCustomerDetailPaidAmount.parse(summary["paidAmount"])
+        if metrics.containsUnknown || paid == .unknown {
+            return revealed(phase: .unknown, metrics: metrics, paidAmount: paid, displayName: ClubOpsCustomerText.trimmed(summary["displayName"]))
+        }
+        return revealed(phase: .error(.malformed))
+    }
+
+    public init(snapshot: ClubGovernanceSnapshot) {
+        let capability = ClubCustomerDetailCapability(permissions: snapshot.permissions, scope: snapshot.scope)
+        guard snapshot.operation == .customer, capability.granted else {
+            self = .loading(clientCapabilityPresent: false)
+            return
+        }
+        self = .project(value: snapshot.value, memberID: snapshot.scope.memberID, capability: capability)
+    }
+
+    /// Reads the existing customer detail. A missing capability does not call the reader.
+    @MainActor public static func load(access: any ClubGovernanceAccess, scope: ClubGovernanceScope, capability: ClubCustomerDetailCapability) async -> Self {
+        guard capability.granted else { return .loading(clientCapabilityPresent: false) }
+        do {
+            let snapshot = try await access.read(readOperation, scope: scope, options: [:])
+            return Self(snapshot: snapshot)
+        } catch let failure as ClubGovernanceFailure {
+            if failure == .forbidden || failure == .signedOut { return .loading(clientCapabilityPresent: false) }
+            return revealed(phase: .error(failure))
+        } catch is CancellationError {
+            return .loading(clientCapabilityPresent: true)
+        } catch {
+            return revealed(phase: .error(.unknown(message: nil)))
+        }
+    }
+
+    private init(clientCapabilityPresent: Bool, serverFactPresent: Bool, phase: Phase?, metrics: ClubCustomerDetailMetrics?, paidAmount: ClubCustomerDetailPaidAmount?, recordCount: Int?, hasTagsOrRemark: Bool, displayName: String?, detail: ClubOpsCustomerDetailPresentation?) {
+        self.clientCapabilityPresent = clientCapabilityPresent
+        self.serverFactPresent = serverFactPresent
+        let revealed = clientCapabilityPresent && serverFactPresent
+        if revealed {
+            switch phase {
+            case .loading, nil: self.phase = .unknown
+            case .empty, .error, .unknown, .ready: self.phase = phase
+            }
+        } else if clientCapabilityPresent, case .loading? = phase {
+            self.phase = .loading
+        } else {
+            self.phase = nil
+        }
+        switch self.phase {
+        case .some(.empty), .some(.unknown), .some(.ready):
+            self.metrics = metrics; self.paidAmount = paidAmount; self.recordCount = recordCount
+            self.hasTagsOrRemark = hasTagsOrRemark; self.displayName = displayName; self.detail = detail
+        case .some(.loading), .some(.error), .none:
+            self.metrics = nil; self.paidAmount = nil; self.recordCount = nil
+            self.hasTagsOrRemark = false; self.displayName = nil; self.detail = nil
+        }
+    }
+
+    private static func revealed(phase: Phase, metrics: ClubCustomerDetailMetrics? = nil, paidAmount: ClubCustomerDetailPaidAmount? = nil, recordCount: Int? = nil, hasTagsOrRemark: Bool = false, displayName: String? = nil, detail: ClubOpsCustomerDetailPresentation? = nil) -> Self {
+        Self(clientCapabilityPresent: true, serverFactPresent: true, phase: phase, metrics: metrics, paidAmount: paidAmount, recordCount: recordCount, hasTagsOrRemark: hasTagsOrRemark, displayName: displayName, detail: detail)
+    }
+}
+
+#if DEBUG
+/// Offline customer-detail documents. Compiled only in DEBUG. Not a live account.
+public enum ClubCustomerDetailFixtureData {
+    public static let scope = ClubGovernanceScope(clubID: 81, memberID: 704)
+    public static var ready: ClubGovernanceValue { ClubGovernanceFixtures.value(.customer) }
+    public static var emptyBody: ClubGovernanceValue {
+        ClubGovernanceFixtures.json(#"{"summary":{"memberId":704,"displayName":"Fixture customer","arrivedCount":0,"pendingCount":0,"refundedCount":0,"paidAmount":0},"records":[],"tags":[],"remark":null,"canEdit":false}"#)
+    }
+    public static var unknownCounts: ClubGovernanceValue {
+        ClubGovernanceFixtures.json(#"{"summary":{"memberId":704,"displayName":"Fixture customer","arrivedCount":"UNKNOWN","pendingCount":null,"refundedCount":"0","paidAmount":"UNKNOWN"},"records":[],"tags":[],"canEdit":false}"#)
+    }
+}
+#endif
+
+/// Page-ready read model for `pages/club/customers/index`.
+/// Projects the existing `ClubGovernanceRead.customers` contract (`api/club/crm/customers/list`)
+/// from the coordinator's read context. A viewer without `CUSTOMER_DIRECTORY` stays `.hidden`.
+/// This type does not register a route and is not a player-home entry.
+public struct ClubCustomersIndexModel: Equatable {
+    public enum State: Equatable {
+        case hidden
+        case loading
+        case empty
+        case error(ClubOpsFailureCopy)
+        case unknown
+        case ready(ClubOpsCustomerListPresentation)
+    }
+
+    /// A count the server actually sent as a non-negative integer, or an unconfirmed count.
+    /// Unknown, null, a numeric string, a decimal, and a bool stay `.unknown`.
+    /// The display for `.unknown` is an em dash. A literal zero stays zero.
+    public enum Count: Equatable {
+        case known(Int)
+        case unknown
+        public static let unknownDisplay = "\u{2014}"
+        public var text: String {
+            switch self {
+            case .known(let number): return String(number)
+            case .unknown: return Self.unknownDisplay
+            }
+        }
+    }
+
+    public enum Accessibility {
+        public static let hidden = "clubOps.customers.hidden"
+        public static let loading = "club.gov.loading"
+        public static let empty = "clubOps.customers.empty"
+        public static let errorTitle = "clubOps.failure.title"
+        public static let retry = "clubOps.failure.retry"
+        public static let count = "clubOps.customers.count"
+        public static let unknown = "clubOps.customers.unknown"
+        public static let row = "club.gov.route.customer"
+        public static let clearFilters = "club.gov.customers.clearFilters"
+        public static let displayName = "club.gov.fact.displayName"
+        public static let malformed = "clubOps.customers.malformed"
+    }
+
+    public static let contract = ClubGovernanceRead.customers
+    public static let unknownLabelKey = "clubOps.customers.unknownLabel"
+    public static let unknownValueKey = "clubOps.customers.unknown"
+    /// Club operations stay off the player-first home.
+    public static let playerHomeVisible = false
+
+    public let state: State
+    public let total: Count
+    public let monthNew: Count
+    public let filtered: Bool
+
+    public var totalText: String { total.text }
+    public var monthNewText: String { monthNew.text }
+    public var emptyTitleKey: String {
+        filtered ? "clubOps.customers.filteredEmpty" : "clubOps.customers.empty"
+    }
+    public var accessibilityIdentifier: String {
+        switch state {
+        case .hidden: return Accessibility.hidden
+        case .loading: return Accessibility.loading
+        case .empty: return Accessibility.empty
+        case .error: return Accessibility.errorTitle
+        case .unknown: return Accessibility.unknown
+        case .ready: return Accessibility.count
+        }
+    }
+
+    /// `filtered` is the coordinator's current chip or keyword, already on the customers read.
+    public init(snapshot: ClubGovernanceSnapshot?, acceptedContext: ClubGovernanceReadContext?, expectedContext: ClubGovernanceReadContext, failure: ClubGovernanceFailure?, loading: Bool, filtered: Bool = false) {
+        self.filtered = filtered
+        let dash = Count.unknown
+        guard expectedContext.operation == .customers,
+              (expectedContext.scope.clubID ?? 0) > 0,
+              (expectedContext.identity?.accountID ?? 0) > 0 else {
+            state = .hidden; total = dash; monthNew = dash
+            return
+        }
+        let contextMatches = acceptedContext == expectedContext
+        let currentSnapshot: ClubGovernanceSnapshot? = {
+            guard contextMatches, let snapshot, expectedContext.accepts(snapshot) else { return nil }
+            return snapshot
+        }()
+        let currentFailure: ClubGovernanceFailure? = {
+            guard let failure, acceptedContext == nil || contextMatches else { return nil }
+            return failure
+        }()
+        if let currentFailure {
+            if currentFailure == .forbidden || currentFailure == .signedOut {
+                state = .hidden; total = dash; monthNew = dash
+            } else if let copy = ClubOpsFailureCopy(operation: .customers, failure: currentFailure) {
+                state = .error(copy); total = dash; monthNew = dash
+            } else {
+                state = .unknown; total = dash; monthNew = dash
+            }
+            return
+        }
+        if let currentSnapshot {
+            guard currentSnapshot.permissions?.allows(ClubGovernanceRead.customers.permission, scope: expectedContext.scope) == true else {
+                state = .hidden; total = dash; monthNew = dash
+                return
+            }
+            let projected = Self.project(currentSnapshot.value)
+            state = projected.0; total = projected.1; monthNew = projected.2
+            return
+        }
+        if loading || (acceptedContext != nil && !contextMatches) {
+            state = .loading; total = dash; monthNew = dash
+            return
+        }
+        state = .unknown; total = dash; monthNew = dash
+    }
+
+    private enum CountFact: Equatable {
+        case known(Int), unknown, invalid
+        init(_ value: ClubGovernanceValue) {
+            guard case .integer(let number) = value else { self = .unknown; return }
+            self = number >= 0 ? .known(number) : .invalid
+        }
+        var count: Count {
+            if case .known(let number) = self { return .known(number) }
+            return .unknown
+        }
+    }
+
+    private static func project(_ value: ClubGovernanceValue) -> (State, Count, Count) {
+        let dash = Count.unknown
+        if value == .string("UNKNOWN") || value == .null { return (.unknown, dash, dash) }
+        guard value.object != nil else { return malformed() }
+        let totalFact = CountFact(value["total"])
+        let monthFact = CountFact(value["monthNew"])
+        if totalFact == .invalid || monthFact == .invalid { return malformed() }
+        let total = totalFact.count
+        let month = monthFact.count
+        if total == .unknown || month == .unknown { return (.unknown, total, month) }
+        do {
+            let list = try ClubOpsCustomerListPresentation(value: value)
+            if list.rows.isEmpty { return (.empty, total, month) }
+            return (.ready(list), total, month)
+        } catch {
+            return malformed()
+        }
+    }
+
+    private static func malformed() -> (State, Count, Count) {
+        let dash = Count.unknown
+        guard let copy = ClubOpsFailureCopy(operation: .customers, failure: .malformed) else {
+            return (.unknown, dash, dash)
+        }
+        return (.error(copy), dash, dash)
+    }
+}

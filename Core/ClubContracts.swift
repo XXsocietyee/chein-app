@@ -36,6 +36,10 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     public let prioritySignupEnabled: Bool?
     /// Raw club review state when the owner list returns it (2 = rejected). Absent or non-numeric is unknown.
     public let status: Int?
+    /// Existing `POST /api/club/detail` fact for owner/admin review queues.
+    /// Absent, null, `UNKNOWN`, a numeric string, a bool, or a non-integer is nil.
+    /// Nil is unknown and must display as an em dash, never as 0. A literal JSON 0 stays 0.
+    public let pendingJoinRequestCount: Int?
 
     public var canSeeMembers: Bool { isOwner || isJoined }
     public var canGovern: Bool { isOwner || viewerIsAdmin }
@@ -46,7 +50,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         case id, name, logo, cover, description, clubTypes, clubType, address, city, style
         case leaderName, keywords, activityPrefs, memberCount, isJoined, isOwner, viewerIsAdmin
         case level, joinPolicy, joinPolicySupported, myJoinStatus, myJoinReviewReason, viewerIdentityUnavailable
-        case welcomeNote, memberPostAllowed, prioritySignupEnabled, status
+        case welcomeNote, memberPostAllowed, prioritySignupEnabled, status, pendingJoinRequestCount
     }
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
@@ -90,6 +94,16 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         memberPostAllowed = try setting(.memberPostAllowed)
         prioritySignupEnabled = try setting(.prioritySignupEnabled)
         status = (try? c.decodeIfPresent(Int.self, forKey: .status)) ?? nil
+        pendingJoinRequestCount = Self.literalCount(c, .pendingJoinRequestCount)
+    }
+
+    /// An exact JSON integer, including 0. Anything else is unknown and stays nil.
+    private static func literalCount(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Int? {
+        if let value = try? c.decode(Int.self, forKey: key) { return value }
+        if let value = try? c.decode(Double.self, forKey: key), let number = Int(exactly: value) {
+            return number
+        }
+        return nil
     }
 }
 

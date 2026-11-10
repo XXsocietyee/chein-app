@@ -58,3 +58,226 @@ public enum ClubGroupCodePort {
     /// foreground after the code's lifetime ended (mini `onShow` re-issue).
     public static func needsReissue(expiresAt: Date, now: Date) -> Bool { now >= expiresAt }
 }
+
+/// A headcount the server actually sent. Unknown is never stored as 0.
+public enum ClubGroupCodeCount: Equatable {
+    case known(Int)
+    case unknown
+    public static let unknownDisplay = "—"
+    /// The server literal, including 0. Unknown is nil.
+    public var literal: Int? {
+        if case .known(let number) = self { return number }
+        return nil
+    }
+    /// Unknown, null, a numeric string, and a non-integer are an em dash, never 0.
+    public var displayText: String {
+        switch self {
+        case .known(let number): return String(number)
+        case .unknown: return Self.unknownDisplay
+        }
+    }
+    public static func parse(_ value: ClubGovernanceValue) -> Self {
+        if case .integer(let number) = value, number >= 0 { return .known(number) }
+        return .unknown
+    }
+}
+
+/// Check-in grant for pages/club/group-code/index. A missing grant stays hidden.
+public struct ClubGroupCodeCapability: Equatable {
+    public let granted: Bool
+    public let permissions: ClubGovernancePermissions?
+    public let clubID: Int
+    public let topicID: Int
+    public static let absent = Self(granted: false, permissions: nil, clubID: 0, topicID: 0)
+
+    public init(permissions: ClubGovernancePermissions?, scope: ClubGovernanceScope) {
+        self.permissions = permissions
+        clubID = scope.clubID ?? 0
+        topicID = scope.topicID ?? 0
+        let sameClub = permissions?.clubID == scope.clubID && clubID > 0 && topicID > 0
+        let clubWide = permissions?.permissions.contains(ClubGovernanceMutation.issueGroupCode.permission ?? "") == true
+        let eventScoped = permissions?.eventAccesses.contains { row in
+            (row["permissions"].array ?? []).contains(.string(ClubGovernanceMutation.issueGroupCode.permission ?? ""))
+        } == true
+        granted = sameClub && permissions?.active == true && (clubWide || eventScoped)
+    }
+
+    public func allows(activityID: Int) -> Bool {
+        guard granted, activityID > 0, let permissions else { return false }
+        return permissions.allows(ClubGovernanceMutation.issueGroupCode.permission, scope: .init(clubID: clubID, topicID: topicID, activityID: activityID))
+    }
+
+    private init(granted: Bool, permissions: ClubGovernancePermissions?, clubID: Int, topicID: Int) {
+        self.granted = granted
+        self.permissions = permissions
+        self.clubID = clubID
+        self.topicID = topicID
+    }
+}
+
+public struct ClubGroupCodeSession: Equatable, Identifiable {
+    public let id: Int
+    public let label: String
+    public let headcount: ClubGroupCodeCount
+    public init(id: Int, label: String, headcount: ClubGroupCodeCount) {
+        self.id = id
+        self.label = label
+        self.headcount = headcount
+    }
+}
+
+/// Page model for pages/club/group-code/index.
+/// Reads the existing topic overview (`api/topic/info-to-user`) and builds the existing
+/// `issueGroupCode` command (`api/verify/groupcode/issue`). It does not dispatch, does not
+/// register a route, and is not a player-first entry. Missing check-in capability stays hidden.
+public struct ClubGroupCodePage: Equatable {
+    public enum Phase: Equatable {
+        case loading
+        case empty
+        case error(ClubGovernanceFailure)
+        case unknown
+        case ready
+    }
+    public static let unknownDisplay = ClubGroupCodeCount.unknownDisplay
+    public static let readOperation = ClubGovernanceRead.topicOverview
+    public static let issueOperation = ClubGovernanceMutation.issueGroupCode
+    /// Production issuance stays behind the provider risk gate. This type never sends.
+    public static let issuanceLive = false
+    public static let includedInPlayerFirstEntry = false
+    public static let routeMarkedLive = false
+    public enum Copy {
+        public static let loading = "club.groupCode.page.loading"
+        public static let empty = "club.groupCode.page.empty"
+        public static let error = "club.groupCode.page.error"
+        public static let unknown = "club.groupCode.page.unknown"
+        public static let retry = "club.groupCode.page.retry"
+        public static let headcount = "club.groupCode.metric.headcount"
+        public static let providerGate = "club.gov.providerGate"
+    }
+    public enum Accessibility {
+        public static let loading = "club.groupCode.page.loading"
+        public static let empty = "club.groupCode.page.empty"
+        public static let error = "club.groupCode.page.error"
+        public static let unknown = "club.groupCode.page.unknown"
+        public static let headcount = "club.groupCode.metric.headcount"
+    }
+    public let clientCapabilityPresent: Bool
+    public let serverFactPresent: Bool
+    public let phase: Phase?
+    public let scope: ClubGovernanceScope?
+    public let sessions: [ClubGroupCodeSession]?
+    public var hidden: Bool { !(clientCapabilityPresent && serverFactPresent) }
+    public var showsSessions: Bool { sessions?.isEmpty == false }
+
+    public static func loading(clientCapabilityPresent: Bool) -> Self {
+        Self(clientCapabilityPresent: clientCapabilityPresent, serverFactPresent: false, phase: .loading, scope: nil, sessions: nil)
+    }
+
+    /// Projects one topic overview. Sessions the viewer cannot check in are omitted.
+    /// A missing or non-integer `headcount` is an em dash. A literal 0 stays 0.
+    public static func project(value: ClubGovernanceValue, scope: ClubGovernanceScope, capability: ClubGroupCodeCapability) -> Self {
+        guard capability.granted, capability.clubID == scope.clubID, capability.topicID == scope.topicID else {
+            return .loading(clientCapabilityPresent: false)
+        }
+        guard (scope.clubID ?? 0) > 0, (scope.topicID ?? 0) > 0 else {
+            return revealed(scope: scope, phase: .error(.invalidRequest), sessions: nil)
+        }
+        let validated: ClubGovernanceValue
+        do { validated = try ClubGovernanceValidation.validate(value, operation: readOperation, scope: scope) }
+        catch let failure as ClubGovernanceFailure { return revealed(scope: scope, phase: .error(failure), sessions: nil) }
+        catch { return revealed(scope: scope, phase: .error(.malformed), sessions: nil) }
+        var sessions: [ClubGroupCodeSession] = []
+        var seen = Set<Int>()
+        for row in validated["activityList"].array ?? [] {
+            guard case .integer(let id) = row["id"], id > 0, seen.insert(id).inserted, capability.allows(activityID: id) else { continue }
+            let label = ClubGroupCodePort.sessionLabel(id: id, name: row["name"].string, startDate: row["startDate"].string, startTime: row["startTime"].string)
+            sessions.append(.init(id: id, label: label, headcount: ClubGroupCodeCount.parse(row["headcount"])))
+        }
+        if sessions.isEmpty { return revealed(scope: scope, phase: .empty, sessions: []) }
+        if sessions.contains(where: { $0.headcount.literal == nil }) { return revealed(scope: scope, phase: .unknown, sessions: sessions) }
+        return revealed(scope: scope, phase: .ready, sessions: sessions)
+    }
+
+    public init(snapshot: ClubGovernanceSnapshot) {
+        let capability = ClubGroupCodeCapability(permissions: snapshot.permissions, scope: snapshot.scope)
+        guard snapshot.operation == Self.readOperation, capability.granted else {
+            self = .loading(clientCapabilityPresent: false)
+            return
+        }
+        self = .project(value: snapshot.value, scope: snapshot.scope, capability: capability)
+    }
+
+    /// Reads the existing topic overview. A missing check-in capability does not call the reader.
+    /// This method does not issue a code.
+    @MainActor public static func load(access: any ClubGovernanceAccess, scope: ClubGovernanceScope, capability: ClubGroupCodeCapability) async -> Self {
+        guard capability.granted else { return .loading(clientCapabilityPresent: false) }
+        do {
+            let snapshot = try await access.read(readOperation, scope: scope, options: [:])
+            return Self(snapshot: snapshot)
+        } catch let failure as ClubGovernanceFailure {
+            if failure == .forbidden || failure == .signedOut { return .loading(clientCapabilityPresent: false) }
+            return revealed(scope: scope, phase: .error(failure), sessions: nil)
+        } catch is CancellationError {
+            return .loading(clientCapabilityPresent: true)
+        } catch {
+            return revealed(scope: scope, phase: .error(.unknown(message: nil)), sessions: nil)
+        }
+    }
+
+    /// The existing issue body, only for a session this page already revealed. Never sent from here.
+    public func issueCommand(activityID: Int) -> ClubGovernanceCommand? {
+        guard let scope, sessions?.contains(where: { $0.id == activityID }) == true,
+              let clubID = scope.clubID, let topicID = scope.topicID else { return nil }
+        return try? ClubGovernanceCommand(operation: Self.issueOperation, scope: .init(clubID: clubID, topicID: topicID, activityID: activityID), values: [:])
+    }
+
+    private init(clientCapabilityPresent: Bool, serverFactPresent: Bool, phase: Phase?, scope: ClubGovernanceScope?, sessions: [ClubGroupCodeSession]?) {
+        self.clientCapabilityPresent = clientCapabilityPresent
+        self.serverFactPresent = serverFactPresent
+        let revealed = clientCapabilityPresent && serverFactPresent
+        if revealed {
+            switch phase {
+            case .loading, nil: self.phase = .unknown
+            case .empty, .error, .unknown, .ready: self.phase = phase
+            }
+        } else if clientCapabilityPresent, case .loading? = phase {
+            self.phase = .loading
+        } else {
+            self.phase = nil
+        }
+        switch self.phase {
+        case .some(.empty), .some(.unknown), .some(.ready):
+            self.scope = scope
+            self.sessions = sessions ?? []
+        case .some(.error):
+            self.scope = scope
+            self.sessions = nil
+        case .some(.loading), .none:
+            self.scope = nil
+            self.sessions = nil
+        }
+    }
+
+    private static func revealed(scope: ClubGovernanceScope, phase: Phase, sessions: [ClubGroupCodeSession]?) -> Self {
+        Self(clientCapabilityPresent: true, serverFactPresent: true, phase: phase, scope: scope, sessions: sessions)
+    }
+}
+
+#if DEBUG
+/// Offline group-code documents. Compiled only in DEBUG. Not a live account and not a code image.
+public enum ClubGroupCodePageFixtureData {
+    public static let scope = ClubGovernanceScope(clubID: 81, topicID: 91)
+    public static var ready: ClubGovernanceValue {
+        ClubGovernanceFixtures.json(#"{"id":91,"name":"Fixture club story","activityList":[{"id":101,"name":"夜游","startDate":"2026-09-06","startTime":"9:05","headcount":0},{"id":102,"name":"午场","headcount":2}]}"#)
+    }
+    public static var emptyList: ClubGovernanceValue {
+        ClubGovernanceFixtures.json(#"{"id":91,"name":"Fixture club story","activityList":[]}"#)
+    }
+    public static var unknownHeadcount: ClubGovernanceValue {
+        ClubGovernanceFixtures.json(#"{"id":91,"name":"Fixture club story","activityList":[{"id":101,"name":"夜游","headcount":0},{"id":102,"name":"午场","headcount":null}]}"#)
+    }
+    public static var stringZeroHeadcount: ClubGovernanceValue {
+        ClubGovernanceFixtures.json(#"{"id":91,"name":"Fixture club story","activityList":[{"id":101,"name":"夜游","headcount":"0"}]}"#)
+    }
+}
+#endif

@@ -162,3 +162,69 @@ public struct WalletPointsMonthGroup: Equatable, Identifiable {
         return groups
     }
 }
+
+/// Page facts for 收益明细. The live read stays `WalletCommerceService.ledger(.income)`,
+/// which already posts `api/user/balance/list`. This value does not register a route,
+/// open a host, or turn on payment, payout, withdrawal, or virtual goods.
+/// Unknown money is an em dash (U+2014), never `0`. A decoded zero stays `0`.
+public enum WalletIncomeDetailPageModel {
+    public static let unknownMoney = "\u{2014}"
+    public static let existingReadPath = "api/user/balance/list"
+    public static let registersRoute = false
+    public static let opensHost = false
+    public static let showsMerchantChoice = false
+    public static let showsOrganizerShare = false
+    public static let enablesPayment = false
+    public static let enablesPayout = false
+    public static let enablesWithdrawal = false
+    public static let enablesVirtualGoods = false
+
+    public enum Phase: String, Equatable, Sendable {
+        case loading, empty, error, unknown, ready
+    }
+
+    public struct State: Equatable, Sendable {
+        public let phase: Phase
+        public let moneyText: String
+        public init(phase: Phase, moneyText: String) {
+            self.phase = phase
+            self.moneyText = moneyText
+        }
+    }
+
+    public enum Accessibility {
+        public static let screen = "wallet.income.detail"
+        public static let close = "wallet.income.detail.close"
+        public static let retired = "wallet.income.detail.retired"
+        public static let empty = "wallet.ledger.empty"
+        public static let loadMore = "wallet.ledger.loadMore"
+        public static let unknownMoney = "wallet.income.detail.unknownMoney"
+        public static let loading = "wallet.income.detail.loading"
+        public static let error = "wallet.income.detail.error"
+        public static let rowPrefix = "wallet.ledger."
+        public static let openPrefix = "wallet.income.detail.open."
+        public static let dateGroupPrefix = "wallet.ledger.dateGroup."
+    }
+
+    /// List phase. Loading wins. A page that has not loaded is unknown, not empty and not zero.
+    public static func list(loading: Bool, failed: Bool, hasLoadedPage: Bool, rowCount: Int) -> State {
+        if loading { return State(phase: .loading, moneyText: "") }
+        if failed { return State(phase: .error, moneyText: unknownMoney) }
+        guard hasLoadedPage, rowCount >= 0 else { return State(phase: .unknown, moneyText: unknownMoney) }
+        if rowCount == 0 { return State(phase: .empty, moneyText: unknownMoney) }
+        return State(phase: .ready, moneyText: "")
+    }
+
+    /// Nil is unknown. A present amount, including zero, keeps `WalletAmount.text`.
+    public static func money(_ amount: WalletAmount?) -> String {
+        guard let amount else { return unknownMoney }
+        return amount.text
+    }
+
+    /// Ready list plus a missing amount is the unknown state. Known zero stays ready and `0`.
+    public static func amount(_ list: State, _ amount: WalletAmount?) -> State {
+        guard list.phase == .ready else { return list }
+        guard let amount else { return State(phase: .unknown, moneyText: unknownMoney) }
+        return State(phase: .ready, moneyText: amount.text)
+    }
+}

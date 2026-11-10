@@ -28,19 +28,25 @@ public struct ObjectCardService {
         catch { throw APIError.malformedResponse }
         if envelope.code == 401 { throw APIError.unauthorized }
         guard envelope.code == 200 else { throw APIError.businessCode(envelope.code) }
-        guard let value = envelope.data else { throw APIError.malformedResponse }
-        return value
+        guard let listed = envelope.listed else { throw APIError.malformedResponse }
+        switch listed.total {
+        case .known(let total):
+            return try ObjectCardCollection(cards: listed.cards, total: total)
+        case .unknown:
+            // A withheld total is not an empty album and is not zero.
+            throw ObjectCardTotalUnknown(cards: listed.cards)
+        }
     }
     private struct Envelope: Decodable {
         let code: Int
-        let data: ObjectCardCollection?
+        let listed: ObjectCardListedData?
         enum CodingKeys: String, CodingKey { case code, data }
         init(from decoder: Decoder) throws {
             let c = try decoder.container(keyedBy: CodingKeys.self)
             if let value = try? c.decode(Int.self, forKey: .code) { code = value }
             else if let value = Int(try c.decode(String.self, forKey: .code)) { code = value }
             else { throw APIError.malformedResponse }
-            data = code == 200 ? try c.decode(ObjectCardCollection.self, forKey: .data) : nil
+            listed = code == 200 ? try c.decode(ObjectCardListedData.self, forKey: .data) : nil
         }
     }
 }

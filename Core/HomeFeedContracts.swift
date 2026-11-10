@@ -60,6 +60,75 @@ private func homeFeedNonempty(_ value: String?) -> String? {
     return value
 }
 
+/// Loading, empty, error, and unknown readiness for the home discovery feed.
+/// Unknown is the em dash. A missing number is never shown as 0.
+public enum HomeFeedSurfaceState: Equatable, Sendable {
+    case loading
+    case empty
+    case error
+    case unknown
+    case ready
+
+    public static let unknownText = "—"
+
+    public static func slot(failed: Bool, loaded: Bool, loading: Bool, isEmpty: Bool) -> HomeFeedSurfaceState {
+        if failed { return .error }
+        if !loaded || loading { return .loading }
+        if isEmpty { return .empty }
+        return .ready
+    }
+}
+
+/// A decoded zero stays zero. Absence stays unknown and renders as an em dash.
+public enum HomeFeedAmountState: Equatable, Sendable {
+    case unknown
+    case known(Decimal)
+
+    public init(_ value: Decimal?) {
+        if let value { self = .known(value) } else { self = .unknown }
+    }
+
+    public var text: String {
+        switch self {
+        case .unknown: return HomeFeedSurfaceState.unknownText
+        case .known(let value): return HomeFeedAmountState.render(value)
+        }
+    }
+
+    static func render(_ value: Decimal) -> String {
+        let number = NSDecimalNumber(decimal: value)
+        if number == .notANumber { return HomeFeedSurfaceState.unknownText }
+        let raw = number.stringValue
+        if raw.isEmpty || raw == "NaN" { return HomeFeedSurfaceState.unknownText }
+        return raw
+    }
+}
+
+/// Blank or missing copy is unknown. A non-empty server string is kept as written.
+public enum HomeFeedTextState: Equatable, Sendable {
+    case unknown
+    case known(String)
+
+    public init(optional raw: String?) {
+        guard let trimmed = homeFeedNonempty(raw) else { self = .unknown; return }
+        self = .known(trimmed)
+    }
+
+    public var text: String {
+        switch self {
+        case .unknown: return HomeFeedSurfaceState.unknownText
+        case .known(let value): return value
+        }
+    }
+}
+
+public extension HomeFeedItem {
+    var amountState: HomeFeedAmountState { HomeFeedAmountState(amount) }
+    var placeState: HomeFeedTextState { HomeFeedTextState(optional: place) }
+    /// Missing dates are unknown. An unparsed non-empty value stays the server text, not a guessed clock.
+    var dateState: HomeFeedTextState { HomeFeedTextState(optional: startDate) }
+}
+
 /// Matches the retained home_activity_live.dart wire contract, including strict calendar checks.
 public enum HomeFeedDate {
     public static func display(_ raw: String?, locale: Locale, sourceTimeZone: TimeZone? = nil,

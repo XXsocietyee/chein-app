@@ -71,6 +71,10 @@ public struct CharacterCard: Equatable {
     public let breakdown: CharacterCheckBreakdown
     public let expiry: EnvironmentExpiryClock
     public let originalRequestID: String?
+    /// Existing `CharacterRpgSheet.read` projection. Nil when the payload has no sheet.
+    public let rpgSheet: CharacterRpgSheet?
+    /// Server `definitionSource` text. Missing, blank, and `UNKNOWN` stay nil.
+    public let definitionSource: String?
     /// Level thresholds per attribute `stateKey` (mini-program `rules.levels`). Display-only.
     public var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
     func updating(breakdown: CharacterCheckBreakdown? = nil, originalRequestID: String? = nil) -> Self {
@@ -78,7 +82,100 @@ public struct CharacterCard: Equatable {
               environment: environment, party: party, equipment: equipment,
               breakdown: breakdown ?? self.breakdown, expiry: expiry,
               originalRequestID: originalRequestID ?? self.originalRequestID,
+              rpgSheet: rpgSheet, definitionSource: definitionSource,
               attributeLevels: attributeLevels)
+    }
+}
+
+/// Read-only phase for `subpackageMember/character/index`.
+/// The card stays `GET api/play/character` (and `api/play/rpg/status` when an activity is already in scope).
+/// This type does not register a route, mark one live, or open a character-sheet save.
+/// Unknown stats are an em dash. A literal integer 0 stays `0`. A numeric string is not 0.
+public struct CharacterCardPageModel: Equatable {
+    public enum Phase: String, Equatable {
+        case loading
+        case empty
+        case error
+        case unknown
+        case ready
+    }
+    public static let unknownStat = "—"
+    public let phase: Phase
+    public let attributeCountText: String
+    public let attributeValueTexts: [String]
+    public let attributePercentTexts: [String]
+    public let breakdownTotalText: String
+    public let breakdownDieText: String
+    public let momentumText: String
+    public let equipmentQuantityTexts: [String]
+
+    /// Literal JSON integers, including 0. Null, missing, `UNKNOWN`, and a numeric string stay an em dash.
+    public static func statText(_ raw: PlayWireValue) -> String {
+        PWaveNumberFact.parse(raw).displayText
+    }
+
+    public static func statText(_ value: Int?) -> String {
+        guard let value else { return unknownStat }
+        return String(value)
+    }
+
+    /// A point range has no ratio. That is an em dash, not the 0 that `CharacterCardAttribute.percent` returns.
+    public static func percentText(value: Int, min: Int, max: Int) -> String {
+        guard max > min else { return unknownStat }
+        let raw = Double(value - min) / Double(max - min) * 100.0
+        let percent = Swift.max(0, Swift.min(100, Int(raw.rounded())))
+        return String(percent)
+    }
+
+    /// A phase with no card. `.ready` fails closed so a missing card cannot be shown as zero.
+    public init(_ phase: Phase) {
+        switch phase {
+        case .ready: self.init(blank: .unknown)
+        case .loading, .empty, .error, .unknown: self.init(blank: phase)
+        }
+    }
+
+    public init(isCurrent: Bool, availability: WorldFactAvailability, card: CharacterCard?, issue: PlayExperienceError?) {
+        switch issue {
+        case .malformed:
+            self = Self(blank: .unknown)
+            return
+        case .unknownResult, .rejected, .unauthorized, .staleSession, .unsupported, .persistenceUnavailable, .busy, .invalidAction:
+            self = Self(blank: .error)
+            return
+        case .disabled, nil:
+            break
+        }
+        if availability == .unknown {
+            self = Self(blank: .unknown)
+            return
+        }
+        guard isCurrent, availability == .ready, let card else {
+            self = Self(blank: .loading)
+            return
+        }
+        let values = card.attributes.map { String($0.value) }
+        let percents = card.attributes.map { Self.percentText(value: $0.value, min: $0.min, max: $0.max) }
+        let quantities = card.equipment.items.map { Self.statText($0.quantity) }
+        self.phase = card.attributes.isEmpty ? .empty : .ready
+        self.attributeCountText = String(card.attributes.count)
+        self.attributeValueTexts = values
+        self.attributePercentTexts = percents
+        self.breakdownTotalText = Self.statText(card.breakdown.total)
+        self.breakdownDieText = Self.statText(card.breakdown.die)
+        self.momentumText = Self.statText(card.rpgSheet?.momentum?.value)
+        self.equipmentQuantityTexts = quantities
+    }
+
+    private init(blank phase: Phase) {
+        self.phase = phase
+        attributeCountText = Self.unknownStat
+        attributeValueTexts = []
+        attributePercentTexts = []
+        breakdownTotalText = Self.unknownStat
+        breakdownDieText = Self.unknownStat
+        momentumText = Self.unknownStat
+        equipmentQuantityTexts = []
     }
 }
 
@@ -152,6 +249,9 @@ public enum GameReceiptOriginalRecovery {
     public private(set) var availability: WorldFactAvailability = .waitingSource
     public private(set) var originalRequestID: String?
     public private(set) var issue: PlayExperienceError?
+    public var pageModel: CharacterCardPageModel {
+        CharacterCardPageModel(isCurrent: isCurrent, availability: availability, card: card, issue: issue)
+    }
     private let service: PlayExperienceService
     private let currentSession: () -> PlayExperienceSession?
     private let onUnauthorized: (PlayExperienceSession) -> Void
@@ -209,6 +309,8 @@ public enum GameReceiptOriginalRecovery {
                   let rows = raw["attributes"].array else { throw PlayExperienceError.malformed }
             var attributes: [CharacterCardAttribute] = []; var keys = Set<String>()
             var attributeLevels: [String: [CharacterAttributeLevel]] = [:]
+            var rpgSheet = CharacterRpgSheet.read(raw["rpg"])
+            var definitionSource = Self.keptDefinitionSource(raw["definitionSource"])
             for row in rows {
                 guard let stateKey = row["stateKey"].text, !stateKey.isEmpty, stateKey.utf16.count <= 64, keys.insert(stateKey).inserted,
                       let label = row["label"].text, !label.isEmpty, label.utf16.count <= 64,
@@ -237,6 +339,10 @@ public enum GameReceiptOriginalRecovery {
                     if gear.availability == .ready { equipment = gear }
                     let roster = PartyRosterProjection.read(party: status["party"] == .null ? status["rpg"]["party"] : status["party"])
                     if roster.availability == .ready { party = roster }
+                    if let sheet = CharacterRpgSheet.read(status["rpg"]) { rpgSheet = sheet }
+                    if definitionSource == nil, let source = Self.keptDefinitionSource(status["definitionSource"]) {
+                        definitionSource = source
+                    }
                 }
                 if party.availability == .waitingSource {
                     do {
@@ -253,6 +359,7 @@ public enum GameReceiptOriginalRecovery {
             card = CharacterCard(topicID: topic, created: created, running: running, attributes: attributes,
                                  environment: environment, party: party, equipment: equipment,
                                  breakdown: .waitingSource, expiry: expiry, originalRequestID: originalRequestID,
+                                 rpgSheet: rpgSheet, definitionSource: definitionSource,
                                  attributeLevels: attributeLevels)
             availability = .ready
         } catch is CancellationError {
@@ -312,6 +419,13 @@ public enum GameReceiptOriginalRecovery {
             issue = error as? PlayExperienceError ?? .unknownResult
             availability = .unknown
         }
+    }
+    /// A missing key, blank text, and the token UNKNOWN are not a definition source.
+    private static func keptDefinitionSource(_ raw: PlayWireValue) -> String? {
+        guard case .string(let value) = raw else { return nil }
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, trimmed != "UNKNOWN" else { return nil }
+        return trimmed
     }
     private func check(_ session: PlayExperienceSession, _ generation: UInt64) throws {
         guard self.generation == generation, !retired, currentSession() == session, !Task.isCancelled else { throw PlayExperienceError.staleSession }

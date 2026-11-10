@@ -31,14 +31,23 @@ public struct TeamOrientBoardDetail: Equatable {
     public let tasks: [TeamOrientTask]
     public let members: [TeamOrientMemberProgress]
     public let completedCount: Int
+    /// Server `completedCount` / `teamCompletedCount` only. Nil when omitted or negative.
+    public let reportedCompletedCount: Int?
 
-    public init(tasks: [TeamOrientTask], members: [TeamOrientMemberProgress], completedCount: Int) {
+    public init(tasks: [TeamOrientTask], members: [TeamOrientMemberProgress], completedCount: Int, reportedCompletedCount: Int? = nil) {
         self.tasks = tasks
         self.members = members
         self.completedCount = max(0, completedCount)
+        self.reportedCompletedCount = reportedCompletedCount.flatMap { $0 >= 0 ? $0 : nil }
     }
 
     public var isEmpty: Bool { tasks.isEmpty }
+    /// Page-ready count. Omitted and negative values are an em dash, never 0.
+    public var completedCountText: String { TeamOrientBoardRules.metricText(reportedCompletedCount) }
+    public var progressText: String {
+        let total: Int? = tasks.isEmpty ? nil : tasks.count
+        return TeamOrientBoardRules.fractionText(done: reportedCompletedCount, total: total)
+    }
     public var summaryText: String {
         guard !tasks.isEmpty else { return "当前场次暂无定向任务" }
         return "全队已完成 \(completedCount) / \(tasks.count) 个节点"
@@ -53,8 +62,12 @@ public struct TeamOrientRankingRow: Equatable, Identifiable {
     public let completedCount: Int
     public let totalTasks: Int
     public let durationText: String?
+    /// Server rank. Nil when the row omitted it. The stored `rank` may still be positional.
+    public let reportedRank: Int?
+    public let reportedCompletedCount: Int?
+    public let reportedTotalTasks: Int?
 
-    public init(rank: Int, teamID: Int, teamName: String, completedCount: Int, totalTasks: Int, durationText: String?) {
+    public init(rank: Int, teamID: Int, teamName: String, completedCount: Int, totalTasks: Int, durationText: String?, reportedRank: Int? = nil, reportedCompletedCount: Int? = nil, reportedTotalTasks: Int? = nil) {
         self.id = teamID > 0 ? teamID : rank
         self.rank = rank
         self.teamID = teamID
@@ -62,14 +75,51 @@ public struct TeamOrientRankingRow: Equatable, Identifiable {
         self.completedCount = completedCount
         self.totalTasks = totalTasks
         self.durationText = durationText
+        self.reportedRank = reportedRank.flatMap { $0 >= 0 ? $0 : nil }
+        self.reportedCompletedCount = reportedCompletedCount.flatMap { $0 >= 0 ? $0 : nil }
+        self.reportedTotalTasks = reportedTotalTasks.flatMap { $0 >= 0 ? $0 : nil }
     }
+
+    public var rankText: String { TeamOrientBoardRules.metricText(reportedRank) }
+    public var progressText: String { TeamOrientBoardRules.fractionText(done: reportedCompletedCount, total: reportedTotalTasks) }
 
     public func isMyTeam(currentTeamID: Int) -> Bool {
         teamID > 0 && teamID == currentTeamID
     }
 }
 
+public enum TeamOrientBoardPhase: Equatable, Sendable {
+    case loading, empty, error, unknown, ready
+}
+
 public enum TeamOrientBoardRules {
+    public static let unknownMetricDisplay = "—"
+
+    /// A literal zero stays "0". Nil and any negative value are an em dash.
+    public static func metricText(_ value: Int?) -> String {
+        guard let value, value >= 0 else { return unknownMetricDisplay }
+        return String(value)
+    }
+
+    /// Both sides must be server numbers. One omission makes the whole fraction an em dash.
+    public static func fractionText(done: Int?, total: Int?) -> String {
+        let left = metricText(done)
+        let right = metricText(total)
+        guard left != unknownMetricDisplay, right != unknownMetricDisplay else { return unknownMetricDisplay }
+        return "\(left) / \(right)"
+    }
+
+    /// Orient block on the team detail page. A missing completed count is `.unknown`, not zero.
+    /// An empty task list is `.empty`. No payload after a failure is `.error`.
+    public static func phase(loading: Bool, failed: Bool, detail: TeamOrientBoardDetail?) -> TeamOrientBoardPhase {
+        if loading, detail == nil { return .loading }
+        guard let detail else { return failed ? .error : .empty }
+        if !detail.tasks.isEmpty, detail.reportedCompletedCount == nil { return .unknown }
+        if detail.isEmpty { return .empty }
+        if failed { return .error }
+        return .ready
+    }
+
     public static func formatDuration(seconds: Int?) -> String? {
         guard let seconds, seconds >= 0 else { return nil }
         let minutes = seconds / 60
@@ -104,7 +154,7 @@ public enum TeamOrientBoardRules {
         let allCompletedTaskIDs = members.reduce(into: Set<Int>()) { $0.formUnion($1.completedTaskIDs) }
         let explicitCompleted = intValue(map["completedCount"]) ?? intValue(map["teamCompletedCount"])
         let completedCount = explicitCompleted ?? tasks.filter { allCompletedTaskIDs.contains($0.id) }.count
-        return TeamOrientBoardDetail(tasks: tasks, members: members, completedCount: completedCount)
+        return TeamOrientBoardDetail(tasks: tasks, members: members, completedCount: completedCount, reportedCompletedCount: explicitCompleted)
     }
 
     public static func decodeRanking(_ data: Any?) -> [TeamOrientRankingRow] {
@@ -117,11 +167,14 @@ public enum TeamOrientBoardRules {
             return []
         }
         return rows.enumerated().compactMap { idx, item in
-            let rank = intValue(item["rank"]) ?? (idx + 1)
+            let explicitRank = intValue(item["rank"])
+            let rank = explicitRank ?? (idx + 1)
             let teamID = intValue(item["teamId"]) ?? intValue(item["id"]) ?? 0
             let rawName = (item["teamName"] as? String) ?? (item["title"] as? String) ?? ""
-            let completed = intValue(item["completedCount"]) ?? 0
-            let total = intValue(item["totalTasks"]) ?? intValue(item["totalCount"]) ?? 0
+            let explicitCompleted = intValue(item["completedCount"])
+            let explicitTotal = intValue(item["totalTasks"]) ?? intValue(item["totalCount"])
+            let completed = explicitCompleted ?? 0
+            let total = explicitTotal ?? 0
             let duration = (item["durationText"] as? String)?.trimmingCharacters(in: .whitespacesAndNewlines)
                 ?? formatDuration(seconds: intValue(item["durationSeconds"]) ?? intValue(item["duration"]))
             return TeamOrientRankingRow(
@@ -130,7 +183,10 @@ public enum TeamOrientBoardRules {
                 teamName: rawName.trimmingCharacters(in: .whitespacesAndNewlines),
                 completedCount: completed,
                 totalTasks: total,
-                durationText: duration?.isEmpty == true ? nil : duration
+                durationText: duration?.isEmpty == true ? nil : duration,
+                reportedRank: explicitRank,
+                reportedCompletedCount: explicitCompleted,
+                reportedTotalTasks: explicitTotal
             )
         }
     }

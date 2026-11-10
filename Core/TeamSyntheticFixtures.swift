@@ -132,4 +132,17 @@ public enum TeamSyntheticFixtures {
         currentDetail = try JSONDecoder().decode(TeamDetail.self, from: JSONSerialization.data(withJSONObject: object))
     }
 }
+
+/// DEBUG payloads for `pages/team/join/index`. No transport, no share sheet, no live route.
+public enum TeamJoinIndexFixtureData {
+    public static let page = "pages/team/join/index"
+    public static let inviteCode = "SYNTHETIC-TEAM"
+    public static let readyJSON = #"{"team":{"id":4101,"title":"Synthetic harbor companions","status":0,"joinedCount":2,"maxMembers":4,"joinMode":1,"inviteCode":"SYNTHETIC-TEAM"},"joined":false,"leader":false,"members":[{"memberId":901,"memberName":"Synthetic captain","role":1},{"memberId":902,"memberName":"Synthetic teammate","role":0}]}"#
+    public static let emptyRosterJSON = #"{"team":{"id":4101,"title":"Synthetic harbor companions","status":0,"joinedCount":0,"maxMembers":4,"joinMode":1,"inviteCode":"SYNTHETIC-TEAM"},"joined":false,"leader":false,"members":[]}"#
+    public static let unknownCountJSON = #"{"team":{"id":4101,"title":"Synthetic harbor companions","status":0,"joinMode":1,"inviteCode":"SYNTHETIC-TEAM"},"joined":false,"leader":false,"members":[{"memberId":901,"memberName":"Synthetic captain","role":1}]}"#
+    public static let unknownStatusJSON = #"{"team":{"id":4101,"title":"Synthetic harbor companions","status":98,"joinedCount":2,"maxMembers":4,"joinMode":-1,"inviteCode":"SYNTHETIC-TEAM"},"joined":false,"leader":false,"members":[]}"#
+    public static func detail(_ json: String) throws -> TeamDetail {
+        try JSONDecoder().decode(TeamDetail.self, from: Data(json.utf8))
+    }
+}
 #endif

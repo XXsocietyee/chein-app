@@ -24,7 +24,8 @@ public struct CouponCodeSession: Equatable {
 /// arbitrary user string can manufacture this value. A server token is rendered verbatim.
 public struct CouponCodeReceipt: Decodable {
     public let useStatus: Int
-    public let expiresIn: Int
+    /// Missing, null, a numeric string, and an object stay nil. A literal JSON 0 stays 0.
+    public let expiresIn: Int?
     public let couponName: String?
     public let description: String?
     public let startTime: String?
@@ -36,7 +37,9 @@ public struct CouponCodeReceipt: Decodable {
         let c = try decoder.container(keyedBy: CodingKeys.self)
         useStatus = try c.decode(Int.self, forKey: .useStatus)
         guard (0...3).contains(useStatus) else { throw CouponCodeFailure.invalid }
-        expiresIn = (try? c.decode(Int.self, forKey: .expiresIn)) ?? 0
+        let decodedExpiresIn = Self.optionalInteger(c, .expiresIn)
+        // Range check only. A missing TTL is not stored as 0.
+        let expiresIn = decodedExpiresIn ?? 0
         let value = try c.decodeIfPresent(String.self, forKey: .token)
         if let value, !value.isEmpty, value.utf8.count <= 2048, value.rangeOfCharacter(from: .controlCharacters) == nil { token = value }
         else { token = nil }
@@ -44,6 +47,7 @@ public struct CouponCodeReceipt: Decodable {
            p.scheme == "https", p.host?.isEmpty == false, p.user == nil, p.password == nil, p.port == nil, p.fragment == nil { imageURL = p.url }
         else { imageURL = nil }
         guard useStatus != 0 || ((1...90).contains(expiresIn) && (token != nil || imageURL != nil)) else { throw CouponCodeFailure.invalid }
+        self.expiresIn = decodedExpiresIn
         couponName = try c.decodeIfPresent(String.self, forKey: .couponName)
         description = try c.decodeIfPresent(String.self, forKey: .description)
         startTime = try c.decodeIfPresent(String.self, forKey: .startTime)
@@ -53,6 +57,13 @@ public struct CouponCodeReceipt: Decodable {
         guard let startTime, !startTime.isEmpty else { return true }
         // Fail closed for malformed nonempty dates rather than showing a premature code.
         guard let date = OrderLifecycleTime.date(startTime) else { return false }; return date <= now
+    }
+    /// Missing, null, a numeric string, and an object are an em dash. A literal 0 stays 0.
+    public var expiresInText: String { expiresIn.map { String($0) } ?? "—" }
+    private static func optionalInteger(_ container: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Int? {
+        guard container.contains(key) else { return nil }
+        if (try? container.decodeNil(forKey: key)) == true { return nil }
+        return try? container.decode(Int.self, forKey: key)
     }
 }
 /// Only the image provider gets an image URL. No Authorization header goes to media hosts.
@@ -257,6 +268,8 @@ public struct CouponCodeReceipt: Decodable {
     }
     /// Accessor only returns a server-issued token while its owner and lifetime are current.
     public var displayToken: String? { canDisplay ? receipt?.token : nil }
+    /// Shown countdown. Hidden and unknown countdowns are an em dash. A displayed 0 stays 0.
+    public var remainingText: String { canDisplay ? String(remainingSeconds) : "—" }
     private func performConfirmation(presentation expected: CouponCodePresentationPermit? = nil) async {
         guard !usesPresentationLifecycle || owns(expected) else { return }
         guard !disposed, !suspended, !Task.isCancelled else { return }
@@ -322,7 +335,8 @@ public struct CouponCodeReceipt: Decodable {
             guard current(stamp) else { return }
             couponName = value.couponName; couponDescription = value.description; endTime = value.endTime
             if value.useStatus != 0 { acceptTerminal(value.useStatus); return }
-            let deadline = requestedAt.addingTimeInterval(TimeInterval(value.expiresIn))
+            guard let ttl = value.expiresIn else { throw CouponCodeFailure.invalid }
+            let deadline = requestedAt.addingTimeInterval(TimeInterval(ttl))
             guard now() < deadline else { throw CouponCodeFailure.expired }
             receipt = value; expiry = deadline; nextIssue = deadline
             remainingSeconds = max(0, Int(deadline.timeIntervalSince(now()).rounded(.down)))

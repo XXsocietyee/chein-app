@@ -96,10 +96,77 @@ public enum CooperationSourceTime: Decodable, Equatable {
         return nil
     }
 }
+/// A slot count from one `api/coop/list` slots object. A JSON integer, including 0, stays that integer.
+/// Null, a missing value, a numeric string, a bool, a fraction, a negative, and `UNKNOWN` are unknown.
+/// Unknown is never stored as 0.
+public struct CooperationInviteCountFact: Decodable, Equatable, Sendable {
+    public enum Value: Equatable, Sendable {
+        case known(Int)
+        case unknown
+    }
+    /// U+2014. Not a hyphen, and not a stand-in zero.
+    public static let unknownDisplay = "—"
+    public static let unknown = CooperationInviteCountFact(value: .unknown)
+    public let value: Value
+    public init(value: Value) { self.value = value }
+    /// The server integer, including 0. Unknown is nil.
+    public var literal: Int? {
+        if case .known(let number) = value { return number }
+        return nil
+    }
+    public var displayText: String {
+        if case .known(let number) = value { return String(number) }
+        return Self.unknownDisplay
+    }
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if container.decodeNil() {
+            self.init(value: .unknown)
+            return
+        }
+        if let number = try? container.decode(Int.self), number >= 0 {
+            self.init(value: .known(number))
+            return
+        }
+        if let number = try? container.decode(Double.self), number >= 0, let exact = Int(exactly: number) {
+            self.init(value: .known(exact))
+            return
+        }
+        self.init(value: .unknown)
+    }
+}
 public struct CooperationSlot: Decodable, Equatable {
     public let pending: Int?
     public let accepted: Int?
     public let cap: Int?
+    public let pendingFact: CooperationInviteCountFact
+    public let acceptedFact: CooperationInviteCountFact
+    public let capFact: CooperationInviteCountFact
+    private enum CodingKeys: String, CodingKey { case pending, accepted, cap }
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        pendingFact = try Self.fact(container, .pending)
+        acceptedFact = try Self.fact(container, .accepted)
+        capFact = try Self.fact(container, .cap)
+        pending = pendingFact.literal
+        accepted = acceptedFact.literal
+        cap = capFact.literal
+    }
+    private static func fact(_ container: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) throws -> CooperationInviteCountFact {
+        try container.decodeIfPresent(CooperationInviteCountFact.self, forKey: key) ?? .unknown
+    }
+}
+/// One existing slot object. A missing object stays nil. A present field that is not a non-negative integer is an em dash.
+public struct CooperationInviteSlotLine: Equatable, Sendable {
+    public enum Kind: Equatable, Sendable { case gamePending, topicAccepted }
+    public let kind: Kind
+    public let count: CooperationInviteCountFact
+    public let capacity: CooperationInviteCountFact
+    public init(kind: Kind, count: CooperationInviteCountFact, capacity: CooperationInviteCountFact) {
+        self.kind = kind
+        self.count = count
+        self.capacity = capacity
+    }
 }
 public struct CooperationSlots: Decodable, Equatable {
     public let byGame: [String: CooperationSlot]?
@@ -134,11 +201,29 @@ public struct CooperationInvites: Decodable, Equatable {
         }
         return nil
     }
+    /// Same box as `occupancy(for:)`. A game id never falls through to the topic slot.
+    /// The slot object is kept when a count is unknown, so the caller can show an em dash instead of 0.
+    public func slotLine(for invite: CooperationInvite) -> CooperationInviteSlotLine? {
+        if let game = invite.gameId {
+            guard let slot = slots?.byGame?[String(game)] else { return nil }
+            return CooperationInviteSlotLine(kind: .gamePending, count: slot.pendingFact, capacity: slot.capFact)
+        }
+        if let topic = invite.topicId {
+            guard let slot = slots?.byTopic?[String(topic)] else { return nil }
+            return CooperationInviteSlotLine(kind: .topicAccepted, count: slot.acceptedFact, capacity: slot.capFact)
+        }
+        return nil
+    }
 }
 public struct CooperationInviteDetail: Equatable {
     public let row: CooperationInvite
     public let occupancy: CooperationOccupancy?
-    public init(row: CooperationInvite, occupancy: CooperationOccupancy?) { self.row = row; self.occupancy = occupancy }
+    public let slotLine: CooperationInviteSlotLine?
+    public init(row: CooperationInvite, occupancy: CooperationOccupancy?, slotLine: CooperationInviteSlotLine? = nil) {
+        self.row = row
+        self.occupancy = occupancy
+        self.slotLine = slotLine
+    }
 }
 
 /// Application history is distinct from the open pool and must never be reconstructed from it.

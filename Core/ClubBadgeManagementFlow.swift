@@ -264,4 +264,28 @@ extension ClubBadgeManagementFlow {
         if members.isEmpty { return busy ? .loading : .empty }
         return .ready
     }
+
+    /// A loaded list reports its real count, including 0. Loading, error, and an unconfigured read stay an em dash.
+    public var badgeCountText: String {
+        switch screenState {
+        case .ready, .empty: return ClubBadgeCountText.literal(badges.count)
+        case .loading, .error, .notAvailable: return ClubBadgeCountText.unknown
+        }
+    }
+
+    /// A loaded roster reports its real count, including 0. A closed, loading, or failed picker stays an em dash.
+    public var memberCountText: String {
+        switch memberPickerState {
+        case .ready, .empty: return ClubBadgeCountText.literal(members.count)
+        case .closed, .loading, .error: return ClubBadgeCountText.unknown
+        }
+    }
+
+    /// An unconfirmed original result has no badge id. A confirmed receipt shows the server id.
+    public var unconfirmedBadgeIDText: String {
+        switch resultPresentation {
+        case .confirmed(let receipt), .historical(let receipt): return receipt.badgeIDText
+        case .none, .storageUnavailable, .unknown, .needsReview, .notSent: return ClubBadgeCountText.unknown
+        }
+    }
 }

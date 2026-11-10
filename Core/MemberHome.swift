@@ -4,9 +4,28 @@ import Observation
 import FoundationNetworking
 #endif
 
+/// A server count. Unknown stays unknown and is never stored as 0. A literal 0 stays 0.
+public enum MemberHomeCountFact: Equatable {
+    case unknown
+    case value(Int)
+
+    public static let unknownDisplay = "—"
+    public var literal: Int? {
+        if case .value(let number) = self { return number }
+        return nil
+    }
+    public var displayText: String {
+        switch self {
+        case .unknown: return Self.unknownDisplay
+        case .value(let number): return String(number)
+        }
+    }
+}
+
 /// The mini-program self profile header (`cy-profile viewer=self`), mapped from
 /// the signed-in `/api/user/info` branch. Missing counters are display zero, as
 /// in the source; an unread balance stays nil so the UI never asserts 0.00.
+/// Page-ready text is separate: an unknown counter is "—", and a literal 0 stays "0".
 public struct MemberIdentitySnapshot: Decodable, Equatable {
     public let id: Int?
     public let nickname: String
@@ -19,10 +38,31 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
     public let friendCount: Int
     public let followCount: Int
     public let fansCount: Int
+    /// Page-ready facts. Unknown is not stored as 0. `friendCount` still follows the source.
+    public let friendCountFact: MemberHomeCountFact
+    public let followCountFact: MemberHomeCountFact
+    public let fansCountFact: MemberHomeCountFact
+    public let topicCountFact: MemberHomeCountFact
+    public let activityCountFact: MemberHomeCountFact
+    public let likeCountFact: MemberHomeCountFact
     /// All five source counters (follow, fans, topic, activity, like) were numeric.
     public let countersReady: Bool
     public let balanceText: String?
-    public var balancePreviewText: String { balanceText ?? "—" }
+    public var balancePreviewText: String { balanceText ?? MemberHomeCountFact.unknownDisplay }
+    public var friendCountText: String { friendCountFact.displayText }
+    public var followCountText: String { followCountFact.displayText }
+    public var fansCountText: String { fansCountFact.displayText }
+    public var topicCountText: String { topicCountFact.displayText }
+    public var activityCountText: String { activityCountFact.displayText }
+    public var likeCountText: String { likeCountFact.displayText }
+    /// A decoded object with no identity field and no known number. Not a zeroed profile.
+    public var isPageEmpty: Bool {
+        id == nil && nickname.isEmpty && avatar.isEmpty && role.isEmpty && levelID == nil && city.isEmpty
+            && introduction.isEmpty && interests.isEmpty && casePictures.isEmpty && joinDate == nil
+            && balanceText == nil
+            && [friendCountFact, followCountFact, fansCountFact, topicCountFact, activityCountFact, likeCountFact]
+                .allSatisfy { $0 == .unknown }
+    }
     public let joinDate: String?
     public let introduction: String
     public let interests: [String]
@@ -44,9 +84,11 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
         levelID = Self.integer(c, .levelId)
         city = Self.text(c, .city) ?? ""
         let follow = Self.metric(c, .followNum), fans = Self.metric(c, .fansNum), friend = Self.metric(c, .friendNum)
+        let topic = Self.metric(c, .topicNum), activity = Self.metric(c, .activityNum), like = Self.metric(c, .likeNum)
         friendCount = friend ?? 0; followCount = follow ?? 0; fansCount = fans ?? 0
-        countersReady = [follow, fans, Self.metric(c, .topicNum), Self.metric(c, .activityNum), Self.metric(c, .likeNum)]
-            .allSatisfy { $0 != nil }
+        friendCountFact = Self.countFact(friend); followCountFact = Self.countFact(follow); fansCountFact = Self.countFact(fans)
+        topicCountFact = Self.countFact(topic); activityCountFact = Self.countFact(activity); likeCountFact = Self.countFact(like)
+        countersReady = [follow, fans, topic, activity, like].allSatisfy { $0 != nil }
         balanceText = Self.balance(c)
         joinDate = Self.text(c, .createTime).map(Self.joinDate)
         introduction = Self.text(c, .introduction) ?? ""
@@ -74,6 +116,10 @@ public struct MemberIdentitySnapshot: Decodable, Equatable {
     private static func integer(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Int? {
         if let value = try? c.decodeIfPresent(Int.self, forKey: key) { return value }
         return text(c, key).flatMap { Int($0) }
+    }
+    private static func countFact(_ value: Int?) -> MemberHomeCountFact {
+        guard let value else { return .unknown }
+        return .value(value)
     }
     /// Source `metricNumber`: finite and non-negative, otherwise unknown.
     private static func metric(_ c: KeyedDecodingContainer<CodingKeys>, _ key: CodingKeys) -> Int? {
@@ -128,6 +174,9 @@ public struct MemberRoleInfo: Decodable, Equatable {
     public let role: String
     public let isClubLeader: Bool
     public let ownedClubCount: Int
+    /// Missing `ownedClubs` is unknown ("—"). An empty array is 0. `ownedClubCount` stays the source integer.
+    public let ownedClubCountFact: MemberHomeCountFact
+    public var ownedClubCountText: String { ownedClubCountFact.displayText }
     public let permission: Permission
     enum CodingKeys: String, CodingKey { case role, isClubLeader, ownedClubs, permission }
     private struct OwnedClub: Decodable {}
@@ -139,7 +188,13 @@ public struct MemberRoleInfo: Decodable, Equatable {
         guard !role.isEmpty, role.utf8.count <= 32 else { throw APIError.malformedResponse }
         self.role = role
         isClubLeader = ((try? c.decodeIfPresent(Bool.self, forKey: .isClubLeader)) ?? nil) == true || role == "club"
-        ownedClubCount = ((try? c.decodeIfPresent([OwnedClub].self, forKey: .ownedClubs)) ?? nil)?.count ?? 0
+        if let clubs = try? c.decodeIfPresent([OwnedClub].self, forKey: .ownedClubs) {
+            ownedClubCount = clubs.count
+            ownedClubCountFact = .value(clubs.count)
+        } else {
+            ownedClubCount = 0
+            ownedClubCountFact = .unknown
+        }
         permission = ((try? c.decodeIfPresent(Permission.self, forKey: .permission)) ?? nil) ?? Permission()
     }
     public var benefits: [MemberBenefit] { MemberBenefit.rows(for: permission) }
@@ -217,11 +272,32 @@ public struct MemberHomeService {
     public func identity(token: String) async throws -> MemberIdentitySnapshot {
         try await read(AuthRequestBuilder(configuration: configuration).make(.userInfo, token: token))
     }
+    /// Same body-less `userInfo` read as `identity`. Null or non-object data is `.unknown`, not a zeroed card.
+    public func identityPage(token: String) async throws -> MemberHomePageState {
+        let request = try AuthRequestBuilder(configuration: configuration).make(.userInfo, token: token)
+        return try await page(request, classify: MemberHomePageModel.classifyIdentity)
+    }
     public func roleInfo(token: String) async throws -> MemberRoleInfo {
         guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
-        return try await read(AuthRequestBuilder.makeFormRequest(
+        return try await read(roleInfoRequest(token))
+    }
+    /// Same `api/role/info` read as `roleInfo`. A missing role stays `.empty` and does not invent unlocks.
+    public func roleInfoPage(token: String) async throws -> MemberHomePageState {
+        guard AuthRequestBuilder.isValidToken(token) else { throw APIError.invalidRequest }
+        return try await page(roleInfoRequest(token), classify: MemberHomePageModel.classifyRoleInfo)
+    }
+    private func roleInfoRequest(_ token: String) throws -> URLRequest {
+        try AuthRequestBuilder.makeFormRequest(
             url: configuration.baseURL.appendingPathComponent(MemberRoleInfoReadRoute.path),
-            fields: [:], token: token, includesBody: false))
+            fields: [:], token: token, includesBody: false)
+    }
+    private func page(_ request: URLRequest, classify: (Data, Int) -> MemberHomePageState) async throws -> MemberHomePageState {
+        try Task.checkCancellation()
+        let (data, status) = try await transport.send(request)
+        try Task.checkCancellation()
+        let state = classify(data, status)
+        if MemberHomePageModel.isUnauthorized(state) { throw APIError.unauthorized }
+        return state
     }
     private struct Status: Decodable { let code: Int; let msg: String? }
     private struct Payload<T: Decodable>: Decodable { let data: T }
@@ -297,6 +373,19 @@ public struct MemberHomeSession: Equatable {
     public func roleInfo() async throws -> MemberRoleInfo {
         try await read(requiresApproval: true) { try await $0.roleInfo(token: $1) }
     }
+    public func identityPage() async -> MemberHomePageState {
+        await page(requiresApproval: false) { try await $0.identityPage(token: $1) }
+    }
+    public func benefitsPage() async -> MemberHomePageState {
+        guard roleInfoAvailable else { return .empty }
+        return await page(requiresApproval: true) { try await $0.roleInfoPage(token: $1) }
+    }
+    private func page(requiresApproval: Bool, _ operation: (MemberHomeService, String) async throws -> MemberHomePageState) async -> MemberHomePageState {
+        do { return try await read(requiresApproval: requiresApproval, operation) }
+        catch is CancellationError { return .loading }
+        catch let error as APIError { return MemberHomePageModel.state(for: error) }
+        catch { return .error(MemberHomePageFailure(httpStatus: nil, code: nil, message: nil)) }
+    }
     private func read<T>(requiresApproval: Bool, _ operation: (MemberHomeService, String) async throws -> T) async throws -> T {
         try Task.checkCancellation()
         guard let captured = currentSession() else { throw APIError.unauthorized }
@@ -313,3 +402,265 @@ public struct MemberHomeSession: Equatable {
         }
     }
 }
+
+public struct MemberHomePageFailure: Equatable {
+    public let httpStatus: Int?
+    public let code: Int?
+    public let message: String?
+    public init(httpStatus: Int?, code: Int?, message: String?) {
+        self.httpStatus = httpStatus
+        self.code = code
+        self.message = message
+    }
+    public var isSignedOut: Bool { httpStatus == 401 || code == 401 || code == 2 }
+}
+
+public struct MemberHomeIdentityReady: Equatable {
+    public let nickname: String
+    public let cityText: String
+    public let levelText: String
+    public let friendText: String
+    public let followText: String
+    public let fansText: String
+    public let topicText: String
+    public let activityText: String
+    public let likeText: String
+    public let balanceText: String
+    /// Growth streak is not read on this page. Nil stays "—". A literal 0 stays "0".
+    public let streakText: String
+
+    public init(snapshot: MemberIdentitySnapshot, streakDays: Int? = nil) {
+        nickname = snapshot.nickname
+        cityText = snapshot.city.isEmpty ? MemberHomeCountFact.unknownDisplay : snapshot.city
+        levelText = snapshot.levelID.map(String.init) ?? MemberHomeCountFact.unknownDisplay
+        friendText = snapshot.friendCountText
+        followText = snapshot.followCountText
+        fansText = snapshot.fansCountText
+        topicText = snapshot.topicCountText
+        activityText = snapshot.activityCountText
+        likeText = snapshot.likeCountText
+        balanceText = snapshot.balancePreviewText
+        if let streakDays, streakDays >= 0 { streakText = String(streakDays) }
+        else { streakText = MemberHomeCountFact.unknownDisplay }
+    }
+}
+
+public struct MemberHomeBenefitsReady: Equatable {
+    public let rows: [MemberBenefit]
+    public let ownedClubCountText: String
+    /// Role-info display does not turn a money write or the merchant choice on.
+    public var showsMerchantChoice: Bool { false }
+    public var paymentEnabled: Bool { false }
+    public var payoutEnabled: Bool { false }
+    public var withdrawalEnabled: Bool { false }
+    public var virtualGoodsEnabled: Bool { false }
+
+    public init(info: MemberRoleInfo) {
+        rows = info.benefits
+        ownedClubCountText = info.ownedClubCountText
+    }
+}
+
+public enum MemberHomePageReady: Equatable {
+    case identity(MemberHomeIdentityReady)
+    case benefits(MemberHomeBenefitsReady)
+}
+
+public enum MemberHomePageState: Equatable {
+    case loading
+    case empty
+    case error(MemberHomePageFailure)
+    case unknown
+    case ready(MemberHomePageReady)
+}
+
+public enum MemberHomePageCapability: String, Equatable, CaseIterable {
+    case identityRead
+    case roleInfoRead
+    case banner
+    case pointsSheet
+    case merchantChoice
+    case payment
+    case payout
+    case withdrawal
+    case virtualGoods
+}
+
+public enum MemberHomePageModel {
+    public static let unknownDisplay = MemberHomeCountFact.unknownDisplay
+    /// Existing session read. This does not add a route.
+    public static let identityRoute = AuthEndpoint.userInfo.rawValue
+    /// Existing approved role read. This does not add a route.
+    public static let roleInfoRoute = MemberRoleInfoReadRoute.path
+    public static let wiredRoutes = [identityRoute, roleInfoRoute]
+    public static let accessibilityIdentifiers = [
+        "member.card.name", "member.card.level", "member.card.city", "member.card.streak",
+        "member.card.friends", "member.card.following", "member.card.fans", "member.card.tickets",
+        "member.card.balance", "member.card.balanceValue", "member.card.loading", "member.card.empty",
+        "member.card.failed", "member.card.unknown", "member.card.retry", "member.benefits.loading",
+        "member.benefits.unavailable", "member.benefits.failed", "member.benefits.retry",
+        "member.benefit.publishRoutes", "member.benefit.publishCoupons", "member.benefit.redeemCoupons",
+        "member.benefit.branching", "member.benefit.gameMechanics", "member.benefit.openAsNode",
+        "member.benefit.medalDesign", "member.benefit.createGroup", "member.benefit.earnings"
+    ]
+
+    /// Banner and the points sheet exist elsewhere in this repo. They stay hidden on this page.
+    public static func isEnabled(_ capability: MemberHomePageCapability) -> Bool {
+        switch capability {
+        case .identityRead, .roleInfoRead: return true
+        case .banner, .pointsSheet, .merchantChoice, .payment, .payout, .withdrawal, .virtualGoods:
+            return false
+        }
+    }
+
+    public static func isUnauthorized(_ state: MemberHomePageState) -> Bool {
+        if case .error(let failure) = state { return failure.isSignedOut }
+        return false
+    }
+
+    public static func state(for error: APIError) -> MemberHomePageState {
+        switch error {
+        case .unauthorized:
+            return .error(.init(httpStatus: 401, code: 401, message: nil))
+        case .notConfigured:
+            return .empty
+        case .malformedResponse:
+            return .unknown
+        case .httpStatus(let status):
+            return .error(.init(httpStatus: status, code: nil, message: nil))
+        case .businessCode(let code):
+            return .error(.init(httpStatus: nil, code: code, message: nil))
+        case .invalidRequest, .invalidConfiguration:
+            return .error(.init(httpStatus: nil, code: nil, message: nil))
+        }
+    }
+
+    public static func state(for snapshot: MemberIdentitySnapshot, streakDays: Int? = nil) -> MemberHomePageState {
+        if snapshot.isPageEmpty { return .empty }
+        return .ready(.identity(.init(snapshot: snapshot, streakDays: streakDays)))
+    }
+
+    public static func identityCopyKey(_ state: MemberHomePageState) -> String {
+        switch state {
+        case .loading: return "member.card.loading"
+        case .empty: return "member.card.empty"
+        case .error(let failure): return failure.isSignedOut ? "member.card.signedOut" : "member.card.failed"
+        case .unknown: return "member.card.unknownValue"
+        case .ready: return "member.card.defaultName"
+        }
+    }
+
+    public static func benefitsCopyKey(_ state: MemberHomePageState) -> String {
+        switch state {
+        case .loading: return "member.card.loading"
+        case .empty: return "member.benefits.unavailable"
+        case .error: return "member.benefits.failed"
+        case .unknown: return "member.card.unknownValue"
+        case .ready: return "member.benefits.title"
+        }
+    }
+
+    public static func classifyIdentity(data: Data, status: Int) -> MemberHomePageState {
+        classify(data: data, status: status) { payload in
+            guard case .object = payload else { return .unknown }
+            guard let snapshot = try? JSONDecoder().decode(ObjectPayload<MemberIdentitySnapshot>.self, from: data).data else {
+                return .unknown
+            }
+            return state(for: snapshot)
+        }
+    }
+
+    public static func classifyRoleInfo(data: Data, status: Int) -> MemberHomePageState {
+        classify(data: data, status: status) { payload in
+            guard case .object(let fields) = payload else { return .unknown }
+            let role = fields["role"]?.text.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            if role.isEmpty { return .empty }
+            if role.utf8.count > 32 { return .error(.init(httpStatus: status, code: nil, message: nil)) }
+            guard let info = try? JSONDecoder().decode(ObjectPayload<MemberRoleInfo>.self, from: data).data else {
+                return .unknown
+            }
+            return .ready(.benefits(.init(info: info)))
+        }
+    }
+
+    private static func classify(data: Data, status: Int, accept: (JSONBox) -> MemberHomePageState) -> MemberHomePageState {
+        if data.count > 256 * 1024 { return .error(.init(httpStatus: status, code: nil, message: nil)) }
+        if status == 401 { return .error(.init(httpStatus: 401, code: 401, message: nil)) }
+        guard let envelope = try? JSONDecoder().decode(PageEnvelope.self, from: data) else {
+            guard (200..<300).contains(status) else { return .error(.init(httpStatus: status, code: nil, message: nil)) }
+            return .unknown
+        }
+        if envelope.code == 401 || envelope.code == 2 {
+            return .error(.init(httpStatus: status, code: envelope.code, message: nil))
+        }
+        guard (200..<300).contains(status) else {
+            return .error(.init(httpStatus: status, code: envelope.code, message: envelope.msg))
+        }
+        guard envelope.code == 200 else {
+            return .error(.init(httpStatus: status, code: envelope.code, message: envelope.msg))
+        }
+        guard let payload = envelope.data else { return .unknown }
+        if case .null = payload { return .unknown }
+        return accept(payload)
+    }
+
+    private enum JSONBox: Decodable {
+        case object([String: JSONBox])
+        case array([JSONBox])
+        case string(String)
+        case number(Double)
+        case bool(Bool)
+        case null
+
+        var text: String {
+            if case .string(let value) = self { return value }
+            return ""
+        }
+
+        init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            if container.decodeNil() { self = .null; return }
+            if let value = try? container.decode([String: JSONBox].self) { self = .object(value); return }
+            if let value = try? container.decode([JSONBox].self) { self = .array(value); return }
+            if let value = try? container.decode(String.self) { self = .string(value); return }
+            if let value = try? container.decode(Bool.self) { self = .bool(value); return }
+            if let value = try? container.decode(Double.self) { self = .number(value); return }
+            throw DecodingError.dataCorruptedError(in: container, debugDescription: "unsupported")
+        }
+    }
+
+    private struct PageEnvelope: Decodable {
+        let code: Int
+        let msg: String?
+        let data: JSONBox?
+    }
+
+    private struct ObjectPayload<T: Decodable>: Decodable { let data: T }
+}
+
+#if DEBUG
+/// Offline page-ready data for pages/member/index/index. Not part of a Release build.
+public enum MemberHomeFixtureData {
+    public static let readyIdentityJSON = #"{"id":81,"nickname":"Synthetic member","city":"Synthetic City","levelId":2,"role":"player","friendNum":3,"followNum":12,"fansNum":8,"topicNum":1,"activityNum":2,"likeNum":0,"balance":"1.50","createTime":"2026-01-02 08:00:00"}"#
+    public static let emptyIdentityJSON = "{}"
+    public static let unknownCounterJSON = #"{"nickname":"Synthetic member","friendNum":null,"followNum":"x","fansNum":-1,"topicNum":1,"activityNum":2,"likeNum":0}"#
+    public static let zeroCounterJSON = #"{"nickname":"Synthetic member","friendNum":0,"followNum":0,"fansNum":0,"topicNum":0,"activityNum":0,"likeNum":0,"balance":0}"#
+    public static let unknownEnvelope = #"{"code":200,"data":null}"#
+    public static let arrayEnvelope = #"{"code":200,"data":[]}"#
+    public static let emptyEnvelope = #"{"code":200,"data":{}}"#
+    public static let rejectedEnvelope = #"{"code":500,"msg":"Synthetic rejection"}"#
+    public static let readyRoleJSON = #"{"role":"player","permission":{"maxThemes":3,"canBranch":true}}"#
+    public static let emptyRoleEnvelope = #"{"code":200,"data":{"permission":{}}}"#
+    public static let missingClubsRoleJSON = #"{"role":"player","permission":{}}"#
+
+    public static func readyIdentity() throws -> MemberIdentitySnapshot {
+        try JSONDecoder().decode(MemberIdentitySnapshot.self, from: Data(readyIdentityJSON.utf8))
+    }
+    public static func readyRole() throws -> MemberRoleInfo {
+        try JSONDecoder().decode(MemberRoleInfo.self, from: Data(readyRoleJSON.utf8))
+    }
+    public static func envelope(_ dataJSON: String) -> Data {
+        Data("{\"code\":200,\"data\":\(dataJSON)}".utf8)
+    }
+}
+#endif

@@ -202,6 +202,118 @@ public struct MyProjectMerchantScopeAccess: Equatable, Sendable {
     public var browseOnlyNotice: String? { isBrowseOnly ? Self.browseOnlyNoticeText : nil }
 }
 
+public enum MyProjectPagePhase: Equatable, Sendable {
+    case loading, empty, error, unknown, ready
+}
+
+public enum MyProjectPageAccessibility: String, Equatable, Sendable {
+    case loading = "myProject.page.loading"
+    case empty = "myProject.page.empty"
+    case error = "myProject.page.error"
+    case unknown = "myProject.page.unknown"
+    case ready = "myProject.page.ready"
+    public static let signup = "myProject.page.signup"
+    public static let views = "myProject.page.views"
+}
+
+public struct MyProjectPageRowFacts: Equatable, Sendable {
+    public let id: String
+    public let signupText: String
+    public let viewText: String
+
+    public init(_ project: CreatorContentProject) {
+        id = project.id
+        signupText = project.signupCountFact.displayText
+        viewText = project.viewCountFact.displayText
+    }
+}
+
+/// Read model for `subpackageA/pages/myproject` topic and activity tabs.
+/// Uses the existing `CreatorContentReading.projects` path (`POST api/project/my` on the session reader).
+/// The template tab stays on the own-shelf and is not filled from project rows.
+/// List mutations stay on `GatedMyProjectMutator` and are not called here.
+@MainActor public final class MyProjectPageCoordinator {
+    private let reader: any CreatorContentReading
+    private let operationScope: String?
+    public private(set) var phase: MyProjectPagePhase = .loading
+    public private(set) var issue: CreatorContentIssue?
+    public private(set) var rows: [MyProjectPageRowFacts] = []
+    public private(set) var emptyTitleKey: String?
+    public private(set) var emptyDetailKey: String?
+    public private(set) var accessibilityIdentifier = MyProjectPageAccessibility.loading.rawValue
+
+    public init(reader: any CreatorContentReading, operationScope: String? = nil) {
+        self.reader = reader
+        self.operationScope = operationScope
+    }
+
+    /// `canPublishActivity` only selects the existing empty-state copy. It does not grant a write.
+    public func reload(query: CreatorContentQuery, tab: MyProjectTab, canPublishActivity: Bool = false) async {
+        phase = .loading
+        issue = nil
+        rows = []
+        emptyTitleKey = nil
+        emptyDetailKey = nil
+        accessibilityIdentifier = MyProjectPageAccessibility.loading.rawValue
+        guard reader.isAuthenticated else { return fail(.login) }
+        guard reader.isConfigured else { return fail(.notConfigured) }
+        guard tab != .template else {
+            phase = .unknown
+            accessibilityIdentifier = MyProjectPageAccessibility.unknown.rawValue
+            return
+        }
+        guard query.isValid else { return fail(.failure) }
+        do {
+            let page = try await load(query)
+            let filtered = MyProjectListPresentation.rows(for: tab, in: page.rows)
+            guard !filtered.isEmpty else {
+                phase = .empty
+                let keys = MyProjectListPresentation.emptyKeys(for: tab, canPublishActivity: canPublishActivity)
+                emptyTitleKey = keys.title
+                emptyDetailKey = keys.detail
+                accessibilityIdentifier = MyProjectPageAccessibility.empty.rawValue
+                return
+            }
+            rows = filtered.map(MyProjectPageRowFacts.init)
+            phase = .ready
+            accessibilityIdentifier = MyProjectPageAccessibility.ready.rawValue
+        } catch is CancellationError {
+            return
+        } catch {
+            fail(CreatorContentIssue(error))
+        }
+    }
+
+    public var unknownText: String { MyProjectCountFact.unknownText }
+
+    /// Existing catalog keys. Unknown has no sentence: the mark is `unknownText`.
+    public var titleKey: String? {
+        switch phase {
+        case .loading: return "creatorContent.loading"
+        case .empty: return emptyTitleKey
+        case .error: return issue?.localizationKey
+        case .unknown: return nil
+        case .ready: return "creatorContent.projects"
+        }
+    }
+
+    private func fail(_ issue: CreatorContentIssue) {
+        self.issue = issue
+        phase = .error
+        rows = []
+        emptyTitleKey = nil
+        emptyDetailKey = nil
+        accessibilityIdentifier = MyProjectPageAccessibility.error.rawValue
+    }
+
+    private func load(_ query: CreatorContentQuery) async throws -> CreatorContentProjectPage {
+        if let live = reader as? CreatorContentSessionReader {
+            return try await live.projects(query: query, operationScope: operationScope)
+        }
+        return try await reader.projects(query: query)
+    }
+}
+
 /// AI Quick Publishing (`pages/publish/simple`) max-3-points and per-point POI confirmation state helper.
 public struct QuickPublishPointValidation: Equatable, Sendable {
     public static let minimumPoints = 1

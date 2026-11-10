@@ -113,9 +113,7 @@ public struct PublisherLifecycleGrants {
             try check(captured)
             guard reader.isConfigured, reader.scope == scope, home.memberId == id,
                   let merchantID = home.id, merchantID > 0 else { throw PublisherLifecycleError.incomplete }
-            profile = .object(["id": .number(Decimal(merchantID)), "memberId": .number(Decimal(id)),
-                "name": home.name.map(ProjectEditJSON.string) ?? .null,
-                "description": home.description.map(ProjectEditJSON.string) ?? .null])
+            profile = TopicPricingXcx.merchantPartnerProfile(home, ownerMemberID: id)
         }
         try check(captured)
         guard let name = profile.object?["name"]?.text, !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw PublisherLifecycleError.incomplete }

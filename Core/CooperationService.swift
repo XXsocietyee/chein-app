@@ -19,7 +19,7 @@ public struct CooperationService {
         let matches = list.rows(key.direction).filter { $0.id == key.id }
         guard let row = matches.first else { throw CooperationReadFailure.unavailable }
         guard matches.count == 1 else { throw CooperationReadFailure.ambiguousIdentity }
-        return CooperationInviteDetail(row: row, occupancy: list.occupancy(for: row))
+        return CooperationInviteDetail(row: row, occupancy: list.occupancy(for: row), slotLine: list.slotLine(for: row))
     }
     public func applications(direction: CooperationDirection, token: String) async throws -> [CooperationApplication] {
         // Bare data array, NOT pool/list.rows. Historical processed applications must remain visible.

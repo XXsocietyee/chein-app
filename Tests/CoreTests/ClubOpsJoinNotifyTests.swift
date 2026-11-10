@@ -108,6 +108,33 @@ final class ClubOpsJoinReviewReasonTests: XCTestCase {
 }
 
 final class ClubOpsJoinRequestPresentationTests: XCTestCase {
+    func testJoinRequestPageStaysHiddenAndUnknownIsAnEmDash() throws {
+        let ready = ClubJoinRequestsPageReady.self
+        XCTAssertEqual(ready.routes, ["api/club/join-requests", "api/club/join-request/approve", "api/club/join-request/reject"])
+        XCTAssertFalse(ready.routes.contains(ready.hiddenApplyRoute))
+        XCTAssertFalse(ready.revealsApplyRoute)
+        XCTAssertEqual(ready.countText(nil), "\u{2014}")
+        XCTAssertEqual(ready.countText(0), "0")
+        XCTAssertEqual(ready.countText(3), "3")
+        let shown = ClubJoinRequestsPageReady.Visibility(reviewCapabilityPresent: true, canGovern: true, playerFirstEntry: false)
+        XCTAssertEqual(ready.pendingCountText(visibility: shown, count: nil), "\u{2014}")
+        XCTAssertEqual(ready.pendingCountText(visibility: shown, count: 0), "0")
+        let player = ClubJoinRequestsPageReady.Visibility(reviewCapabilityPresent: true, canGovern: true, playerFirstEntry: true)
+        let missing = ClubJoinRequestsPageReady.Visibility(reviewCapabilityPresent: false, canGovern: true, playerFirstEntry: false)
+        let member = ClubJoinRequestsPageReady.Visibility(reviewCapabilityPresent: true, canGovern: false, playerFirstEntry: false)
+        XCTAssertNil(ready.pendingCountText(visibility: player, count: 0))
+        XCTAssertNil(ready.pendingCountText(visibility: missing, count: 4))
+        XCTAssertNil(ready.pendingCountText(visibility: member, count: nil))
+        XCTAssertEqual(ready.phase(visibility: player, loading: true, failed: false, denied: false, list: nil), .hidden)
+        XCTAssertEqual(ready.phase(visibility: missing, loading: false, failed: true, denied: false, list: nil), .hidden)
+        XCTAssertEqual(ready.phase(visibility: shown, loading: false, failed: true, denied: true, list: nil), .hidden)
+        XCTAssertEqual(ready.phase(visibility: shown, loading: true, failed: false, denied: false, list: nil), .loading)
+        XCTAssertEqual(ready.phase(visibility: shown, loading: false, failed: true, denied: false, list: nil), .error)
+        XCTAssertEqual(ready.phase(visibility: shown, loading: false, failed: false, denied: false, list: nil), .unknown)
+        XCTAssertEqual(ready.phase(visibility: shown, loading: false, failed: false, denied: false, list: []), .empty)
+        let row = try JSONDecoder().decode(ClubManagementRequest.self, from: Data(#"{"memberId":3}"#.utf8))
+        XCTAssertEqual(ready.phase(visibility: shown, loading: true, failed: false, denied: false, list: [row]), .ready)
+    }
     func testIntroNameAndQuotedMessage() {
         XCTAssertEqual(ClubOpsJoinRequestPresentation.introPendingCount(3), 3)
         XCTAssertNil(ClubOpsJoinRequestPresentation.introPendingCount(0))
