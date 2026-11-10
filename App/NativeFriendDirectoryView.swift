@@ -73,7 +73,13 @@ import SwiftUI
                     Button { model.open(item) } label: {
                         HStack(spacing: Theme.Space.s3) {
                             E3Avatar(seed: item.displayName.isEmpty ? String(item.peerID) : item.displayName, size: 48).accessibilityHidden(true)
-                            Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(CYTypography.bodyMedium).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
+                                // Remark shown with the original nickname so a renamed friend stays recognisable.
+                                if let remark = item.friendRemark, !remark.isEmpty, !item.nickname.isEmpty, remark != item.nickname {
+                                    Text(verbatim: item.nickname).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                                }
+                            }
                             if item.starred == 1 { Image(systemName: "star.fill").font(Theme.Font.label).foregroundStyle(CYColor.warningText).accessibilityLabel(Text("friendMeta.starred", tableName: "NativeFriendMetadata")) }
                             Spacer()
                             Image(systemName: "chevron.right").font(Theme.Font.label.weight(.semibold)).foregroundStyle(.tertiary).accessibilityHidden(true)
