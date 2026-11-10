@@ -22,3 +22,7 @@ Batch 1+2 Build - iOS on cbfcaa411: success.
 Done: SocialPublicProfileView, SocialMessageMediaView, SocialInviteHistoryView, SocialArticleContentView, SocialActionViews.
 Skipped: none.
 Cloud-owned (diff on origin/ui/cloud-*), skipped from here on: ClubGovernanceViews, ClubManagementView, ClubOpsCustomerViews, CooperationBrowserView. ClubEnrollmentView was already restyled in batch 2 before the cloud lane touched it; expect a merge conflict to resolve in favour of one version.
+
+## Batch 5 (reverse)
+Done: ProfileFollowListView, SessionNearbyTeamView (stale state).
+Skipped (host/adapter, no visible presentation of their own): SessionTeamViews, SessionClubPublicActivityListView, RoamNearbyTeamsView.
