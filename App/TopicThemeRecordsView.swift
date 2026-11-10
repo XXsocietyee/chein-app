@@ -13,36 +13,39 @@ import SwiftUI
     @State private var loadedScope: UUID?
     var body: some View {
         List {
-            Section { Text(verbatim: topicName).font(.subheadline).foregroundStyle(.secondary) }
-            if loading && rows.isEmpty { ProgressView("topicXcx.records.loading") }
+            Section { CYHeroHeader("topicXcx.records.title", subtitle: nil) }.e1HeroRow()
+            Section { Text(verbatim: topicName).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if loading && rows.isEmpty { CYLoadingStateView(rows: 3).accessibilityLabel(Text("topicXcx.records.loading")).listRowBackground(Color.clear) }
             else if failed && rows.isEmpty {
-                Text("topicXcx.records.failed").accessibilityIdentifier("topic.records.failed")
-                Button("topicXcx.records.reload") { Task { await load(reset: true) } }
+                CYEmptyState(systemImage: "wifi.exclamationmark", "topicXcx.records.failed", messageIdentifier: "topic.records.failed",
+                             actionTitle: "topicXcx.records.reload", kind: .failure) { Task { await load(reset: true) } }
+                    .listRowBackground(Color.clear)
             } else if rows.isEmpty && loadedScope == reader.scope {
-                Text("topicXcx.records.empty").accessibilityIdentifier("topic.records.empty")
+                CYEmptyState(systemImage: "clock", "topicXcx.records.empty", messageIdentifier: "topic.records.empty")
+                    .listRowBackground(Color.clear)
             }
             ForEach(rows) { row in
                 NavigationLink { TopicThemeCardView(sessionID: row.sessionID, reader: reader) } label: {
-                    VStack(alignment: .leading, spacing: 3) {
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
                         switch row.title {
-                        case .server(let text): Text(verbatim: text).font(.headline)
-                        case .completed: Text("topicXcx.records.completed").font(.headline)
-                        case .ended: Text("topicXcx.records.ended").font(.headline)
-                        case .playing: Text("topicXcx.records.playing").font(.headline)
+                        case .server(let text): Text(verbatim: text).font(CYTypography.cardTitle)
+                        case .completed: Text("topicXcx.records.completed").font(CYTypography.cardTitle)
+                        case .ended: Text("topicXcx.records.ended").font(CYTypography.cardTitle)
+                        case .playing: Text("topicXcx.records.playing").font(CYTypography.cardTitle)
                         }
-                        if let scene = row.sceneName { Text(verbatim: scene).font(.caption) }
-                        if let ended = row.endedAt { Text(verbatim: ended).font(.caption).foregroundStyle(.secondary) }
-                        else { Text("topicXcx.records.playing").font(.caption).foregroundStyle(.secondary) }
-                        if let summary = row.summary { Text(verbatim: summary).font(.footnote).lineLimit(2) }
+                        if let scene = row.sceneName { Text(verbatim: scene).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                        if let ended = row.endedAt { Text(verbatim: ended).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        else { Text("topicXcx.records.playing").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        if let summary = row.summary { Text(verbatim: summary).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(2) }
                     }
                 }.accessibilityIdentifier("topic.records.row.\(row.sessionID)")
             }
             if hasMore && !rows.isEmpty {
-                Button(failed ? "topicXcx.records.reload" : "topicXcx.records.more") { Task { await load(reset: false) } }
-                    .disabled(loading).accessibilityIdentifier("topic.records.more")
+                CYPillButton(failed ? "topicXcx.records.reload" : "topicXcx.records.more", style: .secondary) { Task { await load(reset: false) } }
+                    .disabled(loading).accessibilityIdentifier("topic.records.more").e1ActionRow()
             }
         }
-        .appNavigationTitle("topicXcx.records.title")
+        .listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
         .task(id: reader.scope) { await load(reset: true) }
         .accessibilityIdentifier("topic.records")
     }
@@ -71,7 +74,7 @@ import SwiftUI
         List {
             if let card {
                 Section {
-                    if let title = card.title { Text(verbatim: title).font(.title3.bold()) } else { Text("topicXcx.records.cardTitle").font(.title3.bold()) }
+                    if let title = card.title { CYHeroHeader(verbatim: title).e1HeroRow() } else { CYHeroHeader("topicXcx.records.cardTitle").e1HeroRow() }
                     if let scene = card.scene { LabeledContent { Text(verbatim: scene) } label: { Text("topicXcx.records.scene") } }
                     if let summary = card.summary { Text(verbatim: summary) }
                 }
@@ -79,7 +82,7 @@ import SwiftUI
                     Section {
                         ForEach(Array(card.values.enumerated()), id: \.offset) { _, row in
                             LabeledContent {
-                                Text(verbatim: String(row.value))
+                                Text(verbatim: String(row.value)).font(CYTypography.numericBody)
                             } label: {
                                 if let label = row.label { Text(verbatim: label) } else { Text(LocalizedStringKey("topicXcx.records.value." + row.kind)) }
                             }
@@ -91,16 +94,18 @@ import SwiftUI
                 if !card.epilogues.isEmpty {
                     Section("topicXcx.records.epilogues") {
                         ForEach(Array(card.epilogues.enumerated()), id: \.offset) { _, row in
-                            VStack(alignment: .leading) { Text(verbatim: row.name).font(.headline); if let line = row.line { Text(verbatim: line) } }
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) { Text(verbatim: row.name).font(CYTypography.cardTitle); if let line = row.line { Text(verbatim: line).font(CYTypography.body).foregroundStyle(CYColor.textSecondary) } }
                         }
                     }
                 }
                 if let next = card.nextScene { Text("topicXcx.records.nextScene \(next)") }
             } else if failed {
-                Text("topicXcx.records.cardFailed").accessibilityIdentifier("topic.records.cardFailed")
-                Button("topicXcx.records.cardReload") { Task { await load() } }
-            } else { ProgressView("topicXcx.records.cardLoading") }
+                CYEmptyState(systemImage: "wifi.exclamationmark", "topicXcx.records.cardFailed", messageIdentifier: "topic.records.cardFailed",
+                             actionTitle: "topicXcx.records.cardReload", kind: .failure) { Task { await load() } }
+                    .listRowBackground(Color.clear)
+            } else { CYLoadingStateView(rows: 2).accessibilityLabel(Text("topicXcx.records.cardLoading")).listRowBackground(Color.clear) }
         }
+        .listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
         .task(id: reader.scope) { await load() }
         .accessibilityIdentifier("topic.records.card")
     }

@@ -55,3 +55,6 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 
 ## Batch 15
 - TemplateSensorDraftConfigurationView (fragment + preview screen), TemplateSensorRehearsalView, TemplateTimerRehearsalView (+ outcome editor), TopicDetailView (already kit-ported earlier: loading skeleton, single hero via cover/name, pills for review/self-play/unlock, chapter hero), TopicSessionSelectionView (hero, kit empty states, icon rows).
+
+## Batch 16
+- TopicThemeRecordsView (records + card: hero, kit empty/error states, skeleton), WorkshopCommerceView (shared `WorkshopLibrarySurface` / `WorkshopLibraryPrimaryAction` modifiers now use CY page background + CYPillButtonStyle, so every Workshop library screen picks it up; entry empty state, hero), WorkshopCreatorConsentView, WorkshopCreatorPendingView, WorkshopLicenseLibraryView: hero, pills, skeletons, tokens. Workshop = player-side (creator/buyer library), dark.
