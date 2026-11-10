@@ -1229,19 +1229,15 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
     public let blockedUsersStore: any ChannelBlockedUsersStoring
     public var onSignIn: (() -> Void)?
 
-    private enum LoadPhase: Equatable {
-        case loading
-        case failed(String)
-        case loaded(
-            workspace: ClubChannelWorkspacePayload,
-            roster: [ChannelMemberRoleItem],
-            viewerMemberID: Int,
-            viewerTier: ChannelMemberRoleTier,
-            capabilities: ChannelModerationCapabilities
-        )
+    private struct LoadedContext {
+        let workspace: ClubChannelWorkspacePayload
+        let roster: [ChannelMemberRoleItem]
+        let viewerMemberID: Int
+        let viewerTier: ChannelMemberRoleTier
+        let capabilities: ChannelModerationCapabilities
     }
 
-    @State private var phase: LoadPhase = .loading
+    @State private var phase: CYPhase<LoadedContext, String> = .loading
     @State private var reloadRevision: UInt64 = 0
     @Environment(\.locale) private var locale
 
@@ -1268,7 +1264,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
     public var body: some View {
         Group {
             switch phase {
-            case .loading:
+            case .idle, .loading, .empty:
                 VStack(spacing: CYSpacing.md) {
                     ProgressView()
                     Text(copy("正在加载俱乐部频道…", "Loading club channels…"))
@@ -1279,7 +1275,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
                 .background(CYColor.bgPage)
                 .accessibilityIdentifier("club.channels.loading")
 
-            case let .failed(message):
+            case let .failed(message, _):
                 let titleText = copy("暂时无法加载频道", "Couldn't load channels")
                 let retryText = copy("重试", "Retry")
                 CYErrorStateView(
@@ -1292,7 +1288,9 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
                 .background(CYColor.bgPage)
                 .accessibilityIdentifier("club.channels.error")
 
-            case let .loaded(workspace, roster, viewerMemberID, viewerTier, capabilities):
+            case let .loaded(context):
+                let workspace = context.workspace, roster = context.roster, viewerMemberID = context.viewerMemberID
+                let viewerTier = context.viewerTier, capabilities = context.capabilities
                 let firstChannelID = workspace.listing.channels.first?.id ?? 1
                 ClubChannelMessagingView(
                     club: club,
@@ -1322,7 +1320,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
         phase = .loading
         let identity = reader.clubIdentity
         guard identity.isSignedIn, (club.isOwner || club.isJoined) else {
-            phase = .failed(copy("加入俱乐部后即可访问频道消息。", "Join the club to access channel messages."))
+            phase = .failed(copy("加入俱乐部后即可访问频道消息。", "Join the club to access channel messages."), retry: nil)
             return
         }
         let viewerID = max(1, identity.accountID ?? 1)
@@ -1385,7 +1383,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
             return
         } catch let failure as ClubReadFailure where failure.isUnauthorized {
             onSignIn?()
-            phase = .failed(copy("登录状态已失效，请重新登录后重试。", "Your session expired. Please sign in again."))
+            phase = .failed(copy("登录状态已失效，请重新登录后重试。", "Your session expired. Please sign in again."), retry: nil)
             return
         } catch {
             mappedRoster = [
@@ -1401,7 +1399,7 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
 
         guard let safetyService else {
             phase = .failed(
-                ChannelSafetyServiceError.channelDirectoryUnavailable.localizedDescription(locale: locale)
+                ChannelSafetyServiceError.channelDirectoryUnavailable.localizedDescription(locale: locale), retry: nil
             )
             return
         }
@@ -1409,19 +1407,19 @@ public struct ClubChannelMessagingHostView<Reader: ClubReading>: View {
         do {
             let workspace = try await safetyService.loadChannelWorkspace(club: club, viewerMemberID: viewerID)
             guard !Task.isCancelled, reader.clubIdentity == identity else { return }
-            phase = .loaded(
+            phase = .loaded(LoadedContext(
                 workspace: workspace,
                 roster: mappedRoster,
                 viewerMemberID: viewerID,
                 viewerTier: viewerTier,
                 capabilities: capabilities
-            )
+            ))
         } catch is CancellationError {
             return
         } catch let serviceError as ChannelSafetyServiceError {
-            phase = .failed(serviceError.localizedDescription(locale: locale))
+            phase = .failed(serviceError.localizedDescription(locale: locale), retry: nil)
         } catch {
-            phase = .failed(copy("无法加载俱乐部频道列表，请点击重试。", "Failed to load club channels. Tap Retry to try again."))
+            phase = .failed(copy("无法加载俱乐部频道列表，请点击重试。", "Failed to load club channels. Tap Retry to try again."), retry: nil)
         }
     }
 }
