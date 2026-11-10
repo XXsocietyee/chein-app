@@ -77,7 +77,7 @@ import UIKit
     @ViewBuilder private var actionsSection: some View {
         if let rendered = machine.image {
             CYShareReadyRow(image: rendered, title: "roam.share.ready", hint: "roam.share.readyHint",
-                            previewLabel: "roam.share.previewLabel", previewIdentifier: "share.card.preview")
+                            previewLabel: "roam.share.previewLabel", identifier: "share.card.preview")
             // `ShareLink` has no completion callback, so this confirms the tap; the roam surfaces confirm the outcome.
             ShareLink(item: Image(uiImage: rendered),
                       preview: SharePreview(Text(verbatim: base.title), image: Image(uiImage: rendered))) {
@@ -92,7 +92,7 @@ import UIKit
             if case .renderFailed = machine.state {
                 Text("roam.share.renderFailed").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             }
-            CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, accessibilityIdentifier: "share.card.prepare") { prepare() }
+            CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, identifier: "share.card.prepare") { prepare() }
         }
     }
 

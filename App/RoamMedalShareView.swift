@@ -88,7 +88,7 @@ import UIKit
     @ViewBuilder private var actionsSection: some View {
         if let image = machine.image {
             CYShareReadyRow(image: image, title: "roam.share.ready", hint: "roam.share.readyHint",
-                            previewLabel: "roam.medalShare.preview", previewIdentifier: "roam.medalShare.preview")
+                            previewLabel: "roam.medalShare.preview", identifier: "roam.medalShare.preview")
             saveControls(image)
             CYPillButton("roam.share.system", style: .secondary, systemImage: "square.and.arrow.up") {
                 guard systemShare == nil, !photoSave.inFlight, !machine.state.isExporting else { return }
@@ -106,7 +106,7 @@ import UIKit
         } else {
             if case .renderFailed = machine.state { Text("roam.share.renderFailed") }
             CYSharePrepareButton(title: "roam.medalShare.prepare", systemImage: "medal", state: machine.state,
-                                 accessibilityIdentifier: "roam.medalShare.prepare") { prepare() }
+                                 identifier: "roam.medalShare.prepare") { prepare() }
         }
     }
     /// Render off the press frame: the state flips to `.rendering` first, the bitmap lands in the next turn.

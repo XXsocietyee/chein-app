@@ -118,7 +118,7 @@ struct CYSharePrepareButton: View {
     let title: LocalizedStringKey
     var systemImage: String = "photo"
     let state: CYShareComposerState
-    var accessibilityIdentifier: String
+    var identifier: String
     let action: () -> Void
     @State private var showsSpinner = false
     @Environment(\.cyPalette) private var palette
@@ -135,7 +135,7 @@ struct CYSharePrepareButton: View {
                 }
             }
             .animation(.easeInOut(duration: CYMotion.Duration.quick), value: showsSpinner)
-            .accessibilityIdentifier(accessibilityIdentifier)
+            .accessibilityIdentifier(identifier)
             .task(id: state.isRendering) {
                 showsSpinner = false
                 guard state.isRendering else { return }
@@ -155,7 +155,7 @@ struct CYShareReadyRow: View {
     let title: LocalizedStringKey
     let hint: LocalizedStringKey
     let previewLabel: LocalizedStringKey
-    var previewIdentifier: String
+    var identifier: String
 
     var body: some View {
         HStack(spacing: CYSpacing.md) {
@@ -164,7 +164,7 @@ struct CYShareReadyRow: View {
                 .overlay { CYFoilSheen() }
                 .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
                 .accessibilityLabel(Text(previewLabel))
-                .accessibilityIdentifier(previewIdentifier)
+                .accessibilityIdentifier(identifier)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 CYStatusChip(title, tone: .success, systemImage: "checkmark.seal")
                 Text(hint).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)

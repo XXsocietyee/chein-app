@@ -150,7 +150,7 @@ import UIKit
         if let image = machine.image, renderedRecord == record, renderedIncludeRoute == includeRoute,
            renderedOwner == RoamHistoryLiveOwner(reader: reader) {
             CYShareReadyRow(image: image, title: "roam.share.ready", hint: "roam.share.readyHint",
-                            previewLabel: "roam.share.previewLabel", previewIdentifier: "roam.share.preview")
+                            previewLabel: "roam.share.previewLabel", identifier: "roam.share.preview")
             photoSaveControls(image)
             if !allowedAlbumDestinations.isEmpty { albumGuideControls(image) }
             if channelPolicy.permits(.systemShare) {
@@ -159,7 +159,7 @@ import UIKit
                     .accessibilityIdentifier("roam.share.system")
             }
         } else {
-            CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, accessibilityIdentifier: "roam.share.prepare") { prepare() }
+            CYSharePrepareButton(title: "roam.share.prepare", state: machine.state, identifier: "roam.share.prepare") { prepare() }
         }
     }
 
