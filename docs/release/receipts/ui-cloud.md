@@ -1,0 +1,1 @@
+UI-CLOUD-06 a271298c1fd7c281361f72c916e54f778e410523 Build success (145 warnings, 0 errors). Test action_required is the two GLTFKit2 errors, not this lane. Restyled: App/CityAcquisitionView.swift, App/CityActionBudgetView.swift, App/CityArrivalEvidenceRuntimeHostView.swift, App/CityFairnessView.swift, App/CityNeutralTaskResultRecoveryView.swift. Skipped: none.
