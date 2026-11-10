@@ -42,3 +42,7 @@ Skipped: none.
 ## Batch 9 (reverse)
 Done: NativeChannelMessageBubbleView, NativeChannelMessageAttachmentView, NPCChatDataView, MessagingMessageDetailView, IMVoiceViews. IMFlowStateMessage (shared IM flow state row) now renders on CYPalette soft fills.
 Skipped: none.
+
+## Batch 10 (reverse)
+Done: IMVideoViews, IMFileViews, IMExpandedViews, IMCoopInviteStripView, IMConversationSafetyViews.
+Skipped: none.

@@ -14,30 +14,31 @@ import CryptoKit
     var body: some View {
         let _ = revision
         Form {
+            Section { CYHeroHeader("d7.imFile.title").listRowBackground(Color.clear) }
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
                     switch owner.visibleState {
                     case .empty, .draft:
                         if owner.canUpload {
-                            Button { picking = true } label: { Label("d7.imFile.choose", systemImage: "doc.badge.plus") }
+                            CYPillButton("d7.imFile.choose", style: .secondary, systemImage: "doc.badge.plus") { picking = true }
                         } else {
                             IMFlowStateMessage(text: Text("d7.imFile.unavailable"), symbol: "doc")
                         }
                         if case .draft(let file) = owner.visibleState {
                             LabeledContent { IMByteCountText(bytes: file.bytes.count) } label: { Text(verbatim: file.name) }
-                            Button("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imCompose.upload") { Task { if available { await owner.confirmUpload() } } }
                             Button("d7.imCompose.discard", role: .destructive) { owner.discardDraft() }
                         }
                     case .uploading: ProgressView("d7.imCompose.uploading")
                     case .unknown:
                         IMFlowStateMessage(text: Text("d7.imCompose.uploadUnknown"), symbol: "clock.arrow.circlepath")
-                        if owner.canRecover { Button("d7.imCompose.checkStatus") { Task { await owner.recover() } } }
-                        if owner.canUpload { Button("d7.chatInfo.tryAgain") { Task { if available { await owner.uploadUnchanged() } } } }
+                        if owner.canRecover { CYPillButton("d7.imCompose.checkStatus", style: .secondary) { Task { await owner.recover() } } }
+                        if owner.canUpload { CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { Task { if available { await owner.uploadUnchanged() } } } }
                     case .held:
                         IMFlowStateMessage(text: Text("d7.imCompose.inReview"), symbol: "clock")
-                        if owner.canRecover { Button("d7.imCompose.refresh") { Task { await owner.recover() } } }
-                        if owner.service.scanEnabled { Button("d7.imFile.rescan") { Task { if available { await owner.retryScan() } } } }
+                        if owner.canRecover { CYPillButton("d7.imCompose.refresh", style: .secondary) { Task { await owner.recover() } } }
+                        if owner.service.scanEnabled { CYPillButton("d7.imFile.rescan", style: .secondary) { Task { if available { await owner.retryScan() } } } }
                     case .rejected:
                         IMFlowStateMessage(text: Text("d7.imFile.rejected"), symbol: "xmark.octagon", tone: .attention)
                         Button("d7.imCompose.discard", role: .destructive) { owner.discardRejected() }
@@ -45,7 +46,7 @@ import CryptoKit
                         IMFlowStateMessage(text: Text("d7.imCompose.approved"), symbol: "checkmark.seal", tone: .success)
                         LabeledContent { IMByteCountText(bytes: file.size) } label: { Text(verbatim: file.name) }
                         if owner.expanded.writer.canSendFile && owner.canRecover {
-                            Button("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imCompose.continue") { Task { if available { await owner.reviewSend() } } }
                         }
                     case .closed: IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock")
                     }
@@ -56,7 +57,7 @@ import CryptoKit
                     case .reviewing(.send(let intent)):
                         if case .file = intent.payload {
                             IMMutationSummary(mutation: .send(intent))
-                            Button("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }.imFlowPrimaryAction()
+                            CYPillButton("d7.imFile.send") { Task { if available { await owner.expanded.confirm() } } }
                             Button("action.cancel", role: .cancel) { owner.expanded.cancelReview() }
                         }
                     case .submitting: ProgressView("d7.imCompose.sending")
@@ -64,20 +65,20 @@ import CryptoKit
                         if case .file = intent.payload {
                             IMFlowStateMessage(text: Text("d7.imCompose.sendUnknown"), symbol: "clock.arrow.circlepath")
                             if owner.expanded.canRecoverFile {
-                                Button("d7.imCompose.checkSent") { Task { if available { await owner.expanded.recoverFile() } } }
+                                CYPillButton("d7.imCompose.checkSent", style: .secondary) { Task { if available { await owner.expanded.recoverFile() } } }
                             }
-                            Button("d7.chatInfo.tryAgain") { Task { if available { await owner.expanded.retryUnchanged() } } }
+                            CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { Task { if available { await owner.expanded.retryUnchanged() } } }
                         }
                     case .acknowledged(.sent(let message)):
                         if IMFileReference.read(message) != nil {
                             IMFlowStateMessage(text: Text("d7.imFile.sent"), symbol: "checkmark.circle", tone: .success)
-                            Button("d7.imCompose.done") { owner.finishAcknowledged() }
+                            CYPillButton("d7.imCompose.done", style: .secondary) { owner.finishAcknowledged() }
                         }
                     default: EmptyView()
                     }
                 }
             }
-        }.imFlowForm().navigationTitle(Text("d7.imFile.title")).privacySensitive()
+        }.imFlowForm().cyHeroScreen().privacySensitive()
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.close") { dismiss() } } }
         .fileImporter(isPresented: $picking, allowedContentTypes: IMFilePicker.types, allowsMultipleSelection: false) { result in
             guard available else { return }
@@ -105,25 +106,26 @@ import CryptoKit
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMFileReference.read(message) != nil }
     var body: some View {
         Form {
+            Section { CYHeroHeader("d7.imFile.previewTitle").listRowBackground(Color.clear) }
             if let reference = IMFileReference.read(message), available {
                 Section {
                     LabeledContent { IMByteCountText(bytes: reference.size) } label: {
                         Label { Text(verbatim: reference.name) } icon: { Image(systemName: "doc") }
                     }
                     if owner.service.previewEnabled && owner.service.previewStatusEnabled && file == nil {
-                        Button { load() } label: { Label("d7.imFile.open", systemImage: "eye") }.disabled(loading)
+                        CYPillButton("d7.imFile.open", style: .secondary, systemImage: "eye") { load() }.disabled(loading)
                     }
                 }
                 if let file {
                     Section {
                         IMFileNativePreview(url: file).id(generation).frame(minHeight: 360).listRowInsets(EdgeInsets())
-                        Button { stop() } label: { Label("d7.imFile.closePreview", systemImage: "xmark.circle") }
+                        CYPillButton("d7.imFile.closePreview", style: .secondary, systemImage: "xmark.circle") { stop() }
                     }
                 }
             } else { IMFlowStateMessage(text: Text("d7.imFile.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }
             if failed { IMFlowStateMessage(text: Text("d7.imFile.previewFailed"), symbol: "exclamationmark.circle", tone: .attention) }
-        }.imFlowForm().privacySensitive().navigationTitle(Text("d7.imFile.previewTitle"))
+        }.imFlowForm().privacySensitive().cyHeroScreen()
         .onDisappear { stop() }
         .onChange(of: available) { _, value in if !value { stop() } }
         .onChange(of: scenePhase) { _, value in if value != .active { stop() } }
