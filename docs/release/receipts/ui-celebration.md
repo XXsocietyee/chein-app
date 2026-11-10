@@ -16,7 +16,7 @@ Spec: `docs/release/motion-spec-celebration.md`. Source: `/Users/fanning/chengyi
 Nothing live. No existing screen was edited: the screens that show empty or error states today use `CYEmptyState` / `CYErrorState`, and swapping them would change how they look, so the "only where behaviour is unchanged" bar had no safe candidate. The kit is ready to mount with `.cyCelebrations(center)` once the IA lands.
 
 ## Cloud results
-Filled in below after the pushes (checked with `gh api repos/liboyang42-cpu/chengyin-app/commits/<sha>/check-runs`).
+Checked with `gh api repos/liboyang42-cpu/chengyin-app/commits/<sha>/check-runs` and `.../status`. Xcode Cloud produced no Build or Test check run for any commit of this task (71f81e29a code, 788d132e3 docs, c03e5ccfd empty retrigger): each got only the combined status `Questify | chein - 城瘾` = failure / `cancelled`, set about 3 s after `queued`, so there is no Build 'N errors' count to read. Base commits 9ff53101c and 371a4f6c4 got the same cancelled status, so this is not specific to this change. The result is therefore not cloud-verified; correctness rests on `swiftc -parse` plus the two gates. Re-run the cloud build (or a local Build lane) before merging.
 
 ## Not verified
 Motion, haptics and VoiceOver were not run on a simulator or device in this lane; the fixtures are listed for the next on-device pass (haptic log with timestamps is on screen in the celebration fixtures). The engine has no unit tests (Tests are out of scope here); it takes an injected clock so they are cheap to add.
