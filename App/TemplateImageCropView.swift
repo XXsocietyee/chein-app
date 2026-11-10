@@ -44,23 +44,21 @@ import SwiftUI
                 Text("image.crop.zoom").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 Slider(value: $zoom, in: 1...4).accessibilityLabel("image.crop.zoom")
                     .accessibilityIdentifier("template.imageCrop.zoom")
-                Button("template.imageCrop.reset") { horizontal = 0.5; vertical = 0.5; zoom = 1 }
-                    .accessibilityIdentifier("template.imageCrop.reset")
                 // One solid action (mini 选取); reset / use-original / cancel stay quiet.
-                Button("template.imageCrop.confirm") { confirm(draft.id, rect) }
-                    .buttonStyle(.cyPrimary)
+                CYPillButton("template.imageCrop.confirm") { confirm(draft.id, rect) }
                     .accessibilityIdentifier("template.imageCrop.confirm")
+                CYPillButton("template.imageCrop.reset", style: .tertiary, systemImage: "arrow.counterclockwise") { horizontal = 0.5; vertical = 0.5; zoom = 1 }
+                    .accessibilityIdentifier("template.imageCrop.reset")
                 // Mini pages/crop "使用原图": the identity rect keeps the original bytes unchanged.
                 if let original = try? TemplateImageCropRect(sourceWidth: draft.source.width, sourceHeight: draft.source.height,
                                                              horizontal: 0.5, vertical: 0.5, zoom: 1) {
-                    Button("publishParity.crop.useOriginal") { confirm(draft.id, original) }
+                    CYPillButton("publishParity.crop.useOriginal", style: .secondary) { confirm(draft.id, original) }
                         .accessibilityIdentifier("template.imageCrop.useOriginal")
                 }
             } else { Text("image.retained.failed").font(CYTypography.body).foregroundStyle(CYColor.textSecondary) }
-            Button("image.retained.cancel", role: .cancel) { cancel(draft.id) }
+            CYPillButton("image.retained.cancel", style: .tertiary) { cancel(draft.id) }
                 .accessibilityIdentifier("template.imageCrop.cancel")
         }
-        .buttonStyle(.borderless)
         .onDisappear { cancel(draft.id) }
     }
 }

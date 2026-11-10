@@ -46,3 +46,6 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 
 ## Batch 12
 - TemplateCreatorConfigurationView (hero, kit rows, check-preset screen pills; the deep nested field editors keep their native Form chrome), TemplateCreatorRehearsalView, TemplateD6RehearsalView, TemplateEffectListView, TemplateHotspotPlacementView: hero, grouped surface, pills, tokens, skeleton. Dynamic Type: inline button HStacks in effect/hotspot rows left as native borderless controls.
+
+## Batch 13
+- TemplateImageCropView (pill actions, one primary), TemplateLegacyQuestionRehearsalView, TemplateLocalCategoryRemovalView, TemplateMiniGameConfigurationView (fragment: preview link row + preview hero), TemplatePreferencePreviewView (fragment: tokens): hero, grouped surface, pills, tokens.
