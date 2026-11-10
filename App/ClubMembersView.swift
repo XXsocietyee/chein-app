@@ -235,5 +235,5 @@ struct ClubMembersView<Reader: ClubReading & ObservableObject>: View {
         }
         .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
     }
-    private static let rowInsets = EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
+    private static var rowInsets: EdgeInsets { EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal) }
 }
