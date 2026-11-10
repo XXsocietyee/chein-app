@@ -35,8 +35,9 @@ struct E5bMomentFixture: View {
     }
 }
 
-/// Badge collection grid: real `ObjectBadgeWallBadgeLabel` wall tiles in a two-column grid, earned and locked.
+/// Badge collection grid: real `ObjectBadgeWallBadgeLabel` wall tiles in the real `CYCollectionGrid` (one column at accessibility sizes), earned and locked.
 struct E5bBadgeWallFixture: View {
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     private let badges: [ProfileBadgeSelection]
     init() {
         let json = #"[{"badgeCode":"A","badgeName":"Night Owl","category":"EXPLORE","unlocked":true,"unlockTime":"2026-10-01 10:00:00"},{"badgeCode":"B","badgeName":"First Stamp","category":"EXPLORE","unlocked":true},{"badgeCode":"C","badgeName":"Market Regular","category":"FOOD","unlocked":true},{"badgeCode":"D","badgeName":"Ten Spots","category":"EXPLORE","unlocked":false},{"badgeCode":"E","badgeName":"Club Founder","category":"SOCIAL","unlocked":false},{"badgeCode":"F","badgeName":"Rainy Day Walker","category":"EXPLORE","unlocked":false}]"#
@@ -51,7 +52,7 @@ struct E5bBadgeWallFixture: View {
                         CYCountRing(value: 3, total: 6)
                         Text(verbatim: tt("3 of 6 collected", "已收集 3 / 6")).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
                     }
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                    LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                         ForEach(Array(badges.enumerated()), id: \.offset) { _, badge in
                             ObjectBadgeWallBadgeLabel(badge: badge, layout: .wall)
                         }
