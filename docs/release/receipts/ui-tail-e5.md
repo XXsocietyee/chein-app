@@ -113,3 +113,9 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - ModInstallationSavedRehearsalView: done (CYPillButton primary start)
 - ModInstallationQaEditorView: done (CYHeroHeader, CYSkeleton)
 - ModInstallationNativeActionReceiptView: done (CYStatusChip verdict)
+
+## Batch 17 (remaining four)
+- MasterSevenDayLaunchCommandCenterView: done (CYStatusChip)
+- MasterThreeDocument312LaneCommandHubView: done (CYHeroHeader)
+- MiniCropView: done (CYPillButton primary confirm, tertiary cancel/use original)
+- ModCompositionInstallationReceiptView: done (CYStatusChip)
