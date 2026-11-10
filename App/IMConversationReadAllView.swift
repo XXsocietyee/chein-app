@@ -73,52 +73,30 @@ struct IMConversationReadAllButtonToken: Equatable {
     var body: some View {
         let appearance = model.appearance
         NavigationStack {
-            List {
-                if model.batch.isCurrent {
-                    Section {
-                        LabeledContent("d7.readAll.count") { Text(verbatim: String(model.items.count)) }
-                    }
-                    Section {
-                        switch model.phase {
-                        case .reviewing:
-                            if model.batch.canConfirm {
-                                Button("d7.readAll.confirm") {
-                                    guard let token = model.prepare(appearance: appearance) else { return }
-                                    Task { await model.perform(token) }
-                                }
-                                .disabled(model.isActionPending)
-                                .accessibilityIdentifier("im.readAll.confirmButton")
-                            } else { Text("d7.readAll.unavailable") }
-                        case .running:
-                            ProgressView("d7.readAll.running")
-                            if model.stopRequested {
-                                Text("d7.readAll.stopping")
-                            } else {
-                                Button("d7.readAll.stop", role: .destructive) { model.stop() }
-                                    .accessibilityIdentifier("im.readAll.stopButton")
-                            }
-                        case .finished:
-                            summary
-                            if model.batch.unknownCount > 0 { Text("d7.readAll.unknownHint") }
-                        case .cancelled:
-                            Text("d7.readAll.cancelled")
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                    CYHeroHeader("im.readAll.title")
+                    if model.batch.isCurrent {
+                        CYListRow("d7.readAll.count", trailing: .value(String(model.items.count)), card: true) {
+                            CYRowIcon(systemImage: "bubble.left.and.bubble.right")
                         }
-                    }
-                    Section("d7.readAll.conversations") {
-                        ForEach(model.items) { item in
-                            LabeledContent {
-                                Text(LocalizedStringKey(outcomeKey(item.outcome)))
-                            } label: {
-                                MessagingConversationName(conversation: item.conversation).lineLimit(1)
-                            }
-                            .accessibilityIdentifier("im.readAll.item.\(item.id)")
+                        phaseContent(appearance)
+                        VStack(alignment: .leading, spacing: CYSpacing.md) {
+                            CYSectionHeader("d7.readAll.conversations")
+                            ForEach(model.items) { item in conversationRow(item) }
                         }
+                    } else {
+                        CYEmptyState(systemImage: "person.crop.circle", "messaging.signInHint")
                     }
-                } else { Text("messaging.signInHint") }
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .cyGroupedSurface()
-            .navigationTitle(Text("im.readAll.title"))
-            .navigationBarTitleDisplayMode(.inline)
+            .cyDomainPageBackground()
+            .cyHeroScreen()
+            .cyAnimation(value: model.phase)
+            .cyHaptic(.success, trigger: model.phase) { _, new in new == .finished }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(model.phase == .reviewing ? LocalizedStringKey("action.cancel") : LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }
@@ -133,12 +111,109 @@ struct IMConversationReadAllButtonToken: Equatable {
         .onAppear { model.observe() }
         .onDisappear { model.dismiss() }
     }
+    @ViewBuilder private func phaseContent(_ appearance: UUID?) -> some View {
+        switch model.phase {
+        case .reviewing:
+            if model.batch.canConfirm {
+                CYPillButton("d7.readAll.confirm", systemImage: "checkmark") {
+                    guard let token = model.prepare(appearance: appearance) else { return }
+                    Task { await model.perform(token) }
+                }
+                .disabled(model.isActionPending)
+                .accessibilityIdentifier("im.readAll.confirmButton")
+            } else {
+                Text("d7.readAll.unavailable")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        case .running:
+            loadingBlock("d7.readAll.running")
+            if model.stopRequested {
+                Text("d7.readAll.stopping")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Button("d7.readAll.stop", role: .destructive) { model.stop() }
+                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                    .accessibilityIdentifier("im.readAll.stopButton")
+            }
+        case .finished:
+            summary
+            if model.batch.unknownCount > 0 {
+                Text("d7.readAll.unknownHint")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        case .cancelled:
+            CYEmptyState(systemImage: "xmark.circle", "d7.readAll.cancelled")
+        }
+    }
+    private func conversationRow(_ item: IMConversationReadAllItem) -> some View {
+        CYCard {
+            HStack(alignment: .top, spacing: CYSpacing.md) {
+                CYRowIcon(systemImage: "bubble.left")
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    MessagingConversationName(conversation: item.conversation)
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    CYStatusChip(LocalizedStringKey(outcomeKey(item.outcome)), tone: outcomeTone(item.outcome), systemImage: outcomeSymbol(item.outcome))
+                }
+            }
+            .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+            .accessibilityElement(children: .combine)
+            .accessibilityIdentifier("im.readAll.item.\(item.id)")
+        }
+    }
+    private func loadingBlock(_ key: LocalizedStringKey) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(key)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            CYSkeleton().accessibilityHidden(true)
+        }
+        .accessibilityElement(children: .combine)
+    }
+    private func outcomeTone(_ outcome: IMConversationReadAllOutcome) -> CYStatusTone {
+        switch outcome {
+        case .acknowledged: return .success
+        case .rejected: return .danger
+        case .outcomeUnknown, .unavailable: return .warning
+        case .submitting: return .info
+        case .notAttempted, .protectedIntent: return .neutral
+        }
+    }
+    private func outcomeSymbol(_ outcome: IMConversationReadAllOutcome) -> String {
+        switch outcome {
+        case .acknowledged: return "checkmark.circle"
+        case .rejected: return "xmark.octagon"
+        case .outcomeUnknown: return "questionmark.circle"
+        case .submitting: return "arrow.triangle.2.circlepath"
+        case .unavailable: return "exclamationmark.circle"
+        case .protectedIntent: return "lock"
+        case .notAttempted: return "circle"
+        }
+    }
     private var summary: some View {
-        Group {
-            LabeledContent("d7.readAll.acknowledged") { Text(verbatim: String(model.batch.acknowledgedCount)) }
-            LabeledContent("d7.readAll.unknown") { Text(verbatim: String(model.batch.unknownCount)) }
-            LabeledContent("d7.readAll.rejected") { Text(verbatim: String(model.batch.rejectedCount)) }
-            LabeledContent("d7.readAll.remaining") { Text(verbatim: String(model.batch.remainingCount)) }
+        VStack(spacing: CYSpacing.sm) {
+            CYListRow("d7.readAll.acknowledged", trailing: .value(String(model.batch.acknowledgedCount)), card: true) {
+                CYRowIcon(systemImage: "checkmark.circle")
+            }
+            CYListRow("d7.readAll.unknown", trailing: .value(String(model.batch.unknownCount)), card: true) {
+                CYRowIcon(systemImage: "questionmark.circle")
+            }
+            CYListRow("d7.readAll.rejected", trailing: .value(String(model.batch.rejectedCount)), card: true) {
+                CYRowIcon(systemImage: "xmark.octagon")
+            }
+            CYListRow("d7.readAll.remaining", trailing: .value(String(model.batch.remainingCount)), card: true) {
+                CYRowIcon(systemImage: "circle")
+            }
         }
     }
     private func outcomeKey(_ outcome: IMConversationReadAllOutcome) -> String {
