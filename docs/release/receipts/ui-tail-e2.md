@@ -32,3 +32,7 @@ Order switched to REVERSE (last file first) per coordinator: Cursor ui/cloud-* l
 - done: RoamShareAlbumGuideView (CYStatusChip, CYSectionHeader), RoamRecoveryView (CYPillButton, CYSkeleton, CYStatusChip)
 - done: RoamReceivedStampMetadataView (CYEmptyState, CYSkeleton; a11y anchors untouched), RoamPosterScanView (CYPillButton, CYSkeleton)
 - done (light, loading states only; private-data settle logic untouched): RoamPassportPrivateToolsViews (CYSkeleton)
+
+## Batch 6 (reverse)
+- done: RoamPassportOverviewView (CYSkeleton, CYEmptyState), RoamMonthlyRecapDetailView (CYEmptyState), RoamHistoryShareView (CYPillButton x6, CYSectionHeader, CYSkeleton; share-card render untouched)
+- skipped (no visible UI of its own): RoamMapView (map adapter wrapper), RoamHistoryViews+Port (accessibility-label extension only)
