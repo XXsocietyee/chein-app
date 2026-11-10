@@ -58,3 +58,11 @@ No file of 66-88 is on a ui/cloud-* branch.
 | App/TemplateReasoningRehearsalView.swift | done: CYHeroHeader (table key), CYPillButton retry/reload |
 | App/TemplateRootAuthoringView.swift | done (light): CYPillButton add actions; editor titles stay in nav bar (EditButton toolbar), destructive clear stays role button |
 | App/TemplateRootRehearsalView.swift | done: CYHeroHeader x2, CYPillButton evaluate (primary)/reset |
+### Batch B (71-75)
+| File | Result |
+| --- | --- |
+| App/TemplateSampleBrowserView.swift | done: CYHeroHeader, cyGroupedSurface, CYPillButton preview |
+| App/TemplateSensorDraftConfigurationView.swift | done: CYHeroHeader, CYEmptyState unavailable, cyGroupedSurface (preview screen only) |
+| App/TemplateSensorRehearsalView.swift | done: CYHeroHeader, CYPillButton advance (primary)/reload; determinate ProgressView kept |
+| App/TemplateTimerRehearsalView.swift | done: CYHeroHeader (dynamic kind title), CYPillButton start/resume/again primary, rest secondary |
+| App/TopicDetailView.swift | done: CYLoadingStateView, CYPillButton (paywall unlock primary, review/self-play secondary) |
