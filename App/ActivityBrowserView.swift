@@ -142,8 +142,8 @@ private final class AmountLabelFormatterCache: @unchecked Sendable {
     private static let shared = AmountLabelFormatterCache()
     private let lock = NSLock()
     private var formatters: [String: NumberFormatter] = [:]
-    static func formatter(for locale: Locale) -> NumberFormatter { shared.formatter(for: locale) }
-    private func formatter(for locale: Locale) -> NumberFormatter {
+    static func formatter(for locale: Locale) -> NumberFormatter { shared.cached(for: locale) }
+    private func cached(for locale: Locale) -> NumberFormatter {
         lock.lock(); defer { lock.unlock() }
         if let cached = formatters[locale.identifier] { return cached }
         let formatter = NumberFormatter()
