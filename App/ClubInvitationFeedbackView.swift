@@ -111,7 +111,9 @@ struct ClubInvitationFeedbackTerms: Equatable {
             Section {
                 NavigationLink {
                     ClubInvitationFeedbackView(club: club, clubReader: clubReader, reader: reader, access: access)
-                } label: { CYListRow("club.inviteFeedback.title", trailing: .none) { CYRowIcon(systemImage: "envelope.open") } }
+                } label: {
+                    CYListRow("club.inviteFeedback.title", trailing: .chevron) { CYRowIcon(systemImage: "envelope.open") }
+                }
                     .accessibilityIdentifier("club.inviteFeedback.entry")
             }
         }
@@ -211,32 +213,57 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
         let _ = model.bind(scope)
         let trigger = ClubInvitationFeedbackPresentation.ReadTrigger(context: scope, revision: presentation.readRevision)
         List {
-            CYHeroHeader("club.inviteFeedback.title", subtitle: "club.inviteFeedback.readOnly").listRowBackground(Color.clear).listRowSeparator(.hidden)
-            if !scope.canRead || model.phase == .denied { CYStatusChip("club.inviteFeedback.ownerRequired", tone: .warning, systemImage: "lock").accessibilityIdentifier("club.inviteFeedback.denied") }
+            Section {
+                CYHeroHeader("club.inviteFeedback.title", subtitle: "club.inviteFeedback.readOnly")
+            }
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            if !scope.canRead || model.phase == .denied {
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.inviteFeedback.ownerRequired", messageIdentifier: "club.inviteFeedback.denied")
+            }
             else {
                 Picker("club.inviteFeedback.direction", selection: $direction) {
                     Text("club.inviteFeedback.received").tag(ClubInvitationFeedbackDirection.received)
                     Text("club.inviteFeedback.sent").tag(ClubInvitationFeedbackDirection.sent)
                 }.pickerStyle(.segmented).accessibilityIdentifier("club.inviteFeedback.direction")
-                if model.phase == .loading { ProgressView("club.loading").accessibilityIdentifier("club.inviteFeedback.loading") }
-                if model.phase == .failed { CYStatusChip("club.inviteFeedback.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.inviteFeedback.failed") }
+                    .cyHaptic(.selection, trigger: direction)
+                if model.phase == .loading {
+                    CYSkeleton()
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("club.loading"))
+                        .accessibilityIdentifier("club.inviteFeedback.loading")
+                }
+                if model.phase == .failed {
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "club.inviteFeedback.failed", messageIdentifier: "club.inviteFeedback.failed", kind: .failure)
+                }
                 if let snapshot = accepted(scope) {
                     let rows = snapshot.rows(in: direction)
-                    if rows.isEmpty { CYEmptyState(systemImage: "envelope.open", LocalizedStringKey(direction == .received ? "club.inviteFeedback.receivedEmpty" : "club.inviteFeedback.sentEmpty"), messageIdentifier: "club.inviteFeedback.empty").listRowBackground(Color.clear) }
+                    if rows.isEmpty {
+                        CYEmptyState(
+                            systemImage: "envelope",
+                            LocalizedStringKey(direction == .received ? "club.inviteFeedback.receivedEmpty" : "club.inviteFeedback.sentEmpty"),
+                            messageIdentifier: "club.inviteFeedback.empty"
+                        )
+                    }
                     ForEach(rows) { row in
                         if let target = snapshot.target(key: row.id, context: scope, snapshotID: model.snapshotID) {
                             Button {
                                 guard current(target) else { return }
                                 presentation.open(key: target.row.id, in: scope)
                             } label: { ClubInvitationFeedbackRowLabel(row: row) }
-                                .buttonStyle(.borderless).accessibilityIdentifier("club.inviteFeedback.row.\(row.id.direction.rawValue).\(row.id.invitationID)")
+                                .buttonStyle(.cyPressable)
+                                .accessibilityIdentifier("club.inviteFeedback.row.\(row.id.direction.rawValue).\(row.id.invitationID)")
                         }
                     }
                 }
-                CYPillButton(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh"), style: .secondary) { reload(scope) }
-                    .disabled(model.phase == .loading || model.permit(in: scope) == nil).accessibilityIdentifier("club.inviteFeedback.reload")
+                Button(LocalizedStringKey(model.phase == .failed ? "action.retry" : "club.refresh")) { reload(scope) }
+                    .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                    .disabled(model.phase == .loading || model.permit(in: scope) == nil)
+                    .accessibilityIdentifier("club.inviteFeedback.reload")
             }
         }
+        .listStyle(.plain)
         .cyGroupedSurface()
         .cyHeroScreen()
         .onAppear { presentation.appear(scope, active: scenePhase == .active) }
@@ -297,36 +324,46 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
             }) {
                 NavigationStack {
                     List {
+                        Section {
+                            CYHeroHeader("club.inviteFeedback.detail", subtitle: "club.inviteFeedback.readOnly")
+                        }
+                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                        .listRowBackground(Color.clear)
+                        .listRowSeparator(.hidden)
                         if !current { Color.clear }
                         else if model.phase == .denied {
-                            CYStatusChip("club.inviteFeedback.ownerRequired", tone: .warning, systemImage: "lock").accessibilityIdentifier("club.inviteFeedback.detail.denied")
+                            CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "club.inviteFeedback.ownerRequired", messageIdentifier: "club.inviteFeedback.detail.denied")
                         } else if model.phase == .failed {
-                            CYStatusChip("club.inviteFeedback.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.inviteFeedback.detail.failed")
+                            CYEmptyState(systemImage: "exclamationmark.triangle", "club.inviteFeedback.failed", messageIdentifier: "club.inviteFeedback.detail.failed", kind: .failure)
                         } else if let snapshot {
                             if let target = snapshot.target(key: item.key, context: item.context, snapshotID: model.snapshotID) {
                                 ClubInvitationFeedbackRowLabel(row: target.row)
                                 LabeledContent("club.inviteFeedback.invitationID", value: String(target.row.id.invitationID))
                                 if let topicID = target.row.topicID { LabeledContent("club.gov.field.topicId", value: String(topicID)) }
-                                if let message = target.row.message { Section("club.inviteFeedback.message") { Text(verbatim: message).textSelection(.enabled) } }
+                                if let message = target.row.message { Section("club.inviteFeedback.message") { Text(verbatim: message).textSelection(.enabled).fixedSize(horizontal: false, vertical: true) } }
                                 if let terms = model.terms(for: target, in: item.context,
                                     clubReader: clubReader, reader: reader, access: access) {
                                     ClubInvitationFeedbackTermsView(terms: terms)
                                 }
                             } else {
-                                CYStatusChip("cooperation.unavailable", tone: .neutral, systemImage: "slash.circle").accessibilityIdentifier("club.inviteFeedback.detail.unavailable")
+                                CYEmptyState(systemImage: "envelope", "cooperation.unavailable", messageIdentifier: "club.inviteFeedback.detail.unavailable")
                             }
                         } else {
-                            ProgressView("club.loading").accessibilityIdentifier("club.inviteFeedback.detail.loading")
+                            CYSkeleton()
+                                .accessibilityElement(children: .ignore)
+                                .accessibilityLabel(Text("club.loading"))
+                                .accessibilityIdentifier("club.inviteFeedback.detail.loading")
                         }
                         if current {
-                            Text("club.inviteFeedback.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                            CYPillButton("action.retry", style: .secondary) { retry() }
+                            Button("action.retry") { retry() }
+                                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
                                 .disabled(model.phase == .loading)
                                 .accessibilityIdentifier("club.inviteFeedback.detail.reload")
                         }
                     }
+                    .listStyle(.plain)
                     .cyGroupedSurface()
-                    .navigationTitle("club.inviteFeedback.detail")
+                    .cyHeroScreen()
                     .toolbar { ToolbarItem(placement: .cancellationAction) {
                         Button("club.gov.close") {
                             guard current else { return }
@@ -356,15 +393,47 @@ struct ClubInvitationFeedbackDetailRoute: Identifiable, Equatable {
 
 private struct ClubInvitationFeedbackRowLabel: View {
     let row: ClubInvitationFeedbackRow
+    private var partner: String {
+        let name = row.partnerName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? "—" : name
+    }
+    private var topic: String? {
+        let name = row.topicName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if !name.isEmpty { return name }
+        return row.id.direction == .sent ? "—" : nil
+    }
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            if let name = row.partnerName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-            else { Text("club.inviteFeedback.partnerUnknown").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-            CYStatusChip(LocalizedStringKey(row.statusKey), tone: .info)
-            if let topic = row.topicName { Text(verbatim: topic) }
-            else if row.id.direction == .sent { Text("club.inviteFeedback.topicUnknown") }
-            if let date = row.createdAt { LabeledContent("club.inviteFeedback.serverTime") { Text(verbatim: date) } }
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Group {
+                if partner == "—" || topic == "—" {
+                    CYListRow(verbatim: partner, meta: topic, trailing: .chevron) { CYRowIcon(systemImage: "envelope") }
+                        .accessibilityLabel(partnerLabel)
+                } else {
+                    CYListRow(verbatim: partner, meta: topic, trailing: .chevron) { CYRowIcon(systemImage: "envelope") }
+                }
+            }
+            statusChip
+            if let date = row.createdAt {
+                LabeledContent("club.inviteFeedback.serverTime") { Text(verbatim: date).monospacedDigit() }
+            }
             Label("club.inviteFeedback.detail", systemImage: "info.circle")
+                .font(CYTypography.meta)
+                .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        }
+    }
+    private var partnerLabel: Text {
+        let name = row.partnerName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        if name.isEmpty { return Text("club.inviteFeedback.partnerUnknown") }
+        var label = Text(verbatim: name)
+        if topic == "—" { label = label + Text(verbatim: ", ") + Text("club.inviteFeedback.topicUnknown") }
+        return label
+    }
+    @ViewBuilder private var statusChip: some View {
+        if row.status == nil {
+            CYStatusChip(verbatim: "—", tone: .neutral, systemImage: "questionmark")
+                .accessibilityLabel(Text("club.inviteFeedback.status.unknown"))
+        } else {
+            CYStatusChip(LocalizedStringKey(row.statusKey), tone: row.status == 1 ? .success : .neutral, systemImage: "circle.fill")
         }
     }
 }
@@ -378,24 +447,27 @@ private struct ClubInvitationFeedbackTermsView: View {
             case 1:
                 Text("cooperation.terms.share")
                 if let rate = terms.shareRate {
-                    LabeledContent("cooperation.shareRate", value: "\(number(rate))%")
+                    LabeledContent("cooperation.shareRate") { Text(verbatim: "\(number(rate))%").monospacedDigit() }
                         .accessibilityIdentifier("club.inviteFeedback.shareRate")
-                } else { Text("cooperation.amountUnknown") }
+                } else { unknownAmount }
             case 2:
                 Text("cooperation.terms.fixed")
                 if let fee = terms.fixedFee {
-                    LabeledContent("cooperation.fixedFee", value: number(fee))
+                    LabeledContent("cooperation.fixedFee") { Text(verbatim: number(fee)).monospacedDigit() }
                         .accessibilityIdentifier("club.inviteFeedback.fixedFee")
-                    Text("cooperation.currencyUnknown").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                } else { Text("cooperation.amountUnknown") }
+                    Text("cooperation.currencyUnknown").font(CYTypography.meta)
+                } else { unknownAmount }
             default: Text("cooperation.termsUnknown")
             }
-            if terms.termsFrozen { CYStatusChip("cooperation.termsFrozen", tone: .neutral, systemImage: "lock") }
+            if terms.termsFrozen { Label("cooperation.termsFrozen", systemImage: "lock") }
             if let reason = terms.handleReason, !reason.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 LabeledContent("cooperation.handleReason") { Text(verbatim: reason).textSelection(.enabled) }
                     .accessibilityIdentifier("club.inviteFeedback.handleReason")
             }
         }
+    }
+    private var unknownAmount: some View {
+        Text(verbatim: "—").accessibilityLabel(Text("cooperation.amountUnknown"))
     }
     private func number(_ value: Double) -> String {
         value.formatted(.number.precision(.fractionLength(0...8)))

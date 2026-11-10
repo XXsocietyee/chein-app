@@ -58,7 +58,9 @@ struct ClubGovernanceEntryButton: View {
     var ownerFunds = ClubOwnerFundsContext()
     @State private var presented = false
     var body: some View {
-        Button { presented = true } label: { Label("club.gov.workspace", systemImage: "person.3.sequence.fill") }
+        Button { presented = true } label: {
+            CYListRow("club.gov.workspace", trailing: .chevron) { CYRowIcon(systemImage: "person.3.sequence.fill") }
+        }
             .accessibilityIdentifier("club.gov.open")
             .sheet(isPresented: $presented) {
                 NavigationStack { ClubGovernanceWorkspaceView(clubID: clubID, identity: identity, access: access, coordinator: coordinator) }
@@ -78,10 +80,14 @@ struct ClubGovernanceHomeEntries: View {
     let access: any ClubGovernanceAccess
     let coordinator: ClubGovernanceCoordinator
     var body: some View {
-        NavigationLink { ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.hostStatus", systemImage: "person.badge.plus") }
+        NavigationLink { ClubGovernanceReadView(operation: .hostStatus, scope: .init(), identity: identity, access: access, coordinator: coordinator) } label: {
+            CYListRow("club.gov.hostStatus", trailing: .chevron) { CYRowIcon(systemImage: "person.badge.plus") }
+        }
             .accessibilityIdentifier("club.gov.openHost")
         NavigationLink { ClubGovernanceReadView(operation: .feed, scope: .init(), identity: identity, access: access, coordinator: coordinator)
-                .environment(\.clubGovernanceFeed, feedContext) } label: { Label("club.gov.feed", systemImage: "text.bubble") }
+                .environment(\.clubGovernanceFeed, feedContext) } label: {
+            CYListRow("club.gov.feed", trailing: .chevron) { CYRowIcon(systemImage: "text.bubble") }
+        }
             .accessibilityIdentifier("club.gov.openFeed")
     }
 }
@@ -210,6 +216,12 @@ struct ClubGovernanceReadView: View {
     @State private var page = 1
     @State private var editor: ClubGovernanceFormRoute?
     private var title: LocalizedStringKey { LocalizedStringKey("club.gov." + operation.rawValue) }
+    /// Host apply is the one filled action on that screen, so refresh stays secondary there.
+    private var showsHostApply: Bool {
+        guard operation == .hostStatus, let snapshot, snapshotContext == readContext, identity == access.identity else { return false }
+        let role = snapshot.value["accountRole"]
+        return role != .string("merchant") && role != .string("club")
+    }
     // Split into stages so the type checker handles the long modifier chain;
     // the modifiers apply in exactly the same order as one chain.
 
@@ -567,7 +579,18 @@ struct ClubGovernanceReadView: View {
     }
     private var bodyNavigation: some View {
         List {
-            if loading { ProgressView().accessibilityIdentifier("club.gov.loading") }
+            Section {
+                CYHeroHeader(title)
+            }
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+            if loading {
+                CYSkeleton()
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("club.loading"))
+                    .accessibilityIdentifier("club.gov.loading")
+            }
             if operation == .occurrenceStatus, let readback = occurrenceCancellationReturn.readback,
                readback.source.live(context: readContext, access: access) {
                 Section {
@@ -596,8 +619,10 @@ struct ClubGovernanceReadView: View {
                         ForEach(["all", "repeat", "new", "remark"], id: \.self) { Text(LocalizedStringKey("club.gov.filter." + $0)).tag($0) }
                     }.pickerStyle(.segmented).labelsHidden()
                     HStack {
-                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
-                        TextField("club.gov.keyword", text: customerKeywordBinding).submitLabel(.search)
+                        Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
+                        TextField("club.gov.keyword", text: customerKeywordBinding)
+                            .submitLabel(.search)
+                            .accessibilityLabel(Text("club.gov.keyword"))
                             .onSubmit { loadCustomersNow() }
                     }
                 }
@@ -624,17 +649,31 @@ struct ClubGovernanceReadView: View {
             if operation == .posts, snapshot != nil {
                 Section {
                     HStack {
-                        Button("club.gov.previous") { page -= 1; Task { await load() } }.disabled(page <= 1 || loading).accessibilityIdentifier("club.gov.previous")
-                        Spacer(); Text(page, format: .number)
-                        Button("club.gov.next") { page += 1; Task { await load() } }.disabled(loading || (snapshot?.value.array ?? snapshot?.value["rows"].array ?? []).count < 20).accessibilityIdentifier("club.gov.next")
+                        Button("club.gov.previous") { page -= 1; Task { await load() } }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .disabled(page <= 1 || loading)
+                            .accessibilityIdentifier("club.gov.previous")
+                        Spacer(minLength: CYSpacing.sm)
+                        Text(page, format: .number).font(CYTypography.numericBody)
+                        Spacer(minLength: CYSpacing.sm)
+                        Button("club.gov.next") { page += 1; Task { await load() } }
+                            .frame(minHeight: CYSpacing.minTouchTarget)
+                            .disabled(loading || (snapshot?.value.array ?? snapshot?.value["rows"].array ?? []).count < 20)
+                            .accessibilityIdentifier("club.gov.next")
                     }
                 }
             }
-            if !loading { Button("club.gov.refresh") { Task { await load() } }.accessibilityIdentifier("club.gov.refresh") }
+            if !loading {
+                Button("club.gov.refresh") { Task { await load() } }
+                    .buttonStyle(CYPillButtonStyle(style: showsHostApply ? .secondary : .primary, fullWidth: true))
+                    .accessibilityIdentifier("club.gov.refresh")
+            }
         }
+        .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
-        .navigationTitle(title)
+        .cyHeroScreen()
+        .cyHaptic(.impactMedium, trigger: editor?.id) { _, opened in opened != nil }
         .sheet(item: $editor, onDismiss: { rereadCustomerAfterEditor() }) { route in NavigationStack { ClubGovernanceCommandForm(route: route, identity: identity, access: access, coordinator: coordinator) } }
         .background {
             if let item = seriesUpdateReturn.item {
@@ -1144,14 +1183,9 @@ struct ClubGovernanceReadView: View {
     }
     private func link(_ target: ClubGovernanceRead, _ targetScope: ClubGovernanceScope? = nil) -> some View {
         NavigationLink { ClubGovernanceReadView(operation: target, scope: targetScope ?? scope, identity: identity, access: access, coordinator: coordinator) } label: {
-            Label {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(LocalizedStringKey("club.gov." + target.rawValue))
-                    if operation == .access, let line = Self.subline(target) {
-                        Text(verbatim: line).font(.footnote).foregroundStyle(CYColor.textSecondary)
-                    }
-                }
-            } icon: { Image(systemName: Self.symbol(target)) }
+            CYListRow(LocalizedStringKey("club.gov." + target.rawValue), trailing: .chevron, verbatimMeta: operation == .access ? Self.subline(target) : nil) {
+                CYRowIcon(systemImage: Self.symbol(target))
+            }
         }
             .accessibilityIdentifier("club.gov.route." + target.rawValue)
     }
@@ -1193,7 +1227,7 @@ struct ClubGovernanceReadView: View {
                 .accessibilityIdentifier("club.enroll.open")
         }
     }
-    private func edit(_ operation: ClubGovernanceMutation, scope: ClubGovernanceScope? = nil, seed: [String: ClubGovernanceValue] = [:]) -> some View {
+    private func edit(_ operation: ClubGovernanceMutation, scope: ClubGovernanceScope? = nil, seed: [String: ClubGovernanceValue] = [:], role: ClubGovActionRole = .secondary) -> some View {
         let source = roleManagementSource
         let settingsSource = topicSettingsSource
         let bansSource = banRemovalSource
@@ -1221,6 +1255,7 @@ struct ClubGovernanceReadView: View {
                                           visible: caseHostVisible, active: scenePhase == .active)
             } else { editor = .init(operation: operation, scope: scope ?? self.scope, seed: seed) }
         }
+        .modifier(ClubGovActionChrome(role: role))
         .disabled((self.operation == .roles && roleManagementReturn.retainsReturn) ||
                   (self.operation == .topicSettings && topicSettingsReturn.retainsReturn) ||
                   (self.operation == .bans && banRemovalReturn.retainsReturn))
@@ -1282,14 +1317,14 @@ struct ClubGovernanceReadView: View {
                 }
             } else {
                 Section {
-                    Text("club.host.intro.title").font(.title2.weight(.bold))
-                        .fixedSize(horizontal: false, vertical: true)
-                        .padding(.vertical, Theme.Space.s2)
+                    CYSectionHeader("club.host.intro.title")
                     Label("club.host.intro.instant", systemImage: "checkmark.circle")
+                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                     Label("club.host.intro.limit", systemImage: "person.3")
+                        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 }
                 Section {
-                    edit(.hostApply).buttonStyle(.questifyPrimary).frame(maxWidth: .infinity)
+                    edit(.hostApply, role: .primary)
                 }.listRowBackground(Color.clear)
             }
         } else if operation == .roster {
@@ -1327,12 +1362,13 @@ struct ClubGovernanceReadView: View {
             // Mini-program club/topic-detail order: title + status → quick entries → 未通过原因 →
             // 剧情与玩法 → 接下来 (sessions) → director (terminal sessions) → rules.
             Section {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(verbatim: value["name"].string ?? value["title"].string ?? "—").font(.title2.weight(.bold))
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(verbatim: value["name"].string ?? value["title"].string ?? "—")
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
                     if let status = value["status"].string, ["reviewing", "rejected", "confirmed", "preparing", "running", "ended"].contains(status) {
-                        Text(LocalizedStringKey("club.topic.status." + status)).font(.subheadline.weight(.semibold))
-                            .foregroundStyle(status == "rejected" ? CYColor.dangerText : (status == "running" ? CYColor.successText : CYColor.textSecondary))
+                        CYStatusChip(LocalizedStringKey("club.topic.status." + status), tone: status == "rejected" ? .danger : (status == "running" ? .success : .neutral), systemImage: status == "rejected" ? "xmark" : "circle.fill")
                     }
                 }.accessibilityElement(children: .combine)
                 ClubGovernanceFactRows(value: value, fields: ["startDate", "endDate", "playModeText"])
@@ -1355,7 +1391,7 @@ struct ClubGovernanceReadView: View {
             Section("club.topic.upcoming") {
                 let sessions = value["activityList"].array ?? []
                 let groupCodePage = ClubGroupCodePage.project(value: value, scope: scope, capability: .init(permissions: snapshot.permissions, scope: scope))
-                if sessions.isEmpty { Text("club.topic.noSessions").foregroundStyle(.secondary) }
+                if sessions.isEmpty { CYEmptyState(systemImage: "calendar", "club.topic.noSessions") }
                 ForEach(Array(sessions.enumerated()), id: \.offset) { _, row in
                     if let id = row["id"].int {
                         let target = ClubGovernanceScope(clubID: scope.clubID, topicID: scope.topicID, activityID: id)
@@ -1389,7 +1425,7 @@ struct ClubGovernanceReadView: View {
         } else if operation == .dissolutionBlockers {
             Section("club.gov.deposits") { dataRows(value["deposits"].array ?? []) }
             Section("club.gov.settlements") { dataRows(value["settlements"].array ?? []) }
-            edit(.dissolve).foregroundStyle(CYColor.dangerText)
+            edit(.dissolve, role: .destructive)
         } else if operation == .settlement {
             let settlementSummary = try? ClubOpsSettlementSummary(value: value, scope: scope)
             if let settlementSummary, settlementSummary.hasTopics { ClubOpsSettlementSummaryCard(summary: settlementSummary) }
@@ -1519,7 +1555,7 @@ struct ClubGovernanceReadView: View {
         }
     }
     @ViewBuilder private func dataRows(_ rows: [ClubGovernanceValue]) -> some View {
-        if rows.isEmpty { Text("club.gov.empty").foregroundStyle(.secondary) }
+        if rows.isEmpty { CYEmptyState(systemImage: "tray", "club.gov.empty") }
         ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
             Section {
                 if let target = customerTopicRoute(row) {
@@ -1580,18 +1616,35 @@ struct ClubGovernanceEventView: View {
     var groupCodePage: ClubGroupCodePage? = nil
     var body: some View {
         List {
+            Section {
+                CYHeroHeader("club.gov.events")
+            }
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
             NavigationLink { ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator) } label: {
-                Label { Text("clubOpsEvent.entry.event", tableName: "ClubOpsEvent") } icon: { Image(systemName: "person.crop.circle.badge.checkmark") }
+                Label {
+                    Text("clubOpsEvent.entry.event", tableName: "ClubOpsEvent")
+                        .font(CYTypography.cardTitle)
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: { CYRowIcon(systemImage: "person.crop.circle.badge.checkmark") }
             }.accessibilityIdentifier("clubOpsEvent.open.event")
             ForEach([ClubGovernanceRead.roster, .occurrenceStatus, .roles, .audienceCounts, .topicStats], id: \.rawValue) { operation in
                 // Original role approval and journal own exactly club + optional activity.
                 let target = operation == .roles ? ClubGovernanceScope(clubID: scope.clubID, activityID: scope.activityID) : scope
-                NavigationLink { ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator) } label: { Text(LocalizedStringKey("club.gov." + operation.rawValue)) }
+                NavigationLink { ClubGovernanceReadView(operation: operation, scope: target, identity: identity, access: access, coordinator: coordinator) } label: {
+                    CYListRow(LocalizedStringKey("club.gov." + operation.rawValue), trailing: .chevron) { CYRowIcon(systemImage: "calendar") }
+                }
             }
             if groupCodePage.map({ !$0.hidden && $0.sessions?.contains(where: { $0.id == scope.activityID }) == true }) ?? (scope.topicID != nil) {
-                NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator) } label: { Label("club.gov.action.issueGroupCode", systemImage: "qrcode") }
+                NavigationLink { ClubGovernanceCommandForm(route: .init(operation: .issueGroupCode, scope: scope), identity: identity, access: access, coordinator: coordinator) } label: {
+                    CYListRow("club.gov.action.issueGroupCode", trailing: .chevron) { CYRowIcon(systemImage: "qrcode") }
+                }
             }
-        }.scrollContentBackground(.hidden).cyDomainPageBackground().navigationTitle("club.gov.events")
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden).cyDomainPageBackground()
+        .cyHeroScreen()
     }
 }
 
@@ -1636,12 +1689,22 @@ struct ClubGovernanceEventView: View {
               viewerRevision: templates.viewerRevision, authorizationGeneration: context.authorizationGeneration,
               readerIdentity: context.readerIdentity, accessIdentity: context.accessIdentity)
     }
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         List {
+            Section {
+                CYHeroHeader("club.gov.story")
+            }
+            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
             if identity?.isSignedIn != true || identity != access.identity {
                 Text("club.gov.signedOut").accessibilityIdentifier("club.story.signedOut")
             } else if loading {
-                ProgressView("club.story.loading").accessibilityIdentifier("club.story.loading")
+                CYSkeleton()
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(Text("club.story.loading"))
+                    .accessibilityIdentifier("club.story.loading")
             } else if let failure {
                 Text(LocalizedStringKey(failure.localizationKey)).accessibilityIdentifier("club.story.failure")
             } else if let presentation {
@@ -1673,11 +1736,16 @@ struct ClubGovernanceEventView: View {
             } else {
                 Text("club.story.sourceUnavailable").accessibilityIdentifier("club.story.sourceUnavailable")
             }
-            Button("club.gov.refresh") { Task { await reload() } }.disabled(loading).accessibilityIdentifier("club.story.refresh")
+            Button("club.gov.refresh") { Task { await reload() } }
+                .buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+                .disabled(loading)
+                .accessibilityIdentifier("club.story.refresh")
         }
+        .listStyle(.plain)
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
-        .navigationTitle("club.gov.story").accessibilityIdentifier("club.gov.story")
+        .cyHeroScreen()
+        .accessibilityIdentifier("club.gov.story")
         .navigationDestination(item: $selectedTemplate) { selection in
             Group {
                 if current(selection), let destination = templates.destination {
@@ -1714,28 +1782,38 @@ struct ClubGovernanceEventView: View {
     }
     private func chapterPicker(_ chapters: [ClubStoryChapter]) -> some View {
         ScrollView(.horizontal) {
-            HStack(spacing: 10) {
+            HStack(spacing: CYSpacing.sm) {
                 ForEach(chapters) { chapter in
+                    let selected = selectedChapter == chapter.id
                     Button {
                         // Display selection uses the unique local ordinal. Backend IDs
                         // authorize no chapter content; only template/answer routes need them.
                         guard presentation?.chapters.contains(chapter) == true else { return }
                         selectedChapter = chapter.id; invalidateSelection()
                     } label: {
-                        ClubStoryChapterTitle(chapter: chapter).padding(.horizontal, 12).padding(.vertical, 8)
+                        ClubStoryChapterTitle(chapter: chapter)
+                            .font(CYTypography.meta.weight(.semibold))
+                            .fixedSize(horizontal: false, vertical: true)
+                            .padding(.horizontal, CYSpacing.md)
+                            .padding(.vertical, CYSpacing.sm)
+                            .frame(minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.bordered)
-                    .tint(selectedChapter == chapter.id ? CYColor.textPrimary : CYColor.textTertiary)
-                    .accessibilityAddTraits(selectedChapter == chapter.id ? .isSelected : [])
+                    .tint(selected ? CYColor.textPrimary : CYColor.textTertiary)
+                    .accessibilityAddTraits(selected ? .isSelected : [])
                     .accessibilityIdentifier("club.story.chapter.\(chapter.id)")
                 }
             }
         }.scrollIndicators(.hidden)
+        .cyHaptic(.selection, trigger: selectedChapter)
     }
     @ViewBuilder private func playContent(_ chapter: ClubStoryChapter) -> some View {
         Section {
             if let story = chapter.description {
-                Text(verbatim: story).lineLimit(storyExpanded ? nil : 4).textSelection(.enabled)
+                Text(verbatim: story)
+                    .lineLimit(typeSize.isAccessibilitySize || storyExpanded ? nil : 4)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .textSelection(.enabled)
                     .accessibilityIdentifier("club.story.description")
                 Button(LocalizedStringKey(storyExpanded ? "club.story.collapse" : "club.story.expand")) { storyExpanded.toggle() }
                     .accessibilityIdentifier("club.story.expand")
@@ -1748,7 +1826,7 @@ struct ClubGovernanceEventView: View {
                 ClubStoryEmptyState(title: "club.story.noPlays", detail: "club.story.awaitingPlays")
             }
             ForEach(chapter.gameplay) { play in
-                VStack(alignment: .leading, spacing: 12) {
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
                     ClubStoryGameplayCard(play: play, imageReader: templates.imageReader)
                     if let selection = templateSelection(play) {
                         Button("club.story.viewTemplate") {
@@ -1807,9 +1885,29 @@ struct ClubGovernanceFactRows: View {
             } else if let values = value[key].array, values.allSatisfy({ $0.text != nil }) {
                 LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text(verbatim: values.compactMap(\.text).joined(separator: ", ")).textSelection(.enabled) }
             } else if showUnknown && value.object?.keys.contains(key) == true && value[key] == .null {
-                LabeledContent(LocalizedStringKey("club.gov.field." + key)) { Text("club.gov.unknownValue") }
+                LabeledContent(LocalizedStringKey("club.gov.field." + key)) {
+                    Text(verbatim: "—").accessibilityLabel(Text("club.gov.unknownValue"))
+                }
+                .accessibilityIdentifier("club.gov.fact." + key)
             }
         }
-        if let hints = value["hints"].array { ForEach(Array(hints.enumerated()), id: \.offset) { _, hint in if let text = hint.string { Text(verbatim: text) } } }
+        if let hints = value["hints"].array { ForEach(Array(hints.enumerated()), id: \.offset) { _, hint in if let text = hint.string { Text(verbatim: text).fixedSize(horizontal: false, vertical: true) } } }
+    }
+}
+
+private enum ClubGovActionRole { case primary, secondary, destructive }
+
+/// One filled action per screen. Other commands stay outlined; dissolve stays destructive.
+private struct ClubGovActionChrome: ViewModifier {
+    var role: ClubGovActionRole
+    func body(content: Content) -> some View {
+        switch role {
+        case .primary:
+            content.buttonStyle(CYPillButtonStyle(style: .primary, fullWidth: true))
+        case .secondary:
+            content.buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: true))
+        case .destructive:
+            content.buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+        }
     }
 }
