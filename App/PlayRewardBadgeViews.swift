@@ -16,7 +16,7 @@ import SwiftUI
                         .overlay { CYConfettiBurst(fireOnAppear: true).frame(height: 160) }
                         .cyStampSlam(trigger: true)
                 }
-                Text("playBadge.receipt").font(.headline)
+                CYSectionHeader("playBadge.receipt")
                 Text("playBadge.readbackHint").font(.footnote).foregroundStyle(.secondary)
                 ForEach(targets) { target in
                     VStack(alignment: .leading, spacing: 6) {
@@ -27,7 +27,7 @@ import SwiftUI
                         } else { Text("playBadge.unavailable").font(.footnote) }
                     }
                 }
-                Button("playBadge.continue") { continued = true }
+                CYPillButton("playBadge.continue") { continued = true }
                     .accessibilityIdentifier("playBadge.continue")
             }.accessibilityIdentifier("playBadge.receipt")
         }
@@ -47,14 +47,14 @@ import SwiftUI
     var body: some View {
         List {
             if model.identity == nil { Text("profile.signInRequired") }
-            else if !model.isConfigured { Text("playBadge.unavailable") }
+            else if !model.isConfigured { CYEmptyState(systemImage: "medal", "playBadge.unavailable") }
             else {
                 Section {
                     Text(verbatim: model.target.name ?? model.target.code).font(.headline)
                     LabeledContent("playBadge.code", value: model.target.code)
                     Text("playBadge.readbackHint").font(.footnote).foregroundStyle(.secondary)
                 }
-                if model.isLoading { ProgressView("profile.loading") }
+                if model.isLoading { CYSkeleton().accessibilityLabel(Text("profile.loading")) }
                 else if model.failed { Text("playBadge.failed").accessibilityIdentifier("playBadge.failed") }
                 else if let focus = model.focus { PlayRewardBadgeFocusContent(focus: focus) }
                 if let growthReader {

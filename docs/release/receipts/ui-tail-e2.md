@@ -43,3 +43,8 @@ Order switched to REVERSE (last file first) per coordinator: Cursor ui/cloud-* l
 
 ## Batch 8 (reverse)
 - done: ProjectChapterAudioAuthorView (CYPillButton, CYSkeleton), ProfileBadgesView (CYStatusChip x3), PlayerTaskEvidenceView (CYPillButton x8, CYStatusChip, CYSkeleton), PlayTaskSummaryView (CYPillButton), PlaySharedPlanR5HostView (CYEmptyState, CYStatusChip, CYSkeleton, CYPillButton)
+
+Build status: ui/e2 188fd8572 (batches 1-7 + CityActionBudget fix) Build - iOS = success. Test - iOS "2 errors" is the GLTFKit2 'unsupported Swift architecture' module-emit error, identical on origin/ui/main 44dd09c36 (baseline, not from this branch).
+
+## Batch 9 (reverse)
+- done: PlaySharedPlanLifecycleView, PlayRewardBadgeViews, PlayPreferenceViews, PlayPrefabRuntimeView, PlayPlayerSubmissionStatusView (CYPillButton, CYStatusChip, CYSkeleton, CYEmptyState, CYSectionHeader)
