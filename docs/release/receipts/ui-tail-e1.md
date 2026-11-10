@@ -1,95 +1,49 @@
-# ui-tail-e1 (worker from the START of the list)
+# UI tail (e1 family) receipt
 
-Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5, in file order. Not compiled locally; cloud Build+Test per push. e1 works from the end.
+Presentation only, no behaviour or Core edits. NOT COMPILED locally; cloud Build+Test per push.
+Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swift (Form/List hero + pill rows).
 
 ## Batch 1
-| File | Result |
-| --- | --- |
-| App/ActivityBrowserView.swift | done: CYEmptyState (unavailable/error+retry/empty), CYPillButton load-more/retry; root keeps nav title (searchable) |
-| App/ActivityDetailView.swift | done: CYEmptyState states, CYPillButton primary bottom action + club gate, label helper removed |
-| App/ActivityEditingView.swift | done: CYHeroHeader (one title), cyGroupedSurface, CYPillButton actions (one primary per section) |
-| App/ActivityHostCancelView.swift | done: CYLoadingStateView, CYStatusChip blocked/cancelled, CYPillButton recheck/done; destructive confirm stays role button + confirmationDialog |
-| App/ApprovedTopicReviewRequestView.swift | done: CYLoadingStateView, CYPillButton review/submit primary, others secondary |
+- ActivityBrowserView: CUV states -> CYEmptyState (unavailable/failed/empty, ids kept)
+- ActivityDetailView: sign-in / load-failed / stale states -> CYEmptyState (club gate kept: custom action)
+- ActivityEditingView: hero title, grouped surface, pills (review primary), one title
+- ActivityHostCancelView: hero, skeleton loading, pills (confirm primary), grouped surface
+- ApprovedTopicReviewRequestView: hero (x2), skeleton loading, pills, grouped surface
 
 ## Batch 2
-| File | Result |
-| --- | --- |
-| App/BundleAppealView.swift | done: CYPillButton submit (primary) / check / resend, CYLoadingStateView; embedded form, no own title so no hero |
-| App/BundleCancelView.swift | done: CYHeroHeader, cyGroupedSurface, CYPillButton, CYLoadingStateView; destructive confirm stays role button |
-| App/BundleOrderStatusView.swift | done: CYPillButton recheck, cyGroupedSurface; no own title (embedded) |
-| App/BundleRedeemResultView.swift | done: CYHeroHeader, CYLoadingStateView, CYPillButton retry |
-| App/BundleRefundQuoteView.swift | done: CYHeroHeader, monospaced amounts, cyGroupedSurface (read-only, no action by design) |
+- BundleAppealView, BundleCancelView, BundleOrderStatusView (view only), BundleRedeemResultView, BundleRefundQuoteView: hero title, grouped surface, pill actions (one primary), skeleton loading, status icons/chips, tabular values. BundleRefundQuoteView stays action-free (read-only quote).
 
 ## Batch 3
-| File | Result |
-| --- | --- |
-| App/BundleRenewalIntentView.swift | done: CYHeroHeader, CYLoadingStateView, CYPillButton submit (primary) / recover / retry |
-| App/BundleReservationsView.swift | done: CYEmptyState empty, monospaced start time, cyGroupedSurface (display only) |
-| App/BundleReserveWindowView.swift | done: CYPillButton choose (embedded Section, no own title) |
-| App/BundleReviewComposeView.swift | done: CYLoadingStateView, CYPillButton submit/check/resend, monospaced counter |
-| App/BundleTransferClaimView.swift | done: CYPillButton claim, CYLoadingStateView, cyGroupedSurface |
-| App/BundleTransferSendView.swift | done (list item 16): CYLoadingStateView, CYPillButton confirm (primary) / recover; revoke stays destructive role button; cyGroupedSurface |
-| App/BundleWalletView.swift | done (list item 17): CYEmptyState noDetail, monospaced totals, cyGroupedSurface |
+- BundleRenewalIntentView, BundleReservationsView (rows with icon + empty state), BundleReserveWindowView (fragment: pill only, host owns the title), BundleReviewComposeView, BundleTransferClaimView: hero, grouped surface, pills (one primary), skeleton loading.
 
-(Batches are 5 files in list order; items 16-17 were done together with batch 3 and count toward batch 4.)
-
-## Batch 4 (remaining items 18-20)
-| File | Result |
-| --- | --- |
-| App/DiscoveryHomeView.swift | done: CYEmptyState (unavailable/empty), CYLoadingStateView; root keeps nav title |
-| App/DiscoveryPlayTemplatePresentationView.swift | done: monospaced use count (Section fragment, no own chrome) |
-| App/DiscoveryTemplateBrowserView+Port.swift | done: CYLoadingStateView, CYPillButton empty refresh; cover thumb left (private fallback tile, no behaviour change) |
+## Batch 4
+- BundleTransferSendView, BundleWalletView, DiscoveryHomeView, DiscoveryPlayTemplatePresentationView (Section fragment: tokens only), DiscoveryTemplateBrowserView+Port (cover thumb / syncing row / empty refresh tokens + skeleton + pill): hero, grouped surface, kit rows, empty states, pills.
 
 ## Batch 5
-| File | Result |
-| --- | --- |
-| App/MemberTemplateDetailView.swift | done: CYLoadingStateView, CYStatusChip draft/published, CYPillButton retry; keeps nav title (content title is the template's own) |
-| App/ModInstallationTemplateEditorView.swift | done: CYHeroHeader, cyGroupedSurface, CYPillButton (save primary, others secondary/tertiary), confirm primary in review sheet |
-| App/NearbyMapDiscoveryView.swift | done: CYLoadingStateView status, CYPillButton clear-tag; map/model code untouched |
-| App/OfficialActionViews.swift | done: hero in publish/broadcast/invite editors, CYPillButton review/confirm (one primary each), CYLoadingStateView |
-| App/OfficialEventsBrowserView.swift | done: CYEmptyState empty list; search/filter untouched |
+- MemberTemplateDetailView, ModInstallationTemplateEditorView, NearbyMapDiscoveryView (controls/status/row pieces), OfficialActionViews (action sheet, publish/broadcast/invite editors; organizer-side = player surface, dark), OfficialEventsBrowserView: hero, grouped surface, pills, skeletons, CYEmptyState, tokens.
 
 ## Batch 6
-| File | Result |
-| --- | --- |
-| App/OrderPassPreviewView.swift | done: CYPillButton disabled verification action; kept ContentUnavailableView (two accessibility identifiers on its label/description would be lost with CYEmptyState) |
-| App/OwnedTemplateConfigurationView.swift | done: CYHeroHeader on both forms (one title each), CYLoadingStateView, CYPillButton story/retry, cyGroupedSurface |
-| App/OwnedTemplateSensorConfigurationView.swift | skipped: a value-only Section fragment inside the owner host, no title/buttons/states of its own, already tokens |
-| App/OwnedTopicCoverAuthorView.swift | done: CYHeroHeader in main + confirm sheets, 13 buttons to CYPillButton (choose/review/confirm primary, rest secondary), CYLoadingStateView |
-| App/OwnedTopicCoverImageView.swift | done: CYLoadingStateView, CYPillButton retry; inline nav title kept (image sheet) |
+- OrderPassPreviewView, OwnedTemplateConfigurationView, OwnedTemplateSensorConfigurationView (Section fragment: tokens), OwnedTopicCoverAuthorView (13 borderless buttons -> pills, one primary per section), OwnedTopicCoverImageView: hero, grouped surface, pills, skeleton, rounded image previews.
 
 ## Batch 7
-| File | Result |
-| --- | --- |
-| App/ParticipantManagementDetailView.swift | done: CYEmptyState (sign-in/unavailable), CYLoadingStateView, CYPillButton edit primary; delete stays destructive role + confirmation |
-| App/PlayFinishRouteCardView.swift | done: CYStatusChip for free price; card layout untouched (already Theme tokens) |
-| App/PlayRouteMapView.swift | done: CYPillButton (open-current primary, toggles tertiary, refresh secondary), CYLoadingStateView; map/camera code untouched |
-| App/PrivateHomeView.swift | done: CYHeroHeader, CYEmptyState gate, CYPillButton (set/confirm primary), delete stays destructive role, cyGroupedSurface |
-| App/ProfileOrderMeetingPointView.swift | done: CYPillButton open/confirm, CYLoadingStateView, hero in review sheet |
+- ParticipantManagementDetailView, PlayFinishRouteCardView, PlayRouteMapView (list chrome only; map annotations untouched), PrivateHomeView, ProfileOrderMeetingPointView: hero, pills, CYEmptyState, skeletons, kit tokens on the finish route card.
 
 ## Batch 8
-| File | Result |
-| --- | --- |
-| App/ProjectStoryTemplateView.swift | done: CYHeroHeader (locale-safe table keys), CYPillButton apply primary / back / refresh / more, CYLoadingStateView, cyGroupedSurface |
-| App/PublisherIdentityRegistrationView.swift | done: CYPillButton submit/open primary, refresh/return, CYLoadingStateView (Section fragment, no hero) |
-| App/RegistrationSheetView.swift | done (partial by design): CYPillButton for 11 secondary actions, 8 CYLoadingStateView; checkout bar (cyPrimary) and alerts/destructive left as-is |
-| App/SearchMapDetailViews.swift | done: CYLoadingStateView |
-| App/SearchMapExplorerView.swift | done: CYPillButton (search area primary), CYEmptyState, CYLoadingStateView; map/selection logic untouched |
+- ProjectStoryTemplateView (rows -> CYListRow, pills), PublisherIdentityRegistrationView (inline Section: pills + skeleton), SearchMapDetailViews (hero name, loading, chip), SearchMapExplorerView (LIGHT touch only: ContentUnavailableView -> CYEmptyState, spinners -> skeletons, nearby detail hero; the map/filters chrome is d6-owned and left alone).
+- RegistrationSheetView: already restyled in earlier e1 passes (ticket card, pinned bar, CY kit); no change.
 
 ## Batch 9
-| File | Result |
-| --- | --- |
-| App/SearchRoutePreviewView.swift | done: CYLoadingStateView, CYPillButton remove/retry |
-| App/SecondRegistrationStatsView.swift | done: CYEmptyState unavailable, cyGroupedSurface (read-only report, rate rows already mono) |
-| App/SessionGlobalSearchView.swift | skipped: pure host wrapper around GlobalSearchView, no UI of its own |
-| App/SessionHomeFeedView.swift | skipped: host with native toolbar/menu/sheets (close buttons are toolbar items), no restylable content of its own |
-| App/SessionTopicBrowserView.swift | skipped: pure host wrapper around TopicBrowserView |
+- DONE SearchRoutePreviewView: hero name, primary pill link for walking nav, numbered step rows with tabular numerals, skeleton, tokens. (New shared `CYPillButtonLabel` in E1CommerceComponents.swift.)
+- SKIPPED SecondRegistrationStatsView: operator/merchant analytics report (rates, exclusions), debug-fixture only, no player surface (light/merchant-side).
+- SKIPPED SessionGlobalSearchView, SessionHomeFeedView, SessionTopicBrowserView, SessionTopicSelfPlayView: pure host wiring (environment injection, toolbar menu entries, `Session*` is on the never-edit list); no restylable view content.
 
-## Batch 10
+
+## e4-lane worker pass (second worker, same list)
+Coordinator brief said e1 works from the END; ui/main already carried the e1 worker's batches 1-9 (same start-of-list files) when this worker merged, so this worker's duplicate restyles of items 1-41 were dropped in favour of the ui/main versions (merge took ui/main on every conflict). Only these non-overlapping changes were kept:
 | File | Result |
 | --- | --- |
-| App/SessionTopicSelfPlayView.swift | skipped: pure host wrapper around TopicSelfPlaySheet, no UI of its own |
-| App/ShopNPCFixtureView.swift | skipped: `#if DEBUG` UI-test fixture host, not a shipping screen |
-| App/ShopNPCScriptedGuideView.swift | done: CYPillButton return |
-| App/SquareRelatedTopicView.swift | done: CYPillButton view-topic (secondary, symbol) |
-| App/SupportTicketReadView.swift | done: CYHeroHeader (one title), cyGroupedSurface, 6 buttons to CYPillButton, CYLoadingStateView |
+| App/RegistrationSheetView.swift | CYPillButton for 11 secondary actions, CYLoadingStateView for 8 spinners (checkout bar/alerts untouched) |
+| App/ShopNPCScriptedGuideView.swift | CYPillButton return |
+| App/SquareRelatedTopicView.swift | CYPillButton view-topic |
+| App/SupportTicketReadView.swift | CYHeroHeader, cyGroupedSurface, 6 CYPillButton, CYLoadingStateView |
+| App/SessionTopicSelfPlayView.swift, App/ShopNPCFixtureView.swift (#if DEBUG) | skipped: wrapper / DEBUG fixture |

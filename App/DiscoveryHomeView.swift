@@ -20,25 +20,26 @@ struct DiscoveryHomeView: View {
         NavigationStack {
             Group {
                 if !reader.isConfigured {
-                    CYEmptyState(systemImage: "network.slash", "discovery.unavailable", detail: "auth.notConfigured")
+                    CYEmptyState(systemImage: "network.slash", "discovery.unavailable", detail: "auth.notConfigured", kind: .offline)
                 } else {
                     List {
+                        Section { CYHeroHeader("discovery.title") }.e1HeroRow()
                         Section {
                             if topicBrowsingEnabled {
-                                Button { showsTopics=true } label: { Label("topic.title",systemImage:"map") }
+                                Button { showsTopics=true } label: { CYListRow("topic.title", card: false) { CYRowIcon(systemImage: "map") } }
                                     .accessibilityIdentifier("discovery.openRoutes")
                             }
                             NavigationLink {
                                 DiscoveryTemplateBrowserView(reader: reader)
                             } label: {
-                                Label("discovery.browseTemplates", systemImage: "square.stack.3d.up")
+                                CYListRow("discovery.browseTemplates", trailing: .none) { CYRowIcon(systemImage: "square.stack.3d.up") }
                             }.accessibilityIdentifier("discovery.openTemplates")
                         }
                         bannerSection
                         if let error = home.error {
                             DiscoveryErrorView(error: error) { Task { await loadHome() } }
                         }
-                        if home.isLoading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("discovery.loading")) }
+                        if home.isLoading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("discovery.loading")) }
                         if let value = home.value {
                             if value.isEmpty && !home.isLoading && home.error == nil {
                                 CYEmptyState(systemImage: "sparkles.rectangle.stack", "discovery.emptyGames")
@@ -51,11 +52,12 @@ struct DiscoveryHomeView: View {
                             playSection("discovery.hot", items: value.hot)
                         }
                     }
+                    .cyGroupedSurface()
                     .refreshable { await reload() }
                 }
             }
             .sheet(isPresented:$showsTopics) { SessionTopicBrowserView() }
-            .appNavigationTitle("discovery.title")
+            .cyHeroScreen()
             .task { if reader.isConfigured { await reload() } }
         }
     }
@@ -65,7 +67,7 @@ struct DiscoveryHomeView: View {
                 DiscoveryErrorView(error: error) { Task { await loadBanners() } }
             }
         } else if banners.isLoading && banners.value == nil {
-            Section("discovery.banners") { CYLoadingStateView(rows: 1).accessibilityLabel(Text("discovery.loading")) }
+            Section("discovery.banners") { CYSkeletonBlock(height: 140, cornerRadius: CYRadius.lg).accessibilityLabel(Text("discovery.loading")) }
         }
         if let items = banners.value, !items.isEmpty {
             Section("discovery.banners") {

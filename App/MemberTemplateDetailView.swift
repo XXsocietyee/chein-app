@@ -29,22 +29,24 @@ import SwiftUI
     @State private var generation = UUID()
     var body: some View {
         List {
-            if loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("memberTemplate.loading")) }
+            Section { CYHeroHeader("memberTemplate.title") }.e1HeroRow()
+            if loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("memberTemplate.loading")).listRowBackground(Color.clear) }
             if let failure {
                 Section {
                     if let message { Text(verbatim: message) } else { Text(LocalizedStringKey(failure)) }
-                    CYPillButton("action.retry", style: .secondary) { Task { await load() } }.disabled(loading)
+                    CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise") { Task { await load() } }
+                        .disabled(loading).e1ActionRow()
                 }
             }
             if let detail {
                 let item = detail.overview
                 Section {
-                    if !item.title.isEmpty { Text(verbatim: item.title).font(.title2.bold()) }
-                    else { Text("discovery.untitledPlay").font(.title2.bold()) }
+                    if !item.title.isEmpty { Text(verbatim: item.title).font(CYTypography.sectionTitle) }
+                    else { Text("discovery.untitledPlay").font(CYTypography.sectionTitle) }
                     DiscoveryPlayMetadata(item: item)
                     if let draft = detail.draftStatus {
                         if draft == 0 { CYStatusChip("memberTemplate.draft", tone: .neutral, systemImage: "pencil") }
-                        else if draft == 1 { CYStatusChip("memberTemplate.published", tone: .success, systemImage: "checkmark.circle") }
+                        else if draft == 1 { CYStatusChip("memberTemplate.published", tone: .success, systemImage: "checkmark.circle.fill") }
                     }
                     if let feedback = detail.reviewFeedback {
                         Text("discovery.templateDetail.reviewFeedback \(feedback)").foregroundStyle(CYColor.warningText)
@@ -76,8 +78,7 @@ import SwiftUI
                 } else { textSection("memberTemplate.story", value: item.storyText) }
                 textSection("discovery.creator", value: item.publisher)
             }
-        }.navigationTitle("memberTemplate.title").navigationBarTitleDisplayMode(.inline)
-        .cyGroupedSurface()
+        }.listStyle(.insetGrouped).cyGroupedSurface().cyHeroScreen()
         .privacySensitive().accessibilityIdentifier("memberTemplate.detail")
         .task(id: reader.scope) { detail = nil; await load() }
         .refreshable { await load() }

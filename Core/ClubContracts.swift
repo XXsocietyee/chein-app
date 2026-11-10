@@ -17,6 +17,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
     public let keywords: String?
     public let activityPrefs: [String]
     public let memberCount: Int
+    let sourceMemberCount: Int?
     public let isJoined: Bool
     public let isOwner: Bool
     public let viewerIsAdmin: Bool
@@ -72,7 +73,7 @@ public struct ClubRecord: Decodable, Equatable, Identifiable {
         activityPrefs = (try c.decodeIfPresent(String.self, forKey: .activityPrefs) ?? "")
             .split(separator: ",", omittingEmptySubsequences: false)
             .map(String.init).filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
-        memberCount = try c.decodeIfPresent(Int.self, forKey: .memberCount) ?? 0
+        sourceMemberCount = try c.decodeIfPresent(Int.self, forKey: .memberCount); memberCount = sourceMemberCount ?? 0
         isJoined = try c.decodeIfPresent(Bool.self, forKey: .isJoined) ?? false
         isOwner = try c.decodeIfPresent(Bool.self, forKey: .isOwner) ?? false
         viewerIsAdmin = try c.decodeIfPresent(Bool.self, forKey: .viewerIsAdmin) ?? false

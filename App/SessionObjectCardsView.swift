@@ -30,7 +30,7 @@ import SwiftUI
                     ProfileObjectCardsDestination(context: context, accountReader: accountReader,
                         objectReader: access.reader, isCurrent: isCurrent)
                         .id(context)
-                } label: { Label("objects.title", systemImage: "rectangle.stack") }
+                } label: { CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") } }
                     .accessibilityIdentifier("profile.objectCards")
             }.id(context)
         }
@@ -48,7 +48,7 @@ import SwiftUI
     var body: some View {
         Group {
             if reader.associationIsCurrent { ObjectCardsView(reader: reader).id(reader.scope) }
-            else { Text("social.changed") }
+            else { CYEmptyState(systemImage: "arrow.triangle.2.circlepath", "social.changed") }
         }
         // Observe the live host even while the profile is covered by this route.
         // Replacing the underlying epoch removes retained collection/detail state.

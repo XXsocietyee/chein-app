@@ -140,11 +140,11 @@ struct SquarePostVideoComposerSection: View {
             case .policyUnavailable:
                 Label("square.video.policyUnavailable", systemImage: "video.slash").accessibilityIdentifier("square.video.policyUnavailable")
             case .empty: Text("square.video.empty").foregroundStyle(.secondary)
-            case .working: ProgressView("square.video.processing")
-            case .failed: Label("square.video.failed", systemImage: "exclamationmark.triangle").accessibilityIdentifier("square.video.failed")
+            case .working: CYSkeleton()
+            case .failed: CYStatusChip("square.video.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("square.video.failed")
             case .ready(let item, let rejections):
                 preview(item)
-                if rejections.isEmpty { Label("square.video.withinPolicy", systemImage: "checkmark.circle").accessibilityIdentifier("square.video.accepted") }
+                if rejections.isEmpty { CYStatusChip("square.video.withinPolicy", tone: .success, systemImage: "checkmark.circle").accessibilityIdentifier("square.video.accepted") }
                 ForEach(rejections, id: \.self) { rejection in
                     Text(LocalizedStringKey("square.video.reject." + String(describing: rejection))).foregroundStyle(CYColor.dangerText)
                         .accessibilityIdentifier("square.video.reject")
@@ -157,7 +157,7 @@ struct SquarePostVideoComposerSection: View {
                 Button("square.video.remove", role: .destructive) { model.remove() }.accessibilityIdentifier("square.video.remove")
             }
             // Upload is disabled until a reviewed video transport exists (uploadOSS is JPEG/PNG only).
-            Button("square.video.upload") {}.disabled(true).accessibilityIdentifier("square.video.upload")
+            CYPillButton("square.video.upload", style: .secondary) {}.disabled(true).accessibilityIdentifier("square.video.upload")
             if case .unavailable(let blocker) = model.upload {
                 Text(LocalizedStringKey("square.video.uploadBlocked." + blocker.rawValue)).font(.footnote).foregroundStyle(.secondary)
                     .accessibilityIdentifier("square.video.uploadBlocked")

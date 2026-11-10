@@ -164,12 +164,13 @@ import SwiftUI
             guard let draft = owner.draft else { return false }; return owner.applyCover(reference, expected: draft)
         }, service: { makeActivityCover?() })
         Form {
-            Section { CYHeroHeader("title", tableName: "ActivityEditing").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section { CYHeroHeader("title", tableName: "ActivityEditing") }.e1HeroRow()
             Section {
                 Text(LocalizedStringKey(owner.status), tableName: "ActivityEditing")
+                    .font(CYTypography.cardTitle)
                     .accessibilityIdentifier("activityEdit.status")
                 if !owner.rejection.isEmpty { Text(verbatim: owner.rejection) }
-                CYPillButton(LocalizedStringKey("load"), style: .secondary, tableName: "ActivityEditing") { Task { await owner.load() } }
+                Button { Task { await owner.load() } } label: { label("load") }
                     .disabled(!owner.readable || cover.isOpen).accessibilityIdentifier("activityEdit.load")
                 if let request = owner.pending {
                     Text(verbatim: request.operationID.uuidString).textSelection(.enabled)
@@ -191,10 +192,12 @@ import SwiftUI
                 }
                 Section { ActivityCoverAuthoringSection(owner: cover) }
                 Section {
-                    CYPillButton(LocalizedStringKey("saveLocal"), style: .secondary, tableName: "ActivityEditing") { owner.saveLocal() }.disabled(!owner.editable || cover.isOpen)
-                        .accessibilityIdentifier("activityEdit.saveLocal")
-                    CYPillButton(LocalizedStringKey("reviewAction"), style: .primary, tableName: "ActivityEditing") { Task { await owner.prepare() } }.disabled(!owner.reviewable || cover.isOpen)
-                        .accessibilityIdentifier("activityEdit.review")
+                    CYPillButton("reviewAction", tableName: "ActivityEditing") { Task { await owner.prepare() } }
+                        .disabled(!owner.reviewable || cover.isOpen)
+                        .accessibilityIdentifier("activityEdit.review").e1ActionRow()
+                    CYPillButton("saveLocal", style: .secondary, tableName: "ActivityEditing") { owner.saveLocal() }
+                        .disabled(!owner.editable || cover.isOpen)
+                        .accessibilityIdentifier("activityEdit.saveLocal").e1ActionRow()
                 }
             }
             if let current = owner.review {
@@ -204,9 +207,11 @@ import SwiftUI
                         LabeledContent { Text(verbatim: current.draft.text(field)) } label: { label(field.rawValue) }
                     }
                     Text(verbatim: current.id.uuidString).accessibilityIdentifier("activityEdit.reviewID")
-                    CYPillButton(LocalizedStringKey("cancel"), style: .tertiary, tableName: "ActivityEditing") { owner.cancel(current) }.disabled(owner.busy)
-                    CYPillButton(LocalizedStringKey("confirm"), style: .primary, tableName: "ActivityEditing") { Task { await owner.confirm(current) } }.disabled(owner.busy || !owner.current)
-                        .accessibilityIdentifier("activityEdit.confirm")
+                    CYPillButton("confirm", tableName: "ActivityEditing") { Task { await owner.confirm(current) } }
+                        .disabled(owner.busy || !owner.current)
+                        .accessibilityIdentifier("activityEdit.confirm").e1ActionRow()
+                    CYPillButton("cancel", style: .secondary, tableName: "ActivityEditing") { owner.cancel(current) }
+                        .disabled(owner.busy).e1ActionRow()
                 }
             }
             if owner.readback != nil && !owner.busy {
@@ -219,13 +224,15 @@ import SwiftUI
                         }
                     }
                     if owner.pending == nil {
-                        CYPillButton(LocalizedStringKey("useReadback"), style: .secondary, tableName: "ActivityEditing") { owner.useReadback(owner: originalOwner) }
+                        Button { owner.useReadback(owner: originalOwner) } label: { label("useReadback") }
                             .disabled(!owner.current || cover.isOpen).accessibilityIdentifier("activityEdit.useReadback")
                     }
                 }
             }
         }
+        .formStyle(.grouped)
         .cyGroupedSurface()
+        .cyHeroScreen()
         .onAppear { owner.appear(active: scenePhase == .active); cover.appear(active: scenePhase == .active) }
         .onDisappear { if !cover.hasNativeSelection { owner.disappear() } }
         .onChange(of: scenePhase) { _, phase in cover.setActive(phase == .active); owner.setActive(phase == .active) }

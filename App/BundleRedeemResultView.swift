@@ -10,20 +10,27 @@ import SwiftUI
 
     var body: some View {
         List {
-            Section { CYHeroHeader("bundle.redeem.title", tableName: table).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section { CYHeroHeader("bundle.redeem.title", tableName: table) }.e1HeroRow()
             switch model.redeemState {
             case .idle, .loading:
-                Section { CYLoadingStateView(rows: 2).accessibilityLabel(text("bundle.redeem.loading")) }
+                Section { CYLoadingStateView(rows: 1).accessibilityLabel(text("bundle.redeem.loading")) }
             case .unavailable:
                 Section { text("bundle.redeem.unavailable").accessibilityIdentifier("bundleRedeem.unavailable") }
             case .failed:
                 Section {
                     text("bundle.redeem.error")
-                    CYPillButton("bundle.redeem.retry", style: .secondary, tableName: table) { Task { await model.loadRedeemResult(unitID: unitID) } }
+                    CYPillButton("bundle.redeem.retry", style: .secondary, systemImage: "arrow.clockwise", tableName: table) { Task { await model.loadRedeemResult(unitID: unitID) } }
+                        .e1ActionRow()
                 }
             case .loaded(let presentation, let result):
                 Section {
-                    headline(presentation).accessibilityIdentifier("bundleRedeem.state")
+                    HStack(spacing: CYSpacing.sm) {
+                        Image(systemName: symbol(presentation)).foregroundStyle(tint(presentation)).accessibilityHidden(true)
+                        headline(presentation)
+                    }
+                    .font(CYTypography.sectionTitle)
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("bundleRedeem.state")
                     if let name = result.merchantName, presentation == .success { Text(verbatim: name) }
                     if let reason = result.reason, !reason.isEmpty, presentation == .rejected || presentation == .review {
                         Text(verbatim: reason).font(.footnote)
@@ -31,8 +38,28 @@ import SwiftUI
                 }
             }
         }
+        .listStyle(.insetGrouped)
         .cyGroupedSurface()
+        .cyHeroScreen()
         .task { await model.loadRedeemResult(unitID: unitID) }
+    }
+
+    private func symbol(_ presentation: BundleRedeemPresentation) -> String {
+        switch presentation {
+        case .success: return "checkmark.seal.fill"
+        case .review: return "hourglass"
+        case .rejected: return "xmark.octagon.fill"
+        case .notRedeemed, .processing: return "clock"
+        }
+    }
+
+    private func tint(_ presentation: BundleRedeemPresentation) -> Color {
+        switch presentation {
+        case .success: return CYColor.successText
+        case .review: return CYColor.warningText
+        case .rejected: return CYColor.dangerText
+        case .notRedeemed, .processing: return CYColor.textSecondary
+        }
     }
 
     private func headline(_ presentation: BundleRedeemPresentation) -> Text {

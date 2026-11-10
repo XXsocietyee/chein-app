@@ -73,6 +73,7 @@ extension EnvironmentValues {
     let focusTopicID: Int?
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.cyPalette) private var palette
     @StateObject private var navigation = ClubEnrollmentNavigation()
     private var liveHost: ClubEnrollmentHostContext {
         .init(clubID: clubID, focusTopicID: focusTopicID, identity: identity, access: access, profile: profile)
@@ -84,48 +85,53 @@ extension EnvironmentValues {
     }
     var body: some View {
         List {
+            CYHeroHeader("club.enroll.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if reader.loading { ProgressView("club.enroll.loading").accessibilityIdentifier("club.enroll.loading") }
             if let issue = reader.failure {
                 Section {
-                    if reader.hasLoaded { Label("club.enroll.stale", systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.enroll.stale") }
+                    if reader.hasLoaded { CYStatusChip("club.enroll.stale", tone: .warning, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.enroll.stale") }
                     // Core's denied title is a Chinese literal; show the localized equivalent.
                     if ClubEnrollmentReader.failureTitle(for: issue) != nil {
-                        Text("club.enroll.denied").font(.headline).accessibilityIdentifier("club.enroll.deniedTitle")
+                        Text("club.enroll.denied").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary).accessibilityIdentifier("club.enroll.deniedTitle")
                     }
                     Text(LocalizedStringKey(issue.localizationKey))
-                    if let message = issue.message { Text(verbatim: message).foregroundStyle(.secondary) }
-                    Button("club.enroll.retry") { Task { await refreshVisible() } }.disabled(reader.loading)
+                    if let message = issue.message { Text(verbatim: message).font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
+                    CYPillButton("club.enroll.retry", style: .secondary) { Task { await refreshVisible() } }.disabled(reader.loading)
                 }
             }
             if host == liveHost, scenePhase == .active, reader.isCurrentAccess, identity == reader.identity, identity == access.identity, reader.hasLoaded {
                 // Mini-program sub line: 「俱乐部名 · N 个团 · 报名费由平台担保托管」.
                 Section {
                     teamCountRow.accessibilityIdentifier("club.enroll.headerLine")
-                    Label("club.enroll.escrow", systemImage: "lock.shield").foregroundStyle(.secondary)
+                    Label("club.enroll.escrow", systemImage: "lock.shield").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                         .accessibilityIdentifier("club.enroll.escrow")
                 } header: {
                     if let name = reader.clubName?.trimmingCharacters(in: .whitespacesAndNewlines), !name.isEmpty { Text(verbatim: name) }
                 }
                 if reader.teams.isEmpty {
-                    ContentUnavailableView("club.enroll.emptyTeams", systemImage: "person.3")
-                        .accessibilityIdentifier("club.enroll.emptyTeams")
+                    CYEmptyState(systemImage: "person.3", "club.enroll.emptyTeams", messageIdentifier: "club.enroll.emptyTeams")
                 }
                 ForEach(reader.teams) { team in
                     Section {
                         Button { Task { if canRead { await reader.toggle(topicID: team.id) } } } label: {
                             HStack(alignment: .top) {
-                                if let image = team.image { SquareImage(source: image).frame(width: 52, height: 52).clipped().accessibilityHidden(true) }
+                                Group {
+                                    if let image = team.image { SquareImage(source: image) }
+                                    else { CYIMCoverArt(seed: "\(clubID)-\(team.id)", systemImage: "flag.fill", symbolSize: 20) }
+                                }
+                                .frame(width: 52, height: 52).clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous)).accessibilityHidden(true)
                                 VStack(alignment: .leading, spacing: 4) {
-                                    title(team.name, fallback: "club.enroll.unnamedTeam").font(.headline)
+                                    title(team.name, fallback: "club.enroll.unnamedTeam").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
                                     HStack(spacing: 4) {
                                         title(team.date, fallback: "club.enroll.dateUnknown")
                                         Text(verbatim: "·")
                                         Text("club.enroll.signups")
                                         number(team.signupCount)
-                                    }.font(.subheadline).foregroundStyle(.secondary)
+                                    }.font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary)
                                 }
                                 Spacer(minLength: 0)
-                                Image(systemName: reader.expanded.contains(team.id) ? "chevron.down" : "chevron.right").accessibilityHidden(true)
+                                Image(systemName: reader.expanded.contains(team.id) ? "chevron.down" : "chevron.right")
+                                    .font(.footnote.weight(.semibold)).foregroundStyle(palette.textTertiary).accessibilityHidden(true)
                             }.frame(maxWidth: .infinity, alignment: .leading).contentShape(Rectangle())
                         }
                         .buttonStyle(.plain).disabled(reader.loading)
@@ -138,7 +144,7 @@ extension EnvironmentValues {
         }
         .scrollContentBackground(.hidden).cyDomainPageBackground()
         .cyGroupedSurface()
-        .navigationTitle("club.enroll.title")
+        .cyHeroScreen()
         .background {
             if let attachment = navigation.attachment {
                 ClubEnrollmentLifetime {
@@ -216,9 +222,9 @@ extension EnvironmentValues {
     @ViewBuilder private func detail(_ team: ClubEnrollmentTeam) -> some View {
         if reader.detailLoading.contains(team.id) { ProgressView("club.enroll.detailLoading") }
         if let issue = reader.detailFailures[team.id] {
-            if reader.rosters[team.id] != nil { Text("club.enroll.stale").font(.footnote) }
+            if reader.rosters[team.id] != nil { CYStatusChip("club.enroll.stale", tone: .warning, systemImage: "exclamationmark.triangle") }
             Text(LocalizedStringKey(issue.localizationKey))
-            Button("club.enroll.retry") { Task { if canRead { await reader.loadDetail(topicID: team.id) } } }
+            CYPillButton("club.enroll.retry", style: .secondary) { Task { if canRead { await reader.loadDetail(topicID: team.id) } } }
                 .disabled(reader.detailLoading.contains(team.id)).accessibilityIdentifier("club.enroll.retry.\(team.id)")
         }
         if let roster = reader.rosters[team.id] {
@@ -230,13 +236,13 @@ extension EnvironmentValues {
                 if let status = roster.teamStatus {
                     LabeledContent("club.enroll.teamStatus") { Text(LocalizedStringKey("club.enroll.teamStatus." + String(status))) }
                 }
-            }.font(.subheadline).accessibilityIdentifier("club.enroll.summary.\(team.id)")
-            if roster.tickets.isEmpty { Text("club.enroll.emptyTickets").foregroundStyle(.secondary) }
+            }.font(CYTypography.bodyCompact).accessibilityIdentifier("club.enroll.summary.\(team.id)")
+            if roster.tickets.isEmpty { Text("club.enroll.emptyTickets").font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
             ForEach(roster.tickets) { ticket in
                 VStack(alignment: .leading, spacing: 8) {
                     // Mini-program ticket row: name left, 「已报名 / 上限」 as one right-aligned fraction.
                     HStack(alignment: .firstTextBaseline) {
-                        title(ticket.name, fallback: "club.enroll.unnamedTicket").font(.headline)
+                        title(ticket.name, fallback: "club.enroll.unnamedTicket").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary)
                             .accessibilityIdentifier("club.enroll.ticket.\(ticket.id)")
                         Spacer()
                         HStack(spacing: 2) {
@@ -245,7 +251,7 @@ extension EnvironmentValues {
                             else { Text("club.enroll.registrants") }
                         }.monospacedDigit().accessibilityIdentifier("club.enroll.capacity.\(ticket.id)")
                     }
-                    if ticket.registrants.isEmpty { Text("club.enroll.emptyRegistrants").foregroundStyle(.secondary) }
+                    if ticket.registrants.isEmpty { Text("club.enroll.emptyRegistrants").font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
                     ForEach(ticket.registrants) { registrant in row(registrant, topicID: team.id) }
                 }.padding(.vertical, 6)
             }
@@ -261,9 +267,9 @@ extension EnvironmentValues {
             } else { attendee(registrant) }
             Spacer(minLength: Theme.Space.s2)
             Button { open(.checkin, source: source) } label: {
-                Label(LocalizedStringKey("club.enroll.checkin." + registrant.checkin.rawValue), systemImage: registrant.checkin == .done ? "checkmark.circle" : "ticket")
-                    .font(.subheadline)
-                    .foregroundStyle(registrant.checkin == .done ? CYColor.successText : (registrant.checkin == .pending ? CYColor.warningText : CYColor.textSecondary))
+                CYStatusChip(LocalizedStringKey("club.enroll.checkin." + registrant.checkin.rawValue),
+                             tone: registrant.checkin == .done ? .success : (registrant.checkin == .pending ? .warning : .neutral),
+                             systemImage: registrant.checkin == .done ? "checkmark.circle" : "ticket")
             }
             .buttonStyle(.borderless).accessibilityIdentifier("club.enroll.checkin.\(registrant.id)")
         }.padding(.vertical, 4).disabled(source == nil || navigation.item != nil)

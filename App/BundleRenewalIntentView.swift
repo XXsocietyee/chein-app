@@ -19,7 +19,7 @@ import SwiftUI
 
     var body: some View {
         Form {
-            Section { CYHeroHeader("renewal.title", tableName: table).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section { CYHeroHeader("renewal.title", tableName: table) }.e1HeroRow()
             if !model.current {
                 text("renewal.stale")
             } else {
@@ -42,9 +42,9 @@ import SwiftUI
                     Section {
                         text("renewal.unknown")
                         CYPillButton("renewal.recover", style: .secondary, tableName: table) { Task { await model.recover() } }
-                            .disabled(!model.canRecover)
+                            .disabled(!model.canRecover).e1ActionRow()
                         CYPillButton("renewal.retry", style: .tertiary, tableName: table) { Task { await model.retry() } }
-                            .disabled(!model.canRetry)
+                            .disabled(!model.canRetry).e1ActionRow()
                     }
                 } else if model.phase != .unavailable {
                     Section {
@@ -59,13 +59,15 @@ import SwiftUI
                                     note = String(value.prefix(BundleRenewalCommand.noteLimit))
                                 }
                             }
-                        CYPillButton("renewal.submit", style: .primary, tableName: table) { Task { await model.submit(intent: choice, note: note) } }
-                            .disabled(!model.canSubmit)
+                        CYPillButton("renewal.submit", tableName: table) { Task { await model.submit(intent: choice, note: note) } }
+                            .disabled(!model.canSubmit).e1ActionRow()
                     }
                 }
             }
         }
+        .formStyle(.grouped)
         .cyGroupedSurface()
+        .cyHeroScreen()
         .task { await model.load() }
     }
 }

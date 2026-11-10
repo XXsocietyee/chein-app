@@ -33,7 +33,8 @@ struct ActivityDetailView: View {
     var body: some View {
         Group {
             if session.account == nil {
-                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "activity.signInRequired", messageIdentifier: "activity.detail.signIn")
+                CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", "activity.signInRequired")
+                    .accessibilityIdentifier("activity.detail.signIn")
             } else {
                 let activityIdentity = session.activityPresentationIdentity
                 let clubIdentity = session.clubIdentity
@@ -100,7 +101,9 @@ struct ActivityDetailView: View {
             if loading { ScrollView { CYLoadingStateView(rows: 2).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading")) }
             else if failed {
                 CYEmptyState(systemImage: "wifi.exclamationmark", "activity.loadFailed", messageIdentifier: "activity.detail.error",
-                    actionTitle: "action.retry", actionIdentifier: "activity.detail.retry") { loads.start { await load() } }
+                             actionTitle: "action.retry", actionIdentifier: "activity.detail.retry", kind: .failure) {
+                    loads.start { await load() }
+                }
             } else if let access {
                 switch access {
                 case .clubRequired(_,let message):
@@ -138,7 +141,8 @@ struct ActivityDetailView: View {
                     requiredClubSelection?.id == selection.id && selection.mayRemainOpen(access: access, in: gateScope)
                 })
             } else {
-                CYEmptyState(systemImage: "arrow.clockwise", "activity.requiredClub.changed", messageIdentifier: "activity.requiredClub.stale")
+                CYEmptyState(systemImage: "arrow.clockwise", "activity.requiredClub.changed")
+                    .accessibilityIdentifier("activity.requiredClub.stale")
             }
         }
         .onChange(of: peopleProfile?.reader.identity) { _, _ in
@@ -184,12 +188,13 @@ struct ActivityDetailView: View {
             return nil
         }()
         if let clubID, clubID > 0 {
-            CYPillButton("activity.requiredClub.open", style: .primary, systemImage: "person.3") {
+            Button {
                 guard gateIsVisible, requiredClubSelection == nil, requiredClubDestination != nil,
                       let selection = ActivityRequiredClubSelection(access: renderedAccess, currentAccess: access,
                           rendered: renderedScope, current: gateScope) else { return }
                 requiredClubSelection = selection
-            }
+            } label: { Label("activity.requiredClub.open", systemImage: "person.3") }
+                .frame(minHeight: 44)
                 .disabled(requiredClubDestination == nil || renderedScope == nil || !gateIsVisible || requiredClubSelection != nil)
                 .accessibilityIdentifier("activity.requiredClub.open")
         }
@@ -347,13 +352,17 @@ struct ActivityDetailView: View {
         // Same placement as `.questifyBottomAction`: one primary action pinned above the home indicator.
         Group {
             if primaryAction == .signUp {
-                CYPillButton(LocalizedStringKey(ActivityPrimaryAction.signUp.titleKey), style: .primary) { showsRegistration=true }
+                Button { showsRegistration=true } label: { primaryActionLabel(.signUp) }
+                    .buttonStyle(.cyPrimary)
+                    .controlSize(.large)
                     .accessibilityIdentifier("activity.openRegistration")
             } else {
                 // A registered or cancelled activity never reopens the registration sheet.
                 let action = primaryAction
                 let walletAvailable = reader is AppSession
-                CYPillButton(LocalizedStringKey(action.titleKey), style: .primary) { if action != .cancelled, walletAvailable { showsTicketWallet=true } }
+                Button { if action != .cancelled, walletAvailable { showsTicketWallet=true } } label: { primaryActionLabel(action) }
+                    .buttonStyle(.cyPrimary)
+                    .controlSize(.large)
                     .disabled(action == .cancelled || !walletAvailable)
                     .accessibilityIdentifier("activity.primaryAction")
             }
@@ -362,6 +371,12 @@ struct ActivityDetailView: View {
         .padding(.horizontal,Theme.Space.pageX)
         .padding(.vertical,Theme.Space.s2)
         .background(.bar)
+    }
+    private func primaryActionLabel(_ action: ActivityPrimaryAction) -> some View {
+        Text(LocalizedStringKey(action.titleKey))
+            .font(CYTypography.cardTitle)
+            .fixedSize(horizontal:false,vertical:true)
+            .frame(maxWidth:.infinity,minHeight:44)
     }
     @MainActor private func load() async {
         generation += 1

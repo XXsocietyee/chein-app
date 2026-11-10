@@ -47,22 +47,15 @@ import SwiftUI
         List {
             if memberID <= 0 {
                 // Mini-program userinfo missing-param state: centred empty state with a back-to-home CTA.
-                VStack(spacing: CYSpacing.md) {
-                    Image(systemName: "link.badge.plus").font(.largeTitle).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
-                    Text("profile.incompleteLink.title")
-                        .font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
-                        .accessibilityIdentifier("social.incompleteLink.title")
-                    Text("social.incompleteLink")
-                        .font(CYTypography.bodyCompact)
-                        .foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)
-                    Button {
-                        dismiss()
-                    } label: {
-                        Text("profile.incompleteLink.backHome")
-                    }
-                    .buttonStyle(.questifyPrimary)
-                    .accessibilityIdentifier("social.incompleteLink.backHome")
-                }
+                CYEmptyState(
+                    systemImage: "link.badge.plus",
+                    "profile.incompleteLink.title",
+                    detail: "social.incompleteLink",
+                    messageIdentifier: "social.incompleteLink.title",
+                    actionTitle: "profile.incompleteLink.backHome",
+                    actionIdentifier: "social.incompleteLink.backHome",
+                    actionStyle: .primary
+                ) { dismiss() }
                 .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
                 .accessibilityIdentifier("social.incompleteLink")
             }
@@ -115,9 +108,9 @@ import SwiftUI
                         }
                         LabeledContent("social.followStatus") {
                             switch profile.isFollowed {
-                            case true: Text("social.following")
-                            case false: Text("social.notFollowing")
-                            case nil: Text("social.relationshipUnknown")
+                            case true: CYStatusChip("social.following", tone: .success, systemImage: "checkmark")
+                            case false: CYStatusChip("social.notFollowing", tone: .neutral)
+                            case nil: CYStatusChip("social.relationshipUnknown", tone: .neutral, systemImage: "questionmark")
                             }
                         }
                         if let actions, actions.identity.accountID != profile.id {
@@ -199,7 +192,7 @@ import SwiftUI
                             if let introduction = profile.introduction { Text(verbatim: introduction).textSelection(.enabled) }
                             else { Text("social.noIntroduction").foregroundStyle(CYColor.textSecondary) }
                             if selfEditContext != nil {
-                                Button("profile.selfEdit.open") { selfEditNavigation.open(selfEditContext) }
+                                CYPillButton("profile.selfEdit.open", style: .secondary) { selfEditNavigation.open(selfEditContext) }
                                     .accessibilityIdentifier("profile.selfEdit.open")
                             }
                         }
@@ -220,7 +213,7 @@ import SwiftUI
             }
         }
         .cyGroupedSurface()
-        }.appNavigationTitle("social.profile").navigationBarTitleDisplayMode(.inline)
+        }.cyHeroScreen()
             .navigationDestination(item: selfEditBinding) { ticket in
                 ProfileSelfEditDestination(ticket: ticket, access: selfEditAccess,
                     isCurrent: { selfEditNavigation.isCurrent(ticket, context: selfEditContext) },

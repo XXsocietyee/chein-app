@@ -21,13 +21,14 @@ struct ParticipantManagementDetailView: View {
                     }
                 }
             } else if !model.reader.isConfigured || !model.coordinator.isConfigured {
-                CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured")
+                CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", kind: .offline)
             } else if model.loading || (model.loaded && !model.hasCurrentProjection) {
-                CYLoadingStateView(rows: 3).accessibilityLabel(Text("profile.loading")).accessibilityIdentifier("participant.detail.loading")
+                CYLoadingStateView(rows: 2).accessibilityLabel(Text("profile.loading")).accessibilityIdentifier("participant.detail.loading")
             } else if !model.loaded {
                 ParticipantLoadFailureView(issue: model.issue) { Task { await model.load() } }
             } else {
                 List {
+                    Section { CYHeroHeader("profile.participants.detail") }.e1HeroRow()
                     Section("profile.participants.contact") {
                         LabeledContent("profile.participants.name") { Text(verbatim: model.draft.fullName).textSelection(.enabled) }
                         LabeledContent("profile.participants.phone") { Text(verbatim: model.draft.mobilePhone).textSelection(.enabled) }
@@ -41,9 +42,10 @@ struct ParticipantManagementDetailView: View {
                         Section("profile.participants.savedAddress") { Text(verbatim: address).textSelection(.enabled) }
                     }
                     Section {
-                        CYPillButton("participant.form.edit", style: .primary) { showsEditor = true }
-                            .disabled(!model.canMutate).accessibilityIdentifier("participant.detail.edit")
+                        CYPillButton("participant.form.edit", systemImage: "pencil") { showsEditor = true }
+                            .disabled(!model.canMutate).accessibilityIdentifier("participant.detail.edit").e1ActionRow()
                         Button("participant.form.delete", role: .destructive) { model.prepareDelete() }
+                            .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                             .disabled(!model.canMutate).accessibilityIdentifier("participant.detail.delete")
                     } footer: { Text("participant.form.sharedRow") }
                     if let issue = model.issue { Section { ParticipantIssueText(issue: issue) } }
@@ -51,10 +53,11 @@ struct ParticipantManagementDetailView: View {
                         Task { await model.readBack() }
                     }
                 }
+                .listStyle(.insetGrouped)
+                .cyGroupedSurface()
             }
         }
-        .appNavigationTitle("profile.participants.detail")
-        .navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .navigationBarBackButtonHidden(model.busy)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {

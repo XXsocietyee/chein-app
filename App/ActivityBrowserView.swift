@@ -22,13 +22,13 @@ private struct ActivityListDestination: Hashable { let id: Int }
             ZStack {
                 if !reader.activityListIsConfigured {
                     CYEmptyState(systemImage: "network.slash", "activity.unavailable",
-                        detail: LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured"))
+                        detail: LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured"), kind: .offline)
                 } else if model.identity != identity || (model.isLoading && model.items.isEmpty) {
                     ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading"))
                         .transition(.opacity)
                 } else if model.failed && model.items.isEmpty {
                     CYEmptyState(systemImage: "wifi.exclamationmark", "activity.loadFailed", messageIdentifier: "activity.list.error",
-                        actionTitle: "action.retry", actionIdentifier: "activity.list.retry") {
+                                 actionTitle: "action.retry", actionIdentifier: "activity.list.retry", kind: .failure) {
                         loads.start { await model.load(reader: reader, reset: true, keyword: query) }
                     }
                 } else if model.items.isEmpty {
@@ -46,9 +46,9 @@ private struct ActivityListDestination: Hashable { let id: Int }
                                 .accessibilityIdentifier("activity.row.\(item.id)")
                         }
                         if model.hasMore || model.failed {
-                            CYPillButton(model.failed ? LocalizedStringKey("action.retry") : LocalizedStringKey("activity.loadMore"), style: .secondary) {
+                            Button(model.failed ? LocalizedStringKey("action.retry") : LocalizedStringKey("activity.loadMore")) {
                                 loads.start { await model.load(reader: reader, reset: false, keyword: query) }
-                            }.disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
+                            }.frame(minHeight:44).disabled(model.isLoading).accessibilityIdentifier("activity.list.loadMore")
                         }
                         if model.isLoading { ProgressView() }
                     }

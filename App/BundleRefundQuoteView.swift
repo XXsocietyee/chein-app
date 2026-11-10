@@ -14,10 +14,10 @@ struct BundleRefundQuoteView: View {
 
     var body: some View {
         List {
-            Section { CYHeroHeader("title", tableName: table).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section { CYHeroHeader("title", tableName: table) }.e1HeroRow()
             Section {
                 Text(LocalizedStringKey(presentation.routeTitleKey), tableName: table)
-                    .font(.headline)
+                    .font(CYTypography.sectionTitle)
                     .accessibilityIdentifier("bundleRefund.route")
                 Text(LocalizedStringKey(presentation.routeBodyKey), tableName: table)
                 if let reason = presentation.serverReason {
@@ -43,14 +43,17 @@ struct BundleRefundQuoteView: View {
                 Text(verbatim: presentation.policyVersion).font(.footnote).foregroundStyle(.secondary)
             }
         }
+        .listStyle(.insetGrouped)
         .cyGroupedSurface()
+        .cyHeroScreen()
     }
 
     private func row(_ labelKey: String, _ value: String) -> some View {
         HStack {
             Text(LocalizedStringKey(labelKey), tableName: table)
             Spacer()
-            Text(verbatim: value).monospacedDigit().foregroundStyle(.secondary)
+            Text(verbatim: value).font(CYTypography.numericBody).foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .combine)
     }
 }

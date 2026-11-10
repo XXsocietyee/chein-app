@@ -25,6 +25,8 @@ extension EnvironmentValues {
         let theme = MapVisualHostBridge.resolveTheme(systemIsDark: colorScheme == .dark)
         let projected = (try? caller.project(theme: theme)) ?? []
         List {
+            CYHeroHeader(verbatim: "Public layers")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 field("mapPublic.minLat", $minLat)
                 field("mapPublic.maxLat", $maxLat)
@@ -32,24 +34,26 @@ extension EnvironmentValues {
                 field("mapPublic.maxLng", $maxLng)
                 field("mapPublic.layers", $layers)
                 field("mapPublic.limit", $limit)
-                Button { Task { await load() } } label: { Text(verbatim: "Load").frame(minHeight: 44) }
+                CYPillButton(verbatim: "Load") { Task { await load() } }
+                    .listRowBackground(Color.clear)
                     .disabled(caller.loading || caller.accountID == nil)
                     .accessibilityIdentifier("mapPublic.load")
                 if caller.session?.complete == false {
-                    Button { Task { await caller.nextPage() } } label: { Text(verbatim: "Next").frame(minHeight: 44) }
+                    CYPillButton(verbatim: "Next", style: .secondary) { Task { await caller.nextPage() } }
+                        .listRowBackground(Color.clear)
                         .disabled(caller.loading)
                         .accessibilityIdentifier("mapPublic.next")
                 }
             }
             if let failure = caller.failure {
-                Section { Text(verbatim: failure.rawValue).accessibilityIdentifier("mapPublic.failure") }
+                Section { CYStatusChip(verbatim: failure.rawValue, tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("mapPublic.failure") }
             }
             Section {
                 ForEach(caller.ready, id: \.key) { item in
                     VStack(alignment: .leading, spacing: 4) {
                         Text(verbatim: projected.first { $0.key == item.key }?.title ?? item.title)
                         if MapPublicLayerCaller.detail(for: item) != nil {
-                            Button { Task { await caller.openDetail(item) } } label: { Text(verbatim: "Detail").frame(minHeight: 44) }
+                            CYPillButton(verbatim: "Detail", style: .tertiary, fullWidth: false) { Task { await caller.openDetail(item) } }
                                 .accessibilityIdentifier("mapPublic.detail.\(item.key.type.rawValue).\(item.key.id)")
                         }
                     }
@@ -59,11 +63,13 @@ extension EnvironmentValues {
             if let detail = caller.detail {
                 Section {
                     Text(verbatim: detail.text).accessibilityIdentifier("mapPublic.detailText")
-                    Button { Task { await caller.returned() } } label: { Text(verbatim: "Return").frame(minHeight: 44) }
+                    CYPillButton(verbatim: "Return", style: .secondary) { Task { await caller.returned() } }
+                        .listRowBackground(Color.clear)
                         .accessibilityIdentifier("mapPublic.return")
                 }
             }
         }
+        .cyHeroScreen()
         .onDisappear { caller.abandon() }
     }
 

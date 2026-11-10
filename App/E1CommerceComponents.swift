@@ -148,3 +148,33 @@ struct E1Perforation: View {
         func path(in rect: CGRect) -> Path { var p = Path(); p.move(to: CGPoint(x: rect.minX, y: rect.midY)); p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)); return p }
     }
 }
+
+// MARK: - Tail helpers (Form / List screens restyled with the kit; presentation only)
+
+extension View {
+    /// Hero title row for a Form/List: transparent row, page margins, no separator.
+    func e1HeroRow() -> some View {
+        listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
+            .listRowSeparator(.hidden)
+    }
+
+    /// Full-width action row for a Form/List (hosts a `CYPillButton`).
+    func e1ActionRow() -> some View {
+        listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.xs, trailing: CYSpacing.pageHorizontal))
+            .listRowBackground(Color.clear)
+    }
+}
+
+/// Label-only pill content for a NavigationLink styled with CYPillButtonStyle.
+struct CYPillButtonLabel: View {
+    private let title: LocalizedStringKey
+    private let systemImage: String?
+    init(_ title: LocalizedStringKey, systemImage: String? = nil) { self.title = title; self.systemImage = systemImage }
+    var body: some View {
+        HStack(spacing: CYSpacing.sm) {
+            if let systemImage { Image(systemName: systemImage) }
+            Text(title)
+        }
+    }
+}

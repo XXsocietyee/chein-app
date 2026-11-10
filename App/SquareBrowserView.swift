@@ -52,18 +52,17 @@ import SwiftUI
                 }
                 if let upcomingReader, reader.isConfigured { SquareXcxUpcomingStrip(reader: upcomingReader, destination: upcomingDestination) }
                 if !reader.isConfigured { SquareIssueView(error: APIError.notConfigured) }
-                else if gatePending { ProgressView("square.loading") }
+                else if gatePending { CYSkeleton() }
                 else if communityClosed {
                     VStack(alignment: .leading, spacing: 6) {
                         Text("square.xcx.closedTitle").font(CYTypography.cardTitle).accessibilityIdentifier("square.communityClosed")
                         Text("square.xcx.closedDetail").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                        Button("square.retry") { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
-                            .buttonStyle(.cySecondary(fullWidth: false)).frame(minHeight: CYSpacing.minTouchTarget)
+                        CYPillButton("square.retry", style: .secondary, fullWidth: false) { gateScope = nil; Task { await loadGate(); await load(reset: true) } }
                     }
                     .frame(maxWidth: .infinity).padding(.vertical, CYSpacing.xl)
                 }
                 else if query.mode.requiresAccount && !reader.isSignedIn { SquareIssueView(error: SquareReadFailure.signInRequired) }
-                else if loadedKey != key { ProgressView("square.loading") }
+                else if loadedKey != key { CYSkeleton() }
                 else {
                     if let issue { SquareIssueView(error: issue) { Task { await load(reset: !pagination.hasLoadedPage) } } }
                     if pagination.items.isEmpty && !loading && issue == nil {
@@ -83,9 +82,9 @@ import SwiftUI
                         NativeMediaGalleryEntry(sources: post.images, scope: reader.scope, titleKey: "media.destination.squareImages", compact: true)
                     }
                     if pagination.continuationInvalid { Text("square.invalidCursor").accessibilityIdentifier("square.invalidCursor") }
-                    if loading { ProgressView("square.loading") }
+                    if loading { CYSkeleton() }
                     else if pagination.hasMore && issue == nil {
-                        Button("square.loadMore") { Task { await load(reset: false) } }.accessibilityIdentifier("square.loadMore")
+                        CYPillButton("square.loadMore", style: .secondary) { Task { await load(reset: false) } }.accessibilityIdentifier("square.loadMore")
                     }
                 }
             }

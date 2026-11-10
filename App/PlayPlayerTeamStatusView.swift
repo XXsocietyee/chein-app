@@ -10,19 +10,19 @@ struct PlayPlayerTeamStatusView: View {
             case .empty: EmptyView()
             case .unconfirmed:
                 Section("playerTeam.title") {
-                    Text("playerTeam.unconfirmed").font(.footnote).foregroundStyle(.secondary)
+                    CYStatusChip("playerTeam.unconfirmed", tone: .neutral, systemImage: "questionmark.circle")
                         .accessibilityIdentifier("playerTeam.unconfirmed")
                 }
             case .members(let members):
                 Section {
                     ForEach(members) { member in
-                        VStack(alignment: .leading, spacing: 6) {
-                            if let name = member.displayName { Text(verbatim: name).font(.headline) }
-                            else { Text("playerTeam.teammate").font(.headline) }
+                        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                            if let name = member.displayName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                            else { Text("playerTeam.teammate").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
                             if let role = member.roleCode {
-                                LabeledContent("playerTeam.role") { Text(verbatim: role) }.font(.caption)
+                                LabeledContent("playerTeam.role") { Text(verbatim: role) }.font(CYTypography.meta)
                             }
-                            Text(LocalizedStringKey(member.status.titleKey)).font(.subheadline)
+                            CYStatusChip(LocalizedStringKey(member.status.titleKey), tone: .info)
                                 .accessibilityIdentifier("playerTeam.status." + member.status.rawValue.lowercased())
                         }.fixedSize(horizontal: false, vertical: true)
                             .accessibilityElement(children: .combine)

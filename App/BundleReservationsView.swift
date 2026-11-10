@@ -9,23 +9,31 @@ import SwiftUI
     private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
     var body: some View {
         Form {
+            Section { CYHeroHeader(verbatim: W8Text.t("我的预约", "Reservations")) }.e1HeroRow()
             if order.isLegacy {
                 text("order.legacy")
             } else if order.reservations.isEmpty {
                 CYEmptyState(systemImage: "calendar", "reservations.empty", tableName: table, messageIdentifier: "bundle.reservations.empty")
+                    .listRowBackground(Color.clear)
             } else {
                 Section {
                     ForEach(order.reservations, id: \.id) { row in
-                        VStack(alignment: .leading) {
-                            if let key = BundleOrderStatusPresentation.reservationStatusKey(row) { text(key).font(.headline) }
-                            else { Text(verbatim: row.status).font(.headline) }
-                            Text(verbatim: row.startAt).monospacedDigit()
-                            Text(verbatim: row.id.text).font(.caption).textSelection(.enabled)
+                        HStack(spacing: CYSpacing.md) {
+                            CYRowIcon(systemImage: "calendar.badge.clock")
+                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                if let key = BundleOrderStatusPresentation.reservationStatusKey(row) { text(key).font(CYTypography.cardTitle) }
+                                else { Text(verbatim: row.status).font(CYTypography.cardTitle) }
+                                Text(verbatim: row.startAt).font(CYTypography.numericBody)
+                                Text(verbatim: row.id.text).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).textSelection(.enabled)
+                            }
                         }
+                        .accessibilityElement(children: .combine)
                     }
                 }
             }
         }
+        .formStyle(.grouped)
         .cyGroupedSurface()
+        .cyHeroScreen()
     }
 }

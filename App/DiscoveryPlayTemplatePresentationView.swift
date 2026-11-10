@@ -17,7 +17,8 @@ import SwiftUI
         }
         if let count = presentation.useCount {
             Section {
-                LabeledContent("discovery.template.useCount") { Text(verbatim: String(count)).monospacedDigit() }
+                LabeledContent("discovery.template.useCount", value: String(count))
+                    .monospacedDigit()
                     .accessibilityIdentifier("discovery.template.useCount")
             }
         }
@@ -35,7 +36,7 @@ import SwiftUI
                         .accessibilityIdentifier("discovery.template.storyText")
                 }
                 if presentation.storyImage != nil {
-                    Text("discovery.template.storyImageInGallery").font(.footnote).foregroundStyle(.secondary)
+                    Text("discovery.template.storyImageInGallery").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("discovery.template.storyImage")
                 }

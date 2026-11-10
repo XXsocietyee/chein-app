@@ -16,12 +16,12 @@ import SwiftUI
     init(host: OwnedTemplateConfigurationHost, id: MemberPlayTemplateID) { _host = State(initialValue: host); self.id = id }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateOwnerConfig.title").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section { Text("templateOwnerConfig.readOnly"); Text("templateOwnerConfig.scope").font(.caption).foregroundStyle(.secondary) }
-            if host.loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("memberTemplate.loading")) }
+            Section { CYHeroHeader("templateOwnerConfig.title", subtitle: "templateOwnerConfig.readOnly") }.e1HeroRow()
+            Section { Text("templateOwnerConfig.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if host.loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("memberTemplate.loading")).listRowBackground(Color.clear) }
             if let snapshot = host.snapshot, snapshot.id == id {
                 Section {
-                    Text(verbatim: snapshot.title.value ?? "").font(.title3.weight(.semibold)).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateOwnerConfig.title")
+                    Text(verbatim: snapshot.title.value ?? "").font(CYTypography.sectionTitle).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("templateOwnerConfig.title")
                     if snapshot.title == .unsupported { Text("templateOwnerConfig.unsupported") }
                     else if snapshot.title.value == nil { Text("templateOwnerConfig.missing") }
                     LabeledContent("templateAuthor.shelf.identity", value: String(snapshot.id.rawValue))
@@ -72,8 +72,8 @@ import SwiftUI
                 }
                 Section("templateAuthor.story") {
                     if let text = snapshot.storyText.value { Text(verbatim: text) }
-                    CYPillButton("templateAuthor.storyTimeline", style: .secondary) { showingStory = true }
-                        .accessibilityIdentifier("templateOwnerConfig.story")
+                    CYPillButton("templateAuthor.storyTimeline", style: .secondary, systemImage: "list.bullet.below.rectangle") { showingStory = true }
+                        .accessibilityIdentifier("templateOwnerConfig.story").e1ActionRow()
                 }
                 if !snapshot.unsupportedFields.isEmpty {
                     Section { Text("templateOwnerConfig.partial").accessibilityIdentifier("templateOwnerConfig.partial") }
@@ -81,8 +81,8 @@ import SwiftUI
             } else if !host.loading {
                 Section { Text(LocalizedStringKey(host.available ? "templateOwnerConfig.failed" : "templateAuthor.unavailable")) }
             }
-            Section { CYPillButton("action.retry", style: .secondary) { Task { await host.load(id: id) } }.disabled(host.loading).accessibilityIdentifier("templateOwnerConfig.reload") }
-        }.cyGroupedSurface()
+            Section { CYPillButton("action.retry", style: .secondary, systemImage: "arrow.clockwise") { Task { await host.load(id: id) } }.disabled(host.loading).accessibilityIdentifier("templateOwnerConfig.reload").e1ActionRow() }
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .privacySensitive().accessibilityIdentifier("templateOwnerConfig.form")
             .task(id: id) { showingStory = false; if host.snapshot?.id != id { await host.load(id: id) } }
             .navigationDestination(isPresented: $showingStory) { OwnedTemplateStoryConfigurationView(host: host, expectedID: id) }
@@ -96,8 +96,7 @@ import SwiftUI
     let expectedID: MemberPlayTemplateID
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateAuthor.storyTimeline").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            Section { Label("templateOwnerConfig.readOnly", systemImage: "lock.doc").font(.subheadline).foregroundStyle(.secondary) }
+            Section { CYHeroHeader("templateAuthor.storyTimeline", subtitle: "templateOwnerConfig.readOnly") }.e1HeroRow()
             if let snapshot = host.snapshot, snapshot.id == expectedID {
                 ForEach(snapshot.story) { beat in
                     Section {
@@ -110,7 +109,7 @@ import SwiftUI
                 }
                 if snapshot.story.isEmpty { Text("templateOwnerConfig.noStory") }
             } else { Text("templateAuthor.unavailable") }
-        }.cyGroupedSurface()
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .privacySensitive().accessibilityIdentifier("templateOwnerConfig.storyForm")
             .onChange(of: session.templateShelfViewIdentity) { _, _ in host.clear() }
             .onDisappear { if !host.available { host.clear() } }

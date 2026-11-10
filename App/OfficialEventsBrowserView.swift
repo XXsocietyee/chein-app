@@ -86,6 +86,7 @@ import SwiftUI
                 }.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityIdentifier("officialList.summary")
                 if visible.isEmpty {
                     CYEmptyState(systemImage: "sparkles", LocalizedStringKey(query.emptyTitleKey), detail: LocalizedStringKey(query.emptyDetailKey))
+                        .listRowBackground(Color.clear)
                 }
             }
             ForEach(visible) { event in

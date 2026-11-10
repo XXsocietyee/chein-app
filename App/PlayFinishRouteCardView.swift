@@ -17,35 +17,39 @@ import SwiftUI
 
     private var content: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s3) {
-            Text("playx.finishRoute.eyebrow").font(.caption.bold()).foregroundStyle(.secondary)
-            if let title = card.title { Text(verbatim: title).font(.headline) }
-            else { Text("playx.finishRoute.untitled").font(.headline) }
-            if let meta = metaLine { Text(meta).font(.subheadline).foregroundStyle(.secondary) }
+            Text("playx.finishRoute.eyebrow").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            if let title = card.title { Text(verbatim: title).font(CYTypography.cardTitle) }
+            else { Text("playx.finishRoute.untitled").font(CYTypography.cardTitle) }
+            if let meta = metaLine { Text(meta).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
             ViewThatFits(in: .horizontal) {
                 priceAndAction.fixedSize(horizontal: true, vertical: false)
                 VStack(alignment: .leading, spacing: Theme.Space.s2) {
                     price
-                    Text("playx.finishRoute.action").font(.headline)
+                    Text("playx.finishRoute.action").font(CYTypography.label)
                 }.frame(maxWidth: .infinity, alignment: .leading)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .padding(Theme.Space.s4)
-        .background(Theme.Color.bgSurface(in: .player), in: RoundedRectangle(cornerRadius: Theme.Radius.md))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
         .accessibilityElement(children: .combine)
     }
     private var priceAndAction: some View {
             HStack {
                 price
                 Spacer(minLength: Theme.Space.s4)
-                Text("playx.finishRoute.action").font(.footnote.bold())
+                HStack(spacing: CYSpacing.xs) {
+                    Text("playx.finishRoute.action").font(CYTypography.label)
+                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold)).accessibilityHidden(true)
+                }
             }
     }
     @ViewBuilder private var price: some View {
                 switch card.price {
-                case .from(let amount)?: Text("playx.finishRoute.priceFrom \(NSDecimalNumber(decimal: amount).stringValue)")
-                case .free?: CYStatusChip("playx.finishRoute.free", tone: .success, systemImage: "gift")
+                case .from(let amount)?: Text("playx.finishRoute.priceFrom \(NSDecimalNumber(decimal: amount).stringValue)").font(CYTypography.numericBody)
+                case .free?: Text("playx.finishRoute.free").font(CYTypography.numericBody)
                 case nil: EmptyView()
                 }
     }

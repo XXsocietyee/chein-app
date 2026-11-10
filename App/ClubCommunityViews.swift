@@ -252,22 +252,24 @@ struct ClubCommunityFeedView: View {
     @State private var sourceDestination: ClubCommunityFeedSource?
     @Environment(\.clubCustomerTopics) private var topics
     @Environment(\.clubPostPlayHost) private var discussionHost
+    @Environment(\.cyPalette) private var palette
     init(context: ClubCommunityContext, identity: ClubReadIdentity, clubID: Int? = nil) {
         self.identity = identity; self.clubID = clubID; _model = StateObject(wrappedValue: ClubCommunityViewModel(context: context))
     }
     private var operation: ClubCommunityRead { clubID.map { .posts(clubID: $0, page: page) } ?? .feed(page: page) }
     var body: some View {
         List {
+            CYHeroHeader("club.community.posts").listRowBackground(Color.clear).listRowSeparator(.hidden)
             if model.loading { ProgressView().accessibilityLabel(Text("club.community.loading")) }
-            if let notice = model.notice { Text(LocalizedStringKey(notice)).accessibilityIdentifier("club.community.notice") }
+            if let notice = model.notice { CYStatusChip(LocalizedStringKey(notice), tone: .info, systemImage: "info.circle").accessibilityIdentifier("club.community.notice") }
             if let pending = model.pendingRecord, let clubID {
                 VStack(alignment: .leading, spacing: 6) {
                     Text(LocalizedStringKey("club.community.pendingLocked"))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textTertiary)
                         .accessibilityIdentifier("club.community.pendingLocked.\(pending.operationKind)")
                     if model.context.coordinator?.permitsAuthoritativeOutcomeQueries == true {
-                        Button("club.community.reconcilePending") {
+                        CYPillButton("club.community.reconcilePending", style: .secondary) {
                             Task { await model.reconcilePending(clubID: clubID, refresh: operation) }
                         }
                         .disabled(model.busy || model.loading)
@@ -278,12 +280,11 @@ struct ClubCommunityFeedView: View {
             if let snapshot = model.snapshot {
                 if clubID == nil, snapshot.posts.isEmpty {
                     // Cross-club feed (发现 · 帖文): mini-program cy-empty shows one title, 还没有帖文.
-                    ContentUnavailableView(LocalizedStringKey(ClubTabPresentation.feedEmptyKeys(clubCount: snapshot.clubCount).title),
-                                           systemImage: "text.bubble")
+                    CYEmptyState(systemImage: "text.bubble", LocalizedStringKey(ClubTabPresentation.feedEmptyKeys(clubCount: snapshot.clubCount).title),
+                                 messageIdentifier: "clubTab.feed.emptyHint")
                         .listRowBackground(Color.clear)
-                        .accessibilityIdentifier("clubTab.feed.emptyHint")
-                } else if snapshot.clubCount == 0 { Text("club.community.joinFirst") }
-                else if snapshot.posts.isEmpty { Text("club.community.empty") }
+                } else if snapshot.clubCount == 0 { CYEmptyState(systemImage: "person.3", "club.community.joinFirst").listRowBackground(Color.clear) }
+                else if snapshot.posts.isEmpty { CYEmptyState(systemImage: "text.bubble", "club.community.empty").listRowBackground(Color.clear) }
                 ForEach(snapshot.feedItems) { item in
                     let post = item.post
                     let target = discussionTarget(post, acceptedPosts: snapshot.posts)
@@ -314,21 +315,21 @@ struct ClubCommunityFeedView: View {
                     }
                 }
                 if let clubID {
-                    Button("club.community.next") { Task { await model.loadMorePosts(clubID: clubID) } }
+                    CYPillButton("club.community.next", style: .secondary) { Task { await model.loadMorePosts(clubID: clubID) } }
                         .disabled(!model.canLoadMorePosts)
 
                 }
             }
-            Button("club.community.refresh") { Task { await model.load(operation) } }.disabled(model.loading || model.busy)
+            CYPillButton("club.community.refresh", style: .tertiary) { Task { await model.load(operation) } }.disabled(model.loading || model.busy)
             if clubID != nil && identity.isSignedIn {
-                Button("club.community.create") { composing = true }
+                CYPillButton("club.community.create", systemImage: "square.and.pencil") { composing = true }
                     .disabled(model.busy || model.pendingRecord != nil || model.context.coordinator?.permitsInjectedWrites != true)
                     .accessibilityIdentifier("club.community.compose")
             }
-            if model.context.coordinator?.permitsInjectedWrites != true { Text("club.community.offline").foregroundStyle(.secondary) }
+            if model.context.coordinator?.permitsInjectedWrites != true { CYStatusChip("club.community.offline", tone: .neutral, systemImage: "wifi.slash") }
         }
         .cyGroupedSurface()
-        .navigationTitle(Text("club.community.posts"))
+        .cyHeroScreen()
         .background(alignment: .topLeading) { ClubPostDiscussionFixtureTraceView() }
         .navigationDestination(item: $destination) { target in
             switch target.screen {
@@ -430,6 +431,7 @@ struct ClubCommunityPostTile: View {
     var openDetail: (() -> Void)? = nil
     @State private var editing = false
     @State private var evidence: ClubCommunityEvidence?
+    @Environment(\.cyPalette) private var palette
     private func allows(_ operation: ClubCommunityOperation) -> Bool {
         guard let evidence, evidence.identity == identity, evidence.post == post, Date().timeIntervalSince(evidence.observedAt) < 60 else { return false }
         return evidence.allows(operation)
@@ -444,7 +446,8 @@ struct ClubCommunityPostTile: View {
                 ClubPostPlayPreview(post: post, clubID: clubID, identity: identity, model: model, openComments: openComments)
             }
             if post.likeCount > 0 || post.commentCount > 0 {
-                HStack { Label("\(post.likeCount)", systemImage: "heart"); Label("\(post.commentCount)", systemImage: "bubble") }.accessibilityElement(children: .combine)
+                HStack(spacing: CYSpacing.lg) { Label("\(post.likeCount)", systemImage: "heart"); Label("\(post.commentCount)", systemImage: "bubble") }
+                    .font(CYTypography.meta).monospacedDigit().foregroundStyle(palette.textSecondary).accessibilityElement(children: .combine)
             }
             if let clubID {
                 HStack {
@@ -464,10 +467,10 @@ struct ClubCommunityPostTile: View {
             }
             HStack(spacing: 12) {
                 if let openDetail {
-                    Button(action: openDetail) { Text("club.community.detail") }
+                    CYPillButton("club.community.detail", style: .tertiary, fullWidth: false, action: openDetail)
                         .accessibilityIdentifier("club.community.detail.\(post.id)")
                 }
-                Button(action: openHistory) { Text("club.community.history") }
+                CYPillButton("club.community.history", style: .tertiary, fullWidth: false, action: openHistory)
                     .accessibilityIdentifier("club.community.history.\(post.id)")
             }
         }
@@ -518,12 +521,10 @@ struct ClubCommunityPostDetailView: View {
             if let pending = model.pendingRecord, let targetClubID = post.clubID ?? clubID {
                 Section {
                     VStack(alignment: .leading, spacing: 6) {
-                        Text(LocalizedStringKey("club.community.pendingLocked"))
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                        CYStatusChip("club.community.pendingLocked", tone: .warning, systemImage: "lock")
                             .accessibilityIdentifier("club.community.detail.pendingLocked.\(pending.operationKind)")
                         if model.context.coordinator?.permitsAuthoritativeOutcomeQueries == true {
-                            Button("club.community.reconcilePending") {
+                            CYPillButton("club.community.reconcilePending", style: .secondary) {
                                 Task {
                                     await model.reconcilePending(
                                         clubID: targetClubID,
@@ -612,14 +613,14 @@ struct ClubCommunityComposer: View {
             Form {
                 TextEditor(text: $content).frame(minHeight: 150).accessibilityLabel(Text("club.community.content"))
                     .accessibilityIdentifier("club.community.content")
-                Text("\(content.count)/300").foregroundStyle(.secondary)
+                Text("\(content.count)/300").font(CYTypography.meta).monospacedDigit().foregroundStyle(content.count > 300 ? CYColor.dangerText : CYColor.textTertiary)
                 ClubPostImageSectionView(
                     bridge: imageBridge,
                     images: $images,
                     uploading: $uploading,
                     notice: $model.notice
                 )
-                Button("club.community.review") {
+                CYPillButton("club.community.review") {
                     let operation: ClubCommunityOperation = post == nil ? .create(content: content, images: images) : .update(content: content, images: images, requestID: UUID().uuidString)
                     model.stageDraft(operation, clubID: clubID, post: post)
                     dismiss()
@@ -661,7 +662,7 @@ struct ClubCommunityReviewView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Text(LocalizedStringKey("club.community." + review.operation.labelKey)).font(.headline)
+                Text(LocalizedStringKey("club.community." + review.operation.labelKey)).font(CYTypography.sectionTitle)
                 LabeledContent("club.community.clubID", value: String(review.evidence.clubID))
                 if let post = review.evidence.post { LabeledContent("club.community.postID", value: String(post.id)) }
                 if let comment = review.evidence.comment { LabeledContent("club.community.commentID", value: String(comment.id)) }
@@ -675,10 +676,10 @@ struct ClubCommunityReviewView: View {
                 case let .pin(pinned, _): Text(pinned ? "club.community.pin" : "club.community.unpin")
                 default: Text("club.community.deleteWarning")
                 }
-                Text("club.community.offline")
-                Button("club.community.confirm") { Task { if await model.confirm(expected: review, refresh: refresh) { dismiss() } } }.disabled(model.busy)
+                CYStatusChip("club.community.offline", tone: .neutral, systemImage: "wifi.slash")
+                CYPillButton("club.community.confirm") { Task { if await model.confirm(expected: review, refresh: refresh) { dismiss() } } }.disabled(model.busy)
                     .accessibilityIdentifier("club.community.confirm")
-                Button("club.community.cancel", role: .cancel) { model.cancelReview(); dismiss() }
+                CYPillButton("club.community.cancel", style: .tertiary) { model.cancelReview(); dismiss() }
             }.navigationTitle(Text("club.community.review"))
         }.interactiveDismissDisabled(model.busy)
     }
@@ -701,12 +702,10 @@ struct ClubCommunityCommentsView: View {
             if let notice = model.notice { Text(LocalizedStringKey(notice)) }
             if let pending = model.pendingRecord {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text(LocalizedStringKey("club.community.pendingLocked"))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    CYStatusChip("club.community.pendingLocked", tone: .warning, systemImage: "lock")
                         .accessibilityIdentifier("club.community.comments.pendingLocked.\(pending.operationKind)")
                     if model.context.coordinator?.permitsAuthoritativeOutcomeQueries == true {
-                        Button("club.community.reconcilePending") {
+                        CYPillButton("club.community.reconcilePending", style: .secondary) {
                             Task { await model.reconcilePending(clubID: clubID, post: post, refresh: operation) }
                         }
                         .disabled(model.busy || model.loading)
@@ -714,7 +713,7 @@ struct ClubCommunityCommentsView: View {
                     }
                 }
             }
-            if model.snapshot?.comments.isEmpty == true { Text("club.community.noComments") }
+            if model.snapshot?.comments.isEmpty == true { CYEmptyState(systemImage: "bubble", "club.community.noComments").listRowBackground(Color.clear) }
             ForEach(model.snapshot?.comments ?? []) { comment in
                 VStack(alignment: .leading) {
                     if comment.nickname.isEmpty { Text("club.community.user") } else { Text(verbatim: comment.nickname) }
@@ -758,12 +757,12 @@ struct ClubCommunityHistoryView: View {
         List {
             if model.loading { ProgressView() }
             if let notice = model.notice { Text(LocalizedStringKey(notice)) }
-            if model.snapshot?.history.isEmpty == true { Text("club.community.noHistory") }
+            if model.snapshot?.history.isEmpty == true { CYEmptyState(systemImage: "clock.arrow.circlepath", "club.community.noHistory").listRowBackground(Color.clear) }
             ForEach(model.snapshot?.history ?? []) { revision in
                 VStack(alignment: .leading) {
                     LabeledContent("club.community.version", value: String(revision.snapshotVersion))
                     Text(verbatim: revision.content)
-                    Text(verbatim: revision.createTime).foregroundStyle(.secondary)
+                    Text(verbatim: revision.createTime).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     ForEach(Array(revision.images.enumerated()), id: \.offset) { index, value in
                         AsyncImage(url: URL(string: value)) { image in image.resizable().scaledToFit() } placeholder: { Image(systemName: "photo") }
                             .accessibilityLabel(Text("club.community.image") + Text(" \(index + 1)"))

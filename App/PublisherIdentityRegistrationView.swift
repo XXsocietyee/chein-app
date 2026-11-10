@@ -125,9 +125,13 @@ import SwiftUI
                     PublishingStatusRow(title: Text("unknownReadback", tableName: "PublisherIdentityRegistration"), symbol: "clock")
                 }
                 if owner.busy {
-                    CYLoadingStateView(rows: 1)
-                        .accessibilityLabel(Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "正在处理，请稍候" : "Processing, please wait"))
-                        .accessibilityIdentifier("publisherIdentity.busy")
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        CYSkeletonBlock(height: 12).frame(maxWidth: 160)
+                        Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "正在处理，请稍候" : "Processing, please wait")
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityIdentifier("publisherIdentity.busy")
                 }
                 if owner.status != .registered && owner.status != .acknowledgedReadFailed {
                     PublishingField(title: Text("name", tableName: "PublisherIdentityRegistration"), required: true) {
@@ -144,21 +148,23 @@ import SwiftUI
                     }
                     Toggle(isOn: owner.consentBinding()) { Text("consent", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true) }
                         .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.consent")
-                    CYPillButton("submit", style: .primary, tableName: "PublisherIdentityRegistration") { Task { await owner.submit(currentYear: Calendar(identifier: .gregorian).component(.year, from: Date()), expected: stamp) } }
+                    Button { Task { await owner.submit(currentYear: Calendar(identifier: .gregorian).component(.year, from: Date()), expected: stamp) } }
+                        label: { Text("submit", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
+                        .buttonStyle(.questifyPrimary)
                         .disabled(!owner.canEdit || !owner.consent).accessibilityIdentifier("publisherIdentity.submit")
                 }
                 if !owner.busy {
-                    CYPillButton("refresh", style: .secondary, tableName: "PublisherIdentityRegistration") { Task { await owner.refresh(expected: stamp) } }
-                        .accessibilityIdentifier("publisherIdentity.refresh")
+                    CYPillButton("refresh", style: .secondary, systemImage: "arrow.clockwise", tableName: "PublisherIdentityRegistration") { Task { await owner.refresh(expected: stamp) } }
+                        .accessibilityIdentifier("publisherIdentity.refresh").e1ActionRow()
                 }
                 CYPillButton("return", style: .tertiary, tableName: "PublisherIdentityRegistration") { owner.close(stamp) }
-                    .accessibilityIdentifier("publisherIdentity.return")
+                    .accessibilityIdentifier("publisherIdentity.return").e1ActionRow()
             } else {
                 if owner.confirmedRegistered {
                     PublishingStatusRow(title: Text("status.registered", tableName: "PublisherIdentityRegistration"), symbol: "checkmark.circle")
                 }
-                CYPillButton("open", style: .primary, tableName: "PublisherIdentityRegistration") { Task { await owner.begin(service: makeService?(), expected: stamp) } }
-                    .disabled(!enabled).accessibilityIdentifier("publisherIdentity.open")
+                CYPillButton("open", style: .secondary, systemImage: "person.crop.rectangle", tableName: "PublisherIdentityRegistration") { Task { await owner.begin(service: makeService?(), expected: stamp) } }
+                    .disabled(!enabled).accessibilityIdentifier("publisherIdentity.open").e1ActionRow()
             }
         } header: { Text("title", tableName: "PublisherIdentityRegistration") }
         .toolbar {

@@ -14,9 +14,10 @@ import SwiftUI
 
     var body: some View {
         Form {
+            Section { CYHeroHeader(verbatim: W8Text.t("转赠", "Send as a gift")) }.e1HeroRow()
             switch model.phase {
             case .idle, .loadingPreview:
-                CYLoadingStateView(rows: 2).accessibilityLabel(text("transfer.loading"))
+                CYLoadingStateView(rows: 1).accessibilityLabel(text("transfer.loading"))
             case .unavailable:
                 text("transfer.unavailable").accessibilityIdentifier("bundleTransfer.unavailable")
             case .ineligible:
@@ -36,40 +37,44 @@ import SwiftUI
                             text("transfer.channel.sms").tag(BundleTransferChannel.sms)
                         } label: { text("transfer.channel") }
                     }
-                    CYPillButton("transfer.confirm", style: .primary, tableName: table) { confirming = true }
+                    CYPillButton("transfer.confirm", tableName: table) { confirming = true }
                         .disabled(phone.isEmpty)
+                        .e1ActionRow()
                 }
             case .sending:
-                CYLoadingStateView(rows: 2).accessibilityLabel(text("transfer.sending"))
+                CYLoadingStateView(rows: 1).accessibilityLabel(text("transfer.sending"))
             case .shown:
                 Section {
                     if let code = model.oneTimeCode {
                         Text(verbatim: code.reveal()).font(.title2.monospaced()).textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("bundleTransfer.code")
                     }
                     text("transfer.code.once")
                     if let state = model.display { stateLabel(state) }
-                    Button(role: .destructive) { Task { await model.revoke() } } label: { text("transfer.revoke") }
+                    CYPillButton("transfer.revoke", style: .secondary, tableName: table) { Task { await model.revoke() } }.e1ActionRow()
                 }
             case .recovered:
                 Section {
                     text("transfer.code.unavailable")
                     if let state = model.display { stateLabel(state) }
-                    Button(role: .destructive) { Task { await model.revoke() } } label: { text("transfer.revoke") }
+                    CYPillButton("transfer.revoke", style: .secondary, tableName: table) { Task { await model.revoke() } }.e1ActionRow()
                 }
             case .revoked:
                 Section { if let state = model.display { stateLabel(state) } }
             case .outcomeUnknown:
                 Section {
                     text("transfer.unknown")
-                    CYPillButton("transfer.recover", style: .secondary, tableName: table) { Task { await model.recover() } }
+                    CYPillButton("transfer.recover", style: .secondary, systemImage: "arrow.clockwise", tableName: table) { Task { await model.recover() } }.e1ActionRow()
                 }
             case .failed(let code):
                 text("transfer.error").accessibilityIdentifier("bundleTransfer.error")
                 if let code { Text(verbatim: code).font(.caption) }
             }
         }
+        .formStyle(.grouped)
         .cyGroupedSurface()
+        .cyHeroScreen()
         .confirmationDialog(Text(LocalizedStringKey("transfer.confirm.title"), tableName: table),
                             isPresented: $confirming, titleVisibility: .visible) {
             Button(role: .destructive) {

@@ -45,6 +45,7 @@ struct RouteActionPageReadRequest {
     var body: some View {
         let context = model.interactionContext
         List {
+            Section { CYHeroHeader("playRoute.title") }.e1HeroRow()
             if !model.unresolved, let context, let snapshot = model.snapshot,
                let presentation = PlayRouteMapPresentation(snapshot: snapshot) {
                 Section {
@@ -52,21 +53,21 @@ struct RouteActionPageReadRequest {
                         .accessibilityIdentifier("playRoute.explanation")
                     if let id = presentation.currentNodeID,
                        let current = presentation.stops.first(where: { $0.id == id }) {
-                        Label("playRoute.current", systemImage: "flag.fill").font(.headline).accessibilityAddTraits(.isHeader)
-                        stopName(current)
-                        CYPillButton("playRoute.openCurrent", style: .primary) { choose(id, snapshot: snapshot, context: context) }
-                            .accessibilityIdentifier("playRoute.openCurrent")
+                        Label("playRoute.current", systemImage: "flag.fill").font(CYTypography.sectionTitle).accessibilityAddTraits(.isHeader)
+                        stopName(current).font(CYTypography.cardTitle)
+                        CYPillButton("playRoute.openCurrent") { choose(id, snapshot: snapshot, context: context) }
+                            .accessibilityIdentifier("playRoute.openCurrent").e1ActionRow()
                     } else { Text("playRoute.noCurrent").accessibilityIdentifier("playRoute.noCurrent") }
                 }
                 Section {
-                    CYPillButton(cameraControlsExpanded ? LocalizedStringKey("playRouteCamera.hideControls") : LocalizedStringKey("playRouteCamera.showControls"), style: .tertiary) { cameraControlsExpanded.toggle() }
-                        .accessibilityIdentifier("playRouteCamera.controls")
+                    Button(cameraControlsExpanded ? LocalizedStringKey("playRouteCamera.hideControls") : LocalizedStringKey("playRouteCamera.showControls")) { cameraControlsExpanded.toggle() }
+                        .frame(minHeight: 44).accessibilityIdentifier("playRouteCamera.controls")
                     if cameraControlsExpanded { cameraControls(presentation, snapshot: snapshot, context: context) }
                 } header: { Text("playRouteCamera.title") }
                 if !presentation.mappedStops.isEmpty {
                     Section("playRoute.map") {
-                        CYPillButton(showMap ? LocalizedStringKey("playRoute.hideMap") : LocalizedStringKey("playRoute.showMap"), style: .tertiary) { showMap.toggle() }
-                            .accessibilityIdentifier("playRoute.toggleMap")
+                        Button(showMap ? LocalizedStringKey("playRoute.hideMap") : LocalizedStringKey("playRoute.showMap")) { showMap.toggle() }
+                            .frame(minHeight: 44).accessibilityIdentifier("playRoute.toggleMap")
                         if showMap {
                             map(presentation, snapshot: snapshot, context: context)
                                 .frame(height: typeSize.isAccessibilitySize ? 240 : 320)
@@ -109,7 +110,7 @@ struct RouteActionPageReadRequest {
                 }
             }
             Section {
-                CYPillButton("playx.refresh", style: .secondary) {
+                CYPillButton("playx.refresh", style: .secondary, systemImage: "arrow.clockwise") {
                     selected = nil
                     Task {
                         await model.load()
@@ -118,13 +119,12 @@ struct RouteActionPageReadRequest {
                     }
                 }
                     .disabled(!model.available || model.phase == .loading || model.phase == .submitting)
-                    .accessibilityIdentifier("playRoute.refresh")
+                    .accessibilityIdentifier("playRoute.refresh").e1ActionRow()
                 CYPillButton("playRoute.back", style: .tertiary) { selected = nil; dismiss() }
-                    .accessibilityIdentifier("playRoute.back")
+                    .accessibilityIdentifier("playRoute.back").e1ActionRow()
             }
         }.cyGroupedSurface()
-        .privacySensitive().appNavigationTitle(key: "playRoute.title")
-        .navigationBarTitleDisplayMode(.inline).accessibilityIdentifier("playRoute.screen")
+        .privacySensitive().cyHeroScreen().accessibilityIdentifier("playRoute.screen")
         .navigationDestination(item: $selected) { choice in
             let nodeID = choice.nodeID(in: model)
             Group {
@@ -417,11 +417,11 @@ struct RouteActionPageReadRequest {
     }
     private func stopLabel(_ stop: PlayRouteMapPresentation.Stop) -> some View {
         VStack(alignment: .leading, spacing: 6) {
-            stopName(stop).font(.headline)
-            Label(LocalizedStringKey(stop.state.labelKey), systemImage: stop.state.symbol).font(.subheadline)
-            if let address = stop.address, !address.isEmpty { Text(verbatim: address).font(.footnote) }
-            if stop.state != .locked && stop.coordinate == nil { Text("playRoute.noStopCoordinate").font(.footnote).foregroundStyle(.secondary) }
-            if stop.state == .available || stop.state == .unknown { Text("playRoute.useJourney").font(.footnote).foregroundStyle(.secondary) }
+            stopName(stop).font(CYTypography.cardTitle)
+            Label(LocalizedStringKey(stop.state.labelKey), systemImage: stop.state.symbol).font(CYTypography.label)
+            if let address = stop.address, !address.isEmpty { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if stop.state != .locked && stop.coordinate == nil { Text("playRoute.noStopCoordinate").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if stop.state == .available || stop.state == .unknown { Text("playRoute.useJourney").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
         }.fixedSize(horizontal: false, vertical: true)
             .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).padding(.vertical, 4)
     }

@@ -16,16 +16,16 @@ import SwiftUI
             if state == .reading {
                 ProgressView { Text("ordinary.receipt.reading", tableName: "OrdinaryIMSendReceipt").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
             } else {
-                Text(state == .notFound ? "ordinary.receipt.notFound" : "ordinary.receipt.pending",
-                     tableName: "OrdinaryIMSendReceipt").fixedSize(horizontal: false, vertical: true).font(.footnote)
-                Button { read() } label: { Text("ordinary.receipt.read", tableName: "OrdinaryIMSendReceipt").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true) }
+                CYStatusChip(verbatim: String(localized: state == .notFound ? "ordinary.receipt.notFound" : "ordinary.receipt.pending", table: "OrdinaryIMSendReceipt"),
+                             tone: .warning, systemImage: "clock.arrow.circlepath")
+                CYPillButton("ordinary.receipt.read", style: .secondary, tableName: "OrdinaryIMSendReceipt") { read() }
                     .disabled(!canRead).accessibilityIdentifier("ordinary.receipt.read")
             }
             if state == .notFound {
-                Button {
+                CYPillButton("ordinary.receipt.reviewRetry", style: .secondary, tableName: "OrdinaryIMSendReceipt") {
                     guard canRetry else { return }
                     reviewedID = clientMessageID; showingConfirmation = true
-                } label: { Text("ordinary.receipt.reviewRetry", tableName: "OrdinaryIMSendReceipt").font(Theme.Font.button).fixedSize(horizontal: false, vertical: true) }
+                }
                     .disabled(!canRetry).accessibilityIdentifier("ordinary.receipt.reviewRetry")
             }
         }

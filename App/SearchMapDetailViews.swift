@@ -20,15 +20,15 @@ import SwiftUI
     var body: some View {
         Group {
             if originatingReadKey != readKey { SearchMapIssue(key: "searchMap.notConfigured") }
-            else if loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("searchMap.loading")) }
+            else if loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("searchMap.loading")) }
             else if let issue { SearchMapIssue(key: issue) { startLoad() } }
             else if let detail {
                 List {
                     Section {
-                        Text(verbatim: detail.name).font(.title2.bold())
+                        CYHeroHeader(verbatim: detail.name).e1HeroRow()
                         if let description = detail.description { Text(verbatim: description).textSelection(.enabled) }
                         if let tags = detail.tags { Text(verbatim: tags) }
-                        if detail.favorited { Label("searchMap.favorited", systemImage: "heart.fill") }
+                        if detail.favorited { CYStatusChip("searchMap.favorited", tone: .neutral, systemImage: "heart.fill") }
                     }
                     Section("searchMap.nodeDetails") {
                         if let radius = detail.radiusM, radius > 0 {
@@ -53,9 +53,9 @@ import SwiftUI
                         NavigationLink { SearchRoutePreviewView(origin: origin, destination: coordinate, name: detail.name, scope: reader.scope, navigationReference: try? WalkingTargetReference(kind: .cityNode, id: detail.id), offline: reader.isOfflineExample) } label: { Label("searchMap.routePreview", systemImage: "point.topleft.down.to.point.bottomright.curvepath") }
                             .accessibilityIdentifier("searchMap.openRoute")
                     }
-                }.accessibilityIdentifier("searchMap.city.detail")
+                }.listStyle(.insetGrouped).cyGroupedSurface().accessibilityIdentifier("searchMap.city.detail")
             } else { Color.clear }
-        }.appNavigationTitle("searchMap.nodeDetail")
+        }.cyHeroScreen()
             .task(id: readKey) {
                 guard !Task.isCancelled else { return }
                 readOwner.activate(); await load()
@@ -92,14 +92,14 @@ import SwiftUI
     @State private var gate = SearchMapQueryGate()
     var body: some View {
         Group {
-            if loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("searchMap.loading")) }
+            if loading { CYLoadingStateView(rows: 2).accessibilityLabel(Text("searchMap.loading")) }
             else if let issue { SearchMapIssue(key: issue) { Task { await load() } } }
             else if let detail {
                 List {
                     let value = detail.merchant
                     Section {
-                        if let name = value.name { Text(verbatim: name).font(.title2.bold()) }
-                        if let role = value.cityRole { Text(verbatim: role).font(.headline) }
+                        if let name = value.name { CYHeroHeader(verbatim: name).e1HeroRow() }
+                        if let role = value.cityRole { Text(verbatim: role).font(CYTypography.cardTitle) }
                         if let title = value.storyTitle { Text(verbatim: title) }
                         if let text = value.description { Text(verbatim: text).textSelection(.enabled) }
                     }
@@ -114,9 +114,9 @@ import SwiftUI
                     if let featured = detail.featured {
                         Section("searchMap.featured") { Text(verbatim: featured.name) }
                     }
-                }.accessibilityIdentifier("searchMap.merchant.detail")
+                }.listStyle(.insetGrouped).cyGroupedSurface().accessibilityIdentifier("searchMap.merchant.detail")
             } else { Color.clear }
-        }.appNavigationTitle("searchMap.kind.merchant")
+        }.cyHeroScreen()
             .task(id: reader.scope) { await load() }
             .onDisappear { gate.invalidate(); loading = false }
     }

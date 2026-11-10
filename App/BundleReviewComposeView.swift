@@ -11,9 +11,10 @@ import SwiftUI
 
     var body: some View {
         Form {
+            Section { CYHeroHeader(verbatim: W8Text.t("评价", "Review")) }.e1HeroRow()
             switch model.state {
             case .idle, .loading:
-                Section { CYLoadingStateView(rows: 2) }
+                Section { CYLoadingStateView(rows: 1) }
             case .unavailable:
                 Section { Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews are not available yet")) }
                     .accessibilityIdentifier("bundleReview.unavailable")
@@ -35,14 +36,16 @@ import SwiftUI
             case .outcomeUnknown:
                 Section {
                     Text(verbatim: W8Text.t("评价是否提交成功尚未确认", "We couldn't confirm whether your review was submitted"))
-                    CYPillButton(verbatim: W8Text.t("查询提交结果", "Check status"), style: .secondary) { Task { await model.recover() } }
+                    CYPillButton(verbatim: W8Text.t("查询提交结果", "Check status"), style: .secondary) { Task { await model.recover() } }.e1ActionRow()
                     if model.canRetryOriginal {
-                        CYPillButton(verbatim: W8Text.t("重新提交", "Submit again"), style: .tertiary) { Task { await model.retryOriginal() } }
+                        CYPillButton(verbatim: W8Text.t("重新提交", "Submit again"), style: .tertiary) { Task { await model.retryOriginal() } }.e1ActionRow()
                     }
                 }
             }
         }
+        .formStyle(.grouped)
         .cyGroupedSurface()
+        .cyHeroScreen()
         .task { await model.load() }
     }
 
@@ -62,8 +65,9 @@ import SwiftUI
             .accessibilityIdentifier("bundleReview.rejected")
         }
         Section {
-            CYPillButton(verbatim: W8Text.t("提交评价", "Submit review"), style: .primary) { Task { await model.submit(rating: rating, content: content) } }
-            .disabled(!inputValid || model.state != .ready)
+            CYPillButton(verbatim: W8Text.t("提交评价", "Submit review")) { Task { await model.submit(rating: rating, content: content) } }
+                .disabled(!inputValid || model.state != .ready)
+                .e1ActionRow()
         }
     }
 

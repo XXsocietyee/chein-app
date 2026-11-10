@@ -11,6 +11,8 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         List {
+            CYHeroHeader("publisher.host.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             NavigationLink { SessionCreatorProjectsView(session: session) } label: { Text("creatorContent.projects") }
                 .accessibilityIdentifier("projectRemote.myProjects")
             if resource.kind == .topic {
@@ -30,11 +32,11 @@ import SwiftUI
                         beta: authority.beta, selectedEligibleClubID: selectedClub)
                     if resource.kind == .topic { PublisherXPBudgetSection(topicID: resource.value, client: context.client) }
                 } else if failed { Text("publisher.host.unavailable") }
-                else { ProgressView() }
+                else { CYSkeleton() }
             } else { Text("publisher.host.unavailable") }
             Text("publisher.host.dormant").font(.footnote)
         }
-        .navigationTitle("publisher.host.title")
+        .cyHeroScreen()
         .task(id: session.publishingSession) { await load() }
         .refreshable { await load() }
         .onChange(of: selectedClub) { _, _ in session.publisherLifecycleContext?.invalidate() }

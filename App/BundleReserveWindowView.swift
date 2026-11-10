@@ -18,7 +18,7 @@ struct BundleReserveWindowView: View {
                 DatePicker(selection: Binding(get: { selection ?? range.lowerBound },
                                               set: { selection = $0 }),
                            in: range) { text("window.pick") }
-                CYPillButton("window.choose", style: .primary, tableName: table) {
+                CYPillButton("window.choose", tableName: table) {
                     let chosen = selection ?? range.lowerBound
                     let millis = chosen.timeIntervalSince1970 * 1_000
                     guard millis.isFinite, millis > 0, millis < Double(Int64.max) else { return }
@@ -26,6 +26,7 @@ struct BundleReserveWindowView: View {
                     guard window.contains(ms) else { return }
                     onChoose(ms)
                 }
+                .e1ActionRow()
             } header: { text("window.header") }
         } else {
             text("window.none").accessibilityIdentifier("bundleStall.noWindow")

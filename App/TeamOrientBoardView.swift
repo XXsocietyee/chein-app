@@ -36,15 +36,9 @@ extension EnvironmentValues {
                     }
                 }
                 if detail.leader != true {
-                    Button {
+                    CYPillButton(verbatim: c.t("举报队伍", "Report team"), style: .tertiary, systemImage: "flag", fullWidth: false) {
                         showingReportSheet = true
-                    } label: {
-                        Label(c.t("举报队伍", "Report team"), systemImage: "flag")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .frame(minHeight: 44)
                     }
-                    .buttonStyle(.plain)
                     .accessibilityIdentifier("team.orient.report")
                 }
             }
@@ -71,15 +65,11 @@ extension EnvironmentValues {
 
             if loadError && board == nil {
                 HStack {
-                    Text(c.t("进度加载失败", "Failed to load task progress"))
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
+                    CYStatusChip(verbatim: c.t("进度加载失败", "Failed to load task progress"), tone: .danger, systemImage: "exclamationmark.triangle")
                     Spacer()
-                    Button(c.t("重试", "Retry")) {
+                    CYPillButton(verbatim: c.t("重试", "Retry"), style: .secondary, fullWidth: false) {
                         Task { await load() }
                     }
-                    .font(.footnote.weight(.semibold))
-                    .frame(minHeight: 44)
                 }
                 .accessibilityIdentifier("team.orient.error")
             } else if let board {
@@ -89,8 +79,8 @@ extension EnvironmentValues {
                         : c.t("全队已完成 \(board.completedCount) / \(board.tasks.count) 个节点",
                               "Team completed \(board.completedCount) / \(board.tasks.count) nodes")
                 )
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+                .font(CYTypography.bodyCompact)
+                .foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("team.orient.summary")
 
                 if !board.isEmpty {
@@ -98,12 +88,12 @@ extension EnvironmentValues {
                         Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 8) {
                             GridRow {
                                 Text(c.t("队员", "Member"))
-                                    .font(.caption.weight(.semibold))
-                                    .foregroundStyle(.secondary)
+                                    .font(CYTypography.caption)
+                                    .foregroundStyle(CYColor.textSecondary)
                                 ForEach(board.tasks) { task in
                                     Text(verbatim: task.title)
-                                        .font(.caption.weight(.semibold))
-                                        .foregroundStyle(.secondary)
+                                        .font(CYTypography.caption)
+                                        .foregroundStyle(CYColor.textSecondary)
                                         .lineLimit(1)
                                 }
                             }
@@ -116,7 +106,7 @@ extension EnvironmentValues {
                                         let done = member.hasCompleted(taskID: task.id)
                                         Text(verbatim: done ? "✓" : "·")
                                             .font(.caption.weight(.bold))
-                                            .foregroundStyle(done ? CYColor.successText : .secondary)
+                                            .foregroundStyle(done ? CYColor.successText : CYColor.textTertiary)
                                             .accessibilityLabel(
                                                 done ? c.t("已完成", "Completed") : c.t("未完成", "Pending")
                                             )
@@ -131,7 +121,7 @@ extension EnvironmentValues {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("team.orient.board")
     }
@@ -153,31 +143,27 @@ extension EnvironmentValues {
                             Text(verbatim: row.teamName.isEmpty ? "#\(row.teamID)" : row.teamName)
                                 .font(.subheadline.weight(.medium))
                             if row.isMyTeam(currentTeamID: detail.team.id) {
-                                Text(c.t("我的队伍", "My team"))
-                                    .font(.caption2.weight(.semibold))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.accentColor.opacity(0.15), in: Capsule())
+                                CYStatusChip(verbatim: c.t("我的队伍", "My team"), tone: .info, systemImage: "person.fill")
                             }
                         }
                         if let duration = row.durationText {
                             Text(verbatim: duration)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textTertiary)
                         }
                     }
                     Spacer()
                     Text(verbatim: "\(row.completedCount) / \(row.totalTasks)")
-                        .font(.subheadline)
+                        .font(CYTypography.numericBody)
                         .monospacedDigit()
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(CYColor.textSecondary)
                 }
                 .padding(.vertical, 4)
             }
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 12))
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("team.orient.ranking")
     }
@@ -187,16 +173,14 @@ extension EnvironmentValues {
             Form {
                 if reportState == .submitted {
                     Section {
-                        Label(c.t("举报已记录，平台将核查处理", "Report recorded. Platform support will review it."),
-                              systemImage: "checkmark.circle.fill")
-                            .foregroundStyle(CYColor.successText)
+                        CYStatusChip(verbatim: c.t("举报已记录，平台将核查处理", "Report recorded. Platform support will review it."),
+                                     tone: .success, systemImage: "checkmark.circle.fill")
                             .accessibilityIdentifier("team.orient.reportSuccess")
                     }
                 } else if reportState == .unavailable {
                     Section {
-                        Label(c.t("举报功能暂不可用，请稍后再试", "Reporting is currently unavailable. Please try again later."),
-                              systemImage: "exclamationmark.triangle")
-                            .foregroundStyle(.secondary)
+                        CYStatusChip(verbatim: c.t("举报功能暂不可用，请稍后再试", "Reporting is currently unavailable. Please try again later."),
+                                     tone: .warning, systemImage: "exclamationmark.triangle")
                             .accessibilityIdentifier("team.orient.reportUnavailable")
                     }
                 } else {
@@ -215,13 +199,12 @@ extension EnvironmentValues {
                         }
                     }
                     Section {
-                        Button(reportState == .submitting ? c.t("提交中…", "Submitting…") : c.t("提交举报", "Submit report")) {
+                        CYPillButton(verbatim: reportState == .submitting ? c.t("提交中…", "Submitting…") : c.t("提交举报", "Submit report")) {
                             Task { await submitReport() }
                         }
                         .disabled(reportState == .submitting
                                   || TeamReportRules.trimmedReason(reportReason).isEmpty
                                   || TeamReportRules.trimmedReason(reportReason).count > TeamReportRules.reasonLimit)
-                        .frame(minHeight: 44)
                         .accessibilityIdentifier("team.orient.reportSubmit")
                     }
                 }

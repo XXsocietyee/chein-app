@@ -16,6 +16,8 @@ struct MapCoreEntryHubView: View {
 
     var body: some View {
         List {
+            CYHeroHeader("mapCore.title", tableName: "MapCoreEntry")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 ForEach(MapCoreEntry.allCases, id: \.self) { entry in
                     Button { onOpen(entry) } label: {
@@ -65,13 +67,12 @@ struct MapCoreEntryHubView: View {
                 } label: { Text("mapCore.share.status", tableName: "MapCoreEntry") }
                 .accessibilityIdentifier("mapCore.share.status")
                 Text("mapCore.share.permissionIsNotSharing", tableName: "MapCoreEntry").font(.caption)
-                Button { showsSharingExplainer = true } label: {
-                    Text("mapCore.share.explain", tableName: "MapCoreEntry").frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
-                }
-                .accessibilityIdentifier("mapCore.share.explain")
+                CYPillButton("mapCore.share.explain", style: .secondary, tableName: "MapCoreEntry") { showsSharingExplainer = true }
+                    .listRowBackground(Color.clear)
+                    .accessibilityIdentifier("mapCore.share.explain")
             } header: { Text("mapCore.share.title", tableName: "MapCoreEntry") }
         }
-        .navigationTitle(Text("mapCore.title", tableName: "MapCoreEntry"))
+        .cyHeroScreen()
         .sheet(isPresented: $showsSharingExplainer) {
             NavigationStack { LocationShareExplainerView() }
         }
@@ -90,6 +91,8 @@ struct LocationShareExplainerView: View {
     @State private var draft = LocationShareDraft()
     var body: some View {
         Form {
+            CYHeroHeader("mapCore.share.title", tableName: "MapCoreEntry")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 ForEach(LocationShareDisclosure.allCases, id: \.self) { item in
                     Toggle(isOn: Binding(get: { draft.acknowledged.contains(item) }, set: { if $0 { draft.acknowledge(item) } else { draft.withdraw(item) } })) {
@@ -99,14 +102,15 @@ struct LocationShareExplainerView: View {
                 }
             } footer: { Text("mapCore.share.disclosureFooter", tableName: "MapCoreEntry") }
             Section {
-                Button {} label: { Text("mapCore.share.start", tableName: "MapCoreEntry") }
+                CYPillButton("mapCore.share.start", tableName: "MapCoreEntry") {}
+                    .listRowBackground(Color.clear)
                     .disabled(true)
                     .accessibilityIdentifier("mapCore.share.start")
                 Text("mapCore.share.unavailable", tableName: "MapCoreEntry").font(.caption).foregroundStyle(.secondary)
                     .accessibilityIdentifier("mapCore.share.unavailable")
             }
         }
-        .navigationTitle(Text("mapCore.share.title", tableName: "MapCoreEntry"))
+        .cyHeroScreen()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button { dismiss() } label: { Text("mapCore.close", tableName: "MapCoreEntry") }.accessibilityIdentifier("mapCore.share.close")

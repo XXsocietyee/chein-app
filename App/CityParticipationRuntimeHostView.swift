@@ -11,8 +11,8 @@ import SwiftUI
             if owner.isCurrent, owner.matches(session.currentRuntimeDependencyContext, revision: revision), let form = owner.form {
                 CityParticipationFormView(model: form, identityVersion: revision).id(owner.id)
             } else {
-                ContentUnavailableView("参与暂不可用", systemImage: "person.crop.circle.badge.xmark",
-                    description: Text("请保留原请求记录。此入口不会重新提交。"))
+                CYEmptyState(systemImage: "person.crop.circle.badge.xmark", "参与暂不可用",
+                    detail: "请保留原请求记录。此入口不会重新提交。")
             }
         }
         .onChange(of: session.currentRuntimeDependencyContext) { _, context in

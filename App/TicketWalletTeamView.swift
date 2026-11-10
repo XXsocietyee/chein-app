@@ -49,7 +49,7 @@ struct TicketWalletTeamContext: Hashable {
             if let context, reader.isAuthenticated, reader.isConfigured {
                 let presentation = entry.presentationID
                 Section {
-                    Button("ticketTeam.open", systemImage: "person.3") {
+                    CYPillButton("ticketTeam.open", style: .secondary, systemImage: "person.3") {
                         entry.activate(context: context, reader: reader, presentationID: presentation)
                     }.accessibilityIdentifier("ticketTeam.open")
                     Text("ticketTeam.lookupHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
@@ -63,7 +63,7 @@ struct TicketWalletTeamContext: Hashable {
         .navigationDestination(item: $entry.target) { target in
             if entry.matches(target, context: context, reader: reader) {
                 TicketWalletTeamView(target: target, reader: reader, coordinator: makeCoordinator()).id(target.id)
-            } else { ContentUnavailableView("ticketTeam.changed", systemImage: "lock") }
+            } else { CYEmptyState(systemImage: "lock", "ticketTeam.changed") }
         }
     }
 }
@@ -160,6 +160,7 @@ struct TicketWalletTeamContext: Hashable {
     @State private var model: TicketWalletTeamModel
     @State private var visible = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     init(target: TicketWalletTeamEntryState.Target, reader: any TicketWalletReading, coordinator: TeamCoordinator) {
         self.target = target; self.reader = reader
         _model = State(initialValue: TicketWalletTeamModel(target: target, reader: reader, coordinator: coordinator))
@@ -167,28 +168,34 @@ struct TicketWalletTeamContext: Hashable {
     var body: some View {
         let offeredPresentation = model.presentation
         List {
-            if !model.ownerIsCurrent { ContentUnavailableView("ticketTeam.changed", systemImage: "lock") }
+            CYHeroHeader("ticketTeam.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            if !model.ownerIsCurrent { CYEmptyState(systemImage: "lock", "ticketTeam.changed") }
             else {
                 if let issue = model.issue {
                     Section {
-                        Text(LocalizedStringKey(issueKey(issue)))
-                        Button("ticketTeam.retry") { model.scheduleList(offeredPresentation) }
+                        CYStatusChip(LocalizedStringKey(issueKey(issue)), tone: .danger, systemImage: "exclamationmark.triangle")
+                        CYPillButton("ticketTeam.retry", style: .secondary) { model.scheduleList(offeredPresentation) }
                             .disabled(offeredPresentation == nil)
                     }
                 }
                 if model.loading { ProgressView("ticketTeam.loading") }
                 if model.loaded && model.rows.isEmpty && model.issue == nil {
-                    ContentUnavailableView("ticketTeam.empty", systemImage: "person.3", description: Text("ticketTeam.emptyHint"))
+                    CYEmptyState(systemImage: "person.3", "ticketTeam.empty", detail: "ticketTeam.emptyHint")
                 }
                 if !model.rows.isEmpty {
                     Section("ticketTeam.choose") {
                         ForEach(model.rows) { team in
                             Button { model.scheduleDetail(team, presentation: offeredPresentation) } label: {
-                                VStack(alignment: .leading, spacing: 6) {
-                                    if team.title.isEmpty { Text("team.untitled").font(.headline) }
-                                    else { Text(verbatim: team.title).font(.headline) }
-                                    Text(LocalizedStringKey(team.status.key)).font(.caption)
-                                }.frame(maxWidth: .infinity, alignment: .leading)
+                                HStack(spacing: CYSpacing.md) {
+                                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                        if team.title.isEmpty { Text("team.untitled").font(CYTypography.cardTitle) }
+                                        else { Text(verbatim: team.title).font(CYTypography.cardTitle) }
+                                        CYStatusChip(LocalizedStringKey(team.status.key), tone: .neutral)
+                                    }.foregroundStyle(palette.textPrimary)
+                                    Spacer(minLength: 0)
+                                    Image(systemName: "chevron.right").font(.footnote.weight(.semibold))
+                                        .foregroundStyle(palette.textTertiary).accessibilityHidden(true)
+                                }.frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading).contentShape(Rectangle())
                             }.disabled(model.loading).accessibilityIdentifier("ticketTeam.row.\(team.id)")
                         }
                     }
@@ -196,20 +203,20 @@ struct TicketWalletTeamContext: Hashable {
                 if let detail = model.detail {
                     Section("ticketTeam.detail") {
                         TeamCard(team: detail.team)
-                        Text("team.ticketSeparation").font(.footnote)
+                        Text("team.ticketSeparation").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                         if let expiry = detail.team.expireTime, !expiry.isEmpty {
                             LabeledContent("team.sessionStart", value: expiry)
                         } else { Text("team.timeUnknown") }
                     }
                     Section("team.members.title") {
-                        if detail.members.isEmpty { Text("team.members.empty") }
+                        if detail.members.isEmpty { CYEmptyState(systemImage: "person.2", "team.members.empty") }
                         ForEach(detail.members) { member in TeamMemberRow(member: member, remove: nil) }
                     }
                 }
             }
             Section { Text("ticketTeam.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
-        .navigationTitle("ticketTeam.title")
+        .cyHeroScreen()
         .privacySensitive()
         .onAppear { visible = true; if scenePhase == .active { model.scheduleList(model.appear()) } }
         .onDisappear { visible = false; model.end() }

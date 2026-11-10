@@ -131,27 +131,40 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             List {
+                Section {
+                    CYHeroHeader(verbatim: c.t("取消活动并退款", "Cancel event & refund"),
+                                 subtitle: detail.summary.name.isEmpty ? nil : detail.summary.name)
+                }.e1HeroRow()
                 switch model.phase {
                 case .loading:
                     Section {
-                        CYLoadingStateView(rows: 2)
-                            .accessibilityLabel(Text(c.t("正在核对已付款人数…", "Checking paid attendee count…")))
-                            .accessibilityIdentifier("activity.hostCancel.loading")
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            CYSkeletonBlock(height: 18)
+                            CYSkeletonBlock(height: 18)
+                            Text(c.t("正在核对已付款人数…", "Checking paid attendee count…"))
+                                .font(CYTypography.meta)
+                                .foregroundStyle(CYColor.textTertiary)
+                        }
+                        .padding(.vertical, CYSpacing.sm)
+                        .accessibilityElement(children: .combine)
+                        .accessibilityIdentifier("activity.hostCancel.loading")
                     }
                 case .blocked(let msg):
                     Section {
-                        CYStatusChip(
-                            verbatim: msg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+                        Label(
+                            msg?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
                                 ? c.tr(msg!)
                                 : c.t("当前无法取消", "Cannot cancel right now"),
-                            tone: .warning, systemImage: "exclamationmark.triangle.fill"
+                            systemImage: "exclamationmark.triangle.fill"
                         )
+                        .foregroundStyle(CYColor.warningText)
                         .accessibilityIdentifier("activity.hostCancel.blocked")
 
                         CYPillButton(verbatim: c.t("重新检查", "Check again"), style: .secondary) {
                             Task { await model.loadPreview() }
                         }
                         .accessibilityIdentifier("activity.hostCancel.recheck")
+                        .e1ActionRow()
                     }
                 case .unknownCount, .networkError:
                     Section {
@@ -168,7 +181,9 @@ import SwiftUI
                     readyContent(paidCount: paidCount)
                 case .cancelled(let serverMsg):
                     Section {
-                        CYStatusChip(verbatim: c.t("活动已取消", "Event cancelled"), tone: .success, systemImage: "checkmark.circle.fill")
+                        Label(c.t("活动已取消", "Event cancelled"), systemImage: "checkmark.circle.fill")
+                            .font(.headline)
+                            .foregroundStyle(CYColor.successText)
                         Text(
                             ActivityHostCancelRules.completionNotice(serverMessage: serverMsg).map { c.tr($0) }
                                 ?? c.t("已提交全额退款，到账时间以微信通知为准",
@@ -178,16 +193,18 @@ import SwiftUI
                         .accessibilityIdentifier("activity.hostCancel.notice")
                         .foregroundStyle(.secondary)
 
-                        CYPillButton(verbatim: c.t("完成", "Done"), style: .primary) {
+                        CYPillButton(verbatim: c.t("完成", "Done")) {
                             Task { await onCompleted() }
                         }
                         .accessibilityIdentifier("activity.hostCancel.done")
+                        .e1ActionRow()
                     }
                     .accessibilityIdentifier("activity.hostCancel.cancelled")
                 }
             }
-            .navigationTitle(c.t("取消活动并退款", "Cancel event & refund"))
-            .navigationBarTitleDisplayMode(.inline)
+            .listStyle(.insetGrouped)
+            .cyGroupedSurface()
+            .cyHeroScreen()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button(c.t("关闭", "Close")) {
@@ -285,14 +302,12 @@ import SwiftUI
         }
 
         Section {
-            Button(role: .destructive) {
+            CYPillButton(verbatim: c.t("确认取消并退款", "Confirm cancel & refund"), systemImage: "xmark.octagon") {
                 confirming = true
-            } label: {
-                Text(c.t("确认取消并退款", "Confirm cancel & refund"))
-                    .frame(maxWidth: .infinity, minHeight: 44)
             }
             .disabled(!model.canSubmit)
             .accessibilityIdentifier("activity.hostCancel.confirm")
+            .e1ActionRow()
         }
     }
 }

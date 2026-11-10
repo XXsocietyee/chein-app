@@ -8,11 +8,12 @@ struct ComputedLocalizationFixtureView:View {
         VStack(spacing:24) {
             Text(verbatim:appLocalized("settings.title",locale:locale))
                 .accessibilityIdentifier("localization.fixture.computed")
-            Button("简体中文") { language=AppLanguage.simplifiedChinese.rawValue }
+            CYPillButton(verbatim:"简体中文",style:.secondary) { language=AppLanguage.simplifiedChinese.rawValue }
                 .accessibilityIdentifier("localization.fixture.chinese")
-            Button("English") { language=AppLanguage.english.rawValue }
+            CYPillButton(verbatim:"English",style:.secondary) { language=AppLanguage.english.rawValue }
                 .accessibilityIdentifier("localization.fixture.english")
         }
+        .padding(.horizontal, CYSpacing.lg)
     }
 }
 #endif
