@@ -30,3 +30,12 @@ Order change (coordinator): remaining files processed in reverse list order; no 
 | App/QmodAuthorImportView.swift | done: hero, CYPillButton actions (one primary), token colours |
 | App/ProjectNodeImageAuthorView.swift | done: hero, CYPillButton actions (one primary), cyGroupedSurface |
 | App/ProfileReadScreen.swift | done: CYEmptyState sign-in/unavailable states, CYPillButton retry |
+
+## Batch 4 (reverse order)
+| File | Result |
+| --- | --- |
+| App/ProfileInviteHistoryIssueView.swift | done: CYStatusChip issue, CYPillButton retry, CYEmptyState empty |
+| App/ProfileFavoriteRemovalView.swift | done: hero in sheet, CYPillButton retry/check/done (destructive confirm stays a role button), grouped surface |
+| App/ProfileCurrentAvatarView.swift | done: CYSkeletonBlock loading, CYPillButton retry |
+| App/PrivacyProtectionView.swift | done: hero with subtitle, icon+colour consent status, grouped surface |
+| App/NativeZeroHPAuthorView.swift | done: hero, CYPillButton reload actions, grouped surface |

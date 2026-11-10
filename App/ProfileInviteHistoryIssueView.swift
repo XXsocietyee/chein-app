@@ -7,10 +7,10 @@ struct ProfileInviteHistoryIssueView: View {
     var retry: (() -> Void)? = nil
     var body: some View {
         let kind = ProfileInviteHistoryIssueKind(error)
-        VStack(alignment: .leading, spacing: 6) {
-            Label(LocalizedStringKey(kind.titleKey), systemImage: "exclamationmark.circle").font(.subheadline.weight(.semibold))
-            if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).font(.footnote).foregroundStyle(.secondary) }
-            if kind.canRetry, let retry { Button("action.retry", action: retry) }
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYStatusChip(LocalizedStringKey(kind.titleKey), tone: .warning, systemImage: "exclamationmark.circle")
+            if let detail = kind.detailKey { Text(LocalizedStringKey(detail)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            if kind.canRetry, let retry { CYPillButton("action.retry", style: .secondary, fullWidth: false, action: retry) }
         }.accessibilityElement(children: .contain).accessibilityIdentifier("profile.inviteHistory.issue")
     }
 }
@@ -18,9 +18,7 @@ struct ProfileInviteHistoryIssueView: View {
 /// Source empty state: 还没有人接受你的邀请 with its hint.
 struct ProfileInviteHistoryEmptyView: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("profile.inviteHistory.empty").font(.subheadline.weight(.semibold))
-        }.accessibilityElement(children: .combine).accessibilityIdentifier("profile.inviteHistory.empty")
+        CYEmptyState(systemImage: "person.2.badge.plus", "profile.inviteHistory.empty", messageIdentifier: "profile.inviteHistory.empty")
     }
 }
 
