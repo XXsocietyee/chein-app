@@ -1,1 +1,8 @@
-[]
+[
+  {
+    "key": "rewards.pledge.title",
+    "table": "Localizable",
+    "en": "Reward pledges",
+    "zh-Hans": "奖励承诺"
+  }
+]

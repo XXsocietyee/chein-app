@@ -36,3 +36,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - SquareBrowserView: done (CYSkeleton, CYPillButton)
 - SessionSquareBrowserView: SKIPPED (pure session host, no visible UI)
 - SessionPublishingModesView: SKIPPED (pure session host, no visible UI)
+
+## Batch 6 (reverse)
+- SessionPublisherLifecycleView: done (CYHeroHeader, CYSkeleton)
+- SessionObjectCardsView: done (CYListRow, CYRowIcon, CYEmptyState)
+- RewardPledgeViews: done for RewardPledgeClaimView (player; CYHeroHeader, CYPillButton primary, CYSkeleton, CYEmptyState). RewardPledgeMerchantView left unchanged (merchant-only). New key rewards.pledge.title in ui-strings-e5-tail.json
+- RetainedImageSelectionView: done (CYPillButton, CYSkeleton, CYStatusChip)
+- RetainedImageFixtureView: done (DEBUG fixture, CYPillButton)
