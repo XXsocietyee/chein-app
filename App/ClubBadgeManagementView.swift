@@ -7,6 +7,7 @@ import SwiftUI
     @State private var pendingReview: ClubBadgeGrantReview?
     @State private var draft = ClubBadgeCreateDraft()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @Environment(\.cyPalette) private var palette
     init(host: ClubBadgeHost) { _model = StateObject(wrappedValue: ClubBadgeHostModel(host: host)) }
     var body: some View {
@@ -20,13 +21,13 @@ import SwiftUI
                 case .notAvailable:
                     CYEmptyState(systemImage: "rosette", "notAvailable", tableName: "ClubBadge")
                 case .error:
-                    CYStatusChip(verbatim: String(localized: "readError", table: "ClubBadge"), tone: .danger, systemImage: "exclamationmark.triangle")
+                    CYStatusChip(verbatim: String(localized: LocalizedStringResource("readError", table: "ClubBadge", locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle")
                     CYPillButton("retry", style: .secondary, tableName: "ClubBadge") { model.perform { await $0.refresh() } }
                 case .loading:
                     ProgressView { Text("loading", tableName: "ClubBadge") }
                 case .empty, .ready:
                     if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
-                        CYStatusChip(verbatim: String(localized: "readError", table: "ClubBadge"), tone: .danger, systemImage: "exclamationmark.triangle")
+                        CYStatusChip(verbatim: String(localized: LocalizedStringResource("readError", table: "ClubBadge", locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle")
                         CYPillButton("refresh", style: .secondary, tableName: "ClubBadge") { model.perform { await $0.refresh() } }
                     }
                 }
@@ -43,7 +44,7 @@ import SwiftUI
                 ForEach(flow.badges) { badge in
                     VStack(alignment: .leading, spacing: CYSpacing.sm) {
                         CYListRow(
-                            verbatim: (badge.badgeName?.isEmpty == false ? badge.badgeName : nil) ?? String(localized: "unnamed", table: "ClubBadge"),
+                            verbatim: (badge.badgeName?.isEmpty == false ? badge.badgeName : nil) ?? String(localized: LocalizedStringResource("unnamed", table: "ClubBadge", locale: locale)),
                             meta: badge.badgeDesc?.isEmpty == false ? badge.badgeDesc : nil,
                             trailing: .none
                         ) { CYRowIcon(systemImage: "rosette") }
@@ -58,7 +59,7 @@ import SwiftUI
                         case .loading:
                             ProgressView { Text("membersLoading", tableName: "ClubBadge") }
                         case .error:
-                            CYStatusChip(verbatim: String(localized: "membersError", table: "ClubBadge"), tone: .danger, systemImage: "exclamationmark.triangle")
+                            CYStatusChip(verbatim: String(localized: LocalizedStringResource("membersError", table: "ClubBadge", locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle")
                             CYPillButton("retry", style: .secondary, tableName: "ClubBadge") { model.perform { await $0.retryMembers() } }
                         case .empty:
                             CYEmptyState(systemImage: "person.2", "membersEmpty", tableName: "ClubBadge")
@@ -79,7 +80,7 @@ import SwiftUI
                         CYPillButton("cancel", style: .tertiary, tableName: "ClubBadge") { flow.closePicker(); pendingReview = nil; model.changed() }
                     } header: { Text("recipient", tableName: "ClubBadge") }
                 }
-            } else { CYStatusChip(verbatim: String(localized: "readError", table: "ClubBadge"), tone: .danger, systemImage: "exclamationmark.triangle") }
+            } else { CYStatusChip(verbatim: String(localized: LocalizedStringResource("readError", table: "ClubBadge", locale: locale)), tone: .danger, systemImage: "exclamationmark.triangle") }
         }
         .disabled(model.working)
         .cyGroupedSurface()
@@ -113,14 +114,14 @@ import SwiftUI
         switch result {
         case .none: EmptyView()
         case .storageUnavailable:
-            CYStatusChip(verbatim: String(localized: "storageUnavailable", table: "ClubBadge"), tone: .warning, systemImage: "externaldrive.badge.exclamationmark")
+            CYStatusChip(verbatim: String(localized: LocalizedStringResource("storageUnavailable", table: "ClubBadge", locale: locale)), tone: .warning, systemImage: "externaldrive.badge.exclamationmark")
         case .unknown:
             Section {
-                CYStatusChip(verbatim: String(localized: "unknown", table: "ClubBadge"), tone: .warning, systemImage: "questionmark.circle")
+                CYStatusChip(verbatim: String(localized: LocalizedStringResource("unknown", table: "ClubBadge", locale: locale)), tone: .warning, systemImage: "questionmark.circle")
                 CYPillButton("recover", style: .secondary, tableName: "ClubBadge") { model.perform { await $0.refresh() } }
             }
-        case .needsReview: CYStatusChip(verbatim: String(localized: "actionNeedsReview", table: "ClubBadge"), tone: .warning, systemImage: "exclamationmark.circle")
-        case .notSent: CYStatusChip(verbatim: String(localized: "notSent", table: "ClubBadge"), tone: .neutral, systemImage: "paperplane")
+        case .needsReview: CYStatusChip(verbatim: String(localized: LocalizedStringResource("actionNeedsReview", table: "ClubBadge", locale: locale)), tone: .warning, systemImage: "exclamationmark.circle")
+        case .notSent: CYStatusChip(verbatim: String(localized: LocalizedStringResource("notSent", table: "ClubBadge", locale: locale)), tone: .neutral, systemImage: "paperplane")
         case .confirmed(let receipt):
             Text(LocalizedStringKey("receipt." + receipt.state), tableName: "ClubBadge").font(CYTypography.bodyCompact).foregroundStyle(palette.success)
         case .historical(let receipt):

@@ -6,11 +6,12 @@ import SwiftUI
     @ObservedObject var controller: ProjectStoryTemplatePresentation
     let original: ProjectStoryTemplatePresentation.Opening
     var nodeSelection = false
+    @Environment(\.locale) private var locale
     private var title: Text { nodeSelection ? Text("projectNodeTemplate.title", tableName: "ProjectNodeTemplateSelection") : Text("projectStoryTemplate.title") }
     var body: some View {
         NavigationStack {
             Form {
-                Section { CYHeroHeader(verbatim: nodeSelection ? String(localized: "projectNodeTemplate.title", table: "ProjectNodeTemplateSelection") : String(localized: "projectStoryTemplate.title")) }.e1HeroRow()
+                Section { CYHeroHeader(verbatim: nodeSelection ? String(localized: LocalizedStringResource("projectNodeTemplate.title", table: "ProjectNodeTemplateSelection", locale: locale)) : String(localized: LocalizedStringResource("projectStoryTemplate.title", table: "Localizable", locale: locale))) }.e1HeroRow()
                 Section {
                     if nodeSelection { Text("projectNodeTemplate.scope", tableName: "ProjectNodeTemplateSelection").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                     else { Text("projectStoryTemplate.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }

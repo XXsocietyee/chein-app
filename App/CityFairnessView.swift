@@ -3,6 +3,7 @@ import SwiftUI
 /// Read-only CITY fairness. The host supplies the reader; this screen does not grant a write.
 struct CityFairnessView: View {
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @State var reader: CityFairnessReader
     @State private var visible = false
     @State private var readRequest = UUID()
@@ -15,7 +16,7 @@ struct CityFairnessView: View {
                 if let failure = reader.refreshFailure { failureText(failure) }
                 if reader.isConfigured {
                     NavigationLink(value: CityFairnessOutingRoute()) {
-                        CYListRow(verbatim: String(localized: "fairness.evidence", table: "CityFairness"), card: true)
+                        CYListRow(verbatim: String(localized: LocalizedStringResource("fairness.evidence", table: "CityFairness", locale: locale)), card: true)
                     }
                     .accessibilityIdentifier("fairness.outing.own")
                     CYPillButton("fairness.refresh", style: .secondary, tableName: "CityFairness") { readRequest = UUID() }

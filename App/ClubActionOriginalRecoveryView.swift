@@ -10,6 +10,7 @@ import SwiftUI
     @State private var checked = false
     @State private var task: Task<Void, Never>?
     @Environment(\.cyPalette) private var palette
+    @Environment(\.locale) private var locale
     var body: some View {
         let _ = revision
         let state = coordinator.state(clubID: clubID)
@@ -17,7 +18,7 @@ import SwiftUI
             VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if case .outcomeUnknown = state {
                     CYStatusChip("club.action.unknown", tone: .warning, systemImage: "questionmark.circle")
-                    CYPillButton("club.admission.original.read", style: .secondary, tableName: "ClubAdmissionRecovery") { recover() }
+                    CYPillButton(verbatim: String(localized: LocalizedStringResource("club.admission.original.read", table: "ClubAdmissionRecovery", locale: locale)), style: .secondary, tableName: "ClubAdmissionRecovery") { recover() }
                     .disabled(working || !coordinator.canRecoverOriginal(clubID: clubID))
                     .accessibilityIdentifier("club.admission.original.read")
                     if !coordinator.canRecoverOriginal(clubID: clubID) {

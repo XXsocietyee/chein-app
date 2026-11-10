@@ -7,6 +7,7 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var onSignIn: (() -> Void)? = nil
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     @StateObject private var model = ClubPublicActivityListModel()
     @State private var visible = false
     @State private var destination: ClubPublicTopicDestination?
@@ -41,7 +42,7 @@ import SwiftUI
                 }
             }
             if selectedUnavailable {
-                CYStatusChip(verbatim: String(localized: "publicTopics.removed", table: "ClubPublicTopics"), tone: .warning, systemImage: "exclamationmark.circle")
+                CYStatusChip(verbatim: String(localized: LocalizedStringResource("publicTopics.removed", table: "ClubPublicTopics", locale: locale)), tone: .warning, systemImage: "exclamationmark.circle")
                     .accessibilityIdentifier("club.publicTopics.selectionRevoked")
             }
             if scope == nil {
