@@ -155,6 +155,7 @@ import SwiftUI
     @StateObject private var cover = ActivityCoverAuthoringOwner()
     var makeActivityCover: (() -> ActivityCoverService?)?
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.locale) private var locale
     init(owner: ActivityEditingController, makeActivityCover: (() -> ActivityCoverService?)? = nil) { _owner = StateObject(wrappedValue: owner); self.makeActivityCover = makeActivityCover }
     var body: some View {
         let _ = cover.bind(read: {
@@ -164,16 +165,31 @@ import SwiftUI
             guard let draft = owner.draft else { return false }; return owner.applyCover(reference, expected: draft)
         }, service: { makeActivityCover?() })
         Form {
-            Section { CYHeroHeader("title", tableName: "ActivityEditing") }.e1HeroRow()
             Section {
-                Text(LocalizedStringKey(owner.status), tableName: "ActivityEditing")
-                    .font(CYTypography.cardTitle)
+                CYHeroHeader("title", tableName: "ActivityEditing")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
+            }
+            Section {
+                CYStatusChip(verbatim: editingStatusLabel, tone: editingStatusTone, systemImage: editingStatusSymbol)
                     .accessibilityIdentifier("activityEdit.status")
-                if !owner.rejection.isEmpty { Text(verbatim: owner.rejection) }
-                Button { Task { await owner.load() } } label: { label("load") }
-                    .disabled(!owner.readable || cover.isOpen).accessibilityIdentifier("activityEdit.load")
+                if !owner.rejection.isEmpty {
+                    Text(verbatim: owner.rejection)
+                        .font(CYTypography.body)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                if owner.draft == nil && owner.review == nil {
+                    CYPillButton("load", tableName: "ActivityEditing") { Task { await owner.load() } }
+                        .disabled(!owner.readable || cover.isOpen)
+                        .accessibilityIdentifier("activityEdit.load")
+                } else {
+                    Button { Task { await owner.load() } } label: { label("load") }
+                        .disabled(!owner.readable || cover.isOpen)
+                        .accessibilityIdentifier("activityEdit.load")
+                }
                 if let request = owner.pending {
                     Text(verbatim: request.operationID.uuidString).textSelection(.enabled)
+                        .font(CYTypography.numericBody)
                         .accessibilityIdentifier("activityEdit.requestID")
                     label("unknownBoundary")
                 }
@@ -192,26 +208,32 @@ import SwiftUI
                 }
                 Section { ActivityCoverAuthoringSection(owner: cover) }
                 Section {
-                    CYPillButton("reviewAction", tableName: "ActivityEditing") { Task { await owner.prepare() } }
-                        .disabled(!owner.reviewable || cover.isOpen)
-                        .accessibilityIdentifier("activityEdit.review").e1ActionRow()
-                    CYPillButton("saveLocal", style: .secondary, tableName: "ActivityEditing") { owner.saveLocal() }
-                        .disabled(!owner.editable || cover.isOpen)
-                        .accessibilityIdentifier("activityEdit.saveLocal").e1ActionRow()
+                    Button { owner.saveLocal() } label: { label("saveLocal") }.disabled(!owner.editable || cover.isOpen)
+                        .accessibilityIdentifier("activityEdit.saveLocal")
+                    if owner.review == nil {
+                        CYPillButton("reviewAction", tableName: "ActivityEditing") { Task { await owner.prepare() } }
+                            .disabled(!owner.reviewable || cover.isOpen)
+                            .accessibilityIdentifier("activityEdit.review")
+                    } else {
+                        Button { Task { await owner.prepare() } } label: { label("reviewAction") }
+                            .disabled(!owner.reviewable || cover.isOpen)
+                            .accessibilityIdentifier("activityEdit.review")
+                    }
                 }
             }
             if let current = owner.review {
                 Section {
                     label("reviewBoundary")
                     ForEach(ActivityEditingField.allCases, id: \.rawValue) { field in
-                        LabeledContent { Text(verbatim: current.draft.text(field)) } label: { label(field.rawValue) }
+                        LabeledContent { Text(verbatim: current.draft.text(field)).fixedSize(horizontal: false, vertical: true) } label: { label(field.rawValue) }
                     }
-                    Text(verbatim: current.id.uuidString).accessibilityIdentifier("activityEdit.reviewID")
+                    Text(verbatim: current.id.uuidString)
+                        .font(CYTypography.numericBody)
+                        .accessibilityIdentifier("activityEdit.reviewID")
+                    Button { owner.cancel(current) } label: { label("cancel") }.disabled(owner.busy)
                     CYPillButton("confirm", tableName: "ActivityEditing") { Task { await owner.confirm(current) } }
                         .disabled(owner.busy || !owner.current)
-                        .accessibilityIdentifier("activityEdit.confirm").e1ActionRow()
-                    CYPillButton("cancel", style: .secondary, tableName: "ActivityEditing") { owner.cancel(current) }
-                        .disabled(owner.busy).e1ActionRow()
+                        .accessibilityIdentifier("activityEdit.confirm")
                 }
             }
             if owner.readback != nil && !owner.busy {
@@ -220,7 +242,7 @@ import SwiftUI
                     label("latest")
                     if let latest = owner.readback {
                         ForEach(ActivityEditingField.allCases, id: \.rawValue) { field in
-                            LabeledContent { Text(verbatim: latest.text(field)) } label: { label(field.rawValue) }
+                            LabeledContent { Text(verbatim: latest.text(field)).fixedSize(horizontal: false, vertical: true) } label: { label(field.rawValue) }
                         }
                     }
                     if owner.pending == nil {
@@ -230,8 +252,8 @@ import SwiftUI
                 }
             }
         }
-        .formStyle(.grouped)
-        .cyGroupedSurface()
+        .scrollContentBackground(.hidden)
+        .cyDomainPageBackground()
         .cyHeroScreen()
         .onAppear { owner.appear(active: scenePhase == .active); cover.appear(active: scenePhase == .active) }
         .onDisappear { if !cover.hasNativeSelection { owner.disappear() } }
@@ -240,4 +262,31 @@ import SwiftUI
         .background { RetainedImagePresenterHost(host: cover.pickerHost).frame(width: 0, height: 0) }
     }
     private func label(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: "ActivityEditing") }
+
+    private var editingStatusLabel: String {
+        let key = owner.status.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !key.isEmpty else { return "—" }
+        let resolved = String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: key), table: "ActivityEditing", locale: locale))
+        let trimmed = resolved.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || (trimmed == key && key.contains(".")) { return "—" }
+        return trimmed
+    }
+
+    private var editingStatusTone: CYStatusTone {
+        switch owner.status {
+        case "acknowledged", "localSaved": return .success
+        case "rejected", "unavailable": return .danger
+        case "unknown", "conflict", "notSent": return .warning
+        default: return .neutral
+        }
+    }
+
+    private var editingStatusSymbol: String {
+        switch editingStatusTone {
+        case .success: return "checkmark.circle"
+        case .danger: return "exclamationmark.triangle"
+        case .warning: return "questionmark.circle"
+        case .neutral, .info: return "circle"
+        }
+    }
 }
