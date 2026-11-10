@@ -11,40 +11,42 @@ import SwiftUI
     @ObservedObject var session: AppSession
     var body: some View {
         Group {
-            if let owner = session.clubChatCoordinator(clubID: clubID) { ClubChatEntryView(owner: owner, session: session) }
-            else { CYEmptyState(systemImage: "person.3", "club.chat.title", detail: "club.chat.disabled") }
-        }.cyHeroScreen()
+            if let owner = session.clubChatCoordinator(clubID: clubID) {
+                ClubChatEntryView(owner: owner, session: session)
+            } else {
+                ClubChatUnavailableView()
+            }
+        }
     }
 }
 @MainActor private struct ClubChatEntryView: View {
     @StateObject private var model: ClubChatViewModel
     @ObservedObject var session: AppSession
     @State private var conversation: MessagingConversation?
+    @Environment(\.cyPalette) private var palette
     init(owner: ClubChatCoordinator, session: AppSession) { _model = StateObject(wrappedValue: ClubChatViewModel(owner)); self.session = session }
     var body: some View {
-        Form {
-            Section {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
                 CYHeroHeader("club.chat.title", subtitle: "club.chat.explanation")
-                    .listRowBackground(Color.clear)
                 if !model.owner.service.isConfigured {
-                    CYStatusChip("club.chat.disabled", tone: .neutral, systemImage: "bubble.left.and.exclamationmark.bubble.right")
+                    Text("club.chat.disabled")
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("club.chat.disabled")
                 }
-                CYPillButton(model.phase == .unknown ? "club.chat.retry" : "club.chat.enter", systemImage: "bubble.left.and.bubble.right") {
-                    Task { await model.owner.enter(); if case .ready(let row) = model.owner.visiblePhase { conversation = row } }
-                }.disabled(!model.owner.canEnter).accessibilityIdentifier("club.chat.enter")
+                phaseStatus
+                enterButton
+                    .disabled(!model.owner.canEnter)
+                    .accessibilityIdentifier("club.chat.enter")
             }
-            Section {
-                switch model.phase {
-                case .entering: ProgressView("club.chat.loading")
-                case .unknown:
-                    CYStatusChip("club.chat.unknown", tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("club.chat.unknown")
-                case .rejected: CYStatusChip("club.chat.rejected", tone: .danger, systemImage: "xmark.circle")
-                case .stale: CYStatusChip("poll.stale", tone: .neutral, systemImage: "clock.arrow.circlepath")
-                default: EmptyView()
-                }
-            }
-        }.privacySensitive().accessibilityIdentifier("club.chat.screen")
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .cyDomainPageBackground()
+        .privacySensitive()
+        .accessibilityIdentifier("club.chat.screen")
         .onAppear { model.observe() }
         .onDisappear { model.owner.suspend() }
         .onChange(of: model.owner.isCurrent) { _, current in if !current { conversation = nil } }
@@ -54,5 +56,53 @@ import SwiftUI
                     sender: session.messageSender(for: conversation.id), mediaReader: session.socialMessageMediaReader, expanded: session.imExpandedNavigation).id(session.messagingViewIdentity)
             }
         }
+    }
+    @ViewBuilder private var enterButton: some View {
+        if model.phase == .unknown {
+            CYPillButton("club.chat.retry", systemImage: "arrow.clockwise") { enter() }
+        } else {
+            CYPillButton("club.chat.enter", systemImage: "bubble.left.and.bubble.right") { enter() }
+        }
+    }
+    private func enter() {
+        Task { await model.owner.enter(); if case .ready(let row) = model.owner.visiblePhase { conversation = row } }
+    }
+    @ViewBuilder private var phaseStatus: some View {
+        switch model.phase {
+        case .entering:
+            CYSkeleton().accessibilityLabel(Text("club.chat.loading"))
+        case .unknown:
+            Text("club.chat.unknown")
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("club.chat.unknown")
+        case .rejected:
+            Text("club.chat.rejected")
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        case .stale:
+            Text("poll.stale")
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        default:
+            EmptyView()
+        }
+    }
+}
+
+/// One title, no enter action: chat is not available for this session.
+@MainActor private struct ClubChatUnavailableView: View {
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                CYHeroHeader("club.chat.title", subtitle: "club.chat.disabled")
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .cyDomainPageBackground()
     }
 }

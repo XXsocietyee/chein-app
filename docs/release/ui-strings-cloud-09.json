@@ -1,0 +1,20 @@
+[
+  {
+    "key": "club.checkin.state.missing",
+    "table": "Localizable",
+    "en": "This check-in record does not exist.",
+    "zh-Hans": "核销记录不存在"
+  },
+  {
+    "key": "club.checkin.state.denied",
+    "table": "Localizable",
+    "en": "You cannot view this check-in record.",
+    "zh-Hans": "无权查看该核销记录"
+  },
+  {
+    "key": "club.checkin.state.error",
+    "table": "Localizable",
+    "en": "Couldn't load this check-in.",
+    "zh-Hans": "核销详情加载失败"
+  }
+]
