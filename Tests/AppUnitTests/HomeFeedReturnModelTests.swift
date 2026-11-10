@@ -9,6 +9,7 @@ import XCTest
         var requests: [(HomeFeedQuery, Int)] = []
         var bannerReads = 0
         var failPage = false
+        var emptyPage = false
         var hold = false
         var onHeld: (() -> Void)?
         var held: CheckedContinuation<HomeFeedPage, Error>?
@@ -17,6 +18,7 @@ import XCTest
         func section(_ section: HomeFeedSection) async throws -> [HomeFeedItem] { [] }
         func page(query: HomeFeedQuery, number: Int) async throws -> HomeFeedPage {
             requests.append((query, number))
+            if emptyPage { return HomeFeedPage(items: [], number: number, size: query.pageSize) }
             if hold {
                 hold = false
                 return try await withCheckedThrowingContinuation { held = $0; onHeld?() }
@@ -259,6 +261,33 @@ import XCTest
         XCTAssertNil(model.schedule(.query(.init()), reader: old, permit: permit))
         XCTAssertEqual(old.requests.count, 1)
         XCTAssertEqual(model.pagination.items.map(\.id), [.activity(7)])
+    }
+    func testReadinessStartsLoadingThenBecomesEmptyErrorOrReady() async {
+        let model = HomeFeedModel()
+        XCTAssertEqual(model.streamReadiness, .loading)
+        XCTAssertEqual(model.sectionReadiness(.recommended), .loading)
+        XCTAssertEqual(model.bannerReadiness, .loading)
+        XCTAssertEqual(model.categoryReadiness, .loading)
+        let reader = Reader()
+        reader.emptyPage = true
+        await model.resume(reader: reader, query: .init())
+        XCTAssertEqual(model.streamReadiness, .empty)
+        XCTAssertEqual(model.sectionReadiness(.recommended), .empty)
+        XCTAssertEqual(model.sectionReadiness(.nearby), .empty)
+        XCTAssertEqual(model.bannerReadiness, .empty)
+        XCTAssertEqual(model.categoryReadiness, .empty)
+        XCTAssertNotEqual(model.streamReadiness, .unknown)
+        let failed = HomeFeedModel(), failing = Reader()
+        failing.failPage = true
+        await failed.resume(reader: failing, query: .init())
+        XCTAssertEqual(failed.streamReadiness, .error)
+        let priced = HomeFeedModel()
+        await priced.resume(reader: Reader(), query: .init())
+        XCTAssertEqual(priced.streamReadiness, .ready)
+        let amount = priced.pagination.items.first?.amountState
+        XCTAssertEqual(amount, .known(Decimal(string: "12.5")!))
+        XCTAssertNotEqual(amount?.text, "0")
+        XCTAssertNotEqual(amount?.text, "—")
     }
 
 }

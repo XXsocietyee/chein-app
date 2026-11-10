@@ -120,6 +120,8 @@ public struct DiscoveryTopicTemplate: Decodable, Equatable, Identifiable {
     public let name: String
     public let subtitle: String
     public let chapterCount: Int
+    /// True only when the wire sent an integer. Missing and null stay stored as 0 for the existing `> 0` check, and that stored 0 is not a known zero.
+    public let chapterCountIncluded: Bool
     public let locationCount: Int?
     /// Exact public catalog contract: nonnegative integral seconds, never minutes text.
     public let totalTime: Int?
@@ -140,7 +142,18 @@ public struct DiscoveryTopicTemplate: Decodable, Equatable, Identifiable {
         id = try c.discoveryID(.id)
         name = try c.discoveryScalarText(.name) ?? ""
         subtitle = try c.discoveryScalarText(.subtitle) ?? ""
-        chapterCount = try c.decodeIfPresent(Int.self, forKey: .chapterCount) ?? 0
+        if c.contains(.chapterCount) {
+            if try c.decodeNil(forKey: .chapterCount) {
+                chapterCount = 0
+                chapterCountIncluded = false
+            } else {
+                chapterCount = try c.decode(Int.self, forKey: .chapterCount)
+                chapterCountIncluded = true
+            }
+        } else {
+            chapterCount = 0
+            chapterCountIncluded = false
+        }
         locationCount = try PublicTemplateRouteCount.decode(from: c, forKey: .locationCount)
         totalTime = try c.decodeIfPresent(Int.self, forKey: .totalTime)
         guard totalTime.map({ $0 >= 0 }) ?? true else { throw APIError.malformedResponse }
