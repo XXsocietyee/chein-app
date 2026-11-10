@@ -82,9 +82,7 @@ struct ObjectBadgeWallLayoutSelection {
     }
     @ViewBuilder private func badgeRows(_ badges: [ProfileBadgeSelection], accessibilityPrefix: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
         if layout == .wall {
-            LazyVGrid(columns: dynamicTypeSize.isAccessibilitySize
-                ? [GridItem(.flexible(), alignment: .topLeading)]
-                : [GridItem(.adaptive(minimum: 160), spacing: 12, alignment: .topLeading)], alignment: .leading, spacing: 12) {
+            LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                 ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
                     link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall).buttonStyle(.plain)
                 }
@@ -204,7 +202,7 @@ struct ObjectBadgeWallBadgeLabel: View {
         }
         .safeAreaInset(edge: .bottom) {
             if valid, !badge.isLocked {
-                ShareLink(item: ChannelCopy.text("我在「成印」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on Chengyin", locale: locale)) {
+                ShareLink(item: ChannelCopy.text("我在「城瘾」点亮了徽章「\(displayName)」", "I earned the “\(displayName)” badge on 城瘾", locale: locale)) {
                     Label { Text(verbatim: ChannelCopy.text("分享徽章", "Share badge", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
                         .font(CYTypography.cardTitle).foregroundStyle(CYColor.textInverse)
                         .frame(maxWidth: .infinity, minHeight: 56).background(CYColor.textPrimary, in: Capsule())

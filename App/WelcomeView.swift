@@ -125,7 +125,7 @@ private struct RoleButtonStyle: ButtonStyle {
             .contentShape(shape)
             .scaleEffect(configuration.isPressed && !reduceMotion ? 0.97 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.25, dampingFraction: 0.6), value: configuration.isPressed)
-            .sensoryFeedback(.impact(weight: .medium), trigger: configuration.isPressed) { old, new in !old && new }
+            .cyHaptic(.impactMedium, trigger: configuration.isPressed) { old, new in !old && new }
     }
 }
 

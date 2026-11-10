@@ -112,7 +112,7 @@ import QuestifyCore
         }
         .presentationDetents([.medium, .large])
         .presentationDragIndicator(.visible)
-        .sensoryFeedback(.impact(weight: .medium), trigger: rollTick)
+        .cyHaptic(.impactMedium, trigger: rollTick)
         .onDisappear { settleTask?.cancel() }
     }
 

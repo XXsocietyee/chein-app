@@ -9,6 +9,7 @@ enum E2FixtureKind: String {
     case chapters, chaptersEmpty = "chapters-empty", stampCamera = "stamp-camera", badgeDetail = "badge-detail"
     case cityRules = "city-rules", cityParticipation = "city-participation", cityParticipationConfirm = "city-participation-confirm", cityParticipationJoin = "city-participation-join"
     case cityNeutral = "city-neutral", cityOnsite = "city-onsite", cityArrival = "city-arrival", cityMap = "city-map", bundle, journalDiagnostic = "journal-diagnostic", passportAnniversary = "passport-anniversary", passportRecap = "passport-recap"
+    case playkitQA = "playkit-qa", playkitProfile = "playkit-profile", playkitNote = "playkit-note", playkitPhoto = "playkit-photo"
 }
 
 struct E2Fixture: View {
@@ -63,6 +64,10 @@ struct E2Fixture: View {
         case .journalDiagnostic: NavigationStack { List { GameJournalCompositionAndPlaySummarySectionView() }.cyGroupedSurface().navigationTitle("游戏手账").navigationBarTitleDisplayMode(.inline) }
         case .passportAnniversary: NavigationStack { RoamAnniversaryView(reader: RoamPassportToolsFixtureReader()) }
         case .passportRecap: NavigationStack { RoamMonthlyRecapView(reader: RoamPassportToolsFixtureReader()) }
+        case .playkitQA: E2PlayKitHost(kind: .qa)
+        case .playkitProfile: E2PlayKitHost(kind: .profile)
+        case .playkitNote: E2PlayKitHost(kind: .note)
+        case .playkitPhoto: E2PlayKitHost(kind: .photoCheck)
         case .timedResult:
             ScrollView {
                 VStack(spacing: CYSpacing.lg) {
@@ -95,7 +100,7 @@ private struct E2ChaptersHost: View {
                 ForEach(topics) { ticket in
                     RoamEnrolledChapterRow(ticket: ticket, showsActionNotice: ticket.action != .detail).questifyCardListRow()
                 }
-            }.cyGroupedSurface().navigationTitle("roam.chapters.title")
+            }.cyGroupedSurface().navigationTitle("roam.chapters.title").navigationBarTitleDisplayMode(.inline)
         }
     }
 }

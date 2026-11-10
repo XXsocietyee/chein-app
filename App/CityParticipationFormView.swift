@@ -116,7 +116,7 @@ struct CityParticipationContent: View {
                 }
                 ForEach(display.kinds, id: \.rawValue) { kind in
                     let primary = kind == display.kinds.first
-                    CYPillButton(verbatim: CityParticipationDisplay.label(kind), style: primary ? .primary : .secondary, action: { prepare(kind) })
+                    CYPillButton(verbatim: CityParticipationDisplay.label(kind), style: primary ? .primary : .tertiary, action: { prepare(kind) })
                         .disabled(!display.canPrepare || display.busy || kind == .join && display.invitationMembers == nil)
                         .accessibilityIdentifier("city.participation.prepare.\(kind.rawValue)")
                 }

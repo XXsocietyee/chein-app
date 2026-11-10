@@ -14,6 +14,8 @@ private struct ActivityListDestination: Hashable { let id: Int }
     @State private var path: [ActivityListDestination] = []
     @State private var readerChange: UInt64 = 0
     @State private var loads = SignedInContentDetailLoadOwner()
+    @Namespace private var hero
+    @State private var stagger = CYStaggerGate()
     private var identity: ActivityListReadIdentity { _ = readerChange; return ActivityListReadIdentity(reader) }
     var body: some View {
         NavigationStack(path: $path) {
@@ -23,6 +25,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
                         description:Text(LocalizedStringKey(reader.activityListUnavailableMessageKey ?? "auth.notConfigured")))
                 } else if model.identity != identity || (model.isLoading && model.items.isEmpty) {
                     ScrollView { CYLoadingStateView(rows: 3).padding(CYSpacing.lg) }.accessibilityLabel(Text("activity.loading"))
+                        .transition(.opacity)
                 } else if model.failed && model.items.isEmpty {
                     ContentUnavailableView {
                         Label { Text("activity.loadFailed").accessibilityIdentifier("activity.list.error") } icon: { Image(systemName:"wifi.exclamationmark") }
@@ -36,8 +39,11 @@ private struct ActivityListDestination: Hashable { let id: Int }
                     } description: { Text("activity.emptyHint") }
                 } else {
                     List {
-                        ForEach(model.items) { item in
-                            NavigationLink(value: ActivityListDestination(id: item.id)) { ActivityListCard(item:item) }
+                        ForEach(Array(model.items.enumerated()), id: \.element.id) { index, item in
+                            NavigationLink(value: ActivityListDestination(id: item.id)) {
+                                ActivityListCard(item:item).cyHeroSource(item.id, in: hero).cyStaggeredAppear(index: index, gate: stagger)
+                            }
+                                .cyRowTransition()
                                 .buttonStyle(QuestifyCardButtonStyle())
                                 .questifyHidesLinkIndicator()
                                 .questifyCardListRow()
@@ -52,10 +58,12 @@ private struct ActivityListDestination: Hashable { let id: Int }
                     }
                     .listStyle(.insetGrouped)
                     .listSectionSpacing(20)
-                    .refreshable { await loads.run { await model.load(reader: reader, reset: true, keyword: query) } }
+                    .cyAnimation(value: model.items.map(\.id))
+                    .cyRefreshable { await loads.run { await model.load(reader: reader, reset: true, keyword: query) } }
                     .accessibilityIdentifier("activity.list.content")
                 }
             }
+            .cyAnimation(.easeInOut(duration: CYMotion.Duration.standard), value: model.items.isEmpty)
             .appNavigationTitle("activity.browse")
             .searchable(text:$query,placement:.navigationBarDrawer(displayMode:.always),prompt:"activity.search")
             .onSubmit(of:.search) { loads.start { await model.load(reader: reader, reset: true, keyword: query) } }
@@ -73,6 +81,7 @@ private struct ActivityListDestination: Hashable { let id: Int }
             .navigationDestination(for: ActivityListDestination.self) { destination in
                 ActivityDetailView(id:destination.id,reader:reader,playReaderForActivity:playReaderForActivity,
                     registrationEnabled:registrationEnabled,peopleProfile:peopleProfile)
+                    .cyHeroDestination(destination.id, in: hero)
             }
         }
         .onReceive(reader.activityPresentationChanges) { readerChange &+= 1 }
