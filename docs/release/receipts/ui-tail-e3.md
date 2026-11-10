@@ -58,3 +58,7 @@ Cloud-owned, skipped (diff on origin/ui/cloud-*): ClubEventCalendarView, ClubGov
 ## Batch 13 (reverse)
 Done: ClubTerminalSessionView, ClubTabParityViews, ClubStoryViews, ClubStatsOverviewView, ClubSessionQuickStartView.
 Skipped: none.
+
+## Batch 14 (reverse)
+Done: ClubPublicRosterView, ClubPublicActivityListView, ClubProjectLaunchView, ClubPostReferenceView, ClubOwnerRefundFixtureView (DEBUG-only fixture host; buttons moved to CYPillButton).
+Skipped: none.
