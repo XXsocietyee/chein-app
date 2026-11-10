@@ -10,9 +10,10 @@ import SwiftUI
                 Text(LocalizedStringKey(controller.messageKey), tableName: table)
                 if controller.current, scenePhase == .active { row("cityNeutralResult.request", controller.requestID.uuidString) }
                 Text("cityNeutralResult.boundary", tableName: table)
-                Button { Task { await controller.load() } } label: {
-                    Text("cityNeutralResult.refresh", tableName: table)
-                }.disabled(controller.busy || !controller.current)
+                if controller.busy { CYSkeleton() }
+                CYPillButton("cityNeutralResult.refresh", style: .secondary, tableName: table) { Task { await controller.load() } }
+                    .disabled(controller.busy || !controller.current)
+                    .listRowBackground(Color.clear)
             }
             if controller.current, scenePhase == .active, let task = controller.task {
                 Section {

@@ -11,7 +11,7 @@ import SwiftUI
             if owner.isCurrent, let controller = owner.controller {
                 CityOnsiteTaskView(controller: controller, board: owner.board, arrivalFactory: arrivalFactory)
             } else {
-                Text("cityOnsite.status.disabled", tableName: "CityOnsiteTask")
+                CYEmptyState(systemImage: "mappin.slash", "cityOnsite.status.disabled", tableName: "CityOnsiteTask")
             }
         }
         .onAppear { owner.synchronize() }

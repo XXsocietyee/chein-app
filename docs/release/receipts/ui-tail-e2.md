@@ -8,3 +8,9 @@ No new string keys so far (kit components reuse existing keys; docs/release/ui-s
 - done: CityActionBudgetView (CYStatusChip, CYEmptyState)
 - done: CityArrivalEvidenceRuntimeHostView (CYEmptyState)
 - skipped (merchant-only): ChapterReplacementInvitationView (MerchantChapterReplacementHostContext)
+
+## Batch 2
+- done: CityFairnessView (CYHeroHeader+cyHeroScreen x2, CYListRow, CYPillButton, CYSkeleton, CYEmptyState)
+- done: CityNeutralTaskResultRecoveryView (CYPillButton, CYSkeleton)
+- done: CityNeutralTaskRuntimeHostView, CityOnsiteTaskRuntimeHostView (CYEmptyState)
+- skipped (merchant-only): CityNodeRedeemView (merchant.cityRedeem, MerchantBusinessReading)
