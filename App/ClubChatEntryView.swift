@@ -12,8 +12,8 @@ import SwiftUI
     var body: some View {
         Group {
             if let owner = session.clubChatCoordinator(clubID: clubID) { ClubChatEntryView(owner: owner, session: session) }
-            else { ContentUnavailableView("club.chat.title", systemImage: "person.3", description: Text("club.chat.disabled")) }
-        }.navigationTitle(Text("club.chat.title"))
+            else { CYEmptyState(systemImage: "person.3", "club.chat.title", detail: "club.chat.disabled") }
+        }.cyHeroScreen()
     }
 }
 @MainActor private struct ClubChatEntryView: View {
@@ -24,18 +24,23 @@ import SwiftUI
     var body: some View {
         Form {
             Section {
-                Text("club.chat.explanation")
-                if !model.owner.service.isConfigured { Text("club.chat.disabled").accessibilityIdentifier("club.chat.disabled") }
-                Button(model.phase == .unknown ? "club.chat.retry" : "club.chat.enter") {
+                CYHeroHeader("club.chat.title", subtitle: "club.chat.explanation")
+                    .listRowBackground(Color.clear)
+                if !model.owner.service.isConfigured {
+                    CYStatusChip("club.chat.disabled", tone: .neutral, systemImage: "bubble.left.and.exclamationmark.bubble.right")
+                        .accessibilityIdentifier("club.chat.disabled")
+                }
+                CYPillButton(model.phase == .unknown ? "club.chat.retry" : "club.chat.enter", systemImage: "bubble.left.and.bubble.right") {
                     Task { await model.owner.enter(); if case .ready(let row) = model.owner.visiblePhase { conversation = row } }
                 }.disabled(!model.owner.canEnter).accessibilityIdentifier("club.chat.enter")
             }
             Section {
                 switch model.phase {
                 case .entering: ProgressView("club.chat.loading")
-                case .unknown: Text("club.chat.unknown").accessibilityIdentifier("club.chat.unknown")
-                case .rejected: Text("club.chat.rejected")
-                case .stale: Text("poll.stale")
+                case .unknown:
+                    CYStatusChip("club.chat.unknown", tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("club.chat.unknown")
+                case .rejected: CYStatusChip("club.chat.rejected", tone: .danger, systemImage: "xmark.circle")
+                case .stale: CYStatusChip("poll.stale", tone: .neutral, systemImage: "clock.arrow.circlepath")
                 default: EmptyView()
                 }
             }
