@@ -10,6 +10,8 @@ struct E1CoverArt: View {
     var symbol = "sparkles"
     var imageURL: String? = nil
     var debugLabel = true
+    /// Where the generated-art glyph sits, as a fraction of the cover. Cards that put a chip top-right move it away.
+    var symbolPoint = CGPoint(x: 0.8, y: 0.24)
     @Environment(\.cyPalette) private var palette
 
     private var url: URL? {
@@ -57,7 +59,7 @@ struct E1CoverArt: View {
                 Image(systemName: symbol)
                     .font(.system(size: min(g.size.width, g.size.height) * 0.3, weight: .light))
                     .foregroundStyle(.white.opacity(0.4))
-                    .position(x: g.size.width * 0.8, y: g.size.height * 0.24)
+                    .position(x: g.size.width * symbolPoint.x, y: g.size.height * symbolPoint.y)
             }
         }
         .overlay(alignment: .topTrailing) {

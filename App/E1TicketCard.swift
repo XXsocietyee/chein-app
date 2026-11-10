@@ -1,6 +1,6 @@
 import SwiftUI
 
-/// The pass in the ticket holder: art band with the title on a scrim, a corner status ribbon, info rows, a
+/// The pass in the ticket holder: art band with the title on a scrim, a status chip, info rows, a
 /// perforated tear line with side notches (real cut-outs) and a stub. Press and hold to tilt it, tap for a foil
 /// sheen. The stub never draws a fake code: the real pass is issued by `TicketPassPresentView` when the host
 /// supplies a verification code factory, otherwise venue staff verify the ticket.
@@ -32,10 +32,6 @@ struct E1TicketCard: View {
         }
         .onPreferenceChange(E1TicketTopHeightKey.self) { topHeight = $0 }
         .background(CYColor.bgElevated)
-        .overlay(alignment: .topTrailing) {
-            CYStatusRibbon(state: state, text: Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)))
-                .accessibilityIdentifier("ticketWallet.detail.ribbon")
-        }
         .cyFoilSheen(trigger: sheen)
         .clipShape(shape, style: FillStyle(eoFill: true))
         .overlay(shape.stroke(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
@@ -56,7 +52,7 @@ struct E1TicketCard: View {
     private var top: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false)
+                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false, symbolPoint: CGPoint(x: 0.84, y: 0.6))
                 LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
                 if !typeSize.isAccessibilitySize {
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
@@ -71,6 +67,7 @@ struct E1TicketCard: View {
             .clipped()
             VStack(alignment: .leading, spacing: CYSpacing.md) {
                 if typeSize.isAccessibilitySize {
+                    statusChip
                     TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
                         .font(CYTypography.pageTitle).foregroundStyle(CYColor.textPrimary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -90,6 +87,10 @@ struct E1TicketCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(CYSpacing.lg)
         }
+    }
+
+    private var statusChip: some View {
+        CYPassStatusChip(state: state, text: LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue), identifier: "ticketWallet.detail.status")
     }
 
     @ViewBuilder private var stub: some View {

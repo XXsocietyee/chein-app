@@ -204,11 +204,11 @@ enum CYPassCardPick {
     private var header: some View {
         VStack(alignment: .leading, spacing: 0) {
             ZStack {
-                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false)
+                E1CoverArt(seed: ticket.title ?? "ticket", symbol: "ticket", debugLabel: false, symbolPoint: CGPoint(x: 0.84, y: 0.62))
                 LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
                 if !typeSize.isAccessibilitySize {
                     VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                        HStack(spacing: 0) { Spacer(minLength: 0); statusChip(singleLine: true) }
+                        HStack(spacing: 0) { Spacer(minLength: 0); CYPassStatusChip(state: state, text: LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)) }
                         Spacer(minLength: 0)
                         title.foregroundStyle(.white).lineLimit(2)
                     }
@@ -219,7 +219,7 @@ enum CYPassCardPick {
             .clipped()
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 if typeSize.isAccessibilitySize {
-                    statusChip(singleLine: false).padding(.bottom, CYSpacing.xs)
+                    CYPassStatusChip(state: state, text: LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)).padding(.bottom, CYSpacing.xs)
                     title.foregroundStyle(CYColor.textPrimary).padding(.bottom, CYSpacing.xs)
                 }
                 Label { Text(verbatim: nonEmpty(ticket.participateDate)) } icon: { Image(systemName: "calendar") }
@@ -229,17 +229,6 @@ enum CYPassCardPick {
             .padding(CYSpacing.lg)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-    }
-
-    /// Status chip in the existing status tones. A solid elevated backing keeps it readable over the cover art.
-    /// Never clipped: it sits inside the band's padding, shrinks before it truncates, and wraps at accessibility sizes.
-    @ViewBuilder private func statusChip(singleLine: Bool) -> some View {
-        let chip = CYStatusChip(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue), tone: state.tone, systemImage: state.systemImage)
-        Group { if singleLine { chip.singleLine() } else { chip } }
-            .background(CYColor.bgElevated, in: Capsule(style: .continuous))
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)))
-            .accessibilityIdentifier("ticketPass.status")
     }
 
     private var title: some View {

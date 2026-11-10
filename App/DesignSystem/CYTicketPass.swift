@@ -73,6 +73,24 @@ enum CYPassState: Equatable {
     var isRetired: Bool { self == .expired || self == .cancelled }
 }
 
+/// The pass status as a `CYStatusChip` (existing tones and symbols) on a solid capsule so it reads over cover art.
+/// Text is `.caption` (12 pt) scaling with Dynamic Type and never shrunk below it; at accessibility sizes it may wrap.
+/// One VoiceOver element labelled with the status text. Place it inside the band's padding, never on the pass edge.
+struct CYPassStatusChip: View {
+    let state: CYPassState
+    let text: LocalizedStringKey
+    var identifier = "ticketPass.status"
+    @Environment(\.cyPalette) private var palette
+
+    var body: some View {
+        CYStatusChip(text, tone: state.tone, systemImage: state.systemImage)
+            .background(palette.bgElevated, in: Capsule(style: .continuous))
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(text))
+            .accessibilityIdentifier(identifier)
+    }
+}
+
 /// Diagonal corner ribbon (top trailing) with the state text and symbol. At accessibility text sizes it
 /// becomes a flat chip in the same corner so the text never clips. Put it in an `.overlay(alignment: .topTrailing)`
 /// of a view that is clipped to the pass shape.
