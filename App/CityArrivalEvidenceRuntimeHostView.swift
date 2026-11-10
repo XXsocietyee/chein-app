@@ -10,13 +10,26 @@ import SwiftUI
             if owner.isCurrent, let controller = owner.controller {
                 CityArrivalEvidenceView(controller: controller)
             } else {
-                CYEmptyState(systemImage: "mappin.slash", "cityArrival.status.disabled", tableName: "CityArrivalEvidence")
+                CityArrivalDisabledScreen(titleKey: disabledTitleKey)
             }
         }
+        .roleTheme(arrivalRole)
         .onAppear { owner.synchronize() }
         .onChange(of: session.currentRuntimeDependencyContext) { _, _ in owner.synchronize() }
         .onChange(of: revision) { _, _ in owner.synchronize() }
         // Child owns foreground/disappearance; durable journal survives presentation invalidation.
+    }
+    private var arrivalRole: RoleTheme {
+        switch owner.approval.audience {
+        case .merchant: return .merchant
+        case .player: return .player
+        }
+    }
+    private var disabledTitleKey: String {
+        switch owner.approval.audience {
+        case .merchant: return "cityArrival.merchantEntry"
+        case .player: return "cityArrival.title"
+        }
     }
 }
 
@@ -28,7 +41,24 @@ import SwiftUI
         Group {
             if let owner = session.makeCityArrivalEvidenceRuntimeOwner(audience: .merchant(merchantID: merchantID), board: nil), owner.isCurrent {
                 CityArrivalEvidenceRuntimeHostView(owner: owner, revision: session.cityArrivalEvidenceRuntimeRevision)
-            } else { CYEmptyState(systemImage: "mappin.slash", "cityArrival.status.disabled", tableName: "CityArrivalEvidence") }
+            } else { CityArrivalDisabledScreen(titleKey: "cityArrival.merchantEntry") }
         }
+        .roleTheme(.merchant)
+    }
+}
+
+private struct CityArrivalDisabledScreen: View {
+    let titleKey: String
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                CYHeroHeader(LocalizedStringKey(titleKey), tableName: "CityArrivalEvidence")
+                CYEmptyState(systemImage: "lock.shield", "cityArrival.status.disabled", tableName: "CityArrivalEvidence")
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+        }
+        .cyDomainPageBackground()
+        .cyHeroScreen()
     }
 }
