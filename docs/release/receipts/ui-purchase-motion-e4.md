@@ -21,4 +21,7 @@ No Core edits. No new catalog keys (bilingual copy through `CoreLoopCopy.t`; exi
 ## Cloud results
 | Commit | Build - iOS | Test - iOS |
 | --- | --- | --- |
-| e6880f4bd | pending | pending |
+| e6880f4bd | superseded by the next push (no run recorded) | - |
+| a09e3cf54 | completed, success, 145 warnings (baseline ui/main a36813f22: success, 145 warnings; no new warnings) | completed, action_required, 2 errors, 5 warnings (identical to the ui/main baseline, pre-existing, not from this change) |
+
+Verified via `gh api repos/liboyang42-cpu/chengyin-app/commits/a09e3cf54/check-runs`. Motion itself was not judged on a simulator in this lane (no local builds); fixtures are listed in the plan doc for the next on-device pass.
