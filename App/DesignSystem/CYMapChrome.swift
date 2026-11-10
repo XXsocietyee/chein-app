@@ -257,6 +257,8 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     @Environment(\.dynamicTypeSize) private var type
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @ScaledMetric(relativeTo: .body) private var peekLine: CGFloat = 52
+    /// Grabber row: a 44 pt drag/adjust target (the bar itself stays 40 x 5).
+    private let grabberHeight: CGFloat = 44
 
     init(detent: CYPanelDetent = .medium, allowed: [CYPanelDetent] = CYPanelDetent.allCases, peek: AnyView? = nil,
          @ViewBuilder map: () -> Map, @ViewBuilder controls: () -> Controls,
@@ -268,7 +270,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
     }
     private var effective: CYPanelDetent { peek == nil && type.isAccessibilitySize && detent == .compact ? .medium : detent }
     private func height(_ d: CYPanelDetent, total: CGFloat) -> CGFloat {
-        if d == .compact, peek != nil { return min(28 + min(peekLine, 120), total * 0.3) }
+        if d == .compact, peek != nil { return min(grabberHeight + min(peekLine, 120), total * 0.3) }
         return total * d.fraction
     }
     private var pool: [CYPanelDetent] { allowed.isEmpty ? CYPanelDetent.allCases : allowed }
@@ -283,6 +285,12 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                 map.frame(maxWidth: .infinity, maxHeight: .infinity).clipped().ignoresSafeArea()
                 VStack(alignment: .leading, spacing: 0) {
                     controls.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.sm)
+                        .padding(.bottom, CYSpacing.sm)
+                        // Title and glass controls sit on a soft scrim so white text keeps 4.5:1 over any map tile.
+                        .background(alignment: .top) {
+                            LinearGradient(colors: [.black.opacity(0.62), .black.opacity(0.30), .clear], startPoint: .top, endPoint: .bottom)
+                                .padding(.bottom, -CYSpacing.lg).ignoresSafeArea(edges: .top).allowsHitTesting(false).accessibilityHidden(true)
+                        }
                     Spacer(minLength: 0)
                 }.frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
                 floating.padding(.bottom, panelHeight + CYSpacing.lg)
@@ -300,6 +308,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                             .accessibilityHidden(isPeeking)
                         if isPeeking, let peek {
                             peek.contentShape(Rectangle())
+                                .accessibilityElement(children: .combine)
                                 .onTapGesture { withAnimation(reduceMotion ? nil : cyRoamSheetSnap) { detent = .medium } }
                                 .accessibilityAddTraits(.isButton)
                                 .accessibilityHint(Text("map.panel.size"))
@@ -318,9 +327,14 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
         }
     }
 
+    /// Spoken value of the grabber: which of the three sizes the panel is at.
+    private func detentName(_ d: CYPanelDetent) -> LocalizedStringKey {
+        switch d { case .compact: "map.panel.size.compact"; case .medium: "map.panel.size.medium"; case .large: "map.panel.size.large" }
+    }
+
     private func grabber(total: CGFloat) -> some View {
-        Capsule().fill(Color.white.opacity(0.28)).frame(width: 40, height: 5)
-            .frame(maxWidth: .infinity, minHeight: 28)
+        Capsule().fill(Color.white.opacity(0.5)).frame(width: 40, height: 5)
+            .frame(maxWidth: .infinity, minHeight: grabberHeight)
             .contentShape(Rectangle())
             .gesture(DragGesture(minimumDistance: 4)
                 .updating($drag) { value, state, _ in state = value.translation.height }
@@ -330,6 +344,7 @@ struct CYMapScaffold<Map: View, Controls: View, Floating: View, Panel: View>: Vi
                 })
             .accessibilityElement()
             .accessibilityLabel(Text("map.panel.size"))
+            .accessibilityValue(Text(detentName(effective)))
             .accessibilityAdjustableAction { direction in
                 guard let i = pool.firstIndex(of: detent) else { return }
                 let next = direction == .increment ? min(i + 1, pool.count - 1) : max(i - 1, 0)

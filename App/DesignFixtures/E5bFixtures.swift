@@ -92,4 +92,41 @@ struct E5bBadgeWallFixture: View {
     func hasSeen(accountID: Int, clubID: Int, namespace: String) throws -> Bool { false }
     func markSeen(accountID: Int, clubID: Int, namespace: String) throws {}
 }
+
+/// W3-8 accessibility sweep fixtures (synthetic, debug only): `a11y-roam-ax5` (map chrome at AX5), `a11y-passport-ax5`
+/// (badge/stamp grid at AX5 with a locked tile).
+struct A11yRoamAX5Fixture: View {
+    var body: some View {
+        CYMapScaffold(detent: .compact, peek: AnyView(
+            HStack(spacing: CYSpacing.sm) {
+                Text(verbatim: tt("Nearby activities", "附近活动")).font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                Spacer(minLength: 0)
+                Text(verbatim: "—").accessibilityLabel(Text(verbatim: tt("Count unknown", "数量未知"))).foregroundStyle(CYColor.textSecondary)
+            }.padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
+        ), map: { CYMapPlaceholder() }, controls: {
+            HStack(alignment: .center) {
+                Text(verbatim: tt("Roam", "漫游")).font(.system(.largeTitle).weight(.heavy)).foregroundStyle(.white)
+                    .lineLimit(2).minimumScaleFactor(0.6).layoutPriority(1).accessibilityAddTraits(.isHeader)
+                Spacer(minLength: 0)
+                CYGlassLabel(systemImage: "ellipsis")
+            }
+        }, floating: {
+            HStack(spacing: CYSpacing.xxl) {
+                CYGlassLabel(systemImage: "info")
+                CYGoLabel()
+                CYGlassLabel(systemImage: "map")
+            }
+        }, panel: { Color.clear })
+        .environment(\.dynamicTypeSize, .accessibility5)
+        .themeDomain(.player)
+        .preferredColorScheme(.dark)
+    }
+}
+
+struct A11yPassportAX5Fixture: View {
+    var body: some View {
+        E5bBadgeWallFixture()
+            .environment(\.dynamicTypeSize, .accessibility5)
+    }
+}
 #endif

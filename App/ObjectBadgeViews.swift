@@ -275,7 +275,7 @@ struct ObjectBadgeWallBadgeLabel: View {
                         LinearGradient(colors: [Color(hue: 0.12, saturation: 0.7, brightness: 0.9).opacity(0.9), Color(hue: 0.08, saturation: 0.7, brightness: 0.4)], startPoint: .top, endPoint: .bottom)
                         Image(systemName: "medal.fill").font(.title2).foregroundStyle(.white.opacity(0.9))
                     }
-                }.padding(6)
+                }.padding(6).accessibilityHidden(true)   // the name + locked chip carry the meaning
                 description.fixedSize(horizontal: false, vertical: true).multilineTextAlignment(.center)
             }.frame(maxWidth: .infinity, minHeight: 72)
                 .cyDomainCard(padding: CYSpacing.md)
