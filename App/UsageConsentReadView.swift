@@ -4,7 +4,7 @@ private func usageEvidenceText(_ key: String) -> Text {
     Text(LocalizedStringKey(key), tableName: "UsageConsentEvidence")
 }
 private func usageEvidenceButton(_ key: String, action: @escaping () -> Void) -> some View {
-    Button(action: action) { usageEvidenceText(key) }
+    CYPillButton(LocalizedStringKey(key), style: .secondary, tableName: "UsageConsentEvidence", action: action)
 }
 
 @MainActor struct UsageConsentReadSettingsEntry: View {
@@ -28,7 +28,7 @@ private func usageEvidenceButton(_ key: String, action: @escaping () -> Void) ->
     var body: some View {
         let read = readIntent()
         List {
-            Section { usageEvidenceText("usageEvidence.boundary").font(.footnote) }
+            Section { CYHeroHeader("usageEvidence.title", subtitle: "usageEvidence.boundary", tableName: "UsageConsentEvidence").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if let coordinator {
                 Section {
                     TextField(text: $requestId) { usageEvidenceText("usageEvidence.request") }.textInputAutocapitalization(.never).autocorrectionDisabled()
@@ -60,7 +60,8 @@ private func usageEvidenceButton(_ key: String, action: @escaping () -> Void) ->
                 usageEvidenceButton("usageEvidence.refresh") { requestReload(read: read) }.disabled(coordinator.busy)
             } else { usageEvidenceText("usageEvidence.unavailable") }
         }
-        .navigationTitle(usageEvidenceText("usageEvidence.title"))
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .privacySensitive()
         .onAppear { isVisible = true; start() }
         .onDisappear { isVisible = false; retire() }

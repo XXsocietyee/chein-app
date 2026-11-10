@@ -12,9 +12,9 @@ import SwiftUI
             if let model = owner.model {
                 NativeChannelProgressPrivacyView(model: model, loadsOnAppear: false).id(owner.visitID)
             } else if owner.attempted {
-                ContentUnavailableView { Label { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") } icon: { Image(systemName: "hand.raised") } }
+                CYEmptyState(systemImage: "hand.raised", "d7.channelProgress.closed", tableName: "NativeChannelProgress")
             }
-            else { ProgressView() }
+            else { CYLoadingStateView(rows: 2) }
         }
         .onAppear { isVisible = true; reopen() }
         .onDisappear { isVisible = false; owner.retire() }
@@ -74,6 +74,7 @@ import SwiftUI
     @State private var showsConfirmation = false
     var body: some View {
         Form {
+            Section { CYHeroHeader("privacy", tableName: "NativeChannelProgress").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if model.busy { ProgressView() }
             if !model.isCurrent { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") }
             if model.isCurrent, let values = draft {
@@ -94,9 +95,9 @@ import SwiftUI
             Section {
                 if model.pendingCommand != nil {
                     Text("d7.channelProgress.originalPending", tableName: "NativeChannelProgress")
-                    Button { actions.run { await model.recoverOriginal() } } label: { Text("d7.channelProgress.checkOriginal", tableName: "NativeChannelProgress") }
+                    CYPillButton("d7.channelProgress.checkOriginal", style: .secondary, tableName: "NativeChannelProgress") { actions.run { await model.recoverOriginal() } }
                         .disabled(model.busy).accessibilityIdentifier("channelProgress.checkOriginal")
-                    Button { actions.run { await model.recoverOriginal(retryOriginal: true) } } label: { Text("d7.channelProgress.retryOriginal", tableName: "NativeChannelProgress") }
+                    CYPillButton("d7.channelProgress.retryOriginal", style: .secondary, tableName: "NativeChannelProgress") { actions.run { await model.recoverOriginal(retryOriginal: true) } }
                         .disabled(model.busy).accessibilityIdentifier("channelProgress.retryOriginal")
                 }
                 if model.privacyPhase == .unresolved { Text("d7.channelProgress.outcomeUnknown", tableName: "NativeChannelProgress").nativeChannelNotice(systemImage: "clock") }
@@ -106,14 +107,14 @@ import SwiftUI
                     Label { Text("d7.channelProgress.applied", tableName: "NativeChannelProgress") } icon: { Image(systemName: "checkmark.circle") }
                         .accessibilityIdentifier("channelProgress.applied")
                 }
-                Button {
+                CYPillButton("d7.channelProgress.save", tableName: "NativeChannelProgress") {
                     confirmation.prepare(current: model.privacy, draft: draft, canSave: model.canSavePrivacy)
                     showsConfirmation = confirmation.review != nil
-                } label: { Text("d7.channelProgress.save", tableName: "NativeChannelProgress") }.nativeChannelPrimaryAction().disabled(!model.canSavePrivacy || draft == nil)
+                }.disabled(!model.canSavePrivacy || draft == nil)
                     .accessibilityIdentifier("channelProgress.savePrivacy")
             }
             NativeChannelProgressIssueView(model: model, part: "privacy")
-        }.nativeChannelScreen().navigationTitle(Text("privacy", tableName: "NativeChannelProgress")).privacySensitive()
+        }.nativeChannelScreen().cyGroupedSurface().cyHeroScreen().privacySensitive()
         .onAppear { confirmation.enter(); actions.activate() }
         .task {
             if loadsOnAppear { await model.loadPrivacy() }

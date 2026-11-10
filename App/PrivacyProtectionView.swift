@@ -35,7 +35,7 @@ struct PrivacyProtectionView: View {
 
     var body: some View {
         Form {
-            Section { Text("authEntry.gate.body", tableName: "AuthEntry").fixedSize(horizontal: false, vertical: true) }
+            Section { CYHeroHeader("authEntry.privacy.title", subtitle: "authEntry.gate.body", tableName: "AuthEntry").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             Section {
                 ForEach(PrivacyGuideSummaryPresentation.defaultItems) { item in
                     VStack(alignment: .leading, spacing: 4) {
@@ -56,8 +56,8 @@ struct PrivacyProtectionView: View {
             }
             Section {
                 LabeledContent {
-                    if granted { Text("authEntry.privacy.consentGranted", tableName: "AuthEntry") }
-                    else { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") }
+                    if granted { Label { Text("authEntry.privacy.consentGranted", tableName: "AuthEntry") } icon: { Image(systemName: "checkmark.seal") }.foregroundStyle(CYColor.successText) }
+                    else { Label { Text("authEntry.privacy.consentMissing", tableName: "AuthEntry") } icon: { Image(systemName: "exclamationmark.circle") }.foregroundStyle(CYColor.warningText) }
                 } label: { Text("authEntry.privacy.consentStatus", tableName: "AuthEntry") }
                     .accessibilityIdentifier("authEntry.privacy.consentStatus")
                 Text("authEntry.privacy.manage", tableName: "AuthEntry").font(.footnote).foregroundStyle(CYColor.textSecondary)
@@ -73,9 +73,8 @@ struct PrivacyProtectionView: View {
             }
             if !granted { UsageConsentSignInRequirement(market: market, policy: policy, granted: $granted) }
         }
-        .scrollContentBackground(.hidden)
-        .background(CYColor.bgPage)
-        .navigationTitle(Text("authEntry.privacy.title", tableName: "AuthEntry"))
+        .cyGroupedSurface()
+        .cyHeroScreen()
         .sheet(item: $document) { sheet in
             NavigationStack {
                 SettingsLegalDocumentView(type: sheet.type, market: market, reader: legalReader)
