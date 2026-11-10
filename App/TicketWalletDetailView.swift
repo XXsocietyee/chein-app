@@ -6,14 +6,21 @@ import SwiftUI
     let reader: any TicketWalletReading
     var lifecycleCoordinator: OrderLifecycleCoordinator? = nil
     var makeTeamCoordinator: (() -> TeamCoordinator)? = nil
+    /// Zoom source in the wallet (iOS 18); nil keeps the default push.
+    var heroNamespace: Namespace.ID? = nil
+    var heroID: Int? = nil
     @Environment(\.ticketWalletPlayProvider) private var playProvider
+    @Environment(\.locale) private var locale
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletTicket>()
     @State private var isVisible = false
     @State private var refreshOnActive = false
     @State private var playEntry = TicketWalletPlayEntry()
     @State private var playReadOwner: TicketWalletPlayOwner?
+    @State private var presenting = false
+    @Namespace private var presentHero
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader, id: id) }
+    private var c: CoreLoopCopy { CoreLoopCopy(locale: locale) }
     var body: some View {
         let offeredPresentation = model.presentation
         List {
@@ -26,7 +33,14 @@ import SwiftUI
             } else if let ticket = model.value(owner: key), ticket.id == id {
                 Section {
                     TicketWalletDetailHeader(ticket: ticket)
+                        .cyHeroSource("present", in: presentHero)
                         .questifyCardListRow()
+                    if ticket.status == .ready {
+                        // The pass holder's one primary action. Staff verify; the real code only comes from the injected factory.
+                        CYPillButton(verbatim: c.t("出示票券", "Present pass"), systemImage: "qrcode") { presenting = true }
+                            .accessibilityIdentifier("ticketWallet.present.open")
+                            .listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    }
                 }
                 if let makeTeamCoordinator {
                     TicketWalletTeamEntrySection(ticket: ticket, requestedID: id, reader: reader, makeCoordinator: makeTeamCoordinator)
@@ -41,7 +55,7 @@ import SwiftUI
                             playEntry.activate(ticket: ticket, requestedID: id, reader: reader, provider: playProvider,
                                                presentationID: presentationID)
                         } label: { Label("playerJourney.start", systemImage: "play.fill") }
-                        .buttonStyle(.cyPrimary(fullWidth: true))
+                        .modifier(TicketWalletPlayButtonStyle(secondary: ticket.status == .ready))
                         .listRowBackground(Color.clear)
                         .accessibilityIdentifier("ticketWallet.play.open")
                     }
@@ -116,6 +130,15 @@ import SwiftUI
                 }
             }
         .accessibilityIdentifier("ticketWallet.detail")
+        .modifier(CYOptionalHeroDestination(id: heroID ?? id, namespace: heroNamespace))
+        .fullScreenCover(isPresented: $presenting) {
+            if let ticket = model.value(owner: key), ticket.id == id {
+                TicketPassPresentView(ticket: ticket) { presenting = false }
+                    .cyHeroDestination("present", in: presentHero)
+            } else {
+                Color.black.ignoresSafeArea().onAppear { presenting = false }
+            }
+        }
     }
     private func replacePresentation() {
         guard isVisible, scenePhase == .active else { model.endPresentation(preservingValues: false); return }
@@ -137,6 +160,14 @@ import SwiftUI
            model.value(owner: captured)?.id == id, captured == key {
             playReadOwner = provider.owner
         }
+    }
+}
+
+/// Play start steps back to the outlined style while the pass itself owns the primary (Present) action.
+private struct TicketWalletPlayButtonStyle: ViewModifier {
+    let secondary: Bool
+    @ViewBuilder func body(content: Content) -> some View {
+        if secondary { content.buttonStyle(.cySecondary(fullWidth: true)) } else { content.buttonStyle(.cyPrimary(fullWidth: true)) }
     }
 }
 
