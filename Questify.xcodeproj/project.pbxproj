@@ -2955,6 +2955,16 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "D65BB0D0B0C6ED10042C7AF8";
 		};
+		"368362C4D52A66D3C6EAA898" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignFixtures/AlbumFixtures.swift";
+			"sourceTree" = "<group>";
+		};
+		"14441368CAC714E51B5331A1" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "368362C4D52A66D3C6EAA898";
+		};
 		"983E4F4A515049BFC1647968" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3024,16 +3034,6 @@
 		"B7B1DE3919417E86151D4F40" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "DCCDC54EA0B2D688B267E692";
-		};
-		"A42FE37BA92DB11BAF84DFAC" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/DesignFixtures/E1TicketFixtures.swift";
-			"sourceTree" = "<group>";
-		};
-		"64F67A14E1E2266540588B76" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "A42FE37BA92DB11BAF84DFAC";
 		};
 		"63D34C19DC34F5F3BDA50C08" = {
 			"isa" = "PBXFileReference";
@@ -3154,6 +3154,16 @@
 		"AEEC38686AEC955EE3D695E2" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "062D849A750988F9A7996757";
+		};
+		"C29815D3422CDCC9B3C79A9D" = {
+			"isa" = "PBXFileReference";
+			"lastKnownFileType" = "sourcecode.swift";
+			"path" = "App/DesignSystem/CYAlbum.swift";
+			"sourceTree" = "<group>";
+		};
+		"21BB346DEC7FC9E258F7942A" = {
+			"isa" = "PBXBuildFile";
+			"fileRef" = "C29815D3422CDCC9B3C79A9D";
 		};
 		"CD7AEA418FB522FA3F0C8475" = {
 			"isa" = "PBXFileReference";
@@ -3355,16 +3365,6 @@
 			"isa" = "PBXBuildFile";
 			"fileRef" = "64A177E4326474477FAA7828";
 		};
-		"33B848792095A9B7167706BE" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/DesignSystem/CYPhase.swift";
-			"sourceTree" = "<group>";
-		};
-		"375BF6B8833E9F38B7E65B6F" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "33B848792095A9B7167706BE";
-		};
 		"0903E595C45C4545731A2A85" = {
 			"isa" = "PBXFileReference";
 			"lastKnownFileType" = "sourcecode.swift";
@@ -3444,16 +3444,6 @@
 		"0F84E8455E3AE9C5B52C097E" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "2FAA663B4078640434196980";
-		};
-		"B79F202B805F2836091F4731" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/DesignSystem/CYTicketPass.swift";
-			"sourceTree" = "<group>";
-		};
-		"DADDBFFC23D588FBA15D587F" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "B79F202B805F2836091F4731";
 		};
 		"6D30BC01F5A5E489AB6ACBF0" = {
 			"isa" = "PBXFileReference";
@@ -14083,16 +14073,6 @@
 		"4ACBFC49459110D3A04BD611" = {
 			"isa" = "PBXBuildFile";
 			"fileRef" = "58B8E9E87B7AEAA72F141AA2";
-		};
-		"4954CA6FB519918AFF34C94D" = {
-			"isa" = "PBXFileReference";
-			"lastKnownFileType" = "sourcecode.swift";
-			"path" = "App/TicketPassPresentView.swift";
-			"sourceTree" = "<group>";
-		};
-		"7EE895F67A3A6A1F999BED1E" = {
-			"isa" = "PBXBuildFile";
-			"fileRef" = "4954CA6FB519918AFF34C94D";
 		};
 		"244BDBA595BA9586184D9FE7" = {
 			"isa" = "PBXFileReference";
@@ -35583,6 +35563,7 @@
 				"A104E87922501BC418E11B04",
 				"5832FA07D56AAB7260C9691F",
 				"D65BB0D0B0C6ED10042C7AF8",
+				"368362C4D52A66D3C6EAA898",
 				"983E4F4A515049BFC1647968",
 				"CF2B676C2317254407CF074F",
 				"4F15BFB92BB62A4B85C8A85B",
@@ -35590,7 +35571,6 @@
 				"157BE3732C00EE23BAE4C233",
 				"D5B6BD987ADCEA15F903B05E",
 				"DCCDC54EA0B2D688B267E692",
-				"A42FE37BA92DB11BAF84DFAC",
 				"63D34C19DC34F5F3BDA50C08",
 				"3A5981A924FC86306EBBF6F6",
 				"EC9FE7E5343516D469E1AF87",
@@ -35603,6 +35583,7 @@
 				"B4AB29D60DEF4C8CEB5AF328",
 				"E0DF3A3D482E7F8028906353",
 				"062D849A750988F9A7996757",
+				"C29815D3422CDCC9B3C79A9D",
 				"CD7AEA418FB522FA3F0C8475",
 				"9B56A1A0795B82ACDA884752",
 				"17703DBD5D2C0CA79F864D35",
@@ -35623,7 +35604,6 @@
 				"61286ACF3A7746D80578648A",
 				"0C7A21CDFDB47DFB38356F1B",
 				"64A177E4326474477FAA7828",
-				"33B848792095A9B7167706BE",
 				"0903E595C45C4545731A2A85",
 				"4F72F2639389F3DA366C64A1",
 				"A110470F5821A6FFBE4C12EE",
@@ -35632,7 +35612,6 @@
 				"E0F28B4989022A5B463A0865",
 				"6BEB12C7C283D6F8F1563CF8",
 				"2FAA663B4078640434196980",
-				"B79F202B805F2836091F4731",
 				"6D30BC01F5A5E489AB6ACBF0",
 				"BC3EF634F214F6A2D220551D",
 				"3FFA3958EDD157C5A3D94CAA",
@@ -36695,7 +36674,6 @@
 				"69936D08B9196D14ECC97B01",
 				"14A0CE502654AD0F44CA0565",
 				"58B8E9E87B7AEAA72F141AA2",
-				"4954CA6FB519918AFF34C94D",
 				"244BDBA595BA9586184D9FE7",
 				"2D1E822C485C2CC92C039498",
 				"2E4F2696E954D4A857A1485B",
@@ -40181,6 +40159,7 @@
 				"17190BF26FE1D38576F16CFF",
 				"5A179EC23C564EACF80004AC",
 				"87D6719C75E6D3D131FE72CF",
+				"14441368CAC714E51B5331A1",
 				"263851C408F43819D3F4AAA5",
 				"843640297630A42AB861E5DE",
 				"1D87710A1E02F0228AAE2A52",
@@ -40188,7 +40167,6 @@
 				"7921968AF207DEC8B2BB1D49",
 				"C185AAC650678F2E61882320",
 				"B7B1DE3919417E86151D4F40",
-				"64F67A14E1E2266540588B76",
 				"DAF5E5FF2AEFAFCE1F2C2595",
 				"B7A79EF39057FC1CD4EC1E82",
 				"8D07A35B332F6D9BDBE0F8E9",
@@ -40201,6 +40179,7 @@
 				"DA8B566C0BBB97AC4E427904",
 				"060AE06495FCB0EBB5B09591",
 				"AEEC38686AEC955EE3D695E2",
+				"21BB346DEC7FC9E258F7942A",
 				"7E2AE4533B66B175E2C81F7D",
 				"798F7EB3CF7792CA1BB108B2",
 				"2DBDFD5E41E761189D9C1BF7",
@@ -40221,7 +40200,6 @@
 				"56A9DFC3F110266FE6A5C5C2",
 				"CE8D92859607AC757A716A6C",
 				"9C57971BEC97DE9530140F7C",
-				"375BF6B8833E9F38B7E65B6F",
 				"1997F7FA34B2553F303331D3",
 				"8872F08A9DD2393A9F2EB9A9",
 				"94394392C552E39B1F204A9D",
@@ -40230,7 +40208,6 @@
 				"38A14AC99195D67D83C73550",
 				"24F6C459A2CE0DDDA05B214F",
 				"0F84E8455E3AE9C5B52C097E",
-				"DADDBFFC23D588FBA15D587F",
 				"B6613DF03F3A98A45BE6D658",
 				"985B2C5C5D720EF6D1FBFE71",
 				"69AB87740CE786288AB31FBB",
@@ -41293,7 +41270,6 @@
 				"50EB161173A4E7E56CA3978E",
 				"80D7D76112DE3B9D65DC0DE5",
 				"4ACBFC49459110D3A04BD611",
-				"7EE895F67A3A6A1F999BED1E",
 				"83CE49A435F67FEC2FB63293",
 				"AFA196D10BB371B40D3B5AED",
 				"CB0C5E1A9430FB5A3C0FC705",
@@ -43523,7 +43499,7 @@
 				"CODE_SIGN_ENTITLEMENTS" = "Config/Questify.entitlements";
 				"SWIFT_OPTIMIZATION_LEVEL" = "-O";
 				"DEBUG_INFORMATION_FORMAT" = "dwarf-with-dsym";
-				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E1TicketFixtures.swift E2CityFixtures.swift E2Fixtures.swift E3Fixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift";
+				"EXCLUDED_SOURCE_FILE_NAMES" = "$(inherited) AppStoreReviewDemoAccountAndFixtureSectionView.swift AlbumFixtures.swift D2Fixtures.swift D4Fixtures.swift D6Fixtures.swift DesignFixtureRegistry.swift DesignFixtureReleaseExclusionAudit.swift E1BundleFixtures.swift E1Fixtures.swift E2CityFixtures.swift E2Fixtures.swift E3Fixtures.swift E5Fixtures.swift E5bFixtures.swift E5cFixtures.swift KitGalleryFixture.swift MerchantConsoleFixtures.swift MotionLabFixture.swift OnboardingFixtures.swift OrdersWalletFixtures.swift PublishDesignFixtures.swift";
 			};
 			"baseConfigurationReference" = "CAE662172FD450BB0CD710A7";
 		};

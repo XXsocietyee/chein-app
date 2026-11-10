@@ -7,14 +7,26 @@ struct ObjectBadgeWallParityHeader: View {
     let wall: ProfileBadgeWall
     let focusBadgeCode: String?
     @Environment(\.growthExploreHomeAction) private var onExploreHome
+    @Environment(\.locale) private var locale
     @State private var exploreConsumed = false
     var body: some View {
         let summary = ObjectBadgeWallSummary(wall: wall)
         Section {
             if !wall.isPartial {
-                CYCollectedLockedSummary(collected: summary.unlocked, locked: summary.locked)
-                    .listRowBackground(Color.clear)
-                .accessibilityIdentifier("objects.badge.summary")
+                // Album cover: the ring counts up unlocked / total (received rows only); the tiles keep the honest split.
+                ViewThatFits(in: .horizontal) {
+                    HStack(alignment: .center, spacing: CYSpacing.lg) {
+                        ring(summary)
+                        CYCollectedLockedSummary(collected: summary.unlocked, locked: summary.locked)
+                            .accessibilityIdentifier("objects.badge.summary")
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.md) {
+                        ring(summary)
+                        CYCollectedLockedSummary(collected: summary.unlocked, locked: summary.locked)
+                            .accessibilityIdentifier("objects.badge.summary")
+                    }
+                }
+                .listRowBackground(Color.clear)
             }
             if let focus = ObjectBadgeWallFocus.resolve(code: focusBadgeCode, wall: wall) {
                 Label { focusText(focus) } icon: { Image(systemName: "scope").accessibilityHidden(true) }
@@ -31,6 +43,11 @@ struct ObjectBadgeWallParityHeader: View {
                     .accessibilityIdentifier("objects.badge.explore")
             }
         }
+    }
+    private func ring(_ summary: ObjectBadgeWallSummary) -> some View {
+        CYAlbumProgressRing(value: summary.unlocked, total: summary.total, size: 84,
+                            accessibilityLabel: Text(verbatim: ChannelCopy.text("已点亮 \(summary.unlocked) / \(summary.total) 枚徽章",
+                                                                                "\(summary.unlocked) of \(summary.total) badges unlocked", locale: locale)))
     }
     @ViewBuilder private func focusText(_ focus: ObjectBadgeWallFocus) -> some View {
         switch focus {
