@@ -8,7 +8,7 @@ struct StampAlbumTotalHeader: View {
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, minHeight: 96, alignment: .leading)
             .padding(CYSpacing.lg)
-            .background { CYCoverArt(seed: "stamp-album", symbol: "seal.fill") }
+            .background { CYCoverArt(seed: "stamp-album", symbol: "seal.fill", cornerRadius: CYRadius.lg) }
             .accessibilityIdentifier("roam.experience.album.total")
     }
 }

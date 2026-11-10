@@ -114,7 +114,7 @@ struct RoamPassportToolsPageOwner: Hashable {
         let owner = RoamPassportToolsPageOwner(reader)
         let _ = RoamHostedScopeTracker.shared.observePassport(reader)
         RoamAnniversaryContent(reader: reader, routeDestination: routeDestination, pageOwner: owner)
-            .appNavigationTitle("roam.tools.anniversary")
+            .appNavigationTitle("roam.tools.anniversary").navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -170,7 +170,9 @@ struct RoamAnniversaryReadIntent {
     var body: some View {
         let retry = readIntent(state.retryIntent), more = readIntent(.more), refresh = readIntent(.refresh)
         List {
-            CYCoverHeaderSection("roam.tools.anniversary", symbol: "calendar", seed: "anniv")
+            CYCoverHeaderSection("roam.tools.anniversary", symbol: "party.popper.fill", seed: "anniv")
+                .overlay { CYConfettiBurst(fireOnAppear: true, pieces: 36).frame(height: 220).allowsHitTesting(false) }
+                .sensoryFeedback(.success, trigger: isVisible) { _, new in new }
             Section {
                 HStack(alignment: .firstTextBaseline) {
                     Text(verbatim: dateLabel).font(.largeTitle.bold()).monospacedDigit()
@@ -462,7 +464,7 @@ struct RoamAnniversaryReadIntent {
             .scrollContentBackground(.hidden)
             .background(Theme.Color.bgPage(in: domain))
             .themeDomain(domain)
-            .appNavigationTitle("roam.tools.recap")
+            .appNavigationTitle("roam.tools.recap").navigationBarTitleDisplayMode(.inline)
     }
 }
 
@@ -618,14 +620,8 @@ struct RoamAnniversaryReadIntent {
             if (loading || !lifetime.ready) && page == nil { Section { ProgressView("roam.tools.recap.loading") } }
             if let page {
                 Section {
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(page.counts.routes, format: .number).font(Theme.Font.pageTitle).monospacedDigit()
-                        Text("roam.tools.recap.routesDone").foregroundStyle(.secondary)
-                    }.accessibilityElement(children: .combine).accessibilityIdentifier("roam.tools.recap.routes")
-                    LabeledContent("roam.tools.recap.kind.places") { Text(page.counts.places, format: .number) }
-                        .accessibilityIdentifier("roam.tools.recap.places")
-                    LabeledContent("roam.tools.recap.kind.stamps") { Text(page.counts.stamps, format: .number) }
-                        .accessibilityIdentifier("roam.tools.recap.stamps")
+                    RoamRecapShareCard(month: monthDate, routes: page.counts.routes, places: page.counts.places, stamps: page.counts.stamps)
+                        .listRowInsets(EdgeInsets(top: 0, leading: CYSpacing.lg, bottom: 0, trailing: CYSpacing.lg)).listRowBackground(Color.clear)
                 }
             }
             Section {
@@ -755,5 +751,80 @@ private struct RoamRecapWeekChart: View {
                     .accessibilityLabel(Text("roam.tools.recap.weekCount \(week.index) \(week.count)"))
             }
         }.frame(minHeight: chartHeight).accessibilityIdentifier("roam.tools.recap.weeks")
+    }
+}
+
+/// Share-card stat summary (Spotify Wrapped / Duolingo year-in-review pattern): generated art, month, one big number, two tiles, one Share capsule.
+/// Counts come from the recap page; nothing here is invented. The shared image is the same card rendered at 3x.
+struct RoamRecapShareCard: View {
+    let month: Date
+    let routes: Int
+    let places: Int
+    let stamps: Int
+    @Environment(\.displayScale) private var scale
+    @Environment(\.locale) private var locale
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var card: some View { RoamRecapShareFace(month: month, routes: routes, places: places, stamps: stamps) }
+    var body: some View {
+        VStack(spacing: CYSpacing.md) {
+            card
+            ShareLink(item: renderedImage(), preview: SharePreview(Text("roam.tools.recap"), image: renderedImage())) {
+                Label { Text(verbatim: ChannelCopy.text("分享这张卡片", "Share this card", locale: locale)) } icon: { Image(systemName: "square.and.arrow.up") }
+                    .font(CYTypography.body.weight(.semibold)).frame(maxWidth: .infinity, minHeight: 48)
+            }
+            .buttonStyle(.cySecondary)
+            .accessibilityIdentifier("roam.tools.recap.share")
+        }
+    }
+    @MainActor private func renderedImage() -> Image {
+        let renderer = ImageRenderer(content: card.frame(width: 340).environment(\.locale, locale).environment(\.colorScheme, .dark))
+        renderer.scale = 3
+        return renderer.uiImage.map(Image.init(uiImage:)) ?? Image(systemName: "photo")
+    }
+}
+
+struct RoamRecapShareFace: View {
+    let month: Date
+    let routes: Int
+    let places: Int
+    let stamps: Int
+    @Environment(\.locale) private var locale
+    var body: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(month, format: .dateTime.year().month(.wide)).font(CYTypography.meta.weight(.semibold)).foregroundStyle(.white.opacity(0.85)).textCase(.uppercase)
+            Text(routes, format: .number).font(.system(size: 64, weight: .heavy, design: .rounded)).monospacedDigit().foregroundStyle(.white)
+                .minimumScaleFactor(0.6).lineLimit(1)
+            Text("roam.tools.recap.routesDone").font(CYTypography.body.weight(.semibold)).foregroundStyle(.white.opacity(0.9))
+            ViewThatFits(in: .horizontal) {
+                HStack(spacing: CYSpacing.sm) { tiles }
+                VStack(spacing: CYSpacing.sm) { tiles }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(CYSpacing.xl)
+        .background {
+            ZStack {
+                CYCoverArt(seed: "recap", symbol: "figure.walk", showsDebugLabel: true)
+                LinearGradient(colors: [.clear, .black.opacity(0.5)], startPoint: .center, endPoint: .bottom)
+            }.clipShape(RoundedRectangle(cornerRadius: CYRadius.sheet, style: .continuous))
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityIdentifier("roam.tools.recap.routes")
+    }
+    @ViewBuilder private var tiles: some View {
+        tile(places, "roam.tools.recap.kind.places", "mappin.and.ellipse").accessibilityIdentifier("roam.tools.recap.places")
+        tile(stamps, "roam.tools.recap.kind.stamps", "seal.fill").accessibilityIdentifier("roam.tools.recap.stamps")
+    }
+    private func tile(_ n: Int, _ key: String, _ symbol: String) -> some View {
+        HStack(spacing: CYSpacing.sm) {
+            Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(.white).accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(n, format: .number).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(.white)
+                Text(LocalizedStringKey(key)).font(CYTypography.caption).foregroundStyle(.white.opacity(0.85))
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(CYSpacing.md).frame(maxWidth: .infinity, alignment: .leading)
+        .background(.black.opacity(0.28), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
     }
 }

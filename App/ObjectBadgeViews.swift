@@ -82,9 +82,7 @@ struct ObjectBadgeWallLayoutSelection {
     }
     @ViewBuilder private func badgeRows(_ badges: [ProfileBadgeSelection], accessibilityPrefix: String, layout: ObjectBadgeWallLayout, wall: ProfileBadgeWall) -> some View {
         if layout == .wall {
-            LazyVGrid(columns: dynamicTypeSize.isAccessibilitySize
-                ? [GridItem(.flexible(), alignment: .topLeading)]
-                : [GridItem(.adaptive(minimum: 160), spacing: 12, alignment: .topLeading)], alignment: .leading, spacing: 12) {
+            LazyVGrid(columns: CYCollectionGrid.columns(accessibility: dynamicTypeSize.isAccessibilitySize), alignment: .leading, spacing: CYCollectionGrid.spacing) {
                 ForEach(Array(badges.enumerated()), id: \.offset) { index, badge in
                     link(badge, identifier: "\(accessibilityPrefix).\(index)", layout: layout, wall: wall).buttonStyle(.plain)
                 }
