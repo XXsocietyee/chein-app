@@ -124,8 +124,12 @@ public struct OfficialOrganizerCheck: Equatable {
     public let known: Bool
     public let blockers: [String]
     public let risks: [String]
+    /// False when the server omitted `risks`. An omitted list is unknown, not zero.
+    public let risksKnown: Bool
     public var pass: Bool { known && blockers.isEmpty }
-    public init(known: Bool, blockers: [String], risks: [String]) { self.known = known; self.blockers = blockers; self.risks = risks }
+    public init(known: Bool, blockers: [String], risks: [String], risksKnown: Bool = false) {
+        self.known = known; self.blockers = blockers; self.risks = risks; self.risksKnown = risksKnown
+    }
 }
 public enum OfficialOrganizerCheckResult: Equatable {
     case allowed(OfficialOrganizerCheck)
@@ -203,7 +207,8 @@ public enum OfficialOrganizerFailure: Error, Equatable { case disabled, invalid,
         guard env.code == 200 else { return .denied(env.msg) }
         let body = env.data as? [String: Any] ?? [:]
         func list(_ v: Any?) -> [String] { (v as? [Any])?.compactMap { ($0 as? String).flatMap { $0.trimmingCharacters(in: .whitespaces).isEmpty ? nil : $0 } } ?? [] }
-        return .allowed(OfficialOrganizerCheck(known: body["blockers"] is [Any], blockers: list(body["blockers"]), risks: list(body["risks"])))
+        return .allowed(OfficialOrganizerCheck(known: body["blockers"] is [Any], blockers: list(body["blockers"]), risks: list(body["risks"]),
+                                               risksKnown: body["risks"] is [Any]))
     }
     public func eventState(eventID: Int) async throws -> OfficialOrganizerEventState? {
         guard eventID > 0 else { throw OfficialOrganizerFailure.invalid }
@@ -235,3 +240,98 @@ public enum OfficialOrganizerFailure: Error, Equatable { case disabled, invalid,
         return OfficialOrganizerReceipt(requestId: command.requestId, state: state, message: (r["message"] as? String) ?? "")
     }
 }
+
+/// Page facts for the organizer console. A missing capability stays `.hidden`.
+/// This is not a player-first entry: `showsPlayerEntry` is always false.
+public enum OfficialOrganizerConsoleLoad: Equatable {
+    case idle, loading, failed, denied
+    case allowed(OfficialOrganizerCheck, OfficialOrganizerEventState?)
+}
+
+public enum OfficialOrganizerConsoleState: Equatable {
+    case hidden, loading, empty, error, unknown, denied, ready
+}
+
+public struct OfficialOrganizerConsoleSnapshot: Equatable {
+    public static let unknownMark = "—"
+    /// Never a tab, home row, or signed-out entry. The console opens only from a host gate.
+    public static let showsPlayerEntry = false
+    public let state: OfficialOrganizerConsoleState
+    public var showsPlayerEntry: Bool { false }
+    public let statusText: String
+    public let controlText: String
+    public let blockerCountText: String
+    public let riskCountText: String
+    public let accessibilityIdentifier: String?
+
+    public init(state: OfficialOrganizerConsoleState, statusText: String, controlText: String,
+                blockerCountText: String, riskCountText: String, accessibilityIdentifier: String?) {
+        self.state = state
+        self.statusText = statusText
+        self.controlText = controlText
+        self.blockerCountText = blockerCountText
+        self.riskCountText = riskCountText
+        self.accessibilityIdentifier = accessibilityIdentifier
+    }
+
+    /// A missing integer is an em dash. A server `0` stays `"0"`.
+    public static func countText(known: Bool, count: Int) -> String {
+        guard known, count >= 0 else { return unknownMark }
+        return String(count)
+    }
+    public static func statusText(_ status: Int?) -> String {
+        guard let status else { return unknownMark }
+        return String(status)
+    }
+    public static func controlText(_ control: OfficialOrganizerControl?) -> String {
+        control?.rawValue ?? unknownMark
+    }
+
+    public static func resolve(enabled: Bool, load: OfficialOrganizerConsoleLoad) -> OfficialOrganizerConsoleSnapshot {
+        let dash = unknownMark
+        func snap(_ state: OfficialOrganizerConsoleState, status: String = dash, control: String = dash,
+                  blockers: String = dash, risks: String = dash, id: String? = nil) -> OfficialOrganizerConsoleSnapshot {
+            OfficialOrganizerConsoleSnapshot(state: state, statusText: status, controlText: control,
+                                             blockerCountText: blockers, riskCountText: risks, accessibilityIdentifier: id)
+        }
+        guard enabled else { return snap(.hidden) }
+        switch load {
+        case .idle, .loading:
+            return snap(.loading, id: "official.organizer.loading")
+        case .failed:
+            return snap(.error, id: "official.organizer.error")
+        case .denied:
+            return snap(.denied, id: "official.organizer.denied")
+        case .allowed(let check, nil):
+            return snap(.empty,
+                        blockers: countText(known: check.known, count: check.blockers.count),
+                        risks: countText(known: check.risksKnown, count: check.risks.count),
+                        id: "official.organizer.empty")
+        case .allowed(let check, let event?):
+            let status = statusText(event.status)
+            let control = controlText(event.control)
+            let blockers = countText(known: check.known, count: check.blockers.count)
+            let risks = countText(known: check.risksKnown, count: check.risks.count)
+            let factsKnown = event.status != nil && event.control != nil && check.known && check.risksKnown
+            if factsKnown {
+                return snap(.ready, status: status, control: control, blockers: blockers, risks: risks,
+                            id: "official.organizer.content")
+            }
+            return snap(.unknown, status: status, control: control, blockers: blockers, risks: risks,
+                        id: "official.organizer.unknown")
+        }
+    }
+}
+
+#if DEBUG
+/// Synthetic organizer-console payloads. Not a live host, account, or route.
+public enum OfficialOrganizerConsoleFixtureData {
+    public static let allowedCheck = Data(#"{"code":200,"data":{"blockers":[],"risks":[],"pass":true}}"#.utf8)
+    public static let omittedCounts = Data(#"{"code":200,"data":{}}"#.utf8)
+    public static let denied = Data(#"{"code":500,"msg":"synthetic host gate"}"#.utf8)
+    public static let readyEvent = Data(#"{"code":200,"data":{"id":5,"status":2,"controlState":"NORMAL","title":"Synthetic official event","contractVersion":2}}"#.utf8)
+    public static let draftEvent = Data(#"{"code":200,"data":{"id":5,"status":0,"controlState":"NORMAL","title":"Synthetic draft","contractVersion":2}}"#.utf8)
+    public static let unknownEvent = Data(#"{"code":200,"data":{"id":5,"title":"Synthetic official event","contractVersion":2}}"#.utf8)
+    public static let emptyPublished = Data(#"{"code":200,"data":{"events":[]}}"#.utf8)
+}
+#endif

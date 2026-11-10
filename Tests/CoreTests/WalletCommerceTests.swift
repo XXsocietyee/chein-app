@@ -4,6 +4,26 @@ import XCTest
 import FoundationNetworking
 #endif
 
+private final class EarningsOverviewFixtureTransport: HTTPTransport {
+    let outcome: WalletEarningsOverviewFixtureData.Outcome
+    var paths: [String] = []
+    init(_ outcome: WalletEarningsOverviewFixtureData.Outcome) { self.outcome = outcome }
+    func send(_ request: URLRequest) async throws -> (Data, Int) {
+        let path = request.url?.path ?? ""
+        paths.append(path)
+        switch outcome {
+        case .unknown, .empty, .ready, .failed:
+            guard path == "/api/wallet/stages", let response = WalletEarningsOverviewFixtureData.response(outcome) else { throw APIError.invalidRequest }
+            return response
+        case .balanceEmpty, .balanceReady:
+            guard path == "/api/user/info", let response = WalletEarningsOverviewFixtureData.response(outcome) else { throw APIError.invalidRequest }
+            return response
+        case .loading:
+            throw APIError.invalidRequest
+        }
+    }
+}
+
 private final class WalletRecordingTransport: HTTPTransport {
     var requests: [URLRequest] = []
     var handler: (URLRequest) async throws -> (Data, Int)
@@ -545,6 +565,50 @@ private final class WalletRecordingTransport: HTTPTransport {
         do { _ = try await guarded.send(request, scope: old, token: "fake"); XCTFail() }
         catch { XCTAssertEqual(error as? WalletCommerceSafetyError, .staleSession) }
         XCTAssertEqual(fake.requests.count, 1)
+    }
+
+    func testEarningsOverviewFixtureKeepsUnknownAsEmDashAndKnownZero() async throws {
+        let configuration = try config()
+        let unknown = EarningsOverviewFixtureTransport(.unknown)
+        let stages = try await WalletCommerceService(configuration: configuration, transport: unknown).stages(token: "fake")
+        XCTAssertEqual(unknown.paths, ["/api/wallet/stages"])
+        XCTAssertFalse(stages.amountsKnown)
+        XCTAssertEqual(WalletEarningsOverviewFixtureData.moneyText(known: false, amount: stages.withdrawable.value), "\u{2014}")
+        XCTAssertFalse(WalletEarningsOverviewFixtureData.moneyText(known: false, amount: Decimal(0)).contains("0"))
+        XCTAssertEqual(WalletEarningsOverviewFixtureData.unknownMoney, "\u{2014}")
+        let empty = try await WalletCommerceService(configuration: configuration, transport: EarningsOverviewFixtureTransport(.empty)).stages(token: "fake")
+        XCTAssertTrue(empty.amountsKnown)
+        XCTAssertEqual(empty.withdrawable.value, 0)
+        XCTAssertEqual(empty.pendingSettlement.value, 0)
+        XCTAssertEqual(empty.disputed.value, 0)
+        XCTAssertTrue(empty.complaintPeriod.isEmpty)
+        XCTAssertEqual(WalletEarningsOverviewFixtureData.moneyText(known: true, amount: empty.withdrawable.value), "0")
+        let ready = try await WalletCommerceService(configuration: configuration, transport: EarningsOverviewFixtureTransport(.ready)).stages(token: "fake")
+        XCTAssertTrue(ready.amountsKnown)
+        XCTAssertGreaterThan(ready.withdrawable.value, 0)
+        let zeroBalance = try await WalletCommerceService(configuration: configuration, transport: EarningsOverviewFixtureTransport(.balanceEmpty)).withdrawalBalance(memberID: 7, token: "fake")
+        XCTAssertEqual(zeroBalance.balance.value, 0)
+        let balance = try await WalletCommerceService(configuration: configuration, transport: EarningsOverviewFixtureTransport(.balanceReady)).withdrawalBalance(memberID: 7, token: "fake")
+        let expectedBalance = try XCTUnwrap(Decimal(string: "128.50", locale: Locale(identifier: "en_US_POSIX")))
+        XCTAssertEqual(balance.balance.value, expectedBalance)
+        XCTAssertEqual(balance.currency, "CNY")
+        let failed = EarningsOverviewFixtureTransport(.failed)
+        do {
+            _ = try await WalletCommerceService(configuration: configuration, transport: failed).stages(token: "fake")
+            XCTFail("error envelope decoded as stages")
+        } catch { XCTAssertEqual(error as? APIError, .httpStatus(503)) }
+        XCTAssertEqual(failed.paths, ["/api/wallet/stages"])
+        XCTAssertNil(WalletEarningsOverviewFixtureData.response(.loading))
+        XCTAssertThrowsError(try JSONDecoder().decode(WalletFundsStages.self, from: Data(#"{"pendingSettlement":0,"disputed":0}"#.utf8)))
+        let refused = EarningsOverviewFixtureTransport(.unknown)
+        var withdrawal = URLRequest(url: configuration.baseURL.appendingPathComponent("api/withdrawal/create"))
+        withdrawal.httpMethod = "POST"
+        do { _ = try await refused.send(withdrawal); XCTFail("fixture sent a withdrawal") }
+        catch { XCTAssertEqual(error as? APIError, .invalidRequest) }
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.payoutEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.paymentEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
     }
 
 }

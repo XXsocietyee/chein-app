@@ -70,6 +70,16 @@ public struct TemplateAuthoringReview: Equatable, Identifiable {
         } catch { state = .blocked; messageKey = "templateAuthor.storageFailed"; return false }
     }
     public var canRead: Bool { adapter.canRead }
+    /// Local editor phase only. A missing session stays hidden. This does not send.
+    public var editorReadiness: TemplateAuthoringPageReadiness {
+        TemplateAuthoringPageReadiness.editor(sessionPresent: session != nil, submitting: state == .submitting || shelfBusy,
+            blocked: state == .blocked || shelfBlocked, uncertain: state == .uncertain, draft: draft, messageKey: messageKey ?? shelfMessageKey)
+    }
+    /// Classifies a play-template info body the existing discovery reader already fetched.
+    /// `canRead == false` stays hidden. This method does not send and does not add a route.
+    public func libraryInfoReadiness(data: Data?, httpStatus: Int?, inFlight: Bool) -> TemplateAuthoringPageReadiness {
+        TemplateAuthoringPageReadiness.libraryInfo(data: data, httpStatus: httpStatus, readable: canRead, inFlight: inFlight)
+    }
     public var canSubmit: Bool {
         if let requestService { return requestService.canSubmit(path: "/api/template/draft") || requestService.canSubmit(path: "/api/template/publish") }
         return adapter.canSubmit

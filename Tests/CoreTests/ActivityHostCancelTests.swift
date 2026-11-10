@@ -24,6 +24,14 @@ final class ActivityHostCancelRulesTests: XCTestCase {
         XCTAssertFalse(ActivityHostCancelRules.isHost(hostMemberID: nil, accountID: 5))
         XCTAssertFalse(ActivityHostCancelRules.isHost(hostMemberID: 0, accountID: 0))
     }
+    func testUnknownPaidPlayerCountIsAnEmDash() {
+        XCTAssertEqual(ActivityHostCancelPreview.paidPlayers(0).paidPlayerCountText, "0")
+        XCTAssertEqual(ActivityHostCancelPreview.paidPlayers(4).paidPlayerCountText, "4")
+        XCTAssertEqual(ActivityHostCancelPreview.paidPlayers(-1).paidPlayerCountText, "—")
+        XCTAssertEqual(ActivityHostCancelPreview.unknownCount.paidPlayerCountText, "—")
+        XCTAssertEqual(ActivityHostCancelPreview.blocked(nil).paidPlayerCountText, "—")
+        XCTAssertNotEqual(ActivityHostCancelPreview.unknownCount.paidPlayerCountText, "0")
+    }
 }
 @MainActor final class ActivityHostCancelAccessTests: XCTestCase {
     private func make(_ t: CancelTransport, enabled: Bool = true) throws -> ActivityHostCancelHTTPAccess {

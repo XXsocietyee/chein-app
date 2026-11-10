@@ -3,10 +3,12 @@ import XCTest
 
 /// Mini-program pages/team/detail and pages/team/join facts. Synthetic data only.
 final class TeamPagePresentationTests: XCTestCase {
-    private func detail(status: Int = 0, joined: Bool? = true, leader: Bool? = true, joinMode: Int = 2, code: String? = "SYNTHETIC-TEAM", expire: String? = "2030-05-02 10:00:00") throws -> TeamDetail {
-        var team: [String: Any] = ["id": 4101, "title": "Synthetic", "status": status, "joinedCount": 2, "maxMembers": 4, "joinMode": joinMode]
+    private func detail(status: Int = 0, joined: Bool? = true, leader: Bool? = true, joinMode: Int = 2, code: String? = "SYNTHETIC-TEAM", expire: String? = "2030-05-02 10:00:00", joinedCount: Int? = 2, maxMembers: Int? = 4, members: [[String: Any]]? = nil) throws -> TeamDetail {
+        var team: [String: Any] = ["id": 4101, "title": "Synthetic", "status": status, "joinMode": joinMode]
+        if let joinedCount { team["joinedCount"] = joinedCount }
+        if let maxMembers { team["maxMembers"] = maxMembers }
         team["inviteCode"] = code; team["expireTime"] = expire
-        var object: [String: Any] = ["team": team, "members": [["memberId": 901, "memberName": "A", "role": 1]]]
+        var object: [String: Any] = ["team": team, "members": members ?? [["memberId": 901, "memberName": "A", "role": 1]]]
         object["joined"] = joined; object["leader"] = leader
         return try JSONDecoder().decode(TeamDetail.self, from: JSONSerialization.data(withJSONObject: object))
     }
@@ -79,6 +81,47 @@ final class TeamPagePresentationTests: XCTestCase {
         XCTAssertEqual(TeamPagePresentation.loadingKey(.invitation, hasDetail: true), "team.page.checkingInvite")
     }
 
+    func testInvitationMemberCountUnknownIsEmDashAndZeroStaysZero() throws {
+        XCTAssertEqual(TeamPagePresentation.unknownCountText, "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: nil, maximum: nil), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: nil, maximum: 4), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: 2, maximum: nil), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: -1, maximum: 4), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: 0, maximum: 4), "0 / 4")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: 2, maximum: 4), "2 / 4")
+        XCTAssertNotEqual(TeamPagePresentation.memberCountText(joined: nil, maximum: 4), "0")
+        XCTAssertNotEqual(TeamPagePresentation.memberCountText(joined: nil, maximum: 4), "0 / 4")
+        let loaded = try detail(joined: false, leader: false)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(loaded.team), "2 / 4")
+        XCTAssertFalse(TeamPagePresentation.rosterIsEmpty(loaded))
+        var team: [String: Any] = ["id": 4101, "title": "Synthetic", "status": 0, "joinedCount": 0, "maxMembers": 4, "joinMode": 1]
+        var object: [String: Any] = ["team": team, "members": [[String: Any]](), "joined": false, "leader": false]
+        let empty = try JSONDecoder().decode(TeamDetail.self, from: JSONSerialization.data(withJSONObject: object))
+        XCTAssertTrue(TeamPagePresentation.rosterIsEmpty(empty))
+        XCTAssertEqual(TeamPagePresentation.memberCountText(empty.team), "0 / 4")
+        team = ["id": 4101, "title": "Synthetic", "status": 0, "joinMode": 1]
+        object["team"] = team
+        let unknown = try JSONDecoder().decode(TeamDetail.self, from: JSONSerialization.data(withJSONObject: object))
+        XCTAssertNil(unknown.team.joinedCount)
+        XCTAssertNil(unknown.team.maxMembers)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(unknown.team), "—")
+        XCTAssertTrue(TeamPagePresentation.rosterIsEmpty(unknown))
+    }
+
+    func testInvitationReadoutSeparatesLoadingEmptyAndError() throws {
+        XCTAssertEqual(TeamPagePresentation.invitationReadout(loading: true, detail: nil, messageKey: nil, failure: nil), .loading)
+        XCTAssertEqual(TeamPagePresentation.invitationReadout(loading: false, detail: nil, messageKey: nil, failure: nil), .empty)
+        let legacy = TeamPagePresentation.invitationReadout(loading: false, detail: nil, messageKey: "team.invalidLink", failure: nil, legacyTeamID: true)
+        guard case .error(let state) = legacy else { return XCTFail("legacy link is an error") }
+        XCTAssertEqual(state.kind, .legacyLink)
+        let offline = TeamPagePresentation.invitationReadout(loading: false, detail: nil, messageKey: "team.loadFailed", failure: .network)
+        guard case .error(let offlineState) = offline else { return XCTFail("network failure is an error") }
+        XCTAssertEqual(offlineState.kind, .network)
+        let loaded = try detail(joined: false, leader: false)
+        XCTAssertEqual(TeamPagePresentation.invitationReadout(loading: true, detail: loaded, messageKey: nil, failure: nil), .ready)
+        XCTAssertEqual(TeamPagePresentation.invitationReadout(loading: false, detail: loaded, messageKey: "team.refreshFailed", failure: .network), .ready)
+    }
+
     func testInviteShareCardPayloadMatchesMiniProgramPath() throws {
         let payload = TeamInviteShareCardPayload(teamID: 4101, inviteCode: "SYNTHETIC-TEAM", title: "  ", canShareExternally: true)
         XCTAssertEqual(payload.teamID, 4101)
@@ -94,5 +137,42 @@ final class TeamPagePresentationTests: XCTestCase {
         XCTAssertEqual(derived?.canShareExternally, false)
         XCTAssertNil(TeamPagePresentation.inviteShareCard(try detail(status: 1)))
         XCTAssertNil(TeamPagePresentation.inviteShareCard(try detail(code: nil)))
+    }
+
+    func testMemberCountUnknownIsEmDashAndLiteralZeroStaysZero() throws {
+        XCTAssertEqual(TeamPagePresentation.unknownMetricDisplay, "\u{2014}")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: nil, maximum: 4), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: 2, maximum: nil), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: nil, maximum: nil), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: -1, maximum: 4), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: 2, maximum: 0), "—")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: 0, maximum: 4), "0 / 4")
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: 2, maximum: 4), "2 / 4")
+        let omitted = try detail(joined: nil, leader: nil, joinedCount: nil, maxMembers: nil)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: omitted.team.joinedCount, maximum: omitted.team.maxMembers), "—")
+        XCTAssertNotEqual(TeamPagePresentation.memberCountText(joined: omitted.team.joinedCount, maximum: omitted.team.maxMembers), "0")
+        XCTAssertNotEqual(TeamPagePresentation.memberCountText(joined: omitted.team.joinedCount, maximum: omitted.team.maxMembers), "0 / 0")
+        XCTAssertNil(TeamPagePresentation.joinRouteCode(omitted))
+        XCTAssertFalse(TeamAction.leave(teamID: omitted.team.id).isAllowed(detail: omitted))
+        XCTAssertFalse(TeamAction.disband(teamID: omitted.team.id).isAllowed(detail: omitted))
+        XCTAssertFalse(TeamAction.remove(teamID: omitted.team.id, memberID: 901).isAllowed(detail: omitted))
+    }
+
+    func testDetailPhaseCoversLoadingEmptyErrorUnknownAndReady() throws {
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: true, detail: nil, readFailed: false), .loading)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: true, detail: nil, readFailed: true), .loading)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: nil, readFailed: false), .empty)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: nil, readFailed: true), .error)
+        let ready = try detail()
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: ready, readFailed: false), .ready)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: true, detail: ready, readFailed: false), .ready)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: ready, readFailed: true), .error)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: try detail(members: []), readFailed: false), .empty)
+        let unknown = try detail(joinedCount: nil, maxMembers: 4)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: unknown, readFailed: false), .unknown)
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: unknown, readFailed: true), .unknown)
+        let fixture = try TeamSyntheticFixtures.detail()
+        XCTAssertEqual(TeamPagePresentation.detailPhase(loading: false, detail: fixture, readFailed: false), .ready)
+        XCTAssertEqual(TeamPagePresentation.memberCountText(joined: fixture.team.joinedCount, maximum: fixture.team.maxMembers), "2 / 4")
     }
 }

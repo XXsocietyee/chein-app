@@ -270,3 +270,178 @@ public enum ActivityPublishingWizard {
         }
     }
 }
+
+/// Readiness for `pages/publish/activity/index`. It classifies reads the wizard already performs.
+/// It does not publish, does not add a route, and does not change a route mark.
+/// Unknown numbers display as an em dash. A literal zero stays zero.
+public enum ActivityPublishingPageReadiness {
+    public static let unknownDisplay = "—"
+
+    public enum Phase: String, Equatable, Sendable {
+        case loading
+        case empty
+        case error
+        case unknown
+        case ready
+    }
+
+    /// A counted fact. Missing, blank, and non-integral values stay unknown. A literal 0 stays 0.
+    public struct Count: Equatable, Sendable {
+        public let value: Int?
+        public var isUnknown: Bool { value == nil }
+        public var display: String { value.map(String.init) ?? ActivityPublishingPageReadiness.unknownDisplay }
+
+        public init(value: Int?) { self.value = value }
+
+        public init(json: ProjectEditJSON?) {
+            switch json {
+            case .number?:
+                self.value = json?.integer
+            case .string(let raw)?:
+                self.value = Self.canonicalInteger(raw)
+            default:
+                self.value = nil
+            }
+        }
+
+        private static func canonicalInteger(_ raw: String) -> Int? {
+            let text = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !text.isEmpty, text != "—", text != "-", text.uppercased() != "UNKNOWN" else { return nil }
+            guard let value = Int(text), String(value) == text else { return nil }
+            return value
+        }
+    }
+
+    public struct OptionList: Equatable {
+        public let phase: Phase
+        public let rows: [PublishingOption]
+        public let messageKey: String?
+
+        public init(phase: Phase, rows: [PublishingOption], messageKey: String?) {
+            self.phase = phase
+            self.rows = rows
+            self.messageKey = messageKey
+        }
+
+        /// Loading wins. A failed read is an error with no invented rows. No rows is empty.
+        public static func resolve(loading: Bool, failed: Bool, rows: [PublishingOption]) -> OptionList {
+            if loading { return OptionList(phase: .loading, rows: rows, messageKey: nil) }
+            if failed { return OptionList(phase: .error, rows: [], messageKey: "publishModes.readFailed") }
+            if rows.isEmpty { return OptionList(phase: .empty, rows: [], messageKey: "publishModes.empty") }
+            return OptionList(phase: .ready, rows: rows, messageKey: nil)
+        }
+    }
+
+    public struct Snapshot: Equatable {
+        public let options: OptionList
+        public let submission: Phase
+
+        public var phase: Phase {
+            if submission == .unknown { return .unknown }
+            if options.phase == .loading { return .loading }
+            if submission == .error || options.phase == .error { return .error }
+            if options.phase == .empty { return .empty }
+            return .ready
+        }
+    }
+
+    /// Club activity publishing from an already-fetched home body. Money and merchant choice stay off.
+    public struct CapabilityGate: Equatable, Sendable {
+        public let activityAllowed: Bool
+        public let remaining: Count
+        public var showsMerchantChoice: Bool { false }
+        public var paymentEnabled: Bool { false }
+        public var payoutEnabled: Bool { false }
+        public var withdrawalEnabled: Bool { false }
+        public var virtualGoodsEnabled: Bool { false }
+
+        public static func parse(_ body: [String: ProjectEditJSON]?) -> CapabilityGate {
+            let allowed = body.map { PublishingCapability($0).activity } ?? false
+            return CapabilityGate(activityAllowed: allowed, remaining: Count(json: body?["quota"]?.object?["themesRemaining"]))
+        }
+    }
+
+    /// Reads this page already uses. Each one must already be live. This list does not add a path.
+    public static func supportingReads() -> [PublishingRead] {
+        [.capability, .identityStatus, .categories(activity: true), .collaborators(keyword: ""), .templates(keyword: "", scope: "")]
+    }
+
+    public static func supportingReadIsLive(_ read: PublishingRead) -> Bool {
+        let path = read.request.path
+        return ChinaReviewedRouteCapability.mark(for: path) == .liveInProduction
+            && ChinaReviewedRouteCapability.admitsChinaProductionCall(path)
+    }
+
+    /// Original create-request recovery stays hidden while those paths are not live.
+    public static var createRequestPaths: [String] {
+        [ActivityCreateRequestContract.submitPath, ActivityCreateRequestContract.readPath, ActivityCreateRequestContract.resumePath]
+    }
+
+    public static func createRequestPathStaysHidden(_ path: String) -> Bool {
+        ChinaReviewedRouteCapability.mark(for: path) != .liveInProduction
+            && ChinaReviewedRouteCapability.isHiddenFromChinaReviewed(path)
+    }
+
+    public static var createRequestRecoveryHidden: Bool {
+        createRequestPaths.allSatisfy(createRequestPathStaysHidden)
+    }
+
+    public static var createRequestRecoveryOffered: Bool { false }
+
+    public static func submissionPhase(_ outcome: PublishingWriteOutcome?) -> Phase {
+        switch outcome {
+        case .unknown: return .unknown
+        case .notSent, .rejected: return .error
+        case .acknowledged: return .ready
+        case nil: return .ready
+        }
+    }
+
+    public static func snapshot(options: OptionList, submission: PublishingWriteOutcome?) -> Snapshot {
+        Snapshot(options: options, submission: submissionPhase(submission))
+    }
+
+    /// Decodes an existing options payload. An invalid payload stays an error, not an empty list of guesses.
+    public static func options(kind: PublishingRead, payload: ProjectEditJSON) throws -> OptionList {
+        let rows = try PublishingContracts.options(payload, kind: kind)
+        return OptionList.resolve(loading: false, failed: false, rows: rows)
+    }
+
+    /// Collaborator follow count. Unknown is an em dash, including a literal UNKNOWN token. Zero stays 0.
+    public static func collaboratorFollowText(_ object: [String: ProjectEditJSON]) -> String {
+        Count(json: object["followNum"]).display
+    }
+
+    public static func draftQuantity(_ raw: String) -> String {
+        Count(json: .string(raw)).display
+    }
+
+    public static func messageKey(for phase: Phase) -> String? {
+        switch phase {
+        case .loading, .ready: return nil
+        case .empty: return "publishModes.empty"
+        case .error: return "publishModes.readFailed"
+        case .unknown: return "publishModes.unknown"
+        }
+    }
+}
+
+#if DEBUG
+/// Synthetic payloads for the activity wizard. Debug builds only. No network and no credentials.
+public enum ActivityPublishingFixtureData {
+    public static let categories = #"[{"id":1,"categoryName":"Synthetic walk"}]"#
+    public static let emptyCategories = "[]"
+    public static let collaboratorsUnknownFollow = #"{"rows":[{"id":7,"nickname":"Synthetic guest"}]}"#
+    public static let collaboratorsZeroFollow = #"{"rows":[{"id":8,"nickname":"Synthetic guest","followNum":0}]}"#
+    public static let collaboratorsUnknownWord = #"{"rows":[{"id":9,"nickname":"Synthetic guest","followNum":"UNKNOWN"}]}"#
+    public static let capabilityKnown = #"{"role":"club","quota":{"themesRemaining":3},"permission":{"canSimplePublish":true,"canProPublish":true}}"#
+    public static let capabilityUnknownQuota = #"{"role":"club","permission":{"canSimplePublish":true,"canProPublish":true}}"#
+    public static let capabilityZeroQuota = #"{"role":"club","quota":{"themesRemaining":0}}"#
+    public static let malformedOptions = #"{"rows":"not-a-list"}"#
+
+    public static func json(_ text: String) throws -> ProjectEditJSON {
+        try JSONDecoder().decode(ProjectEditJSON.self, from: Data(text.utf8))
+    }
+}
+#endif
+

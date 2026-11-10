@@ -142,5 +142,50 @@ class OfficialSourceChecks(unittest.TestCase):
         self.assertIn("testPublisherDenialIsNotRetryableFailure", ui)
         self.assertNotRegex(core, r'XCTAssert\w+\(try await')
 
+    def test_activity_list_page_states_and_string_spec(self):
+        model = read("Core/OfficialEventContracts.swift")
+        self.assertIn("case loading, empty, error, unknown, ready", model)
+        self.assertIn('public static let unknownMark = "—"', model)
+        self.assertIn("summaryCount: visible.count", model)
+        self.assertIn("canPublish == true", model)
+        for flag in ("showsMerchantChoice", "paymentEnabled", "payoutEnabled", "withdrawalEnabled", "virtualGoodsEnabled"):
+            self.assertNotIn(flag + " = true", model)
+            self.assertNotIn(flag + "=true", model)
+        service = read("Core/OfficialEventService.swift")
+        routes = set(re.findall(r'"(api/official/[^"\n]+)"', service))
+        self.assertEqual(len(routes), 7)
+        self.assertIn("#if DEBUG", read("Core/OfficialEventSyntheticFixtures.swift"))
+        spec_path = "docs/release/ui-strings-pages-activity-list-index.json"
+        spec = json.loads(read(spec_path))
+        self.assertEqual(spec["page"], "pages/activity/list/index")
+        catalog = json.loads(read("Resources/Localizable.xcstrings"))["strings"]
+        keys = []
+        for item in spec["strings"]:
+            key = item["key"]
+            keys.append(key)
+            self.assertTrue(item["en"])
+            self.assertTrue(item["zh-Hans"])
+            self.assertNotIn("http://", item["en"])
+            self.assertNotIn("http://", item["zh-Hans"])
+            self.assertNotIn("https://", item["en"])
+            self.assertNotIn("https://", item["zh-Hans"])
+            entry = catalog[key]["localizations"]
+            self.assertEqual(entry["en"]["stringUnit"]["value"], item["en"])
+            self.assertEqual(entry["zh-Hans"]["stringUnit"]["value"], item["zh-Hans"])
+        self.assertEqual(len(keys), len(set(keys)))
+        ids = [item["id"] for item in spec["accessibilityIdentifiers"]]
+        browser = read("App/OfficialEventsBrowserView.swift")
+        components = read("App/OfficialEventComponents.swift")
+        for identifier in ("official.search", "official.filter", "official.publishedLink", "official.inboxLink", "officialList.summary"):
+            self.assertIn(identifier, ids)
+            self.assertIn('accessibilityIdentifier("%s")' % identifier, browser)
+        for identifier in ("official.issue", "official.signIn", "official.retry"):
+            self.assertIn(identifier, ids)
+            self.assertIn('accessibilityIdentifier("%s")' % identifier, components)
+        self.assertIn("official.event.", ids)
+        self.assertIn('accessibilityIdentifier("official.event.\\(event.id)")', browser)
+        core = read("Tests/CoreTests/OfficialEventTests.swift")
+        self.assertIn("testActivityListPageStatesKeepUnknownCountsAsEmDash", core)
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

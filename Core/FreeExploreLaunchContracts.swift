@@ -164,3 +164,159 @@ public struct FreeExploreLaunchReservationCommand: Codable, Equatable {
         return try encoder.encode(self)
     }
 }
+
+/// Page state for `subpackageMember/free-explore/index`.
+/// Reads the existing catalog, order, and refund-quote contracts. It does not mark a route live,
+/// and it does not start a purchase, refund, payout, withdrawal, or virtual-goods write.
+public enum FreeExploreBundlePageReady {
+    /// Unknown money. A missing, blank, or non-numeric amount is this dash, never `0`.
+    public static let unknownMoney = "—"
+    /// This page is not on the player-first welcome. `WelcomeView.showsMerchantChoice` stays false.
+    public static let includedInPlayerFirstEntry = false
+    /// Existing catalog read. Already live; this constant does not change that mark.
+    public static let catalogRoute = "/api/free-explore/bundle/catalog"
+    /// Existing order read. Already live; this constant does not change that mark.
+    public static let orderRoute = "/api/free-explore/bundle/order"
+    /// Existing refund-quote read. A quote is not a refund.
+    public static let refundQuoteRoute = "/api/free-explore/bundle/order/refund-quote"
+
+    public enum Lane: Equatable {
+        case idle, loading, outcomeUnknown, confirmed, staleSession
+    }
+
+    public enum Failure: Equatable {
+        case load, stale
+    }
+
+    /// One finished read. Nil catalog means the sale flag did not arrive; it is not `false`.
+    public struct Snapshot: Equatable {
+        public var catalog: FreeExploreLaunchCatalog?
+        public var order: FreeExploreLaunchOrder?
+        public var quote: FreeExploreLaunchRefundQuote?
+        /// Raw server price text from the catalog extra. Nil when the server omitted it.
+        public var priceText: String?
+        /// Raw server paid amount. Nil on the thin order, which has no amount field.
+        public var paidAmountText: String?
+        public init(catalog: FreeExploreLaunchCatalog? = nil, order: FreeExploreLaunchOrder? = nil,
+                    quote: FreeExploreLaunchRefundQuote? = nil, priceText: String? = nil, paidAmountText: String? = nil) {
+            self.catalog = catalog
+            self.order = order
+            self.quote = quote
+            self.priceText = priceText
+            self.paidAmountText = paidAmountText
+        }
+    }
+
+    public struct Facts: Equatable {
+        public let priceText: String
+        public let paidAmountText: String
+        public let refundAmountText: String
+        public let remainingValueText: String
+        public let totalValueText: String
+        public let refreshing: Bool
+        public let refreshFailed: Bool
+        public let catalogEmpty: Bool
+        public let legacyOrder: Bool
+        /// Nil when no catalog arrived. A missing flag is not stored as `false`.
+        public let saleEnabled: Bool?
+        public let showsPurchase: Bool
+        public let showsUnsubscribe: Bool
+        /// True only when a server quote is on screen. The quote does not move money.
+        public let showsQuoteOnlyNotice: Bool
+    }
+
+    public enum Screen: Equatable {
+        case loading
+        /// No topic or registration, or a finished read with no catalog items, order, or quote.
+        case empty
+        case error(Failure)
+        /// The original reservation result is not known. Not a price of 0.
+        case unknown
+        case ready(Facts)
+    }
+
+    /// The server's own decimal text, or an em dash. A literal `0` stays `"0"`. A literal `"0.00"` stays `"0.00"`.
+    public static func moneyText(_ raw: String?) -> String {
+        let trimmed = raw?.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let trimmed, !trimmed.isEmpty,
+              trimmed.range(of: "^(0|[1-9][0-9]*)(\\.[0-9]+)?$", options: .regularExpression) != nil else {
+            return unknownMoney
+        }
+        return trimmed
+    }
+
+    /// The decoded server decimal, or an em dash. This does not reformat or recompute the amount.
+    public static func moneyText(_ value: FreeExploreLaunchDecimal?) -> String {
+        guard let value else { return unknownMoney }
+        return moneyText(value.text)
+    }
+
+    /// Hidden on the player-first entry and when the existing reads are not offered.
+    /// A nil base offers nothing. This does not mark a route live.
+    public static func showsPage(baseURL: URL?, playerFirstEntry: Bool) -> Bool {
+        guard includedInPlayerFirstEntry == false, playerFirstEntry == false else { return false }
+        return ChinaReviewedRouteCapability.offersFeature(catalogRoute, baseURL: baseURL)
+            && ChinaReviewedRouteCapability.offersFeature(orderRoute, baseURL: baseURL)
+            && ChinaReviewedRouteCapability.offersFeature(refundQuoteRoute, baseURL: baseURL)
+    }
+
+    /// Always false. A server `saleEnabled` flag does not start payment or virtual goods.
+    public static func showsPurchase(baseURL: URL?, playerFirstEntry: Bool, saleEnabled: Bool) -> Bool {
+        _ = (baseURL, playerFirstEntry, saleEnabled, ReleaseMoneyWriteSwitch.paymentEnabled, ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
+        return false
+    }
+
+    /// Always false. A refund quote does not start a refund, payout, or withdrawal.
+    public static func showsUnsubscribe(baseURL: URL?, playerFirstEntry: Bool) -> Bool {
+        _ = (baseURL, playerFirstEntry, ReleaseMoneyWriteSwitch.payoutEnabled, ReleaseMoneyWriteSwitch.withdrawalEnabled)
+        return false
+    }
+
+    /// Classify one read of the existing contracts.
+    /// `linkMissing` is the empty link (no topic and no registration). A later failure keeps the previous record
+    /// instead of replacing its amounts with 0. An unknown reservation result stays `.unknown`.
+    public static func screen(state: Lane, failed: Bool, linkMissing: Bool, kept: Snapshot?) -> Screen {
+        switch state {
+        case .staleSession:
+            return .error(.stale)
+        case .outcomeUnknown:
+            return .unknown
+        case .loading:
+            if linkMissing { return .empty }
+            guard let kept, !isEmpty(kept) else { return .loading }
+            return ready(kept, refreshing: true, refreshFailed: false)
+        case .idle, .confirmed:
+            if linkMissing { return .empty }
+            if failed {
+                guard let kept, !isEmpty(kept) else { return .error(.load) }
+                return ready(kept, refreshing: false, refreshFailed: true)
+            }
+            guard let kept else { return .unknown }
+            if isEmpty(kept) { return .empty }
+            return ready(kept, refreshing: false, refreshFailed: false)
+        }
+    }
+
+    private static func isEmpty(_ snapshot: Snapshot) -> Bool {
+        let hasItems = snapshot.catalog?.items.isEmpty == false
+        return !hasItems && snapshot.order == nil && snapshot.quote == nil
+            && moneyText(snapshot.priceText) == unknownMoney && moneyText(snapshot.paidAmountText) == unknownMoney
+    }
+
+    private static func ready(_ snapshot: Snapshot, refreshing: Bool, refreshFailed: Bool) -> Screen {
+        .ready(Facts(
+            priceText: moneyText(snapshot.priceText),
+            paidAmountText: moneyText(snapshot.paidAmountText),
+            refundAmountText: moneyText(snapshot.quote?.amount),
+            remainingValueText: moneyText(snapshot.quote?.remainingValue),
+            totalValueText: moneyText(snapshot.quote?.totalValue),
+            refreshing: refreshing,
+            refreshFailed: refreshFailed,
+            catalogEmpty: snapshot.catalog?.items.isEmpty ?? true,
+            legacyOrder: snapshot.order != nil && snapshot.order?.bundle == nil,
+            saleEnabled: snapshot.catalog?.saleEnabled,
+            showsPurchase: false,
+            showsUnsubscribe: false,
+            showsQuoteOnlyNotice: snapshot.quote != nil))
+    }
+}

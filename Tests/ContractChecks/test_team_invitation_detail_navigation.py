@@ -30,6 +30,20 @@ class JoinedInvitationDetailNavigationTests(unittest.TestCase):
             for line in calls:
                 self.assertIn('makeCoordinator:', line)
 
+    def test_join_page_unknown_count_contract(self):
+        presentation = (ROOT / 'Core/TeamPagePresentation.swift').read_text()
+        self.assertIn('public static let unknownCountText = "\u2014"', presentation)
+        self.assertNotEqual('\u2014', '0')
+        self.assertIn('joined >= 0, maximum > 0 else { return unknownCountText }', presentation)
+        self.assertNotIn('joined ?? 0', presentation)
+        self.assertNotIn('maximum ?? 0', presentation)
+        for forbidden in ['showsMerchantChoice = true', 'paymentEnabled = true', 'payoutEnabled = true', 'withdrawalEnabled = true', 'virtualGoodsEnabled = true', 'http://', 'https://']:
+            self.assertNotIn(forbidden, presentation)
+        fixture = (ROOT / 'Core/TeamSyntheticFixtures.swift').read_text()
+        self.assertTrue(fixture.startswith('#if DEBUG'))
+        self.assertIn('enum TeamJoinIndexFixtureData', fixture)
+        self.assertIn('unknownCountJSON', fixture)
+
     def test_authored_behavior_tests_cover_back_revocation_and_locks(self):
         core = (ROOT / 'Tests/CoreTests/TeamCoordinatorTests.swift').read_text()
         ui = (ROOT / 'Tests/AppUITests/TeamFlowTests.swift').read_text()

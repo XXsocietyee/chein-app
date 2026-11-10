@@ -118,4 +118,15 @@ public enum ClubGovernanceFixtures {
         return ClubGovernanceFixtures.receipt(command.operation)
     }
 }
+
+/// DEBUG-only `Data` payloads for pages/club/customers/index. Synthetic records, same body as
+/// `ClubGovernanceFixtures.value(.customers)`. Not a route and not a player-home fixture.
+public enum ClubCustomersIndexFixtureData {
+    public static let list = Data(#"{"total":1,"monthNew":1,"canEdit":true,"items":[{"memberId":704,"displayName":"Fixture customer","verifiedCount":2,"pendingCount":1,"phoneText":"Hidden","remark":"Fixture note"}]}"#.utf8)
+    public static let empty = Data(#"{"total":0,"monthNew":0,"items":[]}"#.utf8)
+    public static let unknownCounts = Data(#"{"total":"UNKNOWN","monthNew":null,"items":[]}"#.utf8)
+    public static func value(_ data: Data) -> ClubGovernanceValue {
+        (try? JSONDecoder().decode(ClubGovernanceValue.self, from: data)) ?? .null
+    }
+}
 #endif

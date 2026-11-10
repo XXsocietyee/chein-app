@@ -15,7 +15,7 @@ final class TopicXcxNodeFactsTests: XCTestCase {
         let templates = TopicXcxFacts.nodeTemplates(value)
         XCTAssertEqual(templates.map(\.id), [5, 6])
         XCTAssertEqual(TopicXcxFacts.templateMinutes(templates[0]), "0")
-        XCTAssertEqual(TopicXcxFacts.templateMinutes(templates[1]), "--")
+        XCTAssertEqual(TopicXcxFacts.templateMinutes(templates[1]), "—")
     }
 
     func testSessionChipUsesChinaCalendarAndHidesMidnight() {

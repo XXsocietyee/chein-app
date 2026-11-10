@@ -267,3 +267,78 @@ public struct OfficialEventDetailPresentation: Equatable {
         return "\(month).\(day)"
     }
 }
+
+/// Read phases for pages/activity/official-detail. Display only.
+/// The detail GET stays on OfficialSessionReader.detail. This value does not
+/// register a route, mark a route live, or reveal share. No share route exists.
+public enum OfficialEventDetailPagePhase: String, Equatable, Sendable {
+    case loading
+    case empty
+    case error
+    case unknown
+    case ready
+}
+
+public struct OfficialEventDetailPageState: Equatable, Sendable {
+    public static let unknownText = "—"
+    public static let registersRoute = false
+    public static let marksRouteLive = false
+    public static let showsMerchantChoice = false
+    public static let paymentEnabled = false
+    public static let payoutEnabled = false
+    public static let withdrawalEnabled = false
+    public static let virtualGoodsEnabled = false
+    public static let shareVisible = false
+    public static let usesExistingDetailRead = true
+
+    public let phase: OfficialEventDetailPagePhase
+    public let participantsText: String
+    public let progressText: String
+
+    public init(phase: OfficialEventDetailPagePhase, participantsText: String, progressText: String) {
+        self.phase = phase
+        self.participantsText = participantsText
+        self.progressText = progressText
+    }
+
+    /// Loading wins over a stale failure and shows neither an em dash nor 0.
+    /// A missing count is an em dash. A literal zero stays "0".
+    public static func project(loading: Bool, error: Error? = nil, event: OfficialEvent? = nil) -> OfficialEventDetailPageState {
+        if loading {
+            return OfficialEventDetailPageState(phase: .loading, participantsText: "", progressText: "")
+        }
+        if error != nil {
+            return OfficialEventDetailPageState(phase: .error, participantsText: unknownText, progressText: unknownText)
+        }
+        guard let event, event.isCompleteRecord else {
+            return OfficialEventDetailPageState(phase: .empty, participantsText: unknownText, progressText: unknownText)
+        }
+        let participants = count(event.participants)
+        let progress = signedProgress(event)
+        if event.statusKey == "official.status.unknown", event.participants == nil, progressUnmeasured(event) {
+            let signedProgressText = event.signed == true ? unknownText : ""
+            return OfficialEventDetailPageState(phase: .unknown, participantsText: unknownText, progressText: signedProgressText)
+        }
+        return OfficialEventDetailPageState(phase: .ready, participantsText: participants, progressText: progress)
+    }
+
+    private static func count(_ value: Int?) -> String {
+        value.map(String.init) ?? unknownText
+    }
+
+    /// An omitted v2 mission list is unmeasured. A present list may include a literal zero.
+    private static func signedProgress(_ event: OfficialEvent) -> String {
+        guard event.signed == true else { return "" }
+        if event.isV2 {
+            guard !event.missions.isEmpty else { return unknownText }
+            return "\(event.completedMissionCount)/\(event.missions.count)"
+        }
+        return count(event.myProgress)
+    }
+
+    private static func progressUnmeasured(_ event: OfficialEvent) -> Bool {
+        guard event.signed == true else { return true }
+        if event.isV2 { return event.missions.isEmpty }
+        return event.myProgress == nil
+    }
+}

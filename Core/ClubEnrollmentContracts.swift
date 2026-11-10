@@ -1,5 +1,14 @@
 import Foundation
 
+/// Em dash for a count this roster cannot prove. A literal JSON 0 is the string "0".
+public enum ClubEnrollmentCountText {
+    public static let unknown = "\u{2014}"
+    public static func display(_ count: Int?) -> String {
+        guard let count, count >= 0 else { return unknown }
+        return String(count)
+    }
+}
+
 /// Read-only projection of the club roster. These counts never authorize a refund.
 public struct ClubEnrollmentTeam: Equatable, Identifiable {
     public let id: Int
@@ -16,6 +25,8 @@ public struct ClubEnrollmentTeam: Equatable, Identifiable {
         date = try ClubEnrollmentDecode.text(value["startDate"]).map { String($0.prefix(10)) }
         signupCount = try ClubEnrollmentDecode.count(value["signupCount"])
     }
+    /// Missing, null, `UNKNOWN`, and a numeric string are an em dash. A literal `0` stays `0`.
+    public var signupCountText: String { ClubEnrollmentCountText.display(signupCount) }
     public static func list(_ value: ClubGovernanceValue, clubID: Int) throws -> [Self] {
         guard clubID > 0 else { throw ClubGovernanceFailure.invalidRequest }
         let teams = try ClubEnrollmentDecode.rows(value).map { try Self(value: $0, clubID: clubID) }
@@ -64,6 +75,8 @@ public struct ClubEnrollmentTicket: Equatable, Identifiable {
         registrants = value["cmsRegistrationList"] == .null ? [] : try ClubEnrollmentDecode.rows(value["cmsRegistrationList"]).map(ClubEnrollmentRegistrant.init)
         try ClubEnrollmentDecode.unique(registrants.map(\.id))
     }
+    /// Nil inventory is unknown. A literal `0` stays `0` here; it is not rewritten to a blank.
+    public var capacityText: String { ClubEnrollmentCountText.display(capacity) }
 }
 public struct ClubEnrollmentRoster: Equatable {
     public let clubID: Int
@@ -77,6 +90,8 @@ public struct ClubEnrollmentRoster: Equatable {
         guard rows.allSatisfy({ $0.paymentStatus != nil && ($0.paymentStatus != 2 || $0.checkin != .unknown) }) else { return nil }
         return rows.filter { $0.paymentStatus == 2 && $0.checkin == .pending }.count
     }
+    public var paidCountText: String { ClubEnrollmentCountText.display(paidCount) }
+    public var refundableCountText: String { ClubEnrollmentCountText.display(refundableCount) }
     public var deadline: String? { tickets.compactMap(\.deadline).first }
     public var teamStatus: Int? {
         if tickets.contains(where: { $0.teamStatus == 1 }) { return 1 }
@@ -99,8 +114,22 @@ private enum ClubEnrollmentDecode {
     static func object(_ value: ClubGovernanceValue) throws { guard value.object != nil else { throw ClubGovernanceFailure.malformed } }
     static func id(_ value: ClubGovernanceValue) throws -> Int { guard let number = value.int, number > 0 else { throw ClubGovernanceFailure.malformed }; return number }
     static func count(_ value: ClubGovernanceValue) throws -> Int? {
-        if value == .null { return nil }
-        guard let number = value.int, number >= 0 else { throw ClubGovernanceFailure.malformed }; return number
+        switch value {
+        case .null:
+            return nil
+        case .string(let text):
+            // Do not parse through ClubGovernanceValue.int. A numeric string, including "0",
+            // and the token UNKNOWN stay unknown. They are never stored as 0.
+            let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+            if trimmed.compare("UNKNOWN", options: .caseInsensitive) == .orderedSame { return nil }
+            if Int(trimmed) != nil || Double(trimmed) != nil { return nil }
+            throw ClubGovernanceFailure.malformed
+        case .integer(let number):
+            guard number >= 0 else { throw ClubGovernanceFailure.malformed }
+            return number
+        default:
+            throw ClubGovernanceFailure.malformed
+        }
     }
     static func text(_ value: ClubGovernanceValue) throws -> String? {
         if value == .null { return nil }; guard let text = value.string else { throw ClubGovernanceFailure.malformed }

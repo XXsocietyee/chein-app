@@ -63,7 +63,7 @@ struct ProfileSelfOrderSelection: Identifiable, Hashable {
                     }
                     if let rows = model.rows {
                         if rows.isEmpty && model.issue == nil && !model.isLoading {
-                            Text("profile.selfOrders.empty").accessibilityIdentifier("profile.selfOrders.empty")
+                            CYEmptyState(systemImage: "ticket", "profile.selfOrders.empty", messageIdentifier: "profile.selfOrders.empty", kind: .orders).listRowBackground(Color.clear).listRowSeparator(.hidden)
                         }
                         ForEach(ProfileSelfOrdersPreview(rows: rows).rows) { order in
                             Button {

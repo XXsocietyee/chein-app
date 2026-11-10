@@ -86,5 +86,55 @@ final class DeregistrationStatusRulesTests: XCTestCase {
         for status in ["NORMAL", "CANCELLED", "FAILED"] { XCTAssertEqual(R.route(status: status), .precheck) }
         for status in ["COMPLETED", "UNKNOWN", "", "pending"] { XCTAssertEqual(R.route(status: status), .unconfirmed) }
     }
+
+    func testUnknownQuantityIsEmDashNeverZero() {
+        let model = DeregisterIndexPageModel.self
+        XCTAssertEqual(model.unknownMark, "—")
+        let unknownCounts: [String?] = [nil, "", "   ", "UNKNOWN", "unknown", "00", "1.0", "1e2", "-1", "true"]
+        for raw in unknownCounts {
+            XCTAssertEqual(model.countText(raw), "—")
+            XCTAssertNotEqual(model.countText(raw), "0")
+        }
+        XCTAssertEqual(model.countText("0"), "0")
+        XCTAssertEqual(model.countText(" 12 "), "12")
+        XCTAssertEqual(model.tokenText("UNKNOWN"), "—")
+        XCTAssertEqual(model.tokenText("0"), "0")
+        XCTAssertEqual(model.tokenText("held"), "held")
+    }
+
+#if DEBUG
+    func testDeregisterIndexPagePhasesDoNotInventNumbers() throws {
+        XCTAssertEqual(DeregisterIndexFixtureData.loadingPage().phase, .loading)
+        XCTAssertEqual(DeregisterIndexFixtureData.loadingPage().statusText, "—")
+        XCTAssertEqual(DeregisterIndexFixtureData.emptyPage().phase, .empty)
+        XCTAssertEqual(DeregisterIndexFixtureData.emptyPage().emptyKey, "deregisterIndex.empty")
+        XCTAssertEqual(DeregisterIndexFixtureData.emptyPage().statusText, "—")
+        XCTAssertEqual(DeregisterIndexFixtureData.emptyPage().executeAfterText, "—")
+        XCTAssertTrue(DeregisterIndexFixtureData.emptyPage().impactLines.isEmpty)
+        let failed = DeregisterIndexFixtureData.errorPage()
+        XCTAssertEqual(failed.phase, .error(key: "compliance.failed"))
+        XCTAssertEqual(failed.errorKey, "compliance.failed")
+        XCTAssertNotEqual(failed.statusText, "0")
+
+        let unknown = try DeregisterIndexFixtureData.page(step: .unknown, statusJSON: DeregisterIndexFixtureData.unknownStatus)
+        XCTAssertEqual(unknown.phase, .unknown)
+        XCTAssertEqual(unknown.statusText, "—")
+        XCTAssertEqual(unknown.executeAfterText, "—")
+        XCTAssertEqual(unknown.impactLines.first { $0.key == "POINTS" }?.valueText, "—")
+        XCTAssertEqual(unknown.impactLines.first { $0.key == "ACTIVE_ORDERS" }?.valueText, "0")
+        XCTAssertFalse(unknown.offersResultRoute)
+
+        let ready = try DeregisterIndexFixtureData.page(statusJSON: DeregisterIndexFixtureData.pendingStatus)
+        XCTAssertEqual(ready.phase, .ready)
+        XCTAssertEqual(ready.statusText, "PENDING")
+        XCTAssertEqual(ready.executeAfterText, "2027-01-15T16:00:00+08:00")
+
+        let blocked = try DeregisterIndexFixtureData.page(step: .blocked, statusJSON: DeregisterIndexFixtureData.blockedCountStatus)
+        XCTAssertEqual(blocked.phase, .ready)
+        XCTAssertEqual(DeregisterIndexPageModel.countText(blocked.impactLines.first { $0.key == "BALANCE" }?.valueText), "—")
+        XCTAssertEqual(blocked.impactLines.first { $0.key == "POINTS" }?.valueText, "12")
+        XCTAssertNil(ChinaReviewedRouteCapability.mark(for: "/api/user/deregister/result"))
+    }
+#endif
 }
 #endif

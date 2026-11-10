@@ -37,7 +37,9 @@ private actor PublisherLifecycleFixtureHTTP: HTTPTransport {
     private let owner: PublisherLifecycleCoordinator
     private let application: CreatorApplicationCoordinator
     private let center: PublisherLifecycleFixtureCenter
-    init() {
+    private let creatorOnly: Bool
+    init(creatorOnly: Bool = false) {
+        self.creatorOnly = creatorOnly
         let config = try! APIConfiguration(baseURL: URL(string: "https://example.com/offline/")!)
         let session = PublishingSession(namespace: "offline-lifecycle", accountID: 7, epoch: UUID(), role: "member", region: .china)
         let credential = try! PublishingCredentials(session: session, token: "offline-token")
@@ -52,6 +54,9 @@ private actor PublisherLifecycleFixtureHTTP: HTTPTransport {
     }
     var body: some View {
         NavigationStack {
+            if creatorOnly {
+                CreatorApplicationView(coordinator: application, reader: center, onCenterRefresh: {})
+            } else {
             List {
                 Text("Offline examples · 离线示例")
                 NavigationLink("Pricing · 定价") { PublisherPricingView(topicID: 4, client: client, coordinator: owner) }.accessibilityIdentifier("publisher.fixturePricing")
@@ -60,6 +65,7 @@ private actor PublisherLifecycleFixtureHTTP: HTTPTransport {
                 NavigationLink("Graduate · 转正") { PublisherOwnershipReviewView(action: .graduate(topicID: 4), coordinator: owner) }
                 NavigationLink("Creator application · 创作者申请") { CreatorApplicationView(coordinator: application, reader: center, onCenterRefresh: {}) }.accessibilityIdentifier("publisher.fixtureCreator")
                 PublisherXPBudgetSection(topicID: 4, client: client)
+            }
             }
         }
     }

@@ -148,9 +148,7 @@ struct ProfileEmptyState: View {
     let symbol: String
     let identifier: String
     var body: some View {
-        ContentUnavailableView {
-            Label { Text(title).accessibilityIdentifier(identifier) } icon: { Image(systemName: symbol) }
-        }
+        CYEmptyState(systemImage: symbol, title, messageIdentifier: identifier)
         // `hint` is kept for callers; the spec allows no helper captions under empty states.
     }
 }
