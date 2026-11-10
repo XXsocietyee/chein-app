@@ -543,7 +543,7 @@ struct ComplianceHeader: View {
                     ForEach(0..<3, id: \.self) { i in
                         VStack(alignment: .leading, spacing: CYSpacing.xs) {
                             Capsule().fill(i <= stage ? tint : CYColor.textPrimary.opacity(0.14)).frame(height: 4)
-                            Text(LocalizedStringKey("compliance.step.\(i + 1)")).font(.caption.weight(i == stage ? .semibold : .regular))
+                            Text(LocalizedStringResource(String.LocalizationValue(stringLiteral: "compliance.step.\(i + 1)"))).font(.caption.weight(i == stage ? .semibold : .regular))
                                 .foregroundStyle(i == stage ? CYColor.textPrimary : CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.7)
                         }
                     }
