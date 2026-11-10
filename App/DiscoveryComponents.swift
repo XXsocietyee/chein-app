@@ -72,14 +72,11 @@ struct DiscoveryArtwork: View {
         AsyncImage(url: url) { phase in
             if let image = phase.image { image.resizable().scaledToFill() }
             else {
-                ZStack {
-                    Color.secondary.opacity(0.08)
-                    Image(systemName: "sparkles.rectangle.stack").font(.largeTitle).foregroundStyle(.secondary)
-                }
+                E1CoverArt(seed: source ?? "discovery", symbol: "sparkles.rectangle.stack", debugLabel: false)
             }
         }
         .frame(height: height).frame(maxWidth: .infinity)
-        .clipped().clipShape(RoundedRectangle(cornerRadius: 14))
+        .clipped().clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityHidden(true)
     }
 }
