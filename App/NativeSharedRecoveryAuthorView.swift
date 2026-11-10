@@ -81,7 +81,7 @@ import SwiftUI
                 }
             }
             if editor == nil {
-                Button("编辑当前共享玩法的恢复定义") { open() }.disabled(!available)
+                CYPillButton(verbatim: "编辑当前共享玩法的恢复定义", style: .secondary) { open() }.disabled(!available)
             } else if let draft = editor, let editorID = capture?.id {
                 let editRevision = bufferRevision
                 Group {
@@ -94,16 +94,16 @@ import SwiftUI
                     }
                     if draft.recoveries.isEmpty { Text("当前没有恢复方式；不会自动添加默认休息。") }
                     ForEach(Array(draft.recoveries.enumerated()),id:\.offset) { index,_ in recoveryRow(index,draft:draft) }
-                    Button("添加空白恢复方式") { mutate(editorID, revision: editRevision) { $0.appendBlank() } }.disabled(draft.recoveries.count >= 20)
+                    CYPillButton(verbatim: "添加空白恢复方式", style: .secondary) { mutate(editorID, revision: editRevision) { $0.appendBlank() } }.disabled(draft.recoveries.count >= 20)
                     ForEach(Array(draft.issues.enumerated()),id:\.offset) { _,issue in NativeAuthorNotice(text: Text(issue), tone: .attention) }
-                    Button("预览原恢复定义修改") { preview(editorID, revision: editRevision) }.disabled(!draft.issues.isEmpty)
+                    CYPillButton(verbatim: "预览原恢复定义修改", style: .secondary) { preview(editorID, revision: editRevision) }.disabled(!draft.issues.isEmpty)
                     if let review {
                         Text(review.value.text ?? "").font(.caption.monospaced()).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                        Button(saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿") { apply(review) }.nativeAuthorPrimaryAction()
+                        CYPillButton(verbatim: saveUnconfirmed ? "重试保存原完整项目草稿" : "确认保存原完整项目草稿") { apply(review) }
                     }
                     Text("随后使用原项目保存、同请求结果恢复及发布。保存后的原项目重载显示读取基线；新共享局按发布快照提供恢复方式，旧局和已保存动作不被追改。").nativeAuthorSupportingCopy()
                 }.disabled(!current)
-                Button("关闭恢复定义编辑副本") { close(editorID) }
+                CYPillButton(verbatim: "关闭恢复定义编辑副本", style: .tertiary) { close(editorID) }
             }
             if let message { NativeAuthorNotice(text: Text(message)) }
         }

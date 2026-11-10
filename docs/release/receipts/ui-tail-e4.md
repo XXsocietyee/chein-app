@@ -39,3 +39,13 @@ Order change (coordinator): remaining files processed in reverse list order; no 
 | App/ProfileCurrentAvatarView.swift | done: CYSkeletonBlock loading, CYPillButton retry |
 | App/PrivacyProtectionView.swift | done: hero with subtitle, icon+colour consent status, grouped surface |
 | App/NativeZeroHPAuthorView.swift | done: hero, CYPillButton reload actions, grouped surface |
+
+## Batch 5 (reverse order)
+Embedded editor sections (no own screen/title): kit buttons only. Confirm-save is the single primary; open/preview secondary; close/restore tertiary; destructive remove rows keep their role button.
+| File | Result |
+| --- | --- |
+| App/NativeSharedRecoveryAuthorView.swift | done |
+| App/NativeRpgResourceAuthorView.swift | done |
+| App/NativeRpgPassiveRulesAuthorView.swift | done |
+| App/NativeRpgEnvironmentAuthorView.swift | done |
+| App/NativeRpgConditionAuthorView.swift | done |
