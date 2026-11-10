@@ -106,3 +106,84 @@ public struct CooperationRepliedApplication: Equatable {
         statusKey = linked?.status == 1 ? "cooperation.list.apply.partnerAccepted" : "cooperation.list.apply.replied"
     }
 }
+
+/// Read phase for `pages/coop/invite-detail` over the existing `api/coop/list` detail.
+/// This type does not register a route and does not open an invite composer.
+public struct CooperationInviteDetailPage: Equatable {
+    public enum Phase: Equatable { case loading, empty, error, unknown, ready }
+    /// Visible slot text. `withheld` means the ready row has no slot object, which is not a zero.
+    public enum SlotCount: Equatable {
+        case withheld
+        case text(String)
+    }
+    /// Existing list read. Not a new invite route.
+    public static let readPath = "api/coop/list"
+    /// This lane does not change `ChinaReviewedRouteCapability`.
+    public static let routeMarkedLive = false
+    public static let opensNewInviteSurface = false
+    public static let unknownDisplay = CooperationInviteCountFact.unknownDisplay
+    public enum Copy {
+        public static let loading = "cooperation.loading"
+        public static let empty = "cooperation.unavailable"
+        public static let unknown = "cooperation.ambiguous"
+        public static let malformed = "cooperation.malformed"
+    }
+    public let phase: Phase
+    /// Existing catalog key for the phase. Ready has none.
+    public let copyKey: String?
+    public let detail: CooperationInviteDetail?
+    public let slotCount: SlotCount
+    public let slotCapacity: SlotCount
+
+    /// `result == nil` is still loading. Cancellation stays loading.
+    /// Not found is empty. A bad id, a duplicate id, and a malformed payload are unknown.
+    /// Other failures are errors. None of those phases stores a count of 0.
+    public static func project(key: CooperationInviteKey, result: Result<CooperationInviteDetail, Error>?) -> Self {
+        guard key.id > 0 else { return unsettled(.unknown, copyKey: Copy.unknown) }
+        guard let result else { return unsettled(.loading, copyKey: Copy.loading) }
+        switch result {
+        case .failure(let error):
+            if error is CancellationError { return unsettled(.loading, copyKey: Copy.loading) }
+            let issue = CooperationIssue(error)
+            switch issue {
+            case .unavailable:
+                return unsettled(.empty, copyKey: Copy.empty)
+            case .malformed:
+                return unsettled(.unknown, copyKey: Copy.malformed)
+            case .ambiguousIdentity:
+                return unsettled(.unknown, copyKey: Copy.unknown)
+            case .login, .unconfigured, .failure, .forbidden, .server:
+                return unsettled(.error, copyKey: issue.key)
+            }
+        case .success(let detail):
+            guard detail.row.id == key.id else { return unsettled(.unknown, copyKey: Copy.unknown) }
+            let count: SlotCount
+            let capacity: SlotCount
+            if let line = detail.slotLine {
+                count = .text(line.count.displayText)
+                capacity = .text(line.capacity.displayText)
+            } else {
+                count = .withheld
+                capacity = .withheld
+            }
+            return Self(phase: .ready, copyKey: nil, detail: detail, slotCount: count, slotCapacity: capacity)
+        }
+    }
+
+    /// Reads the existing detail. An id that cannot be confirmed does not call the reader.
+    @MainActor public static func load(reader: any CooperationReading, key: CooperationInviteKey) async -> Self {
+        guard key.id > 0 else { return unsettled(.unknown, copyKey: Copy.unknown) }
+        do {
+            let detail = try await reader.detail(key: key)
+            return project(key: key, result: .success(detail))
+        } catch is CancellationError {
+            return project(key: key, result: nil)
+        } catch {
+            return project(key: key, result: .failure(error))
+        }
+    }
+
+    private static func unsettled(_ phase: Phase, copyKey: String) -> Self {
+        Self(phase: phase, copyKey: copyKey, detail: nil, slotCount: .text(unknownDisplay), slotCapacity: .text(unknownDisplay))
+    }
+}

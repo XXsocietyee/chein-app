@@ -7,8 +7,8 @@ public extension TopicXcxFacts {
         var seen = Set<Int>()
         return topic.chapters.flatMap(\.nodes).compactMap(\.template).filter { $0.id > 0 && seen.insert($0.id).inserted }
     }
-    /// Source minutes label: `0`, the value, or `--` when missing.
-    static func templateMinutes(_ template: TopicTemplate) -> String { template.duration.map(String.init) ?? "--" }
+    /// A missing duration is an em dash. A literal zero stays "0".
+    static func templateMinutes(_ template: TopicTemplate) -> String { template.duration.map(String.init) ?? "—" }
 
     /// Source session-picker chip from `startDate`: weekday (0 = Sunday), `M.D`, and `HH:mm` unless it is 00:00.
     struct SessionChip: Equatable { public let weekday: Int; public let monthDay: String; public let time: String? }
