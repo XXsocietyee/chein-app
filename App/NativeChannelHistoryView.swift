@@ -116,7 +116,7 @@ private func nativeChannelLocalized(_ key: String, locale: Locale) -> String {
                             .accessibilityIdentifier("channel.history.readResult")
                             .listRowSeparator(.hidden)
                     }
-                    if model.isLoading { ProgressView("messaging.loading").frame(maxWidth: .infinity).listRowSeparator(.hidden) }
+                    if model.isLoading { CYSkeleton().listRowSeparator(.hidden) }
                 }
                 .listStyle(.plain)
                 // Few messages sit just above the composer and grow upward, as in direct chat.

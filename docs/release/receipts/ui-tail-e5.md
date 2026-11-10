@@ -92,3 +92,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - NativeChannelProgressBoardView: done (CYHeroHeader, CYSkeleton)
 - NativeChannelOnboardingView: done (CYHeroHeader, CYEmptyState, CYSkeleton)
 - NativeChannelManagementViews: partial (CYSkeleton for busy states; directory/detail keep their own navigation titles and ncmText empty states, untouched to avoid behaviour risk in a 567-line admin screen)
+
+## Batch 14 (reverse)
+- NativeChannelManagementPermissionsView: done (CYSkeleton only; admin permission editor keeps destructive role button and own title)
+- NativeChannelHistoryView: done (CYSkeleton only; message list already structured)
+- NativeChannelCheckinView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
+- NativeChannelChainView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
+- NativeBlacklistView: done (CYHeroHeader, CYSkeleton)

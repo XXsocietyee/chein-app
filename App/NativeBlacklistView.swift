@@ -17,7 +17,9 @@ import SwiftUI
     private var flow: NativeBlacklistFlow { model.flow }
     var body: some View {
         List {
-            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("blacklist.loading") }
+            CYHeroHeader(verbatim: localized("blacklist.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            if flow.busy { CYSkeleton().accessibilityIdentifier("blacklist.loading") }
             if flow.phase == .closed {
                 ContentUnavailableView { Label { text("blacklist.closed") } icon: { Image(systemName: "lock") } }
                     .accessibilityIdentifier("blacklist.closed")
@@ -77,7 +79,7 @@ import SwiftUI
             }
         }
         .listStyle(.insetGrouped)
-        .navigationTitle(localized("blacklist.title"))
+        .cyHeroScreen()
         .navigationBarTitleDisplayMode(.inline)
         .privacySensitive()
         .accessibilityIdentifier("blacklist.home")
