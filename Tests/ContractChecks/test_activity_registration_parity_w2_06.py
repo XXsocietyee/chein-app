@@ -43,13 +43,17 @@ class ActivityDetailParityTests(unittest.TestCase):
     def test_meta_rows_follow_cancellation_and_precede_about(self):
         source = read("App/ActivityDetailView.swift")
         ordered(self, source, (
-            "ActivityDetailHeader(summary:detail.summary)",
+            "E1ActivityHero(summary:detail.summary)",
+            "E1ActivityInfoCard(detail:detail)",
             'accessibilityIdentifier("activity.detail.cancelled")',
-            "ActivityDetailMetaSection(facts: ActivityDetailHeaderFacts(detail: detail))",
-            'Section("activity.about")',
             "detail.summary.hasValidCoordinates",
-            'Section("activity.tickets")',
+            'E1IconHeader(systemImage: "ticket"',
+            'accessibilityIdentifier("activity.more.toggle")',
+            "if showsMoreInfo { moreInfoSections(detail) }",
+            'Section("activity.about")',
         ))
+        # The about text is secondary content: it only renders behind the "More info" disclosure.
+        self.assertIn('Section("activity.about")', source.split("private func moreInfoSections", 1)[1].split("private func profileAction", 1)[0])
         meta = source.split("private struct ActivityDetailMetaSection")[1]
         for token in ('"activityParity.header.category"', '"activityParity.header.categoryUnconfirmed"',
                       '"activityParity.header.meetingPoint"', 'case .mapOnly', 'case .unconfirmed',

@@ -8,6 +8,7 @@ final class RegionalEntryFlowTests:XCTestCase {
         app.launchArguments=["--uitesting-market",market,"-AppleLanguages","(en)","-AppleLocale","en_US"]
         if first { app.launchArguments.append("--uitesting-first-launch-language") }
         app.launch()
+        skipOnboardingIfPresent(in: app)
         XCTAssertTrue(app.buttons["welcome.settings"].waitForExistence(timeout:15),app.debugDescription)
     }
     func testChinaDefaultsChineseAndLanguagePersistsWithoutChangingMarket() {
