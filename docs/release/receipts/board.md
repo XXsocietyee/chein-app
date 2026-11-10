@@ -31,3 +31,4 @@
 - wire39 [x] 2e531ba1a. PR 1028. Settlement batch reads MerchantSettlementBatchPage.make. Not merged.
 - wire41 sent back. PR 1029. Insight countText drops a numeric string, so a literal string 0 becomes an em dash.
 - wire29 [x] 26e87fbba. PR 1030. CRM campaigns read MerchantCrmCampaignsPage.phase. Not merged.
+- wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
