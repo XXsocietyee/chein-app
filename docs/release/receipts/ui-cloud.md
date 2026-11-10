@@ -1,0 +1,1 @@
+UI-CLOUD-19 79afd8521724f154624b6422154ffe935a3bfb8e PASS restyled App/GroupPollOriginalResultView.swift App/IMCardPreviewViews.swift App/IMConversationReadAllView.swift App/IMConversationRowActionsView.swift App/IMConversationSafetyViews.swift
