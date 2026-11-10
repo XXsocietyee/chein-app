@@ -156,7 +156,8 @@ struct CYGlassCarousel: View {
             }
         } label: {
             CYCarouselCard(slide: slide, size: CGSize(width: metrics.cardWidth, height: metrics.cardHeight))
-                .overlay { CYGlassSliver() }
+                // Glass only over neighbours: the focused card keeps its caption crisp (also when scroll phases are not evaluated, e.g. fixtures).
+                .overlay { if slide.id != (selectedID ?? state.selected) { CYGlassSliver() } }
                 .scrollTransition(.interactive, axis: .horizontal) { view, phase in
                     view.scaleEffect(reduceMotion ? 1 : 1 - abs(phase.value) * 0.08)
                 }
