@@ -10,73 +10,180 @@ func installedRehearsalLocalized(_ key: String, locale: Locale) -> String {
     @Environment(\.locale) private var locale
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @ScaledMetric(relativeTo: .largeTitle) private var heroArtHeight: CGFloat = 160
     private func text(_ key: String) -> String { installedRehearsalLocalized(key, locale: locale) }
+    private func shown(_ raw: String) -> String {
+        raw.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : raw
+    }
     var body: some View {
         NavigationStack {
             Group {
                 if let snapshot = rehearsal.snapshot {
-                    if rehearsal.started {
-                        VStack(alignment: .leading) {
-                            Text(text("boundary")).font(.footnote).padding(.horizontal)
-                            Text(verbatim: "#\(snapshot.saved.templateId) · \(snapshot.saved.draftContentHash)").font(.caption.monospaced()).padding(.horizontal)
-                            TemplateCreatorRehearsalView(draft: snapshot.advanced, family: .branch,
-                                branchAdmission: { rehearsal.admitBranch() }, showsReview: false)
-                                .id(rehearsal.id)
-                        }
-                    } else { review(snapshot) }
-                } else { Text(text("unavailable")).padding().accessibilityIdentifier("installedRehearsal.unavailable") }
+                    if rehearsal.started { started(snapshot) } else { review(snapshot) }
+                } else { unavailable }
             }
-            .navigationTitle(text("title"))
             .toolbar { ToolbarItem(placement: .cancellationAction) {
-                Button(text("return")) { rehearsal.retire(); dismiss() }.accessibilityIdentifier("installedRehearsal.return")
+                Button(text("return")) { rehearsal.retire(); dismiss() }
+                    .accessibilityIdentifier("installedRehearsal.return")
             } }
-        }.privacySensitive().accessibilityIdentifier("installedRehearsal.root")
-            .onAppear { if scenePhase == .active { rehearsal.appear() } else { rehearsal.retire() } }
-            .onDisappear { rehearsal.retire() }
-            .task {
-                // Observe local lease/grant expiry even while the user is idle.
-                // No network refresh, license polling or draft writes occur here.
-                while !Task.isCancelled {
-                    do { try await Task.sleep(for: .seconds(1)) } catch { return }
-                    guard rehearsal.available else { rehearsal.retire(); return }
-                }
+        }
+        .privacySensitive()
+        .accessibilityIdentifier("installedRehearsal.root")
+        .onAppear { if scenePhase == .active { rehearsal.appear() } else { rehearsal.retire() } }
+        .onDisappear { rehearsal.retire() }
+        .task {
+            // Observe local lease/grant expiry even while the user is idle.
+            // No network refresh, license polling or draft writes occur here.
+            while !Task.isCancelled {
+                do { try await Task.sleep(for: .seconds(1)) } catch { return }
+                guard rehearsal.available else { rehearsal.retire(); return }
             }
-            .onChange(of: scenePhase) { _, phase in if phase != .active { rehearsal.retire() } }
-            .onChange(of: rehearsal.available) { _, available in if !available { rehearsal.retire() } }
+        }
+        .onChange(of: scenePhase) { _, phase in if phase != .active { rehearsal.retire() } }
+        .onChange(of: rehearsal.available) { _, available in if !available { rehearsal.retire() } }
     }
+
+    /// The embedded rehearsal sets its own bar title. This screen keeps that title and does not add a second one.
+    private func started(_ snapshot: ModInstallationSavedRehearsalSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text(verbatim: text("boundary"))
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+            Text(verbatim: "#\(snapshot.saved.templateId) · \(shown(snapshot.saved.draftContentHash))")
+                .font(CYTypography.caption.monospaced())
+                .foregroundStyle(CYColor.textSecondary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+            TemplateCreatorRehearsalView(draft: snapshot.advanced, family: .branch,
+                branchAdmission: { rehearsal.admitBranch() }, showsReview: false)
+                .id(rehearsal.id)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(CYColor.bgPage.ignoresSafeArea())
+        .navigationTitle(text("title"))
+    }
+
+    private var unavailable: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            CYHeroHeader(verbatim: text("title"))
+            CYEmptyState(
+                systemImage: "theatermasks",
+                "installedRehearsal.unavailable",
+                tableName: "InstalledDraftRehearsal",
+                messageIdentifier: "installedRehearsal.unavailable",
+                kind: .failure
+            )
+        }
+        .padding(.horizontal, CYSpacing.pageHorizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(CYColor.bgPage.ignoresSafeArea())
+        .cyHeroScreen()
+    }
+
     private func review(_ snapshot: ModInstallationSavedRehearsalSnapshot) -> some View {
         Form {
             Section {
-                Text(text("savedOnly"))
-                Text(text("licenseChecked"))
-                Text(text("boundary"))
+                CYHeroHeader(verbatim: text("title")) {
+                    CYCoverArt(seed: snapshot.saved.draftContentHash, symbol: "theatermasks", showsDebugLabel: false, cornerRadius: CYRadius.lg)
+                        .frame(height: heroArtHeight)
+                        .frame(maxWidth: .infinity)
+                        .accessibilityHidden(true)
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets())
             }
             Section {
-                LabeledContent(text("templateId"), value: String(snapshot.saved.templateId))
-                LabeledContent(text("licenseId"), value: snapshot.installation.licenseId)
-                LabeledContent(text("moduleId"), value: snapshot.installation.moduleId)
-                LabeledContent(text("releaseId"), value: snapshot.installation.releaseId)
-                LabeledContent(text("installationId"), value: snapshot.installation.requestId)
-                LabeledContent(text("draftHash"), value: snapshot.saved.draftContentHash)
-                LabeledContent(text("contentHash"), value: snapshot.installation.contentHash)
-                LabeledContent(text("termsHash"), value: snapshot.installation.termsHash)
-                LabeledContent(text("bindingHash"), value: snapshot.saved.bindingHash)
+                Text(verbatim: text("savedOnly"))
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: text("licenseChecked"))
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text(verbatim: text("boundary"))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Section {
+                fact(text("templateId"), String(snapshot.saved.templateId))
+                fact(text("licenseId"), shown(snapshot.installation.licenseId))
+                fact(text("moduleId"), shown(snapshot.installation.moduleId))
+                fact(text("releaseId"), shown(snapshot.installation.releaseId))
+                fact(text("installationId"), shown(snapshot.installation.requestId))
+                fact(text("draftHash"), shown(snapshot.saved.draftContentHash))
+                fact(text("contentHash"), shown(snapshot.installation.contentHash))
+                fact(text("termsHash"), shown(snapshot.installation.termsHash))
+                fact(text("bindingHash"), shown(snapshot.saved.bindingHash))
                 ForEach(snapshot.installation.bindings) { binding in
-                    Text(verbatim: "\(binding.kind.rawValue) · \(binding.key) · \(binding.label) (#\(binding.resourceId))")
-                    Text(verbatim: binding.fingerprint).font(.caption.monospaced())
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        Text(verbatim: "\(binding.kind.rawValue) · \(binding.key) · \(binding.label) (#\(binding.resourceId))")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        Text(verbatim: shown(binding.fingerprint))
+                            .font(CYTypography.caption.monospaced())
+                            .foregroundStyle(CYColor.textSecondary)
+                            .textSelection(.enabled)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
                 }
-            } header: { Text(text("identity")) }
+            } header: {
+                CYSectionHeader(LocalizedStringKey(stringLiteral: text("identity")))
+            }
             Section {
                 ForEach(snapshot.saved.fields.keys.sorted(), id: \.self) { key in
-                    Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation").font(.headline)
-                    Text(verbatim: snapshot.saved.fields[key] ?? "").textSelection(.enabled)
+                    Text(LocalizedStringKey("modInstallation.field." + key), tableName: "ModInstallation")
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: shown(snapshot.saved.fields[key] ?? ""))
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
                 DisclosureGroup(text("fullSnapshot")) {
-                    Text(verbatim: snapshot.saved.snapshotJson).font(.caption.monospaced()).textSelection(.enabled)
+                    Text(verbatim: shown(snapshot.saved.snapshotJson))
+                        .font(CYTypography.caption.monospaced())
+                        .foregroundStyle(CYColor.textSecondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-            } header: { Text(text("savedFields")) }
-            CYPillButton(verbatim: text("start")) { rehearsal.start() }.listRowBackground(Color.clear).disabled(!rehearsal.available)
-                .accessibilityIdentifier("installedRehearsal.start")
-        }.accessibilityIdentifier("installedRehearsal.review")
+            } header: {
+                CYSectionHeader(LocalizedStringKey(stringLiteral: text("savedFields")))
+            }
+            Section {
+                CYPillButton(verbatim: text("start"), systemImage: "play.fill") { rehearsal.start() }
+                    .disabled(!rehearsal.available)
+                    .accessibilityIdentifier("installedRehearsal.start")
+                    .listRowBackground(Color.clear)
+            }
+        }
+        .cyGroupedSurface()
+        .cyHeroScreen()
+        .accessibilityIdentifier("installedRehearsal.review")
+    }
+
+    /// Label above the value so a hash wraps at large Dynamic Type instead of truncating.
+    private func fact(_ title: String, _ value: String) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Text(verbatim: title)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: value)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .accessibilityElement(children: .combine)
     }
 }
