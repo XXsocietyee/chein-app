@@ -75,7 +75,7 @@ import SwiftUI
                     Section {
                         ForEach(flow.items) { item in
                             CYListRow(verbatim: item.nickname, trailing: .none) {
-                                BlacklistCover(seed: item.peerID, symbol: "person.fill", height: 40, radius: CYRadius.sm)
+                                BlacklistCover(seed: String(item.peerID), symbol: "person.fill", height: 40, radius: CYRadius.sm)
                             }
                             .accessibilityIdentifier("blacklist.row.\(item.peerID)")
                             .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -199,7 +199,7 @@ import SwiftUI
                     }
                     Section {
                         HStack(alignment: .center, spacing: CYSpacing.md) {
-                            BlacklistCover(seed: item.peerID, symbol: "person.fill", height: 40, radius: CYRadius.sm)
+                            BlacklistCover(seed: String(item.peerID), symbol: "person.fill", height: 40, radius: CYRadius.sm)
                             Text(verbatim: item.nickname.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.nickname)
                                 .font(CYTypography.cardTitle)
                                 .foregroundStyle(palette.textPrimary)
