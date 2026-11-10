@@ -215,6 +215,9 @@ struct ActivityDetailView: View {
             ? appLocalized("share.card.free", locale: locale)
             : E1Money.yuan(summary.minimumAmount, locale: locale)
         let place = ActivityPresentation.nonempty(summary.addressName) ?? ActivityPresentation.nonempty(summary.address)
+        // Spots left is the sum over tickets that report an inventory; no ticket reporting one stays unknown (em dash).
+        let inventories = detail.tickets.compactMap(\.remainingInventory)
+        let spotsLeft: String? = inventories.isEmpty ? nil : String(max(0, inventories.reduce(0, +)))
         return CYShareCardContent(
             kind: .activity,
             eyebrow: appLocalized("share.card.activity.eyebrow", locale: locale),
@@ -223,7 +226,7 @@ struct ActivityDetailView: View {
             place: place,
             stats: [
                 CYShareStat(appLocalized("share.card.stat.price", locale: locale), price),
-                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), detail.remainingInventory.map { String(max(0, $0)) }),
+                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), spotsLeft),
                 CYShareStat(appLocalized("share.card.stat.category", locale: locale), summary.categoryNames.first),
             ],
             silhouette: summary.hasValidCoordinates ? [CGPoint(x: 0.5, y: 0.5)] : [],
