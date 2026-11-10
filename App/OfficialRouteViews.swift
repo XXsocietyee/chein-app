@@ -62,6 +62,7 @@ import SwiftUI
     let reader: OfficialRouteReader
     let routeID: String
     @State private var state: LoadState = .loading
+    @State private var showShare = false
     private enum LoadState { case loading, ready(OfficialRouteDetail), notFound, failed }
     var body: some View {
         Group {
@@ -79,8 +80,42 @@ import SwiftUI
         }
         .navigationTitle(navTitle)
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if case .ready = state {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showShare = true } label: { Label("officialRoute.share", systemImage: "square.and.arrow.up") }
+                        .accessibilityIdentifier("officialRoute.share")
+                }
+            }
+        }
+        .sheet(isPresented: $showShare) {
+            if case .ready(let detail) = state { CatalogShareCardView(content: shareContent(detail), tint: .ember) }
+        }
         .task { await load() }
         .accessibilityIdentifier("officialRoute.detail")
+    }
+    /// Share card content: name, city (behind the composer's place toggle), duration / distance / stops and the
+    /// relative shape of the stops. No coordinates, addresses or node names leave in the image.
+    private func shareContent(_ detail: OfficialRouteDetail) -> CYShareCardContent {
+        let route = detail.route
+        let duration = OfficialRouteFormat.duration(route.totalMinutes, chinese: officialRouteIsChinese)
+        let distance = OfficialRouteFormat.distance(route.distanceKm)
+        let located = detail.nodes.filter { $0.latitude != nil && $0.longitude != nil }
+        return CYShareCardContent(
+            kind: .route,
+            eyebrow: appLocalized("share.card.route.eyebrow", locale: locale),
+            title: route.name,
+            subtitle: nil,
+            place: route.city.isEmpty ? nil : route.city,
+            stats: [
+                CYShareStat(appLocalized("share.card.stat.duration", locale: locale), duration.isEmpty ? nil : duration),
+                CYShareStat(appLocalized("share.card.stat.distance", locale: locale), distance.isEmpty ? nil : distance),
+                CYShareStat(appLocalized("share.card.stat.stops", locale: locale), detail.nodes.isEmpty ? nil : String(detail.nodes.count)),
+            ],
+            silhouette: CYShareCardContent.silhouette(latitudes: located.compactMap(\.latitude), longitudes: located.compactMap(\.longitude)),
+            artSeed: route.name,
+            artSymbol: "point.topleft.down.to.point.bottomright.curvepath",
+            brand: appLocalized("share.card.brand", locale: locale))
     }
     private var navTitle: Text {
         return Text("officialRoute.detail.title")
