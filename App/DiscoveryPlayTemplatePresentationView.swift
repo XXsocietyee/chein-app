@@ -9,38 +9,69 @@ import SwiftUI
 
     var body: some View {
         if let publisher = presentation.publisher {
-            Section("discovery.template.publisher") {
-                Text(verbatim: publisher).textSelection(.enabled)
+            Section {
+                Text(verbatim: publisher)
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .textSelection(.enabled)
                     .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("discovery.template.publisherValue")
+                    .discoveryPresentationRow()
+            } header: {
+                DiscoverySectionHeader("discovery.template.publisher")
             }
+            .discoveryCardRow()
         }
-        if let count = presentation.useCount {
+        if presentation.useCount != nil {
             Section {
-                LabeledContent("discovery.template.useCount", value: String(count))
+                LabeledContent("discovery.template.useCount", value: presentation.useCountText)
+                    .font(CYTypography.numericBody)
                     .monospacedDigit()
                     .accessibilityIdentifier("discovery.template.useCount")
+                    .discoveryPresentationRow()
             }
+            .discoveryCardRow()
         }
         if !presentation.gallerySources.isEmpty {
-            Section("discovery.template.images") {
+            Section {
                 NativeMediaGalleryEntry(sources: presentation.gallerySources, scope: scope,
                                         titleKey: "discovery.template.images", reader: imageReader)
+                    .discoveryPresentationRow()
+            } header: {
+                DiscoverySectionHeader("discovery.template.images")
             }
+            .discoveryCardRow()
         }
         if presentation.hasStory {
-            Section("discovery.template.story") {
+            Section {
                 if let text = presentation.storyText {
-                    Text(verbatim: text).textSelection(.enabled)
+                    Text(verbatim: text)
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .textSelection(.enabled)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("discovery.template.storyText")
+                        .discoveryPresentationRow()
                 }
                 if presentation.storyImage != nil {
-                    Text("discovery.template.storyImageInGallery").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("discovery.template.storyImageInGallery")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
                         .fixedSize(horizontal: false, vertical: true)
                         .accessibilityIdentifier("discovery.template.storyImage")
+                        .discoveryPresentationRow()
                 }
+            } header: {
+                DiscoverySectionHeader("discovery.template.story")
             }
+            .discoveryCardRow()
         }
+    }
+}
+
+private extension View {
+    /// 16pt gutters inside the parent detail list. Replaces the row inset; it does not add a second title.
+    func discoveryPresentationRow() -> some View {
+        listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
     }
 }

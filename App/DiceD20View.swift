@@ -9,6 +9,7 @@ import QuestifyCore
 @MainActor struct DiceD20CanvasView: View {
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @ScaledMetric(relativeTo: .title3) private var canvasHeight: CGFloat = 150
     let values: [Int]
     let kept: Int?
     let rollMode: String // "normal" | "advantage" | "disadvantage"
@@ -28,7 +29,8 @@ import QuestifyCore
                 canvas(count: count, elapsedMs: nil)
             }
         }
-        .frame(height: 150)
+        .frame(maxWidth: .infinity)
+        .frame(height: canvasHeight)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilitySummary)
     }
@@ -132,26 +134,22 @@ import QuestifyCore
         let pct = DiceJourneyCheckRules.trackPct(receipt.kept)
         let isCrit = receipt.nat == "CRIT"
 
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack(spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
                 if !natTag.isEmpty {
-                    Text(natTag)
-                        .font(CYTypography.caption)
-                        .foregroundStyle(isCrit ? CYColor.warningText : CYColor.dangerText)
-                        .padding(.horizontal, CYSpacing.sm)
-                        .padding(.vertical, CYSpacing.xs)
-                        .background(isCrit ? CYColor.warningSoft : CYColor.dangerSoft, in: Capsule())
+                    CYStatusChip(verbatim: natTag, tone: isCrit ? .warning : .danger, systemImage: isCrit ? "star.fill" : "exclamationmark.triangle")
                 }
                 if !margin.isEmpty {
-                    Text(margin)
+                    Text(verbatim: margin)
                         .font(CYTypography.label)
                         .foregroundStyle(receipt.success == true ? CYColor.successText : CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                Spacer()
                 if let dc = receipt.dc, !receipt.detailsHidden {
-                    Text("DC \(dc)")
+                    Text(verbatim: "DC \(dc)")
                         .font(CYTypography.numericBody)
                         .foregroundStyle(CYColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
 
@@ -164,21 +162,16 @@ import QuestifyCore
             if !receipt.breakdownRows.isEmpty {
                 VStack(alignment: .leading, spacing: CYSpacing.xs) {
                     ForEach(Array(receipt.breakdownRows.enumerated()), id: \.offset) { _, row in
-                        HStack {
-                            Text(row.label)
-                                .font(CYTypography.meta)
-                                .foregroundStyle(CYColor.textTertiary)
-                            Spacer()
-                            Text(row.value)
-                                .font(CYTypography.numericBody)
-                                .foregroundStyle(CYColor.textPrimary)
-                        }
-                        .accessibilityElement(children: .combine)
+                        CYListRow(verbatim: row.label, trailing: .value(shownCount(row.value)))
                     }
                 }
-                .padding(CYSpacing.sm)
-                .background(CYColor.bgSurfaceSubtle, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
             }
         }
+    }
+
+    /// Blank breakdown values are unknown. A literal 0 stays 0.
+    private func shownCount(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
     }
 }
