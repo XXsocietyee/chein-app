@@ -4,140 +4,53 @@ import SwiftUI
 /// team-order inference or fallback to author configuration in player UI.
 @MainActor struct JourneyRoleViewSection: View {
     @Bindable var model: JourneyRoleViewCoordinator
-    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         Group {
             switch model.status {
             case .idle, .absent: EmptyView()
             case .loading:
-                Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        CYSectionHeader("roleView.title")
-                        Text("roleView.loading")
-                            .font(CYTypography.body)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        CYSkeleton()
-                            .accessibilityElement(children: .ignore)
-                            .accessibilityLabel(Text("roleView.loading"))
-                    }
-                    .listRowInsets(Self.gutter)
-                }
+                Section("roleView.title") { CYSkeleton().accessibilityLabel(Text("roleView.loading")) }
             case .closed:
-                Button("roleView.open") { Task { await model.refresh() } }
-                    .buttonStyle(CYPillButtonStyle())
-                    .accessibilityIdentifier("roleView.reopen")
-                    .listRowInsets(Self.gutter)
-                    .listRowBackground(Color.clear)
+                CYPillButton("roleView.open", style: .secondary) { Task { await model.refresh() } }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.reopen")
             case .unavailable:
-                Section {
-                    VStack(alignment: .leading, spacing: CYSpacing.md) {
-                        CYSectionHeader("roleView.title")
-                        Text("roleView.unavailable")
-                            .font(CYTypography.body)
-                            .foregroundStyle(CYColor.textPrimary)
-                            .fixedSize(horizontal: false, vertical: true)
-                            .accessibilityIdentifier("roleView.unavailable")
-                    }
-                    .listRowInsets(Self.gutter)
-                    Button("roleView.refresh") { Task { await model.refresh() } }
-                        .buttonStyle(CYPillButtonStyle())
-                        .accessibilityIdentifier("roleView.refresh")
-                        .e1ActionRow()
+                Section("roleView.title") {
+                    Text("roleView.unavailable").accessibilityIdentifier("roleView.unavailable")
+                    CYPillButton("roleView.refresh", style: .secondary) { Task { await model.refresh() } }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.refresh")
                 }
             case .ready:
                 if let projection = model.projection {
-                    Section {
-                        VStack(alignment: .leading, spacing: CYSpacing.md) {
-                            CYSectionHeader("roleView.title")
-                            readyBody(projection)
+                    Section("roleView.title") {
+                        if projection.assignment == .missing {
+                            CYStatusChip("roleView.missing", tone: .neutral, systemImage: "person.crop.circle.badge.questionmark")
+                                .accessibilityIdentifier("roleView.missing")
+                            Text("roleView.missingDetail").font(.footnote)
+                        } else {
+                            Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue)).font(.headline)
+                                .accessibilityAddTraits(.isHeader)
+                                .accessibilityIdentifier("roleView.assignment")
+                            if let other = projection.otherRoleLabel {
+                                LabeledContent("roleView.otherRole") { Text(verbatim: other) }
+                            }
+                            ForEach(projection.views) { view in
+                                VStack(alignment: .leading, spacing: 8) {
+                                    if projection.assignment == .solo { Text(LocalizedStringKey("roleView.assignment." + view.roleID)).font(.headline).accessibilityAddTraits(.isHeader) }
+                                    if !view.title.isEmpty { Text(verbatim: view.title).font(.title3).accessibilityAddTraits(.isHeader).accessibilityIdentifier("roleView.title." + view.roleID) }
+                                    if !view.body.isEmpty { Text(verbatim: view.body).accessibilityIdentifier("roleView.body." + view.roleID) }
+                                    ForEach(view.items) { item in
+                                        VStack(alignment: .leading, spacing: 4) { Text(verbatim: item.label).font(.headline); Text(verbatim: item.text) }
+                                            .accessibilityElement(children: .combine)
+                                            .accessibilityIdentifier("roleView.item." + view.roleID + "." + String(item.id))
+                                    }
+                                }.padding(.vertical, 4)
+                            }
                         }
-                        .listRowInsets(Self.gutter)
-                        Button("roleView.refresh") { Task { await model.refresh() } }
-                            .buttonStyle(CYPillButtonStyle())
-                            .accessibilityIdentifier("roleView.refresh")
-                            .e1ActionRow()
-                        Button("roleView.close") { model.dismiss() }
-                            .buttonStyle(CYPillButtonStyle(style: .tertiary))
-                            .accessibilityIdentifier("roleView.close")
-                            .e1ActionRow()
-                    }
-                    .privacySensitive()
+                        Text("roleView.serverAssigned").font(.caption).foregroundStyle(.secondary)
+                        CYPillButton("roleView.refresh", style: .secondary) { Task { await model.refresh() } }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.refresh")
+                        CYPillButton("roleView.close", style: .tertiary) { model.dismiss() }.listRowBackground(Color.clear).accessibilityIdentifier("roleView.close")
+                    }.privacySensitive()
                 }
             }
         }
-    }
-
-    @ViewBuilder private func readyBody(_ projection: JourneyRoleProjection) -> some View {
-        if projection.assignment == .missing {
-            CYEmptyState(
-                systemImage: "person.crop.circle.badge.questionmark",
-                "roleView.missing",
-                detail: "roleView.missingDetail",
-                messageIdentifier: "roleView.missing"
-            )
-        } else {
-            Text(LocalizedStringKey("roleView.assignment." + projection.assignment.rawValue))
-                .font(CYTypography.cardTitle)
-                .foregroundStyle(CYColor.textPrimary)
-                .fixedSize(horizontal: false, vertical: true)
-                .accessibilityIdentifier("roleView.assignment")
-            if let other = projection.otherRoleLabel {
-                LabeledContent("roleView.otherRole") {
-                    Text(verbatim: other)
-                }
-                .font(CYTypography.body)
-                .foregroundStyle(CYColor.textPrimary)
-            }
-            ForEach(projection.views) { view in
-                roleCard(view, solo: projection.assignment == .solo)
-            }
-        }
-        Text("roleView.serverAssigned")
-            .font(CYTypography.meta)
-            .foregroundStyle(CYColor.textSecondary)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    @ViewBuilder private func roleCard(_ view: JourneyRoleContent, solo: Bool) -> some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            if solo {
-                Text(LocalizedStringKey("roleView.assignment." + view.roleID))
-                    .font(CYTypography.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-            if !view.title.isEmpty {
-                Text(verbatim: view.title)
-                    .font(CYTypography.sectionTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("roleView.title." + view.roleID)
-            }
-            if !view.body.isEmpty {
-                Text(verbatim: view.body)
-                    .font(CYTypography.body)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .accessibilityIdentifier("roleView.body." + view.roleID)
-            }
-            ForEach(view.items) { item in
-                CYListRow(
-                    verbatim: item.label.trimmingCharacters(in: .whitespacesAndNewlines),
-                    meta: item.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.text,
-                    trailing: .none
-                ) {
-                    CYRowIcon(systemImage: "text.alignleft")
-                }
-                .accessibilityIdentifier("roleView.item." + view.roleID + "." + String(item.id))
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.vertical, typeSize.isAccessibilitySize ? CYSpacing.sm : 0)
-    }
-
-    private static var gutter: EdgeInsets {
-        EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal)
     }
 }
 
@@ -150,7 +63,7 @@ import SwiftUI
     let stateVersion: Int?
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.md) { JourneyRoleViewSection(model: model) }
+        VStack(alignment: .leading, spacing: 12) { JourneyRoleViewSection(model: model) }
             .frame(maxWidth: .infinity, alignment: .leading)
             .privacySensitive()
             .task(id: [sessionIdentity, runID.map(String.init), stateVersion.map(String.init)]) {
