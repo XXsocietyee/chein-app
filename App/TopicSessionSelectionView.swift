@@ -22,17 +22,13 @@ struct TopicSessionSelectionView: View {
     var body: some View {
         NavigationStack(path: $path) {
             List {
-                Section { CYHeroHeader("topic.sessionSelection.title") }.e1HeroRow()
                 switch resolution {
                 case .missingData:
                     CYEmptyState(systemImage: "calendar.badge.exclamationmark", "topic.sessionSelection.missingData", messageIdentifier: "topic.sessionSelection.missingData")
-                        .listRowBackground(Color.clear)
                 case .empty:
                     CYEmptyState(systemImage: "calendar", "topic.sessionSelection.empty", messageIdentifier: "topic.sessionSelection.empty")
-                        .listRowBackground(Color.clear)
                 case .destinationUnavailable(let activities):
                     Text("topic.sessionSelection.destinationUnavailable")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                         .accessibilityIdentifier("topic.sessionSelection.destinationUnavailable")
                     ForEach(activities) { activity in activityRow(activity) }
                 case .ready(let activities):
@@ -50,12 +46,12 @@ struct TopicSessionSelectionView: View {
                 if !detail.tickets.isEmpty {
                     Section("topic.tickets") {
                         Text("topic.sessionSelection.ticketDependency")
-                            .font(CYTypography.meta)
-                            .foregroundStyle(CYColor.textTertiary)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                             .accessibilityIdentifier("topic.sessionSelection.ticketDependency")
                         ForEach(Array(detail.tickets.enumerated()), id: \.offset) { _, ticket in
-                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                Text(verbatim: ticket.name).font(CYTypography.cardTitle)
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(verbatim: ticket.name).font(.headline)
                                 TopicPrice(value: ticket.price, label: "topic.price")
                                 if let start = ticket.startTime { LabeledContent("topic.start", value: start) }
                                 if let end = ticket.endTime { LabeledContent("topic.end", value: end) }
@@ -64,9 +60,8 @@ struct TopicSessionSelectionView: View {
                     }
                 }
             }
-            .listStyle(.insetGrouped)
-            .cyGroupedSurface()
-            .cyHeroScreen()
+            .appNavigationTitle("topic.sessionSelection.title")
+            .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("topic.sessionSelection.close") { flow.close(); dismiss() }
@@ -95,14 +90,11 @@ struct TopicSessionSelectionView: View {
     }
 
     private func activityRow(_ activity: TopicActivitySummary) -> some View {
-        HStack(spacing: CYSpacing.md) {
-            CYRowIcon(systemImage: "calendar")
-            VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                Text(verbatim: activity.name).font(CYTypography.cardTitle)
-                if let address = activity.addressName { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                if let start = activity.startDate { LabeledContent("topic.start", value: start).font(CYTypography.meta) }
-                if let end = activity.endDate { LabeledContent("topic.end", value: end).font(CYTypography.meta) }
-            }
+        VStack(alignment: .leading, spacing: 6) {
+            Text(verbatim: activity.name).font(.headline)
+            if let address = activity.addressName { Text(verbatim: address) }
+            if let start = activity.startDate { LabeledContent("topic.start", value: start) }
+            if let end = activity.endDate { LabeledContent("topic.end", value: end) }
         }
     }
 }

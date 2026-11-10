@@ -31,7 +31,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                 unavailable = false; selection = Selection(controller: controller)
             } label: { Label { installText("entry") } icon: { Image(systemName: "square.and.arrow.down") } }
                 .accessibilityIdentifier("workshopPaidInstall.entry")
-            installText(unavailable ? "notConfigured" : "entryScope").font(CYTypography.meta).fixedSize(horizontal: false, vertical: true)
+            installText(unavailable ? "notConfigured" : "entryScope").font(.footnote).fixedSize(horizontal: false, vertical: true)
         }
         .sheet(item: presented) { captured in
             WorkshopPaidInstallView(controller: captured.controller, appearance: captured.appearance, makeProfessional: makeProfessional, makeText: makeText) {
@@ -58,20 +58,20 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                 if controller.phase == .invalidated {
                     installText("sessionChanged")
                 } else if controller.phase == .submitting {
-                    CYSkeletonBlock(height: 18).accessibilityLabel(installText("submitting"))
+                    CYLoadingStateView(rows: 1).accessibilityLabel(installText("submitting"))
                     installText("unknownNote").fixedSize(horizontal: false, vertical: true)
                 } else if controller.phase == .loading && !controller.loadingPage {
-                    CYSkeletonBlock(height: 18).accessibilityLabel(installText("loading"))
+                    CYLoadingStateView(rows: 1).accessibilityLabel(installText("loading"))
                 } else if controller.phase == .confirming, let command = controller.confirmation {
                     commandFacts(command)
                     Section {
                         installText("confirmNote").fixedSize(horizontal: false, vertical: true)
-                        Button { schedule(controller.offerSubmit(displayed, command: command)) } label: { installText("confirm") }.buttonStyle(CYPillButtonStyle())
+                        CYPillButton(LocalizedStringKey("workshopPaidInstall.confirm"), style: .primary, tableName: "WorkshopPaidInstall") { schedule(controller.offerSubmit(displayed, command: command)) }
                             .accessibilityIdentifier("workshopPaidInstall.confirm")
                         Button(role: .cancel) { controller.cancelReview(appearance: displayed) } label: { installText("cancelReview") }
                     }
                 } else {
-                    if controller.loadingPage { CYSkeletonBlock(height: 18).accessibilityLabel(installText("loading")) }
+                    if controller.loadingPage { CYLoadingStateView(rows: 1).accessibilityLabel(installText("loading")) }
                     if controller.pageIssue != nil {
                         installText("readOrOutcomeUnavailable").fixedSize(horizontal: false, vertical: true)
                     }
@@ -79,7 +79,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                         Section {
                             installText(issue == .storageUnavailable || issue == .pendingConflict ? "storageBlocked" : issue == .disabled ? "notConfigured" : "readOrOutcomeUnavailable")
                                 .fixedSize(horizontal: false, vertical: true)
-                            Button { schedule(controller.offerLoad(displayed)) } label: { installText("refresh") }.buttonStyle(CYPillButtonStyle(style: .secondary))
+                            CYPillButton(LocalizedStringKey("workshopPaidInstall.refresh"), style: .secondary, tableName: "WorkshopPaidInstall") { schedule(controller.offerLoad(displayed)) }
                         }
                     }
                     if let pending = controller.pending {
@@ -87,16 +87,16 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                             InstallFact("request", pending.requestId)
                             installText("unknownNote").fixedSize(horizontal: false, vertical: true)
                             if let outcome = controller.outcome { installText("state." + outcome.state.rawValue) }
-                            Button { schedule(controller.offerStatus(displayed)) } label: { installText("checkOutcome") }.buttonStyle(CYPillButtonStyle(style: .secondary))
+                            CYPillButton(LocalizedStringKey("workshopPaidInstall.checkOutcome"), style: .secondary, tableName: "WorkshopPaidInstall") { schedule(controller.offerStatus(displayed)) }
                                 .disabled(controller.loadingPage)
-                            Button { controller.reviewRecovery(appearance: displayed) } label: { installText("reviewSameRequest") }.buttonStyle(CYPillButtonStyle(style: .secondary))
+                            CYPillButton(LocalizedStringKey("workshopPaidInstall.reviewSameRequest"), style: .secondary, tableName: "WorkshopPaidInstall") { controller.reviewRecovery(appearance: displayed) }
                         } header: { installText("pending") }
                     } else if controller.phase != .failed {
                         targetSelection(displayed)
                     }
                     if let outcome = controller.outcome, outcome.state == .installed {
                         Section {
-                            installText("installed").font(CYTypography.cardTitle)
+                            installText("installed").font(.headline)
                             if let id = outcome.ownedDraftId { InstallFact("ownedDraft", String(id)) }
                             if let at = outcome.installedAt { InstallFact("installedAt", at) }
                             installText("materializationRequired").fixedSize(horizontal: false, vertical: true)
@@ -108,7 +108,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                         if controller.history.isEmpty { installText("noHistory") }
                         ForEach(controller.history) { receipt in
                             VStack(alignment: .leading, spacing: 6) {
-                                Text(verbatim: receipt.requestId).font(CYTypography.meta)
+                                Text(verbatim: receipt.requestId).font(.caption)
                                 installText("state." + receipt.state.rawValue)
                                 if let command = receipt.command {
                                     Text(verbatim: command.purchasedVersionId)
@@ -119,13 +119,13 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                                     WorkshopPaidProfessionalEntry(makeReference: { controller.installedTextReference(receipt, appearance: displayed) }, makeController: makeProfessional)
                                 }
                                 if !receipt.state.terminal {
-                                    Button { controller.reviewRecovery(receipt, appearance: displayed) } label: { installText("reviewSameRequest") }.buttonStyle(CYPillButtonStyle(style: .secondary))
+                                    CYPillButton(LocalizedStringKey("workshopPaidInstall.reviewSameRequest"), style: .secondary, tableName: "WorkshopPaidInstall") { controller.reviewRecovery(receipt, appearance: displayed) }
                                         .disabled(controller.pending != nil && controller.pending?.id != receipt.id)
                                 }
                             }
                         }
                         if let cursor = controller.nextHistoryCursor {
-                            Button { schedule(controller.offerLoad(displayed, beforeHistory: cursor)) } label: { installText("moreHistory") }.buttonStyle(CYPillButtonStyle(style: .tertiary))
+                            CYPillButton(LocalizedStringKey("workshopPaidInstall.moreHistory"), style: .secondary, tableName: "WorkshopPaidInstall") { schedule(controller.offerLoad(displayed, beforeHistory: cursor)) }
                                 .disabled(controller.loadingPage)
                         }
                     } header: { installText("history") }
@@ -157,7 +157,7 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
             if controller.item.status != .active { installText("inactive") }
             else if controller.targetIssue != nil {
                 installText("targetsUnavailable")
-                Button { schedule(controller.offerLoad(displayed)) } label: { installText("refresh") }.buttonStyle(CYPillButtonStyle(style: .secondary))
+                CYPillButton(LocalizedStringKey("workshopPaidInstall.refresh"), style: .secondary, tableName: "WorkshopPaidInstall") { schedule(controller.offerLoad(displayed)) }
                     .disabled(controller.loadingPage)
             }
             else if controller.targets.isEmpty { installText("noTargets") }
@@ -178,13 +178,13 @@ typealias WorkshopPaidInstallControllerFactory = @MainActor (WorkshopPurchasedIt
                     } label: { installText("region") }
                     Toggle(isOn: Binding(get: { controller.commercialUse }, set: { controller.chooseCommercialUse($0, appearance: displayed) })) { installText("commercial") }
                         .disabled(controller.item.commercialUse != .allowed)
-                    Button { controller.review(appearance: displayed) } label: { installText("review") }.buttonStyle(CYPillButtonStyle())
+                    CYPillButton(LocalizedStringKey("workshopPaidInstall.review"), style: .secondary, tableName: "WorkshopPaidInstall") { controller.review(appearance: displayed) }
                         .disabled(controller.region == nil)
                         .accessibilityIdentifier("workshopPaidInstall.review")
                 }
             }
             if let cursor = controller.nextTargetCursor {
-                Button { schedule(controller.offerLoad(displayed, beforeTarget: cursor)) } label: { installText("moreTargets") }.buttonStyle(CYPillButtonStyle(style: .tertiary))
+                CYPillButton(LocalizedStringKey("workshopPaidInstall.moreTargets"), style: .secondary, tableName: "WorkshopPaidInstall") { schedule(controller.offerLoad(displayed, beforeTarget: cursor)) }
                     .disabled(controller.loadingPage)
             }
         } header: { installText("targets") }

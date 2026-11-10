@@ -14,13 +14,13 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
     var body: some View {
         let rendered = readIntent()
         Form {
-            Section { CYHeroHeader(verbatim: supportTicketTitle, subtitle: nil) }.e1HeroRow()
-            Section { supportTicketReadText("boundary").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            Section { CYHeroHeader("title", tableName: "SupportTicketRead").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section { supportTicketReadText("boundary").font(.footnote) }
             if let flow, flow.isCurrent {
                 if let ticket = flow.ticket {
                     Section {
-                        Text(verbatim: ticket.subject).font(CYTypography.sectionTitle).textSelection(.enabled)
-                        Text(verbatim: ticket.ticket_no).font(CYTypography.numericBody).foregroundStyle(CYColor.textTertiary).textSelection(.enabled)
+                        Text(verbatim: ticket.subject).textSelection(.enabled)
+                        Text(verbatim: ticket.ticket_no).font(.caption).textSelection(.enabled)
                         field("status", ticket.status); field("category", ticket.category)
                         field("timezone", ticket.timezone); field("created", ticket.create_time)
                         field("sla", ticket.sla_state); field("firstDue", ticket.sla_first_due_at); field("resolveDue", ticket.sla_resolve_due_at)
@@ -39,8 +39,8 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                             }
                         }
                         if flow.loaded && flow.messages.isEmpty { supportTicketReadText("messagesEmpty") }
-                        if flow.hasMoreMessages { Button { run(rendered) { await $0.reloadDetail($1, next: true) } } label: { supportTicketReadText("messagesMore") }.buttonStyle(CYPillButtonStyle(style: .secondary)).disabled(flow.busy).e1ActionRow() }
-                        Button { run(rendered) { await $0.reloadDetail($1) } } label: { supportTicketReadText("reloadDetail") }.buttonStyle(CYPillButtonStyle(style: .tertiary)).disabled(flow.busy).e1ActionRow()
+                        if flow.hasMoreMessages { CYPillButton("messagesMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.reloadDetail($1, next: true) } }.disabled(flow.busy) }
+                        CYPillButton("reloadDetail", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.reloadDetail($1) } }.disabled(flow.busy)
                     } header: { supportTicketReadText("messages") }
                     Section {
                         supportTicketReadText("timelineBoundary").font(.footnote)
@@ -57,33 +57,35 @@ func supportTicketReadText(_ key: String) -> Text { Text(LocalizedStringKey(key)
                             }
                         }
                         if flow.timelineLoaded && flow.events.isEmpty { supportTicketReadText("eventsEmpty") }
-                        Button { run(rendered) { await $0.loadTimeline($1) } } label: { supportTicketReadText("loadTimeline") }.disabled(flow.busy || !flow.reader.allows(.timeline))
-                        if flow.hasMoreEvents { Button { run(rendered) { await $0.loadTimeline($1, next: true) } } label: { supportTicketReadText("eventsMore") }.disabled(flow.busy) }
+                        CYPillButton("loadTimeline", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.loadTimeline($1) } }.disabled(flow.busy || !flow.reader.allows(.timeline))
+                        if flow.hasMoreEvents { CYPillButton("eventsMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.loadTimeline($1, next: true) } }.disabled(flow.busy) }
                     } header: { supportTicketReadText("timeline") }
                 } else {
                     Section {
                         ForEach(flow.tickets) { row in
                             Button { run(rendered) { await $0.open(row, intent: $1) } } label: {
-                                CYListRow(verbatim: row.subject, meta: row.ticket_no + " · " + row.status) { CYRowIcon(systemImage: "lifepreserver") }
+                                VStack(alignment: .leading, spacing: 5) {
+                                    Text(verbatim: row.subject)
+                                    Text(verbatim: row.ticket_no + " · " + row.status).font(.caption)
+                                }
                             }.disabled(flow.busy || !flow.reader.allows(.detail))
                             .accessibilityIdentifier("support.read.row." + row.ticket_no)
                         }
-                        if flow.loaded && flow.tickets.isEmpty { CYEmptyState(systemImage: "lifepreserver", "empty", tableName: "SupportTicketRead").listRowBackground(Color.clear) }
-                        if flow.hasMoreTickets { Button { run(rendered) { await $0.loadHistory($1, next: true) } } label: { supportTicketReadText("listMore") }.buttonStyle(CYPillButtonStyle(style: .secondary)).disabled(flow.busy).e1ActionRow() }
+                        if flow.loaded && flow.tickets.isEmpty { supportTicketReadText("empty") }
+                        if flow.hasMoreTickets { CYPillButton("listMore", style: .secondary, tableName: "SupportTicketRead") { run(rendered) { await $0.loadHistory($1, next: true) } }.disabled(flow.busy) }
                     } header: { supportTicketReadText("list") }
                 }
-                if flow.busy { CYSkeletonBlock(height: 18).accessibilityLabel(Text("cy.state.loading")) }
+                if flow.busy { CYLoadingStateView(rows: 1) }
                 if let failure = flow.failure { supportTicketReadText("error.\(failure)").accessibilityIdentifier("support.read.error") }
-                Button { resumeNumber = nil; run(rendered) { await $0.loadHistory($1) } } label: { supportTicketReadText("reloadList") }.buttonStyle(CYPillButtonStyle(style: .secondary)).disabled(flow.busy || !flow.reader.allows(.history)).e1ActionRow()
+                CYPillButton("reloadList", style: .secondary, tableName: "SupportTicketRead") { resumeNumber = nil; run(rendered) { await $0.loadHistory($1) } }.disabled(flow.busy || !flow.reader.allows(.history))
             } else { supportTicketReadText("error.disabled") }
         }
-        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive().accessibilityIdentifier("support.read.screen")
+        .cyGroupedSurface().privacySensitive().accessibilityIdentifier("support.read.screen")
         .onAppear { visible = true; if identity == nil { identity = session.supportTicketReadIdentity }; start() }
         .onDisappear { visible = false; retire(preserveSelection: true) }
         .onChange(of: scene) { _, phase in retire(preserveSelection: true); if phase == .active { start() } }
         .onChange(of: session.supportTicketReadIdentity) { _, _ in retire(preserveSelection: false) }
     }
-    private var supportTicketTitle: String { String(localized: "title", table: "SupportTicketRead") }
     @ViewBuilder private func field(_ key: String, _ value: String?) -> some View {
         if let value { LabeledContent { Text(verbatim: value).textSelection(.enabled) } label: { supportTicketReadText(key) } }
     }

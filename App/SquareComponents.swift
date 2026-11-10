@@ -90,7 +90,7 @@ struct SquarePostContent: View {
                 }
                 .font(.caption).foregroundStyle(.secondary)
             }
-            if let contents = post.contents, !contents.isEmpty { Text(verbatim: contents).lineLimit(compact ? 5 : nil).textSelection(.enabled) }
+            if let contents = post.contents, !contents.isEmpty { Text(verbatim: contents).lineLimit(compact ? 3 : nil).textSelection(.enabled) }
             if showImages && !post.images.isEmpty {
                 NativeMediaGalleryEntry(sources: post.images, scope: mediaScope, titleKey: "media.destination.squareImages", compact: compact)
             }

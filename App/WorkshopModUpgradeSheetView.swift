@@ -121,11 +121,7 @@ public struct WorkshopModUpgradeSheetView: View {
                 }
                 .accessibilityIdentifier("workshop.upgrade.confirmToggle")
 
-                Button(action: submitUpgradeDraft) {
-                    Text("workshopUpgrade.confirmButton")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.questifyPrimary)
+                CYPillButton("workshopUpgrade.confirmButton", style: .primary, action: submitUpgradeDraft)
                 .disabled(confirmedRequestId != nil || !presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))
                 .accessibilityIdentifier("workshop.upgrade.confirmButton")
 

@@ -22,11 +22,10 @@ enum WorkshopLicenseLibraryPresentation {
     @State private var hasReadLicenses = false
     var body: some View {
         List {
-            Section { CYHeroHeader(verbatim: String(localized: LocalizedStringResource("workshopCommerce.library.title", table: "WorkshopCommerce", locale: locale))) }.e1HeroRow()
             if scenePhase == .active {
                 Section {
                     licenseLibraryText("library.boundary")
-                        .font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).fixedSize(horizontal: false, vertical: true)
+                        .font(Theme.Font.label).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                 }
                 if let controller, controller.isCurrent {
                     ForEach(controller.licenses, id: \.licenseId) { item in
@@ -65,8 +64,7 @@ enum WorkshopLicenseLibraryPresentation {
                     }
                     Section {
                         if controller.busy || !hasReadLicenses {
-                            CYSkeletonBlock(height: 18).padding(.vertical, Theme.Space.s3)
-                                .accessibilityLabel(licenseLibraryText("library.loading"))
+                            CYLoadingStateView(rows: 1).accessibilityLabel(licenseLibraryText("library.loading"))
                                 .accessibilityIdentifier("workshopLicenseLibrary.loading")
                         }
                         if let message = controller.licensesMessageKey {
@@ -82,18 +80,17 @@ enum WorkshopLicenseLibraryPresentation {
                                                                          count: controller.licenses.count, message: controller.licensesMessageKey) {
                             WorkshopCommerceLibraryNotice(text: licenseLibraryText("library.empty"), symbol: "tray")
                         }
-                        Button { Task { await read() } } label: { licenseLibraryText("library.refresh") }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary)).disabled(controller.busy).e1ActionRow()
+                        CYPillButton(LocalizedStringKey("workshopCommerce.library.refresh"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read() } }
+                            .disabled(controller.busy)
                         if controller.hasMoreLicenses {
-                            Button { Task { await read(more: true) } } label: { licenseLibraryText("library.nextPage") }
-                                .buttonStyle(CYPillButtonStyle(style: .tertiary)).disabled(controller.busy).e1ActionRow()
+                            CYPillButton(LocalizedStringKey("workshopCommerce.library.nextPage"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read(more: true) } }
+                                .disabled(controller.busy)
                         }
                     } header: { licenseLibraryText("library.readState") }
                 } else {
                     Section {
                         WorkshopCommerceLibraryNotice(text: licenseLibraryText("library.unavailable"), symbol: "icloud.slash")
-                        Button { Task { await read() } } label: { licenseLibraryText("library.reopen") }
-                            .buttonStyle(CYPillButtonStyle(style: .secondary)).e1ActionRow()
+                        CYPillButton(LocalizedStringKey("workshopCommerce.library.reopen"), style: .secondary, tableName: "WorkshopCommerce") { Task { await read() } }
                     }
                 }
             }
@@ -101,7 +98,7 @@ enum WorkshopLicenseLibraryPresentation {
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
         .modifier(WorkshopLibrarySurface())
-        .cyHeroScreen()
+        .navigationTitle(String(localized: LocalizedStringResource("workshopCommerce.library.title", table: "WorkshopCommerce", locale: locale)))
         .privacySensitive()
         .task { await read() }
         .onChange(of: session.sessionRevision) { _, _ in Task { await read() } }

@@ -115,35 +115,38 @@ import Combine
     }
     var body: some View {
         Form {
-            Section { CYHeroHeader("templateReaction.rehearse", subtitle: controller.mode == .sourceExample ? "templateReaction.exampleOnly" : nil) }.e1HeroRow()
+            Section { CYHeroHeader("templateReaction.rehearse").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section {
+                if controller.mode == .sourceExample { Text("templateReaction.exampleOnly").font(.footnote) }
+            }
             if let state = controller.visibleState {
                 Section {
-                    Text(verbatim: state.kicker).font(CYTypography.sectionTitle)
-                    LabeledContent("templateReaction.rounds", value: String(state.rounds)).monospacedDigit()
-                    LabeledContent("templateReaction.goal", value: milliseconds(state.goalMs)).monospacedDigit()
-                    LabeledContent("templateReaction.round", value: String(state.round)).monospacedDigit()
-                    Text("templateReaction.rule").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text(verbatim: state.kicker).font(.title2)
+                    LabeledContent("templateReaction.rounds", value: String(state.rounds))
+                    LabeledContent("templateReaction.goal", value: milliseconds(state.goalMs))
+                    LabeledContent("templateReaction.round", value: String(state.round))
+                    Text("templateReaction.rule").font(.footnote)
                 }
                 Section {
                     Button(action: controller.action(.tap)) {
-                        VStack(spacing: CYSpacing.lg) {
-                            Text(LocalizedStringKey(stageKey(state))).font(CYTypography.dataXL)
-                            Text(LocalizedStringKey(hintKey(state))).font(CYTypography.body).foregroundStyle(CYColor.textSecondary)
+                        VStack(spacing: 16) {
+                            Text(LocalizedStringKey(stageKey(state))).font(.largeTitle.bold())
+                            Text(LocalizedStringKey(hintKey(state))).font(.callout)
                         }.frame(maxWidth: .infinity, minHeight: 180).padding()
-                            .background(stageColor(state).opacity(0.18), in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                            .background(stageColor(state).opacity(0.18), in: RoundedRectangle(cornerRadius: 16))
                             .contentShape(Rectangle())
                     }.buttonStyle(.plain).disabled(!state.canTap)
                         .accessibilityIdentifier("templateReaction.stage")
                         .accessibilityLabel(LocalizedStringKey(stageKey(state)))
                         .accessibilityHint(LocalizedStringKey(hintKey(state)))
                     if let last = state.times.last {
-                        LabeledContent("templateReaction.last", value: milliseconds(last)).monospacedDigit()
+                        LabeledContent("templateReaction.last", value: milliseconds(last))
                     }
                 }
                 if !state.times.isEmpty {
                     Section("templateReaction.readings") {
                         ForEach(Array(state.times.enumerated()), id: \.offset) { index, value in
-                            HStack { Text(verbatim: String(index + 1)); Spacer(); Text(verbatim: milliseconds(value)) }.font(CYTypography.numericBody)
+                            HStack { Text(verbatim: String(index + 1)); Spacer(); Text(verbatim: milliseconds(value)) }
                         }
                     }
                 }
@@ -153,15 +156,15 @@ import Combine
                         Text(LocalizedStringKey(matched ? "templateReaction.matched" : "templateReaction.missed"))
                     }
                 }
-                CYPillButton("creator.reset", style: .tertiary, action: controller.action(.reset)).accessibilityIdentifier("templateReaction.reset").e1ActionRow()
+                CYPillButton("creator.reset", style: .secondary, action: controller.action(.reset)).accessibilityIdentifier("templateReaction.reset")
             } else {
                 Section {
                     Text("templateReaction.unavailable")
-                    CYPillButton("templateReaction.reload", style: .secondary, systemImage: "arrow.clockwise") { controller.reload() }.disabled(!controller.canReload)
-                        .accessibilityIdentifier("templateReaction.reload").e1ActionRow()
+                    CYPillButton("templateReaction.reload", style: .secondary) { controller.reload() }.disabled(!controller.canReload)
+                        .accessibilityIdentifier("templateReaction.reload")
                 }
             }
-        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().privacySensitive()
+        }.cyGroupedSurface().privacySensitive()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button("templateAuthor.close", action: controller.closeAction { dismiss() }).accessibilityIdentifier("templateReaction.close")
             } }
@@ -171,7 +174,7 @@ import Combine
     }
     private func milliseconds(_ value: Double) -> String { String(format: "%.0f ms", value) }
     private func stageColor(_ state: TemplateReactionRehearsal) -> Color {
-        switch state.phase { case .signal: return CYColor.successText; case .waiting, .early: return CYColor.dangerText; default: return CYColor.textSecondary }
+        switch state.phase { case .signal: return .green; case .waiting, .early: return .red; default: return .secondary }
     }
     private func stageKey(_ state: TemplateReactionRehearsal) -> String {
         switch state.phase {

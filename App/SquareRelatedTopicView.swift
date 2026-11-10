@@ -25,11 +25,10 @@ extension EnvironmentValues {
             if let context, context.squareScope == squareReader.scope,
                let route = SquareRelatedTopicRoute(post: post, source: source) {
                 let selected = SquareRelatedTopicSelection(route: route, squareScope: context.squareScope, topicScope: context.reader.scope)
-                Button {
+                CYPillButton("activity.viewTopic", style: .secondary, systemImage: "map") {
                     guard selected.isCurrent(squareScope: squareReader.scope, topicScope: context.reader.scope) else { return }
                     onSelect(selected)
-                } label: { CYPillButtonLabel("activity.viewTopic", systemImage: "map") }
-                    .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+                }
                     .accessibilityIdentifier("square.openRelatedTopic")
             }
         }
