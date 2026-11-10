@@ -342,6 +342,7 @@ struct RoamStampCard: View {
     /// Album list uses the kit chip. The detail page keeps the previous label.
     var kit = false
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         if kit { compact } else { full }
     }
@@ -354,7 +355,7 @@ struct RoamStampCard: View {
                 else { Label("roam.experience.imageUnavailable", systemImage: "photo").font(CYTypography.meta) }
             }.accessibilityLabel(Text("roam.experience.sampleArt"))
             if let caption = stamp.caption, !caption.isEmpty {
-                Text(verbatim: caption).font(CYTypography.bodyCompact.weight(.semibold)).foregroundStyle(CYColor.textPrimary).lineLimit(2).multilineTextAlignment(.leading)
+                Text(verbatim: caption).font(CYTypography.bodyCompact.weight(.semibold)).foregroundStyle(CYColor.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 2).multilineTextAlignment(.leading)
             }
             Text(verbatim: String(format: "NO. %04d", stamp.id % 10000)).font(CYTypography.caption.monospaced()).foregroundStyle(CYColor.textTertiary)
             if let date = stamp.createTime { Text(verbatim: String(date.prefix(10))).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }

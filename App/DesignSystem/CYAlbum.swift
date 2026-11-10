@@ -206,7 +206,7 @@ private struct CYLockedSilhouette: ViewModifier {
         content
             .saturation(locked ? 0 : 1)
             .contrast(locked ? 0.85 : 1)
-            .opacity(locked ? 0.62 : 1)
+            .opacity(locked ? 0.78 : 1)   // 0.78 keeps secondary text >= 4.5:1 on light surfaces too
             .overlay {
                 if locked {
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)

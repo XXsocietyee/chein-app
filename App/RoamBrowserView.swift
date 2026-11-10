@@ -292,12 +292,14 @@ struct RoamBrowserView: View {
                 .autocorrectionDisabled().textInputAutocapitalization(.never)
                 .accessibilityIdentifier("roam.search")
             if !query.isEmpty {
-                Button { query = "" } label: { Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.textTertiary) }
+                Button { query = "" } label: {
+                    Image(systemName: "xmark.circle.fill").foregroundStyle(CYColor.textTertiary)
+                        .frame(minWidth: 44, minHeight: 44).contentShape(Rectangle())
+                }
                     .buttonStyle(.plain).accessibilityLabel(Text("roam.search.clear"))
             }
         }
         .padding(.horizontal, CYSpacing.lg).frame(minHeight: 44)
-        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         .background(Color.white.opacity(0.09), in: Capsule(style: .continuous))
         .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.sm)
     }
@@ -307,9 +309,9 @@ struct RoamBrowserView: View {
             Text(entryReader != nil ? "roam.w208.entry.title" : "roam.browse.header")
                 .font(CYTypography.bodyMedium.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
             Spacer(minLength: 0)
-            Group { if let count { Text(count, format: .number) } else { Text(verbatim: "—") } }
+            Group { if let count { Text(count, format: .number) } else { Text(verbatim: "—").accessibilityLabel(Text("roam.peek.countUnknown")) } }
                 .font(CYTypography.bodyMedium.monospacedDigit()).foregroundStyle(CYColor.textSecondary)
-            Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary)
+            Image(systemName: "chevron.up").font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textTertiary).accessibilityHidden(true)
         }
         .padding(.horizontal, CYSpacing.xl).frame(maxWidth: .infinity, minHeight: 44)
         .accessibilityElement(children: .combine)
@@ -422,6 +424,7 @@ struct RoamBrowserView: View {
                     // Title top-left; the ONE overflow menu top-right (area, list, account, passport tools, refresh).
                     HStack(alignment: .center) {
                         Text("roam.title").font(.system(.largeTitle).weight(.heavy)).foregroundStyle(.white)
+                            .lineLimit(2).minimumScaleFactor(0.6).layoutPriority(1)
                             .shadow(color: .black.opacity(0.5), radius: 6).accessibilityAddTraits(.isHeader)
                         Spacer(minLength: 0)
                         overflowMenu { CYGlassLabel(systemImage: "ellipsis") }
@@ -435,6 +438,7 @@ struct RoamBrowserView: View {
                         NavigationLink { startDestination() } label: { CYGoLabel() }
                             .buttonStyle(CYGoPressStyle())
                             .accessibilityLabel(Text("GO"))
+                            .accessibilitySortPriority(10)   // the one primary action is read before rules / open map
                             .accessibilityIdentifier("roam.go")
                         if let nearbyTeamsDestination {
                             NavigationLink { nearbyTeamsDestination() } label: { CYGlassLabel(systemImage: "map") }
