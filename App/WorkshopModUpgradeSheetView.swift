@@ -65,7 +65,7 @@ public struct WorkshopModUpgradeSheetView: View {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("workshopUpgrade.added")
                                 .font(.caption.weight(.semibold))
-                                .foregroundStyle(.green)
+                                .foregroundStyle(CYColor.successText)
                             ForEach(presentation.addedCapabilities, id: \.self) { cap in
                                 Text(verbatim: "+ \(cap)")
                                     .font(.footnote.monospaced())
@@ -121,11 +121,7 @@ public struct WorkshopModUpgradeSheetView: View {
                 }
                 .accessibilityIdentifier("workshop.upgrade.confirmToggle")
 
-                Button(action: submitUpgradeDraft) {
-                    Text("workshopUpgrade.confirmButton")
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.questifyPrimary)
+                CYPillButton("workshopUpgrade.confirmButton", style: .primary, action: submitUpgradeDraft)
                 .disabled(confirmedRequestId != nil || !presentation.canConfirmUpgrade(confirmedByBuyer: confirmedByBuyer))
                 .accessibilityIdentifier("workshop.upgrade.confirmButton")
 

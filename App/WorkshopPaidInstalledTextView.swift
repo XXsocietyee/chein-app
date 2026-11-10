@@ -51,7 +51,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 } else if controller.phase == .invalidated {
                     paidText(controller.issue == .disabled ? "notConfigured" : "sessionChanged")
                 } else if controller.phase == .loading {
-                    ProgressView { paidText("loading") }
+                    CYLoadingStateView(rows: 1).accessibilityLabel(paidText("loading"))
                 } else if let content = controller.content {
                     Section {
                         paidFact("version", content.version)
@@ -92,7 +92,7 @@ typealias WorkshopPaidInstalledTextControllerFactory = @MainActor (WorkshopPaidI
                 } else if controller.phase == .unavailable {
                     Section {
                         paidText(controller.issue == .disabled ? "notConfigured" : "unavailable").fixedSize(horizontal: false, vertical: true)
-                        Button { schedule(controller.offerReload(displayed)) } label: { paidText("retry") }
+                        CYPillButton(LocalizedStringKey("workshopPaidInstalledText.retry"), style: .secondary, tableName: "WorkshopPaidInstalledText") { schedule(controller.offerReload(displayed)) }
                             .accessibilityIdentifier("workshopPaidInstalledText.retry")
                     }
                 }

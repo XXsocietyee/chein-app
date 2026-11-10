@@ -74,3 +74,17 @@ No file of 66-88 is on a ui/cloud-* branch.
 | App/WorkshopCommerceView.swift | done (partial): 9 refresh/more/cancel/return buttons to CYPillButton, CYLoadingStateView; buttons with custom full-width labels/modifiers and the tabled unavailable ContentUnavailableView left (CYEmptyState has no tabled detail) |
 | App/WorkshopCreatorConsentView.swift | done: CYPillButton declare (primary)/another/refresh, CYLoadingStateView |
 | App/WorkshopCreatorPendingView.swift | done: CYPillButton retry/another/more/refresh/author, CYLoadingStateView |
+### Batch D (81-88)
+| File | Result |
+| --- | --- |
+| App/WorkshopLicenseLibraryView.swift | done: CYLoadingStateView, CYPillButton refresh/next/reopen |
+| App/WorkshopModUpgradeSheetView.swift | done: CYPillButton confirm (primary), success token colour |
+| App/WorkshopOwnedLibraryView.swift | done (partial): CYLoadingStateView x2, CYPillButton retry/open-package; tabled ContentUnavailableView unavailable kept |
+| App/WorkshopOwnedPackageView.swift | done: CYLoadingStateView, CYPillButton retry |
+| App/WorkshopPaidInstallView.swift | done: CYLoadingStateView x3, CYPillButton confirm (primary) + 9 secondary; Back/close toolbar items and role .cancel button untouched |
+| App/WorkshopPaidInstalledTextView.swift | done: CYLoadingStateView, CYPillButton retry |
+| App/WorkshopPaidProfessionalView.swift | done: CYLoadingStateView, CYPillButton (start review / confirm create primary, rest secondary) |
+| App/WorkshopPurchasedLibraryView.swift | done (partial): CYLoadingStateView, CYPillButton retry; tabled unavailable view kept |
+
+## Summary (second worker, items 66-88)
+23 files: 21 restyled (some partially, as noted), 2 skipped (TemplatePreferencePreviewView fragment; none merchant-only, none on ui/cloud-*). No new string keys (all existing keys reused); `docs/release/ui-strings-e1-tail.json` is `[]`. Items 1-41 were duplicated work and dropped in favour of ui/main; 42-65 belong to e1.
