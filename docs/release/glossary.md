@@ -73,6 +73,16 @@ If a string is longer, shorten it; do not shrink the font.
 - Numbers use format specifiers (`%lld`), never string concatenation; keep the specifier set identical in EN and zh (checked by `tools/check_catalog_coverage.py`).
 - Placeholders in EN and zh must match 1:1 (count, order, type).
 
+## 5b. Terms added in round 2
+
+| Concept | zh-Hans | EN |
+|---|---|---|
+| Growth points | 经验 | XP (not bare "EXP" in zh) |
+| City board action points | 行动额度 | action points |
+| Logo image slot | 标志 | logo |
+
+Share lockup is **城瘾** only, never `城瘾 · CityFog`.
+
 ## 6. Where DEBUG words are allowed
 
 `fixture`, `synthetic`, `sample`, `DEBUG` may appear only inside `#if DEBUG` fixture hosts and design-fixture screens, always labelled. A release screen that shows them is a bug (none found in the player path on 2026-11-09).
