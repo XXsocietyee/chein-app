@@ -27,7 +27,7 @@ import SwiftUI
                 }
                 TemplateAuthoringField("xp", text: binding("xp"))
             }
-            NavigationLink("playkitAuthor.preview") { TemplateMiniGamePreviewView(draft: model.draft.advanced, game: game) }
+            NavigationLink { TemplateMiniGamePreviewView(draft: model.draft.advanced, game: game) } label: { CYListRow("playkitAuthor.preview", trailing: .none) { CYRowIcon(systemImage: "play.circle") } }
                 .disabled(!model.draft.advanced.miniGameIssues(game).isEmpty)
         }
     }
@@ -127,17 +127,18 @@ import SwiftUI
     private var segment: PlayWireValue? { try? draft.miniPreviewSegment(game) }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                CYHeroHeader("playkitAuthor.preview")
                 if let segment, let kind = PlayKitScreenKind(rawValue: game.section) {
                     if game.isReasoning {
-                        if let prompt = segment["prompt"].text { Text(verbatim: prompt).font(.title2.bold()) }
+                        if let prompt = segment["prompt"].text { Text(verbatim: prompt).font(CYTypography.sectionTitle) }
                         PlayKitReasoningForm(kind: kind, segment: segment, enabled: true, onDirty: {}, requestReview: { _, payload, _ in previewPayload = payload })
-                        if let previewPayload { Text("playkitAuthor.previewPayload").font(.headline); PlayKitPayloadReadback(payload: previewPayload) }
+                        if let previewPayload { Text("playkitAuthor.previewPayload").font(CYTypography.cardTitle); PlayKitPayloadReadback(payload: previewPayload) }
                     } else {
                         PlayKitSensorChallengeView(kind: kind, segment: segment, enabled: false, active: false, onDirty: {}, requestReview: { _, _, _ in })
                     }
                 } else { Text("playkit.configurationInvalid") }
-            }.padding()
-        }.navigationTitle("playkitAuthor.preview").privacySensitive()
+            }.padding(CYSpacing.pageHorizontal)
+        }.background(CYColor.bgPage.ignoresSafeArea()).cyHeroScreen().privacySensitive()
     }
 }

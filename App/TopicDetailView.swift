@@ -27,12 +27,11 @@ struct TopicDetailView: View {
     var body: some View {
         Group {
             if !reader.isConfigured { TopicIssueView(issue: .notConfigured) }
-            else if loading || loadedKey != key { ProgressView("topic.loading") }
+            else if loading || loadedKey != key { ScrollView { CYLoadingStateView(rows: 3).padding(.top, CYSpacing.lg) }.accessibilityLabel(Text("topic.loading")) }
             else if let issue { TopicIssueView(issue: issue) { loads.start { await load() } } }
             else if let detail { content(detail) }
         }
-        .appNavigationTitle("topic.detail")
-        .navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .task(id: key) { await loads.run { await load() } }
         .onDisappear { loads.cancel(); generation += 1; loading = false }
         .sheet(isPresented: $showsReview) {
@@ -156,8 +155,8 @@ struct TopicDetailView: View {
                             NavigationLink { activityDestination(activity.id) } label: {
                                 VStack(alignment: .leading, spacing: 6) {
                                     TopicXcxSessionChip(startDate: activity.startDate)
-                                    Text(verbatim: activity.name).font(.headline)
-                                    if let address = activity.addressName { Text(verbatim: address) }
+                                    Text(verbatim: activity.name).font(CYTypography.cardTitle)
+                                    if let address = activity.addressName { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
                                     if let start = activity.startDate { LabeledContent("topic.start", value: start) }
                                     if let end = activity.endDate { LabeledContent("topic.end", value: end) }
                                 }
@@ -175,20 +174,20 @@ struct TopicDetailView: View {
                 if value.selfPlay == 1 {
                     TopicPrice(value: value.selfPlayPrice, label: "topic.selfPlayPrice")
                     if value.canOfferPurchase {
-                        Button("contextSelfPlay.title") { showingSelfPlay = true }
-                            .accessibilityIdentifier("contextSelfPlay.open")
+                        CYPillButton("contextSelfPlay.title", systemImage: "play.fill") { showingSelfPlay = true }
+                            .accessibilityIdentifier("contextSelfPlay.open").e1ActionRow()
                     }
                 }
             }
             Section("topic.comments") {
                 if (value.commentCount ?? value.comments.count) == 0 {
                     // Source ratings empty state.
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text("topicXcx.reviews.emptyTitle").font(.headline)
-                        Text("topicXcx.reviews.emptyDetail").font(.footnote).foregroundStyle(.secondary)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text("topicXcx.reviews.emptyTitle").font(CYTypography.cardTitle)
+                        Text("topicXcx.reviews.emptyDetail").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     }.accessibilityIdentifier("topic.reviews.emptyPrompt")
                 }
-                Button("context.review.title") { showsReview = true }.accessibilityIdentifier("topic.openReview")
+                CYPillButton("context.review.title", style: .secondary, systemImage: "square.and.pencil") { showsReview = true }.accessibilityIdentifier("topic.openReview").e1ActionRow()
                 TopicReviewsContent(reviews: value.reviews)
             }
             Section("topic.chapters") {
@@ -214,9 +213,9 @@ struct TopicDetailView: View {
                 Section("topic.lockedStory") {
                     Label("topic.lockedNotice", systemImage: "lock")
                     LabeledContent("topic.lockedChapters", value: String(value.lockedChapterCount)).accessibilityIdentifier("topic.lockedChapters")
-                    Text("topicXcx.paywall.detail").font(.footnote)
+                    Text("topicXcx.paywall.detail").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     if value.selfPlay == 1 && value.canOfferPurchase {
-                        Button("topicXcx.paywall.unlock") { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock")
+                        CYPillButton("topicXcx.paywall.unlock", systemImage: "lock.open") { showingSelfPlay = true }.accessibilityIdentifier("topic.paywall.unlock").e1ActionRow()
                     }
                 }
             }
@@ -273,10 +272,10 @@ struct TopicChapterView: View {
             else {
                 List {
                     Section {
-                        Text(verbatim: chapter.title).font(.title2)
+                        CYHeroHeader(verbatim: chapter.title).e1HeroRow()
                         if let description = chapter.description { Text(verbatim: description).textSelection(.enabled) }
                         if itinerary.hasWalkingEstimates {
-                            Text("topic.itinerary.estimateNotice").font(.footnote).foregroundStyle(.secondary)
+                            Text("topic.itinerary.estimateNotice").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                                 .accessibilityIdentifier("topic.itinerary.notice")
                         }
                     }
@@ -286,8 +285,8 @@ struct TopicChapterView: View {
                             if let minutes = stop.estimatedWalkingMinutes {
                                 TopicWalkingEstimate(minutes: minutes, position: stop.id)
                             }
-                            LabeledContent("topic.itinerary.stopNumber", value: String(stop.id + 1)).font(.caption)
-                            Text(verbatim: node.name).font(.headline)
+                            LabeledContent("topic.itinerary.stopNumber", value: String(stop.id + 1)).font(CYTypography.meta).monospacedDigit()
+                            Text(verbatim: node.name).font(CYTypography.cardTitle)
                             if let description = node.description { Text(verbatim: description).textSelection(.enabled) }
                             if let address = node.address { Text(verbatim: address) }
                             PlatformExternalMapHost(destination: .init(name: node.name, address: node.address, latitude: node.latitude, longitude: node.longitude), scope: scope, makeModel: makeExternalMaps)
@@ -311,6 +310,6 @@ struct TopicChapterView: View {
                     }
                 }
             }
-        }.appNavigationTitle("topic.chapter").navigationBarTitleDisplayMode(.inline)
+        }.cyHeroScreen()
     }
 }

@@ -14,18 +14,18 @@ import SwiftUI
         VStack(spacing: 0) {
             if controller.phase == .reviewing, let declaration = controller.declaration {
                 VStack(spacing: 0) {
-                    Button(creatorString("workshopPending.back")) {
+                    CYPillButton(verbatim: creatorString("workshopPending.back"), style: .tertiary, systemImage: "chevron.backward", fullWidth: false) {
                         declaration.close(declarationAppearance)
                         run(controller.offerBackToProposals(appearance))
-                    }.accessibilityIdentifier("workshopPending.back")
+                    }.accessibilityIdentifier("workshopPending.back").frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, CYSpacing.pageHorizontal)
                     WorkshopCreatorConsentView(controller: declaration, appearance: declarationAppearance, pendingDetail: controller.selectedDetail)
                         .id(declaration.identity)
                 }
             } else {
                 List {
+                    Section { CYHeroHeader(verbatim: creatorString("workshopPending.title"), subtitle: creatorString("workshopPending.boundary")) }.e1HeroRow()
                     Section {
-                        Text(creatorString("workshopPending.boundary")).foregroundStyle(.secondary)
-                        LabeledContent(creatorString("workshopCreator.source"), value: String(controller.sourceTemplateId))
+                        LabeledContent(creatorString("workshopCreator.source"), value: String(controller.sourceTemplateId)).monospacedDigit()
                     }
                     if let receipt = controller.declarationReceipt {
                         Section(creatorString("workshopPending.priorDeclaration")) {
@@ -41,25 +41,25 @@ import SwiftUI
                             Text(creatorString("workshopCreator.unknown")).fixedSize(horizontal: false, vertical: true)
                         }
                     }
-                    if controller.phase == .loading || controller.phase == .submitting { ProgressView(creatorString("workshopCreator.loading")) }
-                    if let issue = controller.issue { Text(creatorString(issueKey(issue))).accessibilityIdentifier("workshopPending.issue") }
+                    if controller.phase == .loading || controller.phase == .submitting { CYLoadingStateView(rows: 1).accessibilityLabel(creatorString("workshopCreator.loading")).listRowBackground(Color.clear) }
+                    if let issue = controller.issue { Text(creatorString(issueKey(issue))).foregroundStyle(CYColor.dangerText).accessibilityIdentifier("workshopPending.issue") }
                     if let pending = controller.pending {
                         Section(creatorString("workshopPending.saved")) {
                             Text(verbatim: pending.requestId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             Text(creatorString("workshopPending.recovery"))
                             // The exact saved text remains reviewable; edits cannot replace this attempt.
                             Text(verbatim: pending.termsDocument).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
-                            Button(creatorString("workshopPending.retry")) { run(controller.offerRetry(appearance)) }
-                                .disabled(!controller.canRetry).accessibilityIdentifier("workshopPending.retry")
+                            CYPillButton(verbatim: creatorString("workshopPending.retry"), style: .secondary, systemImage: "arrow.clockwise") { run(controller.offerRetry(appearance)) }
+                                .disabled(!controller.canRetry).accessibilityIdentifier("workshopPending.retry").e1ActionRow()
                         }
                     }
                     if let receipt = controller.receipt {
                         Section(creatorString("workshopPending.recorded")) {
                             Text(verbatim: receipt.targetId).textSelection(.enabled).fixedSize(horizontal: false, vertical: true)
                             Text(creatorString("workshopPending.historic"))
-                            Button(creatorString("workshopPending.another")) { run(controller.offerAnotherProposal(appearance)) }
+                            CYPillButton(verbatim: creatorString("workshopPending.another"), style: .secondary) { run(controller.offerAnotherProposal(appearance)) }
                                 .disabled(controller.phase == .submitting || controller.phase == .loading)
-                                .accessibilityIdentifier("workshopPending.another")
+                                .accessibilityIdentifier("workshopPending.another").e1ActionRow()
                         }
                     }
                     if let preview = controller.preview {
@@ -96,17 +96,17 @@ import SwiftUI
                                     .accessibilityIdentifier("workshopPending.target." + item.targetId)
                             }
                             if controller.hasMore {
-                                Button(creatorString("workshopPending.more")) { run(controller.offerMore(appearance)) }
-                                    .disabled(controller.phase != .editing).accessibilityIdentifier("workshopPending.more")
+                                CYPillButton(verbatim: creatorString("workshopPending.more"), style: .secondary) { run(controller.offerMore(appearance)) }
+                                    .disabled(controller.phase != .editing).accessibilityIdentifier("workshopPending.more").e1ActionRow()
                             }
                         }
                     }
-                    Button(creatorString("workshopPending.refresh")) { run(controller.offerLoad(appearance)) }
+                    CYPillButton(verbatim: creatorString("workshopPending.refresh"), style: .secondary, systemImage: "arrow.clockwise") { run(controller.offerLoad(appearance)) }
                         .disabled(controller.phase == .loading || controller.phase == .submitting)
-                        .accessibilityIdentifier("workshopPending.refresh")
-                }
+                        .accessibilityIdentifier("workshopPending.refresh").e1ActionRow()
+                }.listStyle(.insetGrouped).cyGroupedSurface()
             }
-        }.navigationTitle(creatorString("workshopPending.title")).navigationBarTitleDisplayMode(.inline)
+        }.cyHeroScreen()
             .privacySensitive().accessibilityIdentifier("workshopPending.form")
             .disabled(scenePhase != .active)
             .onAppear {
@@ -134,22 +134,22 @@ import SwiftUI
             option("translation", value: $controller.form.translation, values: ["ALLOWED", "PROHIBITED"])
             field("allowedRegions", value: $controller.form.allowedRegions)
             field("buyerKinds", value: $controller.form.buyerKinds)
-            Text(creatorString("workshopPending.regionsHelp")).font(.footnote)
+            Text(creatorString("workshopPending.regionsHelp")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             field("themeLimit", value: $controller.form.themeLimit)
             field("merchantLimit", value: $controller.form.merchantLimit)
             field("runLimit", value: $controller.form.runLimit)
-            Text(creatorString("workshopPending.limitsHelp")).font(.footnote)
+            Text(creatorString("workshopPending.limitsHelp")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             field("priceMinor", value: $controller.form.priceMinor)
             field("currency", value: $controller.form.currency)
-            Text(creatorString("workshopPending.priceHelp")).font(.footnote)
+            Text(creatorString("workshopPending.priceHelp")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
             field("expiresAt", value: $controller.form.expiresAt)
-            Text(creatorString("workshopPending.expiryHelp")).font(.footnote)
+            Text(creatorString("workshopPending.expiryHelp")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
         }.disabled(controller.phase != .editing)
         Section(creatorString("workshopPending.required")) {
             Text(creatorString("workshopPending.fixedRestrictions")).fixedSize(horizontal: false, vertical: true)
             Text(creatorString("workshopPending.reviewRequired")).foregroundStyle(.secondary)
-            Button(creatorString("workshopPending.author")) { run(controller.offerAuthor(appearance)) }
-                .disabled(!controller.canSubmit).accessibilityIdentifier("workshopPending.author")
+            CYPillButton(verbatim: creatorString("workshopPending.author")) { run(controller.offerAuthor(appearance)) }
+                .disabled(!controller.canSubmit).accessibilityIdentifier("workshopPending.author").e1ActionRow()
         }
     }
     private func field(_ key: String, value: Binding<String>) -> some View {

@@ -19,7 +19,7 @@ import SwiftUI
         Form {
           if navigation.isCurrentPackageVisit(route) {
             switch browser.phase {
-            case .idle, .loading: ProgressView { packageText("loading") }.accessibilityIdentifier("workshopOwned.package.loading")
+            case .idle, .loading: CYSkeletonBlock(height: 18).accessibilityLabel(packageText("loading")).accessibilityIdentifier("workshopOwned.package.loading")
             case .unavailable: packageText("unavailable").fixedSize(horizontal: false, vertical: true).accessibilityIdentifier("workshopOwned.package.unavailable")
             case .failed, .invalidated:
                 packageText(browser.issue == .staleSession ? "sessionChanged" : "error").fixedSize(horizontal: false, vertical: true)
@@ -44,7 +44,7 @@ import SwiftUI
                         PackageLimitRow(key: "themeLimit", limit: info.themeLimit)
                         PackageLimitRow(key: "merchantLimit", limit: info.merchantLimit)
                         PackageLimitRow(key: "runLimit", limit: info.runLimit)
-                        packageText("limitNotice").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
+                        packageText("limitNotice").font(CYTypography.meta).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)
                     } header: { packageText("limits") }
                     Section {
                         PackageValueRow(key: "bindingCount", value: String(info.requiredBindingCount))

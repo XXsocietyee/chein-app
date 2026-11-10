@@ -21,13 +21,11 @@ import SwiftUI
         Group {
             if let controller, controller.isCurrent { WorkshopCommerceView(controller: controller, makeInstallationController: makeInstallationController, makeOriginalReader: makeOriginalReader, makeInstallationPair: makeInstallationPair, initialOfferId: initialOfferId).id(ObjectIdentifier(controller)) }
             else {
-                ContentUnavailableView {
-                    Label { commerceText("title") } icon: { Image(systemName: "storefront") }
-                } description: { commerceText("unavailable") }
+                CYEmptyState(systemImage: "storefront", "workshopCommerce.title", tableName: "WorkshopCommerce", detail: "workshopCommerce.unavailable")
             }
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("title", locale: locale))
+        .cyHeroScreen()
         .onAppear { if controller?.isCurrent != true { reopen() } }
         .onChange(of: session.sessionRevision) { _, _ in reopen() }
         .onChange(of: session.account?.id) { _, _ in reopen() }
@@ -52,6 +50,7 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
+            Section { CYHeroHeader(verbatim: commerceString("title", locale: locale)) }.e1HeroRow()
             Section {
                 ForEach(controller.offers, id: \.offerId) { item in
                     Button {
@@ -80,9 +79,9 @@ import SwiftUI
                 if let message = controller.messageKey, ["error.catalogUnavailable", "error.offerUnavailable"].contains(message) {
                     WorkshopCommerceLibraryNotice(text: commerceText(message), symbol: "exclamationmark.triangle", isError: true)
                 }
-                Button { Task { await controller.loadOffers() } } label: { commerceText("refreshCatalog") }.disabled(controller.busy)
+                Button { Task { await controller.loadOffers() } } label: { commerceText("refreshCatalog") }.buttonStyle(CYPillButtonStyle(style: .secondary)).disabled(controller.busy).e1ActionRow()
                 if controller.hasMoreOffers {
-                    Button { Task { await controller.loadOffers(more: true) } } label: { commerceText("moreOffers") }.disabled(controller.busy)
+                    Button { Task { await controller.loadOffers(more: true) } } label: { commerceText("moreOffers") }.buttonStyle(CYPillButtonStyle(style: .tertiary)).disabled(controller.busy).e1ActionRow()
                 }
             } header: { commerceText("approvedOffer") }
             if let offer = controller.offer {
@@ -167,7 +166,7 @@ import SwiftUI
 
         }
         .modifier(WorkshopLibrarySurface())
-        .navigationTitle(commerceString("title", locale: locale))
+        .cyHeroScreen()
         .task {
             await refreshOnEntry()
         }
@@ -400,17 +399,14 @@ struct WorkshopLibrarySurface: ViewModifier {
         content.font(Theme.Font.body)
             .tint(Theme.Color.accent(in: domain))
             .scrollContentBackground(.hidden)
-            .background(Theme.Color.bgPage(in: domain))
+            .background(CYColor.bgPage.ignoresSafeArea())
             .themeDomain(domain)
     }
 }
 struct WorkshopLibraryPrimaryAction: ViewModifier {
     @Environment(\.themeDomain) private var domain
     func body(content: Content) -> some View {
-        content.font(Theme.Font.button)
-            .buttonStyle(.borderedProminent).controlSize(.large)
-            .tint(Theme.Color.actionPrimaryBackground(in: domain))
-            .foregroundStyle(Theme.Color.actionPrimaryForeground(in: domain))
+        content.buttonStyle(CYPillButtonStyle())
     }
 }
 struct WorkshopLibraryFact: View {
