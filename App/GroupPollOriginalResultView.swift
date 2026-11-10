@@ -57,12 +57,16 @@ import SwiftUI
     }
     var body: some View {
         List {
-            Section { Text("原投票结果 · 只读").font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true); Text("结果读取不代表仍可参与；本页不创建、投票、关闭或重试任何原操作。").fixedSize(horizontal: false, vertical: true) .font(Theme.Font.label) }
-            if !model.isCurrent { Text("poll.disabled").fixedSize(horizontal: false, vertical: true) }
+            Section {
+                CYHeroHeader("poll.title").listRowBackground(Color.clear)
+                CYStatusChip(verbatim: "原投票结果 · 只读", tone: .neutral, systemImage: "eye")
+                Text("结果读取不代表仍可参与；本页不创建、投票、关闭或重试任何原操作。").fixedSize(horizontal: false, vertical: true).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            }
+            if !model.isCurrent { CYEmptyState(systemImage: "lock", "poll.disabled") }
             else if let poll = model.poll {
                 Section {
                     Text(verbatim: poll.question).fixedSize(horizontal: false, vertical: true).font(Theme.Font.sectionTitle)
-                    Text(LocalizedStringKey(poll.status == "CLOSED" ? "poll.closed" : (poll.isOpen() ? "poll.open" : "poll.deadlinePassed"))).fixedSize(horizontal: false, vertical: true)
+                    CYStatusChip(LocalizedStringKey(poll.status == "CLOSED" ? "poll.closed" : (poll.isOpen() ? "poll.open" : "poll.deadlinePassed")), tone: poll.isOpen() ? .success : .neutral)
                     if let date = poll.deadlineAt?.value { LabeledContent("poll.deadline") { Text(date, format: .dateTime).fixedSize(horizontal: false, vertical: true) } }
                 }
                 Section("poll.options") {
@@ -73,20 +77,20 @@ import SwiftUI
                                 Text(verbatim: "\(count) / \(total)").fixedSize(horizontal: false, vertical: true).monospacedDigit()
                                 ProgressView(value: Double(count), total: Double(max(total, 1)))
                             }
-                            if poll.myOptionId == option.id { Label("poll.yourVote", systemImage: "checkmark.circle.fill") }
+                            if poll.myOptionId == option.id { CYStatusChip("poll.yourVote", tone: .success, systemImage: "checkmark.circle.fill") }
                         }
                     }
                     if let total = poll.totalVoters { LabeledContent("poll.total", value: String(total)) }
                 }
             } else if model.failed {
-                Text("poll.failed").fixedSize(horizontal: false, vertical: true)
-                Button("重新读取原投票结果") { reload() }.font(Theme.Font.button).frame(minHeight: 44)
+                CYStatusChip("poll.failed", tone: .danger, systemImage: "exclamationmark.triangle")
+                CYPillButton(verbatim: "重新读取原投票结果", style: .secondary) { reload() }
             }
             if model.loading { ProgressView("poll.loading") }
         }
         .font(Theme.Font.body)
         .nativeChannelScreen()
-        .navigationTitle(Text("poll.title"))
+        .cyHeroScreen()
         .privacySensitive().accessibilityIdentifier("poll.originalResult.readOnly")
         .toolbar { Button("messaging.refresh", systemImage: "arrow.clockwise") { reload() }.disabled(!model.isCurrent || model.loading) }
         .task(id: phase) {

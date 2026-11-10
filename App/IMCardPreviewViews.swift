@@ -18,17 +18,17 @@ import MapKit
         Group {
             if let detail, loadedScope == reader.scope {
                 VStack(alignment: .leading, spacing: 4) {
-                    if isSignup { Text("im.card.signupFlag").font(.caption.weight(.semibold)).foregroundStyle(CYColor.textPrimary) }
-                    Text(verbatim: detail.name).font(.headline)
-                    if let summary = summary(detail) { summary.font(.subheadline).foregroundStyle(.secondary) }
+                    if isSignup { CYStatusChip("im.card.signupFlag", tone: .info, systemImage: "ticket") }
+                    Text(verbatim: detail.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                    if let summary = summary(detail) { summary.font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary) }
                 }
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("im.card.route.loaded")
             } else if failed {
                 VStack(alignment: .leading, spacing: 6) {
-                    Label("im.card.routeUnavailable", systemImage: "exclamationmark.triangle")
+                    CYStatusChip("im.card.routeUnavailable", tone: .warning, systemImage: "exclamationmark.triangle")
                         .accessibilityIdentifier("im.card.route.unavailable")
-                    Button("messaging.retry") { Task { await load() } }
+                    CYPillButton("messaging.retry", style: .secondary, fullWidth: false) { Task { await load() } }
                         .disabled(loading).accessibilityIdentifier("im.card.route.retry")
                 }
             } else {
@@ -80,7 +80,7 @@ struct IMLocationCardMap: View {
             Marker(title ?? "", coordinate: coordinate)
         }
         .frame(height: 200)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityLabel(Text("im.card.locationMap"))
         .accessibilityIdentifier("im.card.locationMap")
     }

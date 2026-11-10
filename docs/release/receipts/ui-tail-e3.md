@@ -46,3 +46,7 @@ Skipped: none.
 ## Batch 10 (reverse)
 Done: IMVideoViews, IMFileViews, IMExpandedViews, IMCoopInviteStripView, IMConversationSafetyViews.
 Skipped: none.
+
+## Batch 11 (reverse)
+Done: IMConversationRowActionsView, IMConversationReadAllView, IMCardPreviewViews, GroupPollOriginalResultView, IMStaticLocationCardView.
+Skipped: none.
