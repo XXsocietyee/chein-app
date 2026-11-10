@@ -43,3 +43,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - RewardPledgeViews: done for RewardPledgeClaimView (player; CYHeroHeader, CYPillButton primary, CYSkeleton, CYEmptyState). RewardPledgeMerchantView left unchanged (merchant-only). New key rewards.pledge.title in ui-strings-e5-tail.json
 - RetainedImageSelectionView: done (CYPillButton, CYSkeleton, CYStatusChip)
 - RetainedImageFixtureView: done (DEBUG fixture, CYPillButton)
+
+## Batch 7 (reverse)
+- ReformWorldHostWorkbenchView: done (CYHeroHeader)
+- ReferenceMapCardFixtureView: done (fixture, CYPillButton)
+- PublishingContextHandoffViews: done (CYHeroHeader on mode sheet, CYPillButton primary Done)
+- PublisherLifecycleViews: done (CYHeroHeader x3, CYPillButton, CYSkeleton)
+- ProjectSubmissionEvidenceViews: done (CYStatusChip)

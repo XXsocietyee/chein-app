@@ -30,8 +30,8 @@ struct MapMarkerStyleFixtureView: View {
                     SearchMapPin(id: "style-merchant", title: "Synthetic merchant · 合成商户", coordinate: area.coordinate, symbol: "storefront"),
                     SearchMapPin(id: "style-activity", title: ReferenceMapCardFixtureView.longTitle, coordinate: area.coordinate, symbol: "calendar")
                 ], selectedID: selectedID, offline: true) { selectedID = $0 }
-                Button("searchMap.clearSelection") { selectedID = nil }
-                    .frame(minHeight: 44).accessibilityIdentifier("mapStyle.fixture.clear")
+                CYPillButton("searchMap.clearSelection", style: .secondary) { selectedID = nil }
+                    .accessibilityIdentifier("mapStyle.fixture.clear")
             }.padding()
         }
     }
@@ -65,10 +65,10 @@ struct MapAlternativeListFixtureView: View {
             VStack(alignment: .leading, spacing: 16) {
                 // Mirrors a parent receiving a point-selection event without
                 // depending on platform projection or an online provider.
-                Button("Synthetic point selects second") { selectedID = "list-second" }
-                    .frame(minHeight: 44).accessibilityIdentifier("mapList.fixture.pointSecond")
-                Button("Clear selection") { selectedID = nil }
-                    .frame(minHeight: 44).accessibilityIdentifier("mapList.fixture.clear")
+                CYPillButton(verbatim: "Synthetic point selects second", style: .secondary) { selectedID = "list-second" }
+                    .accessibilityIdentifier("mapList.fixture.pointSecond")
+                CYPillButton(verbatim: "Clear selection", style: .tertiary) { selectedID = nil }
+                    .accessibilityIdentifier("mapList.fixture.clear")
                 Text(verbatim: selectedID ?? "none").accessibilityIdentifier("mapList.fixture.selection")
                 ForEach(["removed", "duplicates", "refreshed", "empty", "normal", "readOnly"], id: \.self) { value in
                     Button(value) { mode = value; revision += 1 }
