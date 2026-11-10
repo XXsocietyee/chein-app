@@ -1,0 +1,15 @@
+[
+  {"key": "cloud21.map.publicLayers", "en": "Public layers", "zh-Hans": "公开图层"},
+  {"key": "cloud21.mapPublic.load", "en": "Load", "zh-Hans": "加载"},
+  {"key": "cloud21.mapPublic.next", "en": "Next", "zh-Hans": "下一页"},
+  {"key": "cloud21.mapPublic.detail", "en": "Detail", "zh-Hans": "详情"},
+  {"key": "cloud21.mapPublic.return", "en": "Return", "zh-Hans": "返回"},
+  {"key": "cloud21.mapPublic.minLat", "en": "Minimum latitude", "zh-Hans": "最小纬度"},
+  {"key": "cloud21.mapPublic.maxLat", "en": "Maximum latitude", "zh-Hans": "最大纬度"},
+  {"key": "cloud21.mapPublic.minLng", "en": "Minimum longitude", "zh-Hans": "最小经度"},
+  {"key": "cloud21.mapPublic.maxLng", "en": "Maximum longitude", "zh-Hans": "最大经度"},
+  {"key": "cloud21.mapPublic.layers", "en": "Layers", "zh-Hans": "图层"},
+  {"key": "cloud21.mapPublic.limit", "en": "Limit", "zh-Hans": "数量上限"},
+  {"key": "cloud21.mapPublic.loading", "en": "Loading places", "zh-Hans": "正在加载地点"},
+  {"key": "cloud21.mapPublic.empty", "en": "Nothing in this area yet.", "zh-Hans": "这个范围里还没有地点。"}
+]
