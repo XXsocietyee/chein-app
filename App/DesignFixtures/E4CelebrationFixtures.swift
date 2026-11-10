@@ -3,6 +3,7 @@ import SwiftUI
 
 /// e4 celebration + state kit (docs/release/motion-spec-celebration.md). Offline, synthetic, DEBUG only; mounted nowhere live.
 /// `--design-fixture celebration-stamp | celebration-badge | celebration-roam | celebration-roam-unknown | celebration-queue`
+/// plus `celebration-roam-route`, `celebration-badge-long`, `celebration-share-walk` and `celebration-share-badge`,
 /// and `state-offline | state-server | state-empty | state-empty-compact`. Add `-zh` for Simplified Chinese copy
 /// and `--uitesting-reduce-motion` for the fallback. The celebration fixtures log every haptic with its timestamp.
 enum E4CelebrationFixtures {
@@ -16,6 +17,10 @@ enum E4CelebrationFixtures {
         case "celebration-roam": return wrap(E4CelebrationLab(script: .roam), locale)
         case "celebration-roam-unknown": return wrap(E4CelebrationLab(script: .roamUnknown), locale)
         case "celebration-queue": return wrap(E4CelebrationLab(script: .queue), locale)
+        case "celebration-roam-route": return wrap(E4CelebrationLab(script: .roamRoute), locale)
+        case "celebration-badge-long": return wrap(E4CelebrationLab(script: .badgeLong), locale)
+        case "celebration-share-walk": return wrap(E4ShareSheetLab(walk: true), locale)
+        case "celebration-share-badge": return wrap(E4ShareSheetLab(walk: false), locale)
         case "state-offline": return wrap(E4StateLab(mode: .offline), locale)
         case "state-server": return wrap(E4StateLab(mode: .server), locale)
         case "state-empty": return wrap(E4StateLab(mode: .empty), locale)
@@ -31,7 +36,7 @@ enum E4CelebrationFixtures {
 
 // MARK: - Celebrations
 
-private enum E4CelebrationScript { case stamp, badge, roam, roamUnknown, queue }
+private enum E4CelebrationScript { case stamp, badge, badgeLong, roam, roamUnknown, roamRoute, queue }
 
 private struct E4CelebrationLab: View {
     let script: E4CelebrationScript
@@ -79,6 +84,10 @@ private struct E4CelebrationLab: View {
             center.enqueue(.roamSummary(CYRoamSummaryPayload(id: "r\(n)", kilometers: 2.4, tiles: 31, stamps: 2)))
         case .roamUnknown:
             center.enqueue(.roamSummary(CYRoamSummaryPayload(id: "r\(n)", kilometers: nil, tiles: 31, stamps: 0)))
+        case .roamRoute:
+            center.enqueue(.roamSummary(CYRoamSummaryPayload(id: "r\(n)", kilometers: 2.4, tiles: 31, stamps: 2, route: E4PeakRoute.points)))
+        case .badgeLong:
+            center.enqueue(.badge(CYBadgePayload(id: "b\(n)", name: "Lantern Gate Night Walker of the Old Quarter (example)", symbol: "moon.stars.fill")))
         case .queue:
             // Arrive out of order, 25 ms apart: the stamp still plays first, then the badge, then the summary.
             center.enqueue(.roamSummary(CYRoamSummaryPayload(id: "r\(n)", kilometers: 2.4, tiles: 31, stamps: 2)))
@@ -86,6 +95,32 @@ private struct E4CelebrationLab: View {
             center.enqueue(.badge(CYBadgePayload(id: "b\(n)", name: "Night Walker", symbol: "moon.stars.fill")))
             try? await Task.sleep(for: .milliseconds(25))
             center.enqueue(.stamp(CYStampPayload(id: "s\(n)", place: "Lantern Gate (example)")))
+        }
+    }
+}
+
+// MARK: - Share sheet + route
+
+/// A synthetic loop, already normalised to the unit square. Fixture data only (DEBUG).
+enum E4PeakRoute {
+    static let points: [CGPoint] = (0...40).map { i in
+        let t = Double(i) / 40 * 2 * .pi
+        return CGPoint(x: 0.5 + 0.38 * cos(t) * (1 + 0.15 * sin(2 * t)), y: 0.5 + 0.34 * sin(t))
+    }
+}
+
+/// The share sheet on its own, as the badge cover and the roam summary present it.
+private struct E4ShareSheetLab: View {
+    let walk: Bool
+    @Environment(\.locale) private var locale
+    var body: some View {
+        if walk {
+            let payload = CYRoamSummaryPayload(id: "fixture", kilometers: 2.4, tiles: 31, stamps: nil, route: E4PeakRoute.points)
+            CYCelebrationShareSheet(
+                content: CYCelebrationShare.walk(payload, locale: locale),
+                routeContent: CYCelebrationShare.walk(payload, locale: locale, includeRoute: true))
+        } else {
+            CYCelebrationShareSheet(content: CYCelebrationShare.badge(CYBadgePayload(id: "fixture", name: "Night Walker", symbol: "moon.stars.fill"), locale: locale))
         }
     }
 }

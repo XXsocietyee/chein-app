@@ -33,6 +33,7 @@ import Combine
     @State private var revealToastShown = false
     @State private var revealToastTask: Task<Void, Never>?
     @State private var nearbyExpanded = true
+    @State private var celebrations = CYCelebrationCenter()
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
         _browse = StateObject(wrappedValue: browsePresentation ?? RoamPausedBrowsePresentation())
@@ -179,6 +180,12 @@ import Combine
     var body: some View {
         sessionObservers
         .task(id: owner.phase) { await pulseWhileActive() }
+        .cyCelebrations(celebrations)
+        .onChange(of: RoamSummaryCelebration.settledSessionID(owner), initial: true) { _, id in
+            // Presentation only: the summary follows the existing settled-and-archived state; the queue dedupes a re-delivery.
+            guard id != nil, let payload = RoamSummaryCelebration.payload(owner, history: model.finishedHistory) else { return }
+            celebrations.enqueue(.roamSummary(payload))
+        }
         .overlay(alignment: .top) {
             if revealToastShown {
                 CYRevealToast(percent: RoamLiveCoveragePresentation(controller: owner).percentage)

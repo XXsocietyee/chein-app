@@ -23,6 +23,7 @@ extension EnvironmentValues {
     @State private var unlockTracker = GrowthBadgeUnlockTracker()
     @State private var unlockTrackerKey: GrowthCenterLoadKey?
     @State private var newlyLitBadges: [String] = []
+    @State private var celebrations = CYCelebrationCenter()
     private var reads: GrowthNormalReadTask { model.overviewReads }
     @StateObject private var model = GrowthCenterScreenModel<GrowthCenterOverview>()
     private var key: GrowthCenterLoadKey { GrowthCenterLoadKey(scope: reader.scope) }
@@ -78,7 +79,7 @@ extension EnvironmentValues {
                     .accessibilityIdentifier("growth.refresh")
             }
         }
-        .cyHaptic(.success, trigger: newlyLitBadges)
+        .cyCelebrations(celebrations)
         .modifier(GrowthCenterReadLifecycle(key: key, refresh: load, cancel: model.cancelPending))
         .onAppear { badgeVisible = true; badgeExploreConsumed = false; badgePresentationID = UUID(); latestReaderID = ObjectIdentifier(reader) }
         .onDisappear { badgeVisible = false; badgePresentationID = UUID() }
@@ -224,7 +225,13 @@ extension EnvironmentValues {
         // Only a successful center section in the same scope can light a badge; failures keep the baseline.
         guard !Task.isCancelled, captured == key, presentation == badgePresentationID,
               let center = model.value(key: captured)?.center.value else { return }
-        newlyLitBadges = unlockTracker.observe(center.badges).compactMap(\.displayName)
+        let lit = unlockTracker.observe(center.badges)
+        newlyLitBadges = lit.compactMap(\.displayName)
+        // The cover carries its own haptics; the queue plays one badge at a time and dedupes a re-read.
+        for badge in lit {
+            guard let name = badge.displayName else { continue }
+            celebrations.enqueue(.badge(CYBadgePayload(id: GrowthBadgeUnlockTracker.code(badge) ?? name, name: name)))
+        }
     }
 }
 
