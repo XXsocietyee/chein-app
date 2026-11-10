@@ -43,3 +43,7 @@
 - ut-d4-channel-chat [x] 06229e2cd. PR 1034. Fixture test only. Not merged. Not run on Xcode Cloud yet.
 - ut-consent [x] 171c3db3b. PR 1035. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
 - ut-d2-search [x] 40bb3243b. PR 1036. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-coupons [x] d822e8309. PR 1037. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-confirm [x] e321bcefc. PR 1038. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-badges-error [x] 6d0fce572. PR 1039. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d4-growth [x] 5fec205dd. PR 1040. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
