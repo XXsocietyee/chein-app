@@ -48,9 +48,9 @@ import Observation
                 })
             } else {
                 VStack(spacing: 12) {
-                    CityPlayerValueCopy.text(owner?.reader.notPublished == true ? "notPublished" : "disabled")
-                    if owner?.reader.loading == true { ProgressView() }
-                    Button { reload() } label: { CityPlayerValueCopy.text("refresh") }
+                    CYEmptyState(systemImage: "chart.bar", LocalizedStringKey("cityValue." + (owner?.reader.notPublished == true ? "notPublished" : "disabled")), tableName: "CityValue")
+                    if owner?.reader.loading == true { CYSkeleton() }
+                    CYPillButton(verbatim: CityPlayerValueCopy.string("refresh"), style: .secondary) { reload() }
                         .disabled(retired || phase != .active || owner?.isCurrent != true)
                 }
             }

@@ -20,3 +20,10 @@ No new string keys so far (kit components reuse existing keys; docs/release/ui-s
 - done: CityParticipationRecoveryView (CYEmptyState, CYPillButton, CYSkeleton)
 - done: CityParticipationRuntimeHostView, CityTaskHistoryRuntimeHostView (CYEmptyState)
 - done: CityPlayerValueNodeView (CYEmptyState, CYPillButton, CYSkeleton)
+
+Order switched to REVERSE (last file first) per coordinator: Cursor ui/cloud-* lanes take the list from the front. Cloud-touched check run before each batch (none touched our files so far).
+
+## Batch 4 (reverse)
+- done: SessionPlayRuntimeView (CYEmptyState), SessionCityPlayerValueView (CYEmptyState, CYSkeleton, CYPillButton)
+- done: RoamVoucherHangoutViews (CYEmptyState), RoamSubpageParityViews (CYEmptyState x7, CYSkeleton)
+- skipped (no visible UI, pure wrapper views): SessionRoamMediaViews
