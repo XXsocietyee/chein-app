@@ -10,24 +10,39 @@ import SwiftUI
     @State private var review = false
     @State private var errorKey: String?
     @State private var task: Task<Void, Never>?
+    private var canReview: Bool {
+        enabled && !busy && session.restored && session.accountID != nil && DoorParsing.inviter(input) != nil && DoorParsing.inviter(input) != session.accountID
+    }
     var body: some View {
         NavigationStack {
             Form {
-                CYHeroHeader("door.inviter.title")
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                Section { CYHeroHeader("door.inviter.title") }.e1HeroRow()
                 Section {
                     Text("door.inviter.once")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                     TextField("door.inviter.placeholder", text: $input)
                         .keyboardType(.numberPad).accessibilityIdentifier("door.inviter.input")
                         .disabled(busy)
-                    if let errorKey { CYStatusChip(LocalizedStringKey(errorKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("door.inviter.error") }
-                    if !enabled { Text("door.disabled") }
+                    if let errorKey {
+                        CYStatusChip(LocalizedStringKey(errorKey), tone: .danger, systemImage: "exclamationmark.triangle")
+                            .accessibilityIdentifier("door.inviter.error")
+                    }
+                    if !enabled {
+                        CYStatusChip("door.disabled", tone: .warning, systemImage: "lock")
+                    }
+                    if busy { CYSkeleton().accessibilityHidden(true) }
+                }
+                Section {
                     CYPillButton("door.inviter.review") { review = true }
-                        .disabled(!enabled || busy || !session.restored || session.accountID == nil || DoorParsing.inviter(input) == nil || DoorParsing.inviter(input) == session.accountID)
+                        .disabled(!canReview)
                         .accessibilityIdentifier("door.inviter.review")
-                    if busy { CYSkeleton() }
+                        .e1ActionRow()
                 }
             }
+            .formStyle(.grouped)
+            .cyGroupedSurface()
             .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("door.close") { task?.cancel(); dismiss() } } }
             .confirmationDialog("door.inviter.once", isPresented: $review, titleVisibility: .visible) {
@@ -60,17 +75,28 @@ import SwiftUI
     let onDestination: (DoorDestination, String?) -> Void
     @State private var received: DoorIntent?
     var body: some View {
-        VStack(spacing: 16) { CYSkeleton(); Text("door.resolving") }
-            .padding(CYSpacing.lg)
-            .accessibilityIdentifier("door.entry.loading")
-            .task(id: TaskIdentity(intent: intent, session: session)) {
-                coordinator.updateSession(session)
-                if received != intent { coordinator.receive(intent); received = intent }
-                await coordinator.resolve()
-                guard !Task.isCancelled, let destination = coordinator.destination else { return }
-                onDestination(destination, coordinator.failure)
-            }
-            .onDisappear { coordinator.cancel() }
+        VStack(alignment: .leading, spacing: CYSpacing.lg) {
+            CYSkeleton()
+            Text("door.resolving")
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .padding(CYSpacing.pageHorizontal)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(CYColor.bgPage.ignoresSafeArea())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("door.resolving"))
+        .accessibilityAddTraits(.updatesFrequently)
+        .accessibilityIdentifier("door.entry.loading")
+        .task(id: TaskIdentity(intent: intent, session: session)) {
+            coordinator.updateSession(session)
+            if received != intent { coordinator.receive(intent); received = intent }
+            await coordinator.resolve()
+            guard !Task.isCancelled, let destination = coordinator.destination else { return }
+            onDestination(destination, coordinator.failure)
+        }
+        .onDisappear { coordinator.cancel() }
     }
     private struct TaskIdentity: Equatable, Hashable {
         let intent: DoorIntent
@@ -85,13 +111,26 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                CYHeroHeader("door.fixture.title")
-                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
-                Text("door.fixture.offline")
-                TextField("door.fixture.scene", text: $text).accessibilityIdentifier("door.fixture.scene")
-                Text(DoorParsing.scene(text) ?? "invalid").accessibilityIdentifier("door.fixture.normalized")
-                Text(String(describing: DoorScanResult(action: "play", topicID: 42).destination))
-            }.cyHeroScreen()
+                Section { CYHeroHeader("door.fixture.title") }.e1HeroRow()
+                Section {
+                    Text("door.fixture.offline")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    TextField("door.fixture.scene", text: $text).accessibilityIdentifier("door.fixture.scene")
+                    Text(DoorParsing.scene(text) ?? "invalid")
+                        .font(CYTypography.numericBody)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("door.fixture.normalized")
+                    Text(String(describing: DoorScanResult(action: "play", topicID: 42).destination))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .formStyle(.grouped)
+            .cyGroupedSurface()
+            .cyHeroScreen()
         }
     }
 }
