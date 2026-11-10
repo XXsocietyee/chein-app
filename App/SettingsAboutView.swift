@@ -99,7 +99,7 @@ import UIKit
     }
 
     private var appName: some View {
-        Text("settingsNative.about.brandName")
+        Text(verbatim: "chein - 城瘾")
             .font(CYTypography.pageTitle)
             .foregroundStyle(palette.textPrimary)
             .multilineTextAlignment(.center)

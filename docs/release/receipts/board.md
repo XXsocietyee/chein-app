@@ -2,6 +2,8 @@
 
 - S1 [x] 281346a89. Wire rows 1-14 rebased. PRs 990-1003. Build not re-read for those branches.
 - S4 [x] 281346a89. Build PASS, 143 warnings, 0 errors. Test action_required, 0 failures, 2 GLTFKit2 errors.
+- S8 [x] ui-strings catalogs already hold EN and zh-Hans. e5b was an empty list.
+- S9 [x] ui/main d6da7855d merged. Core, Tests, Config, and CI stay on rc. data2XL stays. Build not read yet.
 - wire17 [x] dc851f082. PR 1004. Invite detail reads CooperationInviteDetailPage.project. Not merged.
 - wire15 [x] 4c4fabd74. PR 1007. Join requests read ClubJoinRequestsPageReady.pendingCountText. Not merged.
 - wire24 [x] ef96b6633. PR 1006. Aftercare list reads MerchantAftercareListPage.read. Not merged.
@@ -16,3 +18,24 @@
 - wire21 [x] 14e2cfbda. PR 1016. Deregister reads DeregisterIndexPageModel.page. Not merged.
 - wire19 [x] f1868e9dc. PR 1015. Nearby page total reads NearbyMerchantPage.resolve. Distance line restored. Not merged.
 - wire23 [x] 3236cb774. PR 1017. Aftercare detail reads the refund amount. A missing amount is an em dash. Not merged.
+- wire30 sent back. PR 1018. Customer detail turns every non-count field into an em dash.
+- wire37 [x] cc152d791. PR 1020. Game node reads MerchantGameNodePage.project. Not merged.
+- wire36 sent back. PR 1019. Perks adds a new List. MerchantOperationsViews has no perks screen.
+- wire40 [x] 2d3997af6. PR 1021. Ledger order reads MerchantLedgerOrderPage.phase. Not merged.
+- wire31 [x] d136c4bad. PR 1022. Customer roster reads MerchantCustomerRosterPage.project. Not merged.
+- wire35 [x] d2862daa9. PR 1023. Brand center reads MerchantBrandCenterPage.reading. Not merged.
+- wire34 [x] 56e0a9e55. PR 1024. Gallery reads MerchantGalleryPage.facts. Not merged.
+- wire38 [x] 539af654b. PR 1025. Merchant home reads MerchantHomePage.project. Not merged.
+- wire42 [x] 1df583e72. PR 1026. Marketing board reads MerchantMarketingBoardPage.project. Not merged.
+- wire33 [x] c2a4966f1. PR 1027. Coop setting reads MerchantCoopSettingPage.project. Not merged.
+- wire39 [x] 2e531ba1a. PR 1028. Settlement batch reads MerchantSettlementBatchPage.make. Not merged.
+- wire16 [x] 52765b1ec. PR 1005. Nil notify capability now uses absent. Not merged.
+- wire22 [x] b974ca421. PR 1013. Member home reads the optional counts. Not merged.
+- wire30 [x] be30cf14f. PR 1018. Customer detail keeps non-count fields. Not merged.
+- wire36 [x] 2716fd1af. PR 1019. Perks List removed. Core type kept. Not merged.
+- wire41 [x] 945dda747. PR 1029. Insight string 0 stays 0. Not merged.
+- S13 Build red on fe078eb67 and 9a3d23676. App/DesignFixtures/E3Fixtures.swift:487 unexpected #endif. Wire merge batches wait.
+- S12 [x] ui/main 9979a6151 merged. Extra E3Fixtures #endif removed. Build not read yet.
+- wire29 [x] 26e87fbba. PR 1030. CRM campaigns read MerchantCrmCampaignsPage.phase. Not merged.
+- wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
+- ut-d4-gov [x] ba1318805. PR 1032. Fixture test only. Not merged. Not run on Xcode Cloud yet.

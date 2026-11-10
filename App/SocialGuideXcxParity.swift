@@ -56,7 +56,7 @@ struct SocialGuideXcxModeRow: View {
         if let onOpen {
             Button { tap += 1; onOpen(mode.destination) } label: { card }
                 .buttonStyle(GuideCardPressStyle(reduceMotion: reduceMotion))
-                .sensoryFeedback(.selection, trigger: tap)
+                .cyHaptic(.selection, trigger: tap)
                 .accessibilityIdentifier("social.guide.\(mode.rawValue)")
                 .themeDomain(.player)
         } else {

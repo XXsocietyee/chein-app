@@ -159,6 +159,8 @@ for key,obj in objects.items():
     if obj['isa']=='PBXFileReference' and obj['sourceTree']=='<group>':
         if obj.get('lastKnownFileType')=='wrapper.pb-project':
             assert (ROOT/obj['path']/'project.pbxproj').is_file(),obj['path']
+        elif obj.get('lastKnownFileType')=='folder.assetcatalog':
+            assert (ROOT/obj['path']).is_dir(),obj['path']
         else: assert (ROOT/obj['path']).is_file(),obj['path']
 source_paths={o['path'] for o in objects.values() if o['isa']=='PBXFileReference' and o.get('lastKnownFileType')=='sourcecode.swift'}
 assert source_paths=={str(p.relative_to(ROOT)) for folder in ['App','Core','Tests/AppUITests','Tests/AppUnitTests'] for p in (ROOT/folder).rglob('*.swift')}
@@ -181,11 +183,13 @@ validate_bilingual_catalog(catalog,'Localizable')
 ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 # Every dot-separated UI string is a localized key except explicit accessibility/storage IDs.
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
-localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
+localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier|messageIdentifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'(?:confirmIdentifier|icon|submitID):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'(?<![\w.])id:\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
 localizable_ui=re.sub(r'(?:systemImage|systemName|symbol):\s*"(?:\\.|[^"\\])*"', '', localizable_ui)
+# SF Symbol name returned for the search-map layers tile, not a localization key.
+localizable_ui=localizable_ui.replace('case .layers: "square.3.layers.3d"', 'case .layers: ""')
 # SF Symbol names in this status-chip ternary, not localization keys.
 localizable_ui=localizable_ui.replace('systemImage: snapshot.isDone(node) ? "checkmark.seal.fill" : snapshot.isLocked(node) ? "lock.fill" : "play.circle"', '')
 # These four values are explicit nonlocalized identifiers at these exact calls.

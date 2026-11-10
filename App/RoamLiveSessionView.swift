@@ -1,3 +1,4 @@
+import CoreLocation
 import SwiftUI
 import UIKit
 import Combine
@@ -25,6 +26,8 @@ import Combine
     @State private var purposeAccepted = false
     @State private var presenceAccepted = false
     @State private var confirmFinish = false
+    @State private var showingLocationPriming = false
+    @State private var locationPrimingAllowed = false
     @State private var showRules = false
     @State private var nearbyExpanded = true
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
@@ -171,6 +174,13 @@ import Combine
     var body: some View {
         sessionObservers
         .task(id: owner.phase) { await pulseWhileActive() }
+        .sheet(isPresented: $showingLocationPriming, onDismiss: {
+            guard locationPrimingAllowed else { return }
+            locationPrimingAllowed = false
+            Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
+        }) {
+            CYPermissionPriming(kind: .location, onAllow: { locationPrimingAllowed = true; showingLocationPriming = false }, onNotNow: { showingLocationPriming = false })
+        }
         .confirmationDialog("roam.live.finishConfirm", isPresented: $confirmFinish, titleVisibility: .visible) {
             Button("roam.live.finish") { Task { await owner.finish() } }.accessibilityIdentifier("roam.live.finish.confirm")
             Button("action.cancel", role: .cancel) {}
@@ -241,7 +251,10 @@ import Combine
                     .buttonStyle(.cyPrimary)
                     .accessibilityIdentifier("roam.live.pause")
                 } else if canStart, owner.record == nil {
-                    Button { Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) } } label: {
+                    Button {
+                        if CLLocationManager().authorizationStatus == .notDetermined { showingLocationPriming = true; return }
+                        Task { await owner.start(purposeAccepted: purposeAccepted, presenceAccepted: presenceAccepted) }
+                    } label: {
                         Label("roam.live.start", systemImage: "figure.walk").frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
                     }
                     .buttonStyle(.cyPrimary)
