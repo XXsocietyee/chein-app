@@ -20,6 +20,13 @@ class ClubEnrollmentContractChecks(unittest.TestCase):
         self.assertIn('public var refundableCount: Int?', code)
         self.assertIn('public let mode: Int?', code)
         self.assertIn('public let capacity: Int?', code)
+        count = code.split('static func count', 1)[1].split('static func text', 1)[0]
+        self.assertNotIn('value.int', count)
+        self.assertIn('compare("UNKNOWN"', count)
+        self.assertIn('public static let unknown = "\\u{2014}"', code)
+        self.assertIn('signupCountText', code)
+        self.assertIn('refundableCountText', code)
+        self.assertIn('capacityText', code)
     def test_roster_has_no_financial_dispatch(self):
         code = self.text('Core/ClubEnrollmentReader.swift') + self.text('App/ClubEnrollmentView.swift')
         for fragment in ['access.send(', 'cancel-by-owner', 'coordinator.confirm(', 'refund()']:

@@ -48,14 +48,14 @@ public enum TemplateAuthoringSyntheticFixtures {
         return d
     }
 }
-/// Synthetic info bodies for the editor readiness model. No account, host, or route.
-public enum TemplateAuthoringPageFixtureData {
-    public static let loadingBody: Data? = nil
-    public static let empty = Data(#"{"code":200,"data":null}"#.utf8)
-    public static let error = Data(#"{"code":500,"msg":"fixture"}"#.utf8)
-    public static let unknown = Data(#"{"data":{"id":901,"title":"Synthetic city question","duration":4,"useNum":2}}"#.utf8)
-    public static let missingCounts = Data(#"{"code":200,"data":{"id":901,"title":"Synthetic city question"}}"#.utf8)
-    public static let zeroCounts = Data(#"{"code":200,"data":{"id":901,"title":"Synthetic city question","duration":0,"useNum":0}}"#.utf8)
-    public static let blankNumbers = Data(#"{"code":200,"data":{"id":901,"title":"Synthetic city question","duration":"","useNum":""}}"#.utf8)
+
+/// DEBUG home documents for the intro read model. Inner home object only; no live route.
+public enum TemplateAuthoringIntroFixtureData {
+    public static let recommended = #"{"recommendList":[{"id":11,"title":"Synthetic example","sysCategoryList":[{"categoryName":"Synthetic"}],"useNum":3,"duration":10},{"id":12,"title":"Second"}],"hotList":[{"id":99,"title":"Other pool","useNum":1}],"total":2}"#
+    public static let empty = #"{"recommendList":[],"hotList":[],"latestList":[]}"#
+    public static let emptyZeroTotal = #"{"total":0}"#
+    public static let unknownCounts = #"{"recommendList":[{"id":11,"title":"Synthetic example","useNum":"UNKNOWN","duration":"UNKNOWN"}],"total":"UNKNOWN"}"#
+    public static let zeroCounts = #"{"recommendList":[{"id":12,"title":"Synthetic zero","useNum":0,"duration":0}],"total":0}"#
+    public static let malformed = "[]"
 }
 #endif
