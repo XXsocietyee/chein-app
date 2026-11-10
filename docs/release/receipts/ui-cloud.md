@@ -1,0 +1,1 @@
+UI-CLOUD-27 76f5734656c54afbba2ff7d1f0ee23cc31ae6aef Build PASS restyled: App/NativeBlacklistView.swift, App/NativeChannelChainView.swift, App/NativeChannelCheckinView.swift, App/NativeChannelHistoryView.swift, App/NativeChannelManagementPermissionsView.swift
