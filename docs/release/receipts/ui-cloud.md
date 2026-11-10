@@ -1,3 +1,1 @@
-# UI cloud receipts
-
-- UI-CLOUD-01 d72efbb2a9d2a4e76247158e7cb7f14cef96f995 Build PASS. Test action_required is the two GLTFKit2 errors (0 test failures), not this lane. Restyled: App/AccountView.swift, App/ActivityDetailView.swift, App/ActivityEditingView.swift, App/ActivityHostCancelView.swift. Skipped: App/ActivityBrowserView.swift (already the kit list example).
+UI-CLOUD-03 e639a2202963c1e04c45cd242d172b3b05055d77 PASS App/BundleAppealView.swift App/BundleCancelView.swift App/BundleOrderStatusView.swift App/BundleRedeemResultView.swift App/BundleRefundQuoteView.swift

@@ -11,49 +11,89 @@ struct BundleRefundQuoteView: View {
     init(quote: FreeExploreLaunchRefundQuote) { presentation = BundleRefundQuotePresentation(quote: quote) }
 
     private var table: String { BundleRefundQuotePresentation.tableName }
+    @Environment(\.locale) private var locale
 
     var body: some View {
-        List {
-            Section { CYHeroHeader("title", tableName: table) }.e1HeroRow()
-            Section {
-                Text(LocalizedStringKey(presentation.routeTitleKey), tableName: table)
-                    .font(CYTypography.sectionTitle)
-                    .accessibilityIdentifier("bundleRefund.route")
-                Text(LocalizedStringKey(presentation.routeBodyKey), tableName: table)
-                if let reason = presentation.serverReason {
-                    Text(verbatim: reason).foregroundStyle(.secondary)
-                }
-            }
-            Section {
-                row("amountLabel", presentation.amountText)
-                row("remainingRatioLabel", presentation.remainingRatioText)
-                row("remainingValueLabel", presentation.remainingValueText)
-                row("totalValueLabel", presentation.totalValueText)
-            }
-            if let key = presentation.afterSalesPointerKey {
-                Section {
-                    Text(LocalizedStringKey(key), tableName: table)
+        Cloud03Screen(
+            title: catalog("title"),
+            seed: presentation.policyVersion.isEmpty ? "bundle-refund-quote" : presentation.policyVersion,
+            symbol: "arrow.uturn.backward"
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                amountHero
+                routeCard
+                CYListRow(
+                    verbatim: catalog("remainingRatioLabel"),
+                    trailing: .value(Cloud03Copy.shown(presentation.remainingRatioText)),
+                    card: true
+                ) { CYRowIcon(systemImage: "percent") }
+                CYListRow(
+                    verbatim: catalog("remainingValueLabel"),
+                    trailing: .value(Cloud03Copy.shown(presentation.remainingValueText)),
+                    card: true
+                ) { CYRowIcon(systemImage: "circle.lefthalf.filled") }
+                CYListRow(
+                    verbatim: catalog("totalValueLabel"),
+                    trailing: .value(Cloud03Copy.shown(presentation.totalValueText)),
+                    card: true
+                ) { CYRowIcon(systemImage: "tag") }
+                if let key = presentation.afterSalesPointerKey {
+                    CYNoteBanner(text: Text(verbatim: catalog(key)), symbol: "person.crop.circle.badge.questionmark", tone: .info)
                         .accessibilityIdentifier("bundleRefund.afterSales")
                 }
-            }
-            Section {
-                Text(LocalizedStringKey(presentation.quoteOnlyNoticeKey), tableName: table)
-                    .font(.footnote).foregroundStyle(.secondary)
-                    .accessibilityIdentifier("bundleRefund.quoteOnly")
-                Text(verbatim: presentation.policyVersion).font(.footnote).foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    Text(verbatim: catalog(presentation.quoteOnlyNoticeKey))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("bundleRefund.quoteOnly")
+                    Text(verbatim: Cloud03Copy.shown(presentation.policyVersion))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
         }
-        .listStyle(.insetGrouped)
-        .cyGroupedSurface()
-        .cyHeroScreen()
     }
 
-    private func row(_ labelKey: String, _ value: String) -> some View {
-        HStack {
-            Text(LocalizedStringKey(labelKey), tableName: table)
-            Spacer()
-            Text(verbatim: value).font(CYTypography.numericBody).foregroundStyle(.secondary)
+    private var amountHero: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(verbatim: catalog("amountLabel"))
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(verbatim: Cloud03Copy.shown(presentation.amountText))
+                .font(CYTypography.dataXL)
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .accessibilityElement(children: .combine)
+    }
+
+    private var routeCard: some View {
+        CYInfoCard(
+            title: Text(verbatim: catalog(presentation.routeTitleKey)),
+            symbol: "arrow.uturn.backward",
+            tint: CYColor.textSecondary
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text(verbatim: catalog(presentation.routeBodyKey))
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                if let reason = presentation.serverReason {
+                    Text(verbatim: Cloud03Copy.shown(reason))
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .accessibilityIdentifier("bundleRefund.route")
+    }
+
+    private func catalog(_ key: String) -> String {
+        Cloud03Copy.catalog(key, table: table, locale: locale)
     }
 }

@@ -6,69 +6,105 @@ import SwiftUI
     @ObservedObject var model: BundleVoucherModel
     let unitID: String
     private let table = "BundleCommerce"
-    private func text(_ key: String) -> Text { Text(LocalizedStringKey(key), tableName: table) }
+    @Environment(\.locale) private var locale
+    @QuestifyReduceMotion private var reduceMotion
 
     var body: some View {
-        List {
-            Section { CYHeroHeader("bundle.redeem.title", tableName: table) }.e1HeroRow()
-            switch model.redeemState {
-            case .idle, .loading:
-                Section { CYLoadingStateView(rows: 1).accessibilityLabel(text("bundle.redeem.loading")) }
-            case .unavailable:
-                Section { text("bundle.redeem.unavailable").accessibilityIdentifier("bundleRedeem.unavailable") }
-            case .failed:
-                Section {
-                    text("bundle.redeem.error")
-                    CYPillButton("bundle.redeem.retry", style: .secondary, systemImage: "arrow.clockwise", tableName: table) { Task { await model.loadRedeemResult(unitID: unitID) } }
-                        .e1ActionRow()
-                }
-            case .loaded(let presentation, let result):
-                Section {
-                    HStack(spacing: CYSpacing.sm) {
-                        Image(systemName: symbol(presentation)).foregroundStyle(tint(presentation)).accessibilityHidden(true)
-                        headline(presentation)
-                    }
-                    .font(CYTypography.sectionTitle)
-                    .accessibilityElement(children: .combine)
+        Cloud03Screen(
+            title: catalog("bundle.redeem.title"),
+            seed: unitID.isEmpty ? "bundle-redeem" : unitID,
+            symbol: coverSymbol
+        ) {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                stateBody
+            }
+        }
+        .cyAnimation(value: model.redeemState)
+        .task { await model.loadRedeemResult(unitID: unitID) }
+        .onChange(of: model.redeemState) { _, new in
+            guard !reduceMotion else { return }
+            if case .loaded(let presentation, _) = new, presentation == .success {
+                CYHaptics.success.play()
+            }
+        }
+    }
+
+    private func catalog(_ key: String) -> String {
+        Cloud03Copy.catalog(key, table: table, locale: locale)
+    }
+
+    @ViewBuilder private var stateBody: some View {
+        switch model.redeemState {
+        case .idle, .loading:
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                CYSkeleton().accessibilityHidden(true)
+                Text(verbatim: catalog("bundle.redeem.loading"))
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        case .unavailable:
+            CYStateLayout(kind: .offline, title: Text(verbatim: catalog("bundle.redeem.unavailable")))
+                .accessibilityIdentifier("bundleRedeem.unavailable")
+        case .failed:
+            CYStateLayout(
+                kind: .failure,
+                title: Text(verbatim: catalog("bundle.redeem.error")),
+                primaryVerbatim: (title: catalog("bundle.redeem.retry"), action: {
+                    Task { await model.loadRedeemResult(unitID: unitID) }
+                }),
+                primaryStyle: .primary
+            )
+        case .loaded(let presentation, let result):
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYStatusChip(verbatim: headline(presentation), tone: tone(presentation), systemImage: symbol(presentation))
                     .accessibilityIdentifier("bundleRedeem.state")
-                    if let name = result.merchantName, presentation == .success { Text(verbatim: name) }
-                    if let reason = result.reason, !reason.isEmpty, presentation == .rejected || presentation == .review {
-                        Text(verbatim: reason).font(.footnote)
+                if let name = result.merchantName, !name.isEmpty, presentation == .success {
+                    CYListRow(verbatim: Cloud03Copy.shown(name), trailing: .none, card: true) {
+                        CYRowIcon(systemImage: "storefront")
                     }
+                }
+                if let reason = result.reason, !reason.isEmpty, presentation == .rejected || presentation == .review {
+                    Text(verbatim: Cloud03Copy.shown(reason))
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
             }
         }
-        .listStyle(.insetGrouped)
-        .cyGroupedSurface()
-        .cyHeroScreen()
-        .task { await model.loadRedeemResult(unitID: unitID) }
+    }
+
+    private var coverSymbol: String {
+        if case .loaded(let presentation, _) = model.redeemState { return symbol(presentation) }
+        return "ticket"
+    }
+
+    private func headline(_ presentation: BundleRedeemPresentation) -> String {
+        switch presentation {
+        case .success: return catalog("bundle.redeem.success")
+        case .review: return catalog("bundle.redeem.review")
+        case .rejected: return catalog("bundle.redeem.rejected")
+        case .notRedeemed: return catalog("bundle.redeem.none")
+        case .processing: return catalog("bundle.redeem.processing")
+        }
     }
 
     private func symbol(_ presentation: BundleRedeemPresentation) -> String {
         switch presentation {
-        case .success: return "checkmark.seal.fill"
-        case .review: return "hourglass"
-        case .rejected: return "xmark.octagon.fill"
-        case .notRedeemed, .processing: return "clock"
+        case .success: return "checkmark.seal"
+        case .review: return "clock"
+        case .rejected: return "xmark.circle"
+        case .notRedeemed: return "ticket"
+        case .processing: return "hourglass"
         }
     }
 
-    private func tint(_ presentation: BundleRedeemPresentation) -> Color {
+    private func tone(_ presentation: BundleRedeemPresentation) -> CYStatusTone {
         switch presentation {
-        case .success: return CYColor.successText
-        case .review: return CYColor.warningText
-        case .rejected: return CYColor.dangerText
-        case .notRedeemed, .processing: return CYColor.textSecondary
-        }
-    }
-
-    private func headline(_ presentation: BundleRedeemPresentation) -> Text {
-        switch presentation {
-        case .success: return text("bundle.redeem.success")
-        case .review: return text("bundle.redeem.review")
-        case .rejected: return text("bundle.redeem.rejected")
-        case .notRedeemed: return text("bundle.redeem.none")
-        case .processing: return text("bundle.redeem.processing")
+        case .success: return .success
+        case .review, .processing: return .warning
+        case .rejected: return .danger
+        case .notRedeemed: return .neutral
         }
     }
 }
