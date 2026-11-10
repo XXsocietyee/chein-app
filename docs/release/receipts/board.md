@@ -40,3 +40,4 @@
 - wire32 [x] 951490745. PR 1031. Store character reads MerchantStoreCharacterPage.phase. Not merged.
 - ut-d4-gov [x] ba1318805. PR 1032. Fixture test only. Not merged. Not run on Xcode Cloud yet.
 - ut-d4-ops [x] b3805eb07. PR 1033. Fixture test only. Not merged. Not run on Xcode Cloud yet.
+- ut-d4-channel-chat [x] 06229e2cd. PR 1034. Fixture test only. Not merged. Not run on Xcode Cloud yet.
