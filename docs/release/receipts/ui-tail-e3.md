@@ -30,3 +30,7 @@ Skipped (host/adapter, no visible presentation of their own): SessionTeamViews, 
 ## Batch 6 (reverse)
 Done: NearbyTeamMapViews, NearbyTeamViews, OrdinaryIMSendReceiptRecoveryView, PlayAdvancedTeamViews, PlayPlayerTeamStatusView.
 Skipped: none.
+
+## Batch 7 (reverse)
+Done: NativeFriendRemovalView, NativeFriendProgressCardView, NativeFriendPickerView, NativeFriendMetadataView, NativeFriendHomeView.
+Skipped: none.

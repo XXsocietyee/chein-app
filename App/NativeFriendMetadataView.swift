@@ -34,38 +34,41 @@ import SwiftUI
     private var flow: NativeFriendMetadataFlow { model.flow }
     var body: some View {
         Form {
+            Section {
+                CYHeroHeader(verbatim: localized(flow.peerID == 0 ? "friendMeta.recoveryEntry" : "friendMeta.title")).listRowBackground(Color.clear)
+            }
             if flow.canPresentPeer { Section {
                 HStack(spacing: Theme.Space.s3) {
-                    Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
-                    Text(verbatim: nickname.isEmpty ? "—" : nickname).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
+                    E3Avatar(seed: nickname.isEmpty ? "—" : nickname, size: 44).accessibilityHidden(true)
+                    Text(verbatim: nickname.isEmpty ? "—" : nickname).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                 }
             } }
             if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendMeta.loading") }
-            if !flow.isCurrent { text("friendMeta.closed") }
+            if !flow.isCurrent { CYStatusChip(verbatim: localized("friendMeta.closed"), tone: .neutral, systemImage: "lock") }
             if let issue = flow.issue {
-                Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
+                CYStatusChip(verbatim: localized(issue), tone: .warning, systemImage: "exclamationmark.triangle")
                     .accessibilityIdentifier("friendMeta.issue")
             }
             if flow.isCurrent, let recoveryIssue = flow.recoveryIssue {
-                text(recoveryIssue).foregroundStyle(.secondary).accessibilityIdentifier("friendMeta.recoveryIssue")
+                text(recoveryIssue).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("friendMeta.recoveryIssue")
             }
             if flow.pending != nil {
                 Section {
-                    if !flow.hasResolvedPending { text("friendMeta.unknown") }
-                    Button { performPresented { await flow.recover() } } label: { text(flow.hasResolvedPending ? "friendMeta.retryCleanup" : "friendMeta.recover") }.disabled(!flow.canRecover)
+                    if !flow.hasResolvedPending { CYStatusChip(verbatim: localized("friendMeta.unknown"), tone: .warning, systemImage: "questionmark.circle") }
+                    CYPillButton(verbatim: localized(flow.hasResolvedPending ? "friendMeta.retryCleanup" : "friendMeta.recover"), style: .secondary) { performPresented { await flow.recover() } }.disabled(!flow.canRecover)
                         .accessibilityIdentifier("friendMeta.recover")
                 }
             }
             if flow.isCurrent, flow.resolvedIdentity != nil {
-                if flow.didApply { text("friendMeta.saved").accessibilityIdentifier("friendMeta.saved") }
-                else { text("friendMeta.notApplied").accessibilityIdentifier("friendMeta.notApplied") }
+                if flow.didApply { CYStatusChip(verbatim: localized("friendMeta.saved"), tone: .success, systemImage: "checkmark").accessibilityIdentifier("friendMeta.saved") }
+                else { CYStatusChip(verbatim: localized("friendMeta.notApplied"), tone: .neutral, systemImage: "minus.circle").accessibilityIdentifier("friendMeta.notApplied") }
             }
             if let command = flow.review {
                 Section {
                     reviewDetails(command)
-                    Button { performPresented { await flow.confirm(expected: command) } } label: { text("friendMeta.confirm") }.disabled(!flow.canConfirm)
+                    CYPillButton(verbatim: localized("friendMeta.confirm")) { performPresented { await flow.confirm(expected: command) } }.disabled(!flow.canConfirm)
                         .accessibilityIdentifier("friendMeta.confirm")
-                    Button { flow.cancelReview() } label: { text("friendMeta.cancel") }.disabled(flow.busy)
+                    CYPillButton(verbatim: localized("friendMeta.cancel"), style: .tertiary) { flow.cancelReview() }.disabled(flow.busy)
                 } header: { text("friendMeta.reviewTitle") }
             }
             if flow.canPresentPeer && flow.metadata != nil {
@@ -140,7 +143,7 @@ import SwiftUI
         .formStyle(.grouped)
         .font(Theme.Font.body)
         .cyGroupedSurface()
-        .navigationTitle(localized(flow.peerID == 0 ? "friendMeta.recoveryEntry" : "friendMeta.title"))
+        .cyHeroScreen()
         .accessibilityIdentifier("friendMeta.editor").privacySensitive()
         .onAppear { visible = true; if scenePhase == .active { visit = UUID(); performPresented { await flow.load() } } }
         .onChange(of: flow.metadata) { _, _ in synchronize() }
