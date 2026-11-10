@@ -15,6 +15,8 @@ import SwiftUI
     @State private var memberRefreshToken = 0
     @State private var settingsGuideHandoff = SettingsGuideHandoff()
     @State private var showsTickets=false
+    @State private var showsTicketPass=false
+    @State private var opensWalletAfterPass=false
     @State private var showsCooperation=false
     @State private var confirmsLogout=false
     @State private var logoutConfirmation: AuthChannelSessionSnapshot?
@@ -25,7 +27,7 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
-                MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTickets = true }, refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
+                MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true }, refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
                 if let invoice = session.makeInvoiceLaunchPresentation() {
                     NavigationLink {
@@ -212,6 +214,12 @@ import SwiftUI
                 } })
             }
             .sheet(isPresented:$showsCooperation) { CooperationBrowserView(reader:session.cooperationReader,onClose:{ showsCooperation=false },peerReader:session.cooperationFlowReader,topicDestination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) }).id(session.cooperationReader.scope) }
+            .sheet(isPresented:$showsTicketPass, onDismiss: { if opensWalletAfterPass { opensWalletAfterPass = false; showsTickets = true } }) {
+                TicketPassSheet(reader: session.ticketWalletReader, onClose: { showsTicketPass = false },
+                                onOpenWallet: { opensWalletAfterPass = true; showsTicketPass = false },
+                                lifecycleCoordinator: session.orderLifecycleCoordinator, makeTeamCoordinator: { session.makeTeamCoordinator() })
+                    .id(session.ticketWalletReader.scope)
+            }
             .sheet(isPresented:$showsTickets) { TicketWalletView(reader:session.ticketWalletReader,onClose:{ showsTickets=false },makeTeamCoordinator:{ session.makeTeamCoordinator() },orderLifecycleCoordinator:session.orderLifecycleCoordinator).environment(\.ticketWalletPlayProvider, ticketPlayProvider).environment(\.ticketWalletPendingOrderProvider, ticketPendingOrderProvider).id(session.ticketWalletReader.scope) }
             .confirmationDialog("auth.signOutConfirm",isPresented:$confirmsLogout,titleVisibility:.visible,presenting:logoutConfirmation) { expected in
                 Button("auth.signOut",role:.destructive) {
