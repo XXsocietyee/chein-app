@@ -98,6 +98,8 @@ struct ActivityDetailView: View {
     @State private var failed=false
     @State private var generation=0
     @State private var loads = SignedInContentDetailLoadOwner()
+    @State private var showsShare = false
+    @Environment(\.timeZone) private var shareTimeZone
     private var gateScope: ActivityRequiredClubScope? {
         guard gateActivityID == id, latestGateActivityID == id,
               gateReaderID == ObjectIdentifier(reader), latestGateReaderID == ObjectIdentifier(reader),
@@ -137,6 +139,17 @@ struct ActivityDetailView: View {
         }
         .appNavigationTitle("activity.details")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let access, case .allowed = access {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button { showsShare = true } label: { Label("activity.share", systemImage: "square.and.arrow.up") }
+                        .accessibilityIdentifier("activity.share")
+                }
+            }
+        }
+        .sheet(isPresented: $showsShare) {
+            if let access, case .allowed(let detail) = access { CatalogShareCardView(content: shareContent(detail), tint: .sunset) }
+        }
         .cyDomainPageBackground()
         .task(id:id) { await loads.run { await load() } }
         .onAppear { gateIsVisible = true; gatePresentationID = UUID() }
@@ -194,6 +207,29 @@ struct ActivityDetailView: View {
                     .presentationDragIndicator(.visible)
             }
         }
+    }
+    /// Share card content: name, date, price / spots / category, and the place name only behind the composer's toggle.
+    private func shareContent(_ detail: ActivityDetail) -> CYShareCardContent {
+        let summary = detail.summary
+        let price: String? = summary.minimumAmount == Decimal.zero
+            ? appLocalized("share.card.free", locale: locale)
+            : E1Money.yuan(summary.minimumAmount, locale: locale)
+        let place = ActivityPresentation.nonempty(summary.addressName) ?? ActivityPresentation.nonempty(summary.address)
+        return CYShareCardContent(
+            kind: .activity,
+            eyebrow: appLocalized("share.card.activity.eyebrow", locale: locale),
+            title: ActivityPresentation.nonempty(summary.name) ?? "—",
+            subtitle: QuestifyCardText.date(summary.startDate, locale: locale, displayTimeZone: shareTimeZone),
+            place: place,
+            stats: [
+                CYShareStat(appLocalized("share.card.stat.price", locale: locale), price),
+                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), detail.remainingInventory.map { String(max(0, $0)) }),
+                CYShareStat(appLocalized("share.card.stat.category", locale: locale), summary.categoryNames.first),
+            ],
+            silhouette: summary.hasValidCoordinates ? [CGPoint(x: 0.5, y: 0.5)] : [],
+            artSeed: summary.name,
+            artSymbol: ["figure.walk", "music.note", "camera", "leaf", "building.2", "moon.stars", "map"][abs(summary.id) % 7],
+            brand: appLocalized("share.card.brand", locale: locale))
     }
     private var loadingState: some View {
         ScrollView {

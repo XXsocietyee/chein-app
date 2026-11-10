@@ -31,7 +31,7 @@ enum E3Fixtures {
         case "e3-real-friends": return wrap(E3RealFriendsHost())
         case "e3-real-follow": return wrap(E3RealFollowHost())
         case "e3-real-imcards": return wrap(E3RealIMCardsHost())
-        default: return nil
+        default: return E3ShareFixtures.make(name)
         }
     }
     @MainActor private static func wrap<V: View>(_ v: V) -> AnyView { AnyView(v.roleTheme(.player)) }

@@ -1,18 +1,23 @@
 import SwiftUI
 import UIKit
 
-/// The user can save the rendered card to Photos or choose a system-sheet recipient.
-/// No app upload, public-feed post, private URL or tracking token is generated here.
+/// Share card composer for a saved walk. The user can save the rendered card to Photos or choose a
+/// system-sheet recipient. No app upload, public-feed post, private URL or tracking token is generated here.
+/// Privacy: the neighbourhood name and the clipped route sketch are both opt-in toggles (default off);
+/// a missing value is an em dash, never a zero. Preview and export are the same `CYShareCard` view.
 @MainActor struct RoamHistoryShareView: View {
     let record: RoamHistoryRecord
     let reader: any RoamExperienceReading
     private let presentationOwner: RoamHistoryLiveOwner
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.displayScale) private var displayScale
+    @Environment(\.locale) private var locale
     @Environment(\.openURL) private var openURL
     @StateObject private var photoSave: RoamSharePhotoSaveModel
     @StateObject private var presentation: RoamSharePresentationLifetime
     @State private var includeRoute = false
+    @State private var includePlace = false
+    @State private var style = CYShareCardStyle(template: .poster, ratio: .story, tint: .ink)
+    @State private var caption = ""
     @State private var channelPolicy = RoamShareChannelPolicy()
     @State private var image: UIImage?
     @State private var renderingFailed = false
@@ -22,6 +27,9 @@ import UIKit
     @State private var albumGuide = RoamShareAlbumGuideState()
     @State private var guideSourceChanged = false
     @State private var systemShare: RoamHistorySystemShareRequest?
+    @State private var toast: LocalizedStringKey?
+    @State private var successTick = 0
+    @State private var readyTick = 0
     init(record: RoamHistoryRecord, reader: any RoamExperienceReading, photoSaveModel: RoamSharePhotoSaveModel? = nil) {
         let model = photoSaveModel ?? RoamSharePhotoSaveModel()
         _photoSave = StateObject(wrappedValue: model)
@@ -29,52 +37,42 @@ import UIKit
         self.record = record; self.reader = reader
         presentationOwner = RoamHistoryLiveOwner(reader: reader)
     }
+    private var isBusy: Bool { photoSave.inFlight || albumGuide.pending != nil }
+    private var hasPreparedImage: Bool {
+        image != nil && renderedRecord == record && renderedIncludeRoute == includeRoute && renderedOwner == RoamHistoryLiveOwner(reader: reader)
+    }
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("roam.share.privacy").foregroundStyle(.secondary)
-                if !record.track.isEmpty {
-                    Toggle("roam.share.includeRoute", isOn: $includeRoute).onChange(of: includeRoute) { _, _ in invalidateImage() }
+            VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                CYHeroHeader("roam.share.title", subtitle: "roam.share.privacy")
+                CYShareComposer(content: cardContent, style: $style, caption: $caption,
+                                captionPlaceholder: appLocalized("roam.share.caption.placeholder", locale: locale),
+                                accessibilityPrefix: "roam.share.composer") {
+                    privacyControls
+                } actions: {
+                    actionsSection
                 }
-                RoamShareChannelPicker(mode: Binding(get: { channelPolicy.mode }, set: { mode in
-                    if channelPolicy.select(mode, operationInFlight: photoSave.inFlight || albumGuide.pending != nil) {
-                        // Retire guide callbacks synchronously. The image has not changed, so keep
-                        // any completed save receipt rather than writing the same card twice.
-                        albumGuide.invalidate(); guideSourceChanged = false
-                    }
-                }), isBusy: photoSave.inFlight || albumGuide.pending != nil)
-                card
                 RoamShareLinkDormantNotice()
-                if renderingFailed { Text("roam.share.renderFailed").foregroundStyle(.secondary) }
-                if guideSourceChanged { Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary) }
-                if let image, renderedRecord == record, renderedIncludeRoute == includeRoute,
-                   renderedOwner == RoamHistoryLiveOwner(reader: reader) {
-                    photoSaveControls(image)
-                    if !allowedAlbumDestinations.isEmpty { albumGuideControls(image) }
-                    if channelPolicy.permits(.systemShare) {
-                        CYPillButton("roam.share.system", style: .secondary, systemImage: "square.and.arrow.up") { beginSystemShare(image) }
-                            .disabled(photoSave.inFlight || albumGuide.pending != nil || systemShare != nil || photoSave.state.phase == .sourceChanged)
-                            .accessibilityIdentifier("roam.share.system")
-                    }
-                } else {
-                    CYPillButton("roam.share.prepare", systemImage: "photo") {
-                        guard sourceIsCurrent else { invalidateImage(); return }
-                        let renderer = ImageRenderer(content: card.frame(width: 320).padding(24).background(Color(uiColor: .systemBackground)))
-                        renderer.scale = min(3, displayScale)
-                        image = renderer.uiImage; renderingFailed = image == nil
-                        renderedRecord = image == nil ? nil : record
-                        renderedIncludeRoute = includeRoute
-                        renderedOwner = image == nil ? nil : presentationOwner
-                    }.accessibilityIdentifier("roam.share.prepare")
-                }
-            }.padding()
-        }.navigationTitle("roam.share.title")
-            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { presentation.retire(); invalidateImage(); dismiss() } } }
+            }.padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.xxxl)
+        }
+            .background(CYColor.bgPage.ignoresSafeArea())
+            .scrollDismissesKeyboard(.interactively)
+            .toolbar { ToolbarItem(placement: .confirmationAction) { Button("action.done") { presentation.retire(); invalidateImage(); dismiss() }.accessibilityIdentifier("roam.share.done") } }
             .background(RoamShareNativeLifetime(presentation: presentation).frame(width: 0, height: 0))
             .onAppear { presentation.appear() }
-            .onChange(of: record) { _, _ in includeRoute = false; channelPolicy.reset(); invalidateImage() }
-            .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in includeRoute = false; channelPolicy.reset(); invalidateImage() }
-            .onChange(of: photoSave.state.phase) { _, phase in receiveAlbumGuide(phase) }
+            .onChange(of: record) { _, _ in includeRoute = false; includePlace = false; channelPolicy.reset(); invalidateImage() }
+            .onChange(of: RoamHistoryLiveOwner(reader: reader)) { _, _ in includeRoute = false; includePlace = false; channelPolicy.reset(); invalidateImage() }
+            .onChange(of: includeRoute) { _, _ in invalidateImage() }
+            .onChange(of: includePlace) { _, _ in invalidateImage() }
+            .onChange(of: style) { _, _ in invalidateImage() }
+            .onChange(of: caption) { _, _ in invalidateImage() }
+            .onChange(of: photoSave.state.phase) { _, phase in
+                receiveAlbumGuide(phase)
+                if phase == .saved { toast = "roam.share.savedPhotos"; successTick += 1 }
+            }
+            .cyHaptic(.success, trigger: successTick)
+            .cyHaptic(.impactLight, trigger: readyTick)
+            .cyToast(message: $toast)
             .sheet(item: Binding(get: { albumGuide.guide }, set: { if $0 == nil { albumGuide.dismissGuide() } })) { guide in
                 if permitsAlbumGuide(guide.destination) { RoamShareAlbumGuideView(guide: guide) }
             }
@@ -83,7 +81,9 @@ import UIKit
                 // changed before SwiftUI actually presents the system sheet.
                 if channelPolicy.permits(.systemShare), image === request.image,
                    preparedSelection == request.selection, request.isCurrent(reader: reader) {
-                    RoamHistorySystemShareSheet(request: request, reader: reader)
+                    RoamHistorySystemShareSheet(request: request, reader: reader) { completed in
+                        if completed { toast = "roam.share.sharedToast"; successTick += 1 }
+                    }
                 } else {
                     Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary)
                 }
@@ -91,6 +91,105 @@ import UIKit
             // Cover/permission alerts are not departures. The native attachment owns true
             // removal even when a guide or system sheet already covers this presenter.
     }
+
+    // MARK: Card content (what the exported image contains, and nothing else)
+
+    private var cardContent: CYShareCardContent {
+        let sketch = RoamShareRoutePrivacy.sketch(for: record)
+        let stats = [
+            CYShareStat(appLocalized("roam.experience.distance", locale: locale), record.distance.map { String(format: "%.1f km", $0) }),
+            CYShareStat(appLocalized("roam.experience.duration", locale: locale), record.durationText),
+            CYShareStat(appLocalized("roam.experience.shops", locale: locale), record.shops.map(String.init)),
+            CYShareStat(appLocalized("roam.experience.explorePct", locale: locale), record.explorePct.map { "\($0)%" }),
+        ]
+        return CYShareCardContent(
+            kind: .walk,
+            eyebrow: appLocalized("roam.share.card.eyebrow", locale: locale),
+            title: appLocalized("roam.experience.cityWalk", locale: locale),
+            subtitle: record.recordedAt.map { $0.formatted(.dateTime.year().month().day().locale(locale)) },
+            place: includePlace ? record.meaningfulZone : nil,
+            stats: stats,
+            silhouette: includeRoute ? sketch.track.map { CGPoint(x: $0.x, y: $0.y) } : [],
+            artSeed: "walk-\(record.ts)",
+            artSymbol: "figure.walk",
+            caption: caption,
+            brand: appLocalized("roamSub.w208.share.brand", locale: locale))
+    }
+
+    // MARK: Controls
+
+    @ViewBuilder private var privacyControls: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if record.meaningfulZone != nil {
+                Toggle("roam.share.includePlace", isOn: $includePlace)
+                    .accessibilityIdentifier("roam.share.includePlace")
+                Text("roam.share.includePlaceHint").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            if !record.track.isEmpty {
+                Toggle("roam.share.includeRoute", isOn: $includeRoute)
+                    .accessibilityIdentifier("roam.share.includeRoute")
+            }
+            RoamShareChannelPicker(mode: Binding(get: { channelPolicy.mode }, set: { mode in
+                if channelPolicy.select(mode, operationInFlight: isBusy) {
+                    // Retire guide callbacks synchronously. The image has not changed, so keep
+                    // any completed save receipt rather than writing the same card twice.
+                    albumGuide.invalidate(); guideSourceChanged = false
+                }
+            }), isBusy: isBusy)
+        }
+        .padding(CYSpacing.lg)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+    }
+
+    @ViewBuilder private var actionsSection: some View {
+        if renderingFailed { Text("roam.share.renderFailed").foregroundStyle(.secondary) }
+        if guideSourceChanged { Text("roam.share.photoSaveSourceChanged").foregroundStyle(.secondary) }
+        if let image, renderedRecord == record, renderedIncludeRoute == includeRoute,
+           renderedOwner == RoamHistoryLiveOwner(reader: reader) {
+            readyRow(image)
+            photoSaveControls(image)
+            if !allowedAlbumDestinations.isEmpty { albumGuideControls(image) }
+            if channelPolicy.permits(.systemShare) {
+                CYPillButton("roam.share.system", style: .secondary, systemImage: "square.and.arrow.up") { beginSystemShare(image) }
+                    .disabled(isBusy || systemShare != nil || photoSave.state.phase == .sourceChanged)
+                    .accessibilityIdentifier("roam.share.system")
+            }
+        } else {
+            CYPillButton("roam.share.prepare", systemImage: "photo") {
+                guard sourceIsCurrent else { invalidateImage(); return }
+                let card = cardContent
+                image = CYShareCardRenderer.render(card, style: style)
+                renderingFailed = image == nil
+                renderedRecord = image == nil ? nil : record
+                renderedIncludeRoute = includeRoute
+                renderedOwner = image == nil ? nil : presentationOwner
+                if image != nil { readyTick += 1 }
+            }.accessibilityIdentifier("roam.share.prepare")
+        }
+    }
+
+    private func readyRow(_ image: UIImage) -> some View {
+        HStack(spacing: CYSpacing.md) {
+            Image(uiImage: image).resizable().scaledToFit()
+                .frame(height: 72)
+                .clipShape(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
+                .accessibilityLabel(Text("roam.share.previewLabel"))
+                .accessibilityIdentifier("roam.share.preview")
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                CYStatusChip("roam.share.ready", tone: .success, systemImage: "checkmark.seal")
+                Text("roam.share.readyHint").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            Spacer(minLength: 0)
+        }
+        .padding(CYSpacing.md)
+        .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .cyEntrance()
+    }
+
+    // MARK: Export plumbing (unchanged privacy gates)
+
     private func invalidateImage() {
         photoSave.invalidate()
         albumGuide.invalidate()
@@ -125,15 +224,15 @@ import UIKit
         RoamShareAlbumGuideState.Destination.allCases.filter(permitsAlbumGuide)
     }
     private func albumGuideControls(_ image: UIImage) -> some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             CYSectionHeader("roam.albumGuide.choose")
-            Text("roam.albumGuide.beforeSave").font(.caption).foregroundStyle(.secondary)
+            Text("roam.albumGuide.beforeSave").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
             ForEach(allowedAlbumDestinations) { destination in
                 CYPillButton(LocalizedStringKey(destination == .moments ? "roam.albumGuide.momentsAction" : "roam.albumGuide.xiaohongshuAction"),
                              style: .secondary, systemImage: "photo.on.rectangle") {
                     beginAlbumGuide(destination, image: image)
                 }
-                    .disabled(photoSave.inFlight || albumGuide.pending != nil || photoSave.state.phase == .sourceChanged)
+                    .disabled(isBusy || photoSave.state.phase == .sourceChanged)
                     .accessibilityIdentifier("roam.albumGuide.open." + destination.rawValue)
             }
         }
@@ -176,7 +275,7 @@ import UIKit
         if photoSave.inFlight {
             CYSkeleton().accessibilityLabel(Text("roam.share.savingPhotos")).accessibilityIdentifier("roam.share.savingPhotos")
         } else if let key = saveStatusKey {
-            Text(LocalizedStringKey(key)).font(.caption).foregroundStyle(.secondary)
+            Text(LocalizedStringKey(key)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 .accessibilityIdentifier("roam.share.photoSaveStatus")
         }
         if phase == .permissionDenied, !photoSave.inFlight {
@@ -202,38 +301,6 @@ import UIKit
         case .failed: return "roam.share.photoSaveFailed"
         default: return nil
         }
-    }
-    private var privateRoute: some View {
-        let sketch = RoamShareRoutePrivacy.sketch(for: record)
-        return ZStack {
-            RoundedRectangle(cornerRadius: 20).fill(Color.accentColor.opacity(0.09))
-            if sketch.track.isEmpty {
-                Label("roam.experience.noTrack", systemImage: "point.topleft.down.to.point.bottomright.curvepath")
-                    .font(.caption).padding()
-            } else {
-                Canvas { context, size in
-                    var path = Path()
-                    for (index, point) in sketch.track.enumerated() {
-                        let position = CGPoint(x: point.x * size.width, y: point.y * size.height)
-                        if index == 0 { path.move(to: position) } else { path.addLine(to: position) }
-                    }
-                    context.stroke(path, with: .color(.accentColor), style: StrokeStyle(lineWidth: 4, lineCap: .round, lineJoin: .round))
-                }.padding(8).accessibilityHidden(true)
-            }
-        }.frame(height: 180)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(Text(sketch.track.isEmpty ? "roam.experience.noTrack" : "roam.experience.routeSketch"))
-            .accessibilityIdentifier("roam.share.clippedRoute")
-    }
-    private var card: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Label("roam.experience.cityWalk", systemImage: "figure.walk.circle.fill").font(.title).bold()
-            if let date = record.recordedAt { Text(date, style: .date).foregroundStyle(.secondary) }
-            RoamRecordedStats(record: record)
-            if includeRoute { privateRoute }
-            RoamShareCardParityFooter(record: record)
-        }.padding(24).frame(maxWidth: .infinity, alignment: .leading)
-            .background(Color(uiColor: .secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 24))
     }
 }
 
@@ -271,8 +338,14 @@ import UIKit
 @MainActor private struct RoamHistorySystemShareSheet: UIViewControllerRepresentable {
     let request: RoamHistorySystemShareRequest
     let reader: any RoamExperienceReading
+    /// Called once the system sheet closes; `true` only when the user completed an activity.
+    var onComplete: ((Bool) -> Void)? = nil
     func makeUIViewController(context: Context) -> UIViewController {
-        if let controller = request.makeActivityController(reader: reader) { return controller }
+        if let controller = request.makeActivityController(reader: reader) {
+            let onComplete = self.onComplete
+            controller.completionWithItemsHandler = { _, completed, _, _ in onComplete?(completed) }
+            return controller
+        }
         return UIViewController()
     }
     func updateUIViewController(_ controller: UIViewController, context: Context) {}
