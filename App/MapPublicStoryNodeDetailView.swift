@@ -54,7 +54,7 @@ struct MapPublicStoryNodeDetailView: View {
                 }
             } else if loading || loadedKey != key {
                 statePage {
-                    Text(layer("mapPublicLayers.storyNode.loading"))
+                    layer("mapPublicLayers.storyNode.loading")
                         .font(CYTypography.body)
                         .foregroundStyle(CYColor.textSecondary)
                         .fixedSize(horizontal: false, vertical: true)
@@ -111,7 +111,7 @@ struct MapPublicStoryNodeDetailView: View {
 
     private func nodeContent(detail: TopicDetail, chapter: TopicChapter, node: TopicNode) -> some View {
         let name = display(node.name.isEmpty ? destination.nodeName : node.name)
-        List {
+        return List {
             Section {
                 CYHeroHeader(verbatim: name, titleIdentifier: "mapPublicLayers.storyNode.title") {
                     storyCover(seed: name, rawURL: node.images.first)
