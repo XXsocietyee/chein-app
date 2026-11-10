@@ -962,13 +962,14 @@ private struct ClubOperationsProfileForm: View {
         }
     }
     private var lockedCurrent: Text {
-        let quota = Int(draft.memberReservedQuota) ?? 0
+        let quota = Int(draft.memberReservedQuota)
         var text = Text("club.ops.locked.current") + Text(verbatim: " ")
             + Text(draft.prioritySignupEnabled ? "club.ops.locked.priority.on" : "club.ops.locked.priority.off")
         if joinPolicySupported {
             text = text + Text(verbatim: " · ") + Text(draft.joinPolicy == 1 ? "club.ops.locked.join.on" : "club.ops.locked.join.off")
         }
-        return text + Text(verbatim: " · ") + Text("club.ops.locked.quota \(quota)")
+        let quotaText: Text = quota.map { Text("club.ops.locked.quota \($0)") } ?? Text(verbatim: ClubEditPage.unknownMark)
+        return text + Text(verbatim: " · ") + quotaText
     }
     @ViewBuilder private func counterLabel(_ key: String, _ value: String) -> some View {
         if let counter = ClubOperationsPort.counter(value, field: key) {
