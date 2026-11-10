@@ -1,6 +1,6 @@
 import SwiftUI
 
-// QR scan + success choreography kit. Spec: docs/release/motion-spec-qr.md (adapted from the advisor spec).
+// QR scan + success choreography kit (CYScan). Spec: docs/release/motion-spec-qr.md (adapted from the advisor spec).
 // Pure state machine (`CYScanMachine`) + presentation pieces. Network / verification calls stay in the host
 // view model: it feeds `verifyOK` / `verifyFailed` and renders `CYScanState`.
 
