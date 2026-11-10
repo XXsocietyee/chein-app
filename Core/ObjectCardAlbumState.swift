@@ -32,7 +32,7 @@ public struct ObjectCardListedData: Decodable, Equatable {
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         cards = try container.decode([ObjectCard].self, forKey: .list)
-        if container.contains(.total) == false || (try container.decodeNil(forKey: .total)) {
+        if try container.contains(.total) == false || container.decodeNil(forKey: .total) {
             total = .unknown
             return
         }
