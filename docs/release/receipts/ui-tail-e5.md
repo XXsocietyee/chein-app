@@ -106,3 +106,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - ModUpgradeView: done (CYHeroHeader)
 - ModSettlementViews: done (CYHeroHeader x2, CYSkeleton)
 - ModOwnedContentReportView: done (CYHeroHeader, CYPillButton)
+
+## Batch 16 (forward-region files 15..19)
+- ModInstalledTextReadView: done (CYHeroHeader, CYSkeleton)
+- ModInstallationView: done (CYHeroHeader on main sheet, CYSkeleton); secondary routes (review/facts/recovery screens) keep their titles
+- ModInstallationSavedRehearsalView: done (CYPillButton primary start)
+- ModInstallationQaEditorView: done (CYHeroHeader, CYSkeleton)
+- ModInstallationNativeActionReceiptView: done (CYStatusChip verdict)

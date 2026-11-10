@@ -72,6 +72,8 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: installationString("title", locale: locale))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 if let title = controller.options?.title { Text(verbatim: title).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true) }
                 InstallationFact("license", controller.identity.licenseId)
@@ -102,7 +104,7 @@ import SwiftUI
                         installationText("state." + fact.state)
                     }
                     if originalReader != nil {
-                        if originalReadBusy { ProgressView() }
+                        if originalReadBusy { CYSkeleton() }
                         if originalReadUnknown { installationText("unknown").foregroundStyle(Theme.Generated.color("--cy-color-status-warning", in: domain) ?? .orange) }
                         Button(locale.language.languageCode?.identifier == "zh" ? "回读原安装请求" : "Read original installation request") {
                             Task { await readOriginalInstallFact() }
@@ -178,7 +180,7 @@ import SwiftUI
                 } header: { installationText("history") }
             }
             Section {
-                if controller.busy { ProgressView() }
+                if controller.busy { CYSkeleton() }
                 if controller.messageKey == "error.readCapacity" {
                     Text(locale.language.languageCode?.identifier == "zh" ?
                         "原选项或安装历史尚未完整读取，超过本次安全读取容量。不能据此认定没有在途请求或新建安装；原请求和回执保留，请重试原回查。" :
@@ -194,7 +196,7 @@ import SwiftUI
             }
         }
         .font(Theme.Font.body)
-        .navigationTitle(installationString("title", locale: locale))
+        .cyHeroScreen()
         .task { await controller.recover() }
         .task(id: originalInstallReadKey) { await readOriginalInstallFact() }
         .task(id: scenePhase) {
