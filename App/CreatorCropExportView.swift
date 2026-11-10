@@ -9,16 +9,19 @@ import SwiftUI
     @State private var ratio = "free"
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             Picker("publishParity.crop.ratio", selection: $ratio) {
                 ForEach(MiniCropGeometry.presets, id: \.self) { Text(verbatim: $0).tag($0) }
             }
             .pickerStyle(.menu)
+            .tint(CYColor.textPrimary)
+            .frame(minHeight: CYSpacing.minTouchTarget)
             .accessibilityIdentifier("creatorCrop.ratio")
             MiniCropView(images: draft.images, ratio: ratio,
                          onFinish: { confirm(draft.id, $0) },
                          onCancel: { cancel(draft.id) })
         }
+        .background(CYColor.bgPage.ignoresSafeArea())
         .id(draft.id)
         .onDisappear { cancel(draft.id) }
     }
