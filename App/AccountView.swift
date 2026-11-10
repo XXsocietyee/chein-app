@@ -37,7 +37,7 @@ import SwiftUI
                 Section("profile.selfProjects.title") {
                     NavigationLink {
                         SessionCreatorProjectsView(session: session)
-                    } label: { Label("creatorContent.projects",systemImage:"square.stack") }
+                    } label: { CYListRow("creatorContent.projects", trailing: .none) { CYRowIcon(systemImage: "square.stack") } }
                     .accessibilityIdentifier("account.creatorProjects")
                     WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
                     WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
@@ -51,19 +51,19 @@ import SwiftUI
                         Label { Text("workshopCommerce.library.title", tableName: "WorkshopCommerce") } icon: { Image(systemName: "checkmark.seal") }
                     }.accessibilityIdentifier("account.workshopLicenses")
                     OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
-                    NavigationLink { ProjectEditLaunchView().id(session.sessionRevision) } label: {
-                        Label("projectEdit.title", systemImage: "square.and.pencil")
+                    NavigationLink { ProjectEditLaunchView().id(session.sessionRevision)                     } label: {
+                        CYListRow("projectEdit.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
                     }.accessibilityIdentifier("account.projectEditor")
-                    NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity) } label: {
-                        Label("templateAuthor.title", systemImage: "square.and.pencil")
+                    NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity)                     } label: {
+                        CYListRow("templateAuthor.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
                     }.accessibilityIdentifier("account.templateAuthoring")
-                    NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext).id(session.creatorContentReader.scope) } label: {
-                        Label("creatorContent.center",systemImage:"pencil.and.outline")
+                    NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext).id(session.creatorContentReader.scope)                     } label: {
+                        CYListRow("creatorContent.center", trailing: .none) { CYRowIcon(systemImage: "pencil.and.outline") }
                     }.accessibilityIdentifier("account.creatorCenter")
                 }
                 Section("wallet.assets") {
-                    NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope) } label: {
-                        Label("wallet.title", systemImage: "wallet.pass")
+                    NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope)                     } label: {
+                        CYListRow("wallet.title", trailing: .none) { CYRowIcon(systemImage: "wallet.pass") }
                     }.accessibilityIdentifier("account.wallet")
                     ModSettlementAccountLink(makeReader: { session.makeModSettlementReader() })
                 }
@@ -71,22 +71,22 @@ import SwiftUI
                     NavigationLink { GrowthCenterView(reader:session.growthCenterReader).id(session.growthCenterReader.scope)
                             .environment(\.growthExploreHomeAction, onOpenGuideDestination.map { open in { open(.home) } })
                     } label: {
-                        Label("growth.title",systemImage:"chart.bar.xaxis")
+                        CYListRow("growth.title", trailing: .none) { CYRowIcon(systemImage: "chart.bar.xaxis") }
                     }.accessibilityIdentifier("account.growthCenter")
                     ProfileAccountLinks(reader:session.profileReader, part: .collection)
-                    NavigationLink { SessionObjectCardsView() } label: {
-                        Label("objects.title", systemImage: "rectangle.stack")
+                    NavigationLink { SessionObjectCardsView()                     } label: {
+                        CYListRow("objects.title", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") }
                     }.accessibilityIdentifier("account.objectCards")
                 }
                 Section {
                     NavigationLink { ProfilePublicInfoHost(reader: session.makeProfilePublicInfoReader(memberID: account.id)) { profileReader in
                         SocialPublicProfileView(memberID: account.id, reader: profileReader, squareReader: session.squareReader, actions: session.socialActionCoordinator, selfOrdersAccess: .init(session: session), selfProjectsAccess: .init(session: session), selfGrowthAccess: .init(reader: session.growthCenterReader, owner: session.socialAccountReader.identity), weeklyPointsAccess: .init(reader: session.profileWeeklyPointsReader, owner: session.socialAccountReader.identity), personalToolsAccess: .init(owner: session.socialAccountReader.identity, wallet: session.walletHistoryReader, complaint: session.cooperationFlowReader), selfCouponAccess: .init(reader: session.profileOwnedCouponReader, owner: session.socialAccountReader.identity), selfObjectCardsAccess: .init(reader: session.objectCardReader, owner: session.socialAccountReader.identity), selfMedalsReader: session.profileReader, selfEditAccess: .init(coordinator: session.profileEditCoordinator, sessionRevision: session.contentDetailRevision, categoryReader: session, nicknameReader: session.profileNicknameReader, currentReviewReader: session.profileCurrentReviewReader, savedMedia: session.profileSavedMediaReaders), localCoverOwner: localCoverOwner, isCurrent: { profileReader.isCurrent })
                     }.id(session.socialAccountReader.identity) } label: {
-                        Label("social.profile", systemImage: "person.crop.rectangle")
+                        CYListRow("social.profile", trailing: .none) { CYRowIcon(systemImage: "person.crop.rectangle") }
                     }.accessibilityIdentifier("account.publicProfile")
                     ProfileFollowListAccountEntry(session: session)
-                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders) } label: {
-                        Label("profile.edit.title",systemImage:"pencil")
+                    NavigationLink { ProfileEditView(coordinator:session.profileEditCoordinator,sessionRevision:session.contentDetailRevision,categoryReader:session,currentReviewReader:session.profileCurrentReviewReader,nicknameReader:session.profileNicknameReader,savedMedia:session.profileSavedMediaReaders)                     } label: {
+                        CYListRow("profile.edit.title", trailing: .none) { CYRowIcon(systemImage: "pencil") }
                     }.accessibilityIdentifier("account.editProfile")
                 }
                 ProfileLocalCoverSection(owner: localCoverOwner, reader: session.socialAccountReader)
@@ -102,20 +102,26 @@ import SwiftUI
                 MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 Section {
                     NavigationLink { SessionMessagingHome(session: session) } label: {
-                        HStack { Label("messaging.title",systemImage:"bubble.left.and.bubble.right"); Spacer(); IMUnreadEntryBadge(reader: session.imUnreadTotalReader) }
+                        HStack(spacing: CYSpacing.sm) {
+                            CYListRow("messaging.title", trailing: .none) { CYRowIcon(systemImage: "bubble.left.and.bubble.right") }
+                            IMUnreadEntryBadge(reader: session.imUnreadTotalReader)
+                        }
                     }.accessibilityIdentifier("account.messages")
-                    NavigationLink { SessionTeamHomeView() } label: { Label("team.title", systemImage: "person.3") }
-                        .accessibilityIdentifier("account.teams")
-                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: { Label("club.title",systemImage:"person.3") }
-                        .accessibilityIdentifier("account.clubs")
+                    NavigationLink { SessionTeamHomeView() } label: {
+                        CYListRow("team.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
+                    }.accessibilityIdentifier("account.teams")
+                    NavigationLink { ClubHomeView(reader:session,actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).id(session.sessionRevision) } label: {
+                        CYListRow("club.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
+                    }.accessibilityIdentifier("account.clubs")
                     NavigationLink { SocialInviteHistoryView(reader: session.profileInviteHistoryReader, squareReader: session.squareReader, actions: session.socialActionCoordinator).id(session.profileInviteHistoryReader.identity) } label: {
-                        Label("social.invites.title", systemImage: "person.2.badge.plus")
+                        CYListRow("social.invites.title", trailing: .none) { CYRowIcon(systemImage: "person.2.badge.plus") }
                     }.accessibilityIdentifier("account.inviteHistory")
                     NavigationLink { ProfileGuideHost(reader: session.makeProfileGuideReader(), makeArticleReader: { session.makeProfileGuideArticleReader($0) }, onOpenDestination: onOpenGuideDestination, templateReader: session).id(session.socialAccountReader.identity) } label: {
-                        Label("social.guide.title", systemImage: "book")
+                        CYListRow("social.guide.title", trailing: .none) { CYRowIcon(systemImage: "book") }
                     }.accessibilityIdentifier("account.playGuide")
-                    NavigationLink { SessionDoorInviterView(session: session) } label: { Label("door.inviter.title", systemImage: "person.badge.plus") }
-                        .accessibilityIdentifier("door.inviter.entry")
+                    NavigationLink { SessionDoorInviterView(session: session) } label: {
+                        CYListRow("door.inviter.title", trailing: .none) { CYRowIcon(systemImage: "person.badge.plus") }
+                    }.accessibilityIdentifier("door.inviter.entry")
                 }
                 Section {
                     PrivateHomeAccountLink(coordinator: privateHomeCoordinator)
@@ -126,35 +132,45 @@ import SwiftUI
                     ProfileComplaintPreparationLink(session: session)
                 }
                 Section {
-                    Button { showsCooperation=true } label: { Label("cooperation.title",systemImage:"person.2") }
-                        .accessibilityIdentifier("account.cooperation")
+                    Button { showsCooperation=true } label: {
+                        CYListRow("cooperation.title", trailing: .none) { CYRowIcon(systemImage: "person.2") }
+                    }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("account.cooperation")
                     if themeDomain != .player { // players never see merchant rows; code stays for the merchant role
                     NavigationLink { SessionMerchantOverviewView(session: session) } label: {
-                        Label("account.merchantOverview", systemImage: "chart.bar.doc.horizontal")
+                        CYListRow("account.merchantOverview", trailing: .none) { CYRowIcon(systemImage: "chart.bar.doc.horizontal") }
                     }.accessibilityIdentifier("account.merchantOverview")
                     NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
-                        Label("merchant.projects", systemImage: "calendar")
+                        CYListRow("merchant.projects", trailing: .none) { CYRowIcon(systemImage: "calendar") }
                     }.accessibilityIdentifier("account.merchantProjectBrowse")
-                    NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) }) } label: {
-                        Label("merchant.title",systemImage:"storefront")
+                    NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) })                     } label: {
+                        CYListRow("merchant.title", trailing: .none) { CYRowIcon(systemImage: "storefront") }
                     }.accessibilityIdentifier("account.merchant")
                     if merchantRootModeSwitch.isAvailable {
                         MerchantAccountModeSwitchRow(modeSwitch: merchantRootModeSwitch)
                     }
                     Button { showsMerchantApplication=true } label: {
-                        Label("merchant.onboarding.openApplication",systemImage:"doc.text")
-                    }.accessibilityIdentifier("account.merchantApplication")
+                        CYListRow("merchant.onboarding.openApplication", trailing: .none) { CYRowIcon(systemImage: "doc.text") }
+                    }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("account.merchantApplication")
                     }
                 }
                 SupportTicketReadEntry(session: session)
                 Section {
-                    Button("auth.signOut",role:.destructive) {
+                    Button("auth.signOut", role: .destructive) {
                         logoutConfirmation = session.signOutConfirmation(accountID: account.id)
                         confirmsLogout = logoutConfirmation != nil
                     }
+                    .buttonStyle(CYDestructiveButtonStyle(isFullWidth: true))
+                    .accessibilityLabel(Text("auth.signOut"))
                 }
             }
             .refreshable { memberRefreshToken += 1 }
+            .listSectionSpacing(CYSpacing.xl)
+            .scrollContentBackground(.hidden)
+            .cyDomainPageBackground()
             .appNavigationTitle("account.title")
             .environment(\.nativeVerificationDestination, { AnyView(SessionNativeVerificationView()) })
             .toolbar {
@@ -162,6 +178,7 @@ import SwiftUI
                     Button("settings.title",systemImage:"gearshape") {
                         if settingsGuideHandoff.begin() { showsSettings=true }
                     }
+                    .accessibilityLabel(Text("settings.title"))
                 }
             }
             .navigationDestination(isPresented:$showsMerchantApplication) {
