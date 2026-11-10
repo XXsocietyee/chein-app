@@ -16,7 +16,9 @@ import SwiftUI
     var locateOriginal: ((NativeChannelMessageID) -> Void)?
     var body: some View {
         List {
-            if coordinator.pins.loading { ProgressView().frame(maxWidth: .infinity) }
+            CYHeroHeader("pins.title", tableName: "NativeChannelMessage")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            if coordinator.pins.loading { CYSkeleton().frame(maxWidth: .infinity) }
             else if !coordinator.pins.isCurrent {
                 ContentUnavailableView { Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") } }
             }
@@ -42,7 +44,7 @@ import SwiftUI
             if coordinator.pins.failed {
                 Section {
                     Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
-                    Button(copy.text("p23.reload")) { reload() }
+                    CYPillButton(verbatim: copy.text("p23.reload"), style: .secondary) { reload() }
                         .disabled(!coordinator.pins.isCurrent || phase != .active)
                 }
             }
@@ -50,7 +52,7 @@ import SwiftUI
         }
         .nativeChannelScreen().listStyle(.insetGrouped)
         .cyGroupedSurface()
-        .navigationTitle(Text("pins.title", tableName: "NativeChannelMessage"))
+        .cyHeroScreen()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } }
             if coordinator.client.allows(.mutate(.sort)) {

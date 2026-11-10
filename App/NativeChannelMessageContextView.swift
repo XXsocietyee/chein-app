@@ -36,6 +36,8 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
     @Environment(\.dismiss) private var dismiss
     var body:some View {
         List {
+            CYHeroHeader("d7.channelContext.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !model.isCurrent {
                 ContentUnavailableView { Label("d7.channelContext.unavailable", systemImage: "lock") }
             }
@@ -57,11 +59,11 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
                 ContentUnavailableView {
                     Label("d7.channelContext.failed", systemImage: "exclamationmark.bubble")
                 } actions: {
-                    Button("messaging.retry") {open()}.disabled(model.loading || phase != .active)
+                    CYPillButton("messaging.retry", style: .secondary) {open()}.disabled(model.loading || phase != .active)
                 }
             }
-            if model.loading {ProgressView().frame(maxWidth: .infinity)}
-        }.nativeChannelScreen().listStyle(.insetGrouped).navigationTitle(Text("d7.channelContext.title")).privacySensitive()
+            if model.loading {CYSkeleton().frame(maxWidth: .infinity)}
+        }.nativeChannelScreen().listStyle(.insetGrouped).cyHeroScreen().privacySensitive()
         .refreshable { open(); await readTask?.value }
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
         // The enclosing sheet continues its current-source reads while a preview is pushed.

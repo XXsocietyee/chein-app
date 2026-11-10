@@ -111,6 +111,8 @@ struct NPCChatDataPresentation: Identifiable {
     var body: some View {
         NavigationStack {
             List {
+                CYHeroHeader("npcData.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Section { Text("npcData.boundary").font(.footnote).foregroundStyle(.secondary) }
                 if !model.consentNoticeKeys.isEmpty {
                     Section {
@@ -157,14 +159,13 @@ struct NPCChatDataPresentation: Identifiable {
                 }
                 if coordinator.canLoad && model.consentEnded == nil {
                     Section {
-                        Button("npcData.reload") { query = ""; model.requestLoad() }
+                        CYPillButton("npcData.reload", style: .secondary) { query = ""; model.requestLoad() }
                             .accessibilityIdentifier("npcData.reload")
                     }
                 }
             }.cyGroupedSurface()
             .searchable(text: $query, prompt: "npcData.search")
-            .navigationTitle("npcData.title")
-            .navigationBarTitleDisplayMode(.inline)
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { model.disappear(); query = ""; dismiss() } } }
             .confirmationDialog(Text("npcLogDelete.confirmTitle", tableName: "NPCChatLogDeletion"), isPresented: Binding(
                 get: { coordinator.deletion == .confirming && model.deletionIntent == nil },
@@ -228,6 +229,8 @@ struct NPCChatDataPresentation: Identifiable {
     private var record: NPCChatDataRecord? { model.coordinator.data?.records.first(where: { $0.id == recordID }) }
     var body: some View {
         Form {
+            CYHeroHeader("npcData.recordTitle")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let record {
                 Section("npcData.question") {
                     if let text = record.userMessage, !text.isEmpty { Text(verbatim: text).textSelection(.enabled) }
@@ -245,7 +248,7 @@ struct NPCChatDataPresentation: Identifiable {
                 Section { Text("npcData.historicalBoundary").font(.footnote).foregroundStyle(.secondary) }
             } else { Text("npcData.contentCleared").accessibilityIdentifier("npcData.contentCleared") }
         }.cyGroupedSurface()
-        .navigationTitle("npcData.recordTitle").navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .privacySensitive()
     }
 }
