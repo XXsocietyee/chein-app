@@ -355,7 +355,7 @@ struct RegistrationSheetView: View {
                     } label: { Text("registration.form.review").frame(maxWidth: .infinity, minHeight: 44) }
                     .buttonStyle(.cyPrimary)
                     // Blocked keeps the full primary look (never a grey slab); the flow ignores the tap and the reason sits below.
-                    .sensoryFeedback(.warning, trigger: blockedTaps)
+                    .cyHaptic(.warning, trigger: blockedTaps)
                     .accessibilityAddTraits(blocked ? .isButton : [])
                     .accessibilityHint(blockReason(copy) ?? "")
                     .accessibilityIdentifier("registration.form.review")

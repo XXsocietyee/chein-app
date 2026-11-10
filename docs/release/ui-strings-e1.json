@@ -1,0 +1,380 @@
+[
+  {
+    "key": "纬度",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Latitude",
+    "zh-Hans": "纬度"
+  },
+  {
+    "key": "经度",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Longitude",
+    "zh-Hans": "经度"
+  },
+  {
+    "key": "坐标系",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Coordinate system",
+    "zh-Hans": "坐标系"
+  },
+  {
+    "key": "你的队伍",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Your team",
+    "zh-Hans": "你的队伍"
+  },
+  {
+    "key": "已退出，可恢复原队伍",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "You left. You can rejoin your team.",
+    "zh-Hans": "已退出，可恢复原队伍"
+  },
+  {
+    "key": "原请求已完成，请重新读取参与信息。",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "That request went through. Reload your sign-up details.",
+    "zh-Hans": "原请求已完成，请重新读取参与信息。"
+  },
+  {
+    "key": "原请求未获接受，请重新读取参与信息。",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "That request wasn't accepted. Reload your sign-up details.",
+    "zh-Hans": "原请求未获接受，请重新读取参与信息。"
+  },
+  {
+    "key": "确认",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Confirm",
+    "zh-Hans": "确认"
+  },
+  {
+    "key": "移除此可选条件：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Remove optional condition: ",
+    "zh-Hans": "移除此可选条件："
+  },
+  {
+    "key": "配置原条件：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Set condition: ",
+    "zh-Hans": "配置原条件："
+  },
+  {
+    "key": "配置原结果效果：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Set outcome effect: ",
+    "zh-Hans": "配置原结果效果："
+  },
+  {
+    "key": "原值（不可用）：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Previous value (unavailable): ",
+    "zh-Hans": "原值（不可用）："
+  },
+  {
+    "key": "需求：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Needs: ",
+    "zh-Hans": "需求："
+  },
+  {
+    "key": "本队私有意向：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Your team's private preference: ",
+    "zh-Hans": "本队私有意向："
+  },
+  {
+    "key": "本队首选：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Your team's first choice: ",
+    "zh-Hans": "本队首选："
+  },
+  {
+    "key": "本队接受：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Your team accepts: ",
+    "zh-Hans": "本队接受："
+  },
+  {
+    "key": "原公开共识票：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Public team vote: ",
+    "zh-Hans": "原公开共识票："
+  },
+  {
+    "key": "确认：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Confirm: ",
+    "zh-Hans": "确认："
+  },
+  {
+    "key": "原有效截止：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Valid until: ",
+    "zh-Hans": "原有效截止："
+  },
+  {
+    "key": "原行更新时间：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Updated: ",
+    "zh-Hans": "原行更新时间："
+  },
+  {
+    "key": "当前原退出原因：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Reason for leaving: ",
+    "zh-Hans": "当前原退出原因："
+  },
+  {
+    "key": "生命增加量：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "HP gained: ",
+    "zh-Hans": "生命增加量："
+  },
+  {
+    "key": "生命下限：",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "HP floor: ",
+    "zh-Hans": "生命下限："
+  },
+  {
+    "key": "cy.state.loading",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Loading…",
+    "zh-Hans": "加载中…"
+  },
+  {
+    "key": "cy.state.offline.title",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "You're offline. Showing what's saved.",
+    "zh-Hans": "现在没有网络，先显示已保存的内容"
+  },
+  {
+    "key": "homeFeed.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Nothing matches yet",
+    "zh-Hans": "还没有合适的内容"
+  },
+  {
+    "key": "homeFeed.emptyHint",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Try another keyword or category.",
+    "zh-Hans": "换个关键词或分类试试。"
+  },
+  {
+    "key": "searchMap.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No places match",
+    "zh-Hans": "没有找到匹配的地点"
+  },
+  {
+    "key": "searchMap.emptyHint",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Try a different keyword, or loosen the filters.",
+    "zh-Hans": "换个关键词，或放宽筛选条件。"
+  },
+  {
+    "key": "ticketWallet.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No tickets yet. Join an activity and your ticket lands here.",
+    "zh-Hans": "票夹还是空的。报名活动后，票会放在这里。"
+  },
+  {
+    "key": "messaging.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No messages yet. Say hi to a teammate.",
+    "zh-Hans": "还没有消息，和队友打个招呼吧。"
+  },
+  {
+    "key": "club.tab.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "You haven't joined a club yet",
+    "zh-Hans": "你还没有加入俱乐部"
+  },
+  {
+    "key": "profile.orders.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No orders yet",
+    "zh-Hans": "还没有订单"
+  },
+  {
+    "key": "growth.badges.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No badges yet. Finish a route to light your first one.",
+    "zh-Hans": "还没有徽章。走完一条路线，点亮第一枚。"
+  },
+  {
+    "key": "roam.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Nothing here yet",
+    "zh-Hans": "这里还没有内容"
+  },
+  {
+    "key": "square.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No posts yet",
+    "zh-Hans": "还没有动态"
+  },
+  {
+    "key": "topic.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No routes here yet",
+    "zh-Hans": "这里还没有路线"
+  },
+  {
+    "key": "officialRoute.list.error",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Couldn't load routes. Check your connection and try again.",
+    "zh-Hans": "路线没加载出来。检查网络后再试一次。"
+  },
+  {
+    "key": "officialRoute.detail.error",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Couldn't load this route. Check your connection and try again.",
+    "zh-Hans": "这条路线没加载出来。检查网络后再试一次。"
+  },
+  {
+    "key": "square.gov.error",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "That didn't go through. Refresh to check, then try again.",
+    "zh-Hans": "没有完成。刷新确认状态后再试一次。"
+  },
+  {
+    "key": "media.stamp.cameraDenied.title",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Camera is off",
+    "zh-Hans": "相机未开启"
+  },
+  {
+    "key": "media.stamp.cameraDenied.message",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Allow the camera in Settings to take a stamp photo. We only use it when you tap the shutter.",
+    "zh-Hans": "到“设置”里允许相机，就能拍邮票照片。只有你按下快门时才会拍照。"
+  },
+  {
+    "key": "roam.poi.location.denied.title",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Location is off",
+    "zh-Hans": "定位未开启"
+  },
+  {
+    "key": "roam.poi.location.denied.message",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Allow location in Settings to check in. We only read it when you tap Check in.",
+    "zh-Hans": "到“设置”里允许定位，就能打卡。只有你点“打卡”时才会读取位置。"
+  },
+  {
+    "key": "roam.poi.location.denied.message2",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Allow location in Settings to clear the fog as you walk. It's only used while the app is open.",
+    "zh-Hans": "到“设置”里允许定位，边走边点亮迷雾。仅在应用打开时使用定位。"
+  },
+  {
+    "key": "nearbyMerchant.locationDenied.title",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Location is off",
+    "zh-Hans": "定位未开启"
+  },
+  {
+    "key": "nearbyMerchant.locationDenied.detail",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Allow location in Settings to find merchants near you, then search again.",
+    "zh-Hans": "到“设置”里允许定位，就能找到附近商家。然后再搜一次。"
+  },
+  {
+    "key": "homeFeed.beta",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "Beta",
+    "zh-Hans": "测试版"
+  },
+  {
+    "key": "roam.private.new",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "NEW",
+    "zh-Hans": "新"
+  },
+  {
+    "key": "team.page.eyebrow",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "TEAM INVITATION",
+    "zh-Hans": "组队邀请"
+  },
+  {
+    "key": "roam.receivedMetadata.empty",
+    "table": "Localizable",
+    "kind": "rewrite",
+    "en": "No stamps received yet",
+    "zh-Hans": "还没有收到邮票"
+  },
+  {
+    "key": "authEntry.gate.summary",
+    "table": "AuthEntry",
+    "kind": "rewrite",
+    "en": "We only use the information a feature needs, when you use it. Location is used for your live position, check-ins and trail. We never collect it in the background when you are not roaming.",
+    "zh-Hans": "城瘾只在你用到某个功能时，才处理它需要的信息。定位仅用于实时位置、到点打卡和轨迹；没在漫游时，不会在后台采集。"
+  },
+  {
+    "key": "authEntry.gate.decline",
+    "table": "AuthEntry",
+    "kind": "rewrite",
+    "en": "Not now",
+    "zh-Hans": "暂不同意"
+  },
+  {
+    "key": "authEntry.gate.checkRequired",
+    "table": "AuthEntry",
+    "kind": "rewrite",
+    "en": "Tick the box to continue.",
+    "zh-Hans": "请先勾选，再继续。"
+  }
+]

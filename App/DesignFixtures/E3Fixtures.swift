@@ -397,7 +397,6 @@ struct E3PeopleFixture: View {
         switch s { case .follow: return t("关注", "Follow"); case .following: return t("已关注", "Following"); case .requested: return t("已申请", "Requested"); case .mutual: return t("互相关注", "Friends") }
     }
 }
-#endif
 
 
 #if DEBUG
