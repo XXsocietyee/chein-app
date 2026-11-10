@@ -86,3 +86,4 @@
 - ut-d4-stamps [x] d63d51b3b. PR 1077. Fixture test only. Not merged.
 - ut-d6-play [x] 14deab0ca. PR 1078. Fixture test only. Parent is the docs rc. Not merged.
 - ut-d6-roam [x] 43317e132. PR 1079. Fixture test only. Parent is the docs rc. Not merged.
+- ut-e1-bundle-detail-off [x] 7c8d9659e. PR 1080. Fixture test only. Parent is the docs rc. Not merged.
