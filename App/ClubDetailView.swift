@@ -37,6 +37,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                            return detail
                        }) { loadedClub in
             let club = actionIdentity == reader.clubIdentity && actionDetail?.id == id ? (actionDetail ?? loadedClub) : loadedClub
+            let facts = detailFacts(club)
             let tabs = ClubDetailTabPolicy(club: club, grant: manageGrant)
             let tab = tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))
             List {
@@ -68,7 +69,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                                 E3AvatarStack(seeds: (0..<min(club.memberCount, 4)).map { "\(club.id)-m\($0)" }, extra: club.memberCount > 4 ? club.memberCount - 4 : nil, size: 28)
                                     .accessibilityHidden(true)
                             }
-                            Text(verbatim: headerMeta(club)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            Text(verbatim: headerMeta(club, count: facts.meta)).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                                 .fixedSize(horizontal: false, vertical: true)
                         }
                         .padding(.horizontal, CYSpacing.lg)
@@ -110,6 +111,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             CYListRow("club.chat.title", card: true) { CYRowIcon(systemImage: "person.3") }
                         }.buttonStyle(.plain)
                             .accessibilityIdentifier("club.chat.entry")
+                        if facts.channels {
                         NavigationLink {
                             ClubChannelMessagingHostView(
                                 club: club,
@@ -126,6 +128,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Label(locale.pick("俱乐部频道", "Club Channels"), systemImage: "number.square")
                         }
                         .accessibilityIdentifier("club.channels.discordEntry")
+                        }
                         NativeChannelManagementClubEntry(club: club, session: session)
                     }
                 }
@@ -254,7 +257,7 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
                             Text(club.needsApproval ? "club.detail.members.lockedReview" : "club.detail.members.locked")
                                 .foregroundStyle(.secondary).accessibilityIdentifier("club.members.gated")
                         }
-                    } header: { Text("club.detail.membersCount \(club.memberCount)") }
+                    } header: { if let count = Int(facts.raw) { Text("club.detail.membersCount \(count)") } else { Text(verbatim: facts.raw) } }
                     // Mini-program overview: 本团贡献榜 · 本周, gated on member visibility like the source.
                     Section("club.detail.leaderboard.title") {
                         if club.canSeeMembers, let governance = management?.governance {
@@ -325,11 +328,19 @@ struct ClubDetailView<Reader: ClubReading & ObservableObject>: View {
         let text = value?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return text.isEmpty ? "—" : text
     }
-    private func headerMeta(_ club: ClubRecord) -> String {
+    private func headerMeta(_ club: ClubRecord, count: String) -> String {
         let type = (club.clubType ?? club.clubTypes)?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let count = ClubMemberCountLocalization.text(club.memberCount, locale: locale)
         guard let type, !type.isEmpty else { return count }
         return type + " · " + count
+    }
+
+    private func detailFacts(_ club: ClubRecord) -> (meta: String, raw: String, channels: Bool) {
+        var body: [String: Any] = ["id": club.id, "name": club.name, "isOwner": club.isOwner, "isJoined": club.isJoined, "viewerIsAdmin": club.viewerIsAdmin]
+        if let count = club.sourceMemberCount { body["memberCount"] = count }
+        let page = ClubDetailPageModel.resolve(loading: false, payload: try? JSONSerialization.data(withJSONObject: body), failure: nil, signedIn: reader.clubIdentity.isSignedIn, grant: manageGrant, hasCommunity: community != nil, hasGovernance: management?.governance != nil)
+        guard case .ready(let ready) = page else { return (ClubMemberCountLocalization.text(club.memberCount, locale: locale), String(club.memberCount), false) }
+        let raw = ready.memberCountText
+        return (raw == ClubDetailPageModel.unknownMark ? raw : (Int(raw).map { ClubMemberCountLocalization.text($0, locale: locale) } ?? raw), raw, ready.showsChannels)
     }
 
     /// `/api/club/access/me` only widens the manage tab; a failed or foreign read revokes
