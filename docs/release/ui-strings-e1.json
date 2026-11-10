@@ -376,5 +376,215 @@
     "kind": "rewrite",
     "en": "Tick the box to continue.",
     "zh-Hans": "请先勾选，再继续。"
+  },
+  {
+    "key": "%lld 个点位",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "%lld places",
+    "zh-Hans": "%lld 个点位"
+  },
+  {
+    "key": "确认操作：%@",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Confirm: %@",
+    "zh-Hans": "确认操作：%@"
+  },
+  {
+    "key": "邀请队伍人数：%lld",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Members in this team: %lld",
+    "zh-Hans": "邀请队伍人数：%lld"
+  },
+  {
+    "key": "剩余额度：%lld",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Remaining: %lld",
+    "zh-Hans": "剩余额度：%lld"
+  },
+  {
+    "key": "每次消耗：%lld",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Cost per roll: %lld",
+    "zh-Hans": "每次消耗：%lld"
+  },
+  {
+    "key": "骰子：%@",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Dice: %@",
+    "zh-Hans": "骰子：%@"
+  },
+  {
+    "key": "骰面：%lld",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Face: %lld",
+    "zh-Hans": "骰面：%lld"
+  },
+  {
+    "key": "消耗：%lld",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Cost: %lld",
+    "zh-Hans": "消耗：%lld"
+  },
+  {
+    "key": "剩余：%lld",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Left: %lld",
+    "zh-Hans": "剩余：%lld"
+  },
+  {
+    "key": "消耗 %lld 行动额度，仅记录服务器结果。",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Uses %lld action points. Only the server's result is recorded.",
+    "zh-Hans": "消耗 %lld 行动额度，仅记录服务器结果。"
+  },
+  {
+    "key": "坐标系：%@",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Coordinate system: %@",
+    "zh-Hans": "坐标系：%@"
+  },
+  {
+    "key": "状态：%@",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Status: %@",
+    "zh-Hans": "状态：%@"
+  },
+  {
+    "key": "归属：%@",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Owner: %@",
+    "zh-Hans": "归属：%@"
+  },
+  {
+    "key": "纬度：%@",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Latitude: %@",
+    "zh-Hans": "纬度：%@"
+  },
+  {
+    "key": "经度：%@",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Longitude: %@",
+    "zh-Hans": "经度：%@"
+  },
+  {
+    "key": "服务返回（尚未确认为本次回执）",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Server reply (not yet confirmed as this receipt)",
+    "zh-Hans": "服务返回（尚未确认为本次回执）"
+  },
+  {
+    "key": "核销其他玩家或节点",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Redeem for another player or place",
+    "zh-Hans": "核销其他玩家或节点"
+  },
+  {
+    "key": "服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "The server gave a clear answer, but a pending item on this device couldn't be cleared, so it stays blocked. Don't redeem again; contact support.",
+    "zh-Hans": "服务已返回明确结果，但本机待办未能清除，仍保持原有阻断范围。不要重复核销；请联系平台处理。"
+  },
+  {
+    "key": "本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "This device couldn't read or save its pending redemption, so nothing was submitted. Check your device storage and contact support. Existing pending items aren't cleared automatically.",
+    "zh-Hans": "本机核销待办无法读取或保存，本次未提交。请检查本机存储并联系平台处理；不会自动清除已有待办。"
+  },
+  {
+    "key": "可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "You can redeem for another player or place. Refreshing the code, scanning again or signing in again won't resend the same target.",
+    "zh-Hans": "可以核销其他玩家或节点；刷新短码、重新扫码或重新登录都不会重发同一目标。"
+  },
+  {
+    "key": "可用",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Available",
+    "zh-Hans": "可用"
+  },
+  {
+    "key": "已暂停",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Paused",
+    "zh-Hans": "已暂停"
+  },
+  {
+    "key": "不可用",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Unavailable",
+    "zh-Hans": "不可用"
+  },
+  {
+    "key": "尚无归属",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "No owner yet",
+    "zh-Hans": "尚无归属"
+  },
+  {
+    "key": "本队",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Your team",
+    "zh-Hans": "本队"
+  },
+  {
+    "key": "其他队伍",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Another team",
+    "zh-Hans": "其他队伍"
+  },
+  {
+    "key": "保留审核",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Held for review",
+    "zh-Hans": "保留审核"
+  },
+  {
+    "key": "尚未核定",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Not confirmed yet",
+    "zh-Hans": "尚未核定"
+  },
+  {
+    "key": "去登录",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Sign in",
+    "zh-Hans": "去登录"
+  },
+  {
+    "key": "rewards.pledge.title",
+    "table": "Localizable",
+    "kind": "new",
+    "en": "Reward pledges",
+    "zh-Hans": "奖励承诺"
   }
 ]
