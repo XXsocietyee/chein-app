@@ -80,8 +80,7 @@ import SwiftUI
                     VStack(alignment: .leading, spacing: 8) { filterControls }
                 }
                 if mode == .city { layerControls }
-                Button("searchMap.searchArea") { startLoad() }
-                    .buttonStyle(.questifyPrimary).frame(minHeight: 44)
+                CYPillButton("searchMap.searchArea", style: .primary) { startLoad() }
                     .disabled(area == nil || !reader.isConfigured || loading)
                     .accessibilityIdentifier("searchMap.searchArea")
                 if visibleCityResults != nil { refreshControls }
@@ -98,15 +97,15 @@ import SwiftUI
                         if !reader.isOfflineExample { viewportControls }
                     } else {
                         VStack(alignment: .leading, spacing: 8) {
-                            Button("searchMap.showMap") { mapCameraIdentityArea = area; mapEnabled = true }.buttonStyle(.bordered).frame(minHeight: 44)
+                            CYPillButton("searchMap.showMap", style: .secondary) { mapCameraIdentityArea = area; mapEnabled = true }
                                 .accessibilityIdentifier("searchMap.showMap")
                         }
                     }
                     if let selectedPin, pins.filter({ $0.id == selectedPin }).count == 1 { selectedPlaceSummary(selectedPin, area: area) }
                 }
                 if !reader.isConfigured { SearchMapIssue(key: "searchMap.notConfigured") }
-                else if area == nil { ContentUnavailableView("searchMap.areaRequired", systemImage: "mappin.and.ellipse") }
-                else if loading { ProgressView("searchMap.loading").accessibilityIdentifier("searchMap.loading") }
+                else if area == nil { CYEmptyState(systemImage: "mappin.and.ellipse", "searchMap.areaRequired") }
+                else if loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("searchMap.loading")).accessibilityIdentifier("searchMap.loading") }
                 else if let issue { SearchMapIssue(key: issue) { startLoad() } }
                 if let result = visibleCityResults { cityContent(result) }
                 if let result = nearbyResults { nearbyContent(result) }
@@ -144,7 +143,7 @@ import SwiftUI
                     SearchMapCityDetailView(id: row.id, reader: reader, origin: route.origin, destination: destination)
                 }
             } else {
-                ContentUnavailableView("mapLayers.changed", systemImage: "arrow.clockwise")
+                CYEmptyState(systemImage: "arrow.clockwise", "mapLayers.changed")
                     .accessibilityIdentifier("mapLayers.staleSelection")
             }
         }
@@ -173,7 +172,7 @@ import SwiftUI
                     }
                 }
             } else {
-                ContentUnavailableView("mapLayers.changed", systemImage: "arrow.clockwise")
+                CYEmptyState(systemImage: "arrow.clockwise", "mapLayers.changed")
                     .accessibilityIdentifier("mapLayers.staleSelection")
             }
         }
@@ -224,7 +223,7 @@ import SwiftUI
         let enabled = ticket.map { viewportSelection.canSearch($0, context: context, readerConfigured: reader.isConfigured, active: refreshOwnerActive && scenePhase == .active) } == true
             && reader.isConfigured && refreshOwnerActive && scenePhase == .active && !loading && !refresh.isLoading && !pagination.isLoading
         VStack(alignment: .leading, spacing: 8) {
-            Button("mapViewport.search") {
+            CYPillButton("mapViewport.search", style: .secondary) {
                 guard enabled, let ticket, context == viewportContext, reader.isConfigured,
                       refreshOwnerActive, scenePhase == .active, !loading, !refresh.isLoading, !pagination.isLoading else { return }
                 guard let center = viewportSelection.consume(ticket, context: viewportContext, readerConfigured: reader.isConfigured, active: refreshOwnerActive && scenePhase == .active),
@@ -232,7 +231,7 @@ import SwiftUI
                 guard center.datum == .gcj02 else { viewportFailed = true; return }
                 let chosen = RoamSearchArea(coordinate: center.coordinate, label: appLocalized("mapViewport.areaLabel", locale: locale))
                 area = chosen; startLoad(confirmedViewport: (center, ticket.viewport))
-            }.buttonStyle(.bordered).frame(minHeight: 44).disabled(!enabled)
+            }.disabled(!enabled)
                 .accessibilityIdentifier("mapViewport.search")
             Text(LocalizedStringKey(viewportFailed ? "mapViewport.failed" :
                 !reader.isConfigured ? "mapViewport.unavailable" :
@@ -240,10 +239,10 @@ import SwiftUI
                 .font(.footnote).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapViewport.status")
             if let ticket {
-                Button("mapViewport.clear") {
+                CYPillButton("mapViewport.clear", style: .tertiary) {
                     guard context == viewportContext, viewportSelection.current(in: context)?.id == ticket.id else { return }
                     invalidateViewport()
-                }.frame(minHeight: 44)
+                }
                     .accessibilityIdentifier("mapViewport.clear")
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
@@ -263,7 +262,7 @@ import SwiftUI
             if mapLayers.isEmpty {
                 Text("mapLayers.none").font(.subheadline).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("mapLayers.none")
-                Button("mapLayers.showAll") { mapLayers.showAll() }.frame(minHeight: 44)
+                CYPillButton("mapLayers.showAll", style: .secondary) { mapLayers.showAll() }
                     .accessibilityIdentifier("mapLayers.showAll")
             }
         }.frame(maxWidth: .infinity, alignment: .leading)
@@ -273,11 +272,11 @@ import SwiftUI
         selectedPin = id
     }
     @ViewBuilder private var filterControls: some View {
-        Button { showsArea = true } label: { Label("searchMap.chooseArea", systemImage: "mappin.and.ellipse") }
-            .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("searchMap.chooseArea")
+        CYPillButton("searchMap.chooseArea", style: .secondary, systemImage: "mappin.and.ellipse") { showsArea = true }
+            .accessibilityIdentifier("searchMap.chooseArea")
         if mode == .city {
-            Button { showsFilters = true } label: { Label("searchMap.filters", systemImage: "line.3.horizontal.decrease") }
-                .buttonStyle(.bordered).frame(minHeight: 44).accessibilityIdentifier("searchMap.filters")
+            CYPillButton("searchMap.filters", style: .secondary, systemImage: "line.3.horizontal.decrease") { showsFilters = true }
+                .accessibilityIdentifier("searchMap.filters")
             Picker("searchMap.sort", selection: $sortType) {
                 Text("searchMap.nearest").tag(1); Text("searchMap.popular").tag(2)
             }.pickerStyle(.menu).frame(minHeight: 44).accessibilityIdentifier("searchMap.sortPicker")
@@ -288,10 +287,10 @@ import SwiftUI
         return VStack(alignment: .leading, spacing: 10) {
             Text("searchMap.selectedPlace").accessibilityIdentifier("searchMap.selectedSummary").font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).accessibilityFocused($selectionFocused)
             pinDetail(id, area: area)
-            Button("searchMap.clearSelection") {
+            CYPillButton("searchMap.clearSelection", style: .tertiary) {
                 guard selectedPin == id, renderedContext.accepts(id, current: pinSelectionContext, isConfigured: reader.isConfigured) else { return }
                 selectedPin = nil
-            }.frame(minHeight: 44)
+            }
                 .accessibilityIdentifier("searchMap.selection.clear")
         }.padding(16).frame(maxWidth: .infinity, alignment: .leading)
             .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 20))
@@ -379,7 +378,7 @@ import SwiftUI
         if let failure {
             Label(layer, systemImage: "exclamationmark.circle").font(.headline)
             SearchMapIssue(key: failure == .unauthorized ? "searchMap.partialSignIn" : "searchMap.layerFailed") { startLoad() }
-            if failure == .unauthorized, let onSignIn { Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44) }
+            if failure == .unauthorized, let onSignIn { CYPillButton("searchMap.signIn", style: .secondary, action: onSignIn) }
         }
     }
     @ViewBuilder private func cityContent(_ value: CityNodeSearchResults) -> some View {
@@ -388,7 +387,7 @@ import SwiftUI
         if mapLayers.shows(.cityPlaces) { failure(value.nodeFailure, layer: "searchMap.cityNodes") }
         if !mapLayers.isEmpty && (!mapLayers.shows(.activities) || pagination.rows.isEmpty) && (!mapLayers.shows(.cityPlaces) || value.nodes.isEmpty)
                     && (!mapLayers.shows(.activities) || value.activityFailure == nil) && (!mapLayers.shows(.cityPlaces) || value.nodeFailure == nil) {
-            ContentUnavailableView(LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"), systemImage: "mappin.slash")
+            CYEmptyState(systemImage: "mappin.slash", LocalizedStringKey(mapLayers.shows(.activities) && pagination.nextPage != nil ? "mapPagination.noMatchesYet" : "searchMap.empty"))
         }
         if mapLayers.shows(.activities) {
             Text("searchMap.kind.activity").font(.headline).accessibilityAddTraits(.isHeader)
@@ -418,15 +417,12 @@ import SwiftUI
     }
     @ViewBuilder private var refreshControls: some View {
         if refresh.isLoading {
-            ProgressView("mapRefresh.loading").accessibilityIdentifier("mapRefresh.loading")
+            CYLoadingStateView(rows: 1).accessibilityLabel(Text("mapRefresh.loading")).accessibilityIdentifier("mapRefresh.loading")
             Text("mapRefresh.previousWhileLoading")
                 .font(.footnote).fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("mapRefresh.previousWhileLoading")
         } else {
-            Button { startRefresh() } label: {
-                Text(LocalizedStringKey(refresh.hasRetainedResults ? "mapRefresh.retry" : "mapRefresh.refresh"))
-            }
-                .buttonStyle(.bordered).frame(minHeight: 44)
+            CYPillButton(LocalizedStringKey(refresh.hasRetainedResults ? "mapRefresh.retry" : "mapRefresh.refresh"), style: .secondary) { startRefresh() }
                 .disabled(loading || pagination.isLoading || !reader.isConfigured)
                 .accessibilityIdentifier("mapRefresh.refresh")
         }
@@ -443,21 +439,20 @@ import SwiftUI
     }
     @ViewBuilder private var activityPaginationControls: some View {
         if pagination.isLoading {
-            ProgressView("mapPagination.loading").accessibilityIdentifier("mapPagination.loading")
+            CYLoadingStateView(rows: 1).accessibilityLabel(Text("mapPagination.loading")).accessibilityIdentifier("mapPagination.loading")
         } else if let failure = pagination.failure {
             VStack(alignment: .leading, spacing: 8) {
                 Label(LocalizedStringKey(failure == .unauthorized ? "searchMap.partialSignIn" : "mapPagination.failed"), systemImage: "exclamationmark.circle")
                 if failure == .unauthorized, let onSignIn {
-                    Button("searchMap.signIn", action: onSignIn).frame(minHeight: 44)
+                    CYPillButton("searchMap.signIn", style: .secondary, action: onSignIn)
                 } else {
-                    Button("mapPagination.retry") { startLoadMore() }.frame(minHeight: 44)
+                    CYPillButton("mapPagination.retry", style: .secondary) { startLoadMore() }
                         .disabled(refresh.isLoading)
                         .accessibilityIdentifier("mapPagination.retry")
                 }
             }.accessibilityIdentifier("mapPagination.failure")
         } else if pagination.nextPage != nil {
-            Button("mapPagination.more") { startLoadMore() }
-                .buttonStyle(.bordered).frame(minHeight: 44)
+            CYPillButton("mapPagination.more", style: .secondary) { startLoadMore() }
                 .disabled(loading || refresh.isLoading || !reader.isConfigured)
                 .accessibilityIdentifier("mapPagination.more")
         }
@@ -467,7 +462,7 @@ import SwiftUI
         else if value.city.manualInputRequired || value.cityFailed {
             Text(LocalizedStringKey(value.city.worthRetrying ? "searchMap.cityRateLimited" : "searchMap.cityManual")).font(.footnote)
         }
-        if value.nodes.isEmpty { ContentUnavailableView("searchMap.empty", systemImage: "mappin.slash") }
+        if value.nodes.isEmpty { CYEmptyState(systemImage: "mappin.slash", "searchMap.empty") }
         ForEach(Array(value.nodes.enumerated()), id: \.offset) { _, node in
             NavigationLink {
                 if let area { nearbyDetail(node, area: area) }

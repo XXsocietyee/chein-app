@@ -125,7 +125,8 @@ import SwiftUI
                     PublishingStatusRow(title: Text("unknownReadback", tableName: "PublisherIdentityRegistration"), symbol: "clock")
                 }
                 if owner.busy {
-                    ProgressView(locale.language.languageCode?.identifier == "zh" ? "正在处理，请稍候" : "Processing, please wait")
+                    CYLoadingStateView(rows: 1)
+                        .accessibilityLabel(Text(verbatim: locale.language.languageCode?.identifier == "zh" ? "正在处理，请稍候" : "Processing, please wait"))
                         .accessibilityIdentifier("publisherIdentity.busy")
                 }
                 if owner.status != .registered && owner.status != .acknowledgedReadFailed {
@@ -143,23 +144,20 @@ import SwiftUI
                     }
                     Toggle(isOn: owner.consentBinding()) { Text("consent", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true) }
                         .disabled(!owner.canEdit).accessibilityIdentifier("publisherIdentity.consent")
-                    Button { Task { await owner.submit(currentYear: Calendar(identifier: .gregorian).component(.year, from: Date()), expected: stamp) } }
-                        label: { Text("submit", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
-                        .buttonStyle(.questifyPrimary)
+                    CYPillButton("submit", style: .primary, tableName: "PublisherIdentityRegistration") { Task { await owner.submit(currentYear: Calendar(identifier: .gregorian).component(.year, from: Date()), expected: stamp) } }
                         .disabled(!owner.canEdit || !owner.consent).accessibilityIdentifier("publisherIdentity.submit")
                 }
                 if !owner.busy {
-                    Button { Task { await owner.refresh(expected: stamp) } } label: { Text("refresh", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
+                    CYPillButton("refresh", style: .secondary, tableName: "PublisherIdentityRegistration") { Task { await owner.refresh(expected: stamp) } }
                         .accessibilityIdentifier("publisherIdentity.refresh")
                 }
-                Button { owner.close(stamp) } label: { Text("return", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
+                CYPillButton("return", style: .tertiary, tableName: "PublisherIdentityRegistration") { owner.close(stamp) }
                     .accessibilityIdentifier("publisherIdentity.return")
             } else {
                 if owner.confirmedRegistered {
                     PublishingStatusRow(title: Text("status.registered", tableName: "PublisherIdentityRegistration"), symbol: "checkmark.circle")
                 }
-                Button { Task { await owner.begin(service: makeService?(), expected: stamp) } }
-                    label: { Text("open", tableName: "PublisherIdentityRegistration").fixedSize(horizontal: false, vertical: true).frame(minHeight: 44) }
+                CYPillButton("open", style: .primary, tableName: "PublisherIdentityRegistration") { Task { await owner.begin(service: makeService?(), expected: stamp) } }
                     .disabled(!enabled).accessibilityIdentifier("publisherIdentity.open")
             }
         } header: { Text("title", tableName: "PublisherIdentityRegistration") }

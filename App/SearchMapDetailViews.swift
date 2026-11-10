@@ -20,7 +20,7 @@ import SwiftUI
     var body: some View {
         Group {
             if originatingReadKey != readKey { SearchMapIssue(key: "searchMap.notConfigured") }
-            else if loading { ProgressView("searchMap.loading") }
+            else if loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("searchMap.loading")) }
             else if let issue { SearchMapIssue(key: issue) { startLoad() } }
             else if let detail {
                 List {
@@ -92,7 +92,7 @@ import SwiftUI
     @State private var gate = SearchMapQueryGate()
     var body: some View {
         Group {
-            if loading { ProgressView("searchMap.loading") }
+            if loading { CYLoadingStateView(rows: 3).accessibilityLabel(Text("searchMap.loading")) }
             else if let issue { SearchMapIssue(key: issue) { Task { await load() } } }
             else if let detail {
                 List {

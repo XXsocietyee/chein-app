@@ -66,3 +66,12 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/PlayRouteMapView.swift | done: CYPillButton (open-current primary, toggles tertiary, refresh secondary), CYLoadingStateView; map/camera code untouched |
 | App/PrivateHomeView.swift | done: CYHeroHeader, CYEmptyState gate, CYPillButton (set/confirm primary), delete stays destructive role, cyGroupedSurface |
 | App/ProfileOrderMeetingPointView.swift | done: CYPillButton open/confirm, CYLoadingStateView, hero in review sheet |
+
+## Batch 8
+| File | Result |
+| --- | --- |
+| App/ProjectStoryTemplateView.swift | done: CYHeroHeader (locale-safe table keys), CYPillButton apply primary / back / refresh / more, CYLoadingStateView, cyGroupedSurface |
+| App/PublisherIdentityRegistrationView.swift | done: CYPillButton submit/open primary, refresh/return, CYLoadingStateView (Section fragment, no hero) |
+| App/RegistrationSheetView.swift | done (partial by design): CYPillButton for 11 secondary actions, 8 CYLoadingStateView; checkout bar (cyPrimary) and alerts/destructive left as-is |
+| App/SearchMapDetailViews.swift | done: CYLoadingStateView |
+| App/SearchMapExplorerView.swift | done: CYPillButton (search area primary), CYEmptyState, CYLoadingStateView; map/selection logic untouched |

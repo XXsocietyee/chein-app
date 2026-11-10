@@ -6,10 +6,13 @@ import SwiftUI
     @ObservedObject var controller: ProjectStoryTemplatePresentation
     let original: ProjectStoryTemplatePresentation.Opening
     var nodeSelection = false
-    private var title: Text { nodeSelection ? Text("projectNodeTemplate.title", tableName: "ProjectNodeTemplateSelection") : Text("projectStoryTemplate.title") }
     var body: some View {
         NavigationStack {
             Form {
+                Section {
+                    if nodeSelection { CYHeroHeader("projectNodeTemplate.title", tableName: "ProjectNodeTemplateSelection") }
+                    else { CYHeroHeader("projectStoryTemplate.title") }
+                }.listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Section {
                     if nodeSelection { Text("projectNodeTemplate.scope", tableName: "ProjectNodeTemplateSelection").font(.footnote) }
                     else { Text("projectStoryTemplate.scope").font(.footnote) }
@@ -23,18 +26,18 @@ import SwiftUI
                         }.accessibilityElement(children: .contain).accessibilityIdentifier("projectStoryTemplate.preview")
                     }
                     Section {
-                        Button(action: { _ = controller.apply(review, original: original) }, label: {
-                            if nodeSelection { Text("projectNodeTemplate.apply", tableName: "ProjectNodeTemplateSelection") }
-                            else { Text("projectStoryTemplate.apply") }
-                        })
+                        Group {
+                            if nodeSelection { CYPillButton("projectNodeTemplate.apply", style: .primary, tableName: "ProjectNodeTemplateSelection") { _ = controller.apply(review, original: original) } }
+                            else { CYPillButton("projectStoryTemplate.apply", style: .primary) { _ = controller.apply(review, original: original) } }
+                        }
                             .disabled(controller.busy || !controller.isCurrent(original))
                             .accessibilityIdentifier("projectStoryTemplate.apply")
-                        Button("projectStoryTemplate.back") { controller.back(original) }
+                        CYPillButton("projectStoryTemplate.back", style: .tertiary) { controller.back(original) }
                             .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.back")
                     }
                 } else {
                     Section {
-                        Button("projectStoryTemplate.refresh") { _ = controller.refresh(original) }
+                        CYPillButton("projectStoryTemplate.refresh", style: .secondary) { _ = controller.refresh(original) }
                             .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.refresh")
                         ForEach(controller.rows) { row in
                             Button { _ = controller.select(row, original: original) } label: {
@@ -43,18 +46,18 @@ import SwiftUI
                         }
                         if controller.state == .ready && controller.rows.isEmpty { Text("projectStoryTemplate.empty") }
                         if controller.nextPage != nil {
-                            Button("projectStoryTemplate.more") { _ = controller.loadMore(original) }
+                            CYPillButton("projectStoryTemplate.more", style: .secondary) { _ = controller.loadMore(original) }
                                 .disabled(controller.busy).accessibilityIdentifier("projectStoryTemplate.more")
                         }
                     }
                 }
                 if nodeSelection && controller.state == .unsupported { Text("projectNodeTemplate.unsupported", tableName: "ProjectNodeTemplateSelection") }
-                if controller.busy { ProgressView().accessibilityIdentifier("projectStoryTemplate.busy") }
+                if controller.busy { CYLoadingStateView(rows: 1).accessibilityIdentifier("projectStoryTemplate.busy") }
                 if [.failed, .changed, .saveFailed].contains(controller.state) {
                     Text(LocalizedStringKey("projectStoryTemplate." + controller.state.rawValue))
                         .accessibilityIdentifier("projectStoryTemplate.status")
                 }
-            }.navigationTitle(title).navigationBarTitleDisplayMode(.inline)
+            }.cyGroupedSurface()
                 .toolbar { ToolbarItem(placement: .cancellationAction) {
                     Button("projectStoryTemplate.close") { controller.close(original) }
                         .accessibilityIdentifier("projectStoryTemplate.close")
