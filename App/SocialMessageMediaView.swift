@@ -33,7 +33,7 @@ import ImageIO
                             CYPillButton(LocalizedStringKey(requested ? "action.retry" : "social.media.load"), systemImage: "arrow.down.circle") { Task { await load(media) } }
                                 .disabled(loading).accessibilityIdentifier("social.media.load")
                         }
-                        if loading { CYSkeleton().accessibilityLabel(Text("social.loading")) }
+                        if loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
                         if error != nil { Text("social.media.failed").modifier(SquareFlowNoticeStyle(tone: .critical)).accessibilityIdentifier("social.media.failed") }
                     }
                 } else { Text("social.media.invalid").modifier(SquareFlowNoticeStyle(tone: .attention)) }

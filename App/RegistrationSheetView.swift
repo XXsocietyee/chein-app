@@ -296,7 +296,7 @@ struct RegistrationSheetView: View {
                     }
                     Spacer(minLength: CYSpacing.sm)
                     Text(verbatim: ticketPriceText(copy)).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                        .minimumScaleFactor(0.7).lineLimit(1)
+                        .minimumScaleFactor(0.7).lineLimit(1).layoutPriority(1)
                 }
                 .padding(CYSpacing.lg)
                 .accessibilityElement(children: .combine)
@@ -344,7 +344,7 @@ struct RegistrationSheetView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Text(verbatim: copy.t("合计", "Total")).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                     Text(verbatim: summaryTotalText).font(CYTypography.dataXL).foregroundStyle(CYColor.textPrimary)
-                        .lineLimit(1).minimumScaleFactor(0.6)
+                        .lineLimit(1).minimumScaleFactor(0.6).layoutPriority(1)
                 }
                 TimelineView(.periodic(from: .now, by: 1)) { _ in
                     let blocked = flow.confirmationBlock != nil

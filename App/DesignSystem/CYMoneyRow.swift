@@ -22,23 +22,41 @@ public struct CYMoneyRow: View {
         return (incoming ? "+" : "−") + trimmed
     }
 
+    @Environment(\.dynamicTypeSize) private var typeSize
+
+    private var textBlock: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            Text(title)
+                .font(CYTypography.cardTitle)
+                .foregroundStyle(CYColor.textPrimary)
+            Text(detail)
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textTertiary)
+        }
+    }
+
+    private var amountText: some View {
+        Text(signedAmount)
+            .font(CYTypography.numericBody)
+            .foregroundStyle(incoming ? CYColor.successText : CYColor.dangerText)
+            .lineLimit(1)
+    }
+
     public var body: some View {
-        HStack(alignment: .center, spacing: CYSpacing.md) {
-            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
-                Text(title)
-                    .font(CYTypography.cardTitle)
-                    .foregroundStyle(CYColor.textPrimary)
-                    .lineLimit(1)
-                Text(detail)
-                    .font(CYTypography.meta)
-                    .foregroundStyle(CYColor.textTertiary)
-                    .lineLimit(1)
+        Group {
+            if typeSize.isAccessibilitySize {
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    textBlock
+                    amountText
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            } else {
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    textBlock
+                    Spacer(minLength: CYSpacing.sm)
+                    amountText
+                }
             }
-            Spacer(minLength: CYSpacing.sm)
-            Text(signedAmount)
-                .font(CYTypography.numericBody)
-                .foregroundStyle(incoming ? CYColor.successText : CYColor.dangerText)
-                .lineLimit(1)
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .accessibilityElement(children: .combine)

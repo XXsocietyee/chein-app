@@ -14,7 +14,7 @@ import SwiftUI
     var body: some View {
         VStack(alignment: .leading, spacing: Theme.Space.s2) {
             if state == .reading {
-                CYSkeleton().accessibilityLabel(Text("ordinary.receipt.reading", tableName: "OrdinaryIMSendReceipt"))
+                CYLoadingStateView(rows: 1).accessibilityLabel(Text("ordinary.receipt.reading", tableName: "OrdinaryIMSendReceipt"))
             } else {
                 CYStatusChip(verbatim: String(localized: state == .notFound ? "ordinary.receipt.notFound" : "ordinary.receipt.pending", table: "OrdinaryIMSendReceipt"),
                              tone: .warning, systemImage: "clock.arrow.circlepath")

@@ -59,7 +59,7 @@ extension EnvironmentValues {
                     .accessibilityAddTraits(.isHeader)
                 Spacer()
                 if loading {
-                    ProgressView().controlSize(.small)
+                    ProgressView().controlSize(.small).accessibilityLabel(Text("team.loading"))
                 }
             }
 

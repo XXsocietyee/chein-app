@@ -130,11 +130,13 @@ extension CYListRow where Leading == EmptyView {
 struct CYRowIcon: View {
     let systemImage: String
     @Environment(\.cyPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var side: CGFloat { typeSize.isAccessibilitySize ? 56 : 40 }
     var body: some View {
         Image(systemName: systemImage)
             .font(.body.weight(.semibold))
             .foregroundStyle(palette.textPrimary)
-            .frame(width: 40, height: 40)
+            .frame(width: side, height: side)
             .background(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous).fill(palette.bgRaised))
             .accessibilityHidden(true)
     }

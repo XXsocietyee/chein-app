@@ -23,8 +23,7 @@ import SwiftUI
     private var flow: NativeFriendRemovalFlow { model.flow }
     var body: some View {
         Form {
-            CYHeroHeader(verbatim: localized("friendRemoval.title"))
-                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            Section { CYHeroHeader("friendRemoval.title", tableName: "NativeFriendRemoval").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if let item = flow.presentationItem {
                 Section {
                     HStack(spacing: Theme.Space.s3) {
@@ -35,7 +34,7 @@ import SwiftUI
                     }
                 }
             }
-            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friendRemoval.loading") }
+            if flow.busy { CYLoadingStateView(rows: 1).accessibilityLabel(text("friendRemoval.title")).accessibilityIdentifier("friendRemoval.loading") }
             if flow.phase == .closed { text("friendRemoval.closed") }
             if let issue = flow.issue {
                 Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
@@ -44,9 +43,9 @@ import SwiftUI
             if flow.pending != nil {
                 Section {
                     text("friendRemoval.unknown")
-                    CYPillButton("friendRemoval.recover", style: .secondary, tableName: "NativeFriendRemoval") { perform { await flow.recover() } }
+                    CYPillButton("friendRemoval.recover", style: .primary, tableName: "NativeFriendRemoval") { perform { await flow.recover() } }
                         .disabled(!flow.canRecover).accessibilityIdentifier("friendRemoval.recover")
-                    Button { retryCommand = flow.pendingCommand; confirmingRetry = true } label: { text("friendRemoval.retryOriginal") }
+                    CYPillButton("friendRemoval.retryOriginal", style: .secondary, tableName: "NativeFriendRemoval") { retryCommand = flow.pendingCommand; confirmingRetry = true }
                         .disabled(!flow.canRetryOriginal).accessibilityIdentifier("friendRemoval.retryOriginal")
                 }
             } else if flow.item == nil && flow.result == nil && flow.phase == .ready {
@@ -79,7 +78,6 @@ import SwiftUI
         .formStyle(.grouped)
         .font(Theme.Font.body)
         .cyGroupedSurface()
-        .cyHeroScreen()
         .accessibilityIdentifier("friendRemoval.home")
         .task { await flow.load() }
         .onDisappear { suspend() }

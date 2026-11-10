@@ -240,7 +240,7 @@ struct NearbyRecruitingSection: View {
                 .accessibilityIdentifier("nearby.w208.recruit.title")
             switch state {
             case .idle: EmptyView()
-            case .loading: CYSkeleton().accessibilityLabel(Text("nearby.w208.recruit.loading"))
+            case .loading: CYLoadingStateView(rows: 1).accessibilityLabel(Text("nearby.w208.recruit.loading"))
             case .failed:
                 CYPillButton("nearby.w208.recruit.failed", style: .secondary, action: retry).accessibilityIdentifier("nearby.w208.recruit.retry")
             case .noArea:

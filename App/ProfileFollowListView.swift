@@ -63,7 +63,7 @@ import SwiftUI
                         .listRowBackground(Theme.Color.bgPage(in: domain))
                         .accessibilityIdentifier("profile.followList.member.\(member.id)")
                     }
-                    if flow.loading { CYSkeleton().accessibilityLabel(Text("social.loading")) }
+                    if flow.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
                     else if flow.hasLoaded && flow.visibleRows.isEmpty && flow.error == nil {
                         CYEmptyState(systemImage: "person.2", flow.kind == .following ? "followList.emptyFollowing" : "followList.emptyFollowers",
                                      tableName: "ProfileFollowList", messageIdentifier: "profile.followList.empty")
@@ -122,7 +122,7 @@ import SwiftUI
                     SocialPublicProfileView(memberID: selected.memberID, reader: currentReader, squareReader: squareReader,
                         actions: actions, showsStartChat: false, isCurrent: { flow.owns(selected) && currentReader.isCurrent })
                 }
-            } else { CYSkeleton().accessibilityLabel(Text("social.loading")) }
+            } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
         }.onAppear {
             if reader == nil { reader = flow.memberReader(for: selected) }
         }

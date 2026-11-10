@@ -17,7 +17,7 @@ import SwiftUI
             if reader.isOfflineExample { CYStatusChip("social.offline", tone: .neutral, systemImage: "wifi.slash") }
             if reader.identity.accountID == nil { ProfileInviteHistoryIssueView(error: APIError.unauthorized) }
             else if !reader.isConfigured { SocialIssueView(error: APIError.notConfigured) }
-            else if !model.matches(reader) { CYSkeleton().accessibilityLabel(Text("social.loading")) }
+            else if !model.matches(reader) { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
             else if model.accessDenied, let error = model.error {
                 ProfileInviteHistoryIssueView(error: error)
             }
@@ -48,7 +48,7 @@ import SwiftUI
                     }
                 }
                 if !model.loading && model.pagination.members.isEmpty && model.error == nil { ProfileInviteHistoryEmptyView() }
-                if model.loading { CYSkeleton().accessibilityLabel(Text("social.loading")) }
+                if model.loading { CYLoadingStateView(rows: 1).accessibilityLabel(Text("social.loading")) }
                 if model.pagination.continuationInvalid { CYStatusChip("social.invites.continuationInvalid", tone: .danger, systemImage: "exclamationmark.triangle") }
                 if model.pagination.hasMore && !model.loading && model.error == nil {
                     CYPillButton("square.loadMore", style: .secondary) { model.start(reader, permit: permit, reset: false) }.accessibilityIdentifier("social.invites.more")
