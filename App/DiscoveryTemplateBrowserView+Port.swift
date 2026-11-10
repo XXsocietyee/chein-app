@@ -13,7 +13,7 @@ struct DiscoveryTopicCoverThumb: View {
                     switch phase {
                     case .success(let image): image.resizable().scaledToFill()
                     case .failure: DiscoveryCoverUnavailable()
-                    default: Color.secondary.opacity(0.1)
+                    default: CYColor.bgRaised
                     }
                 }
             } else {
@@ -21,7 +21,7 @@ struct DiscoveryTopicCoverThumb: View {
             }
         }
         .frame(width: side, height: side)
-        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
         .accessibilityHidden(false)
     }
 }
@@ -32,9 +32,9 @@ private struct DiscoveryCoverUnavailable: View {
             Image(systemName: "photo").imageScale(.medium)
             Text("discovery.coverUnavailable").font(.caption2).multilineTextAlignment(.center)
         }
-        .foregroundStyle(.secondary)
+        .foregroundStyle(CYColor.textTertiary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color.secondary.opacity(0.1))
+        .background(CYColor.bgRaised)
     }
 }
 
@@ -43,10 +43,10 @@ struct DiscoveryTemplateSyncingRow: View {
     let hasLoadedRows: Bool
     var body: some View {
         if TemplateBrowserPort.showsSyncingLine(isLoading: true, hasLoadedRows: hasLoadedRows) {
-            Text("discovery.syncing").font(.footnote).foregroundStyle(.secondary)
+            Text("discovery.syncing").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
                 .accessibilityAddTraits(.updatesFrequently)
         } else {
-            ProgressView("discovery.loading")
+            CYSkeletonBlock(height: 18).accessibilityLabel(Text("discovery.loading"))
         }
     }
 }
@@ -54,7 +54,7 @@ struct DiscoveryTemplateSyncingRow: View {
 struct DiscoveryTemplateEmptyRefresh: View {
     let action: () -> Void
     var body: some View {
-        Button("discovery.emptyRefresh", action: action)
+        CYPillButton("discovery.emptyRefresh", style: .secondary, systemImage: "arrow.clockwise", fullWidth: false, action: action)
             .accessibilityIdentifier("discovery.emptyRefresh")
     }
 }

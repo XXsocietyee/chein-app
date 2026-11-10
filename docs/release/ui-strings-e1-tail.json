@@ -40,5 +40,19 @@
     "kind": "new",
     "en": "Receive a transfer",
     "zh-Hans": "领取转赠"
+  },
+  {
+    "key": "转赠",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Send as a gift",
+    "zh-Hans": "转赠"
+  },
+  {
+    "key": "次卡钱包",
+    "table": "inline (W8Text/CoreLoopCopy)",
+    "kind": "new",
+    "en": "Bundle wallet",
+    "zh-Hans": "次卡钱包"
   }
 ]
