@@ -64,3 +64,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - ParticipationParityViews: done (CYPillButton retry)
 - OwnerDraftBrowserView: done (CYEmptyState, CYSkeleton, CYPillButton)
 - OwnMediaModelPreviewView: done (CYHeroHeader, CYPillButton, CYSkeleton)
+
+## Batch 10 (reverse)
+- OwnMediaImagePreviewView: done (CYHeroHeader, CYSkeleton, CYPillButton)
+- OwnMediaAudioPreviewView: done (CYHeroHeader, CYSkeleton, CYPillButton)
+- OpsSafetyViews: done (CYPillButton for contact support; other blocks already structured)
+- ObjectCardFixtureHostView: done (DEBUG fixture, CYPillButton)
+- NonCashRewardViews: done (CYHeroHeader, CYEmptyState, CYSkeleton, CYPillButton)
