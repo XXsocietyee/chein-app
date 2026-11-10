@@ -7,85 +7,35 @@ import SwiftUI
     @State private var pendingReview: ClubBadgeGrantReview?
     @State private var draft = ClubBadgeCreateDraft()
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     init(host: ClubBadgeHost) { _model = StateObject(wrappedValue: ClubBadgeHostModel(host: host)) }
     var body: some View {
         let _ = model.revision
-        List {
-            if model.working { ProgressView { Text("loading", tableName: "ClubBadge") } }
-            if let flow = model.flow, flow.isCurrent {
-                switch flow.screenState {
-                case .notAvailable:
-                    Text("notAvailable", tableName: "ClubBadge").foregroundStyle(.secondary)
-                case .error:
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                CYHeroHeader("title", tableName: "ClubBadge")
+                if let flow = model.flow, flow.isCurrent {
+                    badgeContent(flow)
+                } else if model.working {
+                    CYSkeleton().accessibilityLabel(Text("loading", tableName: "ClubBadge"))
+                } else {
                     Text("readError", tableName: "ClubBadge")
-                    Button { model.perform { await $0.refresh() } } label: { Text("retry", tableName: "ClubBadge") }
-                        .frame(minHeight: 44)
-                case .loading:
-                    ProgressView { Text("loading", tableName: "ClubBadge") }
-                case .empty, .ready:
-                    if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
-                        Text("readError", tableName: "ClubBadge")
-                        Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") }
-                    }
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                resultStatus(flow.resultPresentation)
-                if flow.showsOwnerOnlyNotice {
-                    Text("ownerOnly", tableName: "ClubBadge").font(.footnote).foregroundStyle(.secondary)
-                }
-                if flow.canCreate {
-                    Button { draft = .init(); creating = true } label: { Text("create", tableName: "ClubBadge") }
-                        .frame(minHeight: 44)
-                }
-                if flow.screenState == .empty {
-                    Text("empty", tableName: "ClubBadge").foregroundStyle(.secondary)
-                }
-                ForEach(flow.badges) { badge in
-                    VStack(alignment: .leading) {
-                        if let name = badge.badgeName, !name.isEmpty { Text(verbatim: name) }
-                        else { Text("unnamed", tableName: "ClubBadge") }
-                        if let desc = badge.badgeDesc, !desc.isEmpty {
-                            Text(verbatim: desc).font(.footnote).foregroundStyle(.secondary)
-                        }
-                        if flow.canGrant {
-                            Button { model.perform { await $0.openGrant(badge) } } label: { Text("grant", tableName: "ClubBadge") }
-                                .frame(minHeight: 44)
-                        }
-                    }
-                }
-                if flow.pickerOpen {
-                    Section {
-                        switch flow.memberPickerState {
-                        case .loading:
-                            ProgressView { Text("membersLoading", tableName: "ClubBadge") }
-                        case .error:
-                            Text("membersError", tableName: "ClubBadge")
-                            Button { model.perform { await $0.retryMembers() } } label: { Text("retry", tableName: "ClubBadge") }
-                                .frame(minHeight: 44)
-                        case .empty:
-                            Text("membersEmpty", tableName: "ClubBadge").foregroundStyle(.secondary)
-                        case .ready, .closed:
-                            ForEach(flow.members) { member in
-                                Button {
-                                    flow.selectMember(member); pendingReview = flow.review; model.changed()
-                                } label: {
-                                    HStack {
-                                        Text(verbatim: member.trimmedNickname ?? String(member.memberId))
-                                        if member.isOwner { Text("ownerMark", tableName: "ClubBadge").font(.caption).foregroundStyle(.secondary) }
-                                    }
-                                }
-                                .frame(minHeight: 44)
-                            }
-                        }
-                        Button { flow.closePicker(); pendingReview = nil; model.changed() } label: { Text("cancel", tableName: "ClubBadge") }
-                    } header: { Text("recipient", tableName: "ClubBadge") }
-                }
-            } else { Text("readError", tableName: "ClubBadge") }
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
+            .disabled(model.working)
         }
-        .disabled(model.working)
-        .cyGroupedSurface()
-        .navigationTitle(Text("title", tableName: "ClubBadge"))
+        .cyDomainPageBackground()
         .privacySensitive()
-        .toolbar { Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button { model.perform { await $0.refresh() } } label: { Text("refresh", tableName: "ClubBadge") }
+            }
+        }
         .onAppear { visible = true; if scenePhase == .active { model.start() } }
         .onDisappear { visible = false; creating = false; pendingReview = nil; draft = .init(); model.retire() }
         .onChange(of: scenePhase) { _, phase in
@@ -109,39 +59,264 @@ import SwiftUI
                 }
             }
     }
-    @ViewBuilder private func resultStatus(_ result: ClubBadgeResultPresentation) -> some View {
-        switch result {
-        case .none: EmptyView()
-        case .storageUnavailable:
-            Text("storageUnavailable", tableName: "ClubBadge")
-        case .unknown:
-            Section {
-                Text("unknown", tableName: "ClubBadge")
-                Button { model.perform { await $0.refresh() } } label: { Text("recover", tableName: "ClubBadge") }
+
+    @ViewBuilder private func badgeContent(_ flow: ClubBadgeManagementFlow) -> some View {
+        if model.working || flow.screenState == .loading {
+            CYSkeleton().accessibilityLabel(Text("loading", tableName: "ClubBadge"))
+        }
+        switch flow.screenState {
+        case .notAvailable:
+            CYEmptyState(systemImage: "medal", "notAvailable", tableName: "ClubBadge")
+        case .error:
+            CYEmptyState(
+                systemImage: "exclamationmark.triangle",
+                "readError",
+                tableName: "ClubBadge",
+                actionTitle: "retry",
+                actionStyle: flow.canCreate ? .secondary : .primary,
+                kind: .failure
+            ) { model.perform { await $0.refresh() } }
+        case .loading:
+            EmptyView()
+        case .empty, .ready:
+            if flow.error != nil || flow.refreshError != nil || flow.memberError != nil {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text("readError", tableName: "ClubBadge")
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    CYPillButton("refresh", style: flow.canCreate ? .secondary : .primary, tableName: "ClubBadge") {
+                        model.perform { await $0.refresh() }
+                    }
+                }
             }
-        case .needsReview: Text("actionNeedsReview", tableName: "ClubBadge")
-        case .notSent: Text("notSent", tableName: "ClubBadge")
-        case .confirmed(let receipt):
-            Text(LocalizedStringKey("receipt." + receipt.state), tableName: "ClubBadge")
-        case .historical(let receipt):
-            Section {
-                Text(LocalizedStringKey("receipt." + receipt.state), tableName: "ClubBadge")
-            } header: { Text("historicalResult", tableName: "ClubBadge") }
+        }
+        resultStatus(flow.resultPresentation, createIsPrimary: flow.canCreate)
+        if flow.showsOwnerOnlyNotice {
+            Text("ownerOnly", tableName: "ClubBadge")
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        if flow.canCreate {
+            CYPillButton("create", style: .primary, systemImage: "plus", tableName: "ClubBadge") {
+                draft = .init(); creating = true
+            }
+        }
+        if flow.screenState == .empty {
+            CYEmptyState(systemImage: "medal", "empty", tableName: "ClubBadge")
+        }
+        ForEach(flow.badges) { badge in badgeCard(badge, flow: flow) }
+        if flow.pickerOpen { memberPicker(flow) }
+    }
+
+    private func badgeCard(_ badge: ClubBadgeRecord, flow: ClubBadgeManagementFlow) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if let url = httpsURL(badge.iconUrl), let name = shownName(badge) {
+                CYImageCard(verbatim: name, fallback: "unnamed", meta: shownDescription(badge), imageURL: url)
+            } else {
+                HStack(alignment: .center, spacing: CYSpacing.md) {
+                    if let url = httpsURL(badge.iconUrl) {
+                        AsyncImage(url: url) { phase in
+                            if let image = phase.image { image.resizable().scaledToFill() }
+                            else { CYCoverArt(seed: badge.badgeCode, showsDebugLabel: false) }
+                        }
+                        .frame(width: 64, height: 64)
+                        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                        .accessibilityHidden(true)
+                    } else {
+                        CYRowIcon(systemImage: "medal")
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        badgeName(badge)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                        if let desc = shownDescription(badge) {
+                            Text(verbatim: desc)
+                                .font(CYTypography.meta)
+                                .foregroundStyle(palette.textTertiary)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    Spacer(minLength: CYSpacing.sm)
+                }
+            }
+            if flow.canGrant {
+                CYPillButton("grant", style: .secondary, systemImage: "person.badge.plus", tableName: "ClubBadge") {
+                    model.perform { await $0.openGrant(badge) }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .contain)
+    }
+
+    @ViewBuilder private func memberPicker(_ flow: ClubBadgeManagementFlow) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            Text("recipient", tableName: "ClubBadge")
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(palette.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+                .fixedSize(horizontal: false, vertical: true)
+            switch flow.memberPickerState {
+            case .loading:
+                CYSkeleton().accessibilityLabel(Text("membersLoading", tableName: "ClubBadge"))
+            case .error:
+                Text("membersError", tableName: "ClubBadge")
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                CYPillButton("retry", style: .secondary, tableName: "ClubBadge") {
+                    model.perform { await $0.retryMembers() }
+                }
+            case .empty:
+                CYEmptyState(systemImage: "person.2", "membersEmpty", tableName: "ClubBadge")
+            case .ready, .closed:
+                ForEach(flow.members) { member in
+                    Button {
+                        flow.selectMember(member); pendingReview = flow.review; model.changed()
+                    } label: {
+                        HStack(spacing: CYSpacing.md) {
+                            CYRowIcon(systemImage: member.isOwner ? "crown" : "person")
+                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                Text(verbatim: member.trimmedNickname ?? String(member.memberId))
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(palette.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                if member.isOwner {
+                                    Text("ownerMark", tableName: "ClubBadge")
+                                        .font(CYTypography.meta)
+                                        .foregroundStyle(palette.textTertiary)
+                                }
+                            }
+                            Spacer(minLength: CYSpacing.sm)
+                        }
+                        .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+                        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+                    }
+                    .buttonStyle(.cyPressable)
+                }
+            }
+            CYPillButton("cancel", style: .tertiary, tableName: "ClubBadge") {
+                flow.closePicker(); pendingReview = nil; model.changed()
+            }
         }
     }
+
+    @ViewBuilder private func resultStatus(_ result: ClubBadgeResultPresentation, createIsPrimary: Bool) -> some View {
+        switch result {
+        case .none:
+            EmptyView()
+        case .storageUnavailable:
+            Text("storageUnavailable", tableName: "ClubBadge")
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        case .unknown:
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("unknown", tableName: "ClubBadge")
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                CYPillButton("recover", style: createIsPrimary ? .secondary : .primary, tableName: "ClubBadge") {
+                    model.perform { await $0.refresh() }
+                }
+            }
+        case .needsReview:
+            Text("actionNeedsReview", tableName: "ClubBadge")
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+        case .notSent:
+            Text("notSent", tableName: "ClubBadge")
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+        case .confirmed(let receipt):
+            receiptLine(receipt)
+        case .historical(let receipt):
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                Text("historicalResult", tableName: "ClubBadge")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                receiptLine(receipt)
+            }
+        }
+    }
+
+    /// Known receipt states stay on the ClubBadge table. Anything else uses the existing unknown sentence, never a raw key.
+    private func receiptLine(_ receipt: ClubBadgeOriginalReceipt) -> some View {
+        let known = ["CREATED", "GRANTED", "ALREADY_GRANTED"].contains(receipt.state)
+        return Label {
+            if known {
+                Text(LocalizedStringKey("receipt." + receipt.state), tableName: "ClubBadge")
+            } else {
+                Text("unknown", tableName: "ClubBadge")
+            }
+        } icon: {
+            Image(systemName: known ? "checkmark.seal" : "questionmark.circle")
+                .accessibilityHidden(true)
+        }
+        .font(CYTypography.label)
+        .foregroundStyle(known ? palette.success : palette.textSecondary)
+        .fixedSize(horizontal: false, vertical: true)
+        .accessibilityElement(children: .combine)
+    }
+
     private var createForm: some View {
         NavigationStack {
-            Form {
-                TextField(text: $draft.name) { Text("name", tableName: "ClubBadge") }
-                TextField(text: $draft.description, axis: .vertical) { Text("description", tableName: "ClubBadge") }
-                Text("limits", tableName: "ClubBadge")
-                Button {
-                    let submitted = draft; creating = false
-                    model.perform { await $0.create(submitted) }
-                } label: { Text("confirmCreate", tableName: "ClubBadge") }
-                .disabled(draft.validation != nil || model.flow?.canCreate != true)
-                Button { creating = false } label: { Text("cancel", tableName: "ClubBadge") }
-            }.navigationTitle(Text("create", tableName: "ClubBadge"))
+            ScrollView {
+                VStack(alignment: .leading, spacing: CYSpacing.lg) {
+                    CYHeroHeader("create", tableName: "ClubBadge")
+                    labeledField("name", text: $draft.name)
+                    labeledField("description", text: $draft.description, axis: .vertical)
+                    Text("limits", tableName: "ClubBadge")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(palette.textTertiary)
+                        .fixedSize(horizontal: false, vertical: true)
+                    CYPillButton("confirmCreate", tableName: "ClubBadge") {
+                        let submitted = draft; creating = false
+                        model.perform { await $0.create(submitted) }
+                    }
+                    .disabled(draft.validation != nil || model.flow?.canCreate != true)
+                    CYPillButton("cancel", style: .tertiary, tableName: "ClubBadge") { creating = false }
+                }
+                .padding(.horizontal, CYSpacing.pageHorizontal)
+                .padding(.vertical, CYSpacing.lg)
+            }
+            .cyDomainPageBackground()
         }
+    }
+
+    @ViewBuilder private func badgeName(_ badge: ClubBadgeRecord) -> some View {
+        if let name = shownName(badge) { Text(verbatim: name) }
+        else { Text("unnamed", tableName: "ClubBadge") }
+    }
+    private func shownName(_ badge: ClubBadgeRecord) -> String? {
+        let name = badge.badgeName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return name.isEmpty ? nil : name
+    }
+    private func shownDescription(_ badge: ClubBadgeRecord) -> String? {
+        let desc = badge.badgeDesc?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return desc.isEmpty ? nil : desc
+    }
+    private func labeledField(_ key: String, text: Binding<String>, axis: Axis = .horizontal) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xs) {
+            Text(LocalizedStringKey(key), tableName: "ClubBadge")
+                .font(CYTypography.meta)
+                .foregroundStyle(palette.textSecondary)
+                .fixedSize(horizontal: false, vertical: true)
+            TextField("", text: text, axis: axis)
+                .font(CYTypography.body)
+                .padding(CYSpacing.md)
+                .background(palette.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
+                .accessibilityLabel(Text(LocalizedStringKey(key), tableName: "ClubBadge"))
+        }
+    }
+    private func httpsURL(_ raw: String?) -> URL? {
+        guard let raw, let url = URL(string: raw), url.scheme?.lowercased() == "https" else { return nil }
+        return url
     }
 }
