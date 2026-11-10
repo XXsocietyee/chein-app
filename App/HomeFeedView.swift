@@ -20,6 +20,7 @@ import SwiftUI
     let onDestination: (HomeFeedDestination) -> Void
     @Environment(\.locale) private var locale
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.timeZone) private var timeZone
     @StateObject private var model = HomeFeedModel()
     @State private var kind: HomeFeedKind = .topics
     @State private var keyword = ""
@@ -162,6 +163,10 @@ import SwiftUI
                             .foregroundStyle(CYColor.textSecondary)
                     } else if dynamicTypeSize.isAccessibilitySize {
                         ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
+                    } else if section != .nearby {
+                        // Glass carousel for the editor picks and upcoming rails (nearby keeps the compact shelf).
+                        carouselRail(items, section: section)
+                            .questifyCardListRow()
                     } else {
                         ScrollView(.horizontal, showsIndicators: false) {
                             LazyHStack(spacing: CYSpacing.md) {
@@ -187,6 +192,24 @@ import SwiftUI
                 }
             }
         }
+    }
+    /// Glass carousel over the already-loaded section items. Open goes through the same guarded destination as the shelf cards.
+    private func carouselRail(_ items: [HomeFeedItem], section: HomeFeedSection) -> some View {
+        let capped = Array(items.prefix(12))
+        let slides: [CYCarouselSlide] = capped.map { item in
+            CYCarouselSlide(id: item.accessibilityKey, seed: item.name, title: item.name,
+                            date: QuestifyCardText.date(item.startDate, sourceTimeZone: sourceTimeZone, locale: locale, displayTimeZone: timeZone),
+                            place: item.place, imageURL: QuestifyCardArtwork.safeURL(item.imageURL))
+        }
+        return CYCarouselRail(phase: .loaded(slides),
+                              railLabel: section == .recommended ? "carousel.editorsPicks" : "carousel.upcoming",
+                              onOpen: { key in
+                                  guard model.canOpen(reader), let item = capped.first(where: { $0.accessibilityKey == key }) else { return }
+                                  onDestination(item.id)
+                              }) {
+            ForEach(items) { item in row(item, section: section.rawValue, style: .hero) }
+        }
+        .accessibilityIdentifier("homeFeed.carousel.\(section.rawValue)")
     }
     /// Large, plain section title (mini-program `sec-title`): no small-caps grouped-list header.
     private func sectionHeader(_ title: Text) -> some View {

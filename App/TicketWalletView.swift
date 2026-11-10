@@ -11,11 +11,12 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     @StateObject private var model = TicketWalletScreenModel<TicketWalletSnapshot>()
     @State private var isVisible = false
+    @State private var carouselTicketID: Int?
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+    @Environment(\.locale) private var locale
     @State private var refreshOnActive = false
     @State private var pendingOrderEntry = TicketWalletPendingOrderEntry()
     @State private var pendingOrderReadOwner: TicketWalletPendingOrderOwner?
-    @State private var stagger = CYStaggerGate()
-    @Namespace private var hero
     private var key: TicketWalletLoadKey { TicketWalletLoadKey(reader: reader) }
     var body: some View {
         let offeredPresentation = model.presentation
@@ -54,16 +55,16 @@ import SwiftUI
                             }
                         }
                     }
+                    ticketCarousel(snapshot.tickets)
                     // Source preserves both lanes and row order, including repeated server IDs.
                     ForEach(Array(snapshot.tickets.enumerated()), id: \.offset) { rowIndex, ticket in
                         if ticket.action == .detail {
                             NavigationLink {
-                                TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator, heroNamespace: hero, heroID: rowIndex)
-                            } label: { TicketWalletRow(ticket: ticket).cyHeroSource(rowIndex, in: hero) }
+                                TicketWalletDetailView(id: ticket.id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
+                            } label: { TicketWalletRow(ticket: ticket) }
                             .buttonStyle(QuestifyCardButtonStyle())
                             .questifyHidesLinkIndicator()
                             .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
-                            .cyStaggeredAppear(index: rowIndex, gate: stagger)
                             .questifyCardListRow()
                         } else if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
                                   pendingOrderEntry.canOpen(ticket: ticket, reader: reader, provider: provider) {
@@ -77,12 +78,10 @@ import SwiftUI
                             } label: { TicketWalletRow(ticket: ticket, showsPendingOrderAction: true) }
                             .buttonStyle(QuestifyCardButtonStyle())
                             .accessibilityIdentifier("ticketWallet.pendingOrder.open.\(ticket.id)")
-                            .cyStaggeredAppear(index: rowIndex, gate: stagger)
                             .questifyCardListRow()
                         } else {
                             TicketWalletRow(ticket: ticket)
                                 .accessibilityIdentifier("ticketWallet.row.\(ticket.id)")
-                                .cyStaggeredAppear(index: rowIndex, gate: stagger)
                                 .questifyCardListRow()
                         }
                     }
@@ -109,6 +108,9 @@ import SwiftUI
             }
             .onChange(of: key) { _, _ in replacePresentation() }
             .onChange(of: pendingOrderProvider?.owner) { _, _ in replacePresentation() }
+            .navigationDestination(item: $carouselTicketID) { id in
+                TicketWalletDetailView(id: id, reader: reader, lifecycleCoordinator: orderLifecycleCoordinator, makeTeamCoordinator: makeTeamCoordinator)
+            }
             .navigationDestination(item: $pendingOrderEntry.target) { target in
                 if let provider = pendingOrderProvider, pendingOrderReadOwner == provider.owner,
                    !model.isLoading, let snapshot = model.value(owner: key),
@@ -162,90 +164,149 @@ import SwiftUI
     }
 }
 
+extension TicketWalletView {
+    /// Glass carousel entry over the openable tickets (detail action only, same destination as the rows below). Two or more tickets;
+    /// accessibility Dynamic Type sizes skip it and keep the vertical rows.
+    @ViewBuilder fileprivate func ticketCarousel(_ tickets: [TicketWalletTicket]) -> some View {
+        let openable = Array(tickets.enumerated()).filter { $0.element.action == .detail }.prefix(12)
+        if openable.count >= 2 && !dynamicTypeSize.isAccessibilitySize {
+            let slides = openable.map { offset, ticket in
+                CYCarouselSlide(id: "\(offset)-\(ticket.id)", seed: "ticket-\(ticket.id)",
+                                title: ticket.title.flatMap { $0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? nil : $0 } ?? appLocalized("ticketWallet.untitled", locale: locale),
+                                date: ticket.participateDate, place: ticket.addressName, badge: statusTitle(ticket.status),
+                                kind: .ticket, dimmed: ticket.status == .cancelled || ticket.status == .expired)
+            }
+            Section {
+                CYCarouselRail(phase: .loaded(Array(slides)), railLabel: "carousel.tickets", onOpen: { key in
+                    if let match = openable.first(where: { "\($0.offset)-\($0.element.id)" == key }) { carouselTicketID = match.element.id }
+                }) { EmptyView() }
+                    .questifyCardListRow()
+            }
+        }
+    }
+    private func statusTitle(_ status: TicketWalletStatus) -> String {
+        switch status {
+        case .ready: return appLocalized("ticketWallet.status.ready", locale: locale)
+        case .pending: return appLocalized("ticketWallet.status.pending", locale: locale)
+        case .verified: return appLocalized("ticketWallet.status.verified", locale: locale)
+        case .cancelled: return appLocalized("ticketWallet.status.cancelled", locale: locale)
+        case .expired: return appLocalized("ticketWallet.status.expired", locale: locale)
+        case .unknown: return appLocalized("ticketWallet.status.unknown", locale: locale)
+        }
+    }
+}
+
+/// Ticket stub outline: rounded card with a semicircular notch cut from both sides at `notchY` (the perforation line).
+struct TicketStubShape: Shape {
+    var notchY: CGFloat
+    var radius: CGFloat = 22
+    var notch: CGFloat = 10
+    func path(in rect: CGRect) -> Path {
+        var p = Path(roundedRect: rect, cornerRadius: radius, style: .continuous)
+        if notchY < 0 { return p }
+        let y = min(max(notchY, radius + notch), rect.height - radius - notch)
+        p.addEllipse(in: CGRect(x: rect.minX - notch, y: y - notch, width: notch * 2, height: notch * 2))
+        p.addEllipse(in: CGRect(x: rect.maxX - notch, y: y - notch, width: notch * 2, height: notch * 2))
+        return p
+    }
+}
 private struct TicketTopHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
 }
 
-/// One pass in the holder: art band with the title and a corner status ribbon, a perforated tear line with side
-/// notches (real cut-outs), and a stub with date, place and the code glyph. Two sleeves behind it give the stack
-/// its depth and a band of light slides across as the list scrolls. The NavigationLink owns the press feel.
 private struct TicketWalletRow: View {
     let ticket: TicketWalletTicket
     var showsPendingOrderAction = false
     @Environment(\.dynamicTypeSize) private var typeSize
-    @State private var topHeight: CGFloat = 0
-    private let radius = CYRadius.xl
-    private let tearBand: CGFloat = 18
-    private var state: CYPassState { CYPassState(ticket.status) }
+    @State private var topHeight: CGFloat = 140
+    /// Generated cover art (no ticket image exists in the model): muted dark gradients keyed by id.
+    private var art: [Color] {
+        let sets: [[Color]] = [
+            [Color(red: 0.10, green: 0.32, blue: 0.36), Color(red: 0.04, green: 0.10, blue: 0.14)],
+            [Color(red: 0.24, green: 0.20, blue: 0.46), Color(red: 0.07, green: 0.06, blue: 0.16)],
+            [Color(red: 0.42, green: 0.17, blue: 0.22), Color(red: 0.13, green: 0.05, blue: 0.08)],
+            [Color(red: 0.30, green: 0.34, blue: 0.16), Color(red: 0.08, green: 0.10, blue: 0.05)]]
+        return sets[abs(ticket.id) % sets.count]
+    }
     private var hasStub: Bool {
         (ticket.participateDate?.isEmpty == false) || (ticket.addressName?.isEmpty == false) || ticket.needsScheduleSync
             || (ticket.statusHintKey != nil && ticket.action == .detail) || showsPendingOrderAction
     }
-    private var shape: CYTicketPassShape {
-        CYTicketPassShape(notchY: hasStub && topHeight > 0 ? topHeight + tearBand / 2 : -1, radius: radius, notch: 10, perforation: 3, perforationGap: 7)
-    }
     var body: some View {
+        let dimmed = ticket.status == .cancelled || ticket.status == .expired
         VStack(spacing: 0) {
             ZStack(alignment: .bottomLeading) {
-                E1CoverArt(seed: ticket.title ?? "ticket-\(ticket.id)", symbol: "ticket", debugLabel: false)
-                LinearGradient(colors: [.clear, .black.opacity(0.72)], startPoint: .center, endPoint: .bottom)
-                TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
-                    .font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(CYSpacing.lg)
-                    .padding(.trailing, typeSize.isAccessibilitySize ? 0 : CYSpacing.xxxl)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                LinearGradient(colors: art, startPoint: .topLeading, endPoint: .bottomTrailing)
+                Image(systemName: "ticket.fill").font(.system(size: 120)).rotationEffect(.degrees(-14))
+                    .foregroundStyle(.white.opacity(0.07)).offset(x: 90, y: -10).accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    TicketWalletStatusBadge(status: ticket.status)
+                    TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)
+                        .font(.system(.title3, weight: .semibold)).foregroundStyle(.white)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(CYSpacing.lg)
+                .frame(maxWidth: .infinity, alignment: .leading)
             }
-            .frame(minHeight: typeSize.isAccessibilitySize ? 96 : 150)
-            .clipped()
             .background(GeometryReader { Color.clear.preference(key: TicketTopHeightKey.self, value: $0.size.height) })
+            .overlay(alignment: .bottom) { Rectangle().fill(.clear).frame(height: 0) }
             if hasStub {
-                Color.clear.frame(height: tearBand).accessibilityHidden(true)
-                HStack(alignment: .center, spacing: CYSpacing.md) {
-                    VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
-                        if let date = ticket.participateDate, !date.isEmpty {
-                            QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
-                        }
-                        if let place = ticket.addressName, !place.isEmpty {
-                            QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
-                        }
-                        if ticket.needsScheduleSync {
-                            Label { Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true) }
-                                icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
-                                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                                .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
-                        }
-                        if let hint = ticket.statusHintKey, ticket.action == .detail {
-                            Text(LocalizedStringKey(hint)).font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                                .accessibilityIdentifier("ticketWallet.statusHint.\(ticket.id)")
-                        }
-                        if showsPendingOrderAction {
-                            Label { Text("ticketPendingOrder.open", tableName: "TicketPendingOrder") } icon: { Image(systemName: "list.bullet.rectangle") }
-                                .font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                        }
+            // Perforation
+            Line().stroke(CYColor.textPrimary.opacity(0.22), style: StrokeStyle(lineWidth: 1.5, dash: [5, 5]))
+                .frame(height: 1).padding(.horizontal, 22)
+            HStack(alignment: .center, spacing: CYSpacing.md) {
+                VStack(alignment: .leading, spacing: CYSpacing.xs + 2) {
+                    if let date = ticket.participateDate, !date.isEmpty {
+                        QuestifyMetadataLine(label: "ticketWallet.participateDate", value: date, systemImage: "calendar")
                     }
-                    Spacer(minLength: 0)
-                    if !typeSize.isAccessibilitySize, ticket.action == .detail {
-                        Image(systemName: "qrcode").font(.title).imageScale(.large).foregroundStyle(CYColor.textPrimary.opacity(0.9))
-                            .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
-                            .accessibilityHidden(true)
+                    if let place = ticket.addressName, !place.isEmpty {
+                        QuestifyMetadataLine(label: "ticketWallet.place", value: place, systemImage: "mappin.and.ellipse")
+                    }
+                    if ticket.needsScheduleSync {
+                        Label { Text("ticketWallet.p2.notice.scheduleSync").fixedSize(horizontal: false, vertical: true) }
+                            icon: { Image(systemName: "clock.arrow.circlepath").accessibilityHidden(true) }
+                            .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                            .accessibilityIdentifier("ticketWallet.scheduleSync.\(ticket.id)")
+                    }
+                    if let hint = ticket.statusHintKey, ticket.action == .detail {
+                        Text(LocalizedStringKey(hint)).font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
+                            .accessibilityIdentifier("ticketWallet.statusHint.\(ticket.id)")
+                    }
+                    if showsPendingOrderAction {
+                        Label { Text("ticketPendingOrder.open", tableName: "TicketPendingOrder") } icon: { Image(systemName: "list.bullet.rectangle") }
+                            .font(.footnote.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
                     }
                 }
-                .padding(.horizontal, CYSpacing.lg).padding(.bottom, CYSpacing.lg).padding(.top, CYSpacing.xs)
+                Spacer(minLength: 0)
+                if !typeSize.isAccessibilitySize, ticket.action == .detail {
+                    Image(systemName: "qrcode").font(.system(size: 34)).foregroundStyle(CYColor.textPrimary.opacity(0.85))
+                        .padding(CYSpacing.sm).background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: 12, style: .continuous))
+                        .accessibilityHidden(true)
+                }
+            }
+            .padding(CYSpacing.lg)
+            .background(CYColor.bgElevated)
             }
         }
         .onPreferenceChange(TicketTopHeightKey.self) { topHeight = $0 }
-        .background(CYColor.bgElevated)
-        .overlay(alignment: .topTrailing) {
-            CYStatusRibbon(state: state, text: Text(LocalizedStringKey("ticketWallet.status." + ticket.status.rawValue)))
-        }
-        .cyScrollSheen()
-        .clipShape(shape, style: FillStyle(eoFill: true))
-        .overlay(shape.stroke(CYColor.borderSubtle, lineWidth: 1).allowsHitTesting(false))
-        .shadow(color: .black.opacity(0.40), radius: 14, y: 8)
-        .cyPassStack(depth: 2, radius: radius)
-        .opacity(state.isRetired ? 0.72 : 1)
+        .clipShape(TicketStubShape(notchY: hasStub ? topHeight : -1), style: FillStyle(eoFill: true))
+        .opacity(dimmed ? 0.62 : 1)
+        .shadow(color: .black.opacity(0.35), radius: 10, y: 4)
         .padding(.horizontal, CYSpacing.pageHorizontal)
+    }
+    private struct Line: Shape {
+        func path(in rect: CGRect) -> Path { var p = Path(); p.move(to: CGPoint(x: rect.minX, y: rect.midY)); p.addLine(to: CGPoint(x: rect.maxX, y: rect.midY)); return p }
+    }
+}
+
+/// Full-width white pill at the foot of a ticket card. Not a separate button: the card handles the tap.
+private struct TicketWalletCardAction: View {
+    let title: Text
+    let systemImage: String
+    init(title: LocalizedStringKey, systemImage: String) { self.title = Text(title); self.systemImage = systemImage }
+    init(title: Text, systemImage: String) { self.title = title; self.systemImage = systemImage }
+    var body: some View {
+        OrderPillLabel(title: title, systemImage: systemImage, fullWidth: true)
     }
 }
