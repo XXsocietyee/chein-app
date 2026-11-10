@@ -260,6 +260,11 @@ extension PlayExperienceService {
         try PlayKitInputContract.validate(kind: kind, action: action, payload: payload, segment: segment)
         return PlayKitActionReview(state: state, owner: owner, kind: kind, action: action, payload: payload)
     }
+    /// Read model for the timed-challenge page. It does not send, and a missing advanced grant or route stays hidden.
+    public func timedChallengePage(kind: PlayKitScreenKind, configuration: RegionalConfiguration) -> PlayKitTimedChallengePage {
+        PlayKitTimedChallengePage.project(kind: kind, playKit: state?.playKit, coordinatorPhase: phase,
+            advancedEnabled: service.enabled.contains(.advanced), configuration: configuration)
+    }
     @discardableResult public func submit(_ review: PlayKitActionReview) async -> Bool {
         guard canInteract, let state, owner == review.owner, currentSession() == review.owner,
               state.sessionID == review.sessionID, state.version == review.version else {

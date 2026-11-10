@@ -166,3 +166,240 @@ public struct PlayKitBallRun: Equatable {
     }
     public mutating func interrupt() { if phase != .measured { phase = .interrupted; samples = []; firstAt = nil; lastAt = nil; runAt = nil; hits = 0 } }
 }
+
+/// Read model for `pages/play/poi-challenge/index` (`PlayKitTimedChallengeView`).
+/// A missing advanced grant or either live route keeps the page hidden.
+/// Unknown, null, and non-numeric fields stay an em dash. A literal 0 stays 0.
+/// This type does not send, invent a route, or enable a write.
+public struct PlayKitTimedChallengePage: Equatable {
+    public enum Phase: String, Equatable {
+        case loading, empty, error, unknown, ready
+    }
+    public enum Fact: Equatable {
+        case unknown
+        case value(Double)
+        public static let unknownDisplay = "—"
+        public var literal: Double? {
+            if case .value(let number) = self { return number }
+            return nil
+        }
+        public var displayText: String {
+            switch self {
+            case .unknown:
+                return Self.unknownDisplay
+            case .value(let number):
+                guard number.isFinite else { return Self.unknownDisplay }
+                if number == 0 { return "0" }
+                let whole = number.rounded(.towardZero)
+                if whole == number, abs(number) <= Double(Int.max) { return String(Int(number)) }
+                return String(number)
+            }
+        }
+    }
+    public enum TextFact: Equatable {
+        case unknown
+        case value(String)
+        public var displayText: String {
+            switch self {
+            case .unknown: return Fact.unknownDisplay
+            case .value(let text): return text
+            }
+        }
+    }
+    public struct Readout: Equatable {
+        public let accessibilityIdentifier: String
+        public let copyKey: String
+        public let number: Fact
+        public var displayText: String { number.displayText }
+    }
+    public struct TextReadout: Equatable {
+        public let accessibilityIdentifier: String
+        public let copyKey: String
+        public let text: TextFact
+        public var displayText: String { text.displayText }
+    }
+
+    public static let readPath = "/api/play/advanced/state"
+    public static let actionPath = "/api/play/advanced/action"
+    public static let kinds: [PlayKitScreenKind] = [.reaction, .countdown, .stopwatch, .typeIn]
+    /// City-node completion stays hidden while the existing write gate is closed.
+    public static var cityNodeCompleteOffered: Bool {
+        PlayWriteAvailability.current(for: .challengeSubmit).isAvailable
+    }
+
+    public let kind: PlayKitScreenKind
+    public let hidden: Bool
+    public let phase: Phase?
+    public let targetSeconds: Fact
+    public let toleranceMilliseconds: Fact
+    public let rounds: Fact
+    public let goalMilliseconds: Fact
+    public let attempts: Fact
+    public let attemptLimit: Fact
+    public let readouts: [Readout]
+    public let typeInTarget: TextReadout?
+    public let configurationValid: Bool
+    public let startReviewAllowed: Bool
+    public let offeredPaths: [String]
+
+    public var copyKey: String? {
+        guard !hidden, let phase else { return nil }
+        return "playkit.timed." + phase.rawValue
+    }
+    public var accessibilityIdentifier: String? { copyKey }
+
+    public static func number(_ value: PlayWireValue) -> Fact {
+        switch value {
+        case .integer(let raw):
+            guard let exact = Int(exactly: raw) else { return .unknown }
+            return .value(Double(exact))
+        case .number(let raw):
+            guard raw.isFinite else { return .unknown }
+            return .value(raw)
+        case .string, .bool, .array, .object, .null:
+            return .unknown
+        }
+    }
+    public static func text(_ value: PlayWireValue) -> TextFact {
+        if case .string(let raw) = value { return .value(raw) }
+        return .unknown
+    }
+
+    public static func project(kind: PlayKitScreenKind, playKit: PlayWireValue?, coordinatorPhase: String,
+        advancedEnabled: Bool, configuration: RegionalConfiguration) -> Self {
+        project(kind: kind, playKit: playKit, coordinatorPhase: coordinatorPhase, advancedEnabled: advancedEnabled,
+            showsReadRoute: configuration.showsRoute(readPath), showsActionRoute: configuration.showsRoute(actionPath))
+    }
+
+    public static func project(kind: PlayKitScreenKind, playKit: PlayWireValue?, coordinatorPhase: String,
+        advancedEnabled: Bool, showsReadRoute: Bool, showsActionRoute: Bool) -> Self {
+        let revealed = kinds.contains(kind) && advancedEnabled && showsReadRoute && showsActionRoute
+        guard revealed else { return hidden(kind) }
+        let phase = resolve(kind: kind, playKit: playKit, coordinatorPhase: coordinatorPhase)
+        guard phase == .ready, let segment = playKit?[kind.rawValue], segment.object != nil else {
+            return presented(kind: kind, phase: phase, segment: nil, showsReadRoute: showsReadRoute, showsActionRoute: showsActionRoute)
+        }
+        return presented(kind: kind, phase: phase, segment: segment, showsReadRoute: showsReadRoute, showsActionRoute: showsActionRoute)
+    }
+
+    public func acknowledgedStartPayload() throws -> [String: PlayWireValue] {
+        guard startReviewAllowed else { throw PlayExperienceError.disabled }
+        return try PlayKitActionCatalog.payload(kind: kind.rawValue, action: "START_CHALLENGE", detail: ["game": .string(kind.rawValue)])
+    }
+
+    private static func resolve(kind: PlayKitScreenKind, playKit: PlayWireValue?, coordinatorPhase: String) -> Phase {
+        switch coordinatorPhase {
+        case "idle", "loading":
+            return .loading
+        case "submitting":
+            return playKit?[kind.rawValue].object == nil ? .loading : .ready
+        case "rejected", "disabled", "stale":
+            return .error
+        case "unknown", "retryable":
+            return .unknown
+        case "ready":
+            guard let playKit else { return .empty }
+            guard playKit.object != nil else { return playKit == .null ? .empty : .unknown }
+            let segment = playKit[kind.rawValue]
+            if segment.object != nil { return .ready }
+            if case .null = segment { return .empty }
+            return .unknown
+        default:
+            return .unknown
+        }
+    }
+
+    private static func hidden(_ kind: PlayKitScreenKind) -> Self {
+        Self(kind: kind, hidden: true, phase: nil, targetSeconds: .unknown, toleranceMilliseconds: .unknown,
+            rounds: .unknown, goalMilliseconds: .unknown, attempts: .unknown, attemptLimit: .unknown,
+            readouts: [], typeInTarget: nil, configurationValid: false, startReviewAllowed: false, offeredPaths: [])
+    }
+
+    private static func presented(kind: PlayKitScreenKind, phase: Phase, segment: PlayWireValue?,
+        showsReadRoute: Bool, showsActionRoute: Bool) -> Self {
+        let source = segment ?? .null
+        let targetKey = kind == .stopwatch ? "targetSeconds" : "seconds"
+        let target = phase == .ready ? number(source[targetKey]) : Fact.unknown
+        let tolerance = phase == .ready && kind == .stopwatch ? number(source["toleranceMs"]) : Fact.unknown
+        let rounds = phase == .ready && kind == .reaction ? number(source["rounds"]) : Fact.unknown
+        let goal = phase == .ready && kind == .reaction ? number(source["goalMs"]) : Fact.unknown
+        let attempts = phase == .ready && kind == .typeIn ? number(source["attempts"]) : Fact.unknown
+        let limit = phase == .ready && kind == .typeIn ? number(source["tries"]) : Fact.unknown
+        var readouts: [Readout] = []
+        if phase == .ready {
+            switch kind {
+            case .countdown:
+                readouts = [Readout(accessibilityIdentifier: "playkit.timed.target", copyKey: "playkit.challenge.target", number: target)]
+            case .stopwatch:
+                readouts = [
+                    Readout(accessibilityIdentifier: "playkit.timed.target", copyKey: "playkit.challenge.target", number: target),
+                    Readout(accessibilityIdentifier: "playkit.timed.tolerance", copyKey: "playkit.stopwatch.tolerance", number: tolerance)
+                ]
+            case .reaction:
+                readouts = [
+                    Readout(accessibilityIdentifier: "playkit.timed.rounds", copyKey: "playkit.reaction.round", number: rounds),
+                    Readout(accessibilityIdentifier: "playkit.timed.goal", copyKey: "playkit.reaction.goal", number: goal)
+                ]
+            case .typeIn:
+                readouts = [
+                    Readout(accessibilityIdentifier: "playkit.timed.target", copyKey: "playkit.challenge.target", number: target),
+                    Readout(accessibilityIdentifier: "playkit.timed.attempts", copyKey: "playkit.attempts", number: attempts),
+                    Readout(accessibilityIdentifier: "playkit.timed.attemptLimit", copyKey: "playkit.attemptLimit", number: limit)
+                ]
+            default:
+                readouts = []
+            }
+        }
+        let typeTarget: TextReadout? = phase == .ready && kind == .typeIn
+            ? TextReadout(accessibilityIdentifier: "playkit.timed.typeTarget", copyKey: "playkit.type.input", text: text(source["target"]))
+            : nil
+        let valid = configurationValid(kind: kind, phase: phase, target: target, typeTarget: typeTarget?.text)
+        let start = phase == .ready && valid && PlayKitActionCatalog.actions[kind.rawValue]?.contains("START_CHALLENGE") == true
+        var paths: [String] = []
+        if showsReadRoute { paths.append(readPath) }
+        if showsActionRoute { paths.append(actionPath) }
+        return Self(kind: kind, hidden: false, phase: phase, targetSeconds: target, toleranceMilliseconds: tolerance,
+            rounds: rounds, goalMilliseconds: goal, attempts: attempts, attemptLimit: limit, readouts: readouts,
+            typeInTarget: typeTarget, configurationValid: valid, startReviewAllowed: start, offeredPaths: paths)
+    }
+
+    private static func configurationValid(kind: PlayKitScreenKind, phase: Phase, target: Fact, typeTarget: TextFact?) -> Bool {
+        guard phase == .ready else { return false }
+        switch kind {
+        case .reaction:
+            return true
+        case .countdown, .stopwatch:
+            guard case .value(let seconds) = target, seconds.isFinite, seconds > 0, seconds <= 3600 else { return false }
+            return true
+        case .typeIn:
+            guard case .value(let seconds) = target, seconds.isFinite, (0...3600).contains(seconds) else { return false }
+            guard let prompt = typeTarget, case .value(let text) = prompt else { return false }
+            return !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        default:
+            return false
+        }
+    }
+}
+
+#if DEBUG
+/// Synthetic timed-challenge documents. Debug builds only. No account, route, or secret.
+public enum PlayKitTimedChallengeFixtureData {
+    public static let countdownSegment = #"{"seconds":30,"submitted":false}"#
+    public static let stopwatchSegment = #"{"targetSeconds":10,"toleranceMs":50,"submitted":false}"#
+    public static let reactionSegment = #"{"rounds":5,"goalMs":400,"submitted":false}"#
+    public static let typeInSegment = #"{"seconds":20,"target":"synthetic phrase","attempts":0,"tries":3,"submitted":false,"passed":false}"#
+    public static let unknownSegment = #"{"seconds":"UNKNOWN","targetSeconds":null,"toleranceMs":"UNKNOWN","rounds":"UNKNOWN","goalMs":null,"attempts":"UNKNOWN","tries":null,"target":null}"#
+    public static let literalZeroSegment = #"{"seconds":0,"targetSeconds":0,"toleranceMs":0,"rounds":0,"goalMs":0,"attempts":0,"tries":0,"target":""}"#
+    public static func stateJSON(kind: String, segment: String) -> String {
+        "{\"sessionId\":601,\"activityId\":41,\"topicId\":71,\"nodeId\":701,\"version\":2,\"status\":\"RUNNING\",\"readyForBase\":false,\"present\":\"inline\",\"config\":{},\"playKit\":{\"" + kind + "\":" + segment + "}}"
+    }
+    public static var countdownState: String { stateJSON(kind: "countdown", segment: countdownSegment) }
+    public static var emptyState: String { "{\"sessionId\":601,\"activityId\":41,\"topicId\":71,\"nodeId\":701,\"version\":2,\"status\":\"RUNNING\",\"readyForBase\":false,\"present\":\"inline\",\"config\":{},\"playKit\":{}}" }
+    public static func wire(_ json: String) throws -> PlayWireValue {
+        try JSONDecoder().decode(PlayWireValue.self, from: Data(json.utf8))
+    }
+    public static func state(_ json: String) throws -> PlayAdvancedState {
+        try PlayAdvancedState(wire(json))
+    }
+}
+#endif
