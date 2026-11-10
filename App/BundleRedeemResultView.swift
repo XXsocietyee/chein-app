@@ -57,6 +57,11 @@ import SwiftUI
             )
         case .loaded(let presentation, let result):
             VStack(alignment: .leading, spacing: CYSpacing.md) {
+                if presentation == .success || presentation == .rejected {
+                    CYResultMark(kind: presentation == .success ? .success : .failure, size: 96)
+                        .frame(maxWidth: .infinity)
+                        .cyRowTransition()
+                }
                 CYStatusChip(verbatim: headline(presentation), tone: tone(presentation), systemImage: symbol(presentation))
                     .accessibilityIdentifier("bundleRedeem.state")
                 if let name = result.merchantName, !name.isEmpty, presentation == .success {
