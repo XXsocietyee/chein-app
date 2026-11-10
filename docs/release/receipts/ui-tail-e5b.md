@@ -24,3 +24,12 @@ New string keys: none so far (existing keys reused; new ones go to `docs/release
 - NativeChannelMessagePinsView: done (CYHeroHeader, CYSkeleton, CYPillButton reload)
 - NativeChannelMessageRevisionView: done (CYHeroHeader, CYSkeleton, CYPillButton retry)
 - NativeChannelMessageSearchView: done (CYHeroHeader, CYSkeleton, CYPillButton run + retry)
+
+## Batch 4 (items 62-67)
+- NativeClubNotificationDefaultView: done (CYHeroHeader, CYSkeleton, CYPillButton)
+- NativeFriendDirectoryView: done (CYHeroHeader x2, CYSkeleton, CYEmptyState, CYPillButton)
+- NativeFriendHomeView: done (CYHeroHeader x3, CYSkeleton, CYEmptyState, CYPillButton)
+- NativeFriendMetadataView: done (CYHeroHeader, CYSkeleton, CYPillButton primary)
+- NativeFriendPickerView: done (CYPillButton primary)
+- NativeFriendProgressCardView: done (CYSkeleton, CYPillButton)
+- NativeFriendRemovalView: done (CYHeroHeader, CYSkeleton, CYEmptyState, CYPillButton; destructive review stays a role:.destructive Button)
