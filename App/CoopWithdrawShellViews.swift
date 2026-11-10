@@ -14,7 +14,8 @@ import SwiftUI
                              messageIdentifier: "cooperation.withdraw.notice")
                     .listRowBackground(Color.clear)
             } else {
-                Section { CYStatusChip("cooperation.login", tone: .neutral, systemImage: "person.crop.circle.badge.questionmark").accessibilityIdentifier("cooperation.withdraw.login") }
+                CYEmptyState(systemImage: "lock", "cooperation.login", messageIdentifier: "cooperation.withdraw.login", kind: .generic)
+                    .listRowBackground(Color.clear)
             }
         }
         .cyGroupedSurface()
@@ -22,8 +23,10 @@ import SwiftUI
         .cyHeroScreen()
         .questifyBottomAction {
             if isSignedIn {
-                CYPillButton("cooperation.finance.withdraw") { showsSupport = true }
+                // Opens support. It does not submit a withdrawal.
+                CYPillButton("cooperation.finance.withdraw", systemImage: "bubble.left.and.text.bubble.right") { showsSupport = true }
                     .accessibilityIdentifier("cooperation.withdraw.contact")
+                    .accessibilityLabel(Text("cooperation.finance.withdraw"))
             }
         }
         .onChange(of: isSignedIn) { _, signedIn in if !signedIn { showsSupport = false } }
@@ -45,10 +48,16 @@ import SwiftUI
             if let reader = reader ?? composedReader {
                 WalletWithdrawalsView(reader: reader)
             } else {
-                CYEmptyState(systemImage: "exclamationmark.triangle", "cooperation.withdrawRecords.failed.title",
-                             detail: "cooperation.withdrawRecords.failed.detail",
-                             messageIdentifier: "cooperation.withdrawRecords.failed",
-                             actionTitle: "cooperation.refresh", actionIdentifier: "cooperation.withdrawRecords.retry") { attempt += 1 }
+                List {
+                    CYEmptyState(systemImage: "exclamationmark.triangle", "cooperation.withdrawRecords.failed.title",
+                                 detail: "cooperation.withdrawRecords.failed.detail",
+                                 messageIdentifier: "cooperation.withdrawRecords.failed",
+                                 actionTitle: "cooperation.refresh", actionIdentifier: "cooperation.withdrawRecords.retry",
+                                 actionStyle: .primary, kind: .failure) { attempt += 1 }
+                        .listRowBackground(Color.clear)
+                }
+                .cyGroupedSurface()
+                .cyMiniListScreen()
             }
         }
         .id(attempt)
@@ -63,9 +72,17 @@ import SwiftUI
     let isSignedIn: Bool
     @Environment(\.coopWalletReader) private var walletReader
     var body: some View {
-        NavigationLink { CoopWithdrawNoticeView(isSignedIn: isSignedIn) } label: { Text("cooperation.withdraw.entry") }
-            .accessibilityIdentifier("cooperation.withdraw.open")
-        NavigationLink { CoopWithdrawRecordsShell(reader: walletReader) } label: { Text("cooperation.withdrawRecords.title") }
-            .accessibilityIdentifier("cooperation.withdrawRecords.open")
+        NavigationLink { CoopWithdrawNoticeView(isSignedIn: isSignedIn) } label: {
+            CYListRow("cooperation.withdraw.entry", meta: "cooperation.withdraw.subtitle", trailing: .none) {
+                CYRowIcon(systemImage: "bubble.left.and.text.bubble.right")
+            }
+        }
+        .accessibilityIdentifier("cooperation.withdraw.open")
+        NavigationLink { CoopWithdrawRecordsShell(reader: walletReader) } label: {
+            CYListRow("cooperation.withdrawRecords.title", meta: "cooperation.withdrawRecords.subtitle", trailing: .none) {
+                CYRowIcon(systemImage: "list.bullet")
+            }
+        }
+        .accessibilityIdentifier("cooperation.withdrawRecords.open")
     }
 }
