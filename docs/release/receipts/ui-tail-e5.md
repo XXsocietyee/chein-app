@@ -99,3 +99,10 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - NativeChannelCheckinView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
 - NativeChannelChainView: done (CYHeroHeader, CYPillButton primary, CYEmptyState, CYSkeleton)
 - NativeBlacklistView: done (CYHeroHeader, CYSkeleton)
+
+## Batch 15 (reverse, forward-region files 20..24)
+- MyProjectMutationViews: done (CYSkeleton)
+- ModVenueOperationsView: SKIPPED (venue operator console, merchant-only)
+- ModUpgradeView: done (CYHeroHeader)
+- ModSettlementViews: done (CYHeroHeader x2, CYSkeleton)
+- ModOwnedContentReportView: done (CYHeroHeader, CYPillButton)
