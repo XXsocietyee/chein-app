@@ -11,10 +11,27 @@ import SwiftUI
         Group {
             if let model = owner.model {
                 NativeChannelProgressPrivacyView(model: model, loadsOnAppear: false).id(owner.visitID)
-            } else if owner.attempted {
-                CYEmptyState(systemImage: "hand.raised", "d7.channelProgress.closed", tableName: "NativeChannelProgress")
+            } else {
+                List {
+                    Section {
+                        CYHeroHeader("privacy", tableName: "NativeChannelProgress")
+                            .listRowBackground(Color.clear)
+                            .listRowInsets(EdgeInsets())
+                    }
+                    if owner.attempted {
+                        CYEmptyState(systemImage: "hand.raised", "d7.channelProgress.closed", tableName: "NativeChannelProgress")
+                    } else {
+                        CYSkeleton()
+                            .accessibilityElement(children: .ignore)
+                            .accessibilityLabel(Text("cy.state.loading"))
+                            .listRowBackground(Color.clear)
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
+                .nativeChannelScreen()
+                .cyHeroScreen()
             }
-            else { CYLoadingStateView(rows: 2) }
         }
         .onAppear { isVisible = true; reopen() }
         .onDisappear { isVisible = false; owner.retire() }
@@ -74,9 +91,16 @@ import SwiftUI
     @State private var showsConfirmation = false
     var body: some View {
         Form {
-            Section { CYHeroHeader("privacy", tableName: "NativeChannelProgress").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
-            if model.busy { ProgressView() }
-            if !model.isCurrent { Text("d7.channelProgress.closed", tableName: "NativeChannelProgress") }
+            Section {
+                CYHeroHeader("privacy", tableName: "NativeChannelProgress")
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets())
+            }
+            if model.busy { NativeChannelProgressPrivacyLoading() }
+            if !model.isCurrent {
+                CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.closed"), tone: .warning, systemImage: "lock")
+                    .accessibilityLabel(Text("d7.channelProgress.closed", tableName: "NativeChannelProgress"))
+            }
             if model.isCurrent, let values = draft {
                 NativeChannelProgressScopePickers(values: Binding(get: { draft ?? values }, set: { draft = $0 }))
                     .disabled(!model.canSavePrivacy)
@@ -84,37 +108,67 @@ import SwiftUI
             if let current = model.privacy {
                 Section {
                     if let effective = current.effective {
-                        LabeledContent { Text(LocalizedStringKey(effective.aggregateScope.rawValue), tableName: "NativeChannelProgress") } label: { Text("d7.channelProgress.aggregate", tableName: "NativeChannelProgress") }
-                        LabeledContent { Text(LocalizedStringKey(effective.detailScope.rawValue), tableName: "NativeChannelProgress") } label: { Text("d7.channelProgress.detailScope", tableName: "NativeChannelProgress") }
+                        CYListRow(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.aggregate"), trailing: .value(NativeChannelProgressCopy.text(effective.aggregateScope.rawValue))) {
+                            CYRowIcon(systemImage: "person.3")
+                        }
+                        CYListRow(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.detailScope"), trailing: .value(NativeChannelProgressCopy.text(effective.detailScope.rawValue))) {
+                            CYRowIcon(systemImage: "list.bullet")
+                        }
                     }
                     if let at = current.updatedAt {
-                        LabeledContent { Text(verbatim: NativeChannelProgressDateText.text(at)) } label: { Text("d7.channelProgress.updatedLabel", tableName: "NativeChannelProgress") }
+                        CYListRow(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.updatedLabel"), trailing: .value(NativeChannelProgressDateText.text(at))) {
+                            CYRowIcon(systemImage: "clock")
+                        }
                     }
-                } header: { Text("d7.channelProgress.effective", tableName: "NativeChannelProgress") }
+                } header: { NativeChannelSectionTitle(key: "d7.channelProgress.effective") }
             }
             Section {
-                if model.pendingCommand != nil {
+                if let command = model.pendingCommand {
                     Text("d7.channelProgress.originalPending", tableName: "NativeChannelProgress")
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text(verbatim: command.requestId)
+                        .font(CYTypography.meta)
+                        .monospaced()
+                        .foregroundStyle(CYColor.textSecondary)
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
                     CYPillButton("d7.channelProgress.checkOriginal", style: .secondary, tableName: "NativeChannelProgress") { actions.run { await model.recoverOriginal() } }
-                        .disabled(model.busy).accessibilityIdentifier("channelProgress.checkOriginal")
+                        .disabled(model.busy)
+                        .accessibilityIdentifier("channelProgress.checkOriginal")
+                        .accessibilityLabel(Text("d7.channelProgress.checkOriginal", tableName: "NativeChannelProgress"))
                     CYPillButton("d7.channelProgress.retryOriginal", style: .secondary, tableName: "NativeChannelProgress") { actions.run { await model.recoverOriginal(retryOriginal: true) } }
-                        .disabled(model.busy).accessibilityIdentifier("channelProgress.retryOriginal")
+                        .disabled(model.busy)
+                        .accessibilityIdentifier("channelProgress.retryOriginal")
+                        .accessibilityLabel(Text("d7.channelProgress.retryOriginal", tableName: "NativeChannelProgress"))
                 }
                 if model.privacyPhase == .unresolved { Text("d7.channelProgress.outcomeUnknown", tableName: "NativeChannelProgress").nativeChannelNotice(systemImage: "clock") }
-                if model.privacyPhase == .conflict { Text("d7.channelProgress.privacyConflict", tableName: "NativeChannelProgress") }
-                if model.privacyPhase == .persistenceFailed { Text("d7.channelProgress.persistenceFailed", tableName: "NativeChannelProgress") }
+                if model.privacyPhase == .conflict {
+                    CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.privacyConflict"), tone: .danger, systemImage: "exclamationmark.triangle")
+                        .accessibilityLabel(Text("d7.channelProgress.privacyConflict", tableName: "NativeChannelProgress"))
+                }
+                if model.privacyPhase == .persistenceFailed {
+                    CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.persistenceFailed"), tone: .danger, systemImage: "exclamationmark.circle")
+                        .accessibilityLabel(Text("d7.channelProgress.persistenceFailed", tableName: "NativeChannelProgress"))
+                }
                 if let receipt = model.receipt, receipt.status == "APPLIED" {
-                    Label { Text("d7.channelProgress.applied", tableName: "NativeChannelProgress") } icon: { Image(systemName: "checkmark.circle") }
+                    CYStatusChip(verbatim: NativeChannelProgressCopy.text("d7.channelProgress.applied"), tone: .success, systemImage: "checkmark.circle")
                         .accessibilityIdentifier("channelProgress.applied")
+                        .accessibilityLabel(Text("d7.channelProgress.applied", tableName: "NativeChannelProgress"))
                 }
                 CYPillButton("d7.channelProgress.save", tableName: "NativeChannelProgress") {
                     confirmation.prepare(current: model.privacy, draft: draft, canSave: model.canSavePrivacy)
                     showsConfirmation = confirmation.review != nil
-                }.disabled(!model.canSavePrivacy || draft == nil)
-                    .accessibilityIdentifier("channelProgress.savePrivacy")
+                }
+                .disabled(!model.canSavePrivacy || draft == nil)
+                .accessibilityIdentifier("channelProgress.savePrivacy")
+                .accessibilityLabel(Text("d7.channelProgress.save", tableName: "NativeChannelProgress"))
             }
             NativeChannelProgressIssueView(model: model, part: "privacy")
-        }.nativeChannelScreen().cyGroupedSurface().cyHeroScreen().privacySensitive()
+        }
+        .contentMargins(.horizontal, CYSpacing.pageHorizontal, for: .scrollContent)
+        .nativeChannelScreen()
+        .cyHeroScreen()
+        .privacySensitive()
         .onAppear { confirmation.enter(); actions.activate() }
         .task {
             if loadsOnAppear { await model.loadPrivacy() }
@@ -151,6 +205,15 @@ import SwiftUI
         }
     }
 }
+private struct NativeChannelProgressPrivacyLoading: View {
+    var body: some View {
+        CYSkeleton()
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("cy.state.loading"))
+            .listRowBackground(Color.clear)
+    }
+}
+
 private struct NativeChannelProgressScopePickers: View {
     @Binding var values: NativeChannelProgressPrivacyValues
     var body: some View {
@@ -167,6 +230,6 @@ private struct NativeChannelProgressScopePickers: View {
             Picker(selection: $values.leaderboardScope) {
                 ForEach(NativeChannelProgressLeaderboardScope.allCases, id: \.self) { Text(LocalizedStringKey($0.rawValue), tableName: "NativeChannelProgress").tag($0) }
             } label: { Text("d7.channelProgress.leaderboard", tableName: "NativeChannelProgress") }.accessibilityIdentifier("channelProgress.leaderboardScope")
-        } header: { Text("d7.channelProgress.whoCanSee", tableName: "NativeChannelProgress") }
+        } header: { NativeChannelSectionTitle(key: "d7.channelProgress.whoCanSee") }
     }
 }
