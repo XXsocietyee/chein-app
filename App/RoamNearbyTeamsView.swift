@@ -56,7 +56,7 @@ enum NearbyOwnedTeamsStatus: Equatable {
                     focusTeamID: focusTeamID, onSignIn: onSignIn,
                     joinedTeamsStatus: owned.currentStatus(owner: expectedOwner),
                     retryJoinedTeams: { Task { await load(visit: expectedVisit, owner: expectedOwner) } })
-            } else { ProgressView("team.loading") }
+            } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("team.loading")) }
         }
         .task(id: session.teamViewIdentity) {
             guard !Task.isCancelled else { return }

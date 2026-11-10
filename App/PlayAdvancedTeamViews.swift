@@ -88,7 +88,7 @@ import SwiftUI
             if let metric = model.leaderboardMetric {
                 Text(metric == .elapsed ? "advancedBoard.elapsed" : metric == .units ? "advancedBoard.units" : "advancedBoard.score").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
                 Text("advancedBoard.scope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                if model.leaderboardPhase == "loading" { ProgressView("advancedBoard.loading") }
+                if model.leaderboardPhase == "loading" { CYLoadingStateView(rows: 1).accessibilityLabel(Text("advancedBoard.loading")) }
                 else if model.leaderboardPhase == "failed" { CYStatusChip("advancedBoard.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("advancedBoard.failed") }
                 else if model.leaderboardPhase == "ready" && model.leaderboard.isEmpty { CYEmptyState(systemImage: "list.number", "advancedBoard.empty", messageIdentifier: "advancedBoard.empty") }
                 ForEach(Array(model.leaderboard.enumerated()), id: \.offset) { _, row in
