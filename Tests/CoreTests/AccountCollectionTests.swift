@@ -178,6 +178,54 @@ final class AccountCollectionTests: XCTestCase {
             XCTAssertThrowsError(try coupon(json))
         }
     }
+    func testPublicShopProjectionKeepsLiteralZeroAndLeavesUnknownCoordinatesUnknown() throws {
+        let placed = try coupon(#"{"id":1,"shopName":" Sample shop ","shopAddress":" Sample road ","shopLat":31.2,"shopLng":121.5}"#)
+        XCTAssertEqual(placed.shopName, "Sample shop")
+        XCTAssertEqual(placed.shopAddress, "Sample road")
+        XCTAssertEqual(placed.shopLatitude, 31.2)
+        XCTAssertEqual(placed.shopLongitude, 121.5)
+        XCTAssertEqual(placed.shopLatitudeText, String(31.2))
+        XCTAssertEqual(placed.shopLongitudeText, "121.5")
+        let whole = try coupon(#"{"id":2,"shopLat":8,"shopLng":-2}"#)
+        XCTAssertEqual(whole.shopLatitudeText, "8")
+        XCTAssertEqual(whole.shopLongitudeText, "-2")
+        XCTAssertNotEqual(placed.shopLatitudeText, "—")
+        XCTAssertNotEqual(placed.shopLatitudeText, "0")
+        XCTAssertTrue(placed.hasShopNavigation)
+        let zero = try coupon(#"{"id":1,"shopLat":0,"shopLng":0}"#)
+        XCTAssertEqual(zero.shopLatitude, 0)
+        XCTAssertEqual(zero.shopLongitude, 0)
+        XCTAssertEqual(zero.shopLatitudeText, "0")
+        XCTAssertEqual(zero.shopLongitudeText, "0")
+        XCTAssertTrue(zero.hasShopNavigation)
+        XCTAssertNil(zero.shopName)
+        XCTAssertNil(zero.shopAddress)
+        for json in [
+            #"{"id":1}"#,
+            #"{"id":1,"shopName":null,"shopAddress":null,"shopLat":null,"shopLng":null}"#,
+            #"{"id":1,"shopName":" ","shopAddress":"","shopLat":"31.2","shopLng":"0"}"#,
+            #"{"id":1,"shopName":12,"shopAddress":false,"shopLat":true,"shopLng":{}}"#,
+        ] {
+            let item = try coupon(json)
+            XCTAssertNil(item.shopName, json)
+            XCTAssertNil(item.shopAddress, json)
+            XCTAssertNil(item.shopLatitude, json)
+            XCTAssertNil(item.shopLongitude, json)
+            XCTAssertEqual(item.shopLatitudeText, AccountCollectionCoupon.unknownCountText)
+            XCTAssertEqual(item.shopLongitudeText, "—")
+            XCTAssertFalse(item.hasShopNavigation)
+        }
+        let oneAxis = try coupon(#"{"id":1,"shopLat":"0","shopLng":0}"#)
+        XCTAssertNil(oneAxis.shopLatitude)
+        XCTAssertEqual(oneAxis.shopLongitude, 0)
+        XCTAssertEqual(oneAxis.shopLatitudeText, "—")
+        XCTAssertEqual(oneAxis.shopLongitudeText, "0")
+        XCTAssertFalse(oneAxis.hasShopNavigation)
+        let withSecret = try coupon(#"{"id":1,"shopName":"Shop","shopLat":0,"couponCode":"SECRET","qrcodeUrl":"https://example.invalid/x","token":"T","memberId":81}"#)
+        let withoutSecret = try coupon(#"{"id":1,"shopName":"Shop","shopLat":0}"#)
+        XCTAssertEqual(withSecret, withoutSecret)
+        XCTAssertEqual(withSecret.shopLatitudeText, "0")
+    }
     func testCalendarDayPreservesServiceDayAndRejectsImpossibleDates() {
         for raw in ["2026-01-02T00:01:00+08:00", "2026-01-02 23:59:59", " 2026-01-02 "] {
             XCTAssertEqual(AccountCollectionCoupon.calendarDay(raw), "2026.01.02")
