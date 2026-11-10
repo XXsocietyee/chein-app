@@ -226,7 +226,7 @@ struct ActivityDetailView: View {
             place: place,
             stats: [
                 CYShareStat(appLocalized("share.card.stat.price", locale: locale), price),
-                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), detail.remainingInventory.map { String(max(0, $0)) }),
+                CYShareStat(appLocalized("share.card.stat.spots", locale: locale), spotsLeftText(detail)),
                 CYShareStat(appLocalized("share.card.stat.category", locale: locale), summary.categoryNames.first),
             ],
             silhouette: summary.hasValidCoordinates ? [CGPoint(x: 0.5, y: 0.5)] : [],
@@ -535,4 +535,15 @@ enum ActivityLocationAccessibility {
         }
         return parts.joined(separator: ", ")
     }
+}
+
+/// Sum of ticket inventory; unknown (nil) when no ticket or any ticket's inventory is unknown.
+private func spotsLeftText(_ detail: ActivityDetail) -> String? {
+    guard !detail.tickets.isEmpty else { return nil }
+    var total = 0
+    for ticket in detail.tickets {
+        guard let left = ticket.remainingInventory else { return nil }
+        total += max(0, left)
+    }
+    return String(total)
 }
