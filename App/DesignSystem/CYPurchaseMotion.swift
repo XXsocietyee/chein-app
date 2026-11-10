@@ -250,7 +250,7 @@ struct CYBuyBar: View {
             .padding(.horizontal, CYSpacing.md)
             .padding(.vertical, CYSpacing.xs)
             .frame(minHeight: 56, alignment: .leading)
-            .frame(maxWidth: stacked ? .infinity : nil, alignment: .leading)
+            .frame(maxWidth: stacked ? CGFloat.infinity : nil, alignment: .leading)
             .background(
                 Capsule(style: .continuous).fill(summaryOpen ? palette.actionSecondaryBg : .clear)
             )
