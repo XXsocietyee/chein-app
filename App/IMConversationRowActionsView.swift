@@ -99,7 +99,8 @@ struct IMConversationRowButtonToken: Equatable {
         let appearance = model.appearance
         NavigationStack {
             Form {
-                Section { CYHeroHeader(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title")).listRowBackground(Color.clear) }
+                CYHeroHeader(LocalizedStringKey(model.actions.action?.titleKey ?? "im.row.title"))
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 if model.actions.isCurrent {
                     Section {
                         MessagingConversationName(conversation: model.actions.conversation).lineLimit(1)
@@ -116,7 +117,7 @@ struct IMConversationRowButtonToken: Equatable {
                         case .submitting:
                             ProgressView("im.full.submitting").accessibilityIdentifier("im.row.submitting")
                         case .outcomeUnknown:
-                            CYStatusChip("d7.rowActions.unknown", tone: .warning, systemImage: "questionmark.circle")
+                            Text("d7.rowActions.unknown")
                             CYPillButton("d7.rowActions.retry", style: .secondary) {
                                 guard let token = model.prepare(.retryUnchanged, appearance: appearance) else { return }
                                 Task { _ = await model.perform(token) }
@@ -125,18 +126,18 @@ struct IMConversationRowButtonToken: Equatable {
                             .accessibilityIdentifier("im.row.retrySame")
                         case .acknowledged:
                             if model.actions.hasMatchingAcknowledgment {
-                                CYStatusChip("d7.rowActions.done", tone: .success, systemImage: "checkmark.circle")
+                                Label("d7.rowActions.done", systemImage: "checkmark.circle")
                                     .accessibilityIdentifier("im.row.acknowledged")
-                            } else { CYStatusChip("d7.rowActions.mismatch", tone: .warning, systemImage: "exclamationmark.triangle") }
+                            } else { Text("d7.rowActions.mismatch") }
                         case .rejected:
-                            CYStatusChip("d7.rowActions.rejected", tone: .danger, systemImage: "xmark.octagon")
+                            Text("d7.rowActions.rejected")
                         case .closed:
-                            CYStatusChip("im.full.closed", tone: .neutral, systemImage: "lock")
+                            Text("im.full.closed")
                         case .idle:
-                            CYStatusChip("im.full.disabled", tone: .neutral, systemImage: "slash.circle")
+                            Text("im.full.disabled")
                         }
                     }
-                } else { CYEmptyState(systemImage: "person.crop.circle.badge.questionmark", "messaging.signInHint") }
+                } else { Text("messaging.signInHint") }
             }
             .cyGroupedSurface()
             .cyHeroScreen()

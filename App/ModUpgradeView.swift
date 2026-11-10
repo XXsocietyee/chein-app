@@ -45,6 +45,8 @@ import SwiftUI
     @Environment(\.locale) private var locale
     var body: some View {
         Form {
+            CYHeroHeader(verbatim: upgradeString("title", locale: locale))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 if let title = controller.sourceTitle { Text(verbatim: title).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true) }
                 UpgradeFact("oldLicense", controller.source.licenseId)
@@ -109,7 +111,7 @@ import SwiftUI
             Button { Task { await controller.recover() } } label: { upgradeText("refresh") }.disabled(controller.busy)
         }
         .font(Theme.Font.body)
-        .navigationTitle(upgradeString("title", locale: locale))
+        .cyHeroScreen()
         .privacySensitive()
         .onAppear { Task { await controller.recover() } }
         .onChange(of: scenePhase) { _, phase in if phase == .active { Task { await controller.recover() } } }

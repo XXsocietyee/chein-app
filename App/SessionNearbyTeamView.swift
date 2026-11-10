@@ -30,7 +30,7 @@ import SwiftUI
                         destinationOwner = renderedOwner; destination = $0
                     }
                     .id(session.teamViewIdentity)
-            } else { ProgressView("team.loading") }
+            } else { CYSkeleton().accessibilityLabel(Text("team.loading")) }
         }
             .task(id: session.teamViewIdentity) {
                 guard !Task.isCancelled else { return }

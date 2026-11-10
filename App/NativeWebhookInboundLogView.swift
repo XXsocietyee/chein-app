@@ -6,6 +6,8 @@ import SwiftUI
     @State private var filter: NativeWebhookInboundState?
     var body: some View {
         List {
+            CYHeroHeader(verbatim: nativeWebhookLocalized("d7.webhook.inbound.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let coordinator = model.coordinator, model.available, coordinator.selected != nil {
                 Section {
                     Picker(nativeWebhookLocalized("d7.webhook.field.status"), selection: $filter) {
@@ -19,7 +21,7 @@ import SwiftUI
                 NativeWebhookStatusSection(model: model)
                 Section {
                     if coordinator.inboundLogs.isEmpty && !coordinator.busy {
-                        ContentUnavailableView(nativeWebhookLocalized("d7.webhook.inbound.empty"), systemImage: "tray")
+                        CYEmptyState(systemImage: "tray", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.inbound.empty")))
                             .accessibilityIdentifier("webhook.inboundLogs.empty")
                     }
                     ForEach(coordinator.inboundLogs) { log in
@@ -39,21 +41,20 @@ import SwiftUI
                         .accessibilityIdentifier("webhook.inbound.\(log.id.rawValue)")
                     }
                     if coordinator.hasMoreLogs {
-                        Button(nativeWebhookLocalized("d7.webhook.loadMore")) { Task { await read(nextPage: true) } }
+                        CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.loadMore"), style: .secondary) { Task { await read(nextPage: true) } }
                             .disabled(coordinator.busy).accessibilityIdentifier("webhook.inboundLogs.more")
                     }
                 }
                 Section {
-                    Button(nativeWebhookLocalized("d7.webhook.reload")) { Task { await read() } }
+                    CYPillButton(verbatim: nativeWebhookLocalized("d7.webhook.reload"), style: .secondary) { Task { await read() } }
                         .disabled(coordinator.busy).accessibilityIdentifier("webhook.inboundLogs.refresh")
                 }
             } else {
-                ContentUnavailableView(nativeWebhookLocalized("d7.webhook.detail.loadFailed"), systemImage: "exclamationmark.circle",
-                    description: Text(verbatim: nativeWebhookLocalized("d7.webhook.goBack")))
+                CYEmptyState(systemImage: "exclamationmark.circle", LocalizedStringKey(nativeWebhookLocalized("d7.webhook.detail.loadFailed")), detail: LocalizedStringKey(nativeWebhookLocalized("d7.webhook.goBack")))
             }
         }
         .nativeChannelFlowPage()
-        .navigationTitle(nativeWebhookLocalized("d7.webhook.inbound.title"))
+        .cyHeroScreen()
         .task { await read() }
         .onChange(of: filter) { _ in Task { await read() } }
         .refreshable { await read() }

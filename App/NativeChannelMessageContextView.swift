@@ -36,13 +36,14 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
     @Environment(\.dismiss) private var dismiss
     var body:some View {
         List {
-            CYHeroHeader("d7.channelContext.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            CYHeroHeader("d7.channelContext.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !model.isCurrent {
-                CYEmptyState(systemImage: "lock", "d7.channelContext.unavailable")
+                ContentUnavailableView { Label("d7.channelContext.unavailable", systemImage: "lock") }
             }
             else if let page=model.page {
                 if page.older.has_more,let cursor=page.older.next_cursor,let id=NativeChannelMessageID(rawValue:cursor) {
-                    CYPillButton("d7.channelContext.earlier", style: .secondary) {open(id)}
+                    Button("d7.channelContext.earlier") {open(id)}
                 }
                 if !page.older.list.isEmpty {
                     Section {ForEach(page.older.list,id:\.id){row in line(row)}} header: { Text("d7.channelContext.before") }
@@ -52,13 +53,16 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
                     Section {ForEach(page.newer.list,id:\.id){row in line(row)}} header: { Text("d7.channelContext.after") }
                 }
                 if page.newer.has_more,let cursor=page.newer.next_after,let id=NativeChannelMessageID(rawValue:cursor) {
-                    CYPillButton("d7.channelContext.later", style: .secondary) {open(id)}
+                    Button("d7.channelContext.later") {open(id)}
                 }
             } else if model.failed {
-                CYEmptyState(systemImage: "exclamationmark.bubble", "d7.channelContext.failed",
-                             actionTitle: "messaging.retry") { if !(model.loading || phase != .active) { open() } }
+                ContentUnavailableView {
+                    Label("d7.channelContext.failed", systemImage: "exclamationmark.bubble")
+                } actions: {
+                    CYPillButton("messaging.retry", style: .secondary) {open()}.disabled(model.loading || phase != .active)
+                }
             }
-            if model.loading {ProgressView().frame(maxWidth: .infinity)}
+            if model.loading {CYSkeleton().frame(maxWidth: .infinity)}
         }.nativeChannelScreen().listStyle(.insetGrouped).cyHeroScreen().privacySensitive()
         .refreshable { open(); await readTask?.value }
         .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.done") { dismiss() } } }
@@ -74,7 +78,7 @@ struct NativeChannelContextSelection: Identifiable {let id:NativeChannelMessageI
     }
     @ViewBuilder private func line(_ row:NativeChannelMessageSnapshot)->some View {
         VStack(alignment:.leading,spacing:Theme.Space.s1) {
-            Text(verbatim: row.message.senderName ?? "—").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: row.message.senderName ?? "—").font(.footnote).foregroundStyle(.secondary)
             NativeChannelMessageBubbleView(snapshot:row,isCurrent:{model.containsCurrent(row)},
                 locateOriginal:{open($0)},
                 videoOwner:expanded?.videoCoordinator?(row.message.conversationID),

@@ -19,23 +19,23 @@ import SwiftUI
             .pickerStyle(.segmented).labelsHidden()
             .disabled(flow.busy || flow.hasPickerReview)
             HStack {
-                Image(systemName: "magnifyingglass").foregroundStyle(CYColor.textSecondary).accessibilityHidden(true)
+                Image(systemName: "magnifyingglass").foregroundStyle(.secondary).accessibilityHidden(true)
                 TextField("d7.friendPicker.search", text: $search).disabled(flow.busy)
             }
             ForEach(visible) { row in
                 Button { flow.toggle(row) } label: {
                     HStack(spacing: Theme.Space.s3) {
-                        E3Avatar(seed: row.friend.displayName, size: 40).accessibilityHidden(true)
+                        Image(systemName: "person.crop.circle.fill").font(.title2).foregroundStyle(.secondary).accessibilityHidden(true)
                         VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                            Text(verbatim: row.friend.displayName).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                            if row.alreadyMember { CYStatusChip("d7.friendPicker.unavailable", tone: .neutral, systemImage: "person.fill.checkmark") }
+                            Text(verbatim: row.friend.displayName).foregroundStyle(.primary).fixedSize(horizontal: false, vertical: true)
+                            if row.alreadyMember { Text("d7.friendPicker.unavailable").font(Theme.Font.label).foregroundStyle(.secondary) }
                         }
                         Spacer()
                         Image(systemName: flow.selected.contains(row) ? "checkmark.circle.fill" : "circle")
                     }
                 }.disabled(!flow.canWrite || row.alreadyMember || (!flow.selected.contains(row) && flow.selected.count >= 10) || flow.hasPickerReview)
             }
-            if visible.isEmpty && !flow.busy { CYEmptyState(systemImage: "person.2", "d7.friendPicker.empty").listRowBackground(Color.clear) }
+            if visible.isEmpty && !flow.busy { Text("d7.friendPicker.empty").foregroundStyle(.secondary) }
             CYPillButton("d7.friendPicker.next") { flow.prepareCreate() }
                 .listRowBackground(Color.clear)
                 .disabled(!flow.canWrite || flow.selected.isEmpty || flow.hasPickerReview)

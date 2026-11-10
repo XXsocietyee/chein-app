@@ -23,31 +23,30 @@ import SwiftUI
     private var flow: NativeFriendRemovalFlow { model.flow }
     var body: some View {
         Form {
-            Section {
-                CYHeroHeader(LocalizedStringKey("friendRemoval.title"), tableName: "NativeFriendRemoval").listRowBackground(Color.clear)
-            }
+            CYHeroHeader(verbatim: localized("friendRemoval.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let item = flow.presentationItem {
                 Section {
                     HStack(spacing: Theme.Space.s3) {
-                        E3Avatar(seed: item.displayName.isEmpty ? "—" : item.displayName, size: 44).accessibilityHidden(true)
-                        Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textPrimary)
+                        Image(systemName: "person.crop.circle.fill").font(.title).foregroundStyle(.secondary).accessibilityHidden(true)
+                        Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName).font(Theme.Font.sectionTitle)
                             .fixedSize(horizontal: false, vertical: true)
                             .accessibilityIdentifier("friendRemoval.target")
                     }
                 }
             }
-            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendRemoval.loading") }
-            if flow.phase == .closed { CYStatusChip(verbatim: localized("friendRemoval.closed"), tone: .neutral, systemImage: "lock") }
+            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friendRemoval.loading") }
+            if flow.phase == .closed { text("friendRemoval.closed") }
             if let issue = flow.issue {
-                CYStatusChip(verbatim: localized(issue), tone: .warning, systemImage: "exclamationmark.triangle")
+                Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
                     .accessibilityIdentifier("friendRemoval.issue")
             }
             if flow.pending != nil {
                 Section {
-                    CYStatusChip(verbatim: localized("friendRemoval.unknown"), tone: .warning, systemImage: "questionmark.circle")
-                    CYPillButton(verbatim: localized("friendRemoval.recover")) { perform { await flow.recover() } }
+                    text("friendRemoval.unknown")
+                    CYPillButton("friendRemoval.recover", style: .secondary, tableName: "NativeFriendRemoval") { perform { await flow.recover() } }
                         .disabled(!flow.canRecover).accessibilityIdentifier("friendRemoval.recover")
-                    CYPillButton(verbatim: localized("friendRemoval.retryOriginal"), style: .secondary) { retryCommand = flow.pendingCommand; confirmingRetry = true }
+                    Button { retryCommand = flow.pendingCommand; confirmingRetry = true } label: { text("friendRemoval.retryOriginal") }
                         .disabled(!flow.canRetryOriginal).accessibilityIdentifier("friendRemoval.retryOriginal")
                 }
             } else if flow.item == nil && flow.result == nil && flow.phase == .ready {
@@ -55,9 +54,7 @@ import SwiftUI
             }
             if let result = flow.result {
                 Section {
-                    CYStatusChip(verbatim: localized(result.outcome == "APPLIED" ? "friendRemoval.applied" : "friendRemoval.rejected"),
-                                 tone: result.outcome == "APPLIED" ? .success : .danger,
-                                 systemImage: result.outcome == "APPLIED" ? "checkmark" : "xmark")
+                    text(result.outcome == "APPLIED" ? "friendRemoval.applied" : "friendRemoval.rejected")
                         .accessibilityIdentifier("friendRemoval.outcome")
                 }
             }
@@ -71,10 +68,10 @@ import SwiftUI
             }
             if flow.review != nil || (flow.item != nil && flow.result == nil && flow.pending == nil) {
                 Section {
-                    CYPillButton(verbatim: localized("friendRemoval.review"), style: .secondary) {
+                    Button(role: .destructive) {
                         if flow.review == nil { flow.reviewRemoval() }
                         confirmingRemoval = flow.review != nil
-                    }
+                    } label: { text("friendRemoval.review").frame(maxWidth: .infinity) }
                         .disabled(!(flow.canReview || flow.canConfirm)).accessibilityIdentifier("friendRemoval.review")
                 }
             }

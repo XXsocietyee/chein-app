@@ -43,6 +43,8 @@ import SwiftUI
     private var filterActive: Bool { flow.filter.groupID != nil || flow.filter.starredOnly }
     var body: some View {
         List {
+            CYHeroHeader(verbatim: localized("friendDirectory.title"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 Picker(localized("friendDirectory.partition"), selection: Binding(get: { flow.filter.section }, set: { value in
                     var filter = flow.filter; filter.section = value; Task { await flow.select(filter) }
@@ -55,19 +57,18 @@ import SwiftUI
                 .accessibilityIdentifier("friendDirectory.partition")
                 .listRowInsets(EdgeInsets(top: Theme.Space.s2, leading: Theme.Space.pageX, bottom: Theme.Space.s2, trailing: Theme.Space.pageX)).listRowBackground(Color.clear)
             }
-            if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendDirectory.loading") }
+            if flow.busy { CYSkeleton().frame(maxWidth: .infinity).accessibilityIdentifier("friendDirectory.loading") }
             if flow.phase == .closed { text("friendDirectory.closed") }
             if let issue = flow.issue {
                 Section {
                     Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
                         .accessibilityIdentifier("friendDirectory.issue")
-                    Button { Task { await flow.retry() } } label: { text(flow.paginationFailed ? "friendDirectory.retryPage" : "friendDirectory.refresh") }.disabled(flow.busy)
+                    CYPillButton(LocalizedStringKey(flow.paginationFailed ? "friendDirectory.retryPage" : "friendDirectory.refresh"), style: .secondary, tableName: "NativeFriendDirectory") { Task { await flow.retry() } }.disabled(flow.busy)
                 }
             }
             Section {
                 if flow.phase == .ready && flow.items.isEmpty {
-                    ContentUnavailableView { Label { text("friendDirectory.empty") } icon: { Image(systemName: "person.2") } }
-                        .accessibilityIdentifier("friendDirectory.empty")
+                    CYEmptyState(systemImage: "person.2", "friendDirectory.empty", tableName: "NativeFriendDirectory", messageIdentifier: "friendDirectory.empty")
                 }
                 ForEach(flow.items) { item in
                     Button { model.open(item) } label: {
@@ -87,7 +88,7 @@ import SwiftUI
                     }.disabled(flow.busy).accessibilityIdentifier("friendDirectory.peer.\(item.peerID)")
                 }
                 if flow.nextCursor != nil {
-                    Button { Task { await flow.loadMore() } } label: { text("friendDirectory.more") }
+                    CYPillButton("friendDirectory.more", style: .tertiary, tableName: "NativeFriendDirectory") { Task { await flow.loadMore() } }
                         .disabled(flow.busy).accessibilityIdentifier("friendDirectory.more")
                 }
             } header: {
@@ -97,7 +98,7 @@ import SwiftUI
         .listStyle(.plain)
         .font(Theme.Font.body)
         .cyGroupedSurface()
-        .navigationTitle(localized("friendDirectory.title"))
+        .cyHeroScreen()
         .accessibilityIdentifier("friendDirectory.home")
         .task { await flow.load() }
         .refreshable { await flow.load() }
@@ -230,6 +231,8 @@ import SwiftUI
     private var flow: NativeFriendDirectoryDetailFlow { model.flow }
     var body: some View {
         List {
+            CYHeroHeader(verbatim: localized("friendDirectory.detail"))
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 VStack(spacing: Theme.Space.s3) {
                     Image(systemName: "person.crop.circle.fill").font(.largeTitle).imageScale(.large).foregroundStyle(.secondary).accessibilityHidden(true)
@@ -237,7 +240,7 @@ import SwiftUI
                         QuestifyHeroValue(value: Text(verbatim: item.displayName.isEmpty ? "—" : item.displayName))
                             .accessibilityIdentifier("friendDirectory.detailName")
                     } else if flow.busy {
-                        ProgressView()
+                        CYSkeleton()
                     }
                     if let detail = flow.detail {
                         HStack(alignment: .top, spacing: Theme.Space.s2) {
@@ -263,7 +266,7 @@ import SwiftUI
                 Section {
                     Label { text(issue) } icon: { Image(systemName: "exclamationmark.triangle").foregroundStyle(.secondary) }
                         .accessibilityIdentifier("friendDirectory.detailIssue")
-                    Button { Task { await flow.load() } } label: { text("friendDirectory.refresh") }.disabled(flow.busy)
+                    CYPillButton("friendDirectory.refresh", style: .secondary, tableName: "NativeFriendDirectory") { Task { await flow.load() } }.disabled(flow.busy)
                 }
             }
             if let detail = flow.detail {
@@ -289,8 +292,7 @@ import SwiftUI
         .listStyle(.insetGrouped)
         .font(Theme.Font.body)
         .cyGroupedSurface()
-        .navigationTitle(localized("friendDirectory.detail"))
-        .navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .accessibilityIdentifier("friendDirectory.detail")
         .task { await flow.load() }
         .refreshable { await flow.load() }

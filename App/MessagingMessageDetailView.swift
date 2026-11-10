@@ -23,7 +23,8 @@ struct MessagingMessageDetailView: View {
         Group {
             if identity != nil, reader.identity == identity, let message = currentSnapshot {
                 List {
-                    CYHeroHeader("messaging.message.title").listRowBackground(Color.clear).listRowSeparator(.hidden)
+                    CYHeroHeader("messaging.message.title")
+                        .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                     Section("messaging.message.content") {
                         MessagingMessageContent(message: message).textSelection(.enabled)
                     }
@@ -92,7 +93,7 @@ struct MessagingMessageDetailView: View {
                                 if reader.identity == identity, currentSnapshot == message,
                                    let destination = expanded?.channelGovernanceDestination?(notice) { destination }
                                 else {
-                                    CYEmptyState(systemImage: "exclamationmark.circle", "messaging.governance.unavailable")
+                                    ContentUnavailableView("messaging.governance.unavailable", systemImage: "exclamationmark.circle")
                                 }
                             } label: { Label("messaging.governance.open", systemImage: "doc.text.magnifyingglass") }
                             .accessibilityIdentifier("channel.governance.originalNotice")
@@ -154,11 +155,12 @@ struct MessagingMessageDetailView: View {
             if reader.identity == identity, currentSnapshot?.isPayloadVisible == true, let result = selectedReview {
                 NavigationStack {
                     List {
+                        CYHeroHeader("im.full.reviewResult")
+                            .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                         MessagingOptionalRow(title: "messaging.card.outcome", value: result.outcome)
                         MessagingOptionalRow(title: "messaging.card.reason", value: result.reason)
                         MessagingOptionalRow(title: "messaging.card.followUp", value: result.followUp)
-                    }.navigationTitle(Text("im.full.reviewResult"))
-                    .navigationBarTitleDisplayMode(.inline)
+                    }.cyHeroScreen()
                     .toolbar { Button("action.done") { selectedReview = nil } }
                 }.privacySensitive()
                 .presentationDetents([.medium, .large])
@@ -176,36 +178,36 @@ struct MessagingMessageContent: View {
     let message: MessagingMessage
     var body: some View {
         if !message.isPayloadVisible {
-            CYStatusChip(LocalizedStringKey(message.status == .recalled ? "messaging.message.recalled" : "messaging.message.withheld"), tone: .neutral, systemImage: "eye.slash")
-                .accessibilityIdentifier("messaging.message.withheld")
+            Label(LocalizedStringKey(message.status == .recalled ? "messaging.message.recalled" : "messaging.message.withheld"), systemImage: "eye.slash")
+                .foregroundStyle(.secondary).accessibilityIdentifier("messaging.message.withheld")
         } else {
         switch message.type {
         case 1:
-            if let text = message.content, !text.isEmpty { Text(verbatim: text).font(CYTypography.body).foregroundStyle(CYColor.textPrimary) }
-            else { Text("messaging.message.noText").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+            if let text = message.content, !text.isEmpty { Text(verbatim: text) }
+            else { Text("messaging.message.noText").foregroundStyle(.secondary) }
         case 2:
             // Deliberately no AsyncImage/URLSession: external image fetches can disclose
             // the reader's IP or produce tracking side effects. Native placeholder only.
-            CYStatusChip("messaging.imagePlaceholder", tone: .neutral, systemImage: "photo")
-                .accessibilityIdentifier("messaging.message.image")
+            Label("messaging.imagePlaceholder", systemImage: "photo")
+                .foregroundStyle(.secondary).accessibilityIdentifier("messaging.message.image")
         case 3:
             if let card = message.card { MessagingCardContent(card: card, isTrustedSystem: message.senderID == 0) }
-            else { CYStatusChip("messaging.cardUnavailable", tone: .neutral, systemImage: "rectangle.slash") }
+            else { Label("messaging.cardUnavailable", systemImage: "rectangle.slash").foregroundStyle(.secondary) }
         case 4:
             if message.pollReference != nil {
                 VStack(alignment: .leading, spacing: 6) {
-                    Label("poll.title", systemImage: "chart.bar.xaxis").font(CYTypography.cardTitle)
+                    Label("poll.title", systemImage: "chart.bar.xaxis").font(.headline)
                 }.accessibilityIdentifier("poll.messageCard")
             } else { Label("poll.invalidCard", systemImage: "exclamationmark.bubble").accessibilityIdentifier("poll.invalidCard") }
         case 13:
             if let place = IMStaticLocation.read(message) { IMStaticLocationCardView(place: place) }
-            else { CYStatusChip("messaging.unsupported", tone: .neutral, systemImage: "questionmark.bubble") }
+            else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
         case 9:
             if message.pollReference != nil {
                 Label("poll.openResults", systemImage: "chart.bar.xaxis")
-            } else { CYStatusChip("messaging.unsupported", tone: .neutral, systemImage: "questionmark.bubble") }
+            } else { Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary) }
         default:
-            CYStatusChip("messaging.unsupported", tone: .neutral, systemImage: "questionmark.bubble")
+            Label("messaging.unsupported", systemImage: "questionmark.bubble").foregroundStyle(.secondary)
         }
     }
     }
@@ -218,20 +220,20 @@ private struct MessagingCardContent: View {
         VStack(alignment: .leading, spacing: 7) {
             switch card.kind {
             case .location:
-                Label("messaging.card.location", systemImage: "mappin.and.ellipse").font(CYTypography.cardTitle)
+                Label("messaging.card.location", systemImage: "mappin.and.ellipse").font(.headline)
                 if let title = card.title { Text(verbatim: title) }
-                if let address = card.address { Text(verbatim: address).foregroundStyle(CYColor.textSecondary) }
+                if let address = card.address { Text(verbatim: address).foregroundStyle(.secondary) }
             case .route:
-                Label("messaging.card.route", systemImage: "point.topleft.down.to.point.bottomright.curvepath").font(CYTypography.cardTitle)
+                Label("messaging.card.route", systemImage: "point.topleft.down.to.point.bottomright.curvepath").font(.headline)
                 if let title = card.title { Text(verbatim: title) }
             case .signup:
-                Label("messaging.card.signup", systemImage: "ticket").font(CYTypography.cardTitle)
+                Label("messaging.card.signup", systemImage: "ticket").font(.headline)
                 if let title = card.title { Text(verbatim: title) }
             case .generic:
-                if let title = card.title { Text(verbatim: title).font(CYTypography.cardTitle) }
-                else { Text("messaging.card.notification").font(CYTypography.cardTitle) }
+                if let title = card.title { Text(verbatim: title).font(.headline) }
+                else { Text("messaging.card.notification").font(.headline) }
                 if let subtitle = card.subtitle { Text(verbatim: subtitle) }
-                if let meta = card.meta { Text(verbatim: meta).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                if let meta = card.meta { Text(verbatim: meta).font(.caption).foregroundStyle(.secondary) }
             }
         }
     }

@@ -9,13 +9,13 @@ import SwiftUI
     var body: some View {
         Section {
             switch model.state {
-            case .awaitingIndex: CYStatusChip(verbatim: String(localized: "friendIndexPending", table: "NativeChannelProgress"), tone: .neutral, systemImage: "hourglass")
-            case .loading: ProgressView()
-            case .hidden: CYStatusChip(verbatim: String(localized: "hidden", table: "NativeChannelProgress"), tone: .neutral, systemImage: "eye.slash")
-            case .unconfirmed: CYStatusChip(verbatim: String(localized: "unconfirmed", table: "NativeChannelProgress"), tone: .warning, systemImage: "questionmark.circle")
-            case .closed: CYStatusChip(verbatim: String(localized: "closed", table: "NativeChannelProgress"), tone: .neutral, systemImage: "lock")
+            case .awaitingIndex: Text("friendIndexPending", tableName: "NativeChannelProgress")
+            case .loading: CYSkeleton()
+            case .hidden: Text("hidden", tableName: "NativeChannelProgress")
+            case .unconfirmed: Text("unconfirmed", tableName: "NativeChannelProgress")
+            case .closed: Text("closed", tableName: "NativeChannelProgress")
             case .visible(let rows):
-                if rows.isEmpty { CYEmptyState(systemImage: "person.2", "friendEmpty", tableName: "NativeChannelProgress") }
+                if rows.isEmpty { Text("friendEmpty", tableName: "NativeChannelProgress") }
                 ForEach(rows) { row in
                     LabeledContent {
                         VStack(alignment: .trailing, spacing: Theme.Space.s1) {
@@ -25,14 +25,14 @@ import SwiftUI
                         }
                     } label: {
                         VStack(alignment: .leading, spacing: Theme.Space.s1) {
-                            Text(verbatim: row.title).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
-                            if let at = row.meter.asOf { Text(verbatim: at).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                            Text(verbatim: row.title).fixedSize(horizontal: false, vertical: true)
+                            if let at = row.meter.asOf { Text(verbatim: at).font(Theme.Font.label).foregroundStyle(.secondary) }
                         }
                     }
                 }
             }
             if model.state != .loading {
-                CYPillButton("d7.friendProgress.refresh", style: .secondary, systemImage: "arrow.clockwise") { Task { await model.activate() } }
+                CYPillButton("d7.friendProgress.refresh", style: .tertiary) { Task { await model.activate() } }
             }
         } header: { Text("friendProgress", tableName: "NativeChannelProgress") }
         .font(Theme.Font.body)

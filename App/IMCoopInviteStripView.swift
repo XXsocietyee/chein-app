@@ -49,8 +49,10 @@ import SwiftUI
     @ViewBuilder private var content: some View {
         switch phase {
         case .loading:
-            ProgressView(copy("正在加载合作邀请", "Loading invites"))
+            CYSkeleton()
                 .frame(maxWidth: .infinity, minHeight: 44)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(Text(verbatim: copy("正在加载合作邀请", "Loading invites")))
                 .accessibilityIdentifier("im.coopStrip.loading")
         case .failed(let issue):
             HStack(spacing: CYSpacing.sm) {
@@ -63,9 +65,9 @@ import SwiftUI
                 }
             }.accessibilityElement(children: .combine).accessibilityIdentifier("im.coopStrip.error")
         case .ready(let cards) where cards.isEmpty:
-            CYStatusChip(verbatim: direction == .received ? copy("还没有收到合作邀请", "No invites received yet")
-                                                           : copy("还没有发出的合作邀请", "No invites sent yet"),
-                         tone: .neutral, systemImage: "tray")
+            Text(verbatim: direction == .received ? copy("还没有收到合作邀请", "No invites received yet")
+                                                   : copy("还没有发出的合作邀请", "No invites sent yet"))
+                .font(CYTypography.bodyCompact).foregroundStyle(CYColor.textTertiary)
                 .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading)
                 .accessibilityIdentifier("im.coopStrip.empty")
         case .ready(let cards):
@@ -87,7 +89,7 @@ import SwiftUI
         CYCard(variant: .surface, radius: CYRadius.md, padding: CYSpacing.md) {
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
                 HStack(spacing: CYSpacing.sm) {
-                    CYStatusChip(verbatim: card.statusText(chinese: chinese), tone: statusTone(card.tone))
+                    CYStatusChip(verbatim: card.statusText(chinese: chinese), tone: chipTone(card.tone))
                     Text(verbatim: (card.key.direction == .received ? copy("来自 ", "From ") : copy("发给 ", "To "))
                          + (card.partnerName ?? copy("合作方", "Partner")))
                         .font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).lineLimit(1)
@@ -111,21 +113,12 @@ import SwiftUI
         .accessibilityHint(Text(verbatim: copy("打开邀请详情", "Opens invite details")))
     }
 
-    private func statusTone(_ tone: IMCoopInviteCard.Tone) -> CYStatusTone {
+    private func chipTone(_ tone: IMCoopInviteCard.Tone) -> CYStatusTone {
         switch tone {
         case .pending: return .warning
         case .accepted: return .success
         case .rejected: return .danger
         case .muted: return .neutral
-        }
-    }
-
-    private func tone(_ tone: IMCoopInviteCard.Tone) -> Color {
-        switch tone {
-        case .pending: return CYColor.warningText
-        case .accepted: return CYColor.successText
-        case .rejected: return CYColor.dangerText
-        case .muted: return CYColor.textTertiary
         }
     }
 

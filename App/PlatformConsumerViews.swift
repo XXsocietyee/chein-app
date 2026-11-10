@@ -10,8 +10,8 @@ import SwiftUI
         VStack(alignment: .leading, spacing: 10) {
             Label("platform.audio.title", systemImage: "speaker.wave.2")
             Text(LocalizedStringKey("platform.audio." + String(describing: model.state))).accessibilityIdentifier("platform.audio.state")
-            if model.state == .loading { ProgressView("platform.audio.loading") }
-            Button(model.state == .playing ? "platform.audio.pause" : "platform.audio.play") {
+            if model.state == .loading { CYSkeleton() }
+            CYPillButton(model.state == .playing ? "platform.audio.pause" : "platform.audio.play", style: .secondary) {
                 if model.state == .playing || model.state == .paused { model.toggle() } else { review = true }
             }.disabled(model.state == .gated || model.state == .disposed || model.state == .loading)
                 .accessibilityIdentifier("platform.audio.toggle")
@@ -36,12 +36,12 @@ import SwiftUI
     @Environment(\.scenePhase) private var scenePhase
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Button("platform.map.open") { review = true }.disabled(model.state == .gated || model.state == .opening)
+            CYPillButton("platform.map.open", style: .secondary) { review = true }.disabled(model.state == .gated || model.state == .opening)
                 .accessibilityIdentifier("platform.map.open")
             Text(LocalizedStringKey("platform.map." + String(describing: model.state))).font(.footnote)
                 .accessibilityIdentifier("platform.map.state")
             if model.state == .launchFailed || model.state == .copyFailed || model.state == .noCoordinates {
-                Button("platform.map.copy") { model.copySelectedAddress() }.accessibilityIdentifier("platform.map.copy")
+                CYPillButton("platform.map.copy", style: .tertiary) { model.copySelectedAddress() }.accessibilityIdentifier("platform.map.copy")
             }
         }
         .confirmationDialog("platform.map.review", isPresented: $review, titleVisibility: .visible) {

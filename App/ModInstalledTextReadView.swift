@@ -47,13 +47,15 @@ import SwiftUI
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader(verbatim: zh ? "原安装正文" : "Original installed text")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Section {
                     Text(zh ? "仅本人原生文字/选择题原安装快照，不是当前编辑稿，不授权保存、导出、发布或开局。qmod、组合主题和H5仍使用其原入口。" : "Your original native text/choice snapshot only—not the current edited draft, or permission to save, export, publish or play. qmod, composed topics and H5 keep their existing entries.")
                 }
                 if phase != .active {
                     Text(zh ? "已隐藏私密正文" : "Private content hidden")
                 } else if reader.loading {
-                    ProgressView()
+                    CYSkeleton()
                 } else if let value = reader.content, reader.available {
                     Section(zh ? "原安装与冻结版本" : "Original installation and frozen version") {
                         LabeledContent(zh ? "原请求" : "Original request", value: value.requestId)
@@ -91,7 +93,7 @@ import SwiftUI
                     }.disabled(!reader.available)
                 }
             }
-            .navigationTitle(zh ? "原安装正文" : "Original installed text")
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button(zh ? "关闭" : "Close") { reader.retire(); retry?.cancel(); onClose() }
             } }

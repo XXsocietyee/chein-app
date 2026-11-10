@@ -14,7 +14,8 @@ import SwiftUI
         // Observe revisions without replacing the recording/upload presentation identity.
         let _ = revision
         Form {
-            Section { CYHeroHeader("d7.imVoice.title").listRowBackground(Color.clear) }
+            CYHeroHeader("d7.imVoice.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
@@ -143,14 +144,15 @@ import SwiftUI
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMVoiceReference.read(message) != nil }
     var body: some View {
         Form {
-            Section { CYHeroHeader("d7.imVoice.message").listRowBackground(Color.clear) }
+            CYHeroHeader("d7.imVoice.message")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let voice = IMVoiceReference.read(message), available {
                 Section {
                     LabeledContent {
                         IMDurationText(milliseconds: voice.durationMS)
                     } label: { Label("d7.imVoice.message", systemImage: "waveform") }
                     if owner.service.playbackEnabled && owner.service.playbackStatusEnabled {
-                        CYPillButton("d7.imVoice.play", systemImage: "play.fill") {
+                        Button {
                             guard available, !loading else { return }
                             stop(); let stamp = generation; loading = true; failed = false
                             Task { @MainActor in
@@ -164,10 +166,10 @@ import SwiftUI
                                     monitorPlayback(stamp: stamp, durationMS: voice.durationMS)
                                 } catch { if generation == stamp { failPlayback(error) } }
                             }
-                        }
+                        } label: { Label("d7.imVoice.play", systemImage: "play.fill") }
                         .disabled(loading)
                     }
-                    CYPillButton("d7.imVoice.stop", style: .secondary, systemImage: "stop.fill") { stop() }
+                    Button { stop() } label: { Label("d7.imVoice.stop", systemImage: "stop.fill") }
                 }
             } else { IMFlowStateMessage(text: Text("d7.imVoice.messageUnavailable"), symbol: "lock") }
             if loading { ProgressView("d7.imCompose.loading") }

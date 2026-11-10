@@ -212,13 +212,15 @@ private struct OwnMediaAudioPreviewViewIdentity: Hashable {
     var body: some View {
         NavigationStack {
             Form {
+                CYHeroHeader("title", tableName: "OwnMediaAudioPreview")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
                 Text("privateOnly", tableName: "OwnMediaAudioPreview")
                 if model.available, model.presentation == offered {
                     OwnMediaAudioPreviewControls(model: model, offered: offered, operation: model.controlRevision)
                 } else { Text("unavailable", tableName: "OwnMediaAudioPreview") }
                 Text("limits", tableName: "OwnMediaAudioPreview").font(.footnote).foregroundStyle(.secondary)
             }
-            .navigationTitle(Text("title", tableName: "OwnMediaAudioPreview"))
+            .cyHeroScreen()
             .toolbar { ToolbarItem(placement: .cancellationAction) {
                 Button { model.close(offered) } label: { Text("close", tableName: "OwnMediaAudioPreview") }.frame(minWidth: 44, minHeight: 44)
             } }
@@ -232,18 +234,18 @@ private struct OwnMediaAudioPreviewViewIdentity: Hashable {
     let offered: UUID, operation: UUID
     var body: some View {
         switch model.phase {
-        case .loading: ProgressView { Text("loading", tableName: "OwnMediaAudioPreview") }
+        case .loading: CYSkeleton()
         case .ready, .playing, .paused:
-            Button { model.toggle(offered, operation: operation) } label: {
-                Text(LocalizedStringKey(model.phase == .playing ? "pause" : "play"), tableName: "OwnMediaAudioPreview")
-            }.frame(minHeight: 44).accessibilityIdentifier("member.media.audioPreview.playPause")
+            CYPillButton(LocalizedStringKey(model.phase == .playing ? "pause" : "play"), tableName: "OwnMediaAudioPreview") {
+                model.toggle(offered, operation: operation)
+            }.accessibilityIdentifier("member.media.audioPreview.playPause")
             Slider(value: Binding(get: { model.position }, set: { model.seek(offered, operation: operation, to: $0) }), in: 0...max(1, model.duration)) {
                 Text("position", tableName: "OwnMediaAudioPreview")
             }.accessibilityIdentifier("member.media.audioPreview.position")
             Text(verbatim: "\(Int(model.position)) / \(Int(model.duration)) s").monospacedDigit()
         case .failed, .expired, .ended:
             Text(LocalizedStringKey(model.phase == .expired ? "expired" : model.phase == .ended ? "ended" : "failed"), tableName: "OwnMediaAudioPreview")
-            Button { model.retry(offered, operation: operation) } label: { Text("retry", tableName: "OwnMediaAudioPreview") }.frame(minHeight: 44)
+            CYPillButton("retry", style: .secondary, tableName: "OwnMediaAudioPreview") { model.retry(offered, operation: operation) }
         case .idle: Text("unavailable", tableName: "OwnMediaAudioPreview")
         }
     }

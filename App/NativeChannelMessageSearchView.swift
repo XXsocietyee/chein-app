@@ -24,7 +24,8 @@ import SwiftUI
     }
     var body: some View {
         List {
-            CYHeroHeader("search.title", tableName: "NativeChannelMessage").listRowBackground(Color.clear).listRowSeparator(.hidden)
+            CYHeroHeader("search.title", tableName: "NativeChannelMessage")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             Section {
                 TextField("", text: $author, prompt: Text("search.author", tableName: "NativeChannelMessage")).keyboardType(.numberPad)
                     .accessibilityLabel(Text("search.author", tableName: "NativeChannelMessage"))
@@ -34,31 +35,33 @@ import SwiftUI
                 TextField("", text: $to, prompt: Text("search.to", tableName: "NativeChannelMessage"))
                     .textInputAutocapitalization(.never).autocorrectionDisabled()
                     .accessibilityLabel(Text("search.to", tableName: "NativeChannelMessage"))
-                if invalidFilter { CYStatusChip(verbatim: String(localized: "search.invalid", table: "NativeChannelMessage"), tone: .danger, systemImage: "exclamationmark.circle") }
-                CYPillButton("search.run", systemImage: "magnifyingglass", tableName: "NativeChannelMessage") { search() }
+                if invalidFilter { Text("search.invalid", tableName: "NativeChannelMessage").font(.footnote).foregroundStyle(Theme.Color.danger(in: domain)) }
+                CYPillButton("search.run", tableName: "NativeChannelMessage") { search() }
             } header: { Text("d7.channelSearch.filters") }
             if model.isCurrent {
                 if let oldest = model.oldestSearchableAt {
                     LabeledContent { Text(verbatim: oldest) } label: { Text("search.retention", tableName: "NativeChannelMessage") }
                 }
                 if let reason = model.degradedReason {
-                    CYStatusChip(LocalizedStringKey(degradationKey(reason)), tone: .info, systemImage: "info.circle")
+                    Label { Text(LocalizedStringKey(degradationKey(reason)), tableName: "NativeChannelMessage") } icon: { Image(systemName: "info.circle") }
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 ForEach(groups, id: \.0) { group in
                     Section(group.0) {
                         ForEach(group.1, id: \.id) { row in
-                            Button { if model.isCurrent { locateOriginal?(row.id) } } label: { Text(verbatim: row.content ?? "—").font(CYTypography.body).foregroundStyle(CYColor.textPrimary).lineLimit(typeSize.isAccessibilitySize ? nil : 4).fixedSize(horizontal: false, vertical: true) }
+                            Button { if model.isCurrent { locateOriginal?(row.id) } } label: { Text(verbatim: row.content ?? "—").lineLimit(typeSize.isAccessibilitySize ? nil : 4).fixedSize(horizontal: false, vertical: true) }
                                 .disabled(locateOriginal == nil).accessibilityIdentifier("ncm47.search.\(row.id.rawValue)")
                         }
                     }
                 }
                 if model.rows.isEmpty && model.query != nil && !model.loading && !model.failed { ContentUnavailableView.search(text: keyword) }
-                if model.hasMore { CYPillButton("search.more", style: .secondary, tableName: "NativeChannelMessage") { more() }.disabled(model.loading) }
-            } else { CYEmptyState(systemImage: "lock", "access.closed", tableName: "NativeChannelMessage") }
-            if model.loading { ProgressView().frame(maxWidth: .infinity) }
+                if model.hasMore { Button { more() } label: { Text("search.more", tableName: "NativeChannelMessage") }.disabled(model.loading) }
+            } else { ContentUnavailableView { Label { Text("access.closed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "lock") } } }
+            if model.loading { CYSkeleton().frame(maxWidth: .infinity) }
             if model.failed {
                 Section {
-                    CYStatusChip(verbatim: String(localized: "load.failed", table: "NativeChannelMessage"), tone: .danger, systemImage: "exclamationmark.triangle")
+                    Label { Text("load.failed", tableName: "NativeChannelMessage") } icon: { Image(systemName: "exclamationmark.triangle") }
+                        .foregroundStyle(Theme.Color.danger(in: domain))
                     CYPillButton("messaging.retry", style: .secondary) { search() }
                         .disabled(!model.isCurrent || model.loading || phase != .active)
                 }

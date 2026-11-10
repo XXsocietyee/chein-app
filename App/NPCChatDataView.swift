@@ -111,13 +111,12 @@ struct NPCChatDataPresentation: Identifiable {
     var body: some View {
         NavigationStack {
             List {
-                Section {
-                    CYHeroHeader("npcData.title").listRowBackground(Color.clear)
-                    Text("npcData.boundary").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
-                }
+                CYHeroHeader("npcData.title")
+                    .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+                Section { Text("npcData.boundary").font(.footnote).foregroundStyle(.secondary) }
                 if !model.consentNoticeKeys.isEmpty {
                     Section {
-                        ForEach(model.consentNoticeKeys, id: \.self) { CYStatusChip(LocalizedStringKey($0), tone: .neutral, systemImage: "info.circle") }
+                        ForEach(model.consentNoticeKeys, id: \.self) { Text(LocalizedStringKey($0)) }
                     }.accessibilityIdentifier("npcData.consentEnded")
                 } else if model.canRevokeConsent {
                     Section {
@@ -133,34 +132,34 @@ struct NPCChatDataPresentation: Identifiable {
                         }
                         if let policy = value.retentionPolicy, !policy.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                             Text(verbatim: policy).textSelection(.enabled)
-                        } else { Text("npcData.policyNotReturned").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                        } else { Text("npcData.policyNotReturned").foregroundStyle(.secondary) }
                         LabeledContent("npcData.recordCount") { Text(verbatim: String(value.records.count)) }
                     }.accessibilityIdentifier("npcData.policy")
                     Section("npcData.records") {
-                        if value.records.isEmpty { CYEmptyState(systemImage: "bubble.left.and.bubble.right", "npcData.empty", messageIdentifier: "npcData.empty").listRowBackground(Color.clear) }
-                        else if filtered.isEmpty { CYEmptyState(systemImage: "magnifyingglass", "npcData.noMatches").listRowBackground(Color.clear) }
+                        if value.records.isEmpty { Text("npcData.empty").accessibilityIdentifier("npcData.empty") }
+                        else if filtered.isEmpty { Text("npcData.noMatches") }
                         ForEach(filtered) { record in
                             NavigationLink { [recordID = record.id] in
                                 NPCChatDataRecordView(model: model, recordID: recordID)
                             } label: {
-                                VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                                    if let question = record.userMessage, !question.isEmpty { Text(verbatim: question).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).lineLimit(2) }
-                                    else { Text("npcData.noQuestion").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
-                                    if let time = record.sourceTime { Text(verbatim: time).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
+                                VStack(alignment: .leading, spacing: 6) {
+                                    if let question = record.userMessage, !question.isEmpty { Text(verbatim: question).lineLimit(2) }
+                                    else { Text("npcData.noQuestion") }
+                                    if let time = record.sourceTime { Text(verbatim: time).font(.caption).foregroundStyle(.secondary) }
                                 }
                             }.accessibilityIdentifier("npcData.record." + record.id)
                         }
                     }
                 }
                 if let failure = coordinator.failure {
-                    Section { CYStatusChip(LocalizedStringKey(failure.messageKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("npcData.failure") }
+                    Section { Text(LocalizedStringKey(failure.messageKey)).accessibilityIdentifier("npcData.failure") }
                 }
                 if coordinator.canRequestDeletion || coordinator.deletion != .idle {
                     NPCChatLogDeletionSection(model: model)
                 }
                 if coordinator.canLoad && model.consentEnded == nil {
                     Section {
-                        CYPillButton("npcData.reload", style: .secondary, systemImage: "arrow.clockwise") { query = ""; model.requestLoad() }
+                        CYPillButton("npcData.reload", style: .secondary) { query = ""; model.requestLoad() }
                             .accessibilityIdentifier("npcData.reload")
                     }
                 }
@@ -197,16 +196,16 @@ struct NPCChatDataPresentation: Identifiable {
     var body: some View {
         let coordinator = model.coordinator
         Section {
-            Text("npcLogDelete.scope", tableName: "NPCChatLogDeletion").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+            Text("npcLogDelete.scope", tableName: "NPCChatLogDeletion").font(.footnote).foregroundStyle(.secondary)
             switch coordinator.deletion {
             case .deleting:
                 ProgressView { Text("npcLogDelete.deleting", tableName: "NPCChatLogDeletion") }
             case .deleted(let count):
                 LabeledContent { Text(verbatim: String(count)) } label: { Text("npcLogDelete.deletedCount", tableName: "NPCChatLogDeletion") }
                     .accessibilityIdentifier("npcLogDelete.deleted")
-                Text("npcLogDelete.deletedBoundary", tableName: "NPCChatLogDeletion").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                Text("npcLogDelete.deletedBoundary", tableName: "NPCChatLogDeletion").font(.footnote)
             case .unknown:
-                CYStatusChip(verbatim: String(localized: "npcLogDelete.unknown", table: "NPCChatLogDeletion"), tone: .warning, systemImage: "questionmark.circle").accessibilityIdentifier("npcLogDelete.unknown")
+                Text("npcLogDelete.unknown", tableName: "NPCChatLogDeletion").accessibilityIdentifier("npcLogDelete.unknown")
             case .failed:
                 if let key = model.deletionFailureKey {
                     Text(key, tableName: "NPCChatLogDeletion").accessibilityIdentifier("npcLogDelete.failure")
@@ -230,6 +229,8 @@ struct NPCChatDataPresentation: Identifiable {
     private var record: NPCChatDataRecord? { model.coordinator.data?.records.first(where: { $0.id == recordID }) }
     var body: some View {
         Form {
+            CYHeroHeader("npcData.recordTitle")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let record {
                 Section("npcData.question") {
                     if let text = record.userMessage, !text.isEmpty { Text(verbatim: text).textSelection(.enabled) }
@@ -242,12 +243,12 @@ struct NPCChatDataPresentation: Identifiable {
                 Section("npcData.sourceTime") {
                     if let time = record.sourceTime { Text(verbatim: time) }
                     else { Text("npcData.timeNotReturned") }
-                    Text("npcData.timeBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)
+                    Text("npcData.timeBoundary").font(.footnote).foregroundStyle(.secondary)
                 }
-                Section { Text("npcData.historicalBoundary").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-            } else { CYEmptyState(systemImage: "trash", "npcData.contentCleared", messageIdentifier: "npcData.contentCleared") }
+                Section { Text("npcData.historicalBoundary").font(.footnote).foregroundStyle(.secondary) }
+            } else { Text("npcData.contentCleared").accessibilityIdentifier("npcData.contentCleared") }
         }.cyGroupedSurface()
-        .navigationTitle("npcData.recordTitle").navigationBarTitleDisplayMode(.inline)
+        .cyHeroScreen()
         .privacySensitive()
     }
 }

@@ -14,14 +14,15 @@ import CryptoKit
     var body: some View {
         let _ = revision
         Form {
-            Section { CYHeroHeader("d7.imFile.title").listRowBackground(Color.clear) }
+            CYHeroHeader("d7.imFile.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if !available { IMFlowStateMessage(text: Text("d7.imCompose.unavailable"), symbol: "lock") }
             else {
                 Section {
                     switch owner.visibleState {
                     case .empty, .draft:
                         if owner.canUpload {
-                            CYPillButton("d7.imFile.choose", style: .secondary, systemImage: "doc.badge.plus") { picking = true }
+                            Button { picking = true } label: { Label("d7.imFile.choose", systemImage: "doc.badge.plus") }
                         } else {
                             IMFlowStateMessage(text: Text("d7.imFile.unavailable"), symbol: "doc")
                         }
@@ -33,12 +34,12 @@ import CryptoKit
                     case .uploading: ProgressView("d7.imCompose.uploading")
                     case .unknown:
                         IMFlowStateMessage(text: Text("d7.imCompose.uploadUnknown"), symbol: "clock.arrow.circlepath")
-                        if owner.canRecover { CYPillButton("d7.imCompose.checkStatus", style: .secondary) { Task { await owner.recover() } } }
-                        if owner.canUpload { CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { Task { if available { await owner.uploadUnchanged() } } } }
+                        if owner.canRecover { Button("d7.imCompose.checkStatus") { Task { await owner.recover() } } }
+                        if owner.canUpload { Button("d7.chatInfo.tryAgain") { Task { if available { await owner.uploadUnchanged() } } } }
                     case .held:
                         IMFlowStateMessage(text: Text("d7.imCompose.inReview"), symbol: "clock")
-                        if owner.canRecover { CYPillButton("d7.imCompose.refresh", style: .secondary) { Task { await owner.recover() } } }
-                        if owner.service.scanEnabled { CYPillButton("d7.imFile.rescan", style: .secondary) { Task { if available { await owner.retryScan() } } } }
+                        if owner.canRecover { Button("d7.imCompose.refresh") { Task { await owner.recover() } } }
+                        if owner.service.scanEnabled { Button("d7.imFile.rescan") { Task { if available { await owner.retryScan() } } } }
                     case .rejected:
                         IMFlowStateMessage(text: Text("d7.imFile.rejected"), symbol: "xmark.octagon", tone: .attention)
                         Button("d7.imCompose.discard", role: .destructive) { owner.discardRejected() }
@@ -65,14 +66,14 @@ import CryptoKit
                         if case .file = intent.payload {
                             IMFlowStateMessage(text: Text("d7.imCompose.sendUnknown"), symbol: "clock.arrow.circlepath")
                             if owner.expanded.canRecoverFile {
-                                CYPillButton("d7.imCompose.checkSent", style: .secondary) { Task { if available { await owner.expanded.recoverFile() } } }
+                                Button("d7.imCompose.checkSent") { Task { if available { await owner.expanded.recoverFile() } } }
                             }
-                            CYPillButton("d7.chatInfo.tryAgain", style: .secondary) { Task { if available { await owner.expanded.retryUnchanged() } } }
+                            Button("d7.chatInfo.tryAgain") { Task { if available { await owner.expanded.retryUnchanged() } } }
                         }
                     case .acknowledged(.sent(let message)):
                         if IMFileReference.read(message) != nil {
                             IMFlowStateMessage(text: Text("d7.imFile.sent"), symbol: "checkmark.circle", tone: .success)
-                            CYPillButton("d7.imCompose.done", style: .secondary) { owner.finishAcknowledged() }
+                            Button("d7.imCompose.done") { owner.finishAcknowledged() }
                         }
                     default: EmptyView()
                     }
@@ -106,20 +107,21 @@ import CryptoKit
     private var available: Bool { current() && owner.isCurrent && message.conversationID == owner.scope.conversationID && IMFileReference.read(message) != nil }
     var body: some View {
         Form {
-            Section { CYHeroHeader("d7.imFile.previewTitle").listRowBackground(Color.clear) }
+            CYHeroHeader("d7.imFile.previewTitle")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
             if let reference = IMFileReference.read(message), available {
                 Section {
                     LabeledContent { IMByteCountText(bytes: reference.size) } label: {
                         Label { Text(verbatim: reference.name) } icon: { Image(systemName: "doc") }
                     }
                     if owner.service.previewEnabled && owner.service.previewStatusEnabled && file == nil {
-                        CYPillButton("d7.imFile.open", style: .secondary, systemImage: "eye") { load() }.disabled(loading)
+                        Button { load() } label: { Label("d7.imFile.open", systemImage: "eye") }.disabled(loading)
                     }
                 }
                 if let file {
                     Section {
                         IMFileNativePreview(url: file).id(generation).frame(minHeight: 360).listRowInsets(EdgeInsets())
-                        CYPillButton("d7.imFile.closePreview", style: .secondary, systemImage: "xmark.circle") { stop() }
+                        Button { stop() } label: { Label("d7.imFile.closePreview", systemImage: "xmark.circle") }
                     }
                 }
             } else { IMFlowStateMessage(text: Text("d7.imFile.messageUnavailable"), symbol: "lock") }

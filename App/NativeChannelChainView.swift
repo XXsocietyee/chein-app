@@ -10,8 +10,8 @@ import SwiftUI
     var body: some View {
         Group {
             if let flow { NativeChannelChainView(flow: flow, current: current) }
-            else if attempted { ContentUnavailableView("d7.chain.unavailable", systemImage: "list.number") }
-            else { ProgressView() }
+            else if attempted { CYEmptyState(systemImage: "list.number", "d7.chain.unavailable") }
+            else { CYSkeleton() }
         }.task {
             guard !attempted else { return }
             attempted = true
@@ -34,7 +34,9 @@ import SwiftUI
     private var available: Bool { current() && scene == .active }
     var body: some View {
         Form {
-            if !flow.isCurrent { ContentUnavailableView("d7.chain.unavailable", systemImage: "list.number") }
+            CYHeroHeader("d7.chain.title")
+                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())
+            if !flow.isCurrent { CYEmptyState(systemImage: "list.number", "d7.chain.unavailable") }
             else {
                 status
                 // A confirmed original receipt survives a separate current-roster read failure.
@@ -62,7 +64,7 @@ import SwiftUI
                         if let end = page.chain.deadlineAt {
                             LabeledContent("d7.chain.deadline") { Text(Date(timeIntervalSince1970: Double(end) / 1000), format: .dateTime.month().day().hour().minute()) }
                         }
-                        Button("d7.channelActivity.refresh") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil)
+                        CYPillButton("d7.channelActivity.refresh", style: .secondary) { run { _ in await flow.refresh() } }.disabled(flow.busy || flow.review != nil)
                     }
                     Section("d7.chain.entries") {
                         if flow.entries.isEmpty { Text("d7.chain.entries.empty").foregroundStyle(.secondary) }
@@ -76,7 +78,7 @@ import SwiftUI
                                 }
                             }
                         }
-                        if page.hasMore { Button("d7.chain.showMore") { run { _ in await flow.more() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || flow.review != nil) }
+                        if page.hasMore { CYPillButton("d7.chain.showMore", style: .secondary) { run { _ in await flow.more() } }.disabled(flow.busy || flow.review != nil) }
                     }
                     if flow.pending == nil, flow.review == nil {
                         Section("d7.chain.mine") {
@@ -84,15 +86,15 @@ import SwiftUI
                                 if mine.status == "ACTIVE" { LabeledContent("d7.chain.status") { Text("d7.chain.mine.joined \(mine.position)") } }
                                 else { LabeledContent("d7.chain.status") { Text("d7.chain.withdrawn") } }
                                 if mine.status == "ACTIVE", let original = mine.content, page.chain.canParticipate {
-                                    Button("d7.chain.mine.useEntry") { content = original }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canJoin)
+                                    CYPillButton("d7.chain.mine.useEntry", style: .secondary) { content = original }.disabled(!flow.canJoin)
                                 }
                             }
                             if page.chain.canParticipate {
                                 TextField("d7.chain.mine.field", text: $content, axis: .vertical).disabled(!flow.canJoin)
                                 if page.mine?.status == "ACTIVE" {
-                                    Button("d7.chain.mine.update") { flow.prepareJoin(content: content) }.nativeChannelPrimaryAction().disabled(!flow.canJoin)
+                                    CYPillButton("d7.chain.mine.update") { flow.prepareJoin(content: content) }.disabled(!flow.canJoin)
                                 } else {
-                                    Button("d7.chain.mine.join") { flow.prepareJoin(content: content) }.nativeChannelPrimaryAction().disabled(!flow.canJoin)
+                                    CYPillButton("d7.chain.mine.join") { flow.prepareJoin(content: content) }.disabled(!flow.canJoin)
                                 }
                                 if page.mine?.status == "ACTIVE" {
                                     Button("d7.chain.mine.withdraw", role: .destructive) { flow.prepareWithdraw() }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.canWithdraw)
@@ -105,7 +107,7 @@ import SwiftUI
                     ContentUnavailableView {
                         Label("d7.chain.loadFailed", systemImage: "list.number")
                     } actions: {
-                        Button("d7.channelActivity.retry") { run { _ in await flow.refresh() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(!flow.service.canRead || flow.review != nil)
+                        CYPillButton("d7.channelActivity.retry", style: .secondary) { run { _ in await flow.refresh() } }.disabled(!flow.service.canRead || flow.review != nil)
                     }
                 } else if flow.reference == nil, flow.pending == nil, flow.review == nil {
                     if flow.service.allows(.create), flow.service.canRead, flow.service.canRecover {
@@ -119,14 +121,14 @@ import SwiftUI
                                 flow.prepareCreate(title: title, maxSlots: maximum, deadline: hasDeadline ? deadline : nil)
                             }.nativeChannelPrimaryAction().disabled(!flow.canCreate || Int(maxSlots) == nil)
                         }.disabled(!flow.canCreate)
-                    } else { ContentUnavailableView("d7.chain.unavailable", systemImage: "list.number") }
+                    } else { CYEmptyState(systemImage: "list.number", "d7.chain.unavailable") }
                 }
             }
         }
         .font(Theme.Font.body)
         .nativeChannelScreen()
         .cyGroupedSurface()
-        .navigationTitle("d7.chain.title")
+        .cyHeroScreen()
         .privacySensitive()
         .task(id: available) {
             if available { await flow.activate(current: current) }
@@ -142,8 +144,8 @@ import SwiftUI
     }
     @ViewBuilder private var status: some View {
         switch flow.phase {
-        case .reading: ProgressView("d7.channelActivity.loading").font(Theme.Font.body)
-        case .submitting: ProgressView("d7.channelActivity.sending").font(Theme.Font.body)
+        case .reading: CYSkeleton()
+        case .submitting: CYSkeleton()
         case .unknown: Text("d7.chain.notice.unknown").nativeChannelNotice(systemImage: "clock")
         case .applied: Text("d7.chain.notice.applied").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true)
         case .appliedRedacted: Text("d7.chain.notice.redacted").nativeChannelNotice(systemImage: "checkmark.circle")
@@ -167,7 +169,7 @@ import SwiftUI
                 LabeledContent("d7.chain.deadline") { Text(Date(timeIntervalSince1970: Double(end) / 1000), format: .dateTime.month().day().hour().minute()) }
             }
             if let text = command.content { Text(text).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-            Button("d7.chain.review.confirm") { run { current in await flow.confirm(); guard current() else { return }; await refreshAfterSettlement() } }.nativeChannelPrimaryAction().disabled(flow.busy)
+            CYPillButton("d7.chain.review.confirm") { run { current in await flow.confirm(); guard current() else { return }; await refreshAfterSettlement() } }.disabled(flow.busy)
             Button("d7.channelActivity.cancel", role: .cancel) { flow.cancelReview() }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy)
         }
     }
@@ -177,8 +179,8 @@ import SwiftUI
                 Text(label(command.operation)).font(Theme.Font.sectionTitle).fixedSize(horizontal: false, vertical: true)
                 if let title = command.title { Text(title).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
                 if let text = command.content { Text(text).font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
-                Button("d7.chain.pending.check") { run { current in await flow.recover(); guard current() else { return }; await refreshAfterSettlement() } }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover)
-                Button("d7.chain.pending.retry") { retryPresented = true }.font(Theme.Font.button).frame(minHeight: 44).disabled(flow.busy || !flow.service.canRecover || !flow.service.allows(command.operation))
+                CYPillButton("d7.chain.pending.check", style: .secondary) { run { current in await flow.recover(); guard current() else { return }; await refreshAfterSettlement() } }.disabled(flow.busy || !flow.service.canRecover)
+                CYPillButton("d7.chain.pending.retry", style: .secondary) { retryPresented = true }.disabled(flow.busy || !flow.service.canRecover || !flow.service.allows(command.operation))
             } else { Text("d7.chain.pending.other").font(Theme.Font.body).fixedSize(horizontal: false, vertical: true) }
         }
     }
