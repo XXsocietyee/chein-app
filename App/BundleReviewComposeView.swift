@@ -13,7 +13,7 @@ import SwiftUI
         Form {
             switch model.state {
             case .idle, .loading:
-                Section { ProgressView() }
+                Section { CYLoadingStateView(rows: 2) }
             case .unavailable:
                 Section { Text(verbatim: W8Text.t("评价功能暂未开放", "Reviews are not available yet")) }
                     .accessibilityIdentifier("bundleReview.unavailable")
@@ -35,17 +35,14 @@ import SwiftUI
             case .outcomeUnknown:
                 Section {
                     Text(verbatim: W8Text.t("评价是否提交成功尚未确认", "We couldn't confirm whether your review was submitted"))
-                    Button { Task { await model.recover() } } label: {
-                        Text(verbatim: W8Text.t("查询提交结果", "Check status"))
-                    }
+                    CYPillButton(verbatim: W8Text.t("查询提交结果", "Check status"), style: .secondary) { Task { await model.recover() } }
                     if model.canRetryOriginal {
-                        Button { Task { await model.retryOriginal() } } label: {
-                            Text(verbatim: W8Text.t("重新提交", "Submit again"))
-                        }
+                        CYPillButton(verbatim: W8Text.t("重新提交", "Submit again"), style: .tertiary) { Task { await model.retryOriginal() } }
                     }
                 }
             }
         }
+        .cyGroupedSurface()
         .task { await model.load() }
     }
 
@@ -55,7 +52,7 @@ import SwiftUI
                 ForEach(Array(BundleReviewCommand.ratingRange), id: \.self) { Text(verbatim: String($0)).tag($0) }
             } label: { Text(verbatim: W8Text.t("评分", "Rating")) }
             TextEditor(text: $content).frame(minHeight: 120)
-            Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)").font(.caption)
+            Text(verbatim: "\(content.count)/\(BundleReviewCommand.maxContentLength)").font(.caption).monospacedDigit()
         }
         if case .rejected(let code) = model.state {
             Section {
@@ -65,9 +62,7 @@ import SwiftUI
             .accessibilityIdentifier("bundleReview.rejected")
         }
         Section {
-            Button { Task { await model.submit(rating: rating, content: content) } } label: {
-                Text(verbatim: W8Text.t("提交评价", "Submit review"))
-            }
+            CYPillButton(verbatim: W8Text.t("提交评价", "Submit review"), style: .primary) { Task { await model.submit(rating: rating, content: content) } }
             .disabled(!inputValid || model.state != .ready)
         }
     }

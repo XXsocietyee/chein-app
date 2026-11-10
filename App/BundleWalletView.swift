@@ -12,11 +12,11 @@ import SwiftUI
             if order.isLegacy {
                 text("order.legacy")
             } else if !order.hasBalanceDetail || order.balances.isEmpty {
-                text("wallet.noDetail").accessibilityIdentifier("bundle.wallet.noDetail")
+                CYEmptyState(systemImage: "ticket", "wallet.noDetail", tableName: table, messageIdentifier: "bundle.wallet.noDetail")
             } else {
                 ForEach(order.balances, id: \.grantId) { balance in
                     Section {
-                        LabeledContent { Text(verbatim: String(balance.unitsTotal)) } label: { text("wallet.unitsTotal") }
+                        LabeledContent { Text(verbatim: String(balance.unitsTotal)).monospacedDigit() } label: { text("wallet.unitsTotal") }
                         ForEach(balance.orderedCountKeys, id: \.self) { key in
                             LabeledContent {
                                 Text(verbatim: balance.counts[key].map { String($0) } ?? "—").monospacedDigit()
@@ -42,5 +42,6 @@ import SwiftUI
                 } header: { text("wallet.entries") }
             }
         }
+        .cyGroupedSurface()
     }
 }

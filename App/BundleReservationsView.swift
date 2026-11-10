@@ -12,19 +12,20 @@ import SwiftUI
             if order.isLegacy {
                 text("order.legacy")
             } else if order.reservations.isEmpty {
-                text("reservations.empty").accessibilityIdentifier("bundle.reservations.empty")
+                CYEmptyState(systemImage: "calendar", "reservations.empty", tableName: table, messageIdentifier: "bundle.reservations.empty")
             } else {
                 Section {
                     ForEach(order.reservations, id: \.id) { row in
                         VStack(alignment: .leading) {
                             if let key = BundleOrderStatusPresentation.reservationStatusKey(row) { text(key).font(.headline) }
                             else { Text(verbatim: row.status).font(.headline) }
-                            Text(verbatim: row.startAt)
+                            Text(verbatim: row.startAt).monospacedDigit()
                             Text(verbatim: row.id.text).font(.caption).textSelection(.enabled)
                         }
                     }
                 }
             }
         }
+        .cyGroupedSurface()
     }
 }

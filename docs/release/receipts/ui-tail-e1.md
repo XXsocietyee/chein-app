@@ -19,3 +19,12 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/BundleOrderStatusView.swift | done: CYPillButton recheck, cyGroupedSurface; no own title (embedded) |
 | App/BundleRedeemResultView.swift | done: CYHeroHeader, CYLoadingStateView, CYPillButton retry |
 | App/BundleRefundQuoteView.swift | done: CYHeroHeader, monospaced amounts, cyGroupedSurface (read-only, no action by design) |
+
+## Batch 3
+| File | Result |
+| --- | --- |
+| App/BundleRenewalIntentView.swift | done: CYHeroHeader, CYLoadingStateView, CYPillButton submit (primary) / recover / retry |
+| App/BundleReservationsView.swift | done: CYEmptyState empty, monospaced start time, cyGroupedSurface (display only) |
+| App/BundleReserveWindowView.swift | done: CYPillButton choose (embedded Section, no own title) |
+| App/BundleReviewComposeView.swift | done: CYLoadingStateView, CYPillButton submit/check/resend, monospaced counter |
+| App/BundleTransferClaimView.swift | done: CYPillButton claim, CYLoadingStateView, cyGroupedSurface |

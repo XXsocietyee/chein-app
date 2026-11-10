@@ -16,7 +16,7 @@ import SwiftUI
         Form {
             switch model.phase {
             case .idle, .loadingPreview:
-                ProgressView { text("transfer.loading") }
+                CYLoadingStateView(rows: 2).accessibilityLabel(text("transfer.loading"))
             case .unavailable:
                 text("transfer.unavailable").accessibilityIdentifier("bundleTransfer.unavailable")
             case .ineligible:
@@ -36,11 +36,11 @@ import SwiftUI
                             text("transfer.channel.sms").tag(BundleTransferChannel.sms)
                         } label: { text("transfer.channel") }
                     }
-                    Button { confirming = true } label: { text("transfer.confirm") }
+                    CYPillButton("transfer.confirm", style: .primary, tableName: table) { confirming = true }
                         .disabled(phone.isEmpty)
                 }
             case .sending:
-                ProgressView { text("transfer.sending") }
+                CYLoadingStateView(rows: 2).accessibilityLabel(text("transfer.sending"))
             case .shown:
                 Section {
                     if let code = model.oneTimeCode {
@@ -62,13 +62,14 @@ import SwiftUI
             case .outcomeUnknown:
                 Section {
                     text("transfer.unknown")
-                    Button { Task { await model.recover() } } label: { text("transfer.recover") }
+                    CYPillButton("transfer.recover", style: .secondary, tableName: table) { Task { await model.recover() } }
                 }
             case .failed(let code):
                 text("transfer.error").accessibilityIdentifier("bundleTransfer.error")
                 if let code { Text(verbatim: code).font(.caption) }
             }
         }
+        .cyGroupedSurface()
         .confirmationDialog(Text(LocalizedStringKey("transfer.confirm.title"), tableName: table),
                             isPresented: $confirming, titleVisibility: .visible) {
             Button(role: .destructive) {

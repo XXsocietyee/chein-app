@@ -21,15 +21,15 @@ import SwiftUI
                     TextField(text: $code) { text("transfer.claim.code") }
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
-                    Button {
+                    CYPillButton("transfer.claim.action", style: .primary, tableName: table) {
                         let typed = code
                         code = ""
                         Task { await model.claim(code: typed) }
-                    } label: { text("transfer.claim.action") }
+                    }
                         .disabled(code.isEmpty || model.phase == .claiming)
                 }
                 switch model.phase {
-                case .claiming: ProgressView { text("transfer.claiming") }
+                case .claiming: CYLoadingStateView(rows: 1).accessibilityLabel(text("transfer.claiming"))
                 case .codeNotAccepted: text("transfer.claim.rejected").accessibilityIdentifier("bundleTransfer.rejected")
                 case .outcomeUnknown: text("transfer.claim.unknown")
                 case .failed: text("transfer.error")
@@ -37,6 +37,7 @@ import SwiftUI
                 }
             }
         }
+        .cyGroupedSurface()
         .onDisappear { code = "" }
     }
 }

@@ -19,11 +19,12 @@ import SwiftUI
 
     var body: some View {
         Form {
+            Section { CYHeroHeader("renewal.title", tableName: table).listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
             if !model.current {
                 text("renewal.stale")
             } else {
                 Section { text("renewal.intentOnly") }
-                if model.busy { ProgressView { text("renewal.loading") } }
+                if model.busy { CYLoadingStateView(rows: 1).accessibilityLabel(text("renewal.loading")) }
                 if model.phase == .unavailable {
                     Section { text("renewal.unavailable").accessibilityIdentifier("bundleRenewal.unavailable") }
                 } else if model.failure != nil && model.phase != .outcomeUnknown {
@@ -40,9 +41,9 @@ import SwiftUI
                 if model.phase == .outcomeUnknown {
                     Section {
                         text("renewal.unknown")
-                        Button { Task { await model.recover() } } label: { text("renewal.recover") }
+                        CYPillButton("renewal.recover", style: .secondary, tableName: table) { Task { await model.recover() } }
                             .disabled(!model.canRecover)
-                        Button { Task { await model.retry() } } label: { text("renewal.retry") }
+                        CYPillButton("renewal.retry", style: .tertiary, tableName: table) { Task { await model.retry() } }
                             .disabled(!model.canRetry)
                     }
                 } else if model.phase != .unavailable {
@@ -58,13 +59,13 @@ import SwiftUI
                                     note = String(value.prefix(BundleRenewalCommand.noteLimit))
                                 }
                             }
-                        Button { Task { await model.submit(intent: choice, note: note) } } label: { text("renewal.submit") }
+                        CYPillButton("renewal.submit", style: .primary, tableName: table) { Task { await model.submit(intent: choice, note: note) } }
                             .disabled(!model.canSubmit)
                     }
                 }
             }
         }
-        .navigationTitle(Text(LocalizedStringKey("renewal.title"), tableName: table))
+        .cyGroupedSurface()
         .task { await model.load() }
     }
 }
