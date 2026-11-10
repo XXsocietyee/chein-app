@@ -95,19 +95,25 @@ import SwiftUI
     let coordinator: ClubGovernanceCoordinator
     @Environment(\.dismiss) private var dismiss
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
     var body: some View {
         Group {
-            if !flow.isCurrent { Text("club.gov.changed") }
+            if !flow.isCurrent { CYEmptyState(systemImage: "exclamationmark.arrow.triangle.2.circlepath", "club.gov.changed") }
             else if let target = flow.target {
                 VStack(alignment: .leading, spacing: 0) {
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text("club.activityReport.target").font(.caption).foregroundStyle(.secondary)
-                        if let name = target.choice.name { Text(verbatim: name).font(.headline) }
-                        else { Text("club.activityReport.unnamed").font(.headline) }
-                        if let date = target.choice.startDate { Text(verbatim: date).font(.subheadline) }
-                        if let time = target.choice.startTime { Text(verbatim: time).font(.subheadline) }
-                        Text("club.activityReport.platformHint").font(.footnote)
-                    }.padding().accessibilityElement(children: .combine)
+                    VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                        Text("club.activityReport.target").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                        if let name = target.choice.name { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
+                        else { Text("club.activityReport.unnamed").font(CYTypography.cardTitle).foregroundStyle(palette.textPrimary) }
+                        if let date = target.choice.startDate { Text(verbatim: date).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary) }
+                        if let time = target.choice.startTime { Text(verbatim: time).font(CYTypography.bodyCompact).foregroundStyle(palette.textSecondary) }
+                        Text("club.activityReport.platformHint").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(CYSpacing.lg)
+                    .background(palette.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .accessibilityElement(children: .combine)
                     ClubGovernanceCommandForm(route: .init(operation: .report, scope: target.scope,
                         seed: target.seed.merging(ClubGovernanceReportPort.displayName(target.choice.name).map { ["targetName": ClubGovernanceValue.string($0)] } ?? [:]) { current, _ in current }),
                         identity: target.source.context.identity, access: flow.access, coordinator: coordinator,
@@ -116,22 +122,32 @@ import SwiftUI
                 }
             } else {
                 List {
-                    Text("club.activityReport.chooseHint")
+                    CYHeroHeader("club.activityReport.title", subtitle: "club.activityReport.chooseHint")
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden)
                     if flow.loading { ProgressView("club.loading") }
-                    if let failure = flow.failure { Text(LocalizedStringKey(failure.localizationKey)) }
-                    if !flow.loading && flow.failure == nil && flow.choices.isEmpty { Text("club.activityReport.empty") }
+                    if let failure = flow.failure {
+                        CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle")
+                    }
+                    if !flow.loading && flow.failure == nil && flow.choices.isEmpty {
+                        CYEmptyState(systemImage: "calendar", "club.activityReport.empty")
+                    }
                     ForEach(flow.choices) { choice in
                         Button { Task { await flow.select(choice) } } label: {
-                            VStack(alignment: .leading, spacing: 5) {
-                                if let name = choice.name { Text(verbatim: name) } else { Text("club.activityReport.unnamed") }
-                                if let date = choice.startDate { Text(verbatim: date).font(.caption) }
-                                if let time = choice.startTime { Text(verbatim: time).font(.caption) }
+                            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                                CYListRow(
+                                    LocalizedStringKey("club.activityReport.unnamed"),
+                                    meta: nil,
+                                    trailing: .chevron,
+                                    verbatimTitle: choice.name.flatMap { $0.isEmpty ? nil : $0 },
+                                    verbatimMeta: Optional([choice.startDate, choice.startTime].compactMap { $0 }.joined(separator: " · ")).flatMap { $0.isEmpty ? nil : $0 }
+                                ) { CYRowIcon(systemImage: "calendar") }
                                 LabeledContent("club.gov.field.activityId", value: String(choice.id))
+                                    .font(CYTypography.meta).foregroundStyle(palette.textTertiary)
                             }
                         }.disabled(flow.loading).accessibilityIdentifier("club.activityReport.choose.\(choice.id)")
                     }
-                    Button("club.activityReport.retry") { Task { await flow.load() } }.disabled(flow.loading)
-                }.navigationTitle("club.activityReport.title")
+                    CYPillButton("club.activityReport.retry", style: .secondary) { Task { await flow.load() } }.disabled(flow.loading)
+                }.cyHeroScreen()
                     .toolbar { ToolbarItem(placement: .cancellationAction) { Button("action.cancel") { dismiss() } } }
             }
         }
