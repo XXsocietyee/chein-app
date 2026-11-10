@@ -41,3 +41,5 @@
 - ut-d4-gov [x] ba1318805. PR 1032. Fixture test only. Not merged. Not run on Xcode Cloud yet.
 - ut-d4-ops [x] b3805eb07. PR 1033. Fixture test only. Not merged. Not run on Xcode Cloud yet.
 - ut-d4-channel-chat [x] 06229e2cd. PR 1034. Fixture test only. Not merged. Not run on Xcode Cloud yet.
+- ut-consent [x] 171c3db3b. PR 1035. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
+- ut-d2-search [x] 40bb3243b. PR 1036. Fixture test only. Not merged. Not in the Xcode target until the project is regenerated.
