@@ -54,9 +54,9 @@ import SwiftUI
                 Spacer(minLength: 0)
             }
             rowLayout {
-                stat(snapshot?.friendCount, id: "friends") { Text("member.card.friends", tableName: "MemberProfile") }
-                stat(snapshot?.followCount, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
-                stat(snapshot?.fansCount, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
+                stat(snapshot?.friendCountText, id: "friends") { Text("member.card.friends", tableName: "MemberProfile") }
+                stat(snapshot?.followCountText, id: "following") { Text("member.card.following", tableName: "MemberProfile") }
+                stat(snapshot?.fansCountText, id: "fans") { Text("member.card.fans", tableName: "MemberProfile") }
             }
             // Quick actions as tiles: tickets (opens) and balance (read-only preview, em dash when unknown).
             rowLayout {
@@ -152,9 +152,9 @@ import SwiftUI
         .accessibilityHidden(true)
     }
     private struct AvatarKey: Hashable { let read: UUID; let source: UUID? }
-    private func stat(_ value: Int?, id: String, label: () -> Text) -> some View {
+    private func stat(_ value: String?, id: String, label: () -> Text) -> some View {
         VStack(spacing: 2) {
-            Text(verbatim: value.map(String.init) ?? "—").font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
+            Text(verbatim: value ?? MemberHomePageModel.unknownDisplay).font(CYTypography.numericBody).monospacedDigit().foregroundStyle(CYColor.textPrimary)
             label().font(CYTypography.meta).foregroundStyle(CYColor.textSecondary).lineLimit(1).minimumScaleFactor(0.8)
         }
         .frame(maxWidth: .infinity, minHeight: 64)

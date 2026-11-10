@@ -13,6 +13,8 @@ import UIKit
     @State private var copyStatus: CopyStatus?
     private enum CopyStatus { case copied, failed }
 
+    private var model: SettingsAboutPageModel { SettingsAboutPageModel(information: appInformation, market: market) }
+
     var body: some View {
         Form {
             Section {
@@ -43,7 +45,7 @@ import UIKit
                 .listRowInsets(EdgeInsets(top: CYSpacing.xl, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             }
             Section {
-                SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version.map { v in v + " (" + (appInformation.build ?? "—") + ")" },
+                SettingsFactRow(title: "settingsNative.about.version", value: appInformation.version == nil ? nil : model.version.text + " (" + model.build.text + ")",
                                 identifier: "settingsNative.about.version", systemImage: "number")
                 marketRow
             } header: { Text("settingsNative.about.appSection") }
@@ -60,7 +62,7 @@ import UIKit
                 }
             } header: { Text("settingsNative.about.linksSection") }
             .labelStyle(SettingsTileLabelStyle())
-            if let phone = SettingsSourceContact.phone(market: market) {
+            if let phone = model.contactPhone {
                 Section("settingsNative.about.contact") {
                     Text(verbatim: phone)
                         .font(CYTypography.numericBody)
@@ -76,7 +78,7 @@ import UIKit
         .cyDomainPageBackground()
         .appNavigationTitle("settingsNative.about.title")
         .safeAreaInset(edge: .bottom) {
-            if let phone = SettingsSourceContact.phone(market: market) {
+            if let phone = model.contactPhone {
                 VStack(alignment: .leading, spacing: CYSpacing.sm) {
                     if let copyStatus {
                         Text(LocalizedStringKey(copyStatus == .copied ? "localCopy.copied" : "localCopy.failed"))
@@ -108,18 +110,18 @@ import UIKit
     }
 
     private var versionLine: String {
-        "v" + (appInformation.version ?? "—") + " (" + (appInformation.build ?? "—") + ")"
+        "v" + model.version.text + " (" + model.build.text + ")"
     }
 
     private var marketRow: some View {
         LabeledContent {
-            Text(verbatim: market?.rawValue ?? "—").font(CYTypography.numericBody).foregroundStyle(palette.textSecondary)
+            Text(verbatim: SettingsHomePage.marketText(market)).font(CYTypography.numericBody).foregroundStyle(palette.textSecondary)
         } label: {
             Label("region.market", systemImage: "globe").environment(\.settingsTileTint, SettingsTint.teal)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(Text("region.market"))
-        .accessibilityValue(Text(verbatim: market?.rawValue ?? "—"))
+        .accessibilityValue(Text(verbatim: SettingsHomePage.marketText(market)))
         .accessibilityIdentifier("settingsNative.about.market")
     }
 
