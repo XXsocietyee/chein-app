@@ -120,7 +120,7 @@ import SwiftUI
                                 Spacer(minLength: CYSpacing.sm)
                                 HStack(spacing: CYSpacing.xs) {
                                     Text(LocalizedStringKey(direction == .received ? "cooperation.detail.from" : "cooperation.detail.to"))
-                                    CooperationName(name: row.partner?.name).lineLimit(1).truncationMode(.tail)
+                                    CooperationName(name: row.partner?.name).lineLimit(2).truncationMode(.tail)
                                 }.font(CYTypography.label).foregroundStyle(CYColor.textTertiary)
                             }
                             CooperationInviteCardDetails(view: CooperationInvitePresentation(invite: row, direction: direction))

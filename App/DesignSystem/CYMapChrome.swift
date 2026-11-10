@@ -177,7 +177,7 @@ struct CYMapCallout: View {
             Text(verbatim: text)
                 .font(.footnote.weight(.semibold))
                 .foregroundStyle(.black)
-                .lineLimit(1)
+                .lineLimit(2)
                 .padding(.horizontal, CYSpacing.md).padding(.vertical, CYSpacing.sm)
                 .background(Color.white, in: RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous))
                 .overlay(RoundedRectangle(cornerRadius: CYRadius.xs, style: .continuous).strokeBorder(Color.black.opacity(selected ? 0.9 : 0), lineWidth: 2))

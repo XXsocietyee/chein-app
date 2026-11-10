@@ -37,7 +37,7 @@ struct WithdrawalOrderLookupRequest {
                         else if let balance, loadedScope == reader.scope {
                             Text(verbatim: amount(balance.balance, currency: balance.currency))
                                 .font(.largeTitle.bold()).monospacedDigit()
-                                .minimumScaleFactor(0.6).lineLimit(1)
+                                .minimumScaleFactor(0.6).lineLimit(2)
                                 .accessibilityIdentifier("withdrawal.support.balanceValue")
                         } else {
                             Text(LocalizedStringKey(balanceFailed ? "wallet.failed" : "wallet.unavailable"))

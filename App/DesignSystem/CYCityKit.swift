@@ -200,6 +200,8 @@ struct CYCollapsibleCard<Content: View>: View {
     @Binding var expanded: Bool
     @ViewBuilder let content: () -> Content
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var tile: CGFloat { typeSize.isAccessibilitySize ? 52 : 36 }
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Button {
@@ -207,7 +209,7 @@ struct CYCollapsibleCard<Content: View>: View {
             } label: {
                 HStack(spacing: CYSpacing.md) {
                     Image(systemName: symbol).font(.body.weight(.semibold)).foregroundStyle(CYColor.textPrimary)
-                        .frame(width: 36, height: 36)
+                        .frame(width: tile, height: tile)
                         .background(CYColor.bgRaised, in: RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
                         .accessibilityHidden(true)
                     title.font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).multilineTextAlignment(.leading)
@@ -242,15 +244,17 @@ struct CYTimelineItem<Content: View>: View {
     var symbol = "circle.fill"
     var tint: Color = CYColor.textPrimary
     @ViewBuilder let content: () -> Content
+    @Environment(\.dynamicTypeSize) private var typeSize
+    private var rail: CGFloat { typeSize.isAccessibilitySize ? 40 : 28 }
     var body: some View {
         HStack(alignment: .top, spacing: CYSpacing.md) {
             VStack(spacing: 0) {
                 Rectangle().fill(first ? Color.clear : CYColor.borderStrong).frame(width: 2, height: 10)
                 Image(systemName: symbol).font(.caption.weight(.bold)).foregroundStyle(tint)
-                    .frame(width: 28, height: 28).background(CYColor.bgRaised, in: Circle()).accessibilityHidden(true)
+                    .frame(width: rail, height: rail).background(CYColor.bgRaised, in: Circle()).accessibilityHidden(true)
                 Rectangle().fill(last ? Color.clear : CYColor.borderStrong).frame(width: 2).frame(maxHeight: .infinity)
             }
-            .frame(width: 28)
+            .frame(width: rail)
             content().padding(.bottom, last ? 0 : CYSpacing.md)
         }
     }

@@ -5,6 +5,7 @@ public struct CYBalanceHero: View {
     private let label: String
     private let amount: String
     private let delta: String?
+    @Environment(\.dynamicTypeSize) private var typeSize
 
     public init(label: String, amount: String, delta: String? = nil) {
         self.label = label
@@ -17,17 +18,15 @@ public struct CYBalanceHero: View {
             Text(label)
                 .font(CYTypography.meta)
                 .foregroundStyle(CYColor.textSecondary)
-                .lineLimit(1)
             Text(amount)
                 .font(CYTypography.dataXL)
                 .foregroundStyle(CYColor.textPrimary)
                 .lineLimit(1)
-                .minimumScaleFactor(0.6)
+                .minimumScaleFactor(typeSize.isAccessibilitySize ? 0.4 : 0.6)
             if let delta {
                 Text(delta)
                     .font(CYTypography.caption.monospacedDigit())
                     .foregroundStyle(CYColor.textSecondary)
-                    .lineLimit(1)
                     .padding(.horizontal, CYSpacing.sm)
                     .padding(.vertical, CYSpacing.xs)
                     .background(CYColor.accentSoft, in: Capsule(style: .continuous))
