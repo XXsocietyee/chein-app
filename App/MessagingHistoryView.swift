@@ -57,10 +57,17 @@ struct MessagingHistoryView: View {
     @State private var history: MessagingHistory
     @State private var loadedIdentity: MessagingReadIdentity?
     @State private var loadedReaderID: ObjectIdentifier?
-    @State private var isLoading = true
-    @State private var isLoadingEarlier = false
-    @State private var issue: MessagingLoadIssue?
-    @State private var earlierIssue: MessagingLoadIssue?
+    /// Two independent fetch lifecycles (docs/release/state-machines/views.md): the transcript and the earlier-page fetch.
+    /// Messages live in `history`, so the phases carry no value (`.loaded(())` = last fetch succeeded).
+    @State private var phase: CYPhase<Void, MessagingLoadIssue> = .loading
+    @State private var earlierPhase: CYPhase<Void, MessagingLoadIssue> = .idle
+    private var isLoading: Bool { phase.isLoading }
+    private var issue: MessagingLoadIssue? { phase.failure }
+    private var isLoadingEarlier: Bool { earlierPhase.isLoading }
+    private var earlierIssue: MessagingLoadIssue? { earlierPhase.failure }
+    /// Guard: only an in-flight fetch falls back to idle; a failure stays visible.
+    private func settleLoading() { if phase.isLoading { phase = .idle } }
+    private func settleLoadingEarlier() { if earlierPhase.isLoading { earlierPhase = .idle } }
     @State private var generation: UInt64 = 0
     @State private var visibleMessageID: Int?
     @State private var showingPollComposer = false
@@ -226,7 +233,7 @@ struct MessagingHistoryView: View {
             // Only a new account epoch or an unfinished first load starts an automatic read.
             if !currentHistoryReady { await reload() }
         }
-        .onDisappear { generation &+= 1; isLoadingEarlier = false }
+        .onDisappear { generation &+= 1; settleLoadingEarlier() }
     }
     private var transcript: some View {
         ScrollView {
@@ -300,28 +307,29 @@ struct MessagingHistoryView: View {
         generation &+= 1
         let request = generation, identity = reader.identity, source = ObjectIdentifier(reader)
         history = MessagingHistory(conversationID: conversationID)
-        loadedIdentity = nil; loadedReaderID = nil; issue = nil; earlierIssue = nil; isLoading = true; isLoadingEarlier = false
+        loadedIdentity = nil; loadedReaderID = nil; phase = .loading; earlierPhase = .idle
         pageBlocked = nil; pageBlockedByMe = nil
         guard reader.isConfigured, identity != nil, conversationID > 0,
-              conversation == nil || conversation?.id == conversationID else { isLoading = false; return }
-        defer { if generation == request { isLoading = false } }
+              conversation == nil || conversation?.id == conversationID else { phase = .idle; return }
+        defer { if generation == request { settleLoading() } }
         do {
             let page = try await reader.messagingMessages(conversationID: conversationID, cursor: 0)
             guard isCurrent(request, identity, source: source) else { return }
             try history.replace(with: page)
             pageBlocked = page.blocked; pageBlockedByMe = page.blockedByMe
             loadedIdentity = identity; loadedReaderID = source; visibleMessageID = history.messages.last?.id
+            phase = .loaded(())
         } catch is CancellationError {} catch {
             guard isCurrent(request, identity, source: source) else { return }
-            issue = MessagingLoadIssue(error)
+            phase = .failed(MessagingLoadIssue(error), retry: nil)
         }
     }
     private func loadEarlier() async {
         guard !isLoading, !isLoadingEarlier, history.conversationID == conversationID, history.hasMore, let cursor = history.nextCursor,
               loadedIdentity != nil, loadedIdentity == reader.identity else { return }
         let request = generation, identity = loadedIdentity, source = ObjectIdentifier(reader), anchor = visibleMessageID
-        isLoadingEarlier = true; earlierIssue = nil
-        defer { if generation == request { isLoadingEarlier = false } }
+        earlierPhase = .loading
+        defer { if generation == request { settleLoadingEarlier() } }
         do {
             let page = try await reader.messagingMessages(conversationID: conversationID, cursor: cursor)
             guard isCurrent(request, identity, source: source) else { return }
@@ -333,8 +341,8 @@ struct MessagingHistoryView: View {
             if failure.isTerminal {
                 // Closed/unauthorized conversations stop showing their prior transcript.
                 replyAuthority.invalidate()
-                history = MessagingHistory(conversationID: conversationID); issue = failure
-            } else { earlierIssue = failure }
+                history = MessagingHistory(conversationID: conversationID); phase = .failed(failure, retry: nil)
+            } else { earlierPhase = .failed(failure, retry: nil) }
         }
     }
     private func isCurrent(_ request: UInt64, _ identity: MessagingReadIdentity?, source: ObjectIdentifier) -> Bool {

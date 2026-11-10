@@ -133,48 +133,124 @@ struct ClubNotificationAudienceOption: Identifiable, Equatable {
         let permit = model.permit(in: expected)
         let snapshot = model.snapshotID
         // Rows sit directly in the 选择受众 section (mini-program list card): label, 「N 人」, checkmark.
+        // This group is not its own screen: the notify form already owns the one title.
         Group {
-            if model.loading || permit == nil { ProgressView("club.loading").accessibilityIdentifier("club.audience.loading") }
+            if model.loading || permit == nil {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    CYSkeleton()
+                    Text("club.loading")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .accessibilityElement(children: .combine)
+                .accessibilityIdentifier("club.audience.loading")
+            }
             if isCurrent(), let permit, let options = model.accepted(expected, access: access) {
                 ForEach(options) { option in
                     Button {
                         guard canEdit(), isCurrent(), model.canSelect(option.id, snapshotID: snapshot, permit: permit, access: access) else { return }
-                        if selection != option.id { selection = option.id }
+                        if selection != option.id {
+                            selection = option.id
+                            CYHaptics.selection.play()
+                        }
                     } label: {
-                        VStack(alignment: .leading, spacing: 2) {
-                            HStack {
-                                Text(LocalizedStringKey("club.gov.choice." + option.id)).foregroundStyle(option.enabled ? .primary : .secondary)
-                                Spacer()
-                                if option.enabled, let count = option.count {
-                                    ClubOpsJoinNotifyCopy.people(count).monospacedDigit().foregroundStyle(.secondary)
-                                }
-                                Image(systemName: "checkmark").foregroundStyle(CYColor.textPrimary)
-                                    .opacity(selection == option.id ? 1 : 0).accessibilityHidden(true)
-                            }
-                            // Mini-program row-desc: why an event-only audience can't be picked here.
-                            if option.needsActivity { Text("club.audience.chooseEvent").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                            else if !option.enabled {
-                                if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) { ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                                else { Text("club.gov.denied").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
-                            }
-                        }.contentShape(Rectangle())
+                        audienceRow(option)
                     }
+                    .buttonStyle(.cyPressable)
                     .disabled(!canEdit() || !option.enabled)
                     .accessibilityAddTraits(selection == option.id ? .isSelected : [])
                     .accessibilityIdentifier("club.audience.choice." + option.id)
                 }
             }
             if isCurrent(), permit != nil, let failure = model.failure, failure != .forbidden {
-                CYStatusChip(LocalizedStringKey(failure.localizationKey), tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.audience.error")
+                Label(LocalizedStringKey(failure.localizationKey), systemImage: "exclamationmark.triangle")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("club.audience.error")
             }
             if isCurrent(), permit != nil, model.failure == .forbidden { ClubOpsNotifyDeniedText() }
-            if model.countsUnavailable, isCurrent() { CYStatusChip("club.audience.countsUnavailable", tone: .neutral, systemImage: "number").accessibilityIdentifier("club.audience.countsUnavailable") }
+            if model.countsUnavailable, isCurrent() {
+                Text("club.audience.countsUnavailable")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .accessibilityIdentifier("club.audience.countsUnavailable")
+            }
             if model.failure != .forbidden {
-                CYPillButton(LocalizedStringKey(model.failure == nil && !model.countsUnavailable ? "club.gov.refresh" : "action.retry"), style: .tertiary) {
+                Button(LocalizedStringKey(model.failure == nil && !model.countsUnavailable ? "club.gov.refresh" : "action.retry")) {
                     guard canEdit(), isCurrent(), let permit else { return }
                     Task { await model.load(permit, access: access, isCurrent: isCurrent) }
-                }.disabled(!canEdit() || model.loading || permit == nil).accessibilityIdentifier("club.audience.reload")
+                }
+                .buttonStyle(CYPillButtonStyle(style: .secondary, fullWidth: false))
+                .disabled(!canEdit() || model.loading || permit == nil)
+                .accessibilityIdentifier("club.audience.reload")
             }
-        }.buttonStyle(.plain)
+        }
+        .buttonStyle(.borderless)
+    }
+    private func audienceRow(_ option: ClubNotificationAudienceOption) -> some View {
+        VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+            HStack(alignment: .center, spacing: CYSpacing.md) {
+                CYRowIcon(systemImage: Self.symbol(option.id))
+                Text(LocalizedStringKey("club.gov.choice." + option.id))
+                    .font(CYTypography.cardTitle)
+                    .foregroundStyle(option.enabled ? CYColor.textPrimary : CYColor.textTertiary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Spacer(minLength: CYSpacing.sm)
+                if option.enabled { audienceCount(option) }
+                if selection == option.id {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityHidden(true)
+                }
+            }
+            if option.needsActivity {
+                Text("club.audience.chooseEvent")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else if !option.enabled {
+                if ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id) {
+                    ClubOpsJoinNotifyCopy.text("clubOpsJN.notify.eventDenied")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("club.gov.denied")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+        }
+        .frame(minHeight: CYSpacing.minTouchTarget, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+    /// A missing count is unknown. A real 0 stays 0 via the existing people string.
+    @ViewBuilder private func audienceCount(_ option: ClubNotificationAudienceOption) -> some View {
+        if let count = option.count {
+            ClubOpsJoinNotifyCopy.people(count)
+                .font(CYTypography.numericBody)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textSecondary)
+        } else {
+            Text(verbatim: "—")
+                .font(CYTypography.numericBody)
+                .foregroundStyle(CYColor.textTertiary)
+                .accessibilityLabel(Text("club.audience.countsUnavailable"))
+        }
+    }
+    private static func symbol(_ id: String) -> String {
+        switch id {
+        case "ALL_MEMBERS": "person.3"
+        case "ADMINS": "shield"
+        case "REGISTERED": "checkmark.seal"
+        case "WAITLIST": "clock"
+        case "NO_SHOW": "person.slash"
+        case "INACTIVE": "moon.zzz"
+        default: "person"
+        }
     }
 }

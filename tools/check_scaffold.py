@@ -185,6 +185,7 @@ ui='\n'.join(p.read_text() for p in (ROOT/'App').glob('*.swift'))
 localizable_ui=re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', ui)
 localizable_ui=re.sub(r'(?:accessibilityPrefix|identifier|messageIdentifier|actionIdentifier):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'primaryIdentifier:[^\n]*','',localizable_ui)
+localizable_ui=re.sub(r'(case\s+\.[A-Za-z]+:\s*return\s+)"[a-z0-9.]+"','',localizable_ui)  # SF Symbol names returned from symbol(for:) switches
 localizable_ui=re.sub(r'(?:confirmIdentifier|icon|submitID):\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'(?<![\w.])id:\s*"(?:\\.|[^"\\])*"','',localizable_ui)
 localizable_ui=re.sub(r'\.accessibilityIdentifier\s*=\s*"(?:\\.|[^"\\])*"', '', localizable_ui)

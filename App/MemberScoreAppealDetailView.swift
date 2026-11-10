@@ -10,22 +10,83 @@ import SwiftUI
     var body: some View {
         let rendered = readIntent()
         List {
-            Section { CYHeroHeader("score.detail.title", tableName: "MemberScoreAppealList").listRowBackground(Color.clear).listRowInsets(EdgeInsets()) }
+            Section {
+                CYHeroHeader("score.detail.title", tableName: "MemberScoreAppealList")
+            }.e1HeroRow()
             if let flow, let row = flow.detailRow {
-                if let title = row.title { Text(verbatim: title) }
-                memberScoreText("score.kind.\(row.kind.rawValue)")
-                if let session = row.sessionID { Text(verbatim: "#\(session) · #\(row.recordID)").font(.caption) }
-                if let value = flow.detail {
-                    memberScoreText("score.status.\(value.status.rawValue)")
-                    if let note = value.resolutionNote, !note.isEmpty { Text(verbatim: note) }
-                    LabeledContent { Text(verbatim: String(value.totalCenti)) } label: { memberScoreText("score.detail.centi") }
+                CYListRow(verbatim: playerFactOrDash(row.title), trailing: .none) {
+                    CYRowIcon(systemImage: row.kind == .appeal ? "text.bubble" : "flag")
                 }
-                if flow.busy { ProgressView() }
-                if let failure = flow.failure { memberScoreText("score.error.\(failure)") }
-            } else { memberScoreText("score.error.disabled") }
-            memberScoreText("score.detail.boundary").font(.footnote)
-            CYPillButton("score.detail.refresh", style: .secondary, tableName: "MemberScoreAppealList") { load(rendered) }.disabled(rendered == nil || flow?.busy == true)
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                memberScoreText("score.kind.\(row.kind.rawValue)")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                Text(verbatim: sessionLine(row))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textTertiary)
+                    .monospacedDigit()
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.xs, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.xs, trailing: CYSpacing.pageHorizontal))
+                if let value = flow.detail {
+                    MemberScoreStatusChip(status: value.status)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    if let note = value.resolutionNote, !note.isEmpty {
+                        Text(verbatim: note)
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                    }
+                    VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                        memberScoreText("score.detail.centi")
+                            .font(CYTypography.meta)
+                            .foregroundStyle(CYColor.textSecondary)
+                        Text(verbatim: String(value.totalCenti))
+                            .font(CYTypography.dataXL)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .monospacedDigit()
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .accessibilityElement(children: .combine)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                }
+                if flow.busy {
+                    CYSkeleton()
+                        .accessibilityElement(children: .ignore)
+                        .accessibilityLabel(Text("score.detail.loading", tableName: "MemberScoreAppealList"))
+                        .listRowBackground(Color.clear)
+                        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                }
+                if let failure = flow.failure {
+                    Label {
+                        memberScoreText("score.error.\(failure)")
+                    } icon: {
+                        Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+                    }
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                }
+            } else {
+                CYEmptyState(systemImage: "exclamationmark.triangle", "score.error.disabled", tableName: "MemberScoreAppealList", kind: .failure)
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+            }
+            memberScoreText("score.detail.boundary")
+                .font(CYTypography.meta)
+                .foregroundStyle(CYColor.textTertiary)
+                .fixedSize(horizontal: false, vertical: true)
+                .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+            CYPillButton("score.detail.refresh", tableName: "MemberScoreAppealList") { load(rendered) }
+                .disabled(rendered == nil || flow?.busy == true)
+                .e1ActionRow()
         }
+        .listStyle(.insetGrouped)
         .cyGroupedSurface().cyHeroScreen().privacySensitive()
         .accessibilityIdentifier("score.mine.detail")
         .onAppear { visible = true; start() }
@@ -33,6 +94,10 @@ import SwiftUI
         .onChange(of: scene) { _, phase in retire(); if phase == .active { start() } }
         .onChange(of: session.memberScoreReadIdentity) { _, _ in retire() }
         .onChange(of: selection.client.isCurrent) { _, valid in if !valid { retire() } }
+    }
+    private func sessionLine(_ row: MemberScoreAppealRow) -> String {
+        let session = row.sessionID.map { "#\($0)" } ?? "—"
+        return "\(session) · #\(row.recordID)"
     }
     private func start() {
         guard visible, scene == .active else { return }; retire()
