@@ -32,6 +32,7 @@ import UIKit
     }
 }
 
+/// Embedded in the club AI form. The parent screen owns `context.ai.title`; chips stay secondary.
 @MainActor struct ClubAIDesignIdeaChips: View {
     let clubID: Int
     let session: PublishingSession?
@@ -39,7 +40,7 @@ import UIKit
     @Binding var operationID: UUID
     @Binding var generating: Bool
     @Environment(\.scenePhase) private var scenePhase
-    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
     @StateObject private var model = ClubAIDesignFeedbackModel()
     private var context: ClubAIDesignFeedbackContext {
         .init(clubID: clubID, session: session, operationID: operationID)
@@ -49,24 +50,24 @@ import UIKit
         let _ = model.revision
         let _ = model.bind(value)
         let permit = model.state.permit(value, generating: generating)
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            Text("club.aiFeedback.ideas").font(CYTypography.meta).foregroundStyle(palette.textTertiary)
-                .accessibilityAddTraits(.isHeader)
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            CYSectionHeader("club.aiFeedback.ideas")
             ForEach(ClubAIDesignIdea.allCases) { chip in
-                Button {
+                CYPillButton(verbatim: chip.text, style: .secondary, systemImage: "sparkles") {
                     guard scenePhase == .active, let permit,
                           let replacement = model.state.choose(chip, permit: permit, current: context, generating: generating) else { return }
+                    if !reduceMotion { CYHaptics.selection.play() }
                     idea = replacement
-                } label: {
-                    Text(verbatim: chip.text).multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(maxWidth: .infinity, minHeight: 44, alignment: .leading).contentShape(Rectangle())
                 }
-                .buttonStyle(.bordered)
                 .disabled(permit == nil || scenePhase != .active)
                 .accessibilityIdentifier("club.aiFeedback.idea." + chip.rawValue)
+                .accessibilityLabel(Text(verbatim: chip.text))
+                .accessibilityHint(Text("club.aiFeedback.ideas"))
             }
         }
+        .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+        .listRowBackground(Color.clear)
+        .themeDomain(.player)
         .onAppear { model.appear() }
         .onDisappear { model.leave() }
         .onChange(of: scenePhase) { _, phase in
@@ -88,6 +89,7 @@ import UIKit
     }
 }
 
+/// Embedded copy row. Adopt/generate on the parent stays the screen's primary; copy is secondary.
 @MainActor struct ClubAIDesignPromoFeedback: View {
     let clubID: Int
     let session: PublishingSession?
@@ -97,6 +99,8 @@ import UIKit
     @Binding var operationID: UUID
     @Binding var generating: Bool
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
     @StateObject private var model = ClubAIDesignFeedbackModel()
     private var context: ClubAIDesignFeedbackContext {
         .init(clubID: clubID, session: session, operationID: operationID,
@@ -118,18 +122,41 @@ import UIKit
                 CYPillButton("club.aiFeedback.copy", style: .secondary, systemImage: "doc.on.doc") {
                     guard let permit else { return }
                     model.copy(permit, current: current, generating: { generating }, write: ClubAIDesignFeedbackModel.writeClipboard)
+                    if !reduceMotion {
+                        if model.state.phase == .copied { CYHaptics.success.play() }
+                        if model.state.phase == .failed { CYHaptics.warning.play() }
+                    }
                 }
                 .disabled(permit == nil || current() == nil || model.state.phase == .copying)
                 .accessibilityIdentifier("club.aiFeedback.copy")
+                .accessibilityLabel(Text("club.aiFeedback.copy"))
+                .listRowInsets(EdgeInsets(top: CYSpacing.md, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+                .listRowBackground(Color.clear)
                 if current() != nil {
                     if model.state.phase == .copied {
-                        CYStatusChip("club.aiFeedback.copied", tone: .success, systemImage: "checkmark").accessibilityIdentifier("club.aiFeedback.copied")
+                        CYStatusChip("club.aiFeedback.copied", tone: .success, systemImage: "checkmark")
+                            .accessibilityIdentifier("club.aiFeedback.copied")
+                            .accessibilityLabel(Text("club.aiFeedback.copied"))
+                            .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                            .listRowBackground(Color.clear)
                     }
                     if model.state.phase == .failed {
-                        CYStatusChip("club.aiFeedback.failed", tone: .danger, systemImage: "exclamationmark.triangle").accessibilityIdentifier("club.aiFeedback.failed")
+                        Label {
+                            Text("club.aiFeedback.failed")
+                                .fixedSize(horizontal: false, vertical: true)
+                        } icon: {
+                            Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+                        }
+                        .font(CYTypography.body)
+                        .foregroundStyle(palette.textPrimary)
+                        .accessibilityIdentifier("club.aiFeedback.failed")
+                        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.md, trailing: CYSpacing.pageHorizontal))
+                        .listRowBackground(Color.clear)
                     }
                 }
             }
+            .themeDomain(.player)
+            .cyAnimation(value: model.revision)
             .onAppear { model.appear() }
             .onDisappear { model.leave() }
             .onChange(of: scenePhase) { _, phase in
