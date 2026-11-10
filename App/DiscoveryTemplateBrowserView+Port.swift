@@ -21,7 +21,7 @@ struct DiscoveryTopicCoverThumb: View {
             }
         }
         .frame(width: side, height: side)
-        .clipShape(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: CYRadius.sm, style: .continuous))
         .accessibilityHidden(false)
     }
 }
