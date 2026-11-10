@@ -69,6 +69,7 @@ enum CYMotion {
         static let quick: Double = 0.18      // fades, reveals, cross-fades
         static let standard: Double = 0.25   // list insert/delete, content swap
         static let emphasized: Double = 0.35 // hero, entrance
+        static let slow: Double = 0.60       // celebration land, flip, foil sweep, ring count-up (spec 1.1)
     }
     /// Touch-down. 120 ms.
     static let press = Animation.spring(response: 0.12, dampingFraction: 0.9)
@@ -78,6 +79,8 @@ enum CYMotion {
     static let standard = Animation.spring(response: 0.3, dampingFraction: 0.85)
     /// Entrances (empty state, staggered cards).
     static let entrance = Animation.spring(response: 0.35, dampingFraction: 0.8)
+    /// One visible overshoot: flip card, template carousel snap (spec 1.2).
+    static let hero = Animation.spring(response: 0.55, dampingFraction: 0.78)
     /// Reduce Motion replacement: a short cross-fade.
     static let reduced = Animation.easeInOut(duration: Duration.quick)
 

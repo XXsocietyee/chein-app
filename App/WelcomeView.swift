@@ -16,10 +16,51 @@ struct WelcomeView: View {
         }
     }
     @State private var destination: Destination?
+    /// Set once the player has finished (or left) the intro; later launches open on the last step.
+    @AppStorage("onboarding.completed.v1") private var onboardingCompleted = false
     @Environment(\.locale) private var locale
     private var isChinese: Bool { locale.identifier.hasPrefix("zh") }
 
     var body: some View {
+        // Launch (guest browse available) gets the onboarding pager; the signed-out Me tab keeps the compact page.
+        if onBrowse != nil { onboardingBody } else { classicBody }
+    }
+
+    private var onboardingBody: some View {
+        NavigationStack {
+            OnboardingFlow(
+                initialStep: onboardingCompleted ? .consent : .welcome,
+                topAccessory: AnyView(moreMenu),
+                onRegister: { onboardingCompleted = true; destination = .login(.player) },
+                onGuest: { onboardingCompleted = true; onBrowse?() })
+                .toolbar(.hidden, for: .navigationBar)
+                .sheet(item: $destination) { destination in
+                    switch destination {
+                    case .settings: SettingsView()
+                    case .login(let intent): LoginView(intent: intent)
+                    }
+                }
+        }
+    }
+
+    /// Language, saved drafts and settings live in one quiet menu.
+    private var moreMenu: some View {
+        Menu {
+            NavigationLink { OwnerDraftGuestView() } label: { Label("ownerDraft.title", systemImage: "doc.on.doc") }
+                .accessibilityIdentifier("ownerDraft.guestEntry")
+            Button("settings.title", systemImage: "gearshape") { destination = .settings }
+                .accessibilityIdentifier("welcome.settings")
+            LanguageSwitcher()
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .foregroundStyle(CYColor.textSecondary)
+                .frame(minWidth: CYSpacing.minTouchTarget, minHeight: CYSpacing.minTouchTarget)
+                .accessibilityLabel(Text("settings.title"))
+        }
+        .accessibilityIdentifier("welcome.more")
+    }
+
+    private var classicBody: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: CYSpacing.xl) {

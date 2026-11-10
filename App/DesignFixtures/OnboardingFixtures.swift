@@ -1,7 +1,7 @@
 #if DEBUG
 import SwiftUI
 
-/// D1 onboarding fixtures (synthetic, debug only): `welcome`, `welcome-menu`, `consent`, `login-player`.
+/// D1 onboarding fixtures (synthetic, debug only): `welcome`, `welcome-menu`, `consent`, `login-player`, `onboarding-1`...`onboarding-5`, `onboarding-ax`.
 struct WelcomeFixture: View {
     var body: some View {
         WelcomeView(onBrowse: {}).environmentObject(AppSession())
@@ -27,6 +27,21 @@ struct WelcomeMenuFixture: View {
     }
     private func row(_ symbol: String, _ key: LocalizedStringKey) -> some View {
         Label(key, systemImage: symbol).foregroundStyle(CYColor.textPrimary).padding(CYSpacing.lg).frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+/// Onboarding pager at a fixed step (`onboarding-1`...`onboarding-5`); `ax` renders the last step at the largest
+/// accessibility type size in Simplified Chinese (`onboarding-ax`).
+struct OnboardingFixture: View {
+    let step: OnboardingStep
+    var accessibility = false
+    var body: some View {
+        let flow = OnboardingFlow(initialStep: step, onRegister: {}, onGuest: {}).cyScreenStyle().roleTheme(.player)
+        if accessibility {
+            flow.environment(\.dynamicTypeSize, .accessibility3).environment(\.locale, Locale(identifier: "zh-Hans"))
+        } else {
+            flow
+        }
     }
 }
 
