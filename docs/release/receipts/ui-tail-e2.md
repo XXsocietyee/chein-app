@@ -14,3 +14,9 @@ No new string keys so far (kit components reuse existing keys; docs/release/ui-s
 - done: CityNeutralTaskResultRecoveryView (CYPillButton, CYSkeleton)
 - done: CityNeutralTaskRuntimeHostView, CityOnsiteTaskRuntimeHostView (CYEmptyState)
 - skipped (merchant-only): CityNodeRedeemView (merchant.cityRedeem, MerchantBusinessReading)
+
+## Batch 3
+- done: CityOrientationOriginalRecoveryView (CYSectionHeader, CYStatusChip, CYSkeleton, CYPillButton)
+- done: CityParticipationRecoveryView (CYEmptyState, CYPillButton, CYSkeleton)
+- done: CityParticipationRuntimeHostView, CityTaskHistoryRuntimeHostView (CYEmptyState)
+- done: CityPlayerValueNodeView (CYEmptyState, CYPillButton, CYSkeleton)
