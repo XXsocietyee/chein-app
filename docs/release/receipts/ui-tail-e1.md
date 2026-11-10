@@ -61,3 +61,8 @@ Shared helpers: `e1HeroRow()` / `e1ActionRow()` in App/E1CommerceComponents.swif
 
 ## Batch 17-18 (Workshop tail)
 - WorkshopModUpgradeSheetView (token fonts + semantic colours, grouped surface; kit primary button kept), WorkshopOwnedLibraryView, WorkshopOwnedPackageView, WorkshopPaidInstallView, WorkshopPaidInstalledTextView, WorkshopPaidProfessionalView, WorkshopPurchasedLibraryView: spinners -> skeleton blocks with the same VoiceOver label, single-line text-label buttons -> CYPillButtonStyle (primary only for confirm/review/submit), type styles -> CYTypography. These screens keep their existing native navigation title as the ONE visible title (no hero added); row buttons, toolbar close buttons and state-machine logic untouched. ContentUnavailableView states in OwnedLibrary/PurchasedLibrary left as the system component (they carry multi-line label/description pairs from the Workshop tables).
+
+## Status
+- 88 files in tail-e1.txt: 81 restyled, 7 skipped with reasons (RegistrationSheetView already restyled in earlier e1 passes; SecondRegistrationStatsView analytics/merchant-side; SessionGlobalSearchView / SessionHomeFeedView / SessionTopicBrowserView / SessionTopicSelfPlayView pure host wiring; ShopNPCFixtureView DEBUG-only).
+- Cloud Build green at cbd5234e3 (final head, includes merged origin/ui/main). Test - iOS reports action_required on every commit, including origin/ui/main itself, from the GLTFKit2 "unsupported Swift architecture" runner error (not code). 
+- Fix-forwards: BundleOrderStatusView (`== .failed` on an associated-value enum), CityActionBudgetView (another lane's body hit a type-checker timeout after merge).
