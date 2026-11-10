@@ -14,10 +14,10 @@ import SwiftUI
     var body: some View {
         List {
             Section { Text(verbatim: topicName).font(.subheadline).foregroundStyle(.secondary) }
-            if loading && rows.isEmpty { ProgressView("topicXcx.records.loading") }
+            if loading && rows.isEmpty { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topicXcx.records.loading")) }
             else if failed && rows.isEmpty {
                 Text("topicXcx.records.failed").accessibilityIdentifier("topic.records.failed")
-                Button("topicXcx.records.reload") { Task { await load(reset: true) } }
+                CYPillButton("topicXcx.records.reload", style: .secondary) { Task { await load(reset: true) } }
             } else if rows.isEmpty && loadedScope == reader.scope {
                 Text("topicXcx.records.empty").accessibilityIdentifier("topic.records.empty")
             }
@@ -98,8 +98,8 @@ import SwiftUI
                 if let next = card.nextScene { Text("topicXcx.records.nextScene \(next)") }
             } else if failed {
                 Text("topicXcx.records.cardFailed").accessibilityIdentifier("topic.records.cardFailed")
-                Button("topicXcx.records.cardReload") { Task { await load() } }
-            } else { ProgressView("topicXcx.records.cardLoading") }
+                CYPillButton("topicXcx.records.cardReload", style: .secondary) { Task { await load() } }
+            } else { CYLoadingStateView(rows: 1).accessibilityLabel(Text("topicXcx.records.cardLoading")) }
         }
         .task(id: reader.scope) { await load() }
         .accessibilityIdentifier("topic.records.card")

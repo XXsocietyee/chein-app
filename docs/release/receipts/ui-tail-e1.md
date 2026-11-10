@@ -66,3 +66,11 @@ No file of 66-88 is on a ui/cloud-* branch.
 | App/TemplateSensorRehearsalView.swift | done: CYHeroHeader, CYPillButton advance (primary)/reload; determinate ProgressView kept |
 | App/TemplateTimerRehearsalView.swift | done: CYHeroHeader (dynamic kind title), CYPillButton start/resume/again primary, rest secondary |
 | App/TopicDetailView.swift | done: CYLoadingStateView, CYPillButton (paywall unlock primary, review/self-play secondary) |
+### Batch C (76-80)
+| File | Result |
+| --- | --- |
+| App/TopicSessionSelectionView.swift | done: CYEmptyState for missing-data/empty (ids kept); activity rows and toolbar close unchanged |
+| App/TopicThemeRecordsView.swift | done: CYLoadingStateView, CYPillButton reload |
+| App/WorkshopCommerceView.swift | done (partial): 9 refresh/more/cancel/return buttons to CYPillButton, CYLoadingStateView; buttons with custom full-width labels/modifiers and the tabled unavailable ContentUnavailableView left (CYEmptyState has no tabled detail) |
+| App/WorkshopCreatorConsentView.swift | done: CYPillButton declare (primary)/another/refresh, CYLoadingStateView |
+| App/WorkshopCreatorPendingView.swift | done: CYPillButton retry/another/more/refresh/author, CYLoadingStateView |
