@@ -84,3 +84,12 @@ Source list: `/Users/fanning/chengyin-refs/tail-e1.txt` (88 files). Batches of 5
 | App/SessionGlobalSearchView.swift | skipped: pure host wrapper around GlobalSearchView, no UI of its own |
 | App/SessionHomeFeedView.swift | skipped: host with native toolbar/menu/sheets (close buttons are toolbar items), no restylable content of its own |
 | App/SessionTopicBrowserView.swift | skipped: pure host wrapper around TopicBrowserView |
+
+## Batch 10
+| File | Result |
+| --- | --- |
+| App/SessionTopicSelfPlayView.swift | skipped: pure host wrapper around TopicSelfPlaySheet, no UI of its own |
+| App/ShopNPCFixtureView.swift | skipped: `#if DEBUG` UI-test fixture host, not a shipping screen |
+| App/ShopNPCScriptedGuideView.swift | done: CYPillButton return |
+| App/SquareRelatedTopicView.swift | done: CYPillButton view-topic (secondary, symbol) |
+| App/SupportTicketReadView.swift | done: CYHeroHeader (one title), cyGroupedSurface, 6 buttons to CYPillButton, CYLoadingStateView |
