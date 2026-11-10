@@ -114,6 +114,7 @@ import UIKit
                     .accessibilityIdentifier("miniCrop.canvas")
                     .task(id: frame.width * 10_000 + frame.height) { session.setFrame(width: frame.width, height: frame.height) }
             }
+        }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
