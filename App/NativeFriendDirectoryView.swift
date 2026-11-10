@@ -53,7 +53,7 @@ import SwiftUI
                 }
                 .pickerStyle(.segmented).labelsHidden()
                 .accessibilityIdentifier("friendDirectory.partition")
-                .listRowInsets(EdgeInsets()).listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: Theme.Space.s2, leading: Theme.Space.pageX, bottom: Theme.Space.s2, trailing: Theme.Space.pageX)).listRowBackground(Color.clear)
             }
             if flow.busy { ProgressView().frame(maxWidth: .infinity).accessibilityIdentifier("friendDirectory.loading") }
             if flow.phase == .closed { text("friendDirectory.closed") }
