@@ -83,6 +83,12 @@ struct E1Fixture: View {
         case "e1-ticket-holder-used": return AnyView(E1TicketHolderFixture(kind: .used))
         case "e1-ticket-holder-expired": return AnyView(E1TicketHolderFixture(kind: .expired))
         case "e1-ticket-holder-present": return AnyView(E1TicketHolderFixture(kind: .present))
+        case "ui-pass-card": return AnyView(PassCardFixture(kind: .valid))
+        case "ui-pass-card-pending": return AnyView(PassCardFixture(kind: .pending))
+        case "ui-pass-card-used": return AnyView(PassCardFixture(kind: .used))
+        case "ui-pass-card-expired": return AnyView(PassCardFixture(kind: .expired))
+        case "ui-pass-card-empty": return AnyView(PassCardFixture(kind: .empty))
+        case "ui-pass-card-error": return AnyView(PassCardFixture(kind: .error))
         default: return nil
         }
     }

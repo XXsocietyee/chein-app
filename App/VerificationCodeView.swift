@@ -20,13 +20,20 @@ extension EnvironmentValues {
     var title: String? = nil
     /// City voucher opened from a known node requests its code on appear. The approval gate is unchanged.
     var autoIssue = false
+    /// Pass-sheet mode: no hero header, no own scroll or background, QR drawn at `qrSide` pt on white.
+    var embeddedQRSide: CGFloat? = nil
     @Environment(\.scenePhase) private var scenePhase
     @State private var operation: Task<Void, Never>?
     @State private var revealSweep = false
     var body: some View {
-        ScrollView {
+        if embeddedQRSide != nil { lifecycle(stack) } else {
+            lifecycle(ScrollView { stack.padding().frame(maxWidth: .infinity) }.cyHeroScreen())
+        }
+    }
+    private var stack: some View {
             VStack(spacing: 20) {
-                if model.target.kind == .cityVoucher, autoIssue {
+                if embeddedQRSide != nil {
+                } else if model.target.kind == .cityVoucher, autoIssue {
                     RoamCityVoucherHeading(title: title)
                 } else {
                     CYHeroHeader(model.target.kind == .ticket ? "verificationCode.ticket.title" : "verificationCode.city.title")
@@ -47,9 +54,10 @@ extension EnvironmentValues {
                 }
                 Text(model.target.kind == .ticket ? "verificationCode.ticket.authority" : "verificationCode.city.authority")
                     .font(.footnote).foregroundStyle(.secondary)
-            }.padding().frame(maxWidth: .infinity)
-        }
-        .cyHeroScreen().privacySensitive()
+            }
+    }
+    private func lifecycle<V: View>(_ view: V) -> some View {
+        view.privacySensitive()
         .task(id: scenePhase) {
             guard scenePhase == .active else { cancel(); return }
             while !Task.isCancelled {
@@ -68,7 +76,7 @@ extension EnvironmentValues {
     }
     @ViewBuilder private var content: some View {
         if model.phase == .ready, let code = model.displayCode {
-            VerificationLocalQRCode(code: code)
+            VerificationLocalQRCode(code: code, side: embeddedQRSide)
                 .overlay { CYScanSweep(active: revealSweep, period: 1.4).allowsHitTesting(false) }
                 .task(id: code) {
                     // One reveal pass over a freshly presented code, then the line rests.
@@ -107,6 +115,7 @@ extension EnvironmentValues {
 
 @MainActor private struct VerificationLocalQRCode: View {
     let code: String
+    var side: CGFloat? = nil
     private var image: UIImage? {
         let filter = CIFilter.qrCodeGenerator()
         filter.message = Data(code.utf8); filter.correctionLevel = "M"
@@ -117,7 +126,7 @@ extension EnvironmentValues {
     var body: some View {
         if let image {
             Image(uiImage: image).resizable().interpolation(.none).scaledToFit()
-                .frame(maxWidth: 280).padding(24).background(.white)
+                .frame(width: side, height: side).frame(maxWidth: side == nil ? 280 : nil).padding(side == nil ? 24 : CYSpacing.lg).background(.white, in: RoundedRectangle(cornerRadius: side == nil ? 0 : CYRadius.lg, style: .continuous))
                 .accessibilityLabel("verificationCode.image").accessibilityIdentifier("verificationCode.qr")
         } else { Text("verificationCode.renderFailed") }
     }
