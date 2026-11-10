@@ -54,3 +54,8 @@ Build status: ui/e2 188fd8572 (batches 1-7 + CityActionBudget fix) Build - iOS =
 
 ## Batch 11 (reverse)
 - done: PlayKitDecisionProgressViews, PlayExperienceView+Port, PlayDirectorView, PlayDeviceTaskViews, PlayCompareView (CYPillButton, CYStatusChip, CYSkeleton)
+
+## Batch 12 (reverse, last batch: list complete)
+- done: PlayAdvancedView, NativeRpgGrowthAuthorView, NativeStoryWalkingAuthorView (apply = CYPillButton), JourneyRoleViewSection, MapPublicStoryNodeDetailView (CYSkeleton)
+- skipped (already on CY tokens, no row/button/state to convert): DiceD20View
+- skipped (read-only history sheet; copy comes from a String-returning localiser that CYEmptyState cannot take, system toolbar close only): PlayBranchHistoryView
