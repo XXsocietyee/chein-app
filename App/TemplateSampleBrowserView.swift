@@ -105,31 +105,30 @@ import Combine
     }
     var body: some View {
         Form {
+            Section { CYHeroHeader("templateSamples.open", subtitle: "templateSamples.scope") }.e1HeroRow()
             Section {
-                NavigationLink("templateSampleCoverage.open") { TemplateAdditionalSampleBrowserView(model: model) }
+                NavigationLink { TemplateAdditionalSampleBrowserView(model: model) } label: { CYListRow("templateSampleCoverage.open") { CYRowIcon(systemImage: "square.grid.2x2") } }
                     .accessibilityIdentifier("templateSampleCoverage.open")
             }
-            Section { Text("templateSamples.scope") }
-            if controller.unavailable { Section { Text("templateSamples.unavailable") } }
+            if controller.unavailable { Section { Text("templateSamples.unavailable").foregroundStyle(CYColor.warningText) } }
             ForEach(TemplateSamplePreview.Group.allCases) { group in
                 Section(LocalizedStringKey(group.labelKey)) {
                     ForEach(TemplateSamplePreview.Choice.allCases.filter { $0.group == group }) { choice in
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(LocalizedStringKey(choice.labelKey)).font(.headline)
-                            HStack {
-                                Button("templateSamples.preview", action: controller.openAction(choice))
-                                    .disabled(!controller.canBrowse || controller.presentation != nil)
-                                    .accessibilityIdentifier("templateSamples.preview." + choice.rawValue)
-                                Spacer()
-                                NavigationLink("templateSamples.configure") { TemplateCreatorConfigurationView(model: model, family: choice.family) }
-                                    .disabled(!controller.canBrowse)
-                                    .accessibilityIdentifier("templateSamples.configure." + choice.rawValue)
-                            }.buttonStyle(.borderless)
+                        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                            Text(LocalizedStringKey(choice.labelKey)).font(CYTypography.cardTitle)
+                            CYPillButton("templateSamples.preview", style: .secondary, systemImage: "play.circle", action: controller.openAction(choice))
+                                .disabled(!controller.canBrowse || controller.presentation != nil)
+                                .accessibilityIdentifier("templateSamples.preview." + choice.rawValue)
+                            NavigationLink { TemplateCreatorConfigurationView(model: model, family: choice.family) } label: {
+                                CYListRow("templateSamples.configure") { CYRowIcon(systemImage: "slider.horizontal.3") }
+                            }
+                                .disabled(!controller.canBrowse)
+                                .accessibilityIdentifier("templateSamples.configure." + choice.rawValue)
                         }
                     }
                 }
             }
-        }.navigationTitle("templateSamples.open")
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .sheet(item: controller.presentationBinding) { item in
                 NavigationStack { TemplateSamplePresentationView(controller: controller, presentationID: item.id) }
             }
@@ -148,9 +147,9 @@ import Combine
     var body: some View {
         Group {
             if let item = controller.visiblePresentation, item.id == presentationID {
-                VStack(spacing: 8) {
-                    Text("templateSamples.previewScope").font(.footnote).padding(.horizontal)
-                    Text("templateSamples.filled \(item.sample.filledFields.count)").font(.caption)
+                VStack(spacing: CYSpacing.sm) {
+                    Text("templateSamples.previewScope").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary).padding(.horizontal)
+                    Text("templateSamples.filled \(item.sample.filledFields.count)").font(CYTypography.numericBody).foregroundStyle(CYColor.textSecondary)
                     TemplateCreatorRehearsalView(draft: item.sample.draft, family: item.sample.choice.family)
                         .id(item.id)
                 }

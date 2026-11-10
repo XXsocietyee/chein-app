@@ -13,7 +13,8 @@ struct TemplateRootRehearsalView: View {
     private var nodes: [Int] { Set(conditions.filter { $0.op == "NODE_COMPLETED" }.compactMap { $0.value["nodeId"]?.integer }).sorted() }
     var body: some View {
         Form {
-            Section { Text("creator.localOnly").font(.headline); Text("creatorRoot.rehearsalLimit").font(.footnote) }
+            Section { CYHeroHeader("creatorRoot.rehearse", subtitle: "creator.localOnly") }.e1HeroRow()
+            Section { Text("creatorRoot.rehearsalLimit").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             if let tier = draft.value["mistakeTier"]?.string { Section("creatorRoot.mistakeTier") { Text(LocalizedStringKey("creator.choice." + tier)); Text("creatorRoot.damageServer").font(.footnote) } }
             if !draft.rootVariants.isEmpty {
                 Section("creatorRoot.sampleState") {
@@ -22,7 +23,7 @@ struct TemplateRootRehearsalView: View {
                     }
                     ForEach(tags, id: \.self) { tag in Toggle(tag, isOn: Binding(get: { sample.tags.contains(tag) }, set: { if $0 { sample.tags.insert(tag) } else { sample.tags.remove(tag) }; evaluated = false })) }
                     ForEach(nodes, id: \.self) { node in Toggle("\(node)", isOn: Binding(get: { sample.completedNodes.contains(node) }, set: { if $0 { sample.completedNodes.insert(node) } else { sample.completedNodes.remove(node) }; evaluated = false })) }
-                    Button("creator.evaluate") { evaluate() }
+                    CYPillButton("creator.evaluate") { evaluate() }.e1ActionRow()
                 }
                 if evaluated {
                     Section("creatorRoot.snapshot") {
@@ -37,16 +38,16 @@ struct TemplateRootRehearsalView: View {
                     Picker("creatorRoot.roleLabel", selection: $role) { Text(verbatim: "A").tag("A"); Text(verbatim: "B").tag("B") }.pickerStyle(.segmented)
                     let fields = draft.value["roleViews"]?.object ?? [:]
                     if let view = (fields["views"]?.array ?? []).first(where: { $0.object?["roleId"]?.string == role })?.object {
-                        Text(verbatim: view["title"]?.string ?? "").font(.title2)
+                        Text(verbatim: view["title"]?.string ?? "").font(CYTypography.sectionTitle)
                         Text(verbatim: view["body"]?.string ?? "")
                         ForEach(Array((view["items"]?.array ?? []).enumerated()), id: \.offset) { _, item in
-                            VStack(alignment: .leading) { Text(verbatim: item.object?["label"]?.string ?? "").font(.headline); Text(verbatim: item.object?["text"]?.string ?? "") }
+                            VStack(alignment: .leading) { Text(verbatim: item.object?["label"]?.string ?? "").font(CYTypography.cardTitle); Text(verbatim: item.object?["text"]?.string ?? "") }
                         }
                     }
                 }
             }
-            Button("creator.reset") { sample = .init(); role = "A"; applied = nil; changes = [:]; evaluated = false }
-        }.navigationTitle("creatorRoot.rehearse")
+            CYPillButton("creator.reset", style: .tertiary) { sample = .init(); role = "A"; applied = nil; changes = [:]; evaluated = false }.e1ActionRow()
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
     }
     private func evaluate() {
         for key in variables where sample.values[key] == nil { sample.values[key] = 0 }
@@ -63,12 +64,13 @@ struct TemplateD20RehearsalView: View {
     @State private var sample: TemplateD20Rehearsal?
     var body: some View {
         Form {
-            Section { Text("creator.localOnly"); Text("creatorRoot.d20RuntimeLimit").font(.footnote) }
+            Section { CYHeroHeader("creatorRoot.d20Preview", subtitle: "creator.localOnly") }.e1HeroRow()
+            Section { Text("creatorRoot.d20RuntimeLimit").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             Section("creatorRoot.d20") {
                 LabeledContent("creatorRoot.dc", value: draft.text("diceRoll", "dc"))
                 LabeledContent("creatorRoot.modifier", value: draft.text("diceRoll", "modifier"))
                 Text(LocalizedStringKey("creatorRoot.roll." + draft.text("diceRoll", "rollMode")))
-                Button("creatorRoot.showSample") { sample = try? TemplateD20Rehearsal(draft: draft) }
+                CYPillButton("creatorRoot.showSample", systemImage: "dice") { sample = try? TemplateD20Rehearsal(draft: draft) }.e1ActionRow()
                 if let sample {
                     LabeledContent("creatorRoot.pips", value: sample.values.map(String.init).joined(separator: ", "))
                     LabeledContent("creatorRoot.kept", value: String(sample.kept)); LabeledContent("creatorRoot.total", value: String(sample.total))
@@ -76,7 +78,7 @@ struct TemplateD20RehearsalView: View {
                     Text(verbatim: sample.text)
                 }
             }
-            Button("creator.reset") { sample = nil }
-        }.navigationTitle("creatorRoot.d20Preview")
+            CYPillButton("creator.reset", style: .tertiary) { sample = nil }.e1ActionRow()
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
     }
 }

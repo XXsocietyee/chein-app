@@ -75,36 +75,32 @@ import Combine
     }
     var body: some View {
         Form {
-            Section {
-                Text("templateReasoning.localOnly", tableName: "TemplateReasoningRehearsal").font(.callout)
-            }
+            Section { CYHeroHeader("templateReasoning.title", subtitle: "templateReasoning.localOnly", tableName: "TemplateReasoningRehearsal") }.e1HeroRow()
             if let state = controller.visibleState, let kind = PlayKitScreenKind(rawValue: state.game.section) {
                 Section {
-                    Text(verbatim: state.segment["prompt"].text ?? "").font(.title2)
+                    Text(verbatim: state.segment["prompt"].text ?? "").font(CYTypography.sectionTitle)
                     PlayKitReasoningForm(kind: kind, segment: state.segment, enabled: state.canSubmit,
                         onDirty: {}, requestReview: controller.submitAction())
                         .id(controller.formID)
                 }
                 if state.result != .ready {
                     Section {
-                        Text("templateReasoning.result", tableName: "TemplateReasoningRehearsal").font(.headline)
+                        Text("templateReasoning.result", tableName: "TemplateReasoningRehearsal").font(CYTypography.cardTitle)
                         Text(LocalizedStringKey("templateReasoning." + state.result.rawValue), tableName: "TemplateReasoningRehearsal")
                             .accessibilityIdentifier("templateReasoning.result")
                     }
                 }
-                Button(action: controller.resetAction()) {
-                    Text("templateReasoning.retry", tableName: "TemplateReasoningRehearsal")
-                }.accessibilityIdentifier("templateReasoning.retry")
+                CYPillButton("templateReasoning.retry", style: .secondary, tableName: "TemplateReasoningRehearsal", action: controller.resetAction())
+                    .accessibilityIdentifier("templateReasoning.retry").e1ActionRow()
             } else {
                 Section {
                     Text("templateReasoning.unavailable", tableName: "TemplateReasoningRehearsal")
-                    Button(action: { controller.reload() }) {
-                        Text("templateReasoning.reload", tableName: "TemplateReasoningRehearsal")
-                    }.disabled(!controller.canReload).accessibilityIdentifier("templateReasoning.reload")
+                    CYPillButton("templateReasoning.reload", style: .secondary, systemImage: "arrow.clockwise", tableName: "TemplateReasoningRehearsal") { controller.reload() }
+                        .disabled(!controller.canReload).accessibilityIdentifier("templateReasoning.reload").e1ActionRow()
                 }
             }
         }
-        .navigationTitle(Text("templateReasoning.title", tableName: "TemplateReasoningRehearsal"))
+        .formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
         .privacySensitive()
         .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
         .onDisappear { controller.viewDisappeared() }

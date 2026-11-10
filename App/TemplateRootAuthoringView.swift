@@ -6,7 +6,8 @@ import Combine
     private var issues: [TemplateRootIssue] { model.draft.advanced.rootCreatorIssues }
     var body: some View {
         Form {
-            Section("creatorRoot.rules") {
+            Section { CYHeroHeader("creatorRoot.rules") }.e1HeroRow()
+            Section {
                 Picker("creatorRoot.mistakeTier", selection: Binding(get: { model.draft.advanced.value["mistakeTier"]?.string ?? "" }, set: { model.draft.advanced.value["mistakeTier"] = $0.isEmpty ? nil : .string($0) })) {
                     Text("creatorRoot.defaultTier").tag("")
                     ForEach(["easy", "medium", "hard"], id: \.self) { Text(LocalizedStringKey("creator.choice." + $0)).tag($0) }
@@ -22,7 +23,7 @@ import Combine
                     NavigationLink { TemplateVariantEditor(model: model, index: index) } label: { HStack { Text("creatorRoot.variant"); Text(verbatim: String(index + 1)) } }
                 }.onDelete { indexes in var rows = model.draft.advanced.rootVariants; for index in indexes.sorted(by: >) { rows.remove(at: index) }; model.draft.advanced.value["variants"] = .array(rows) }
                     .onMove { from, to in var rows = model.draft.advanced.rootVariants; rows.move(fromOffsets: from, toOffset: to); model.draft.advanced.value["variants"] = .array(rows) }
-                Button("creatorRoot.addVariant") { model.draft.advanced.appendRootVariant() }.disabled(model.draft.advanced.rootVariants.count >= 16)
+                CYPillButton("creatorRoot.addVariant", style: .secondary, systemImage: "plus") { model.draft.advanced.appendRootVariant() }.disabled(model.draft.advanced.rootVariants.count >= 16).e1ActionRow()
                 if model.draft.advanced.value["variants"] != nil { Button("creatorRoot.clearVariants", role: .destructive) { model.draft.advanced.value.removeValue(forKey: "variants") } }
             }
             Section("creatorRoot.roleViews") {
@@ -31,9 +32,9 @@ import Combine
                     ForEach(["A", "B"], id: \.self) { role in NavigationLink { TemplateRoleViewEditor(model: model, role: role) } label: { HStack { Text("creatorRoot.roleLabel"); Text(verbatim: role) } } }
                 }
             }
-            Section { NavigationLink("creatorRoot.rehearse") { TemplateRootRehearsalView(draft: model.draft.advanced) }.disabled(!model.draft.advanced.issues.isEmpty) }
+            Section { NavigationLink { TemplateRootRehearsalView(draft: model.draft.advanced) } label: { CYListRow("creatorRoot.rehearse", trailing: .none) { CYRowIcon(systemImage: "play.circle") } }.disabled(!model.draft.advanced.issues.isEmpty) }
             if !issues.isEmpty { Section("templateAuthor.validationTitle") { ForEach(issues) { issue in VStack(alignment: .leading) { Text(LocalizedStringKey(issue.labelKey)).foregroundStyle(CYColor.dangerText) } } } }
-        }.navigationTitle("creatorRoot.rules").toolbar { EditButton() }.disabled(!model.canEdit)
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen().toolbar { EditButton() }.disabled(!model.canEdit)
     }
 }
 
@@ -357,7 +358,8 @@ enum TemplateLowHPPresetText: String, CaseIterable {
     private func text(_ key: TemplateLowHPPresetText) -> String { key.value(locale) }
     var body: some View {
         Form {
-            Section { Text(verbatim: text(.scope)); Text(verbatim: text(.retained)).font(.footnote) }
+            Section { CYHeroHeader(verbatim: text(.title), subtitle: text(.scope)) }.e1HeroRow()
+            Section { Text(verbatim: text(.retained)).font(CYTypography.meta).foregroundStyle(CYColor.textTertiary) }
             if let config = controller.visibleConfiguration, config.isSupported {
                 Section {
                     Picker(text(.choice), selection: controller.selectionBinding) {
@@ -380,15 +382,15 @@ enum TemplateLowHPPresetText: String, CaseIterable {
                     }.accessibilityIdentifier("templateLowHP.preview")
                 }
                 if controller.preview == nil { Text(verbatim: text(.unsupported)) }
-                Button(text(.apply), action: controller.applyAction()).disabled(!controller.canApply)
-                    .accessibilityIdentifier("templateLowHP.apply")
+                CYPillButton(verbatim: text(.apply), action: controller.applyAction()).disabled(!controller.canApply)
+                    .accessibilityIdentifier("templateLowHP.apply").e1ActionRow()
                 if controller.didApply { Text(verbatim: text(.applied)).accessibilityIdentifier("templateLowHP.applied") }
             } else {
                 Text(verbatim: text(.unsupported))
-                Button(text(.reload), action: controller.reloadAction()).accessibilityIdentifier("templateLowHP.reload")
+                CYPillButton(verbatim: text(.reload), style: .secondary, action: controller.reloadAction()).accessibilityIdentifier("templateLowHP.reload").e1ActionRow()
             }
-            Button(text(.cancel), action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateLowHP.cancel")
-        }.navigationTitle(text(.title))
+            CYPillButton(verbatim: text(.cancel), style: .tertiary, action: controller.cancelAction { dismiss() }).accessibilityIdentifier("templateLowHP.cancel").e1ActionRow()
+        }.formStyle(.grouped).cyGroupedSurface().cyHeroScreen()
             .onAppear { controller.viewAppeared(sceneIsActive: scenePhase == .active) }
             .onDisappear { controller.viewDisappeared() }
             .onChange(of: scenePhase) { _, phase in controller.sceneChanged(isActive: phase == .active) }
