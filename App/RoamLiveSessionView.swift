@@ -29,6 +29,9 @@ import Combine
     @State private var showingLocationPriming = false
     @State private var locationPrimingAllowed = false
     @State private var showRules = false
+    @State private var revealTick = 0
+    @State private var revealToastShown = false
+    @State private var revealToastTask: Task<Void, Never>?
     @State private var nearbyExpanded = true
     init(controller: RoamLiveSessionController, offlineExample: Bool = false, localHistoryReader: (any RoamExperienceReading)? = nil, albumMetadataReader: RoamAlbumMetadataReader? = nil, browsePresentation: RoamPausedBrowsePresentation? = nil) {
         self.offlineExample = offlineExample; self.localHistoryReader = localHistoryReader; self.albumMetadataReader = albumMetadataReader
@@ -141,7 +144,9 @@ import Combine
         .accessibilityIdentifier("roam.live.session")
         // Map ground behind the HUD (static fog backdrop; this screen has no map of its own).
         .scrollContentBackground(.hidden)
-        .background { CYMapPlaceholder(fog: true) }
+        .background {
+            ZStack { CYMapPlaceholder(fog: false); fogEdge.ignoresSafeArea() }
+        }
         // Mini-program pbar: one main round control (start / pause / continue) with 结束 beside it.
         .safeAreaInset(edge: .bottom) { actionBar }
         .toolbar {
@@ -174,6 +179,25 @@ import Combine
     var body: some View {
         sessionObservers
         .task(id: owner.phase) { await pulseWhileActive() }
+        .overlay(alignment: .top) {
+            if revealToastShown {
+                CYRevealToast(percent: RoamLiveCoveragePresentation(controller: owner).percentage)
+                    .padding(.top, CYSpacing.sm)
+                    .transition(reduceMotion ? .opacity : .cyRevealToast)
+            }
+        }
+        .onChange(of: owner.record?.allTiles.count) { old, new in
+            // Presentation only: a higher tile count than before means new ground; the toast follows it.
+            guard let old, let new, new > old else { return }
+            revealTick += 1
+            withAnimation(reduceMotion ? CYMotion.reduced : CYMotion.entrance) { revealToastShown = true }
+            revealToastTask?.cancel()
+            revealToastTask = Task { @MainActor in
+                try? await Task.sleep(for: .seconds(2.6))
+                guard !Task.isCancelled else { return }
+                withAnimation(CYMotion.resolve(CYMotion.standard, reduceMotion: reduceMotion)) { revealToastShown = false }
+            }
+        }
         .sheet(isPresented: $showingLocationPriming, onDismiss: {
             guard locationPrimingAllowed else { return }
             locationPrimingAllowed = false
@@ -206,6 +230,17 @@ import Combine
             await owner.pulse()
         }
     }
+    private var roamPhase: RoamPhase { RoamPhase(owner.phase) }
+    /// Fog over the map ground: exhaustive over `RoamPhase`. Only walking animates the edge; every other phase shows the static edge.
+    @ViewBuilder private var fogEdge: some View {
+        let explored = RoamLiveCoveragePresentation(controller: owner).percentage.map { Double($0) / 100 }
+        switch roamPhase {
+        case .walking:
+            CYFogLayer(explored: explored, revealTick: revealTick, radiusScale: roamPhase.fogRadiusScale, animated: true)
+        case .idle, .starting, .paused, .finishing, .finished, .blocked:
+            CYFogLayer(explored: explored, revealTick: revealTick, radiusScale: roamPhase.fogRadiusScale, animated: false)
+        }
+    }
     /// Mini-program pcard: the goal line with the phase, then 用时 / 地盘 / 距离 (公里).
     /// Built inline so every controller change redraws it.
     private var hud: some View {
@@ -216,8 +251,7 @@ import Combine
                     .font(CYTypography.sheetTitle).foregroundStyle(CYColor.textPrimary).fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("roam.live.phase")
                 Spacer(minLength: 0)
-                Circle().fill(active ? CYColor.successText : CYColor.textTertiary).frame(width: 10, height: 10)
-                    .accessibilityHidden(true)
+                CYRoamStatusDot(phase: roamPhase)
             }
             HStack(alignment: .top, spacing: 8) {
                 TimelineView(.animation(minimumInterval: RoamLiveTick.interval(reduceMotion: reduceMotion), paused: owner.phase != .active || !owner.foreground)) { _ in

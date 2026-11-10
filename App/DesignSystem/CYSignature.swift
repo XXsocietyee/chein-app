@@ -78,25 +78,34 @@ struct CYPressScaleStyle: ButtonStyle {
     }
 }
 
-/// GO button press: spring scale, heavy impact on touch-down, and a ring that bursts outward on release.
+/// GO button feel. Hold: the circle springs to 0.9 and a ring tightens inward; touch-down fires a heavy impact (the roam
+/// starts); release: a ring bursts outward and fades. `walking` swaps the idle breathing for a slow 3.2 s ring.
 /// Also works as the style of a `NavigationLink` (the label is the circle artwork).
 struct CYGoPressStyle: ButtonStyle {
+    var walking = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     func makeBody(configuration: Configuration) -> some View {
-        CYGoPressBody(configuration: configuration, reduceMotion: reduceMotion)
+        CYGoPressBody(configuration: configuration, reduceMotion: reduceMotion, walking: walking)
     }
 }
 
 private struct CYGoPressBody: View {
     let configuration: ButtonStyle.Configuration
     let reduceMotion: Bool
+    let walking: Bool
     @State private var burst = 0
 
     var body: some View {
         configuration.label
-            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.88 : 1)
+            .scaleEffect(configuration.isPressed && !reduceMotion ? 0.9 : 1)
             .animation(reduceMotion ? nil : .spring(response: 0.22, dampingFraction: 0.5), value: configuration.isPressed)
-            .background { CYRingPulse(trigger: burst).allowsHitTesting(false) }
+            .background {
+                ZStack {
+                    CYRingPulse(trigger: burst, idle: !walking)
+                    if walking { CYGoWalkingRing() }
+                    CYGoHoldRing(pressed: configuration.isPressed)
+                }.allowsHitTesting(false)
+            }
             .cyHaptic(.impactHeavy, trigger: configuration.isPressed) { old, new in !old && new }
             .onChange(of: configuration.isPressed) { old, new in if old && !new { burst += 1 } }
     }
