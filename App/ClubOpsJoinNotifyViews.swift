@@ -6,12 +6,17 @@ struct ClubOpsJoinRequestActionLabel: View {
     let action: ClubManagementAction
     let progressKey: String?
     var body: some View {
-        if let progressKey {
-            Text(LocalizedStringKey(progressKey), tableName: "ClubOpsJoinNotify")
-                .accessibilityIdentifier("clubOpsJoin.progress." + action.rawValue)
-        } else {
-            Text(LocalizedStringKey("club.management." + action.rawValue))
+        Group {
+            if let progressKey {
+                Text(LocalizedStringKey(progressKey), tableName: "ClubOpsJoinNotify")
+                    .accessibilityIdentifier("clubOpsJoin.progress." + action.rawValue)
+            } else {
+                Text(LocalizedStringKey("club.management." + action.rawValue))
+            }
         }
+        .font(CYTypography.label)
+        .fixedSize(horizontal: false, vertical: true)
+        .multilineTextAlignment(.leading)
     }
 }
 
@@ -20,21 +25,39 @@ struct ClubOpsJoinRequestLoadIssue: View {
     let disabled: Bool
     let retry: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            CYStatusChip(verbatim: String(localized: issue == .failed ? "clubOpsJoin.failed" : "clubOpsJoin.stale", table: "ClubOpsJoinNotify"),
-                         tone: issue == .failed ? .danger : .warning, systemImage: "exclamationmark.triangle")
-            CYPillButton(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale", style: .secondary, tableName: "ClubOpsJoinNotify", action: retry)
-            .disabled(disabled)
-            .accessibilityIdentifier(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale")
-        }.accessibilityIdentifier(issue == .failed ? "clubOpsJoin.failed" : "clubOpsJoin.stale")
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            if issue == .failed {
+                CYEmptyState(systemImage: "exclamationmark.triangle", "clubOpsJoin.failed", tableName: "ClubOpsJoinNotify", kind: .failure)
+            } else {
+                Label {
+                    Text("clubOpsJoin.stale", tableName: "ClubOpsJoinNotify")
+                        .fixedSize(horizontal: false, vertical: true)
+                } icon: {
+                    Image(systemName: "exclamationmark.triangle").accessibilityHidden(true)
+                }
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(CYColor.warningText)
+            }
+            CYPillButton(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale", style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsJoinNotify", action: retry)
+                .disabled(disabled)
+                .accessibilityIdentifier(issue == .failed ? "clubOpsJoin.retry" : "clubOpsJoin.retryStale")
+        }
+        .accessibilityIdentifier(issue == .failed ? "clubOpsJoin.failed" : "clubOpsJoin.stale")
     }
 }
 
 /// Mini notify `no-permission` state: no retry, because repeating the read cannot grant access.
 struct ClubOpsNotifyDeniedText: View {
     var body: some View {
-        CYEmptyState(systemImage: "lock", "clubOpsNotify.denied.title", tableName: "ClubOpsJoinNotify",
-                     detail: "clubOpsNotify.denied.body", messageIdentifier: "clubOpsNotify.denied")
+        VStack(spacing: CYSpacing.sm) {
+            CYEmptyState(systemImage: "lock", "clubOpsNotify.denied.title", tableName: "ClubOpsJoinNotify", kind: .generic)
+            Text("clubOpsNotify.denied.body", tableName: "ClubOpsJoinNotify")
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textSecondary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .accessibilityIdentifier("clubOpsNotify.denied")
     }
 }
 
@@ -44,10 +67,18 @@ struct ClubOpsPageFailureSection: View {
     let retry: () -> Void
     var body: some View {
         Section {
-            CYStatusChip(verbatim: String(localized: String.LocalizationValue(copy.titleKey), table: copy.table), tone: .danger, systemImage: "exclamationmark.triangle")
-                .accessibilityIdentifier("clubOps.pageFailure.title")
-            CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, tableName: copy.table, action: retry)
-                .accessibilityIdentifier("clubOps.pageFailure.retry")
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYEmptyState(
+                    systemImage: "exclamationmark.triangle",
+                    LocalizedStringKey(copy.titleKey),
+                    tableName: copy.table,
+                    messageIdentifier: "clubOps.pageFailure.title",
+                    kind: .failure
+                )
+                CYPillButton(LocalizedStringKey(copy.retryKey), style: .secondary, systemImage: "arrow.clockwise", tableName: copy.table, action: retry)
+                    .accessibilityIdentifier("clubOps.pageFailure.retry")
+            }
+            .e1ActionRow()
         }
     }
 }
@@ -57,22 +88,26 @@ struct ClubOpsPageFailureSection: View {
 @MainActor struct ClubOpsFixtureControls: View {
     let access: ClubGovernanceFixtureAccess
     var body: some View {
-        Button { access.writeFailure = .conflict(message: nil) } label: { Text(verbatim: "Fixture: next write returns 409") }
-            .accessibilityIdentifier("clubOps.fixture.conflict")
-        Button { access.permissionValue = Self.permissions(removing: ["club:notify:send", "club:event:operate"]) } label: { Text(verbatim: "Fixture: no notify permission") }
-            .accessibilityIdentifier("clubOps.fixture.notifyDenied")
-        Button { access.readFailure = .malformed } label: { Text(verbatim: "Fixture: reads fail") }
-            .accessibilityIdentifier("clubOps.fixture.readFailure")
-        Button {
-            access.permissionValue = ClubGovernanceFixtures.json(#"{"active":false,"club":{"id":81},"roleCodes":[],"permissions":[]}"#)
-            access.overrideValue[.cases] = ClubGovernanceFixtures.json(#"{"data":[{"id":172,"clubId":81,"caseType":"APPEAL","targetType":"BAN","targetId":161,"status":"PENDING","version":0,"reason":"Fixture appeal"}],"activeBan":{"id":161,"clubId":81,"status":"ACTIVE","sourceType":"CLUB","banReason":"Fixture reason","bannedAt":"2026-10-01 09:00:00","expiresAt":"2026-10-31 09:00:00"}}"#)
-        } label: { Text(verbatim: "Fixture: banned viewer appeals") }
-            .accessibilityIdentifier("clubOps.fixture.bannedAppeal")
-        Button {
-            access.permissionValue = ClubGovernanceFixtures.permissions; access.overrideValue[.cases] = nil
-            access.readFailure = nil; access.writeFailure = nil
-        } label: { Text(verbatim: "Fixture: reset club-ops states") }
-            .accessibilityIdentifier("clubOps.fixture.reset")
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            fixture("Fixture: next write returns 409", id: "clubOps.fixture.conflict") { access.writeFailure = .conflict(message: nil) }
+            fixture("Fixture: no notify permission", id: "clubOps.fixture.notifyDenied") {
+                access.permissionValue = Self.permissions(removing: ["club:notify:send", "club:event:operate"])
+            }
+            fixture("Fixture: reads fail", id: "clubOps.fixture.readFailure") { access.readFailure = .malformed }
+            fixture("Fixture: banned viewer appeals", id: "clubOps.fixture.bannedAppeal") {
+                access.permissionValue = ClubGovernanceFixtures.json(#"{"active":false,"club":{"id":81},"roleCodes":[],"permissions":[]}"#)
+                access.overrideValue[.cases] = ClubGovernanceFixtures.json(#"{"data":[{"id":172,"clubId":81,"caseType":"APPEAL","targetType":"BAN","targetId":161,"status":"PENDING","version":0,"reason":"Fixture appeal"}],"activeBan":{"id":161,"clubId":81,"status":"ACTIVE","sourceType":"CLUB","banReason":"Fixture reason","bannedAt":"2026-10-01 09:00:00","expiresAt":"2026-10-31 09:00:00"}}"#)
+            }
+            fixture("Fixture: reset club-ops states", id: "clubOps.fixture.reset") {
+                access.permissionValue = ClubGovernanceFixtures.permissions; access.overrideValue[.cases] = nil
+                access.readFailure = nil; access.writeFailure = nil
+            }
+        }
+        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
+    }
+    private func fixture(_ title: String, id: String, action: @escaping () -> Void) -> some View {
+        CYPillButton(verbatim: title, style: .secondary, fullWidth: true, action: action)
+            .accessibilityIdentifier(id)
     }
     static func permissions(removing removed: Set<String>) -> ClubGovernanceValue {
         guard var object = ClubGovernanceFixtures.permissions.object else { return ClubGovernanceFixtures.permissions }

@@ -5,13 +5,28 @@ struct ClubOpsFailureSection: View {
     let retry: () -> Void
     var body: some View {
         Section {
-            Text(LocalizedStringKey(copy.titleKey), tableName: "ClubOpsCustomer").font(.headline)
-                .accessibilityIdentifier("clubOps.failure.title")
-            if let detail = copy.detailKey { Text(LocalizedStringKey(detail), tableName: "ClubOpsCustomer").foregroundStyle(.secondary) }
-            if let key = copy.retryKey {
-                Button(action: retry) { Text(LocalizedStringKey(key), tableName: "ClubOpsCustomer") }
-                    .accessibilityIdentifier("clubOps.failure.retry")
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                CYEmptyState(
+                    systemImage: "exclamationmark.triangle",
+                    LocalizedStringKey(copy.titleKey),
+                    tableName: "ClubOpsCustomer",
+                    messageIdentifier: "clubOps.failure.title",
+                    kind: .failure
+                )
+                if let detail = copy.detailKey {
+                    Text(LocalizedStringKey(detail), tableName: "ClubOpsCustomer")
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity)
+                }
+                if let key = copy.retryKey {
+                    CYPillButton(LocalizedStringKey(key), style: .secondary, systemImage: "arrow.clockwise", tableName: "ClubOpsCustomer", action: retry)
+                        .accessibilityIdentifier("clubOps.failure.retry")
+                }
             }
+            .e1ActionRow()
         }
     }
 }
@@ -24,17 +39,25 @@ struct ClubOpsFailureSection: View {
         // The count is data (it follows the filter), so it heads the list rather than sitting alone.
         Section {
             if list.rows.isEmpty {
-                Group {
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    CYEmptyState(
+                        systemImage: filtered ? "line.3.horizontal.decrease.circle" : "person.2",
+                        LocalizedStringKey(filtered ? "clubOps.customers.filteredEmpty" : "clubOps.customers.empty"),
+                        tableName: "ClubOpsCustomer",
+                        kind: filtered ? .search : .generic
+                    )
                     if filtered {
-                        ContentUnavailableView {
-                            Label { Text("clubOps.customers.filteredEmpty", tableName: "ClubOpsCustomer") } icon: { Image(systemName: "line.3.horizontal.decrease.circle") }
-                        } description: { Text("clubOps.customers.filteredEmptyDetail", tableName: "ClubOpsCustomer") }
-                    } else {
-                        ContentUnavailableView {
-                            Label { Text("clubOps.customers.empty", tableName: "ClubOpsCustomer") } icon: { Image(systemName: "person.2") }
-                        }
+                        Text("clubOps.customers.filteredEmptyDetail", tableName: "ClubOpsCustomer")
+                            .font(CYTypography.body)
+                            .foregroundStyle(CYColor.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(maxWidth: .infinity)
                     }
-                }.accessibilityIdentifier("clubOps.customers.empty")
+                }
+                .accessibilityIdentifier("clubOps.customers.empty")
+                .listRowBackground(Color.clear)
+                .listRowSeparator(.hidden)
             }
             ForEach(list.rows) { row in
                 NavigationLink { destination(row.id) } label: { ClubOpsCustomerRowView(row: row) }
@@ -42,6 +65,12 @@ struct ClubOpsFailureSection: View {
             }
         } header: {
             Text("clubOps.customers.count \(list.total) \(list.monthNew)", tableName: "ClubOpsCustomer")
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(CYColor.textPrimary)
+                .monospacedDigit()
+                .textCase(nil)
+                .fixedSize(horizontal: false, vertical: true)
+                .accessibilityAddTraits(.isHeader)
                 .accessibilityIdentifier("clubOps.customers.count")
         }
     }
@@ -49,29 +78,57 @@ struct ClubOpsFailureSection: View {
 
 struct ClubOpsCustomerRowView: View {
     let row: ClubOpsCustomerRow
+    @Environment(\.dynamicTypeSize) private var typeSize
     @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 40
     var body: some View {
         // Mini-program .cus-row: round initial avatar, then name (+ 备注 tag), meta, sub text.
-        HStack(alignment: .top, spacing: CYSpacing.md) {
+        let stack = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
+        stack {
             Text(verbatim: initial)
-                .font(CYTypography.bodyMedium).foregroundStyle(CYColor.textSecondary)
-                .frame(width: avatarSide, height: avatarSide)
+                .font(CYTypography.bodyMedium)
+                .foregroundStyle(CYColor.textSecondary)
+                .padding(CYSpacing.md)
+                .frame(minWidth: avatarSide, minHeight: avatarSide)
                 .background(CYColor.bgElevated, in: Circle())
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: CYSpacing.xs) {
-                HStack(spacing: CYSpacing.xs) {
-                    if let name = row.displayName { Text(verbatim: name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("club.gov.fact.displayName") }
-                    else { Text("clubOps.customers.noName", tableName: "ClubOpsCustomer").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary) }
+                HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+                    if let name = row.displayName {
+                        Text(verbatim: name)
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("club.gov.fact.displayName")
+                    } else {
+                        Text("clubOps.customers.noName", tableName: "ClubOpsCustomer")
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
                     if row.hasRemark {
-                        Text("clubOps.customers.remarkBadge", tableName: "ClubOpsCustomer").font(CYTypography.micro)
-                            .foregroundStyle(CYColor.textSecondary)
-                            .padding(.horizontal, CYSpacing.xs + CYSpacing.xxs).padding(.vertical, CYSpacing.xxs)
-                            .background(Capsule().fill(CYColor.bgRaised))
+                        CYStatusChip(
+                            verbatim: String(localized: "clubOps.customers.remarkBadge", table: "ClubOpsCustomer"),
+                            tone: .neutral,
+                            systemImage: "note.text"
+                        )
                     }
                 }
-                meta.font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
-                if let sub = row.subText { Text(verbatim: sub).font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).lineLimit(1) }
+                meta
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .monospacedDigit()
+                    .fixedSize(horizontal: false, vertical: true)
+                if let sub = row.subText {
+                    Text(verbatim: sub)
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textTertiary)
+                        .lineLimit(typeSize.isAccessibilitySize ? nil : 2)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
         .frame(minHeight: CYSpacing.minTouchTarget)
         .padding(.vertical, CYSpacing.xs)
@@ -97,32 +154,80 @@ struct ClubOpsCustomerRowView: View {
     /// Non-nil only when the existing history-topic route accepts this exact returned record.
     let topicAction: (ClubOpsCustomerRecord) -> (id: Int, open: () -> Void)?
     let editButton: AnyView?
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .headline) private var avatarSide: CGFloat = 56
     var body: some View {
         Section {
-            if let name = detail.displayName { Text(verbatim: name).font(.title2.bold()).accessibilityIdentifier("club.gov.fact.displayName") }
-            else { Text("clubOps.customers.noName", tableName: "ClubOpsCustomer").font(.title2.bold()) }
-            interaction.font(.subheadline).foregroundStyle(.secondary)
+            let stack = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.md))
+            stack {
+                CYCoverArt(seed: detail.displayName ?? "—", symbol: "person", showsDebugLabel: false, showsGlyph: false)
+                    .frame(width: avatarSide, height: avatarSide)
+                    .clipShape(Circle())
+                    .accessibilityHidden(true)
+                VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                    if let name = detail.displayName {
+                        Text(verbatim: name)
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .accessibilityIdentifier("club.gov.fact.displayName")
+                    } else {
+                        Text("clubOps.customers.noName", tableName: "ClubOpsCustomer")
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(CYColor.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    interaction
+                        .font(CYTypography.body)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
             LabeledContent {
-                if let amount = detail.paidAmountText { Text(verbatim: amount) }
-                else { Text("clubOps.customer.amountHidden", tableName: "ClubOpsCustomer").foregroundStyle(.secondary) }
-            } label: { Text("clubOps.customer.paidAmount", tableName: "ClubOpsCustomer") }
-                .accessibilityIdentifier("clubOps.customer.paidAmount")
-            if let phone = detail.phoneText { Text(verbatim: phone).font(.footnote).foregroundStyle(.secondary) }
+                if let amount = detail.paidAmountText {
+                    Text(verbatim: amount)
+                        .font(CYTypography.numericBody)
+                        .monospacedDigit()
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("clubOps.customer.amountHidden", tableName: "ClubOpsCustomer")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            } label: {
+                Text("clubOps.customer.paidAmount", tableName: "ClubOpsCustomer")
+            }
+            .accessibilityIdentifier("clubOps.customer.paidAmount")
+            if let phone = detail.phoneText {
+                Text(verbatim: phone)
+                    .font(CYTypography.meta)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
         Section {
             // Mini-program customer-detail: three metric tiles (到店 / 待核销 / 已退款), numerals first.
-            HStack(spacing: CYSpacing.sm) {
+            let metrics = typeSize.isAccessibilitySize
+                ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+                : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.sm))
+            metrics {
                 ClubOpsCustomerMetricTile(value: .known(detail.arrivedCount), label: "clubOps.customer.arrived")
                 ClubOpsCustomerMetricTile(value: .known(detail.pendingCount), label: "clubOps.customer.pending")
                 ClubOpsCustomerMetricTile(value: .known(detail.refundedCount), label: "clubOps.customer.refunded")
             }
             .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: CYSpacing.pageHorizontal, bottom: CYSpacing.sm, trailing: CYSpacing.pageHorizontal))
             .listRowBackground(Color.clear)
-        } header: { Text("clubOps.customer.overview", tableName: "ClubOpsCustomer") }
+        } header: { ClubOpsCustomerHeading("clubOps.customer.overview") }
         Section {
             if detail.records.isEmpty {
-                Text("clubOps.customer.recordsEmpty", tableName: "ClubOpsCustomer").foregroundStyle(.secondary)
-                    .accessibilityIdentifier("clubOps.customer.recordsEmpty")
+                CYEmptyState(systemImage: "clock.arrow.circlepath", "clubOps.customer.recordsEmpty", tableName: "ClubOpsCustomer", messageIdentifier: "clubOps.customer.recordsEmpty")
+                    .listRowBackground(Color.clear)
+                    .listRowSeparator(.hidden)
             }
             ForEach(detail.records) { record in
                 if let action = topicAction(record) {
@@ -130,15 +235,24 @@ struct ClubOpsCustomerRowView: View {
                         .accessibilityIdentifier("club.gov.customer.topic.\(action.id)")
                 } else { ClubOpsCustomerRecordRow(record: record, linked: false) }
             }
-        } header: { Text("clubOps.customer.records", tableName: "ClubOpsCustomer") }
+        } header: { ClubOpsCustomerHeading("clubOps.customer.records") }
         Section {
             if !detail.tags.isEmpty {
                 ClubOpsTagFlow(tags: detail.tags)
             }
-            if let remark = detail.remark { Text("clubOps.customer.remark \(remark)", tableName: "ClubOpsCustomer") }
-            else { Text("clubOps.customer.noRemark", tableName: "ClubOpsCustomer").foregroundStyle(.secondary) }
+            if let remark = detail.remark {
+                Text("clubOps.customer.remark \(remark)", tableName: "ClubOpsCustomer")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+            } else {
+                Text("clubOps.customer.noRemark", tableName: "ClubOpsCustomer")
+                    .font(CYTypography.body)
+                    .foregroundStyle(CYColor.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if detail.canEdit, let editButton { editButton }
-        } header: { Text("clubOps.customer.tagsAndRemark", tableName: "ClubOpsCustomer") }
+        } header: { ClubOpsCustomerHeading("clubOps.customer.tagsAndRemark") }
     }
     @ViewBuilder private var interaction: some View {
         if let day = detail.lastInteraction {
@@ -148,17 +262,39 @@ struct ClubOpsCustomerRowView: View {
     }
 }
 
+private struct ClubOpsCustomerHeading: View {
+    let key: String
+    init(_ key: String) { self.key = key }
+    var body: some View {
+        Text(LocalizedStringKey(key), tableName: "ClubOpsCustomer")
+            .font(CYTypography.sectionTitle)
+            .foregroundStyle(CYColor.textPrimary)
+            .textCase(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .accessibilityAddTraits(.isHeader)
+    }
+}
+
 struct ClubOpsCustomerMetricTile: View {
     let value: ClubCustomerDetailCount
     let label: LocalizedStringKey
     var body: some View {
         VStack(spacing: CYSpacing.xs) {
-            Text(verbatim: value.displayText).font(CYTypography.dataXL).monospacedDigit().foregroundStyle(CYColor.textPrimary)
-            Text(label, tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+            Text(verbatim: value.displayText)
+                .font(CYTypography.dataXL)
+                .monospacedDigit()
+                .foregroundStyle(CYColor.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
+            Text(label, tableName: "ClubOpsCustomer")
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.textTertiary)
+                .multilineTextAlignment(.center)
+                .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, CYSpacing.md)
+        .padding(CYSpacing.lg)
         .background(CYColor.bgElevated, in: RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous))
+        .overlay(RoundedRectangle(cornerRadius: CYRadius.md, style: .continuous).strokeBorder(CYColor.borderSubtle, lineWidth: 1))
         .accessibilityElement(children: .combine)
     }
 }
@@ -166,28 +302,81 @@ struct ClubOpsCustomerMetricTile: View {
 struct ClubOpsCustomerRecordRow: View {
     let record: ClubOpsCustomerRecord
     let linked: Bool
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
-        HStack(alignment: .center, spacing: 12) {
-            VStack(spacing: 0) {
-                if let day = record.day { Text(day, format: .number).font(.title3.bold()) }
-                if let month = record.month { Text("clubOps.customer.month \(month)", tableName: "ClubOpsCustomer").font(.caption2).foregroundStyle(.secondary) }
-            }.frame(minWidth: 36)
-            VStack(alignment: .leading, spacing: 2) {
-                if let title = record.title { Text(verbatim: title).font(.body) }
-                else { Text("clubOps.customer.untitled", tableName: "ClubOpsCustomer") }
-                HStack(spacing: 0) {
-                    Text(LocalizedStringKey(record.status.localizationKey), tableName: "ClubOpsCustomer").foregroundStyle(tone)
-                    if linked { Text("clubOps.customer.viewTopic", tableName: "ClubOpsCustomer").foregroundStyle(.secondary) }
-                }.font(.footnote)
+        let stack = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(alignment: .top, spacing: CYSpacing.md))
+        stack {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                if let day {
+                    Text(day, format: .number)
+                        .font(CYTypography.numericBody)
+                        .monospacedDigit()
+                        .foregroundStyle(CYColor.textPrimary)
+                } else {
+                    Text(verbatim: "—")
+                        .font(CYTypography.numericBody)
+                        .foregroundStyle(CYColor.textTertiary)
+                }
+                if let month = record.month {
+                    Text("clubOps.customer.month \(month)", tableName: "ClubOpsCustomer")
+                        .font(CYTypography.caption)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(minWidth: CYSpacing.minTouchTarget, alignment: .leading)
+            VStack(alignment: .leading, spacing: CYSpacing.xs) {
+                if let title = record.title {
+                    Text(verbatim: title)
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                } else {
+                    Text("clubOps.customer.untitled", tableName: "ClubOpsCustomer")
+                        .font(CYTypography.cardTitle)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                CYStatusChip(
+                    verbatim: String(localized: LocalizedStringResource(String.LocalizationValue(stringLiteral: record.status.localizationKey), table: "ClubOpsCustomer")),
+                    tone: tone,
+                    systemImage: symbol
+                )
+                if linked {
+                    Text("clubOps.customer.viewTopic", tableName: "ClubOpsCustomer")
+                        .font(CYTypography.meta)
+                        .foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            if linked, !typeSize.isAccessibilitySize {
+                Image(systemName: "chevron.right")
+                    .font(.footnote.weight(.semibold))
+                    .foregroundStyle(CYColor.textTertiary)
+                    .accessibilityHidden(true)
             }
         }
+        .frame(minHeight: CYSpacing.minTouchTarget)
     }
-    private var tone: Color {
+    private var day: Int? { record.day }
+    private var tone: CYStatusTone {
         switch record.status {
-        case .verified: return CYColor.successText
-        case .pending, .contacted: return CYColor.warningText
-        case .refunded: return CYColor.dangerText
-        case .cancelled, .registered: return CYColor.textTertiary
+        case .verified: return .success
+        case .pending, .contacted: return .warning
+        case .refunded: return .danger
+        case .cancelled, .registered: return .neutral
+        }
+    }
+    private var symbol: String {
+        switch record.status {
+        case .verified: return "checkmark.circle"
+        case .pending, .contacted: return "clock"
+        case .refunded: return "arrow.uturn.backward.circle"
+        case .cancelled: return "xmark.circle"
+        case .registered: return "person"
         }
     }
 }
@@ -197,27 +386,23 @@ struct ClubOpsTagFlow: View {
     var removable: ((Int) -> Void)? = nil
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 6) {
+            HStack(spacing: CYSpacing.sm) {
                 ForEach(Array(tags.enumerated()), id: \.offset) { index, tag in
                     if let removable {
                         Button { removable(index) } label: {
-                            HStack(spacing: 2) { Text(verbatim: tag); Text(verbatim: "×") }
-                        }.buttonStyle(.borderless)
-                            .accessibilityLabel(Text("clubOps.customer.removeTag \(tag)", tableName: "ClubOpsCustomer"))
-                            .accessibilityIdentifier("clubOps.customer.removeTag.\(index)")
-                            .modifier(ClubOpsChip())
-                    } else { Text(verbatim: tag).modifier(ClubOpsChip()) }
+                            CYStatusChip(verbatim: tag.isEmpty ? "—" : tag, tone: .neutral, systemImage: "xmark")
+                        }
+                        .buttonStyle(.plain)
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                        .accessibilityLabel(Text("clubOps.customer.removeTag \(tag)", tableName: "ClubOpsCustomer"))
+                        .accessibilityIdentifier("clubOps.customer.removeTag.\(index)")
+                    } else {
+                        CYStatusChip(verbatim: tag.isEmpty ? "—" : tag, tone: .neutral)
+                            .accessibilityLabel(Text(verbatim: tag.isEmpty ? "—" : tag))
+                    }
                 }
             }
         }
-    }
-}
-
-private struct ClubOpsChip: ViewModifier {
-    func body(content: Content) -> some View {
-        content.font(CYTypography.caption).foregroundStyle(CYColor.textSecondary)
-            .padding(.horizontal, CYSpacing.sm).padding(.vertical, CYSpacing.xs)
-            .background(Capsule().fill(CYColor.bgRaised))
     }
 }
 
@@ -227,6 +412,7 @@ struct ClubOpsCustomerTagRemarkEditor: View {
     @Binding var remark: String
     @State private var input = ""
     @State private var issue: ClubOpsCustomerTagRemarkDraft.Issue?
+    @Environment(\.dynamicTypeSize) private var typeSize
     var body: some View {
         let draft = ClubOpsCustomerTagRemarkDraft(tagsText: tagsText)
         if !draft.tags.isEmpty {
@@ -234,20 +420,31 @@ struct ClubOpsCustomerTagRemarkEditor: View {
                 var next = draft; next.remove(at: index); tagsText = next.tagsText; issue = nil
             }
         }
-        HStack {
+        let composer = typeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: CYSpacing.sm))
+            : AnyLayout(HStackLayout(alignment: .center, spacing: CYSpacing.sm))
+        composer {
             TextField(text: $input) { Text("clubOps.customer.tagPlaceholder", tableName: "ClubOpsCustomer") }
-                .textInputAutocapitalization(.never).autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled()
                 .onSubmit(add)
+                .font(CYTypography.body)
+                .foregroundStyle(CYColor.textPrimary)
+                .frame(minHeight: CYSpacing.minTouchTarget)
                 .accessibilityIdentifier("club.gov.input.tags")
-            Button(action: add) { Text("clubOps.customer.addTag", tableName: "ClubOpsCustomer") }
-                .buttonStyle(.borderless)
+            CYPillButton("clubOps.customer.addTag", style: .secondary, systemImage: "plus", fullWidth: typeSize.isAccessibilitySize, tableName: "ClubOpsCustomer", action: add)
                 .disabled(input.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 .accessibilityIdentifier("clubOps.customer.addTag")
         }
         TextField(text: $remark, axis: .vertical) { Text("clubOps.customer.remarkPlaceholder", tableName: "ClubOpsCustomer") }
+            .font(CYTypography.body)
+            .foregroundStyle(CYColor.textPrimary)
             .accessibilityIdentifier("club.gov.input.remark")
         if let current = issue ?? ClubOpsCustomerTagRemarkDraft.issue(tagsText: tagsText, remark: remark) {
-            Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer").font(CYTypography.caption).foregroundStyle(CYColor.dangerText)
+            Text(LocalizedStringKey(current.localizationKey), tableName: "ClubOpsCustomer")
+                .font(CYTypography.caption)
+                .foregroundStyle(CYColor.dangerText)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("clubOps.customer.draftIssue")
         }
     }
