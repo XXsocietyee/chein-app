@@ -70,11 +70,25 @@ final class ChapterReplacementInvitationViewModel: ObservableObject {
         Group {
             if let model {
                 ChapterReplacementInvitationView(model: model, coordinates: context.coordinates)
-            } else if unavailable {
-                Text("chapterReplacement.section.failed")
-                    .accessibilityIdentifier("chapterReplacement.failed")
             } else {
-                ProgressView().task { await resolve() }
+                ScrollView {
+                    VStack(alignment: .leading, spacing: CYSpacing.xl) {
+                        CYHeroHeader("chapterReplacement.title")
+                        if unavailable {
+                            CYEmptyState(systemImage: "exclamationmark.triangle", "chapterReplacement.section.failed", kind: .failure)
+                                .accessibilityIdentifier("chapterReplacement.failed")
+                        } else {
+                            CYSkeleton().task { await resolve() }
+                        }
+                    }
+                    .padding(.horizontal, CYSpacing.pageHorizontal)
+                    .padding(.top, CYSpacing.lg)
+                    .padding(.bottom, CYSpacing.xxl)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .cyDomainPageBackground()
+                .themeDomain(.player)
+                .cyHeroScreen()
             }
         }
     }
@@ -92,6 +106,7 @@ struct ChapterReplacementInvitationView: View {
     /// Supplied by the host shell; `nil` means location was refused and candidates
     /// must still be queried by topic alone.
     let coordinates: ChapterReplacementInvitationCoordinates?
+    @Environment(\.cyPalette) private var palette
 
     init(model: ChapterReplacementInvitationViewModel, coordinates: ChapterReplacementInvitationCoordinates? = nil) {
         _model = StateObject(wrappedValue: model)
@@ -99,80 +114,185 @@ struct ChapterReplacementInvitationView: View {
     }
 
     var body: some View {
-        List {
-            Section {
-                Text("chapterReplacement.intro")
-                    .font(.footnote).foregroundStyle(.secondary)
-            }
-            Section("chapterReplacement.section.vacancies") {
-                if model.vacancies.isEmpty {
-                    Text("chapterReplacement.vacancies.empty").foregroundStyle(.secondary)
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                CYHeroHeader("chapterReplacement.title", subtitle: "chapterReplacement.intro")
+                vacancySection
+                if model.selectedVacancy != nil {
+                    candidateSection
+                    VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                        Text("chapterReplacement.section.message")
+                            .font(CYTypography.sectionTitle)
+                            .foregroundStyle(palette.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
+                            .fixedSize(horizontal: false, vertical: true)
+                        TextField(text: $model.message, prompt: Text("chapterReplacement.message.prompt")) {
+                            Text("chapterReplacement.message.label")
+                        }
+                        .font(CYTypography.body)
+                        .cyField()
+                        .accessibilityIdentifier("chapterReplacement.message")
+                    }
                 }
+                statusSection
+            }
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.top, CYSpacing.lg)
+            .padding(.bottom, CYSpacing.xxl)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .cyDomainPageBackground()
+        .themeDomain(.player)
+        .cyHeroScreen()
+        .cyAnimation(value: model.phase)
+        .cyHaptic(.impactMedium, trigger: model.phase) { _, new in
+            if case .sending = new { return true }
+            return false
+        }
+        .task { await model.load() }
+    }
+
+    @ViewBuilder private var vacancySection: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("chapterReplacement.section.vacancies")
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(palette.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+                .fixedSize(horizontal: false, vertical: true)
+            if model.phase == .idle || model.phase == .loadingVacancies {
+                CYSkeleton()
+            } else if model.phase == .ready, model.vacancies.isEmpty {
+                CYEmptyState(systemImage: "tray", "chapterReplacement.vacancies.empty")
+            } else {
                 ForEach(model.vacancies) { vacancy in
                     Button {
                         Task { await model.select(vacancy, coordinates: coordinates) }
                     } label: {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text("chapterReplacement.vacancy.row \(vacancy.chapterID) \(vacancy.offerID)")
-                            Text(verbatim: vacancy.withdrawReason).font(.footnote).foregroundStyle(.secondary)
-                        }
-                    }
-                    .accessibilityIdentifier("chapterReplacement.vacancy.\(vacancy.offerID)")
-                }
-            }
-            if model.selectedVacancy != nil {
-                Section("chapterReplacement.section.candidates") {
-                    if model.candidates.isEmpty {
-                        Text("chapterReplacement.candidates.empty").foregroundStyle(.secondary)
-                    }
-                    ForEach(model.candidates) { candidate in
-                        Button {
-                            Task { await model.prepare(candidate) }
-                        } label: {
-                            if let name = candidate.displayName {
-                                Text(verbatim: name)
-                            } else {
-                                Text("chapterReplacement.candidate.member \(candidate.merchantMemberID)")
+                        HStack(alignment: .top, spacing: CYSpacing.md) {
+                            CYRowIcon(systemImage: "flag")
+                            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                                Text("chapterReplacement.vacancy.row \(vacancy.chapterID) \(vacancy.offerID)")
+                                    .font(CYTypography.cardTitle)
+                                    .foregroundStyle(palette.textPrimary)
+                                    .fixedSize(horizontal: false, vertical: true)
+                                Text(verbatim: shown(vacancy.withdrawReason))
+                                    .font(CYTypography.meta)
+                                    .foregroundStyle(palette.textTertiary)
+                                    .fixedSize(horizontal: false, vertical: true)
                             }
+                            Spacer(minLength: CYSpacing.sm)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(palette.textTertiary)
+                                .accessibilityHidden(true)
                         }
-                        .accessibilityIdentifier("chapterReplacement.candidate.\(candidate.id)")
+                        .frame(minHeight: CYSpacing.minTouchTarget)
                     }
-                }
-                Section("chapterReplacement.section.message") {
-                    TextField(text: $model.message, prompt: Text("chapterReplacement.message.prompt")) {
-                        Text("chapterReplacement.message.label")
-                    }
-                    .accessibilityIdentifier("chapterReplacement.message")
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("chapterReplacement.vacancy.\(vacancy.offerID)")
+                    .accessibilityAddTraits(model.selectedVacancy?.id == vacancy.id ? .isSelected : [])
                 }
             }
-            statusSection
-        }.cyGroupedSurface()
-        .appNavigationTitle("chapterReplacement.title")
-        .task { await model.load() }
+        }
+    }
+
+    @ViewBuilder private var candidateSection: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            Text("chapterReplacement.section.candidates")
+                .font(CYTypography.sectionTitle)
+                .foregroundStyle(palette.textPrimary)
+                .accessibilityAddTraits(.isHeader)
+                .fixedSize(horizontal: false, vertical: true)
+            if case .loadingCandidates = model.phase {
+                CYSkeleton()
+            } else if model.candidates.isEmpty {
+                CYEmptyState(systemImage: "person.2", "chapterReplacement.candidates.empty")
+            } else {
+                ForEach(model.candidates) { candidate in
+                    Button {
+                        Task { await model.prepare(candidate) }
+                    } label: {
+                        HStack(spacing: CYSpacing.md) {
+                            CYRowIcon(systemImage: "person")
+                            Group {
+                                if let name = personName(candidate.displayName) {
+                                    Text(verbatim: name)
+                                } else {
+                                    Text("chapterReplacement.candidate.member \(candidate.merchantMemberID)")
+                                }
+                            }
+                            .font(CYTypography.cardTitle)
+                            .foregroundStyle(palette.textPrimary)
+                            .fixedSize(horizontal: false, vertical: true)
+                            Spacer(minLength: CYSpacing.sm)
+                            Image(systemName: "chevron.right")
+                                .font(.footnote.weight(.semibold))
+                                .foregroundStyle(palette.textTertiary)
+                                .accessibilityHidden(true)
+                        }
+                        .frame(minHeight: CYSpacing.minTouchTarget)
+                    }
+                    .buttonStyle(.cyPressable)
+                    .accessibilityIdentifier("chapterReplacement.candidate.\(candidate.id)")
+                }
+            }
+        }
     }
 
     @ViewBuilder
     private var statusSection: some View {
         switch model.phase {
         case .reviewing(let plan):
-            Section("chapterReplacement.section.review") {
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Text("chapterReplacement.section.review")
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                    .fixedSize(horizontal: false, vertical: true)
                 Text("chapterReplacement.review.invite \(plan.candidate.merchantMemberID) \(plan.candidate.chapterID) \(plan.candidate.replacementOfOfferID)")
-                Text("chapterReplacement.review.pendingOnly").font(.footnote).foregroundStyle(.secondary)
-                Button("chapterReplacement.send") { Task { await model.confirm() } }
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textPrimary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("chapterReplacement.review.pendingOnly")
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                CYPillButton("chapterReplacement.send", systemImage: "paperplane.fill") { Task { await model.confirm() } }
                     .accessibilityIdentifier("chapterReplacement.send")
+                    .accessibilityLabel(Text("chapterReplacement.send"))
                 Button("action.cancel", role: .cancel) { model.cancelReview() }
+                    .font(CYTypography.body.weight(.semibold))
+                    .frame(maxWidth: .infinity, minHeight: CYSpacing.minTouchTarget)
             }
         case .sending:
-            Section { ProgressView().accessibilityIdentifier("chapterReplacement.sending") }
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                CYSkeleton().accessibilityHidden(true)
+                ProgressView()
+                    .frame(minHeight: CYSpacing.minTouchTarget)
+                    .accessibilityIdentifier("chapterReplacement.sending")
+            }
         case .unknown(let plan):
-            Section("chapterReplacement.section.unknown") {
-                Text("chapterReplacement.unknown \(plan.targetTuple)")
-                    .font(.footnote)
-                Button("chapterReplacement.verify") { Task { await model.verifyUnknown() } }
+            VStack(alignment: .leading, spacing: CYSpacing.md) {
+                Text("chapterReplacement.section.unknown")
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+                    .fixedSize(horizontal: false, vertical: true)
+                Text("chapterReplacement.unknown \(shownTuple(plan.targetTuple))")
+                    .font(CYTypography.body)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                CYPillButton("chapterReplacement.verify", systemImage: "arrow.clockwise") { Task { await model.verifyUnknown() } }
                     .accessibilityIdentifier("chapterReplacement.verifyUnknown")
+                    .accessibilityLabel(Text("chapterReplacement.verify"))
             }
         case .verified(let verified):
-            Section("chapterReplacement.section.verified") {
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                Text("chapterReplacement.section.verified")
+                    .font(CYTypography.sectionTitle)
+                    .foregroundStyle(palette.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
                 Group {
                     if let applicationID = verified.applicationID {
                         Text("chapterReplacement.verified.application \(applicationID)")
@@ -180,15 +300,44 @@ struct ChapterReplacementInvitationView: View {
                         Text("chapterReplacement.verified")
                     }
                 }
+                .font(CYTypography.body)
+                .foregroundStyle(palette.textPrimary)
+                .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("chapterReplacement.verified")
             }
         case .failed(let failure):
-            Section("chapterReplacement.section.failed") {
-                Text(verbatim: String(describing: failure)).foregroundStyle(.secondary)
+            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                CYEmptyState(systemImage: "exclamationmark.triangle", "chapterReplacement.section.failed", kind: .failure)
+                Text(verbatim: shown(String(describing: failure)))
+                    .font(CYTypography.meta)
+                    .foregroundStyle(palette.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
                     .accessibilityIdentifier("chapterReplacement.failed")
             }
         default:
             EmptyView()
         }
+    }
+
+    private func personName(_ raw: String?) -> String? {
+        guard let raw else { return nil }
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty || isRawKey(trimmed) { return nil }
+        return trimmed
+    }
+
+    /// Interpolation values must stay the catalog placeholders. A dotted key in the tuple becomes an em dash.
+    private func shownTuple(_ raw: String) -> String {
+        isRawKey(raw) ? "—" : raw
+    }
+
+    private func shown(_ raw: String) -> String {
+        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return "—" }
+        return isRawKey(trimmed) ? "—" : trimmed
+    }
+
+    private func isRawKey(_ raw: String) -> Bool {
+        raw.range(of: #"^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z0-9_]+)+$"#, options: .regularExpression) != nil
     }
 }
