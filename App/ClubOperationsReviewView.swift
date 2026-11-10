@@ -10,28 +10,25 @@ struct ClubOperationsReviewView: View {
     var body: some View {
         Form {
             Section {
+                CYHeroHeader("club.ops.review").listRowBackground(Color.clear)
                 if let club = review.snapshot.profile?.club {
                     LabeledContent("club.ops.club") { ClubName(value: club.name) }
                         .accessibilityIdentifier("club.ops.reviewSheet")
-                } else { Text("club.ops.newClub").font(.headline).accessibilityIdentifier("club.ops.reviewSheet") }
+                } else { Text("club.ops.newClub").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary).accessibilityIdentifier("club.ops.reviewSheet") }
             }
             details
             Section {
                 if canSubmit {
-                    if isExample { Text("club.ops.fixtureOnly").foregroundStyle(.secondary) }
-                    Button { submitted = true; onConfirm() } label: {
-                        Text(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive"))
-                            .frame(maxWidth: .infinity)
-                    }
-                        .buttonStyle(.questifyPrimary)
+                    if isExample { CYStatusChip("club.ops.fixtureOnly", tone: .neutral, systemImage: "testtube.2") }
+                    CYPillButton(LocalizedStringKey(isExample ? "club.ops.confirmFixture" : "club.ops.confirmLive")) { submitted = true; onConfirm() }
                         .disabled(submitted).accessibilityIdentifier("club.ops.confirm")
                 } else {
-                    Text("club.ops.writeGated").foregroundStyle(.secondary)
+                    CYStatusChip("club.ops.writeGated", tone: .warning, systemImage: "lock")
                 }
             }.listRowBackground(canSubmit && !isExample ? Color.clear : nil)
         }
         .cyGroupedSurface()
-        .navigationTitle("club.ops.review")
+        .cyHeroScreen()
         .toolbar {
             ToolbarItem(placement: .cancellationAction) {
                 Button("club.ops.cancel", action: onCancel).disabled(submitted).accessibilityIdentifier("club.ops.cancelReview")

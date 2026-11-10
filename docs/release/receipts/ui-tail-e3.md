@@ -62,3 +62,8 @@ Skipped: none.
 ## Batch 14 (reverse)
 Done: ClubPublicRosterView, ClubPublicActivityListView, ClubProjectLaunchView, ClubPostReferenceView, ClubOwnerRefundFixtureView (DEBUG-only fixture host; buttons moved to CYPillButton).
 Skipped: none.
+Build - iOS on batch 14 head (2a... all batches 1-14): success. Test - iOS action_required with 2 errors that are the GLTFKit2 vendor module errors only.
+
+## Batch 15 (reverse)
+Done: ClubOpsSettlementViews, ClubOpsJoinNotifyViews, ClubOpsEventView, ClubOperationsReviewView, ClubNotificationAudienceView.
+Skipped: none.

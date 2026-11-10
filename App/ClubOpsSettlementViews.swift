@@ -15,8 +15,8 @@ struct ClubOpsSettlementSummaryCard: View {
                 .minimumScaleFactor(0.6).lineLimit(1)
                 .accessibilityIdentifier("club.gov.fact.settledAmountStatus")
                 if summary.unverifiedSettledCount > 0 {
-                    Text("clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", tableName: "ClubOpsCustomer")
-                        .font(CYTypography.caption).foregroundStyle(CYColor.textTertiary)
+                    CYStatusChip(verbatim: String(localized: "clubOps.settlement.unverifiedCount \(summary.unverifiedSettledCount)", table: "ClubOpsCustomer"),
+                                 tone: .warning, systemImage: "questionmark.circle")
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -33,9 +33,8 @@ struct ClubOpsSettlementSummaryCard: View {
 struct ClubOpsSettlementOwnerOnlyWithdraw: View {
     var body: some View {
         Section {
-            Label { Text(LocalizedStringKey(ClubOpsWithdrawHint.ownerOnly.localizationKey), tableName: "ClubOpsCustomer") }
-                icon: { Image(systemName: "lock") }
-                .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+            CYStatusChip(verbatim: String(localized: String.LocalizationValue(ClubOpsWithdrawHint.ownerOnly.localizationKey), table: "ClubOpsCustomer"),
+                         tone: .neutral, systemImage: "lock")
                 .accessibilityIdentifier("clubOps.settlement.withdraw.ownerOnly")
         }
     }
