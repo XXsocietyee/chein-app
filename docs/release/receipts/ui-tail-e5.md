@@ -50,3 +50,17 @@ No new string keys so far: existing keys reused (`docs/release/ui-strings-e5-tai
 - PublishingContextHandoffViews: done (CYHeroHeader on mode sheet, CYPillButton primary Done)
 - PublisherLifecycleViews: done (CYHeroHeader x3, CYPillButton, CYSkeleton)
 - ProjectSubmissionEvidenceViews: done (CYStatusChip)
+
+## Batch 8 (reverse)
+- ProjectOwnedContentViews: done (CYEmptyState for stale destination; browser itself is hosted elsewhere)
+- ProjectEditView: done (CYHeroHeader, CYSkeleton)
+- ProjectEditLaunchView: done (CYHeroHeader, CYListRow, CYRowIcon)
+- PrefabPreviewView: done (CYHeroHeader, CYPillButton primary next)
+- PlatformConsumerViews: done (CYPillButton, CYSkeleton)
+
+## Batch 9 (reverse)
+- PersonalLocationShareView: done (CYHeroHeader, CYPillButton primary start, CYSkeleton)
+- ParticipationSupportView: done (CYHeroHeader)
+- ParticipationParityViews: done (CYPillButton retry)
+- OwnerDraftBrowserView: done (CYEmptyState, CYSkeleton, CYPillButton)
+- OwnMediaModelPreviewView: done (CYHeroHeader, CYPillButton, CYSkeleton)
