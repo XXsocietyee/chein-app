@@ -20,8 +20,12 @@ import SwiftUI
     @State private var filterSheetVisible = false
     @State private var retainedResults = GlobalSearchRetainedResults()
     @State private var isVisible = false
-    @State private var issue: String?
-    @State private var loading = false
+    /// Search lifecycle (docs/release/state-machines/views.md); results live in `retainedResults`.
+    @State private var phase: CYPhase<Void, String> = .idle
+    private var issue: String? { phase.failure }
+    private var loading: Bool { phase.isLoading }
+    /// Guard: only an in-flight search falls back to idle; a failure stays visible.
+    private func settleLoading() { if phase.isLoading { phase = .idle } }
     @State private var selectedKind: GlobalSearchKind?
     @State private var showsFilters = false
     @State private var history: [String] = []
@@ -143,7 +147,7 @@ import SwiftUI
         }
         .onAppear { isVisible = true; categoryPresentationID = UUID(); updateCategoryPresentation() }
         .onDisappear {
-            isVisible = false; retainedResults.cancelPending(); loading = false
+            isVisible = false; retainedResults.cancelPending(); settleLoading()
             categoryRecovery.update(reader: reader, presentationID: nil, active: false)
         }
     }
@@ -438,7 +442,7 @@ import SwiftUI
         guard !filter.keyword.utf8.elementsEqual(value.utf8) else { return }
         invalidate(); filter.keyword = value
     }
-    private func invalidate() { retainedResults.invalidate(); issue = nil; loading = false; selectedKind = nil }
+    private func invalidate() { retainedResults.invalidate(); phase = .idle; selectedKind = nil }
     private func prepare() async {
         guard !Task.isCancelled else { return }
         if preparedOwner != readOwner {
@@ -453,18 +457,17 @@ import SwiftUI
         guard reader.isConfigured, query.canSearch else { return }
         let captured = resultContext
         let ticket = retainedResults.begin(in: captured)
-        loading = true; issue = nil
+        phase = .loading
         do {
             let value = try await reader.search(query)
             guard !Task.isCancelled, isVisible, filter == query, retainedResults.accepts(ticket, in: resultContext) else { return }
-            loading = false
+            phase = .loaded(())
             retainedResults.finish(value, ticket: ticket, in: resultContext)
             history = historyStore.add(query.keyword, namespace: historyNamespace, current: history); historyFailure = historyStore.failed
         } catch {
             guard isVisible, retainedResults.accepts(ticket, in: resultContext) else { return }
-            loading = false
             retainedResults.fail(ticket, in: resultContext)
-            if !(error is CancellationError) { issue = SearchMapIssue.key(error) }
+            phase = error is CancellationError ? .idle : .failed(SearchMapIssue.key(error), retry: nil)
         }
     }
 }

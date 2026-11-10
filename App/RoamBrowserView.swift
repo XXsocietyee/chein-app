@@ -53,8 +53,12 @@ struct RoamBrowserView: View {
     @State private var selected: RoamMapItem?
     @State private var loadedKey: RequestKey?
     @State private var readOwner = ManualMapReadTaskOwner()
-    @State private var loading = false
-    @State private var issue: RoamScreenIssue?
+    /// Fetch lifecycle (docs/release/state-machines/views.md); rows live in `items`, `loadedKey` guards a stale key.
+    @State private var phase: CYPhase<Void, RoamScreenIssue> = .idle
+    private var loading: Bool { phase.isLoading }
+    private var issue: RoamScreenIssue? { phase.failure }
+    /// Guard: only an in-flight fetch falls back to idle; a failure stays visible.
+    private func settleLoading() { if phase.isLoading { phase = .idle } }
     @State private var generation = 0
     @State private var retainedRead = RoamRetainedRead()
     @State private var toolbarRoute: RoamBrowserToolbarRoute?
@@ -214,7 +218,7 @@ struct RoamBrowserView: View {
             }
             .onDisappear {
                 recoveryEntry.disappear()
-                retainedRead.clear(); selected = nil; readOwner.deactivate(); generation += 1; loading = false
+                retainedRead.clear(); selected = nil; readOwner.deactivate(); generation += 1; settleLoading()
             }
             .onChange(of: requestKey) { _, _ in selected = nil }
             .onChange(of: query) { _, _ in selected = nil }
@@ -536,10 +540,10 @@ struct RoamBrowserView: View {
         let operation = generation
         let key = requestKey
         let retainedTicket = retainedRead.begin(scope: retentionScope)
-        selected = nil; items = []; issue = nil; loadedKey = nil
-        guard reader.isConfigured, reader.identity != nil, reader.searchArea != nil else { loading = false; return }
-        loading = true
-        defer { if operation == generation { loading = false } }
+        selected = nil; items = []; phase = .idle; loadedKey = nil
+        guard reader.isConfigured, reader.identity != nil, reader.searchArea != nil else { return }
+        phase = .loading
+        defer { if operation == generation { settleLoading() } }
         do {
             let result: [RoamMapItem]
             switch key.layer {
@@ -550,7 +554,7 @@ struct RoamBrowserView: View {
             }
             try Task.checkCancellation()
             guard operation == generation, key == requestKey else { return }
-            items = RoamMapItem.unique(result); loadedKey = key
+            items = RoamMapItem.unique(result); phase = .loaded(()); loadedKey = key
             if let retainedTicket { retainedRead.finish(retainedTicket, items: items, readAt: Date()) }
         } catch is CancellationError {
             if let retainedTicket { retainedRead.cancel(retainedTicket) }
@@ -558,7 +562,7 @@ struct RoamBrowserView: View {
         catch {
             guard operation == generation, key == requestKey else { return }
             if let retainedTicket { retainedRead.fail(retainedTicket, error: error) }
-            issue = RoamScreenIssue(error: error); loadedKey = key
+            phase = .failed(RoamScreenIssue(error: error), retry: nil); loadedKey = key
         }
     }
 }
