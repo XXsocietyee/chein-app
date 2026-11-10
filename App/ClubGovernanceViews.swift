@@ -1267,7 +1267,10 @@ struct ClubGovernanceReadView: View {
             } else if value["accountRole"] == .string("club") {
                 Section("club.host.done.title") {
                     LabeledContent("club.host.done.status") { Text("club.host.done.active").foregroundStyle(CYColor.successText) }
-                    LabeledContent("club.host.done.limitLabel") { Text("club.host.done.limitValue") }
+                    LabeledContent("club.host.done.limitLabel") {
+                        Text(verbatim: ClubHostApplyPageModel(loading: false, snapshot: snapshot, capabilityGranted: access.isConfigured,
+                                                              allowance: value["allowance"]).allowance.displayText)
+                    }
                 }
             } else {
                 Section {
