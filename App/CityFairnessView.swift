@@ -10,23 +10,24 @@ struct CityFairnessView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                CYHeroHeader("fairness.title", tableName: "CityFairness")
                 screenBody
                 if let failure = reader.refreshFailure { failureText(failure) }
                 if reader.isConfigured {
                     NavigationLink(value: CityFairnessOutingRoute()) {
-                        Text("fairness.evidence", tableName: "CityFairness")
+                        CYListRow(verbatim: String(localized: "fairness.evidence", table: "CityFairness"), card: true)
                     }
                     .accessibilityIdentifier("fairness.outing.own")
-                    Button { readRequest = UUID() } label: { Text("fairness.refresh", tableName: "CityFairness") }
+                    CYPillButton("fairness.refresh", style: .secondary, tableName: "CityFairness") { readRequest = UUID() }
                         .disabled(!visible || scenePhase != .active)
                     if case .mature(let page) = reader.screen, page.nextCursor != nil {
-                        Button { Task { await reader.nextPage() } } label: { Text("fairness.next", tableName: "CityFairness") }
+                        CYPillButton("fairness.next", style: .tertiary, tableName: "CityFairness") { Task { await reader.nextPage() } }
                             .disabled(reader.refreshing || !visible || scenePhase != .active)
                     }
                 }
             }.padding()
         }
-        .navigationTitle(Text("fairness.title", tableName: "CityFairness"))
+        .cyHeroScreen()
         .accessibilityIdentifier("fairness.screen")
         .navigationDestination(for: CityFairnessOutingRoute.self) { _ in
             CityFairnessEvidenceView(reader: reader)
@@ -46,9 +47,9 @@ struct CityFairnessView: View {
     @ViewBuilder private var screenBody: some View {
         switch reader.screen {
         case .blocked:
-            Text("fairness.blocked", tableName: "CityFairness")
+            CYEmptyState(systemImage: "lock", "fairness.blocked", tableName: "CityFairness")
         case .loading:
-            ProgressView { Text("fairness.loading", tableName: "CityFairness") }
+            CYSkeleton().accessibilityLabel(Text("fairness.loading", tableName: "CityFairness"))
         case .notComputable(let missing, let gaps):
             Text("fairness.notComputable", tableName: "CityFairness")
             if !missing.isEmpty { reasonLine(missing.joined(separator: "\n")) }
@@ -75,7 +76,7 @@ struct CityFairnessView: View {
             if !page.missing.isEmpty { reasonLine(page.missing.joined(separator: "\n")) }
             cityFairnessFacts(page.coverageGaps, page.facts)
             Text("fairness.readOnly", tableName: "CityFairness")
-            if page.members.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
+            if page.members.isEmpty { CYEmptyState(systemImage: "tray", "fairness.emptyEvidence", tableName: "CityFairness") }
             ForEach(page.members) { member in
                 VStack(alignment: .leading, spacing: 4) {
                     Text(verbatim: member.outingId)
@@ -130,12 +131,13 @@ struct CityFairnessEvidenceView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
+                CYHeroHeader("fairness.evidence", tableName: "CityFairness")
                 if let page = reader.outingPage {
                     Text("fairness.readOnly", tableName: "CityFairness")
                     if page.maturity == "UNKNOWN" { Text("fairness.unknown", tableName: "CityFairness") }
                     if !page.missing.isEmpty { reasonLine(page.missing.joined(separator: "\n")) }
                     cityFairnessFacts(page.coverageGaps, page.facts)
-                    if page.outings.isEmpty { Text("fairness.emptyEvidence", tableName: "CityFairness") }
+                    if page.outings.isEmpty { CYEmptyState(systemImage: "tray", "fairness.emptyEvidence", tableName: "CityFairness") }
                     ForEach(page.outings) { outing in
                         VStack(alignment: .leading, spacing: 4) {
                             Text(verbatim: outing.outingId)
@@ -152,24 +154,24 @@ struct CityFairnessEvidenceView: View {
                     }
                     if let failure = reader.outingFailure { failureText(failure) }
                     if page.nextCursor != nil {
-                        Button { Task { await reader.nextOutings() } } label: { Text("fairness.next", tableName: "CityFairness") }
+                        CYPillButton("fairness.next", style: .tertiary, tableName: "CityFairness") { Task { await reader.nextOutings() } }
                             .disabled(reader.outingRefreshing)
                     }
-                    Button { Task { await reader.loadOutings() } } label: { Text("fairness.refresh", tableName: "CityFairness") }
+                    CYPillButton("fairness.refresh", style: .secondary, tableName: "CityFairness") { Task { await reader.loadOutings() } }
                         .disabled(reader.outingRefreshing)
                 } else if reader.outingBlocked {
-                    Text("fairness.blocked", tableName: "CityFairness")
+                    CYEmptyState(systemImage: "lock", "fairness.blocked", tableName: "CityFairness")
                 } else if let failure = reader.outingFailure {
                     failureText(failure)
                 } else {
-                    ProgressView { Text("fairness.loading", tableName: "CityFairness") }
+                    CYSkeleton().accessibilityLabel(Text("fairness.loading", tableName: "CityFairness"))
                 }
-                Button { dismiss() } label: { Text("fairness.back", tableName: "CityFairness") }
+                CYPillButton("fairness.back", style: .secondary, tableName: "CityFairness") { dismiss() }
                     .accessibilityIdentifier("fairness.back")
             }.padding()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .navigationTitle(Text("fairness.evidence", tableName: "CityFairness"))
+        .cyHeroScreen()
         .accessibilityIdentifier("fairness.evidence.screen")
         .task { await reader.loadOutings() }
     }

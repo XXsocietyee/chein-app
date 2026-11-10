@@ -49,45 +49,45 @@ import SwiftUI
             }
             RoamPassportOverviewView(phase: passport.phase(reader: reader)) { passport.load(reader: reader) }
             Section("roam.experience.yourRoam") {
-                NavigationLink { RoamEnrolledChaptersDestination(roamReader: reader) } label: { Label("roam.chapters.title", systemImage: "map.fill") }
+                NavigationLink { RoamEnrolledChaptersDestination(roamReader: reader) } label: { CYListRow("roam.chapters.title", trailing: .none) { CYRowIcon(systemImage: "map.fill") } }
                     .disabled(reader.identity == nil)
                     .accessibilityIdentifier("roam.chapters.open")
-                NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { Label("roam.tasks.title", systemImage: "checklist") }
+                NavigationLink { RoamOfficialTasksDestination(roamReader: reader) } label: { CYListRow("roam.tasks.title", trailing: .none) { CYRowIcon(systemImage: "checklist") } }
                     .disabled(reader.identity == nil)
                     .accessibilityIdentifier("roam.tasks.open")
-                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) } label: { Label("roam.experience.history", systemImage: "clock.arrow.circlepath") }
+                NavigationLink { RoamHistoryView(reader: reader, liveDestination: liveDestination, toolsReader: toolsReader, privateToolsReader: privateToolsReader, anniversaryRouteDestination: anniversaryRouteDestination) } label: { CYListRow("roam.experience.history", trailing: .none) { CYRowIcon(systemImage: "clock.arrow.circlepath") } }
                     .accessibilityIdentifier("roam.experience.history.open")
-                NavigationLink { RoamRecoveryView(reader: effectiveSessionReader).id(sessionFactReader?.scope) } label: { Label("roam.experience.recovery", systemImage: "arrow.clockwise.circle") }
+                NavigationLink { RoamRecoveryView(reader: effectiveSessionReader).id(sessionFactReader?.scope) } label: { CYListRow("roam.experience.recovery", trailing: .none) { CYRowIcon(systemImage: "arrow.clockwise.circle") } }
                     .accessibilityIdentifier("roam.experience.recovery.open")
-                NavigationLink { if let liveDestination { liveDestination() } else { AnyView(RoamLivePreparationView(reader: reader)) } } label: { Label("roam.experience.live", systemImage: "figure.walk") }
+                NavigationLink { if let liveDestination { liveDestination() } else { AnyView(RoamLivePreparationView(reader: reader)) } } label: { CYListRow("roam.experience.live", trailing: .none) { CYRowIcon(systemImage: "figure.walk") } }
                     .accessibilityIdentifier("roam.experience.live.open")
             }
             RoamPassportToolsSection(reader: toolsReader, routeDestination: anniversaryRouteDestination, privateTools: privateToolsReader)
             Section("roam.experience.collect") {
-                NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { Label("roam.experience.tileMemory", systemImage: "map") }
+                NavigationLink { RoamTileMemoryView(reader: effectiveTileReader).id(tileMemoryReader?.scope) } label: { CYListRow("roam.experience.tileMemory", trailing: .none) { CYRowIcon(systemImage: "map") } }
                     .accessibilityIdentifier("roam.experience.tiles.open")
                 NavigationLink {
                     if let albumMetadataReader { RoamAlbumMetadataDestination(reader: albumMetadataReader).id(albumMetadataReader.scope) }
                     else { RoamStampAlbumView(reader: reader, stampDestination: stampDestination) }
-                } label: { Label("roam.experience.album", systemImage: "rectangle.stack") }
+                } label: { CYListRow("roam.experience.album", trailing: .none) { CYRowIcon(systemImage: "rectangle.stack") } }
                     .accessibilityIdentifier("roam.experience.album.open")
-                NavigationLink { RoamBadgeWallDestination(roamReader: reader) } label: { Label("profile.badges.title", systemImage: "medal") }
+                NavigationLink { RoamBadgeWallDestination(roamReader: reader) } label: { CYListRow("profile.badges.title", trailing: .none) { CYRowIcon(systemImage: "medal") } }
                     .disabled(reader.identity == nil)
                     .accessibilityIdentifier("roam.badgeWall.open")
                 RoamPassportPrivateLinks(tools: privateToolsReader)
-                NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { Label("roam.experience.cityStamp", systemImage: "camera") }
+                NavigationLink { if let stampDestination { stampDestination() } else { AnyView(RoamStampCameraView()) } } label: { CYListRow("roam.experience.cityStamp", trailing: .none) { CYRowIcon(systemImage: "camera") } }
                     .accessibilityIdentifier("roam.experience.cityStamp.open")
-                NavigationLink { RoamVoucherEntryView() } label: { Label("roam.experience.voucher", systemImage: "ticket") }
+                NavigationLink { RoamVoucherEntryView() } label: { CYListRow("roam.experience.voucher", trailing: .none) { CYRowIcon(systemImage: "ticket") } }
                     .accessibilityIdentifier("roam.experience.voucher.open")
             }
             Section {
-                NavigationLink { RoamHangoutUnavailableView() } label: { Label("roam.experience.hangout", systemImage: "person.3") }
+                NavigationLink { RoamHangoutUnavailableView() } label: { CYListRow("roam.experience.hangout", trailing: .none) { CYRowIcon(systemImage: "person.3") } }
                     .accessibilityIdentifier("roam.experience.hangout.open")
             }
             Section {
-                NavigationLink { RoamLocationSettingsDestination() } label: { Label("roam.locationSettings.title", systemImage: "location.circle") }
+                NavigationLink { RoamLocationSettingsDestination() } label: { CYListRow("roam.locationSettings.title", trailing: .none) { CYRowIcon(systemImage: "location.circle") } }
                     .accessibilityIdentifier("roam.locationSettings.open")
-                NavigationLink { RoamPreflightRulesView() } label: { Label("roam.preflightRules.open", systemImage: "book.closed") }
+                NavigationLink { RoamPreflightRulesView() } label: { CYListRow("roam.preflightRules.open", trailing: .none) { CYRowIcon(systemImage: "book.closed") } }
                     .accessibilityIdentifier("roam.preflightRules.open")
             }
             Section("roam.motion.title") {
@@ -214,8 +214,7 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
             Section {
                 RoamExperienceNotice(offline: reader.isOfflineExample)
                 if showsLiveUnavailable {
-                    Label("roam.experience.liveUnavailable", systemImage: "location.slash")
-                    Text("roam.experience.liveHint").font(.subheadline).foregroundStyle(.secondary)
+                    CYEmptyState(systemImage: "location.slash", "roam.experience.liveUnavailable", detail: "roam.experience.liveHint")
                 }
             }
             Section("roam.experience.tileMemory") {
@@ -231,15 +230,16 @@ struct RoamTileMemoryPageOwner: Equatable, Hashable {
                             .accessibilityIdentifier("roam.experience.tiles.denied")
                     } else { RoamExperienceIssue(error: error, retry: read) }
                 }
-                if presentation.loading { ProgressView("roam.loading") }
+                if presentation.loading { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
                 if !presentation.loading && pager.hasMore {
-                    Button(pager.loaded ? "roam.experience.loadMore" : "roam.experience.readTiles", action: read)
+                    CYPillButton(pager.loaded ? "roam.experience.loadMore" : "roam.experience.readTiles", style: .secondary, action: read)
+                        .listRowBackground(Color.clear)
                         .disabled(reader.identity == nil || !reader.isConfigured)
                         .accessibilityIdentifier("roam.experience.tiles.load")
                 }
                 if reader.identity == nil { Text("roam.signInRequired") }
                 else if !reader.isConfigured { Text("roam.notConfigured") }
-                } else { ProgressView("roam.loading") }
+                } else { CYSkeleton().accessibilityLabel(Text("roam.loading")) }
             }
         }.cyGroupedSurface().navigationTitle(showsLiveUnavailable ? "roam.experience.live" : "roam.experience.tileMemory")
             .refreshable { await refresh() }

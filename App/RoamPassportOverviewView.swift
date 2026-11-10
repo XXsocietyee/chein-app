@@ -8,7 +8,7 @@ import SwiftUI
         Section("roam.passport.title") {
             switch phase {
             case .unloaded:
-                ProgressView("roam.loading").accessibilityIdentifier("roam.passport.loading")
+                CYSkeleton().accessibilityLabel(Text("roam.loading")).accessibilityIdentifier("roam.passport.loading")
             case .failed(let error):
                 RoamExperienceIssue(error: error, retry: retry)
                     .accessibilityIdentifier("roam.passport.error")
@@ -29,7 +29,7 @@ import SwiftUI
                     } else { Text("roam.passport.unknown") }
                 }.accessibilityIdentifier("roam.passport.distance")
                 if summary.trips == 0 {
-                    Text("roam.experience.historyEmpty").foregroundStyle(.secondary)
+                    CYEmptyState(systemImage: "figure.walk", "roam.experience.historyEmpty")
                         .accessibilityIdentifier("roam.passport.empty")
                 } else if summary.hasPartialMetrics {
                     VStack(alignment: .leading, spacing: 6) {

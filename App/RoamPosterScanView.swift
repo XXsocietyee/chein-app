@@ -28,12 +28,18 @@ import SwiftUI
             if let coordinator {
                 Section {
                     Group {
-                        if isBusy { ProgressView(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase))) }
+                        if isBusy {
+                            VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                                CYSkeleton()
+                                Text(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase)))
+                            }
+                        }
                         else { Text(LocalizedStringKey("media.poster.phase." + phaseKey(coordinator.phase))) }
                     }.accessibilityFocused($focusedControl, equals: .status)
                 }
                 if coordinator.phase == .review {
-                    Button("media.poster.confirm") { run { await coordinator.submit() } }.accessibilityIdentifier("media.poster.confirm")
+                    CYPillButton("media.poster.confirm") { run { await coordinator.submit() } }
+                        .listRowBackground(Color.clear).accessibilityIdentifier("media.poster.confirm")
                 }
                 if coordinator.phase == .needsRedemption || availability == .needsRedemption {
                     NavigationLink("roam.experience.voucher") {
@@ -43,7 +49,8 @@ import SwiftUI
             }
             Section {
                 Toggle("media.poster.consent", isOn: $purposeAccepted).disabled(isBusy || showingScanner)
-                Button("media.poster.scan") { scanGeneration += 1; showingScanner = true }
+                CYPillButton("media.poster.scan") { scanGeneration += 1; showingScanner = true }
+                    .listRowBackground(Color.clear)
                     .disabled(!purposeAccepted || !cameraEnabled || coordinator?.available != true || availability != .available || !canScan)
                     .accessibilityIdentifier("media.poster.scan")
                     .accessibilityFocused($focusedControl, equals: .scan)
