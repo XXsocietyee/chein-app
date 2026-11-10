@@ -26,3 +26,11 @@ Unchanged. The inline Join pill only navigates to the detail; the join/apply req
 
 ## Not verified
 Type-checking, nested Button-in-List tap behaviour, VoiceOver order (card button then footer), AX3 layout, and zh-Hans wrapping need a build and a fixture pass.
+
+## Review fix: wrapped count, truncated overflow chip (ui/e3)
+
+- `CYClubMemberStrip`: count text is `lineLimit(1)` + `minimumScaleFactor(0.8)` and the strip is `fixedSize` horizontally, so it can no longer hyphen-wrap ("12 / mem- / bers").
+- `CYClubPhotoCard` footer and `CYClubRowCard`: `ViewThatFits` tries strip | pill on one line, then falls back to the pill under the strip (always stacked at AX sizes). Row card falls back to logo+info over the pill.
+- `E3AvatarStack` overflow: "+N" chip is single-line, scales its text and widens to a capsule for 3+ digits (never "1…").
+- Fixtures `clubcards-states`: realistic titles replace "State · join" etc.; join/apply rows use 128 members to exercise the overflow chip.
+- Verified with `swiftc -parse` only; no build or screenshot re-run.

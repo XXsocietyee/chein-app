@@ -57,12 +57,12 @@ enum ClubCardFixtures {
     @MainActor private static var states: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: CYSpacing.lg) {
-                photo("State · join", place: "Open to all", count: 12, action: .join)
-                photo("State · apply", place: "Review required", count: 12, action: .apply)
-                photo("State · pending", place: "Request sent", count: 12, action: .pending)
-                photo("State · joined", place: "Member", count: 12, action: .joined)
-                photo("State · owner", place: "Creator", count: 12, action: .owner)
-                photo("State · none (merchant)", place: "No action", count: 12, action: .none)
+                photo("Sunset Photo Walk", place: "Open to all", count: 128, action: .join)
+                photo("Harbour Chess Circle", place: "Review required", count: 128, action: .apply)
+                photo("Lantern Festival Volunteers", place: "Request sent", count: 12, action: .pending)
+                photo("Morning Tai Chi Park", place: "Member", count: 12, action: .joined)
+                photo("West Lake Cyclists", place: "Creator", count: 12, action: .owner)
+                photo("Corner Cafe Regulars", place: "No action", count: 12, action: .none)
             }
             .padding(CYSpacing.pageHorizontal)
         }
