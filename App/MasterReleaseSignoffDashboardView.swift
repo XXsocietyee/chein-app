@@ -191,11 +191,6 @@ public struct MasterReleaseSignoffDashboardSnapshot: Equatable, Sendable {
 @MainActor
 public struct MasterReleaseSignoffDashboardView: View {
     public let snapshot: MasterReleaseSignoffDashboardSnapshot
-    @Environment(\.dynamicTypeSize) private var typeSize
-
-    private var rowLayout: AnyLayout {
-        typeSize.isAccessibilitySize ? AnyLayout(VStackLayout(alignment: .leading, spacing: 4)) : AnyLayout(HStackLayout(alignment: .firstTextBaseline, spacing: 12))
-    }
 
     public init(snapshot: MasterReleaseSignoffDashboardSnapshot = .verifiedDefault) {
         self.snapshot = snapshot
@@ -232,72 +227,87 @@ public struct MasterReleaseSignoffDashboardView: View {
     }
 
     public var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            rowLayout {
-                Text(verbatim: "Master Release & Parity Sign-off Dashboard")
-                    .font(.headline)
-                    .accessibilityIdentifier("masterReleaseDashboard.title")
-                Spacer()
-                CYStatusChip(verbatim: pillarsBadgeText,
-                             tone: snapshot.isReadyForSignoff ? .success : .warning,
-                             systemImage: snapshot.isReadyForSignoff ? "checkmark.circle" : "exclamationmark.triangle")
+        ScrollView {
+            VStack(alignment: .leading, spacing: CYSpacing.xxl) {
+                CYHeroHeader(
+                    verbatim: "Master Release & Parity Sign-off Dashboard",
+                    titleIdentifier: "masterReleaseDashboard.title"
+                )
+                VStack(alignment: .leading, spacing: CYSpacing.sm) {
+                    Text(verbatim: "\(snapshot.verifiedPillarCount)")
+                        .font(CYTypography.dataXL)
+                        .foregroundStyle(CYColor.textPrimary)
+                        .accessibilityHidden(true)
+                    CYStatusChip(
+                        verbatim: pillarsBadgeText,
+                        tone: snapshot.isReadyForSignoff ? .success : .warning,
+                        systemImage: snapshot.isReadyForSignoff ? "checkmark.circle" : "exclamationmark.triangle"
+                    )
                     .accessibilityIdentifier("masterReleaseDashboard.pillarsBadge")
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                rowLayout {
-                    Text(verbatim: miniProgramPagesMetricText)
-                        .font(.caption.monospacedDigit())
-                        .accessibilityIdentifier("masterReleaseDashboard.miniProgramPagesMetric")
-                    Text(verbatim: wave2ScopesMetricText)
-                        .font(.caption.monospacedDigit())
-                        .accessibilityIdentifier("masterReleaseDashboard.wave2ScopesMetric")
-                    Text(verbatim: wave3LanesMetricText)
-                        .font(.caption.monospacedDigit())
-                        .accessibilityIdentifier("masterReleaseDashboard.wave3LanesMetric")
                 }
-                rowLayout {
-                    Text(verbatim: reformPackagesMetricText)
-                        .font(.caption.monospacedDigit())
-                        .accessibilityIdentifier("masterReleaseDashboard.reformPackagesMetric")
-                    Text(verbatim: mapVisualMetricText)
-                        .font(.caption.monospacedDigit())
-                        .accessibilityIdentifier("masterReleaseDashboard.mapVisualMetric")
+                VStack(spacing: CYSpacing.md) {
+                    metric(miniProgramPagesMetricText, systemImage: "doc.text", identifier: "masterReleaseDashboard.miniProgramPagesMetric")
+                    metric(wave2ScopesMetricText, systemImage: "square.stack.3d.up", identifier: "masterReleaseDashboard.wave2ScopesMetric")
+                    metric(wave3LanesMetricText, systemImage: "arrow.triangle.branch", identifier: "masterReleaseDashboard.wave3LanesMetric")
+                    metric(reformPackagesMetricText, systemImage: "shippingbox", identifier: "masterReleaseDashboard.reformPackagesMetric")
+                    metric(mapVisualMetricText, systemImage: "map", identifier: "masterReleaseDashboard.mapVisualMetric")
                 }
-            }
-            .foregroundStyle(.secondary)
-
-            CYStatusChip(verbatim: highRiskSwitchesBannerText,
-                         tone: snapshot.allHighRiskSwitchesFailClosed ? .success : .danger,
-                         systemImage: snapshot.allHighRiskSwitchesFailClosed ? "lock.shield" : "exclamationmark.octagon")
+                CYStatusChip(
+                    verbatim: highRiskSwitchesBannerText,
+                    tone: snapshot.allHighRiskSwitchesFailClosed ? .success : .danger,
+                    systemImage: snapshot.allHighRiskSwitchesFailClosed ? "lock.shield" : "exclamationmark.octagon"
+                )
                 .accessibilityIdentifier("masterReleaseDashboard.highRiskSwitchesBanner")
-
-            VStack(alignment: .leading, spacing: 6) {
-                ForEach(snapshot.pillars) { item in
-                    VStack(alignment: .leading, spacing: 2) {
-                        rowLayout {
-                            Text(verbatim: "#\(item.index) \(item.title)")
-                                .font(.subheadline.weight(.medium))
-                            Spacer()
-                            CYStatusChip(verbatim: item.statusBadgeText,
-                                         tone: (item.isVerified && item.isFailClosed) ? .success : .warning,
-                                         systemImage: (item.isVerified && item.isFailClosed) ? "checkmark.circle" : "exclamationmark.triangle")
-                        }
-                        Text(verbatim: item.coverageSummary)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: CYSpacing.md) {
+                    ForEach(Array(snapshot.pillars.enumerated()), id: \.element.id) { index, item in
+                        pillar(item).cyStaggerAppear(index)
                     }
-                    .padding(8)
-                    .background(CYColor.textSecondary.opacity(0.06))
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
+                .accessibilityIdentifier("masterReleaseDashboard.pillarList")
             }
-            .accessibilityIdentifier("masterReleaseDashboard.pillarList")
+            .padding(.horizontal, CYSpacing.pageHorizontal)
+            .padding(.vertical, CYSpacing.lg)
         }
-        .padding(12)
-        .background(CYColor.textSecondary.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        .cyDomainPageBackground()
+        .cyHeroScreen()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("masterReleaseDashboard.section")
     }
+
+    private func metric(_ title: String, systemImage: String, identifier: String) -> some View {
+        CYListRow(verbatim: shown(title), trailing: .none, card: true) {
+            CYRowIcon(systemImage: systemImage)
+        }
+        .accessibilityIdentifier(identifier)
+    }
+
+    private func pillar(_ item: MasterSignoffPillarItem) -> some View {
+        let ready = item.isVerified && item.isFailClosed
+        return VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            CYListRow(verbatim: shown("#\(item.index) \(item.title)"), meta: shown(item.coverageSummary), trailing: .none) {
+                CYRowIcon(systemImage: ready ? "checkmark.seal" : "exclamationmark.triangle")
+            }
+            CYStatusChip(
+                verbatim: item.statusBadgeText,
+                tone: ready ? .success : .warning,
+                systemImage: ready ? "checkmark.circle" : "exclamationmark.triangle"
+            )
+        }
+        .cyDomainCard(radius: CYRadius.md, padding: CYSpacing.lg)
+        .accessibilityElement(children: .combine)
+    }
+
+    /// Blank copy is unknown. Counts stay in the metric strings, including a real 0.
+    private func shown(_ value: String) -> String {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? "—" : trimmed
+    }
+}
+
+#Preview("Player") {
+    NavigationStack { MasterReleaseSignoffDashboardView().themeDomain(.player) }
+}
+
+#Preview("Merchant") {
+    NavigationStack { MasterReleaseSignoffDashboardView().themeDomain(.merchant) }
 }
