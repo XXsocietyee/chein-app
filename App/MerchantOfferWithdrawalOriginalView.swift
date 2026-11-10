@@ -35,9 +35,9 @@ import SwiftUI
                     Text("原章 #\(s.chapterId.map(String.init) ?? "未知") · 主题 #\(s.topicId.map(String.init) ?? "未知")")
                     Text("原 status \(s.status.map(String.init) ?? "未知") · 原条款 \(s.termsMode ?? "未知")")
                     Text("原总人次 \(s.quotaTotal.map(String.init) ?? "未知") / 已用 \(s.quotaUsed.map(String.init) ?? "未知") · 每人次计酬 \(s.perHeadFee ?? "未配置")")
-                    Text("原有效截止："+time(s.validEndEpoch));Text("原行更新时间："+time(s.updatedAtEpoch))
+                    Text(String(localized: "原有效截止：") +time(s.validEndEpoch));Text(String(localized: "原行更新时间：") +time(s.updatedAtEpoch))
                     Text("原主题生命周期 \(s.topicLifecycle.map(String.init) ?? "未知") · userStatus \(s.topicUserStatus.map(String.init) ?? "未知")")
-                    if let old=s.withdrawReason,!old.isEmpty{Text("当前原退出原因："+old)}
+                    if let old=s.withdrawReason,!old.isEmpty{Text(String(localized: "当前原退出原因：") +old)}
                     Text("当前已停用、过期或退出，不等于某个 UNKNOWN UUID 已成功。当前状态不会触发自动重新申请/入驻。")
                 }
                 Section("原影响核对"){
