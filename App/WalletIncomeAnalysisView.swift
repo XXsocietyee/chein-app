@@ -93,9 +93,15 @@ import SwiftUI
                 if let current = summary.months.last {
                     VStack(alignment: .leading, spacing: Theme.Space.s2) {
                         Text(verbatim: current.id).font(Theme.Font.label).foregroundStyle(.secondary)
-                        monthAmount(current, summary: summary, currency: currency)
-                            .font(.system(.largeTitle, weight: .semibold)).monospacedDigit()
-                            .fixedSize(horizontal: false, vertical: true)
+                        if summary.unknownCount > 0, current.count == 0 {
+                            monthAmount(current, summary: summary, currency: currency)
+                                .font(.system(.largeTitle, weight: .semibold)).monospacedDigit()
+                                .fixedSize(horizontal: false, vertical: true)
+                        } else {
+                            // Headline amount rolls when the month figure changes (reload, currency switch).
+                            CYStatNumber(text: WalletIncomeAnalysisPresentation.text(current.amount, currency: currency, locale: locale),
+                                         font: .system(.largeTitle, weight: .semibold))
+                        }
                         if summary.unknownCount > 0 { text("knownSubtotal").font(Theme.Font.label).foregroundStyle(.secondary) }
                     }.padding(.vertical, Theme.Space.s3)
                 }

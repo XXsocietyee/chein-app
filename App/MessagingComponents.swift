@@ -201,24 +201,8 @@ struct MessagingReadScreen<Value, Content: View>: View {
     var body: some View {
         let input = MessagingReadScreenInput(reader: reader, refreshRevision: refreshRevision)
         let appearance = model.appearance
-        ZStack {
-            if !reader.isConfigured {
-                MessagingIssueView(issue: .init(APIError.notConfigured), identifier: accessibilityPrefix + ".unconfigured", retry: {})
-            } else if reader.identity == nil {
-                MessagingIssueView(issue: .init(APIError.unauthorized), identifier: accessibilityPrefix + ".signedOut", retry: {})
-            } else if model.isLoading {
-                CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top)
-                    .accessibilityElement(children: .ignore).accessibilityLabel(Text("messaging.loading"))
-                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
-            } else if let issue = model.issue {
-                MessagingIssueView(issue: issue, identifier: accessibilityPrefix + ".error") {
-                    queue(model.prepareRefresh(appearance: appearance, input: input))
-                }
-            } else if let value = model.value, model.loadedInput == input {
-                content(value)
-            } else {
-                ProgressView("messaging.loading")
-            }
+        CYLoadSlot(isLoading: isShowingLoad(input: input), label: "messaging.loading", identifier: accessibilityPrefix + ".loading", announces: true) {
+            readBody(input: input, appearance: appearance)
         }
         .background(CYColor.bgPage.ignoresSafeArea())
         .privacySensitive()
@@ -236,6 +220,32 @@ struct MessagingReadScreen<Value, Content: View>: View {
             queue(model.prepareRefresh(appearance: appearance, input: input))
         }
         .onDisappear { model.disappear() }
+    }
+    /// The first read (or a refresh) is in flight and no issue or matching content is on screen yet.
+    private func isShowingLoad(input: MessagingReadScreenInput) -> Bool {
+        guard reader.isConfigured, reader.identity != nil else { return false }
+        if model.isLoading { return true }
+        if model.issue != nil { return false }
+        return !(model.value != nil && model.loadedInput == input)
+    }
+    @ViewBuilder private func readBody(input: MessagingReadScreenInput, appearance: UUID?) -> some View {
+        ZStack {
+            if !reader.isConfigured {
+                MessagingIssueView(issue: .init(APIError.notConfigured), identifier: accessibilityPrefix + ".unconfigured", retry: {})
+            } else if reader.identity == nil {
+                MessagingIssueView(issue: .init(APIError.unauthorized), identifier: accessibilityPrefix + ".signedOut", retry: {})
+            } else if model.isLoading {
+                Color.clear
+            } else if let issue = model.issue {
+                MessagingIssueView(issue: issue, identifier: accessibilityPrefix + ".error") {
+                    queue(model.prepareRefresh(appearance: appearance, input: input))
+                }
+            } else if let value = model.value, model.loadedInput == input {
+                content(value)
+            } else {
+                Color.clear
+            }
+        }
     }
     private func queue(_ token: MessagingReadScreenToken?) {
         guard let token else { return }

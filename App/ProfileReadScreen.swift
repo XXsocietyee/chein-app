@@ -27,14 +27,37 @@ struct ProfileReadScreen<Value, Content: View>: View {
         self.content = content
     }
 
+    /// Configured, signed in and the first read is in flight.
+    private var isShowingLoad: Bool { reader.identity != nil && reader.isConfigured && isLoading }
     var body: some View {
+        CYLoadSlot(isLoading: isShowingLoad, label: LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading"),
+                   identifier: accessibilityPrefix + ".loading", announces: true) {
+            readBody
+        }
+        .refreshable { await loadOwner.run { await reload() } }
+        .toolbar {
+            ToolbarItem(placement: .topBarTrailing) {
+                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload() } }
+                    .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
+                    .accessibilityIdentifier(accessibilityPrefix + ".refresh")
+            }
+        }
+        .task(id: reader.identity) { loadOwner.activate(); await loadOwner.run { await reload() } }
+        .onDisappear {
+            // Keep the immutable list snapshot while its NavigationLink destination is
+            // pushed. Removing that link here can unexpectedly pop native navigation.
+            // Account replacement destroys the root; a new appearance refreshes the data.
+            loadOwner.deactivate(); generation &+= 1
+        }
+    }
+    @ViewBuilder private var readBody: some View {
         ZStack {
             if reader.identity == nil {
                 CYEmptyState(systemImage: "person.crop.circle.badge.exclamationmark", LocalizedStringKey(issueCopy?.signInTitleKey ?? "profile.signInRequired"), detail: LocalizedStringKey(issueCopy?.signInDetailKey ?? "auth.expired"), messageIdentifier: accessibilityPrefix + ".signIn")
             } else if !reader.isConfigured {
                 CYEmptyState(systemImage: "network.slash", "profile.unavailable", detail: "auth.notConfigured", messageIdentifier: accessibilityPrefix + ".unavailable")
             } else if isLoading {
-                ProgressView(LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading")).accessibilityIdentifier(accessibilityPrefix + ".loading")
+                Color.clear
             } else if let issue {
                 ContentUnavailableView {
                     Label {
@@ -52,21 +75,6 @@ struct ProfileReadScreen<Value, Content: View>: View {
             } else if let value {
                 content(value)
             }
-        }
-        .refreshable { await loadOwner.run { await reload() } }
-        .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Button("profile.refresh", systemImage: "arrow.clockwise") { loadOwner.start { await reload() } }
-                    .disabled(isLoading || !reader.isConfigured || reader.identity == nil)
-                    .accessibilityIdentifier(accessibilityPrefix + ".refresh")
-            }
-        }
-        .task(id: reader.identity) { loadOwner.activate(); await loadOwner.run { await reload() } }
-        .onDisappear {
-            // Keep the immutable list snapshot while its NavigationLink destination is
-            // pushed. Removing that link here can unexpectedly pop native navigation.
-            // Account replacement destroys the root; a new appearance refreshes the data.
-            loadOwner.deactivate(); generation &+= 1
         }
     }
     private func reload() async {

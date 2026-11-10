@@ -63,13 +63,15 @@ extension View {
 
 // MARK: - Tokens
 
-/// Durations 0.18 to 0.35 s. Springs are response/damping pairs (see the spec table).
+/// Four durations (0.12 / 0.20 / 0.35 / 0.60 s). Springs are response/damping pairs (see the spec table).
 enum CYMotion {
     enum Duration {
-        static let quick: Double = 0.18      // fades, reveals, cross-fades
-        static let standard: Double = 0.25   // list insert/delete, content swap
-        static let emphasized: Double = 0.35 // hero, entrance
-        static let slow: Double = 0.60       // celebration land, flip, foil sweep, ring count-up (spec 1.1)
+        static let instant: Double = 0.12    // press-down, chip tick, toggle
+        static let quick: Double = 0.20      // fades, reveals, cross-fades, skeleton to content, tab swap
+        static let standard: Double = 0.35   // list insert/delete, hero entrance, ring fill
+        static let slow: Double = 0.60       // celebration land, flip, count-up
+        /// Alias kept for existing callers; it is `standard` on the four-step grid.
+        static let emphasized: Double = standard
     }
     /// Touch-down. 120 ms.
     static let press = Animation.spring(response: 0.12, dampingFraction: 0.9)
@@ -79,8 +81,6 @@ enum CYMotion {
     static let standard = Animation.spring(response: 0.3, dampingFraction: 0.85)
     /// Entrances (empty state, staggered cards).
     static let entrance = Animation.spring(response: 0.35, dampingFraction: 0.8)
-    /// One visible overshoot: flip card, template carousel snap (spec 1.2).
-    static let hero = Animation.spring(response: 0.55, dampingFraction: 0.78)
     /// Reduce Motion replacement: a short cross-fade.
     static let reduced = Animation.easeInOut(duration: Duration.quick)
 
@@ -346,7 +346,7 @@ private struct CYRowTransition: ViewModifier {
     }
 }
 
-/// Skeleton to content cross-fade (0.25 s). Under Reduce Motion the swap is instant.
+/// Skeleton to content cross-fade (`quick`, 0.20 s). Under Reduce Motion the swap is instant.
 struct CYContentSwap<Skeleton: View, Content: View>: View {
     let isLoading: Bool
     @ViewBuilder var skeleton: () -> Skeleton
@@ -361,7 +361,7 @@ struct CYContentSwap<Skeleton: View, Content: View>: View {
                 content().transition(.opacity)
             }
         }
-        .animation(reduceMotion ? nil : .easeInOut(duration: CYMotion.Duration.standard), value: isLoading)
+        .animation(reduceMotion ? nil : .easeInOut(duration: CYMotion.Duration.quick), value: isLoading)
     }
 }
 

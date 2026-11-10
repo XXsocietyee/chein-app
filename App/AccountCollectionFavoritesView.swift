@@ -68,13 +68,22 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
     @State private var unliked: Set<Int> = []
     @State private var showRecommendNote = false
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
+    @State private var skeletonShown = false
+    @State private var stagger = CYStaggerGate()
+    private var isLoadingNow: Bool { model.state.isLoading || model.state.loadedScope != key.scope }
     var body: some View {
         List {
             if reader.isOfflineExample { CYStatusChip("accountCollection.offlineExample", tone: .neutral, systemImage: "testtube.2").listRowBackground(Color.clear).listRowSeparator(.hidden) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
-            else if model.state.isLoading || model.state.loadedScope != key.scope {
-                CYSkeleton()
+            else if isLoadingNow || skeletonShown {
+                // Loading-to-content (docs/release/motion-spec-loading.md): skeleton after 120 ms, held 350 ms.
+                if skeletonShown {
+                    CYLoadingStateView(rows: 4)
+                        .accessibilityLabel(Text("accountCollection.loading"))
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden).listRowInsets(EdgeInsets())
+                        .transition(.opacity)
+                }
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
@@ -90,9 +99,10 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
                     CYEmptyState(systemImage: "heart", "accountCollection.favorites.empty", messageIdentifier: "accountCollection.favorites.empty", kind: .favorites)
                         .listRowBackground(Color.clear).listRowSeparator(.hidden)
                 }
-                ForEach(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }) { topic in
+                ForEach(Array(model.state.visibleRows(scope: key.scope).filter { !unliked.contains($0.id) }.enumerated()), id: \.element.id) { index, topic in
                     Button { onOpenTopic(topic.id) } label: { AccountCollectionFavoriteCard(topic: topic) }
                         .buttonStyle(QuestifyCardButtonStyle())
+                        .cyStaggeredAppear(index: index, gate: stagger)
                         .accessibilityIdentifier("accountCollection.favorite.\(topic.id)")
                         .overlay(alignment: .topTrailing) {
                             if let unlike, unlike.isAvailable { TopicUnlikeButton(topicID: topic.id, controller: unlike).padding(8) }
@@ -114,6 +124,8 @@ private struct AccountCollectionFavoritesGateKey: Hashable {
         }
         .listStyle(.insetGrouped)
         .cyGroupedSurface()
+        .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
+        .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         // mylike.js onPullDownRefresh parity: same guarded refresh as the toolbar button.
         .refreshable { await refresh() }
         .appNavigationTitle("accountCollection.favorites.title")
@@ -213,6 +225,8 @@ private struct AccountCollectionFavoriteCard: View {
     let favoriteRemoval: ProfileFavoriteRemovalController?
     @StateObject private var model = AccountCollectionPostsScreenModel()
     private var key: AccountCollectionLoadKey { AccountCollectionLoadKey(reader: reader) }
+    @State private var skeletonShown = false
+    private var isLoadingNow: Bool { model.state.isLoading || model.state.loadedScope != key.scope }
     var body: some View {
         let renderedScope = key.scope
         List {
@@ -224,8 +238,14 @@ private struct AccountCollectionFavoriteCard: View {
             if reader.isOfflineExample { CYStatusChip("accountCollection.offlineExample", tone: .neutral, systemImage: "testtube.2").listRowBackground(Color.clear).listRowSeparator(.hidden) }
             if !reader.isAuthenticated { AccountCollectionIssueView(issue: .login) }
             else if !reader.isConfigured { AccountCollectionIssueView(issue: .notConfigured) }
-            else if model.state.isLoading || model.state.loadedScope != key.scope {
-                CYSkeleton()
+            else if isLoadingNow || skeletonShown {
+                // Loading-to-content (docs/release/motion-spec-loading.md): skeleton after 120 ms, held 350 ms.
+                if skeletonShown {
+                    CYLoadingStateView(rows: 4)
+                        .accessibilityLabel(Text("accountCollection.loading"))
+                        .listRowBackground(Color.clear).listRowSeparator(.hidden).listRowInsets(EdgeInsets())
+                        .transition(.opacity)
+                }
             } else if let issue = model.state.issue {
                 AccountCollectionIssueView(issue: issue, retry: { Task { await refresh() } })
             } else {
@@ -271,6 +291,8 @@ private struct AccountCollectionFavoriteCard: View {
         }
         .listStyle(.insetGrouped)
         .cyGroupedSurface()
+        .cySkeletonTiming(isLoading: isLoadingNow && reader.isAuthenticated && reader.isConfigured, visible: $skeletonShown)
+        .cyAnimation(.easeInOut(duration: CYMotion.Duration.quick), value: skeletonShown)
         .refreshable { await refresh() }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {

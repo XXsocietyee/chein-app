@@ -30,24 +30,16 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
         self.requiresSignIn = requiresSignIn; self.onSignIn = onSignIn
         self.load = load; self.content = content
     }
+    /// True while no issue and no content for the current identity exists yet: the first load.
+    private var isInitialLoading: Bool {
+        guard reader.isClubConfigured else { return false }
+        if requiresSignIn && !reader.clubIdentity.isSignedIn { return false }
+        if issueIdentity == reader.clubIdentity, issue != nil { return false }
+        return !(loadedIdentity == reader.clubIdentity && value != nil)
+    }
     var body: some View {
-        Group {
-            if !reader.isClubConfigured {
-                ContentUnavailableView("club.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
-            } else if requiresSignIn && !reader.clubIdentity.isSignedIn {
-                issueView(ClubLoadIssue(ClubReadFailure.unauthorized(message: nil)))
-            } else if issueIdentity == reader.clubIdentity, let issue {
-                issueView(issue)
-            } else if loadedIdentity == reader.clubIdentity, let value {
-                content(value)
-                    .overlay(alignment: .top) {
-                        if isLoading { ProgressView().padding(8).background(.regularMaterial, in: Capsule()) }
-                    }
-            } else {
-                CYSkeleton().padding(CYSpacing.lg).frame(maxHeight: .infinity, alignment: .top)
-                    .accessibilityElement(children: .ignore).accessibilityLabel(Text("club.loading"))
-                    .accessibilityIdentifier(accessibilityPrefix + ".loading")
-            }
+        CYLoadSlot(isLoading: isInitialLoading, label: "club.loading", identifier: accessibilityPrefix + ".loading", announces: true) {
+            readBody
         }
         .background(CYColor.bgPage.ignoresSafeArea())
         .refreshable { await reload() }
@@ -63,6 +55,24 @@ struct ClubReadScreen<Reader: ClubReading & ObservableObject, Value, Content: Vi
             // Invalidate outstanding work without removing NavigationLink source rows on push.
             generation &+= 1
             isLoading = false
+        }
+    }
+    @ViewBuilder private var readBody: some View {
+        Group {
+            if !reader.isClubConfigured {
+                ContentUnavailableView("club.unavailable", systemImage: "network.slash", description: Text("auth.notConfigured"))
+            } else if requiresSignIn && !reader.clubIdentity.isSignedIn {
+                issueView(ClubLoadIssue(ClubReadFailure.unauthorized(message: nil)))
+            } else if issueIdentity == reader.clubIdentity, let issue {
+                issueView(issue)
+            } else if loadedIdentity == reader.clubIdentity, let value {
+                content(value)
+                    .overlay(alignment: .top) {
+                        if isLoading { ProgressView().padding(8).background(.regularMaterial, in: Capsule()) }
+                    }
+            } else {
+                Color.clear
+            }
         }
     }
     private func issueView(_ issue: ClubLoadIssue) -> some View {

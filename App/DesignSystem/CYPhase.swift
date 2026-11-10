@@ -38,7 +38,8 @@ enum CYPhase<Value, Failure> {
 enum CYPhaseKind: Equatable { case idle, loading, loaded, empty, failed }
 
 /// Maps a `CYPhase` onto the kit states: skeleton while loading, `CYEmptyState`, `CYErrorState` with retry,
-/// and the caller's content once loaded. Phase swaps cross-fade (instant under Reduce Motion) and VoiceOver
+/// and the caller's content once loaded. The skeleton shows only after 120 ms and stays at least 350 ms, so a fast
+/// load never flashes it. Phase swaps cross-fade over 0.20 s (instant under Reduce Motion) and VoiceOver
 /// hears one announcement when a load ends in failure or content.
 struct CYPhaseView<Value, Failure, Content: View>: View {
     let phase: CYPhase<Value, Failure>
@@ -51,32 +52,57 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
     var failureMessage: LocalizedStringKey = "Couldn't load this. Check your connection."
     var offline: (Failure) -> Bool = { _ in false }
     var announcesChanges = true
+    /// Accessibility identifier on the skeleton, for screens whose UI tests wait on a `.loading` element.
+    var loadingIdentifier: String?
     @ViewBuilder var content: (Value) -> Content
 
     @QuestifyReduceMotion private var reduceMotion
     @Environment(\.locale) private var locale
     @State private var previous: CYPhaseKind = .idle
+    @State private var skeletonVisible = false
+
+    init(
+        phase: CYPhase<Value, Failure>,
+        skeletonRows: Int = 3,
+        loadingLabel: LocalizedStringKey,
+        emptySystemImage: String = "tray",
+        emptyMessage: LocalizedStringKey,
+        emptyActionTitle: LocalizedStringKey? = nil,
+        emptyAction: (() -> Void)? = nil,
+        failureMessage: LocalizedStringKey = "Couldn't load this. Check your connection.",
+        offline: @escaping (Failure) -> Bool = { _ in false },
+        announcesChanges: Bool = true,
+        loadingIdentifier: String? = nil,
+        @ViewBuilder content: @escaping (Value) -> Content
+    ) {
+        self.phase = phase
+        self.skeletonRows = skeletonRows
+        self.loadingLabel = loadingLabel
+        self.emptySystemImage = emptySystemImage
+        self.emptyMessage = emptyMessage
+        self.emptyActionTitle = emptyActionTitle
+        self.emptyAction = emptyAction
+        self.failureMessage = failureMessage
+        self.offline = offline
+        self.announcesChanges = announcesChanges
+        self.loadingIdentifier = loadingIdentifier
+        self.content = content
+    }
+
+    /// What is on screen: the timed skeleton wins while it is visible (show-delay / minimum hold), otherwise the phase.
+    private enum Rendered: Equatable { case skeleton, phase(CYPhaseKind) }
+    private var rendered: Rendered { skeletonVisible ? .skeleton : .phase(phase.kind) }
 
     var body: some View {
         ZStack {
-            switch phase {
-            case .idle:
-                Color.clear.accessibilityHidden(true)
-            case .loading:
-                CYLoadingStateView(rows: skeletonRows)
-                    .accessibilityLabel(Text(loadingLabel))
-                    .transition(.opacity)
-            case .loaded(let value):
-                content(value).transition(.opacity)
-            case .empty:
-                CYEmptyState(systemImage: emptySystemImage, emptyMessage, actionTitle: emptyActionTitle, action: emptyAction)
-                    .transition(.opacity)
-            case .failed(let failure, let retry):
-                CYErrorState(failureMessage, offline: offline(failure), onRetry: retry ?? {})
-                    .transition(.opacity)
+            if skeletonVisible {
+                skeleton
+            } else {
+                phaseBody
             }
         }
-        .animation(reduceMotion ? nil : .easeInOut(duration: CYMotion.Duration.quick), value: phase.kind)
+        .animation(reduceMotion ? nil : .easeInOut(duration: CYMotion.Duration.quick), value: rendered)
+        .cySkeletonTiming(isLoading: phase.isLoading, visible: $skeletonVisible)
         .onChange(of: phase.kind) { _, new in
             defer { previous = new }
             guard announcesChanges, previous == .loading else { return }
@@ -86,6 +112,32 @@ struct CYPhaseView<Value, Failure, Content: View>: View {
             case .loaded: Self.announce(t("Loaded", "已加载"))
             case .empty: Self.announce(t("Nothing here yet", "暂无内容"))
             case .idle, .loading: break
+            }
+        }
+    }
+
+    private var skeleton: some View {
+        CYLoadingStateView(rows: skeletonRows)
+            .padding(.top, CYSpacing.sm)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .accessibilityLabel(Text(loadingLabel))
+            .accessibilityIdentifier(loadingIdentifier ?? "cy.phase.loading")
+            .transition(.opacity)
+    }
+
+    @ViewBuilder private var phaseBody: some View {
+        ZStack {
+            switch phase {
+            case .idle, .loading:
+                Color.clear.accessibilityHidden(true)
+            case .loaded(let value):
+                content(value).transition(.opacity)
+            case .empty:
+                CYEmptyState(systemImage: emptySystemImage, emptyMessage, actionTitle: emptyActionTitle, action: emptyAction)
+                    .transition(.opacity)
+            case .failed(let failure, let retry):
+                CYErrorState(failureMessage, offline: offline(failure), onRetry: retry ?? {})
+                    .transition(.opacity)
             }
         }
     }
