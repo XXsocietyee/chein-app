@@ -224,7 +224,7 @@ import SwiftUI
     }
     private func eventLabel(_ event: ClubCalendarEvent, showDate: Bool) -> some View {
         HStack(spacing: CYSpacing.md) {
-            CYCoverArt(seed: event.name ?? String(event.id), systemImage: "calendar", symbolSize: 22)
+            CYIMCoverArt(seed: event.name ?? String(event.id), systemImage: "calendar", symbolSize: 22)
                 .frame(width: 56, height: 56)
                 .overlay {
                     // Date badge on the generated cover: month over day, so the agenda scans by date.

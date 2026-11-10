@@ -153,7 +153,7 @@ struct E3Avatar: View {
     var systemImage = "person.fill"
     var size: CGFloat = 44
     var body: some View {
-        CYCoverArt(seed: seed, systemImage: systemImage, symbolSize: size * 0.42)
+        CYIMCoverArt(seed: seed, systemImage: systemImage, symbolSize: size * 0.42)
             .frame(width: size, height: size).clipShape(Circle())
             .overlay(Circle().strokeBorder(Color.white.opacity(0.08), lineWidth: 1))
     }
@@ -362,7 +362,7 @@ struct E3VideoCard: View {
     let duration: String
     var body: some View {
         ZStack {
-            CYCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
+            CYIMCoverArt(seed: seed, systemImage: "film.fill", symbolSize: 44)
             LinearGradient(colors: [.clear, .black.opacity(0.45)], startPoint: .top, endPoint: .bottom)
             Image(systemName: "play.fill").font(.title3).foregroundStyle(.white)
                 .frame(width: 52, height: 52).background(.black.opacity(0.45), in: Circle())
@@ -441,7 +441,7 @@ struct E3PostCard: View {
                 }
                 Spacer(minLength: 0)
             }.padding(CYSpacing.md)
-            CYCoverArt(seed: coverSeed, systemImage: coverSymbol, symbolSize: 54)
+            CYIMCoverArt(seed: coverSeed, systemImage: coverSymbol, symbolSize: 54)
                 .aspectRatio(4.0 / 3.0, contentMode: .fit).frame(maxWidth: .infinity).clipped()
             Text(verbatim: text).font(.body).foregroundStyle(CYColor.textPrimary).lineLimit(4)
                 .padding(.horizontal, CYSpacing.md).padding(.top, CYSpacing.md)
