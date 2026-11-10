@@ -10,7 +10,7 @@ import SwiftUI
         Section {
             switch model.state {
             case .awaitingIndex: Text("friendIndexPending", tableName: "NativeChannelProgress")
-            case .loading: ProgressView()
+            case .loading: CYLoadingStateView(rows: 1).accessibilityLabel(Text("friendProgress", tableName: "NativeChannelProgress"))
             case .hidden: Text("hidden", tableName: "NativeChannelProgress")
             case .unconfirmed: Text("unconfirmed", tableName: "NativeChannelProgress")
             case .closed: Text("closed", tableName: "NativeChannelProgress")
@@ -32,7 +32,7 @@ import SwiftUI
                 }
             }
             if model.state != .loading {
-                Button { Task { await model.activate() } } label: { Text("d7.friendProgress.refresh") }
+                CYPillButton(LocalizedStringKey("d7.friendProgress.refresh"), style: .secondary) { Task { await model.activate() } }
             }
         } header: { Text("friendProgress", tableName: "NativeChannelProgress") }
         .font(Theme.Font.body)
