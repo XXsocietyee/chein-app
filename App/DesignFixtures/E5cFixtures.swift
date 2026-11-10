@@ -30,6 +30,9 @@ enum E5cFixtures {
         case "e5c-perm-notifications": return wrap(CYPermissionPriming(kind: .notifications, onAllow: {}, onNotNow: {}))
         case "e5c-perm-photos": return wrap(CYPermissionPriming(kind: .photos, onAllow: {}, onNotNow: {}))
         case "e5c-perm-denied": return wrap(VStack { Spacer(); CYPermissionDeniedCard(kind: .location, onOpenSettings: {}); Spacer() })
+        case "e5c-messages-empty", "e5c-messages-error":
+            let scenario: MessagingFixtureScenario = name == "e5c-messages-empty" ? .empty : .error
+            return wrap(NavigationStack { MessagingHomeView(reader: MessagingFixtureReader(scenario), expanded: nil, squareDestination: { _ in AnyView(EmptyView()) }) })
         case "e5c-tabs": return wrap(E5cTabsFixture())
         default: return nil
         }
