@@ -14,7 +14,7 @@ import SwiftUI
                     Section("行动额度") {
                         Text("仅记录掷骰结果，不移动、不发奖。")
                         if let state = model.state {
-                            CYStatusChip(verbatim: status(state.status), tone: state.status == "EXHAUSTED" || state.status == "NOT_CONFIGURED" ? .warning : (state.status == "AVAILABLE" ? .success : .neutral), systemImage: "dice")
+                            CYStatusChip(verbatim: status(state.status), tone: statusTone(state.status), systemImage: "dice")
                             if let remaining = state.remainingUnits { Text("剩余额度：\(remaining)") }
                             if let cost = state.rules?.rollCost { Text("每次消耗：\(cost)") }
                             if let dice = state.dice { Text("骰子：\(dice.diceId)") }
@@ -71,6 +71,13 @@ import SwiftUI
     }
     private func reopen() { Task { await model.open() } }
     private var complete: Bool { if case .complete = model.display { return true }; return false }
+    private func statusTone(_ value: String) -> CYStatusTone {
+        switch value {
+        case "EXHAUSTED", "NOT_CONFIGURED": return .warning
+        case "AVAILABLE": return .success
+        default: return .neutral
+        }
+    }
     private func status(_ value: String) -> String {
         switch value {
         case "JOIN_REQUIRED": "请先加入城市队伍"
