@@ -45,7 +45,7 @@ import UIKit
         var session:AppSession!,read:WorkshopCreatorConsentReadApproval?,write:WorkshopCreatorConsentWriteApproval?,targets:[WorkshopCreatorDeclarationTarget]=[],seen=0
         init()throws{
             deployment=try .init(market:.china,baseURL:base.absoluteString,approvedBaseURLs:[.china:[base.absoluteString]],verifiedCapabilities:[.domesticChinaPhone],bundleIdentifier:"test.creator.declaration",realm:"synthetic-"+UUID().uuidString.lowercased())
-            session=AppCompositionRoot(deployment:.reviewed(deployment),storage:.init(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},
+            session=AppCompositionRoot(deployment:.reviewed(deployment),storage:WorkshopSyntheticStorage.factory(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},
                 workshopCreatorDeclarationTargets:{[weak self] actual,source in guard let self,let expected=try? self.context() else{return []};XCTAssertEqual(actual,expected);XCTAssertEqual(source,91);return actual==expected ? self.targets:[]},
                 workshopCreatorConsentReadApproval:{[weak self] actual in guard let self,let expected=try? self.context() else{return nil};self.seen += 1;XCTAssertEqual(actual,expected);return actual==expected ? self.read:nil},
                 workshopCreatorConsentWriteApproval:{[weak self] actual in guard let self,let expected=try? self.context() else{return nil};XCTAssertEqual(actual,expected);return actual==expected ? self.write:nil}).makeSession()

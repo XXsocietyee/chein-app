@@ -7,9 +7,9 @@ class ClubHomeTopicNavigationChecks(unittest.TestCase):
     def test_event_uses_topic_id_and_native_navigation_link(self):
         s=self.read('ClubHomeView.swift')
         self.assertIn('if let topicDestination, event.id > 0',s)
-        self.assertIn('NavigationLink { topicDestination(event.id) } label: { eventRow(event) }',s)
+        self.assertIn('NavigationLink { topicDestination(event.id) } label: { eventRow(event, page: page) }',s)
         self.assertIn('else if let onTopicDestination',s)
-        self.assertIn('else { eventRow(event) }',s)
+        self.assertIn('else { eventRow(event, page: page) }',s)
     def test_both_normal_hosts_inject_existing_guarded_destination(self):
         for file in ['QuestifyApp.swift','AccountView.swift']:
             s=self.read(file)

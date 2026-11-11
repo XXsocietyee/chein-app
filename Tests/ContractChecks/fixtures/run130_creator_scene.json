@@ -3,8 +3,8 @@
   "helper": "#if DEBUG\n/// Test-only window ownership. Framework lifecycle callbacks remain UIKit-driven.\n@MainActor final class WorkshopHostedSceneWindow {\n    let window: UIWindow\n    private weak var scene: UIWindowScene?\n    private weak var previousKeyWindow: UIWindow?\n\n    init() throws {\n        let activeScenes = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }\n            .filter { $0.activationState == .foregroundActive }\n        let selected = try XCTUnwrap(activeScenes.count == 1 ? activeScenes.first : nil,\n                                    \"Hosted Creator test requires exactly one foreground-active UIWindowScene\")\n        scene = selected\n        previousKeyWindow = selected.windows.first { $0.isKeyWindow }\n        window = UIWindow(windowScene: selected)\n        window.frame = selected.coordinateSpace.bounds\n    }\n\n    func retire() {\n        let ownedKeyWindow = window.isKeyWindow\n        window.isHidden = true\n        window.rootViewController = nil\n        window.windowScene = nil\n        guard ownedKeyWindow, let scene, scene.activationState == .foregroundActive,\n              UIApplication.shared.connectedScenes.contains(where: { $0 === scene }),\n              let previousKeyWindow, previousKeyWindow !== window,\n              previousKeyWindow.windowScene === scene, !previousKeyWindow.isHidden,\n              previousKeyWindow.windowLevel == .normal, previousKeyWindow.rootViewController != nil,\n              scene.windows.contains(where: { $0 === previousKeyWindow }) else { return }\n        previousKeyWindow.makeKey()\n    }\n}\n#endif\n\n",
   "files": {
     "WorkshopCreatorConsentNormalFlowTests.swift": {
-      "before_sha256": "2a66316e3494c3a61fba3c1f449710b1d799eadbaa603b8d071c80196363f17d",
-      "after_sha256": "d9b3c7d789ff279e43749fd603836224d44e8995f4388780d20481723f8bdf1b",
+      "before_sha256": "11cb6d485e53167c50be40330523c3b843152bdd6a993a315bd3329ea194c93e",
+      "after_sha256": "804426e74bc26affab84ec0e9efca8f557d05b332a5da6fe4bd5b15ab75629cb",
       "hunks": [
         {
           "before": "        let root=WorkshopHostedLifecycleRoot(),navigation=UINavigationController(rootViewController:root),window=UIWindow(frame:UIScreen.main.bounds)\n        window.rootViewController=navigation;window.makeKeyAndVisible();defer{window.isHidden=true}",
@@ -13,8 +13,8 @@
       ]
     },
     "WorkshopCreatorPendingNormalFlowTests.swift": {
-      "before_sha256": "b8d107b7aff8d549e8af159f8e41f068776f2e27f7d253a8ed5195ef9e2b8619",
-      "after_sha256": "904ca2c421aa0ab9cfb339fe8ffc29827bba59512f2660ec87e6be5ec3df8c4e",
+      "before_sha256": "d5d52d316d8ae4c068506c2dae88a813a5f9b7db506358f620fb29a5e5adbcea",
+      "after_sha256": "e753524a57497d96c2763bf3130fa89d6b5b6ffc4f9b130818ddaaae3a64ab13",
       "hunks": [
         {
           "before": "        let root = WorkshopHostedLifecycleRoot(), navigation = UINavigationController(rootViewController: root), window = UIWindow(frame: UIScreen.main.bounds); window.rootViewController = navigation; window.makeKeyAndVisible(); defer { window.isHidden = true }",

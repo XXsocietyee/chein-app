@@ -39,7 +39,7 @@ class W204P2MemberToolsChecks(unittest.TestCase):
 
     def test_invite_summary_keeps_existing_total_row(self):
         self.assertIn('ProfileInviteHistorySummaryLine(total: model.pagination.total)', self.invite_view)
-        self.assertIn('SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)', self.invite_view)
+        self.assertIn('LabeledContent("social.invites.total", value: ProfileInviteHistoryPageReady.countText(model.pagination.total))', self.invite_view)  # unknown total renders the em dash via countText
         self.assertIn('Text("profile.inviteHistoryP2.summary \\(total)")', self.invite_issue)
         self.assertEqual(self.zh('profile.inviteHistoryP2.summary %lld'), '累计邀请 %lld 人')
 
