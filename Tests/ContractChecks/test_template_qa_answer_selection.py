@@ -25,7 +25,7 @@ class QAAnswerSelectionChecks(unittest.TestCase):
             self.assertIn(token, self.form)
 
     def test_single_multi_and_first_correct_retention_use_existing_fields(self):
-        for token in ['case .choose(let index)', 'row["correct"] = .bool(offset == index)',
+        for token in ['case .choose(let index)', 'row["correct"] = .bool(row["id"]?.string == id)', 'case .chooseID(let id)',
                       'row["correct"] = .bool(!(row["correct"]?.bool ?? false))',
                       'case .setMultiple(let enabled)', 'fields["multi"] = .bool(enabled)',
                       'var kept = false', '&& !kept', 'if correct { kept = true }',
@@ -36,7 +36,7 @@ class QAAnswerSelectionChecks(unittest.TestCase):
 
     def test_exact_snapshot_and_shape_boundaries(self):
         for token in ['fingerprint == Self.snapshot(draft)', 'encoder.encode(value)', '.sortedKeys',
-                      '(rows?.count ?? 0) <= 4', 'booleanOrMissing', 'rows.indices.contains(index)',
+                      '(rows?.count ?? 0) <= 4', 'booleanOrMissing', 'options.indices.contains(index)',
                       'fields?["enabled"]?.bool == true', 'fields?["mode"]?.string == "PICK"']:
             self.assertIn(token, self.core)
 

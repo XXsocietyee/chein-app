@@ -65,7 +65,11 @@ class CityNodeContractChecks(unittest.TestCase):
         used = set()
         for source in APP:
             used |= set(re.findall(r'"(merchantCityNode\.[A-Za-z0-9_.]+)"', read(source)))
-        self.assertEqual(used, set(table))
+        # Four strings predate the template-handoff redesign (disabled controls + reread replace the unavailable notes);
+        # they stay in the table unrendered, and nothing may use a key that the table lacks.
+        orphans = {'merchantCityNode.create.mapUnavailable', 'merchantCityNode.create.templateHint',
+                   'merchantCityNode.create.templateUnavailable', 'merchantCityNode.poster.hintKeep'}
+        self.assertEqual(used, set(table) - orphans)
         for key, entry in table.items():
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'}, key)
         zh = {k: v['localizations']['zh-Hans']['stringUnit']['value'] for k, v in table.items()}
