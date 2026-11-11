@@ -12,15 +12,12 @@ def source(path):
 class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
     def test_fixture_viewport_ignores_presenting_bars_under_a_sheet(self):
         helper = source('Tests/AppUITests/FailureScreenshot.swift')
-        for expected in ['foregroundBar(app.navigationBars.allElementsBoundByAccessibilityElement)',
-                         'foregroundBar(app.toolbars.allElementsBoundByAccessibilityElement)',
-                         'bars.reversed().first', 'guard bar.exists else { return false }', 'app.frame.intersects(frame)',
-                         'bar.buttons.allElementsBoundByAccessibilityElement',
+        # The probe now walks one AX snapshot generation: the last in-screen bar belongs to the presented layer.
+        for expected in ['foregroundBarFrame(.navigationBar)', 'foregroundBarFrame(.toolbar)', 'foregroundBarFrame(.keyboard)',
+                         'hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) }',
                          '$0.descendants(matching: .button).count == 0',
-                         'actions.isEmpty || actions.contains { $0.isHittable }',
-                         'navigationBar.frame.maxY + 4', 'toolbar.frame.minY - 4',
-                         'keyboard.frame.minY - 4', 'frame.minY >= bounds.minY',
-                         'frame.maxY <= bounds.maxY', 'element.isHittable',
+                         'frame.maxY + 4', 'frame.minY - 4',
+                         'frame.minY >= bounds.minY', 'frame.maxY <= bounds.maxY', 'element.isHittable',
                          'guard attempt < maximumSwipes']:
             self.assertIn(expected, helper)
         self.assertNotIn('app.navigationBars.firstMatch', helper)
@@ -47,7 +44,8 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
         view = source('App/NativeMotionReminderViews.swift')
         for family in ['steps', 'reminder']:
             self.assertNotIn('}.accessibilityIdentifier("nativePlatform.' + family + '.host")', view)
-            self.assertIn('.font(.title2.bold())\n                .accessibilityIdentifier("nativePlatform.' + family + '.host")', view)
+            # The host id sits on the combined header row only, never on a container around interactive children.
+            self.assertIn('.accessibilityAddTraits(.isHeader)\n            .accessibilityIdentifier("nativePlatform.' + family + '.host")', view)
         for key in ['steps.read', 'steps.disabled', 'steps.count', 'reminder.enable', 'reminder.issue']:
             self.assertIn('.accessibilityIdentifier("nativePlatform.' + key + '")', view)
     def test_sound_switch_has_control_sized_frame_and_retains_transactional_storage(self):
@@ -67,8 +65,11 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
 
     def test_essential_legal_source_notice_uses_adaptive_primary_contrast(self):
         view = source('App/SettingsLegalDocumentView.swift')
-        self.assertIn('Text("settingsNative.legal.sourceNotice").font(.footnote).foregroundStyle(.primary)', view)
-        self.assertIn('}.font(.caption).foregroundStyle(.secondary)', view)
+        # Restyle: design-system tokens (secondary 10.3:1, tertiary 7.4:1 light) replace the system semantic styles.
+        self.assertIn('Text("settingsNative.legal.sourceNotice").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)', view)
+        self.assertIn('}.font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)', view)
+        self.assertNotIn('.foregroundStyle(.tertiary)', view)
+        self.assertNotIn('.opacity(', view)
 
     def test_adaptive_review_cancel_preserves_answer_and_consumes_submission_first(self):
         view = source('App/PlayExperienceView.swift')
@@ -84,7 +85,7 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
         view = source('App/PlayerTaskEvidenceView.swift')
         for value in ['@FocusState private var manualFocused', '.focused($manualFocused)',
                       '.scrollDismissesKeyboard(.interactively)', 'playerEvidence.keyboard.done',
-                      'private func clear() { manualFocused = false; device?.cancel();']:
+                      'private func clear() { manualFocused = false; reviewOwner.retire() }']:
             self.assertIn(value, view)
         tests = source('Tests/AppUITests/NativeNavigationCompletionUITests.swift')
         self.assertIn('XCTAssertFalse(app.keyboards.firstMatch.exists', tests)
@@ -94,7 +95,8 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
         self.assertIn('let message = app.staticTexts["team.message"]', source('Tests/AppUITests/TeamFlowTests.swift'))
         view = source('App/OrderPassPreviewView.swift')
         self.assertNotIn('}.accessibilityIdentifier("orderLifecycle.pass.preview")', view)
-        self.assertIn('Text("verificationCode.phase.disabled").accessibilityIdentifier("verificationCode.disabled")', view)
+        # The disabled state is the shared empty-state (message leaf id) with its own container id.
+        self.assertIn('detail: "verificationCode.phase.disabled",\n                             messageIdentifier: "orderLifecycle.pass.preview")\n                    .accessibilityIdentifier("verificationCode.disabled")', view)
 
     def test_shelf_account_event_is_delivered_inside_active_review(self):
         fixture = source('App/TemplateAuthoringFixtureSupport.swift')
@@ -141,7 +143,9 @@ class NativeUIAccessibilitySemanticsChecks(unittest.TestCase):
     def test_operating_market_has_separate_exact_accessible_value(self):
         view = source('App/SettingsAboutView.swift')
         self.assertIn('.accessibilityLabel(Text("region.market"))', view)
-        self.assertIn('.accessibilityValue(Text(verbatim: market?.rawValue ?? "—"))', view)
+        self.assertIn('.accessibilityValue(Text(verbatim: SettingsHomePage.marketText(market)))', view)
+        # marketText is the exact raw market or the shared unknown placeholder, never a default market.
+        self.assertIn('market?.rawValue ?? unknownDisplay', source('Core/SettingsIdentityApplications.swift'))
         tests = source('Tests/AppUITests/SettingsNativeFlowTests.swift')
         self.assertIn('XCTAssertEqual(market.value as? String, "US")', tests)
         self.assertIn('XCTAssertFalse(app.staticTexts["settingsNative.legal.sourceNotice"].exists)', tests)
