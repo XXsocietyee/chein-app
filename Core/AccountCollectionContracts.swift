@@ -548,7 +548,7 @@ private enum AccountCollectionFavoritesWire {
 
     /// A JSON integer, including 0. Numeric strings, booleans, and fractions are not integers.
     static func wholeNumber(_ value: Any?) -> Int? {
-        guard let value, !(value is NSNull), !(value is Bool), !(value is String) else { return nil }
+        guard let value, !(value is NSNull), !(value is String) else { return nil }  // no `is Bool`: Darwin bridges NSNumber 0/1 to Bool
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
         let double = number.doubleValue
         guard double.isFinite, double.rounded() == double else { return nil }

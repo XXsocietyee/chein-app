@@ -119,7 +119,8 @@ private final class MessageReferenceHTTPFixture: HTTPTransport {
         let transport = MessageReferenceHTTPFixture(), config = try APIConfiguration(baseURL: URL(string: "https://example.com/prod-api")!)
         transport.response = #"{"code":200,"data":{"found":true,"message":{"id":42,"conversationId":9,"senderId":7,"clientMessageId":"KEY","msgType":1,"status":0,"content":"same text"}}}"#.replacingOccurrences(of: "KEY", with: key)
         do { _ = try await NativeChannelTextService(configuration: config, transport: transport).receipt(intent(reference()), accountID: 7, token: "fixture-token"); XCTFail("Plain text receipt accepted missing original metadata") }
-        catch { XCTAssertEqual(error as? APIError, .notConfigured) }
+        // The original quoted receipt reads proof from the body; a plain message with no state or proof is unknown, never settled.
+        catch { XCTAssertEqual(error as? APIError, .malformedResponse) }
         XCTAssertEqual(transport.requests.count, 1)
         let body = String(data: try XCTUnwrap(transport.requests.first?.httpBody), encoding: .utf8)!
         XCTAssertTrue(body.contains("name=\"client_message_id\"\r\n\r\n\(key)\r\n"))
@@ -129,10 +130,21 @@ private final class MessageReferenceHTTPFixture: HTTPTransport {
     func testLegacyMultipartAllowlistDoesNotGainUnprovedReferenceFields() throws {
         let base = URL(string: "https://example.com/prod-api")!
         var fields = ["conversation_id":"9","client_message_id":key,"msg_type":"1","content":"same text"]
-        fields["reply_to_id"] = "8"
-        var request = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"), fields: fields, token: "fixture-token")
-        request.httpShouldHandleCookies = false
-        XCTAssertNil(NativeChannelTextRoute(request: request, baseURL: base))
+        func route(_ fields: [String: String]) throws -> NativeChannelTextRoute? {
+            var request = try AuthRequestBuilder.makeFormRequest(url: base.appendingPathComponent("api/im/send"), fields: fields, token: "fixture-token")
+            request.httpShouldHandleCookies = false
+            return NativeChannelTextRoute(request: request, baseURL: base)
+        }
+        // The only reference field the original writer proves is reply_to_id, admitted as exactly a quoted send.
+        var quoted = fields; quoted["reply_to_id"] = "8"
+        XCTAssertEqual(try route(quoted), .quotedSend(conversationID: 9, clientMessageID: key, replyToID: "8"))
+        var badReply = fields; badReply["reply_to_id"] = "08"
+        XCTAssertNil(try route(badReply))
+        // Any other reference field (channel, mapping revision, a lone member/role list) stays unproved and is refused.
+        for extra in ["channel_id", "mapping_revision", "reference_id", "mention_member_ids", "mention_role_ids", "mention_everyone"] {
+            var unproved = quoted; unproved[extra] = "9"
+            XCTAssertNil(try route(unproved), extra)
+        }
     }
     func testOrdinaryV1SendAndReceiptStillUseOriginalFourFieldWriterAndKey() async throws {
         let transport = MessageReferenceHTTPFixture(), config = try APIConfiguration(baseURL: URL(string: "https://example.com/prod-api")!)

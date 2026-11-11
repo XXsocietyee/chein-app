@@ -47,6 +47,14 @@ public enum SquareReportFixtures {
             guard let body = request.httpBody, case .object(var fields) = try JSONDecoder().decode(SquareGovernanceJSON.self, from: body) else { throw SquareReportFailure.invalid }
             fields["id"] = .integer(9901); fields["stage"] = .string("SUBMITTED"); fields["version"] = .integer(0)
             value = .object(fields); submitted = value
+        } else if path.hasSuffix("/community-trust/reports/mine") {
+            // Original request lookup: the exact requestId filter returns the one submitted row, otherwise none.
+            let asked = URLComponents(url: request.url ?? URL(fileURLWithPath: "/"), resolvingAgainstBaseURL: false)?
+                .queryItems?.first { $0.name == "requestId" }?.value
+            if case .object(var fields)? = submitted, case .string(let sent)? = fields["requestId"], sent == asked {
+                fields["stage"] = .string("INVESTIGATING"); fields["publicStage"] = .string("IN_REVIEW")
+                value = .array([.object(fields)])
+            } else { value = .array([]) }
         } else if path.hasSuffix("/community-trust/reports/9901"), case .object(var fields)? = submitted {
             fields["stage"] = .string("INVESTIGATING"); fields["publicStage"] = .string("IN_REVIEW"); value = .object(fields)
         } else { throw SquareReportFailure.invalid }
