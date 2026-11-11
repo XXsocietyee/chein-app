@@ -11,8 +11,8 @@
   },
   {
     "key": "roam.experience.historyUnreadable",
-    "en": "Your roam history couldn't be loaded.",
-    "zh-Hans": "漫游记录加载失败。"
+    "en": "Your roam history couldn't be loaded. It has not been replaced.",
+    "zh-Hans": "漫游记录加载失败，原记录未被覆盖"
   },
   {
     "key": "roam.experience.readFailed",

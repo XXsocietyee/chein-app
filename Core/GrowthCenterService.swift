@@ -13,6 +13,17 @@ public struct GrowthCenterService {
         self.configuration = configuration; self.transport = transport
         self.leaderboardContract = leaderboardContract
     }
+    /// False when the reviewed-route capability map does not carry the route this contract reads
+    /// (the anonymous leaderboard is `.missing`); the entry stays hidden, never an unservable read.
+    public var offersLeaderboard: Bool {
+        let path: String
+        switch leaderboardContract {
+        case .anonymous: path = RePoint04GrowthLeaderboard.unservedPath
+        default: path = RePoint04GrowthLeaderboard.productionPath
+        }
+        guard ChinaReviewedRouteCapability.mark(for: path) != .missing else { return false }
+        return ChinaReviewedRouteCapability.offersFeature(path, baseURL: configuration.baseURL)
+    }
     public func center(token: String) async throws -> GrowthCenterRecord { try await read("api/growth/center", token: token) }
     public func progress(token: String) async throws -> GrowthPlayProgress { try await read("api/play/growth", token: token) }
     public func completed(token: String) async throws -> [GrowthCompletedActivity] { try await read("api/play/my-completed", token: token) }

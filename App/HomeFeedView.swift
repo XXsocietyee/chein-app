@@ -326,6 +326,21 @@ struct HomeTodayCandidate: Equatable {
     var imageURL: URL?
 }
 
+extension HomeTodayCandidate {
+    /// Earliest not-yet-used ticket from the wallet read whose start is a real instant. A wall-clock start with no
+    /// verified source zone parses to nil and is skipped: an unknown time is never "today", never a guess.
+    static func nextTicket(from tickets: [TicketWalletTicket], now: Date) -> HomeTodayCandidate? {
+        tickets.compactMap { ticket -> HomeTodayCandidate? in
+            guard ticket.status == .ready || ticket.status == .pending, ticket.action == .detail,
+                  let start = HomeFeedDate.parse(ticket.startDate, sourceTimeZone: nil),
+                  start.timeIntervalSince(now) >= -3 * 3600, start.timeIntervalSince(now) <= 24 * 3600,
+                  let title = ticket.title?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty else { return nil }
+            let place = ticket.addressName?.trimmingCharacters(in: .whitespacesAndNewlines)
+            return HomeTodayCandidate(id: "ticket-\(ticket.id)", title: title, start: start, place: place?.isEmpty == false ? place : nil, imageURL: nil)
+        }.min { ($0.start ?? .distantFuture) < ($1.start ?? .distantFuture) }
+    }
+}
+
 /// Which single thing Explore's first fold shows (ux-strategy W1-6): ticket within 24 h > club event today > "start a roam".
 enum HomeTodayChoice: Equatable {
     case ticket(HomeTodayCandidate)
