@@ -1,4 +1,5 @@
 #if DEBUG
+import Foundation
 /// Synthetic records only: no real accounts, remote artwork, coordinates or credentials.
 public enum OfficialEventSyntheticFixtures {
     public static let eventJSON = #"""
