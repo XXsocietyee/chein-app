@@ -16,7 +16,7 @@ class ActivityTopicNavigationChecks(unittest.TestCase):
         self.assertIn('topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }', view)
         self.assertIn('if session.account == nil', view)
         self.assertIn('.id(session.contentDetailRevision)', view)
-        self.assertIn('.onDisappear { loads.cancel(); generation += 1; loading = false }', view)
+        self.assertIn('.onDisappear { loads.cancel(); generation += 1; if phase.isLoading { phase = .idle } }', view)
         topic = (ROOT/'App/PlatformConsumerSessionOwner.swift').read_text()
         for value in ['reader: topicReaderOverride ?? session.topicReader', 'if session.account == nil', '.id(session.contentDetailRevision)']:
             self.assertIn(value, topic)

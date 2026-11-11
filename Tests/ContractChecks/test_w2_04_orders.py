@@ -89,7 +89,7 @@ class W204OrderParityChecks(unittest.TestCase):
 
     def test_detail_uses_source_detail_copy_and_default_loading_elsewhere(self):
         self.assertIn('accessibilityPrefix: "profile.order.detail", issueCopy: .orderDetail, load:', self.app)
-        self.assertIn('ProgressView(LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading"))', self.screen)
+        self.assertIn('label: LocalizedStringKey(issueCopy?.loadingKey ?? "profile.loading")', self.screen)
         self.assertIn('loadingKey: "profile.orderParity.detail.loading"', self.core)
         self.assertIn('forbiddenTitleKey: "profile.orderParity.detail.unavailable"', self.core)
         catalog = json.loads(read('Resources/Localizable.xcstrings'))['strings']
