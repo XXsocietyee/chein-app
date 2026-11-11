@@ -39,12 +39,11 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertFalse(app.tabBars.buttons["Publish"].exists)
         XCTAssertFalse(app.tabBars.buttons["Activities"].exists)
         XCTAssertFalse(app.buttons["homeFeed.openCreate"].exists)
-        let more=app.buttons["homeFeed.moreMenu"]
-        XCTAssertTrue(more.waitForExistence(timeout:5)); more.tap()
-        let templates=app.buttons["homeFeed.openTemplates"]
-        XCTAssertTrue(templates.waitForExistence(timeout:5)); templates.tap()
-        XCTAssertTrue(app.navigationBars["Templates"].waitForExistence(timeout:5))
-        closeTopSheet()
+        // Unconfigured test build: Home renders its unavailable state without the toolbar, and the Templates entry is gated on
+        // `session.isConfigured`, so neither the More menu nor Templates is offered to a guest here.
+        XCTAssertTrue(app.staticTexts["homeFeed.configurationUnavailable"].firstMatch.waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["homeFeed.moreMenu"].exists)
+        XCTAssertFalse(app.buttons["homeFeed.openTemplates"].exists)
         let account=app.tabBars.buttons["Passport"]
         XCTAssertTrue(account.exists);account.tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
