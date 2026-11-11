@@ -171,63 +171,84 @@ private struct RoamFixtureStage: View {
     }
 }
 
-/// Fog engine stages 2 and 3 on a replayed walk over a synthetic grid (no location, no Core types, switches off).
+/// Fog engine stages 2 and 3 on the Shanghai People's Square walk (`FogFixtures`): a real `FogCellBitmap` rasterized by
+/// `FogMaskRasterizer` and drawn by `FogOverlayLayer` over the DEBUG street-grid backdrop, with soft edges, a dark-theme
+/// scrim, hatch on unconfirmed cells and `RevealChoreographer` wipes. The coordinates are literal fixtures, not a person's trail.
 private struct RoamFogEngineFixture: View {
-    let unknown: CYFogCoverageReading.UnknownReason?
-    private static let cols = 16, rows = 24
-    private static let path: [CYFogPoint] = [(7, 12), (8, 12), (8, 11), (9, 11), (10, 11), (10, 10), (11, 10), (11, 9), (12, 9), (12, 8), (13, 8), (13, 7)].map { CYFogPoint(x: $0.0, y: $0.1) }
-    private static let seedCells: Set<CYFogPoint> = Set((5...8).flatMap { x in (11...13).map { CYFogPoint(x: x, y: $0) } })
-    @State private var confirmed: Set<CYFogPoint> = RoamFogEngineFixture.seedCells
-    @State private var pending: Set<CYFogPoint> = [CYFogPoint(x: 4, y: 14), CYFogPoint(x: 5, y: 14), CYFogPoint(x: 4, y: 15)]
-    @State private var choreo = CYRevealChoreographer()
-    @State private var mask = CYFogMaskRasterizer.rasterize(confirmed: RoamFogEngineFixture.seedCells, pending: [], cols: 16, rows: 24, revision: 0)
-    @State private var revision = 0
+    let unknown: FogCoverageReading.UnknownReason?
+    private static let center = RoamCoordinate(latitude: 31.2375, longitude: 121.4783)!
+    /// The first two legs of the walk (the third is ~2 km away and off this window).
+    private static let walkCodes: [String] = FogFixtures.revealedCodes(FogFixtures.shanghaiPeoplesSquareWalk).filter {
+        (FogGeohash.bounds(of: $0)?.south ?? 0) > 31.225
+    }
+    private static let seedCount = 8
+    /// Ahead of the walker, not yet confirmed by the server.
+    private static let pendingCodes: [String] = [(31.2304, 121.4845), (31.2304, 121.4856), (31.2313, 121.4845)]
+        .compactMap { RoamCoordinate(latitude: $0.0, longitude: $0.1).flatMap { RoamExperienceMath.tileKey($0) } }
+        .filter { !RoamFogEngineFixture.walkCodes.contains($0) }
+
+    @State private var confirmed = (try? FogFixtures.bitmap(Array(RoamFogEngineFixture.walkCodes.prefix(RoamFogEngineFixture.seedCount)))) ?? FogCellBitmap()
+    @State private var pending = (try? FogFixtures.bitmap(RoamFogEngineFixture.pendingCodes)) ?? FogCellBitmap()
+    @State private var revision = 1
+    @State private var choreo: RevealChoreographer?
     @QuestifyReduceMotion private var reduceMotion
 
-    private var reading: CYFogCoverageReading {
+    private var reading: FogCoverageReading {
         if let unknown { return .unknown(unknown) }
-        return .known(confirmed: confirmed.count, pending: pending.subtracting(confirmed).count, areaCells: Self.cols * Self.rows / 2)
+        // Denominator: the fixture window's cells, a stand-in for the selected search-area grid.
+        return .known(confirmed: confirmed.count, pending: pending.count, areaCells: Self.walkCodes.count + Self.pendingCodes.count + 24)
     }
 
     var body: some View {
         ZStack(alignment: .top) {
-            CYMapPlaceholder(fog: false)
-            CYFogOverlayLayer(mask: mask, grid: (Self.cols, Self.rows), wipes: choreo.active)
-                .ignoresSafeArea()
-                .animation(reduceMotion ? .easeOut(duration: 0.2) : nil, value: mask.revision)
+            CYMapStreetGrid()
+            GeometryReader { geometry in
+                let viewport = FogWindowGeometry.viewport(center: Self.center, pointSize: geometry.size, groundMetersPerPoint: 5)
+                FogViewportLayer(fog: FogPresentation(confirmed: confirmed, pending: pending, revision: revision, coverage: reading, datum: .gcj02),
+                                 viewport: viewport, size: geometry.size, reveal: choreo, style: .darkFixture)
+            }.ignoresSafeArea()
             VStack {
                 HStack {
                     Text(verbatim: "Fog engine").font(.title2.weight(.heavy)).foregroundStyle(.white)
                     Spacer()
-                    CYFogCoverageBadge(reading: reading)
+                    CYFogCoverageBadge(reading: CYFogCoverageReading(reading))
                 }.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.xxl)
                 Spacer()
             }
         }
-        .onAppear { rebuild() }
-        .cyHaptic(.success, trigger: choreo.successSerial)
-        .cyHaptic(.impactLight, trigger: choreo.lightSerial)
+        .cyHaptic(.success, trigger: choreo?.hapticSuccessSerial ?? 0, where: { old, new in new > old })
+        .cyHaptic(.impactLight, trigger: choreo?.hapticLightSerial ?? 0, where: { old, new in new > old })
         .task {
-            var step = 0
+            let rm = reduceMotion
+            let driver = RevealChoreographer(reduceMotion: { rm }, lowPower: { FogPowerState.constrained })
+            choreo = driver
+            var step = Self.seedCount
             while !Task.isCancelled {
                 try? await Task.sleep(for: .seconds(1.2))
-                let next = Self.path[step % Self.path.count]
-                // The fix point is the cell centre, normalized.
-                let origin = CGPoint(x: (CGFloat(next.x) + 0.5) / CGFloat(Self.cols), y: (CGFloat(next.y) + 0.5) / CGFloat(Self.rows))
-                let baked = choreo.enqueue([next], origin: origin, now: Date().timeIntervalSinceReferenceDate, reduceMotion: reduceMotion)
-                if !baked.isEmpty { confirmed.formUnion(baked); rebuild() }
+                guard step < Self.walkCodes.count, let cell = Self.cell(Self.walkCodes[step]),
+                      let origin = RoamCoordinate(latitude: (cell.south + cell.north) / 2, longitude: (cell.west + cell.east) / 2) else {
+                    // End of the replay: start over from the seed.
+                    step = Self.seedCount
+                    confirmed = (try? FogFixtures.bitmap(Array(Self.walkCodes.prefix(Self.seedCount)))) ?? FogCellBitmap()
+                    revision += 1
+                    continue
+                }
+                bake(driver.enqueue(FogRevealEvent(cells: [cell], origin: origin, at: Date())))
                 try? await Task.sleep(for: .milliseconds(600))
-                let done = choreo.settle(at: Date().timeIntervalSinceReferenceDate)
-                if !done.isEmpty { confirmed.formUnion(done); rebuild() }
+                bake(driver.settle())
                 step += 1
-                if step % Self.path.count == 0 { confirmed = Self.seedCells; rebuild() }
             }
         }
     }
 
-    private func rebuild() {
+    private func bake(_ cells: [FogRenderCell]) {
+        guard !cells.isEmpty else { return }
+        for cell in cells { try? confirmed.insert(FogCell(grid: .legacyRoamTile, code: cell.code)) }
         revision += 1
-        mask = CYFogMaskRasterizer.rasterize(confirmed: confirmed, pending: pending, cols: Self.cols, rows: Self.rows, revision: revision)
+    }
+
+    private static func cell(_ code: String) -> FogRenderCell? {
+        FogGeohash.bounds(of: code).map { FogRenderCell(code: code, south: $0.south, west: $0.west, north: $0.north, east: $0.east, state: .confirmed, datum: .gcj02) }
     }
 }
 #endif

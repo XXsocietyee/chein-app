@@ -14,6 +14,10 @@ struct QuestifyDensityMap: View {
     var mapHeight: CGFloat = 300
     /// Full-bleed host (CYMapScaffold): the map takes all remaining height instead of `mapHeight`.
     var fillsHeight = false
+    /// Roam fog: when set, the scrim is stacked above the Map and rotation/pitch are disabled so screen space stays an
+    /// affine image of Web Mercator (spec §1b). nil leaves the map unchanged.
+    var fog: FogPresentation? = nil
+    var reveal: RevealChoreographer? = nil
     var pinIdentifierPrefix = "searchMap.pin."
     var pinHint: (String) -> Text = { _ in Text("") }
     @State private var position: MapCameraPosition
@@ -32,8 +36,9 @@ struct QuestifyDensityMap: View {
          interactionID: AnyHashable? = nil,
          pinIdentifierPrefix: String = "searchMap.pin.", pinHint: @escaping (String) -> Text = { _ in Text("") },
          onViewportChange: ((SearchMapViewport?) -> Void)? = nil,
-         onSelect: ((String) -> Void)? = nil, fillsHeight: Bool = false) {
-        self.fillsHeight = fillsHeight
+         onSelect: ((String) -> Void)? = nil, fillsHeight: Bool = false,
+         fog: FogPresentation? = nil, reveal: RevealChoreographer? = nil) {
+        self.fillsHeight = fillsHeight; self.fog = fog; self.reveal = reveal
         self.area = area; self.pins = pins; self.selectedID = selectedID
         self.polyline = polyline; self.onSelect = onSelect; self.onViewportChange = onViewportChange
         self.mapHeight = mapHeight; self.interactionID = interactionID
@@ -78,7 +83,8 @@ struct QuestifyDensityMap: View {
             GeometryReader { geometry in
                 MapReader { proxy in
                     let groups = groups(proxy: proxy, size: geometry.size, revision: cameraRevision)
-                    Map(position: $position) {
+                    ZStack {
+                    Map(position: $position, interactionModes: fog == nil ? .all : [.pan, .zoom]) {
                         ForEach(groups) { group in
                             if let anchor = group.members.first(where: { $0.id == selectedID }) ?? group.members.first {
                                 let renderedInput = focusInput
@@ -132,6 +138,10 @@ struct QuestifyDensityMap: View {
                             longitude: update.region.center.longitude,
                             latitudeSpan: update.region.span.latitudeDelta,
                             longitudeSpan: update.region.span.longitudeDelta, datum: .wgs84))
+                    }
+                    if let fog {
+                        FogMapOverlay(fog: fog, proxy: proxy, size: geometry.size, cameraRevision: cameraRevision, reveal: reveal)
+                    }
                     }
                 }
             }.frame(minHeight: mapHeight).frame(maxHeight: fillsHeight ? .infinity : mapHeight)

@@ -18,6 +18,9 @@ import Combine
     let offlineExample: Bool
     let localHistoryReader: (any RoamExperienceReading)?
     let albumMetadataReader: RoamAlbumMetadataReader?
+    /// Real map + fog behind the HUD. nil, or `PersonalFogFeature.liveRevealEnabled == false`, keeps the static backdrop.
+    private(set) var fogMap: RoamLiveFogMap? = nil
+    func withFogMap(_ value: RoamLiveFogMap?) -> Self { var copy = self; copy.fogMap = value; return copy }
     @StateObject private var browse: RoamPausedBrowsePresentation
     @StateObject private var model: RoamLiveViewModel
     @Environment(\.scenePhase) private var scenePhase
@@ -146,7 +149,13 @@ import Combine
         // Map ground behind the HUD (static fog backdrop; this screen has no map of its own).
         .scrollContentBackground(.hidden)
         .background {
-            ZStack { CYMapPlaceholder(fog: false); fogEdge.ignoresSafeArea() }
+            if PersonalFogFeature.liveRevealEnabled, let fogMap {
+                RoamFogMapView(area: fogMap.area, items: fogMap.items, fillsHeight: true, fog: fogMap.presentation,
+                               reveal: fogMap.reveal, onBaked: fogMap.onBaked, onSelect: { _ in })
+                    .ignoresSafeArea()
+            } else {
+                ZStack { CYMapPlaceholder(fog: false); fogEdge.ignoresSafeArea() }
+            }
         }
         // Mini-program pbar: one main round control (start / pause / continue) with 结束 beside it.
         .safeAreaInset(edge: .bottom) { actionBar }
