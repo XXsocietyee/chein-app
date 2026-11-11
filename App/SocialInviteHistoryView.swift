@@ -25,8 +25,8 @@ import SwiftUI
                 if let error = model.error { ProfileInviteHistoryIssueView(error: error) { model.start(reader, permit: permit, reset: model.pagination.members.isEmpty) } }
                 Section {
                     ProfileInviteHistorySummaryLine(total: model.pagination.total)
-                    SocialOptionalCount(title: "social.invites.total", count: model.pagination.total)
-                    if model.scan?.isComplete != true { CYStatusChip("social.invites.partial", tone: .warning, systemImage: "hourglass").accessibilityIdentifier("social.invites.partial") }
+                    LabeledContent("social.invites.total", value: ProfileInviteHistoryPageReady.countText(model.pagination.total))
+                    if ProfileInviteHistoryPageReady.rewardCoverage(model.scan) != .complete { CYStatusChip("social.invites.partial", tone: .warning, systemImage: "hourglass").accessibilityIdentifier("social.invites.partial") }
                 }
                 ProfileInviteRewardReviewSection(review: .init(scan: model.scan), isLoading: model.loading) {
                     model.start(reader, permit: permit, reset: true)

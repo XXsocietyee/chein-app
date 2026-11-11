@@ -1,0 +1,123 @@
+{
+  "page": "pages/agreement/index",
+  "screen": "App/SettingsLegalDocumentView.swift",
+  "strings": [
+    {
+      "key": "settingsNative.legal.title",
+      "en": "Legal documents",
+      "zh-Hans": "法律文档"
+    },
+    {
+      "key": "settingsNative.legal.user_agreement",
+      "en": "User service agreement",
+      "zh-Hans": "用户服务协议"
+    },
+    {
+      "key": "settingsNative.legal.privacy_policy",
+      "en": "Privacy policy",
+      "zh-Hans": "隐私政策"
+    },
+    {
+      "key": "settingsNative.legal.cancellation_notice",
+      "en": "Account cancellation notice",
+      "zh-Hans": "账号注销须知"
+    },
+    {
+      "key": "settingsNative.legal.sourceNotice",
+      "en": "This document is available in Chinese only.",
+      "zh-Hans": "本文档仅提供中文版本。"
+    },
+    {
+      "key": "settingsNative.legal.noAcceptance",
+      "en": "Reading this page does not record agreement or consent.",
+      "zh-Hans": "阅读此页不会记录协议接受或同意。"
+    },
+    {
+      "key": "settingsNative.legal.version",
+      "en": "Version",
+      "zh-Hans": "版本"
+    },
+    {
+      "key": "settingsNative.legal.effectiveDate",
+      "en": "Effective date",
+      "zh-Hans": "生效日期"
+    },
+    {
+      "key": "settingsNative.loading",
+      "en": "Loading…",
+      "zh-Hans": "正在读取…"
+    },
+    {
+      "key": "settingsNative.retry",
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    {
+      "key": "settingsNative.legal.loadFailed",
+      "en": "This document could not be loaded",
+      "zh-Hans": "文档读取失败"
+    },
+    {
+      "key": "settingsNative.legal.missingTitle",
+      "en": "Document not yet provided",
+      "zh-Hans": "文档待提供"
+    },
+    {
+      "key": "settingsNative.legal.pendingSourceText",
+      "en": "The app privacy policy is missing from the source. No substitute text is shown.",
+      "zh-Hans": "源应用尚未提供 App 隐私政策正文，此处不展示替代文本。"
+    },
+    {
+      "key": "settingsNative.legal.regionalTextNotProvided",
+      "en": "Legal documents for the US market have not been provided. Changing the display language does not change your market.",
+      "zh-Hans": "尚未提供美国市场适用的法律文档。更改界面语言不会更改运营市场。"
+    },
+    {
+      "key": "settingsNative.legal.missingMarket",
+      "en": "The app market could not be determined, so no regional legal document is selected.",
+      "zh-Hans": "无法确定应用运营市场，暂不选择地区法律文档。"
+    }
+  ],
+  "accessibilityIdentifiers": [
+    {
+      "id": "settingsNative.legal.loading",
+      "en": "Loading…",
+      "zh-Hans": "正在读取…"
+    },
+    {
+      "id": "settingsNative.legal.error",
+      "en": "This document could not be loaded",
+      "zh-Hans": "文档读取失败"
+    },
+    {
+      "id": "settingsNative.legal.retry",
+      "en": "Retry",
+      "zh-Hans": "重试"
+    },
+    {
+      "id": "settingsNative.legal.missing",
+      "en": "Document not yet provided",
+      "zh-Hans": "文档待提供"
+    },
+    {
+      "id": "settingsNative.legal.sourceNotice",
+      "en": "This document is available in Chinese only.",
+      "zh-Hans": "本文档仅提供中文版本。"
+    },
+    {
+      "id": "settingsNative.legal.version",
+      "en": "Version",
+      "zh-Hans": "版本"
+    },
+    {
+      "id": "settingsNative.legal.section.{index}",
+      "en": "Document section",
+      "zh-Hans": "文档章节"
+    },
+    {
+      "id": "settingsNative.legal.unknown",
+      "en": "—",
+      "zh-Hans": "—"
+    }
+  ]
+}

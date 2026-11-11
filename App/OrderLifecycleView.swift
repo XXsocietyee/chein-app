@@ -55,6 +55,11 @@ import SwiftUI
                         Label("orderLifecycle.pass.title", systemImage: "ticket")
                     }.accessibilityIdentifier("orderLifecycle.pass.open")
                 }
+            } else if coordinator.issue == nil {
+                // No accepted detail and no issue: unknown, never an empty order or a zero amount.
+                Text(verbatim: OrderInfoPageModel.unknownMark).font(CYTypography.sectionTitle).foregroundStyle(CYColor.textTertiary)
+                    .accessibilityLabel(Text("orderLifecycle.amount"))
+                    .accessibilityIdentifier(OrderInfoPageModel.unknownIdentifier)
             }
             Section { Text("orderLifecycle.production.caution").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
         }
@@ -174,7 +179,8 @@ import SwiftUI
                         VStack(alignment: .leading, spacing: CYSpacing.xxs) {
                             Text(LocalizedStringKey(row.labelKey)).font(CYTypography.bodyCompact)
                                 .foregroundStyle(row.done ? CYColor.textPrimary : CYColor.textSecondary)
-                            if let time = row.time { Text(verbatim: time).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
+                            // A completed step with no server time is an em dash (OrderInfoPageModel.snapshot rule).
+                            if row.done || row.time != nil { Text(verbatim: row.time ?? OrderInfoPageModel.unknownMark).font(CYTypography.caption).foregroundStyle(CYColor.textSecondary).monospacedDigit() }
                         }
                         .padding(.bottom, index < rows.count - 1 ? CYSpacing.lg : 0)
                         .fixedSize(horizontal: false, vertical: true)

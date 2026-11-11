@@ -124,20 +124,20 @@ import SwiftUI
     private func postActions(_ post: SquarePost, actions: SocialActionCoordinator) -> some View {
         HStack(spacing: 28) {
             Button { editor = .init(purpose: .like, target: .post(post.id), text: "") } label: {
-                Label { Text(max(0, post.likeCount), format: .number) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
+                Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
             }
             .tint(post.isLiked == 1 ? .red : .primary)
-            .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))")).accessibilityAddTraits(post.isLiked == 1 ? .isSelected : []).accessibilityIdentifier("square.detail.like")
+            .accessibilityLabel(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark)).accessibilityAddTraits(post.isLiked == 1 ? .isSelected : []).accessibilityIdentifier("square.detail.like")
             if post.viewerCanComment {
                 Button { editor = .init(purpose: .comment, target: .post(post.id), text: "") } label: {
-                    Label { Text(max(0, post.commentCount), format: .number) } icon: { Image(systemName: "bubble.right") }
+                    Label { Text(verbatim: SquareCountDisplay.text(post.commentCount)) } icon: { Image(systemName: "bubble.right") }
                 }
                 .tint(.primary)
-                .accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))")).accessibilityIdentifier("square.detail.comment")
+                .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark)).accessibilityIdentifier("square.detail.comment")
             } else {
-                Label { Text(max(0, post.commentCount), format: .number) } icon: { Image(systemName: "bubble.right") }
+                Label { Text(verbatim: SquareCountDisplay.text(post.commentCount)) } icon: { Image(systemName: "bubble.right") }
                     .foregroundStyle(.secondary)
-                    .accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))"))
+                    .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
             }
             if post.generation == .communityV1 {
                 Button { editor = .init(purpose: .bookmark, target: .post(post.id), text: "") } label: { Image(systemName: "star") }
@@ -204,9 +204,9 @@ import SwiftUI
                 if let contents = comment.contents { Text(verbatim: contents).textSelection(.enabled) }
                 NativeMediaGalleryEntry(sources: comment.images, scope: reader.scope, titleKey: "media.destination.squareImages")
                 HStack(spacing: 20) {
-                    Label { Text(max(0, comment.likeCount), format: .number) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
+                    Label { Text(verbatim: SquareCountDisplay.text(comment.likeCount)) } icon: { Image(systemName: comment.isLiked == 0 ? "heart" : "heart.fill") }
                         .font(.caption).foregroundStyle(.secondary)
-                        .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, comment.likeCount))"))
+                        .accessibilityLabel(comment.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
                     Spacer(minLength: 0)
                     if let actions, actions.identity.accountID != nil {
                         Menu {

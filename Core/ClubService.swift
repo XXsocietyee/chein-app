@@ -14,6 +14,16 @@ public struct ClubService {
         let data = try await post("api/club/home", json: [:], token: token)
         return try decode(ClubValueEnvelope<ClubHomeWirePayload>.self, data).data.home
     }
+    /// The unmodified `api/club/home` response body (already checked for HTTP 2xx and envelope code 200).
+    /// `ClubTabPageModel.project(homeBody:)` reads counts from it so a missing count is not a literal 0.
+    public func homeBody(token: String? = nil) async throws -> Data {
+        try await post("api/club/home", json: [:], token: token)
+    }
+    /// The unmodified `api/club/detail` response body, for `ClubEditPage.make(read:)`.
+    public func detailBody(id: Int, token: String? = nil) async throws -> Data {
+        guard id > 0 else { throw APIError.invalidRequest }
+        return try await post("api/club/detail", json: ["id": id], token: token)
+    }
     public func owned(token: String) async throws -> [ClubRecord] {
         let data = try await post("api/club/my", json: [:], token: token)
         return try decode(ClubValueEnvelope<ClubOwnedPayload>.self, data).data.owned

@@ -19,7 +19,7 @@ public struct AccountCollectionService {
         let data = try await post("api/creativesquare/list", fields: ["favorite_only": "1", "pageNum": String(pageNumber), "pageSize": String(pageSize)], token: token)
         let envelope = try decode(FavoritePostsEnvelope.self, data)
         guard envelope.data.rows.count <= pageSize else { throw APIError.malformedResponse }
-        return AccountCollectionPostPage(rows: envelope.data.rows.map { $0.post.qualified(as: .legacySquare) }, pageNumber: pageNumber, pageSize: pageSize)
+        return AccountCollectionPostPage(rows: envelope.data.rows.map { $0.post.qualified(as: .legacySquare) }, pageNumber: pageNumber, pageSize: pageSize, rawPayload: data)
     }
     public func coupons(keyword: String? = nil, token: String) async throws -> [AccountCollectionCoupon] {
         var fields: [String: String] = [:]

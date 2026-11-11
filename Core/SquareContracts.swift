@@ -59,6 +59,19 @@ public enum SquareReadFailure: Error, Equatable {
     case server(code: Int, message: String?)
 }
 
+/// A Square like or comment count is either a server number (including a literal 0) or unknown.
+/// Unknown is an em dash on screen and nil in the model; a negative number is unknown, not 0.
+public enum SquareCountDisplay {
+    public static let unknownMark = "\u{2014}"
+    public static func known(_ raw: Int?) -> Int? {
+        guard let raw, raw >= 0 else { return nil }
+        return raw
+    }
+    public static func text(_ count: Int?) -> String {
+        known(count).map(String.init) ?? unknownMark
+    }
+}
+
 // Only source fields used by this read module are retained. Coordinates, moderation internals,
 // credentials and mutation payloads are deliberately absent from the display model.
 public struct SquarePost: Decodable, Equatable, Identifiable {
@@ -73,9 +86,10 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
     public let videos: [SquarePostVideo]
     public let address: String?
     public let cityCode: String?
-    public let likeCount: Int
+    /// Nil means the server did not send a usable count. Unknown is never shown as 0; use `SquareCountDisplay`.
+    public let likeCount: Int?
     public let dislikeCount: Int
-    public let commentCount: Int
+    public let commentCount: Int?
     public let isLiked: Int
     public let nickname: String?
     public let avatar: String?
@@ -121,9 +135,9 @@ public struct SquarePost: Decodable, Equatable, Identifiable {
         videos = SquarePostVideo.rows(media)
         address = post.first("poiName", "address").string
         cityCode = post.first("cityCode", "city_code").string
-        likeCount = post.first("likeCount", "likeNum").number ?? 0
+        likeCount = SquareCountDisplay.known(post.first("likeCount", "likeNum").number)
         dislikeCount = post["nolikeNum"].number ?? 0
-        commentCount = post["commentCount"].number ?? 0
+        commentCount = SquareCountDisplay.known(post["commentCount"].number)
         isLiked = post["viewerLiked"].truthy ? 1 : (post["isLiked"].number ?? 0)
         nickname = post.first("authorNickname", "memberNickname").string
         avatar = post.first("authorAvatar", "memberAvatar").string
@@ -172,7 +186,8 @@ public struct SquareComment: Decodable, Equatable, Identifiable {
     public let contents: String?
     public let images: [String]
     public let rating: Int
-    public let likeCount: Int
+    /// Nil means the server did not send a usable count. Unknown is never shown as 0.
+    public let likeCount: Int?
     public let isLiked: Int
     public let nickname: String?
     public let avatar: String?
@@ -193,7 +208,7 @@ public struct SquareComment: Decodable, Equatable, Identifiable {
         contents = value.first("body", "contents").string
         images = value["imgArr"].pictures
         rating = value["rating"].number ?? 0
-        likeCount = value.first("like_count", "likeCount").number ?? 0
+        likeCount = SquareCountDisplay.known(value.first("like_count", "likeCount").number)
         isLiked = value.first("viewer_liked", "viewerLiked").truthy ? 1 : (value["isLiked"].number ?? 0)
         nickname = value.first("author_nickname", "authorNickname", "memberNickname").string
         avatar = value.first("author_avatar", "authorAvatar", "memberAvatar").string

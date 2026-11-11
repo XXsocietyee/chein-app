@@ -444,6 +444,11 @@ enum WalletPayoutCapability { static let isOn = false }
                         .frame(maxWidth: .infinity).accessibilityIdentifier("wallet.ledger.endOfList")
                 }
             }
+            if points && !model.pager.hasLoadedPage && !model.pager.isLoading && !model.pager.failed && reader.isConfigured && reader.scope != nil {
+                // No page accepted yet and no failure: unknown, never an empty ledger.
+                Text(verbatim: PointsHistoryPageModel.unknownMark).foregroundStyle(.secondary)
+                    .accessibilityIdentifier(PointsHistoryPageModel.unknownIdentifier)
+            }
             if model.pager.failed || !reader.isConfigured || reader.scope == nil {
                 WalletIssueView(reader: reader, requiresLogin: model.pager.requiresLogin, unavailable: model.pager.unavailable) { Task { await model.load(reader, kind: kind) } }
             }
@@ -564,7 +569,7 @@ enum WalletPayoutCapability { static let isOn = false }
                 if income { Text(LocalizedStringKey(row.incomeEventKey)).font(.subheadline).foregroundStyle(.secondary) }
                 if income, let day = WalletIncomeDay.make(row.createTime) { WalletIncomeDayText(day: day).font(.caption).foregroundStyle(.secondary) }
                 else if let date = row.createTime { Text(verbatim: date).font(.caption).foregroundStyle(.secondary) }
-                if points, !income, let after = row.afterPoints { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + format.points(after)).font(.caption).foregroundStyle(.secondary) }
+                if points, !income { Text(verbatim: appLocalized("wallet.points.balanceAfter", locale: locale) + " " + (row.afterPoints.map { format.points($0) } ?? PointsHistoryPageModel.unknownMark)).font(.caption).foregroundStyle(.secondary) }
             }
             Spacer(minLength: 8)
             VStack(alignment: stacked ? .leading : .trailing, spacing: 4) {
