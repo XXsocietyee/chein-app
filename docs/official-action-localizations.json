@@ -918,13 +918,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No verified action is currently available"
+            "value": "Nothing to do right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前没有可核实的操作"
+            "value": "暂时没有需要你操作的事项"
           }
         }
       }
