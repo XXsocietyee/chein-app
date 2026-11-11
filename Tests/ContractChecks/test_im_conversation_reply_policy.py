@@ -13,7 +13,7 @@ class IMConversationReplyPolicyContracts(unittest.TestCase):
     def test_policy_blocks_only_confirmed_system_kind_and_keeps_read_mute(self):
         source = self.read('Core/IMConversationReplyPolicy.swift')
         self.assertIn('conversation?.kind == .system', source)
-        self.assertIn('case .read, .mute: return true', source)
+        self.assertIn('case .read, .readCursor, .mute: return true', source)
         self.assertIn('case .send: return permitsReply', source)
         self.assertIn('mutation.conversationID == conversationID', source)
         self.assertNotIn('HTTP', source)
@@ -35,13 +35,15 @@ class IMConversationReplyPolicyContracts(unittest.TestCase):
         self.assertLess(terminal.index('replyAuthority.invalidate()'), terminal.index('history ='))
 
     def test_controls_keep_read_mute_outside_reply_only_sections(self):
-        source = self.read('App/IMExpandedViews.swift').split('private struct IMMutationSummary:', 1)[0]
-        self.assertLess(source.index('Section("im.full.conversation")'), source.index('if permitsReply {'))
-        for key in ['im.full.image', 'im.full.route', 'im.full.location']:
-            self.assertGreater(source.index('Section("' + key + '")'), source.index('if permitsReply {'))
-        self.assertIn('if permits(mutation) { Button("im.full.retrySame") { submit(.retry) } }', source)
+        source = self.read('App/IMExpandedViews.swift').split('struct IMMutationSummary:', 1)[0]
+        gate = source.index('if permitsReply && writerReady {')
+        self.assertLess(source.index('Label("d7.chatInfo.markRead"'), gate)
+        self.assertLess(source.index('Label("d7.chatInfo.mute"'), gate)
+        for key in ['d7.chatInfo.sendPhoto', 'd7.chatInfo.route', 'd7.chatInfo.location']:
+            self.assertGreater(source.index('"' + key + '"'), gate)
+        self.assertIn('if permits(mutation) { Button("d7.chatInfo.tryAgain") { submit(.retry) } }', source)
         self.assertIn('model.prepare(operation, permits: permits)', source)
-        self.assertIn('Task { await model.perform(token, permits: permits) }', source)
+        self.assertIn('await model.perform(token, permits: permits,', source)
 
     def test_text_tokens_are_created_before_tasks_and_consumed_before_live_gate(self):
         source = self.read('App/MessageActionComposer.swift')
@@ -70,12 +72,14 @@ class IMConversationReplyPolicyContracts(unittest.TestCase):
         self.assertIn('owner.visibleState == token.state', source)
         self.assertIn('model.apply(url, canReply: canReply(), consume: onReviewImage)', source)
         self.assertIn('Task { await model.perform(token, canReply: { identity == model.owner.scope.identity && canReply() }) }', source)
-        for forbidden in ['requestWhenInUseAuthorization', 'CLLocationManager', 'import MapKit']:
+        # MapKit is only used by the first-party place picker, which is documented as never reading device location.
+        self.assertIn('/// First-party map selection, not a business POI/navigation source and never device location.', source)
+        for forbidden in ['requestWhenInUseAuthorization', 'CLLocationManager']:
             self.assertNotIn(forbidden, source)
 
     def test_bilingual_fragment_covers_new_text(self):
         fragment = json.loads(self.read('Resources/IMConversationReplyPolicyLocalizations.fragment.json'))['strings']
-        source = self.read('App/MessagingHistoryView.swift') + self.read('App/IMExpandedViews.swift')
+        source = self.read('App/MessagingHistoryView.swift') + self.read('App/IMExpandedViews.swift') + self.read('App/NativeChannelMessageConversationHost.swift')
         keys = set(re.findall(r'(?:Text|Label)\("(im\.reply\.[A-Za-z]+)"', source))
         self.assertEqual(keys, set(fragment))
         for value in fragment.values():
