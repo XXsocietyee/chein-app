@@ -23,10 +23,16 @@ class WorkshopOwnedNormalAccountContractTests(unittest.TestCase):
         lines = self.read('App/AppSession.swift').splitlines()
         for i, line in enumerate(lines):
             if 'gate.invalidate()' in line or 'let operation=gate.begin(' in line:
-                self.assertIn('invalidateWorkshopReadBindings()', lines[i-1])
+                # The preview-lifetime retirement line may sit between the invalidation and the gate change;
+                # the invalidation must still be the immediately preceding statement block.
+                previous = lines[i-1]
+                if 'ownMediaAudioPreviewLifetime.retireAll()' in previous:
+                    self.assertIn('invalidateWorkshopReadBindings()', lines[i-2])
+                else:
+                    self.assertIn('invalidateWorkshopReadBindings()', previous)
             if 'if gate.cancelLogin()' in line:
-                self.assertIn('gate.activeKind == .login { invalidateWorkshopReadBindings() }', lines[i-1])
-        self.assertIn('willSet { if account?.id != newValue?.id', '\n'.join(lines))
+                self.assertIn('gate.activeKind == .login { invalidateInvoiceLaunch(); invalidateWorkshopReadBindings() }', lines[i-1])
+        self.assertIn('willSet { noteAccountPersistence(newValue); if account?.id != newValue?.id', '\n'.join(lines))
         self.assertIn('willSet { if token.map', '\n'.join(lines))
     def test_root_lifetime_is_separate_from_list_close(self):
         text = self.read('App/QuestifyApp.swift')

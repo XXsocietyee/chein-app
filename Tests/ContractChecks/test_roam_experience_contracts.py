@@ -19,9 +19,15 @@ class RoamExperienceSourceTests(unittest.TestCase):
 
     def test_new_roam_surface_has_no_device_permission_or_share_calls(self):
         paths = list((ROOT/'App').glob('Roam*Views.swift')) + list((ROOT/'App').glob('RoamExperience*.swift'))
+        # RoamPassportToolsViews is a separate module whose recap card is shared by the user through ShareLink of a
+        # locally rendered image; every other surface here keeps the no-share rule, and all keep the no-permission rule.
+        shared = [p for p in paths if p.name == 'RoamPassportToolsViews.swift']
         text = '\n'.join(p.read_text() for p in paths)
-        for forbidden in ['CLLocationManager(', 'requestWhenInUseAuthorization(', 'PhotosPicker(', 'UIImagePickerController(', 'UIActivityViewController(', 'ShareLink(']:
+        for forbidden in ['CLLocationManager(', 'requestWhenInUseAuthorization(', 'PhotosPicker(', 'UIImagePickerController(', 'UIActivityViewController(']:
             self.assertNotIn(forbidden, text)
+        for p in paths:
+            if p not in shared: self.assertNotIn('ShareLink(', p.read_text(), p.name)
+        for p in shared: self.assertEqual(p.read_text().count('ShareLink(item: renderedImage(), preview:'), p.read_text().count('ShareLink('), p.name)
         self.assertNotIn('api/verify', text)
 
     def test_capabilities_stay_hard_off(self):

@@ -53,16 +53,16 @@
   "merchant.insightProfile.unknown": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "承接资料的配置状态暂未确认。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The cooperation profile’s configuration status is unavailable."
+          "value": "Profile status couldn't be loaded"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "承接资料状态暂未取回"
         }
       }
     }

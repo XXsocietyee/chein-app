@@ -97,10 +97,11 @@ class MerchantTemplateStoryTimelineChecks(unittest.TestCase):
         ui = read('Tests/AppUITests/MerchantTemplateStoryTimelineFlowTests.swift')
         self.assertEqual(len(re.findall(r'func test\w+\(', ui)), 3)
         for token in ['merchant.storyTimeline.up.2', 'merchant.storyTimeline.review.clear', 'merchant.storyTimeline.review.removed.1',
-                      'app.alerts.buttons["merchant.operations.keepEditing"].tap()', 'app.alerts.buttons["merchant.operations.discardReload"].tap()', 'XCTAssertEqual(first.value as? String, "Second moment")']:
+                      'keepEditing.tap()', 'discardReload.tap()', 'XCTAssertEqual(first.value as? String, "Second moment")']:
             self.assertIn(token, ui)
-        self.assertIn('app.alerts.buttons["merchant.operations.keepEditing"].waitForExistence(timeout: 5)', ui)
-        self.assertIn('app.alerts.buttons["merchant.operations.discardReload"].waitForExistence(timeout: 5)', ui)
+        # Alert buttons are resolved through the shared nativeAlertAction helper, still with a bounded wait.
+        self.assertIn('let keepEditing = nativeAlertAction("merchant.operations.keepEditing", in: app); XCTAssertTrue(keepEditing.waitForExistence(timeout: 5))', ui)
+        self.assertIn('let discardReload = nativeAlertAction("merchant.operations.discardReload", in: app); XCTAssertTrue(discardReload.waitForExistence(timeout: 5))', ui)
 
 
 if __name__ == '__main__': unittest.main()

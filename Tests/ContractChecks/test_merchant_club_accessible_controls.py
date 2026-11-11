@@ -4,9 +4,9 @@ ROOT=Path(__file__).resolve().parents[2]
 class MerchantClubAccessibleControls(unittest.TestCase):
     def test_unavailable_title_does_not_override_retry_identifier(self):
         s=(ROOT/'App/ClubHomeView.swift').read_text()
-        self.assertIn('Label("club.locality.unavailable", systemImage: "exclamationmark.triangle")\n                        .accessibilityIdentifier("club.home.locality.unavailable")',s)
+        # The shared empty state carries the message and the retry action under separate identifiers.
+        self.assertIn('"club.locality.unavailable",\n                    messageIdentifier: "club.home.locality.unavailable",\n                    actionTitle: "action.retry",\n                    actionIdentifier: "club.home.locality.retry"',s)
         self.assertNotIn('}.accessibilityIdentifier("club.home.locality.unavailable")',s)
-        self.assertIn('.accessibilityIdentifier("club.home.locality.retry")',s)
     def test_header_controls_use_exact_unique_visible_enabled_native_query(self):
         s=(ROOT/'Tests/AppUITests/MerchantClubDiscoveryFlowTests.swift').read_text()
         for ident in ['toggleLocalityRole','switchMerchant','locality.release','locality.fail']:

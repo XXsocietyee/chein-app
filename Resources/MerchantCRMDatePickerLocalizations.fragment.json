@@ -2,16 +2,16 @@
   "merchant.crmDate.choose": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "选择日期"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Choose dates"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "选择日期"
         }
       }
     }
@@ -19,16 +19,16 @@
   "merchant.crmDate.localOnly": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "这里只修改本地筛选日期，应用筛选或保存分群后才使用。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "These changes update only the local filter. They are used when you apply the filter or save the segment."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这里只修改本地筛选日期，应用筛选或保存分群后才使用。"
         }
       }
     }
@@ -36,16 +36,16 @@
   "merchant.crmDate.rangeHint": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "可只选一端，也可选择同一天。起止日期相隔不能超过366天。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Either bound may be empty, and both may be the same date. The end date may be at most 366 days after the start."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "可只选一端，也可选择同一天。起止日期相隔不能超过366天。"
         }
       }
     }
@@ -53,16 +53,16 @@
   "merchant.crmDate.invalid": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "请检查日期：结束不能早于开始，两端相隔不能超过366天。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Check the dates: the end must be on or after the start and no more than 366 days later."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "请检查日期：结束不能早于开始，两端相隔不能超过366天。"
         }
       }
     }
@@ -70,16 +70,16 @@
   "merchant.crmDate.stale": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "账号、门店权限或原筛选已变化，请重新打开日期选择。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "The account, store authorization or original filter changed. Reopen date selection."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "账号、门店权限或原筛选已变化，请重新打开日期选择。"
         }
       }
     }
@@ -87,16 +87,16 @@
   "merchant.crmDate.apply": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "应用到本地筛选"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Apply to local filter"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "应用到本地筛选"
         }
       }
     }
@@ -104,16 +104,16 @@
   "merchant.crmDate.enabled": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "使用此日期"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Use this date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "使用此日期"
         }
       }
     }
@@ -121,16 +121,16 @@
   "merchant.crmDate.unrecognized": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "原日期格式暂不识别；重新选择或明确清空后才能应用。取消会保留原文。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "This original date format is unrecognized. Select a replacement or explicitly clear it before applying. Cancel preserves the original text."
+          "value": "This date couldn't be read. Pick a new one or clear it."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "这个日期无法识别，请重新选择或清空。"
         }
       }
     }
@@ -138,16 +138,16 @@
   "merchant.crmDate.replace": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "重新选择日期"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Select a replacement date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "重新选择日期"
         }
       }
     }
@@ -155,16 +155,16 @@
   "merchant.crmDate.clear": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "清空此日期"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Clear this date"
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "清空此日期"
         }
       }
     }

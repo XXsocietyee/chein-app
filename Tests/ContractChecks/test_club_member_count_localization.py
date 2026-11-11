@@ -24,8 +24,10 @@ class ClubMemberCountLocalizationContractTests(unittest.TestCase):
         row = self.source.split('struct ClubRow: View {', 1)[1].split('struct ClubOptionalRow:', 1)[0]
         self.assertIn('@Environment(\\.locale) private var locale', row)
         self.assertIn('Text(verbatim: ClubMemberCountLocalization.text(club.memberCount, locale: locale))', row)
-        self.assertIn('if club.isOwner { Text("club.role.creator") }', row)
-        self.assertIn('else if club.isJoined { Text("club.membership.joined") }', row)
+        # The role/membership label is now the shared status pill (same keys, same precedence).
+        self.assertIn('statusPill', row)
+        pill = self.source.split('@ViewBuilder private var statusPill: some View {', 1)[1]
+        self.assertIn('club.isOwner ? "club.role.creator" : club.isJoined ? "club.membership.joined"', pill)
         self.assertNotIn('Text("club.memberCount \\(club.memberCount)")', row)
 
     def test_formatter_has_only_exact_one_branch_and_never_clamps_source(self):

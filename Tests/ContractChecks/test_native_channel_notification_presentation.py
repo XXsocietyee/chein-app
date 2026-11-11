@@ -17,7 +17,9 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
             self.assertFalse(re.search(r'"[^"\n]*[\u4e00-\u9fff][^"\n]*"',source),path)
             self.assertNotIn('.authorization.label',source,path)
             self.assertNotRegex(source,r'\.id\([^)]*locale|\.task\(id:[^)]*locale')
-        self.assertIn('.environment(\\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)',self.read('App/QuestifyApp.swift'))
+        # The selected language is applied once at the app root by the shared language environment modifier.
+        self.assertIn('.modifier(AppLanguageEnvironment(stored: storedLanguage))',self.read('App/QuestifyApp.swift'))
+        self.assertIn('content.environment(\\.locale, Self.apply(stored: stored).locale)',self.read('App/LanguageSwitcher.swift'))
     def test_existing_catalog_has_complete_bilingual_meanings_and_formats(self):
         rows=self.catalog()
         for key in ['state.outcomeUnknown','state.pending','state.applied','state.appliedRedacted','state.refreshFailed',
@@ -52,17 +54,19 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
         self.assertNotIn('error.localizedDescription',source);self.assertNotIn('return failure.serverDetails',source)
     def test_recovery_controls_keep_same_original_request_operations(self):
         view=self.read(VIEWS[0])
-        for token in ['if let key = model.pendingRequestID','value: key','await model.checkReceipt()',
-                      'await model.retryOriginal()','.disabled(!model.canCheckReceipt)',
-                      'let intent = draft; Task { await model.save(intent, expectedVersion: preference.version) }',
-                      'Task { await model.mute(minutes: minutes) }']:
+        for token in ['if model.pendingRequestID != nil','run { await $0.checkReceipt() }',
+                      'run { await $0.retryOriginal() }','.disabled(!model.canCheckReceipt)',
+                      'let intent = draft, version = preference.version',
+                      'perform { await $0.save(intent, expectedVersion: version) }',
+                      'perform { await $0.mute(minutes: minutes) }',
+                      'guard owns(expected), screenTask == nil, model.isCurrent else { return }']:
             self.assertIn(token,view)
-        self.assertIn('NativeChannelNotificationPresentation.failureDetail(model.lastFailure, state: model.state, locale: locale)',view)
-        self.assertIn('Text(n(localIssue))',view);self.assertIn('localIssue = "editor.invalid"',view)
+        self.assertIn('NativeChannelNotificationCopy.failureDetail(model.lastFailure, state: model.state, locale: locale)',view)
+        self.assertIn('Text(verbatim: c(localIssue))',view);self.assertIn('localIssue = "editor.invalid"',view)
     def test_permissions_remain_user_actions_and_unknown_is_not_authorized(self):
         view=self.read(VIEWS[2]);source=self.read(PRESENTATION)
-        for token in ['if snapshot.authorization == .notDetermined','await model.requestFromUserAction()',
-                      'await model.openSettingsFromUserAction()', '.disabled(model.busy)']:
+        for token in ['if snapshot.authorization == .notDetermined','await model.requestFromUserAction(expectedRevision: revision)',
+                      'await model.openSettingsFromUserAction(expectedRevision: revision)', '.disabled(model.busy)']:
             self.assertIn(token,view)
         for value in ['notDetermined','denied','authorized','provisional','ephemeral','unknown']:
             self.assertIn(f'case .{value}: key = "{value}"',source)
@@ -71,7 +75,9 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
         self.assertIn('NativeChannelNotificationPresentation.permissionIssue(issue, locale: locale)',view)
     def test_exact_ids_and_time_values_are_not_rewritten_by_ui_language(self):
         source=self.read(PRESENTATION);view=self.read(VIEWS[1])
-        self.assertIn('locale: locale, row.scope.value',view)
+        # Override rows show localized scope-kind titles and levels only; no exact id is formatted through the UI language.
+        self.assertIn('title: c(row.scope.type == 1 ? "global.channelScope" : "global.clubScope")',view)
+        self.assertNotIn('scope.value',view)
         self.assertIn('values.map { $0 as CVarArg }',source)
         self.assertIn('NativeChannelNotificationCommand.instant(until)',source)
         self.assertIn('Date.FormatStyle(date: .abbreviated, time: .shortened).locale(locale)',source)

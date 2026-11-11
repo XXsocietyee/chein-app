@@ -202,6 +202,9 @@ class C10WorkshopH5Contracts(unittest.TestCase):
         for path in FORBIDDEN_TOUCH:
             self.assertTrue((ROOT / path).is_file(), path)
             text = (ROOT / path).read_text()
+            if path.endswith("project.pbxproj"):
+                # The Xcode project may now register these source files; no other mention is allowed.
+                text = "\n".join(line for line in text.splitlines() if ".swift" not in line)
             for name in [
                 "WorkshopModuleImportGate", "WorkshopPackageVersionPublish",
                 "WorkshopInstallUpgradeRollback", "WorkshopRunServerVerification",

@@ -5,9 +5,10 @@ class SquareBusyScrollTests(unittest.TestCase):
     def test_busy_state_disables_all_form_content_but_not_scroll_container(self):
         view=(ROOT/'App/SquareWorkspaceView.swift').read_text()
         form=view.split('var body: some View {',1)[1].split('.task(id: initialPostID)',1)[0]
-        self.assertIn('Form {\n            Group {', form)
-        self.assertIn('}.disabled(coordinator.busy || (initialPostID != nil && !editReady))\n        }\n        .navigationTitle', form)
-        self.assertNotIn('.navigationTitle("squareWorkspace.title")\n        .disabled', form)
+        # A non-interactive hero header precedes the disabled content group inside the same Form.
+        self.assertIn('Form {\n            CYHeroHeader("squareWorkspace.title")\n                .listRowBackground(Color.clear).listRowInsets(EdgeInsets())\n            Group {', form)
+        self.assertIn('}.disabled(coordinator.busy || (initialPostID != nil && !editReady))\n        }\n        .cyHeroScreen()', form)
+        self.assertNotIn('.cyHeroScreen()\n        .disabled', form)
         tests=(ROOT/'Tests/AppUITests/SquareWorkspaceFlowTests.swift').read_text()
         self.assertIn('requiresHittable: false', tests)
         self.assertIn('attachFailureScreenshot(self, app: activeApp)', tests)

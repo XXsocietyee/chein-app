@@ -24,7 +24,11 @@ class W204P2MemberToolsChecks(unittest.TestCase):
         return self.catalog[key]['localizations']['zh-Hans']['stringUnit']['value']
 
     def test_wallet_notices_are_display_only(self):
-        self.assertIn('Text(LocalizedStringKey(ticket.sourceNoticeKey))', self.wallet)
+        # The restyled card names the state through the status badge and the schedule-sync/status-hint lines; the
+        # per-row source-notice strip is gone (sourceNoticeKey stays a Core presentation helper, unmounted).
+        self.assertIn('TicketWalletStatusBadge(status: ticket.status)', self.wallet)
+        self.assertIn('Text("ticketWallet.p2.notice.scheduleSync")', self.wallet)
+        self.assertNotIn('sourceNoticeKey', self.wallet)
         self.assertNotIn('"ticketWallet.action." + ticket.action.rawValue', self.wallet)
         for token in ['URLSession', 'Task {', 'func pay', 'TeamCoordinator']:
             self.assertNotIn(token, self.notice)
@@ -64,7 +68,11 @@ class W204P2MemberToolsChecks(unittest.TestCase):
         self.assertNotIn('/market-submit', view)
         self.assertNotIn('TemplateOwnShelfMarketPlan', view)
         self.assertIn('public var isDispatchable: Bool { false }', read('Core/TemplateOwnShelfMarketPlan.swift'))
-        self.assertIn('plan.isDispatchable == false', read('App/TemplateOwnShelfCardSection.swift'))
+        # The card section only displays the plan: it states the preview-only rule and has no control or request.
+        card = read('App/TemplateOwnShelfCardSection.swift')
+        self.assertIn('`isDispatchable` stays false, so this view', card)
+        for token in ['Button', 'NavigationLink', 'URLSession', 'Task {', 'market-submit']:
+            self.assertNotIn(token, card)
 
 
 if __name__ == '__main__':

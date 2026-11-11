@@ -91,7 +91,7 @@ class InvoiceTitlesPageReadyTests(unittest.TestCase):
         ]:
             self.assertIn(literal, note)
         view = self.read("App/InvoiceLaunchTitlesView.swift")
-        self.assertIn('invoiceText("noTitles")', view)
+        self.assertIn('CYEmptyState(systemImage: "person.text.rectangle", "noTitles", tableName: "InvoiceLaunchUI")', view)
         self.assertIn("InvoiceLaunchStateSection", view)
         presentation = self.read("App/InvoiceLaunchPresentation.swift")
         self.assertIn('issue = "unknown"', presentation)

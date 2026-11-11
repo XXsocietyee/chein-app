@@ -93,7 +93,9 @@ class MerchantStationLiveCodeContracts(unittest.TestCase):
     def test_four_localized_titles_are_complete_and_collision_free(self):
         values=json.loads((ROOT/'Resources/MerchantStationLiveCodeLocalizations.fragment.json').read_text())
         existing=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
-        self.assertEqual(len(values),4);self.assertFalse(set(values)&set(existing))
+        self.assertEqual(len(values),4)
+        # The fragment has since been merged centrally; the catalog rows must equal it exactly.
+        for key,row in values.items(): self.assertEqual(existing.get(key),row,key)
         for key,row in values.items():
             self.assertIn('"'+key+'"',APP.read_text())
             for lang in ['en','zh-Hans']: self.assertTrue(row['localizations'][lang]['stringUnit']['value'])

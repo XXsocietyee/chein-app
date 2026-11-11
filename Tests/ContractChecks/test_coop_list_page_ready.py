@@ -59,12 +59,13 @@ class CoopListPageReadyTests(unittest.TestCase):
         self.assertNotIn("HTTPTransport", source)
         self.assertNotIn("requestPayment", source)
 
-    def test_existing_list_route_stays_live_and_the_view_is_unwired(self):
+    def test_existing_list_route_stays_live_and_the_view_is_wired(self):
         routes = text(ROUTES)
         self.assertIn('"/api/coop/list": .liveInProduction', routes)
         self.assertIn('"/api/coop/pool/received": .liveInProduction', routes)
         self.assertIn('"/api/coop/candidates/received": .liveInProduction', routes)
-        self.assertNotIn("CoopListPage", text(VIEW))
+        # The browser view is now wired to the page model, and only reads while configured and authenticated.
+        self.assertIn("CoopListPageCoordinator.project(direction: direction, canRead: reader.isConfigured && reader.isAuthenticated", text(VIEW))
         self.assertFalse(STRINGS.exists())
 
     def test_missing_keys_are_listed_and_absent_from_the_catalog(self):

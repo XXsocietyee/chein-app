@@ -40,7 +40,7 @@ class TemplateLegacyHintChecks(unittest.TestCase):
 
     def test_editor_and_read_only_owner_inspection_keep_separate_hint_rendering(self):
         forms = read('App/TemplateAuthoringDetailForms.swift')
-        self.assertIn('includesHints: false)', forms)
+        self.assertIn('includesHints: false, includesChoiceOptions: false)', forms)
         self.assertIn('TemplateLegacyHintFields(model: model)', forms)
         self.assertIn('var includesHints = true', forms)
         self.assertIn('if includesHints && [.text, .choice, .gps].contains(method)', forms)

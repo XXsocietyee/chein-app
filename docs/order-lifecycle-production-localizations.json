@@ -20,13 +20,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The server acknowledged the request. Check order, cash refund and points status separately."
+          "value": "Request received. Check the order, refund and points status separately."
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "服务器已接收请求。请分别查看订单、现金退款及积分状态。"
+          "value": "请求已受理。订单、退款和积分状态请分别查看。"
         }
       }
     }
@@ -36,13 +36,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm and continue payment"
+          "value": "Continue to payment"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "确认并继续支付"
+          "value": "继续支付"
         }
       }
     }
@@ -52,13 +52,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm cancellation"
+          "value": "Cancel order"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "确认取消订单"
+          "value": "取消订单"
         }
       }
     }
@@ -68,13 +68,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Confirm cancellation and refund request"
+          "value": "Cancel and request refund"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "确认取消并申请退款"
+          "value": "取消并申请退款"
         }
       }
     }

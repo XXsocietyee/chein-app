@@ -6,6 +6,14 @@ import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
 
+EDITOR_HOST_DISAPPEAR = '        .onDisappear { recordBusinessLifecycle("editorHost.disappeared", presentedID: presentedEditorID) }'
+# The page handler first retires the page-level owners, then runs the ordered draft/editor/mutation teardown.
+PAGE_DISAPPEAR_PREFIX = ('        .onDisappear { recordBusinessLifecycle("page.disappeared"); model.teamPageDisappeared(); '
+                         'model.ledgerPreviewDisappeared(); aftercareReturn.disappear(); customerFilterDisclosure.viewDisappeared(); '
+                         'teamAccessDetailsExpanded = false; noteDrafts.retire(); ')
+PAGE_DISAPPEAR_TAIL = ['draftReturn.retire()', 'editor = nil', 'pendingMutation = nil', 'pendingMutationEditorID = nil', 'model.invalidate()']
+
+
 class MerchantAftercareProgressContracts(unittest.TestCase):
     def read(self, path):
         return (ROOT / path).read_text()
@@ -35,7 +43,10 @@ class MerchantAftercareProgressContracts(unittest.TestCase):
             self.assertIn('accessibilityIdentifier("merchant.aftercareProgress.' + key + '")', view)
         self.assertIn('if progress.amount.raw != nil', view)
         self.assertIn('Text("merchant.aftercareProgress.amountUnknown")', view)
-        self.assertIn('Text("merchant.business.opinionOnly")', view)
+        # The old static "opinion only" note became per-decision consequence copy that never reads as a refund.
+        self.assertIn('// A merchant opinion never reads as a refund', view)
+        self.assertIn('MerchantAftercareResponseGuide.consequenceKey(decision)', view)
+        self.assertIn('.accessibilityIdentifier("merchantOps.aftercare.opinionConsequence")', view)
 
     def test_history_has_only_recorded_events_and_no_effects(self):
         core = self.read('Core/MerchantAftercareProgress.swift')
@@ -56,8 +67,13 @@ class MerchantAftercareProgressContracts(unittest.TestCase):
         fragment = json.loads(self.read('Resources/MerchantAftercareProgressLocalizations.fragment.json'))
         source = self.read('App/MerchantAftercareProgressView.swift') + self.read('Core/MerchantAftercareProgress.swift')
         literals = set(re.findall(r'"(merchant\.aftercareProgress\.[A-Za-z]+)"', source))
+        product = json.loads(self.read('Resources/Localizable.xcstrings'))['strings']
         for key in literals:
-            self.assertIn(key, fragment)
+            # Later keys were merged straight into the product catalog; each must still carry both languages.
+            if key not in fragment:
+                for locale in ['en', 'zh-Hans']:
+                    self.assertTrue(product[key]['localizations'][locale]['stringUnit']['value'].strip(), key)
+            self.assertTrue(key in fragment or key in product, key)
         for suffix in ['opinion.PENDING', 'opinion.AGREE', 'opinion.REJECT', 'funds.confirmed', 'funds.unconfirmed',
                        'decision.AGREE', 'decision.REJECT', 'decision.EVIDENCE', 'evidence.recorded', 'evidence.unavailable',
                        'actor.MERCHANT_OWNER', 'actor.MERCHANT_MANAGER', 'actor.MERCHANT_CHECKIN',
@@ -85,14 +101,15 @@ class MerchantAftercareProgressContracts(unittest.TestCase):
         body = page[1].split('    @ViewBuilder private var filters:', 1)
         self.assertEqual(len(body), 2)
         self.assertEqual(re.findall(r'(?m)^        \.onDisappear\b[^\n]*$', body[0]), [
-            '        .onDisappear { draftReturn.retire(); editor = nil; pendingMutation = nil; model.invalidate() }'
+            EDITOR_HOST_DISAPPEAR,
+            PAGE_DISAPPEAR_PREFIX + '; '.join(PAGE_DISAPPEAR_TAIL) + ' }',
         ])
 
     def test_page_disappearance_cleanup_rejects_removal_reorder_duplicate_and_async_gap(self):
         app = self.read('App/MerchantBusinessViews.swift')
         self.assert_page_disappearance_cleanup(app)
-        operations = ['draftReturn.retire()', 'editor = nil', 'pendingMutation = nil', 'model.invalidate()']
-        line = '        .onDisappear { ' + '; '.join(operations) + ' }'
+        operations = PAGE_DISAPPEAR_TAIL
+        line = PAGE_DISAPPEAR_PREFIX + '; '.join(operations) + ' }'
         self.assertEqual(app.count(line), 1)
         mutations = []
         for index in range(len(operations)):
@@ -104,7 +121,7 @@ class MerchantAftercareProgressContracts(unittest.TestCase):
             mutations.append(('reorder_' + str(index), reordered))
             mutations.append(('await_gap_' + str(index), operations[:index + 1] + ['await Task.yield()'] + operations[index + 1:]))
             mutations.append(('task_gap_' + str(index), operations[:index + 1] + ['Task { ' + '; '.join(operations[index + 1:]) + ' }']))
-        changed_sources = [(name, app.replace(line, '        .onDisappear { ' + '; '.join(changed) + ' }', 1))
+        changed_sources = [(name, app.replace(line, PAGE_DISAPPEAR_PREFIX + '; '.join(changed) + ' }', 1))
                            for name, changed in mutations]
         changed_sources += [
             ('duplicate_handler', app.replace(line, line + '\n' + line, 1)),

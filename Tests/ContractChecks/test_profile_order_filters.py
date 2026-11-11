@@ -31,7 +31,7 @@ class ProfileOrderFilterChecks(unittest.TestCase):
         for t in ['URLSession','transport.send','Task {','UserDefaults','func confirm','func refund','func pay']:self.assertNotIn(t,self.core)
     def test_current_owner_gates_selection(self):
         for t in ['guard rendered == current, current.isCurrent else { return }','owner == current && current.isCurrent ? filter : .all','(identity?.accountID ?? 0) > 0']:self.assertIn(t,self.core)
-    def test_retirement_is_local(self):self.assertIn('owner = nil; filter = .all',self.core);self.assertIn('.onChange(of: filterOwner) { _, _ in filterSelection.retire() }',self.app)
+    def test_retirement_is_local(self):self.assertIn('owner = nil; filter = .all',self.core);self.assertIn('.onChange(of: filterOwner) { _, _ in\n            filterSelection.retire(); orderEntry = nil; lookedUpOrderID = nil',self.app)
     def test_filter_cannot_make_requests(self):
         for t in ['Task {','.profileOrders(','.profileOrder(','.refreshable']:self.assertNotIn(t,self.ui)
         self.assertEqual(self.app.count('try await reader.profileOrders()'),1)

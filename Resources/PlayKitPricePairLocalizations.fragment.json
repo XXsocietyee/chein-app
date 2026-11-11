@@ -8,13 +8,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last confirmed choice: correct"
+            "value": "Last pick: correct"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次确认的选择：正确"
+            "value": "上次选择：正确"
           }
         }
       }
@@ -25,13 +25,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last confirmed choice: incorrect"
+            "value": "Last pick: wrong"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次确认的选择：错误"
+            "value": "上次选择：错误"
           }
         }
       }
@@ -59,13 +59,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Current selection, not a result"
+            "value": "Your pick"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前暂选，尚非判定结果"
+            "value": "你的选择"
           }
         }
       }
@@ -93,13 +93,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The last confirmed choice was incorrect. You can choose again."
+            "value": "Wrong pick. Try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "上次确认的选择不正确，可以重新选择。"
+            "value": "选错了，再试一次。"
           }
         }
       }

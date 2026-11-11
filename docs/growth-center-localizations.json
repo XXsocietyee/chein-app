@@ -48,8 +48,8 @@
     "zh-Hans": "暂无数据"
   },
   "growth.score": {
-    "en": "Points and ranking",
-    "zh-Hans": "积分与排名"
+    "en": "Total points",
+    "zh-Hans": "总积分"
   },
   "growth.currentPoints": {
     "en": "Current points",
@@ -64,20 +64,20 @@
     "zh-Hans": "暂无排名"
   },
   "growth.overview": {
-    "en": "Exploration overview",
-    "zh-Hans": "足迹概览"
+    "en": "My footprint",
+    "zh-Hans": "我的足迹"
   },
   "growth.level": {
     "en": "Level",
     "zh-Hans": "等级"
   },
   "growth.experience": {
-    "en": "Exploration value (EXP)",
-    "zh-Hans": "探索值（EXP）"
+    "en": "Exploration XP",
+    "zh-Hans": "探索值"
   },
   "growth.badgeCount": {
-    "en": "Badges earned",
-    "zh-Hans": "已获徽章"
+    "en": "Badges",
+    "zh-Hans": "徽章"
   },
   "growth.completedTopics": {
     "en": "Completed topics",
@@ -85,15 +85,15 @@
   },
   "growth.mileage": {
     "en": "Total distance (km)",
-    "zh-Hans": "累计距离（公里）"
+    "zh-Hans": "累计距离（km）"
   },
   "growth.badges": {
     "en": "My badges",
     "zh-Hans": "我的徽章"
   },
   "growth.badges.empty": {
-    "en": "No badges yet",
-    "zh-Hans": "暂无徽章"
+    "en": "No badges yet. Finish a route to light your first one.",
+    "zh-Hans": "还没有徽章。走完一条路线，点亮第一枚。"
   },
   "growth.badge.unnamed": {
     "en": "Badge",
@@ -128,12 +128,12 @@
     "zh-Hans": "完整排行榜"
   },
   "growth.board.metric": {
-    "en": "Ranking measure",
-    "zh-Hans": "排行指标"
+    "en": "Board",
+    "zh-Hans": "榜单"
   },
   "growth.board.period": {
-    "en": "Ranking period",
-    "zh-Hans": "排行周期"
+    "en": "Period",
+    "zh-Hans": "周期"
   },
   "growth.metric.point": {
     "en": "Points",
@@ -157,15 +157,15 @@
   },
   "growth.unit.exp": {
     "en": "EXP",
-    "zh-Hans": "EXP"
+    "zh-Hans": "经验"
   },
   "growth.board.empty": {
-    "en": "No rankings yet",
-    "zh-Hans": "暂无排行榜数据"
+    "en": "No one on this board yet",
+    "zh-Hans": "这张榜还没有人上榜"
   },
   "growth.board.emptyHint": {
-    "en": "Rankings appear when the service has ranking data.",
-    "zh-Hans": "有可排名数据后将在这里展示。"
+    "en": "Finish a city exploration to start scoring.",
+    "zh-Hans": "完成一次城市探索即可累计积分。"
   },
   "growth.board.leaders": {
     "en": "Rankings",
@@ -210,5 +210,9 @@
   "growth.board.podium.third": {
     "en": "Third place",
     "zh-Hans": "第三名"
+  },
+  "growth.board.link": {
+    "en": "View leaderboard",
+    "zh-Hans": "查看榜单"
   }
 }

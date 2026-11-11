@@ -42,7 +42,9 @@ class MerchantTemplatePreparationChecks(unittest.TestCase):
                       'Text(verbatim: template.usageLocation)', 'template.requiredMaterials.trimmingCharacters']:
             self.assertIn(token, app)
         self.assertIn('confirmation.draft', app)
-        self.assertIn('merchant.preparation.omissionHint', app)
+        # The on-screen omission note was dropped by the restyle; the behaviour it described (an empty value is
+        # omitted from the request and never clears the server value) is pinned at the wire encoder instead.
+        self.assertIn('if !usageLocation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { fields["usageLocation"] = usageLocation }', read('Core/MerchantOperationsContracts.swift'))
 
     def test_ai_and_local_planning_guards_remain_separate_from_persisted_fields(self):
         ai = read('Core/MerchantTemplateAssistContracts.swift')
@@ -60,7 +62,9 @@ class MerchantTemplatePreparationChecks(unittest.TestCase):
         for path in ['Core/MerchantOperationsContracts.swift', 'App/MerchantOperationsEditor.swift']:
             source = re.sub(r'\.accessibilityIdentifier\("[^"\n]*"\)', '', read(path))
             keys.update(re.findall(r'"(merchant\.preparation\.[A-Za-z.]+)"', source))
-        self.assertEqual(set(fragment), keys)
+        # `hint` and `omissionHint` are catalog copy no longer shown by the editor; every shown key must stay covered.
+        self.assertEqual(set(fragment) - keys, {'merchant.preparation.hint', 'merchant.preparation.omissionHint'})
+        self.assertFalse(keys - set(fragment))
         self.assertEqual(len(fragment), 14)
         for value in fragment.values():
             for locale in ['en', 'zh-Hans']: self.assertTrue(value['localizations'][locale]['stringUnit']['value'])

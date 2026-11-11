@@ -19,7 +19,7 @@ class ProfileCasePortfolioContracts(unittest.TestCase):
         s = section('Core/ProfileEditContracts.swift', 'public struct ProfileEditPayload', 'public struct ProfileEditSession')
         for token in ['public let caseIntroduction: String?', 'case caseIntroduction = "caseIntroducton"',
                       'draft.caseIntroduction == nil || snapshot.caseIntroduction != nil', 'caseIntroduction = draft.caseIntroduction',
-                      'wechat = removesContactQR ? "" : snapshot.wechat\n        casePics = removesCasePictures ? "" : snapshot.casePics']:
+                      'wechat = removesContactQR ? "" : snapshot.wechat\n        casePics = removesCasePictures ? "" : (casePictureSubset?.wireValue ?? snapshot.casePics)']:
             self.assertIn(token, s)
         self.assertNotIn('caseIntroduction = draft.normalized', s)
         self.assertNotIn('casePics.split', s)
@@ -38,9 +38,9 @@ class ProfileCasePortfolioContracts(unittest.TestCase):
 
     def test_case_text_survives_normalization_and_avatar_operations(self):
         s = read('Core/ProfileEditContracts.swift')
-        self.assertIn('avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures)', s)
-        self.assertIn('avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures) }', s)
-        self.assertIn('caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures)', read('App/ProfileEditView.swift'))
+        self.assertIn('avatarReplacement: value, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset)', s)
+        self.assertIn('avatarReplacement: avatarReplacement, caseIntroduction: caseIntroduction, removesContactQR: removesContactQR, removesCasePictures: removesCasePictures, casePictureSubset: casePictureSubset) }', s)
+        self.assertIn('caseIntroduction: draft.caseIntroduction, removesContactQR: draft.removesContactQR, removesCasePictures: draft.removesCasePictures, casePictureSubset: draft.casePictureSubset)', read('App/ProfileEditView.swift'))
         s = section('Core/ProfileEditContracts.swift', 'public func hasChanges', 'public var isValid')
         self.assertIn('ordinary.caseIntroduction = nil', s)
         self.assertIn('!ProfileCasePortfolio.sameText($0, snapshot.caseIntroduction)', s)
@@ -89,7 +89,8 @@ class ProfileCasePortfolioContracts(unittest.TestCase):
         self.assertIn('(draft.caseIntroduction ?? snapshot.caseIntroduction ?? "")', editor)
         self.assertIn('edit.field == .caseIntroduction, edit.snapshot.caseIntroduction == nil', editor)
         self.assertIn('.disabled(edit.field == .contactQR || (edit.field == .caseIntroduction && edit.snapshot.caseIntroduction == nil))', editor)
-        self.assertIn('ProfileCasePortfolioSection(casePics: edit.snapshot.casePics, scope: edit.id, reader: caseImageReader)', editor)
+        self.assertIn('scope: edit.id, reader: caseImageReader)', editor)
+        self.assertIn('ProfileCasePortfolioSection(casePics: edit.draft.casePictureSubset.flatMap { $0.matches(source: edit.snapshot.casePics) ? $0.wireValue : nil } ?? edit.snapshot.casePics, scope: edit.id', editor)
         view = read('App/ProfileEditView.swift')
         self.assertIn('caseImageReader: (any RetainedPublicImageReading)? = nil', view)
         self.assertIn('ProfileTextFieldEditor(edit: value, caseImageReader: caseImageReader,', view)

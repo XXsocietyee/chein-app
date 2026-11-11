@@ -53,21 +53,26 @@ class ProfileReloadDiscardContracts(unittest.TestCase):
         for part in ['!busy','!coordinator.isBusy','!coordinator.isLocked','coordinator.isConfigured','confirmation == nil','coordinator.confirmation == nil','coordinator.identity == value.identity','coordinator.viewerRevision == value.viewerRevision','generation == value.generation','revision == value.modelRevision','reloadContextRevision == value.reloadContextRevision','Self.sameDraft(draft, value.draft)','Self.sameSnapshot(snapshot, value.snapshot)']:
             self.assertIn(part,text)
     def test_draft_aba_scene_departure_and_session_change_retire_context(self):
-        text=VIEW.read_text();self.assertIn('@Published var draft = ProfileEditDraft() { didSet { retireReload() } }',text)
+        text=VIEW.read_text();self.assertIn('@Published var draft = ProfileEditDraft() { didSet { retirePreferencePicker(); retireSavedReturn(); retireTextEdit(); avatarDraftRevision &+= 1; if draft.avatarReplacement == nil { avatarPreview = nil }; retireReload() } }',text)
         self.assertIn('reloadContextRevision &+= 1',text)
-        self.assertIn('.onChange(of: sessionRevision) { _, _ in model.retireReload() }',text)
-        self.assertIn('if phase != .active { model.retireReload() }',text)
-        self.assertIn('.onDisappear {\n            model.retireReload()',text)
+        self.assertIn('.onChange(of: sessionRevision) { _, _ in model.retireSavedReturn(); model.retireReload() }',text)
+        self.assertIn('if phase != .active { model.retireReload(); model.suspendForBackground() } else { model.activateAvatar() }',text)
+        self.assertIn('.onDisappear(perform: handleEditorDisappear)',text)
+        self.assertIn('private func handleEditorDisappear() {',text);self.assertIn('        model.retireReload()\n        if let value = model.confirmation { model.coordinator.cancel(value) }',text)
         self.assertIn('.onChange(of: showReloadConfirmation) { _, showing in if !showing { model.cancelReload() } }',text)
     def test_save_review_paths_retire_only_new_reload_dialog(self):
         text=VIEW.read_text()
-        for part in ['func load() async {\n        retireReload()','func prepare() async {\n        retireReload()','func save(_ value: ProfileEditConfirmation) async {\n        retireReload()']:
+        # Each entry first retires the saved-return owner and the text editor guard, then the reload dialog.
+        for part in ['func load() async {\n        retireSavedReturn()\n        guard !exitCommitted else { return }\n        guard textEdit == nil else { return }\n        retireReload()',
+                     'func prepare() async {\n        retireSavedReturn()\n        guard !exitCommitted else { return }\n        guard textEdit == nil else { return }\n        retireReload()',
+                     'retireSavedReturn()\n        guard !exitCommitted else { return nil }\n        guard textEdit == nil else { return nil }\n        retireReload()']:
             self.assertIn(part,text)
-        self.assertIn('await coordinator.prepare(draft)',text);self.assertIn('await coordinator.save(value)',text)
+        self.assertIn('await coordinator.prepare(draft, avatarValidity: avatarSaveValidity(for: draft))',text);self.assertIn('await coordinator.save(value)',text)
     def test_three_localizations_are_complete_and_separate(self):
         fragment=json.loads((ROOT/'Resources/ProfileReloadDiscardLocalizations.fragment.json').read_text())
         catalog=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
-        self.assertEqual(len(fragment),3);self.assertFalse(set(fragment)&set(catalog))
+        self.assertEqual(len(fragment),3)
+        for key,row in fragment.items():self.assertEqual(catalog[key],row)  # merged centrally
         for key,row in fragment.items():
             self.assertIn('"'+key+'"',VIEW.read_text())
             for lang in ['en','zh-Hans']:self.assertTrue(row['localizations'][lang]['stringUnit']['value'])

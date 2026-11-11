@@ -47,7 +47,7 @@ class ClubFeedReadParityContracts(unittest.TestCase):
         binding = view.split('ClubGovernanceHomeEntries(feedContext:')[1].split('identity: reader.clubIdentity')[0]
         self.assertIn('readerIdentity: ObjectIdentifier(reader)', binding)
         self.assertIn('viewerRevision:', binding)
-        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn)', binding)
+        self.assertIn('ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, publicRoster: publicRoster)', binding)
         for token in ['actionCoordinator:', 'community:', 'management:']:
             self.assertNotIn(token, binding)
 
@@ -66,8 +66,10 @@ class ClubFeedReadParityContracts(unittest.TestCase):
         view = source('App/ClubGovernanceViews.swift')
         self.assertGreaterEqual(view.count('feedClub = nil; feedMediaScope = UUID()'), 2)
         self.assertIn('.task(id: readContext)', view)
-        self.assertIn('.onChange(of: readContext)', view)
-        self.assertIn('.onDisappear { generation &+= 1 }', view)
+        # A context change re-runs the task: the default (feed) branch invalidates the read and reloads.
+        self.assertIn('} else { invalidateRead(); await load() }\n    }\n    // Kept outside the body', view)
+        self.assertIn('.onDisappear { leaveReadHost() }', view)
+        self.assertIn('if operation != .seriesDetail || seriesUpdateReturn.item == nil { generation &+= 1 }', view)
         self.assertIn('context.accepts(result)', view)
         self.assertIn('snapshotContext = context; snapshotGeneration = revision; snapshot = result', view)
         self.assertNotIn('.onDisappear { snapshot = nil', view)

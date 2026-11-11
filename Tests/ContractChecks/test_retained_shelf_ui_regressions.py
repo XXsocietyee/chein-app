@@ -30,11 +30,12 @@ class RetainedShelfUIRegressions(unittest.TestCase):
 
     def test_shelf_identity_and_terminal_outcomes_are_exact(self):
         view = read('App/TemplateAuthoringMineView.swift')
-        self.assertIn('.accessibilityValue(Text(verbatim: String(value.templateID.rawValue)))', view)
+        # Row identity is the exact template id in the row identifier (no longer duplicated as an accessibility value).
+        self.assertIn('.accessibilityIdentifier("memberTemplate.mine.\\(row.id)")', view)
         self.assertIn('.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row))', view)
         self.assertIn('coordinator.cancelShelfReview()', view)
         tests = read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
-        for expected in ['XCTAssertEqual(identity.value as? String, "901")',
+        for expected in ['let detail = app.buttons["memberTemplate.mine.901"]',
                          'XCTAssertEqual(status.label, "Simulation completed. No template was saved to a server or published.")',
                          'XCTAssertFalse(button.isEnabled)',
                          'XCTAssertFalse(app.buttons["templateAuthor.shelf.library.901"].isEnabled)',

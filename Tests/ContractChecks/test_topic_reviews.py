@@ -17,14 +17,14 @@ class TopicReviewChecks(unittest.TestCase):
         view = self.read('App/TopicDetailView.swift')
         self.assertEqual(view.count('TopicReviewsContent(reviews: value.reviews)'), 1)
         self.assertLess(view.index('Section("topic.comments")'), view.index('TopicReviewsContent('))
-        self.assertIn('Button("context.review.title") { showsReview = true }', view)
+        self.assertIn('CYPillButton("context.review.title", style: .secondary) { showsReview = true }', view)
         self.assertIn('ContextualReviewComposer(target: .topic(id)', view)
         self.assertNotIn('if value.comments.isEmpty', view)
         self.assertNotIn('if let rating = value.averageRating', view)
-        for token in ['detail = nil; issue = nil; loadedKey = nil',
+        for token in ['phase = .idle; loadedKey = nil',
                       'guard operation == generation, captured == key, !Task.isCancelled else { return }',
-                      'else if loading || loadedKey != key',
-                      '.task(id: key)', '.onDisappear { loads.cancel(); generation += 1; loading = false }',
+                      'else if phase.isLoading || loadedKey != key',
+                      '.task(id: key)', '.onDisappear { loads.cancel(); generation += 1; settleLoading() }',
                       'if value.showStoryPaywall', 'ForEach(Array(value.chapters.enumerated())']:
             self.assertIn(token, view)
 

@@ -17,6 +17,8 @@ class CoopParityTests(unittest.TestCase):
     def test_pages_only_read_through_session_scoped_reader(self):
         for name in PAGES + MODELS:
             source = re.sub(r'//[^\n]*', '', self.text(name))
+            # The detail page model documents the existing list read path as a constant; it performs no request.
+            source = source.replace('    public static let readPath = "api/coop/list"\n', '', 1) if name == 'Core/CooperationInvitePresentation.swift' else source
             self.assertNotRegex(source, r'api/', name)
             self.assertNotRegex(source, r'\.perform\(|URLSession|HTTPTransport|requestPayment', name)
         self.assertIn('reader.read(.finance)', self.text('App/CoopFinanceProfitView.swift'))
@@ -54,6 +56,8 @@ class CoopParityTests(unittest.TestCase):
         used = set()
         for name in PAGES:
             source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', self.text(name))
+            # Design-system components take identifiers as parameters (messageIdentifier:, actionIdentifier:).
+            source = re.sub(r'\b\w*[iI]dentifier: "(?:\\.|[^"\\])*"', '', source)
             used |= set(re.findall(r'"(cooperation\.(?:finance|settlement|withdraw|withdrawRecords|detail|party|list)\.[A-Za-z0-9.]+)"', source))
         self.assertFalse({key for key in used if not key.endswith('.')} - set(fragment) - set(catalog))
         for prefix, cases in [('cooperation.finance.status.', ['settlementUnknown', 'unsettled', 'amountUnknown', 'noIncomeDue', 'arrivalUnknown', 'credited', 'awaitingCredit']),

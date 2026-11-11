@@ -41,7 +41,9 @@ class JourneyRoleViewChecks(unittest.TestCase):
         self.assertIn('ForEach(projection.views)',self.view)
         self.assertIn('.privacySensitive()',self.view)
     def test_plain_text_and_no_markup(self):
-        for token in ['Text(verbatim: view.title)','Text(verbatim: view.body)','Text(verbatim: item.text)']:self.assertIn(token,self.view)
+        # Item rows render through the design-system list row's verbatim (String, never markup) initializer.
+        for token in ['Text(verbatim: view.title)','Text(verbatim: view.body)','CYListRow(\n                    verbatim: item.label','item.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "—" : item.text']:self.assertIn(token,self.view)
+        self.assertNotIn('LocalizedStringKey(item',self.view); self.assertNotIn('AttributedString',self.view); self.assertNotIn('Markdown',self.view)
     def test_stable_host_load_and_close(self):
         host=(ROOT/'App/PlayExperienceView.swift').read_text()
         self.assertIn('await journey?.roleContent.load(expectedRunID:',host)

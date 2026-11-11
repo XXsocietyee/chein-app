@@ -19,7 +19,7 @@ class MapCameraControlsTests(unittest.TestCase):
             self.assertNotIn(forbidden, self.ui + self.core)
 
     def test_focus_is_explicit_and_remains_outside_map_frame(self):
-        self.assertLess(self.ui.index('}.frame(height: mapHeight)'), self.ui.index('if selectedID != nil { focusControl }'))
+        self.assertLess(self.ui.index('}.frame(minHeight: mapHeight).frame(maxHeight: fillsHeight ? .infinity : mapHeight)'), self.ui.index('if selectedID != nil { focusControl }'))
         control = self.ui.split('private var focusControl:', 1)[1].split('private func groups(', 1)[0]
         self.assertIn('Button {', control)
         self.assertIn('focusGate.consume(request)', control)
@@ -36,7 +36,11 @@ class MapCameraControlsTests(unittest.TestCase):
         self.assertIn('focusGate.invalidate()', changes)
         self.assertNotIn('position =', changes)
         self.assertNotIn('applyCameraFit', changes)
-        self.assertIn('.onMapCameraChange(frequency: .continuous) { _ in cameraRevision &+= 1 }', self.ui)
+        # The continuous callback bumps the projection revision (and only reports the viewport outward); it never moves the camera.
+        continuous = self.ui.split('.onMapCameraChange(frequency: .continuous) { _ in', 1)[1].split('.onMapCameraChange(frequency: .onEnd)', 1)[0]
+        self.assertIn('cameraRevision &+= 1', continuous)
+        self.assertNotIn('position =', continuous)
+        self.assertNotIn('applyCameraFit', continuous)
         self.assertEqual(self.ui.count('position = .region'), 1)
         self.assertEqual(self.ui.count('applyCameraFit(fit)'), 2)  # Explicit focus or group expansion.
         self.assertNotIn('withAnimation', self.ui)
@@ -57,7 +61,7 @@ class MapCameraControlsTests(unittest.TestCase):
     def test_existing_search_and_roam_share_the_controlled_map(self):
         for path in ['App/SearchMapCanvas.swift', 'App/RoamMapView.swift']:
             self.assertIn('QuestifyDensityMap(area: area, pins: pins, selectedID: selectedID', (ROOT / path).read_text())
-        self.assertIn('.id(MapPresentationIdentity(area: area, scope: reader.scope))',
+        self.assertIn('.id(MapPresentationIdentity(area: mapCameraIdentityArea ?? area, scope: reader.scope))',
                       (ROOT / 'App/SearchMapExplorerView.swift').read_text())
         self.assertIn('.id(scope)', (ROOT / 'App/RoamBrowserView.swift').read_text())
 
