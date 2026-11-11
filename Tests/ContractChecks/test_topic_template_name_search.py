@@ -37,15 +37,18 @@ class TopicTemplateNameSearchContracts(unittest.TestCase):
     def test_unchanged_request_authority_and_stateful_detail_identity_are_preserved(self):
         view = (ROOT / 'App/DiscoveryTemplateBrowserView.swift').read_text()
         self.assertIn('reader.publicTopicTemplateCatalogRequest()', view)
-        self.assertIn('topics.load(onUnauthorized: request.onUnauthorized, request.read)', view)
-        self.assertIn('DiscoveryTopicTemplatePreview(coordinator: reader.publicTopicTemplateCoordinator(id: item.id))\n                            .id(item.id)', view)
+        # The load moved into the topics state object but still uses the unchanged catalog request.
+        self.assertIn('let rows = try await request.read()', view)
+        self.assertIn('if error as? APIError == .unauthorized { request.onUnauthorized() }', view)
+        self.assertIn('selected.identity == reader.discoveryPresentationIdentity', view)
+        self.assertIn('DiscoveryTopicTemplatePreview(coordinator: selected.coordinator).id(selected.id)', view)
         service = (ROOT / 'Core/DiscoveryService.swift').read_text()
         read = service.split('public func topicTemplates(', 1)[1].split('public func publicTopicTemplate(', 1)[0]
         self.assertIn('fields: nil', read)
         for forbidden in ['keyword', 'pageNum', 'pageSize']:
             self.assertNotIn(forbidden, read)
-        self.assertIn('authoringFactory(item)', (ROOT / 'App/DiscoveryTemplateDetailView.swift').read_text())
-        self.assertNotIn('authoringFactory(item)', view.split('private func topicSection', 1)[1].split('private func gameSection', 1)[0])
+        self.assertIn('authoringFactory(selected.source)', (ROOT / 'App/DiscoveryTemplateDetailView.swift').read_text())
+        self.assertNotIn('authoringFactory(', view.split('private func topicSection', 1)[1].split('private func gameSection', 1)[0])
 
     def test_bilingual_scope_and_authored_behavior_inventory(self):
         catalog = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']

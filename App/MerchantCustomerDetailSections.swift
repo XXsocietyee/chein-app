@@ -67,6 +67,9 @@ import SwiftUI
                             if let latest = group.latest {
                                 Text(LocalizedStringKey(latest.kind.titleKey))
                                 LabeledContent("merchant.customerDetail.recordTime") { timestamp(latest.occurredAt) }
+                                if latest.kind == .refunded {
+                                    Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(CYColor.textTertiary)
+                                }
                             } else {
                                 Text("merchant.customerDetail.orderUncertain").foregroundStyle(CYColor.textTertiary)
                             }
@@ -132,6 +135,9 @@ import SwiftUI
             Text(LocalizedStringKey(event.kind.titleKey))
             if let description = event.description { Text(verbatim: description) }
             LabeledContent("merchant.customerDetail.recordTime") { timestamp(event.occurredAt) }
+            if event.kind == .refunded {
+                Text("merchant.customerDetail.refundTimeBoundary").font(.footnote).foregroundStyle(CYColor.textTertiary)
+            }
             if let corrects = event.record.fields["correctsNoteId"]?.integer, corrects > 0 {
                 LabeledContent("merchant.business.field.correctsNoteId", value: "#\(corrects)")
             }

@@ -58,7 +58,7 @@ class MerchantCustomerDetailContracts(unittest.TestCase):
         self.assertIn('if case .customer = query, let detail = snapshot.document.customerDetail', page)
         self.assertIn('rowActions(row, access: snapshot.access)', page)
         self.assertIn('.onChange(of: reader.authorizationGeneration)', page)
-        self.assertIn('.onDisappear { editor = nil; pendingMutation = nil; model.invalidate() }', page)
+        self.assertIn('editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }', page)
         self.assertIn('authorization == coordinator.reader.authorizationGeneration', page)
 
     def test_sensitive_money_requires_both_current_permissions(self):

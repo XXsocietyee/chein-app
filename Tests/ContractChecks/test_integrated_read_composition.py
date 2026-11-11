@@ -11,7 +11,9 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
         source = self.read('App/AppCompositionRoot.swift')
         self.assertIn('ManualMapReadRoute(request: request, baseURL: api.baseURL, area: $0.area)', source)
         self.assertIn('PlayReadRoute(request: request, baseURL: api.baseURL)', source)
-        self.assertIn('guard url.query == nil || manualRead != nil || playRead != nil || cityRead != nil || ownedCover != nil else', source)
+        # The admission guard grew more reviewed route predicates; a query is still admitted only via an exact validated route.
+        self.assertIn('url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil', source)
+        self.assertIn('sessionFactRoute != nil else { throw APIError.notConfigured }', source)
         self.assertIn('OwnedTopicCoverCompositionRoute(request: request, baseURL: api.baseURL)', source)
         self.assertIn('issued.permits(route.operation, configuration: api, session: editor)', source)
         for marker in ['deployment.reads.contains(.manualMap)', 'deployment.reads.contains(.playNodesAndRouteState)',
@@ -31,7 +33,7 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
 
     def test_predispatch_success_and_error_have_identity_and_approval_fences(self):
         source = self.read('App/AppCompositionRoot.swift')
-        self.assertEqual(source.count('guard current() == captured'), 6)
+        self.assertEqual(source.count('guard current() == captured'), 26)
         self.assertIn('current.playReadApprovalID == issued.playReadApprovalID', source)
         self.assertIn('currentApproval.revision == approval.revision', source)
         self.assertIn('manualMapSelection?.snapshot == selectedArea', source)
@@ -53,8 +55,14 @@ class IntegratedReadCompositionContracts(unittest.TestCase):
         self.assertIn('let grant = deployment.privateHome', source)
         launch = self.read('App/RegionalLaunchConfiguration.swift')
         self.assertIn('.init(deployment: .unconfigured,', launch)
-        for grant in ['manualMap', 'playNodesAndRouteState', 'contentDetails']:
-            self.assertNotIn(grant, launch)
+        # The reviewed China build now opts into manualMap/playNodesAndRouteState, but only inside the
+        # admitsShippedChina branch; every other build stays on the unconfigured composition.
+        self.assertIn('makeComposition(reviewed: nil, build: .current)', launch)
+        admitted = launch.split('admitsShippedChina', 1)[1]
+        for grant in ['manualMap', 'playNodesAndRouteState']:
+            self.assertEqual(launch.count('.' + grant), 1, grant)
+            self.assertIn('.' + grant, admitted.split('reads: [', 1)[1].split(']', 1)[0])
+        self.assertNotIn('contentDetails', launch)
 
     def test_cross_family_regressions_are_authored_and_in_apple_target(self):
         source = self.read('Tests/AppUnitTests/IntegratedReadCompositionTests.swift')

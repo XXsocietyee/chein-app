@@ -22,8 +22,8 @@ class ClubStoryRuntimeBoundaryChecks(unittest.TestCase):
 
     def test_gameplay_card_identifier_is_a_leaf_and_does_not_replace_title_identifier(self):
         source = self.text('App/ClubStoryViews.swift').split('struct ClubStoryGameplayCard', 1)[1]
-        self.assertIn('.font(.headline).accessibilityIdentifier("club.gov.fact.title")', source)
-        self.assertRegex(source, r'Text\("club.story.stop \\\(play.sequence\)"\)\.font\(\.subheadline\)\s*\.accessibilityIdentifier\("club.story.play.\\\(play.id\)"\)')
+        self.assertRegex(source, r'\.font\(CYTypography\.cardTitle\)[^\n]*\n[^\n]*\n[^\n]*\.fixedSize\([^\n]+\)\s*\.accessibilityIdentifier\("club.gov.fact.title"\)')
+        self.assertRegex(source, r'CYListRow\("club.story.stop \\\(play.sequence\)"[^\n]*\}\s*\.accessibilityIdentifier\("club.story.play.\\\(play.id\)"\)')
         self.assertNotRegex(source, r'}\.fixedSize\([^\n]+\)\s*\.accessibilityIdentifier')
 
     def test_source_reader_owner_and_return_reentry_fences_remain_present(self):

@@ -36,16 +36,17 @@ class TemplateOwnShelfHostFlow(unittest.TestCase):
         self.assertIn('row.publishStatus == 1 ? "templateAuthor.shelf.removeLibrary" : "templateAuthor.shelf.addLibrary"', self.view)
         self.assertIn('templateAuthor.shelf.inLibrary', self.view)
         self.assertIn('templateAuthor.shelf.outLibrary', self.view)
-        self.assertIn('plan.isDispatchable == false', self.card)
-        self.assertIn('不是发布', self.card)
-        self.assertIn('This is not a publish.', self.card)
+        # The card no longer renders the (never dispatchable) marketplace plan at all: no dead action or caption.
+        self.assertIn('`isDispatchable` stays false', self.card)
+        self.assertNotIn('plan.', self.card.split('var body: some View', 1)[1])
         self.assertNotIn('Button', self.card)
         self.assertNotIn('confirmShelf', self.card)
         self.assertNotIn('TemplateAuthoringRequest', self.plan + self.card)
 
     def test_delete_review_cancel_and_return_refresh_stay_on_the_existing_controls(self):
-        self.assertIn('Text(LocalizedStringKey(value.action == .remove ? "templateAuthor.shelf.deleteReview"', self.view)
-        self.assertIn('if value.action == .remove { TemplateOwnShelfDeleteReviewCopy(title: value.title) }', self.view)
+        self.assertIn('if value.action == .remove {', self.view)
+        self.assertIn('Text("templateOwnShelf.delete.title \\(value.title)")', self.view)
+        self.assertIn('Text("templateOwnShelf.delete.irreversible")', self.view)
         self.assertIn('accessibilityIdentifier("templateAuthor.shelf.confirm")', self.view)
         self.assertIn('accessibilityIdentifier("templateAuthor.shelf.cancel")', self.view)
         self.assertIn('guard previous != nil, next == nil else { return }', self.view)
@@ -78,7 +79,7 @@ class TemplateOwnShelfHostFlow(unittest.TestCase):
         ui = read('Tests/AppUITests/TemplateOwnShelfFlowTests.swift')
         self.assertIn('func testDeleteReviewShowsSourceDangerCopyAndCancelDoesNotSubmit(', ui)
         self.assertIn('func testOwnedCardShowsZeroDurationAndNoMarketplacePublishButton(', ui)
-        self.assertIn('Delete this exact template from your own shelf? This may not be reversible.', ui)
+        self.assertIn('templateOwnShelf.delete.title', ui)
 
 
 if __name__ == '__main__':

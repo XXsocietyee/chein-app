@@ -21,7 +21,7 @@ class TemplateShelfReadBridge(unittest.TestCase):
         self.assertIn('TemplateAuthoringAdapter(shelfReadTransport: makeTemplateShelfReadTransport())', factory)
         self.assertNotIn('TemplateAuthoringHTTPTransport', factory)
         self.assertIn('if coordinator.canSubmit { await coordinator.loadMine() }', read('App/TemplateAuthoringMineView.swift'))
-        self.assertIn('TemplateAuthoringView(coordinator: session.templateAuthoringEditor()', read('App/TemplateAuthoringLaunchView.swift'))
+        self.assertIn('TemplateAuthoringEntryDestination(factory: { session.templateAuthoringEditor() }', read('App/TemplateAuthoringLaunchView.swift'))
     def test_exact_multipart_read_bounds(self):
         s = read('Core/TemplateShelfReadApproval.swift')
         for token in ['body.count <= 4096', 'keyword.utf8.count <= 512', 'fields["pageSize"] == "10"', 'Set(fields.keys) == ["id"]', 'fields[key] == nil', 'split.lowerBound > keyStart', 'canonical.httpBody == body', 'value.memberID == context.session.accountID', 'request.httpBodyStream == nil']:
@@ -136,7 +136,7 @@ def assert_refresh_snapshot_contract(core, view):
     assert view.count('.disabled(!coordinator.canSubmit || locked || busy || !coordinator.rows.contains(row))') == 2
     assert view.count('.disabled(readSnapshot)') == 2
     require('readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot', view)
-    require('guard !coordinator.shelfReader.isShowingRefreshSnapshot else { return }', _body(view, 'private func prepare('))
+    require('guard !busy, appliedKeyword == keyword, !coordinator.shelfReader.isShowingRefreshSnapshot else { return }', _body(view, 'private func prepare('))
 
 
 class TemplateShelfRefreshSnapshotContracts(unittest.TestCase):
@@ -175,7 +175,7 @@ class TemplateShelfRefreshSnapshotContracts(unittest.TestCase):
             ('.disabled(readSnapshot)', ''),
             ('!coordinator.rows.contains(row)', 'false'),
             ('readSnapshot = coordinator.shelfReader.isShowingRefreshSnapshot', 'readSnapshot = false'),
-            ('guard !coordinator.shelfReader.isShowingRefreshSnapshot else { return }', ''),
+            ('guard !busy, appliedKeyword == keyword, !coordinator.shelfReader.isShowingRefreshSnapshot else { return }', 'guard !busy, appliedKeyword == keyword else { return }'),
         ]
         for target, changes in [('core', core_mutations), ('view', view_mutations)]:
             for before, after in changes:

@@ -63,8 +63,8 @@ class MapVisualFoundationTests(unittest.TestCase):
     def test_opaque_marker_and_route_token_contrast(self):
         # Numeric token check only, not basemap pixels or device appearance evidence.
         palette = self.read('App/QuestifyPalette.swift')
-        self.assertIn('red:196.0/255,green:181.0/255,blue:253.0/255', palette)
-        self.assertIn('red:109.0/255,green:40.0/255,blue:217.0/255', palette)
+        self.assertIn('red:248.0/255,green:248.0/255,blue:248.0/255', palette)
+        self.assertIn('red:51.0/255,green:54.0/255,blue:60.0/255', palette)
         source = self.read('App/SearchMapCanvas.swift')
         self.assertIn('red: 0.40, green: 0.72, blue: 1.0', source)
         self.assertIn('red: 0.0, green: 0.28, blue: 0.65', source)
@@ -74,7 +74,7 @@ class MapVisualFoundationTests(unittest.TestCase):
         def ratio(a, b):
             light,dark = sorted([luminance(a), luminance(b)], reverse=True)
             return (light + 0.05) / (dark + 0.05)
-        self.assertGreater(ratio([109/255,40/255,217/255], [1,1,1]), 4.5)
-        self.assertGreater(ratio([196/255,181/255,253/255], [0,0,0]), 4.5)
+        self.assertGreater(ratio([51/255,54/255,60/255], [1,1,1]), 4.5)
+        self.assertGreater(ratio([248/255,248/255,248/255], [0,0,0]), 4.5)
         self.assertGreater(ratio([0,0.28,0.65], [1,1,1]), 4.5)
         self.assertGreater(ratio([0.40,0.72,1], [0,0,0]), 4.5)

@@ -151,13 +151,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The contribution board is unavailable in this build."
+            "value": "The contribution board can't be shown right now"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前版本暂不可查看贡献榜"
+            "value": "暂时无法查看贡献榜"
           }
         }
       }

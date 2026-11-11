@@ -11920,13 +11920,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No activities yet"
+            "value": "Club events are unavailable in this build."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有活动"
+            "value": "当前版本暂不可查看俱乐部活动"
           }
         }
       }
@@ -12165,13 +12165,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No posts yet"
+            "value": "Club posts are unavailable in this build."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "还没有帖子"
+            "value": "当前版本暂不可查看俱乐部帖子"
           }
         }
       }

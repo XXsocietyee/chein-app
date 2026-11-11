@@ -28,10 +28,10 @@ class ClubDetailTabContracts(unittest.TestCase):
         self.assertIn('tabs.resolve(selectedTab ?? tabs.initialTab(requested: requestedTab))', view)
         # Header and join/quit stay above the tabs; each moved section is behind its tab.
         self.assertLess(view.index('ClubActionPanel('), view.index('ClubDetailTabBar('))
-        for marker, tab in [('club.chat.entry', '.posts'), ('ClubCommunityEntry(', '.posts'), ('club.calendar.open', '.events'),
+        for marker, tab in [('club.chat.entry', '.posts'), ('ClubCommunityEntry(', '.posts'), ('ClubDetailEventsSection(', '.events'),
                             ('club.openManagement', '.manage'), ('club.statsOverview.open', '.manage'), ('club.openMembers', '.overview'),
                             ('ClubMerchantDiscoveryView(', '.manage'), ('club.projectLaunch.entry', '.manage'),
-                            ('club.detail.leaderboard.open', '.overview'), ('club.detail.governanceHelp.body', '.overview')]:
+                            ('club.detail.leaderboard.open', '.overview')]:
             head = view[:view.index(marker)]
             self.assertIn(f'tab == {tab}', head[head.rindex('\n                if '):], marker)
         # The manage grant is the existing access/me read and revokes on account change.

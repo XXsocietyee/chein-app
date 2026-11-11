@@ -48,8 +48,10 @@ class WalkingCameraControlsTests(unittest.TestCase):
         self.assertIn('snapshot.route.coordinates + [snapshot.target.coordinate.point]', self.gate)
 
     def test_live_snapshot_checks_context_permission_expiry_and_exact_route(self):
+        # Expiry is now the shared isLive(target) fence (remaining(target) > 0).
+        self.assertIn('private func isLive(_ target: AuthorizedWalkingTarget) -> Bool { remaining(target) > 0 }', self.coordinator)
         snapshot = self.coordinator.split('public var cameraSnapshot:', 1)[1].split('public func start()', 1)[0]
-        for value in ['cameraScope != nil', 'target.reference == reference', 'target.expiresAt > now()',
+        for value in ['cameraScope != nil', 'target.reference == reference', 'isLive(target)',
                       'target.coordinate.datum == .wgs84', 'route.datum == .wgs84', '!route.isStraightLine',
                       'revision: cameraRevision', 'ownerNamespace: ownerNamespace', 'target: target, route: route']:
             self.assertIn(value, snapshot)
@@ -72,7 +74,7 @@ class WalkingCameraControlsTests(unittest.TestCase):
 
     def test_summary_controls_are_accessible_bilingual_and_explain_unavailable_fit(self):
         for value in ['.frame(minHeight: 44)', '.fixedSize(horizontal: false, vertical: true)',
-                      '.disabled(request == nil)', 'Text("walkingCamera.unavailable")',
+                      '.disabled(request == nil)', 'if isCameraScopeCurrent(model), model.cameraSnapshot != nil {',
                       'cameraControl(model, action: .route)', 'cameraControl(model, action: .target)']:
             self.assertIn(value, self.view)
         strings = json.loads((ROOT / 'Resources/Localizable.xcstrings').read_text())['strings']

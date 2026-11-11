@@ -10,7 +10,7 @@ import XCTest
     private let supportedStory = " \n" + #"[{"tag":"Start","text":"  First scene  ","imgs":["fixture:1","fixture:2","fixture:3","fixture:4","fixture:5","fixture:6"]},{"text":"Second scene","imgs":[],"tag":"Next"}]"# + "\n "
     private let historicalStory = " \r\n" + #"[{"tag":"Old","text":"Retained scene","imgs":[],"future":{"integer":9007199254740993,"decimal":1.2300}}]"# + "\t "
     private let localSaved = "Saved securely on this device for this account."
-    private let simulated = "Simulation completed. No template was saved to a server or published."
+    private let simulated = "Example run finished. Nothing was saved or published."
 
     private struct Snapshot: Decodable {
         struct Draft: Decodable {
@@ -168,7 +168,7 @@ import XCTest
         reveal(last, in: app, towardTop: true); last.tap(); last.typeText("Z")
         let issue = app.staticTexts["templateRules.issue"]
         reveal(issue, in: app, hittable: false)
-        XCTAssertEqual(issue.label, "Use 60 or fewer ASCII characters for this step. The previous text was kept.")
+        XCTAssertEqual(issue.label, "Each step can be up to 60 characters. Your previous text was kept.")
         // Capture the active control BEFORE tapping the probe, which can move keyboard focus.
         let visibleAfterRejection = input("templateRules.input.11", in: app, towardTop: true).value as? String
         let acceptedAfterRejection = try inspect(app)
