@@ -23,7 +23,12 @@ class MerchantNoteCorrectionPresentationContracts(unittest.TestCase):
         self.assertIn('Button("merchant.noteCorrection.keep", role: .cancel) { }', block)
         self.assertIn('merchant.noteCorrection.cancelBody', block)
         for forbidden in ['requestID', 'journal', 'Task {', 'onReview(', 'prepare(', 'save(', 'execute(']: self.assertNotIn(forbidden, block)
-        appearance = source.split('.onAppear {', 1)[1].split('private func makeMutation', 1)[0]
+        # onAppear only restores a previously saved local draft (initializeNoteDraft), never sets cancellation itself.
+        appearance = source.split('.onAppear {', 1)[1].split('private func initializeNoteDraft', 1)[0]
+        restore = source.split('private func initializeNoteDraft', 1)[1].split('private func saveNoteDraft', 1)[0]
+        self.assertIn('let value = noteDrafts?.value(for: context.id)', restore)
+        self.assertIn('noteCorrectionCancelled = value.correctionCancelled', restore)
+        self.assertNotIn('noteCorrectionCancelled = true', restore)
         self.assertNotIn('noteCorrectionCancelled', appearance)
         self.assertNotIn('.note(', appearance)
     def test_summary_is_read_only_and_scoped_to_exact_customer_and_note(self):
