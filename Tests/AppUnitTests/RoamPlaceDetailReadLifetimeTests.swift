@@ -116,7 +116,7 @@ import UIKit
     private func settle() async throws { try await Task.sleep(for: .milliseconds(150)) }
     private func eventually(_ ready: () -> Bool) async throws {
         for _ in 0..<150 { if ready() { return }; try await Task.sleep(for: .milliseconds(20)) }
-        XCTFail("Original place detail did not settle"); throw APIError.notConfigured
+        XCTFail("Original place detail did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func activate(_ target: NSObject) {
         if let control = target as? UIControl { control.sendActions(for: .touchUpInside) }
@@ -127,7 +127,7 @@ import UIKit
             if let target = find(id, in: window) { activate(target); return }
             scroll(window); try await Task.sleep(for: .milliseconds(20))
         }
-        XCTFail("Missing original control: " + id); throw APIError.notConfigured
+        XCTFail("Missing original control: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func scroll(_ view: UIView) {
         if let scroll = view as? UIScrollView {

@@ -152,7 +152,7 @@ import UIKit
     private func settle() async { for _ in 0..<20 { await Task.yield() } }
     private func waitFor(_ condition: () -> Bool) async throws {
         for _ in 0..<150 { if condition() { return }; try await Task.sleep(for: .milliseconds(20)) }
-        XCTFail("Original official task journey did not settle"); throw APIError.notConfigured
+        XCTFail("Original official task journey did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {
         for _ in 0..<100 {
@@ -162,7 +162,7 @@ import UIKit
             }
             scroll(window); try await Task.sleep(for: .milliseconds(30))
         }
-        XCTFail("Missing original action: " + id); throw APIError.notConfigured
+        XCTFail("Missing original action: " + id + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func scroll(_ view: UIView) {
         if let value = view as? UIScrollView {

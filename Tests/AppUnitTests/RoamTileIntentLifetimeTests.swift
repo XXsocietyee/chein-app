@@ -179,7 +179,7 @@ import UIKit
     private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
     private func waitFor(_ condition: () -> Bool) async throws {
         for _ in 0..<150 { if condition() { return }; try await Task.sleep(nanoseconds: 20_000_000) }
-        XCTFail("Original tile read/control did not settle"); throw APIError.notConfigured
+        XCTFail("Original tile read/control did not settle" + " " + hostedDiagnostics()); throw APIError.notConfigured
     }
     private func tap(_ id: String, in window: UIWindow) async throws {
         try await waitFor { self.find(id, in: window) != nil }
