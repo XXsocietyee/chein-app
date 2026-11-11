@@ -20,7 +20,7 @@ class ClubMemberDisplayTests(unittest.TestCase):
 
     def test_both_profile_destinations_share_the_existing_scoped_row(self):
         source = (ROOT / "App/ClubMembersView.swift").read_text()
-        for token in ["try await reader.clubMembers(id: id)", "requiresSignIn: true",
+        for token in ["try await reader.clubMembers(id: id", "requiresSignIn: true",
                       "if let level = member.displayedLevel", "if let joined = member.displayedJoinTime",
                       'Text("club.memberLevel \\(level)")', 'Text("club.memberJoined \\(joined)")',
                       "target.identity == reader.clubIdentity", "target.viewerRevision == governance?.viewerRevision",

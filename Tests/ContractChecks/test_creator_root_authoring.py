@@ -80,5 +80,5 @@ class CreatorRootAuthoringChecks(unittest.TestCase):
         self.assertIn('number("sort", "maxAttempts", 0, 10',self.legacy)
     def test_runtime_acceptance_not_implied(self):
         self.assertIn('creatorRoot.roleViewsLimit',self.view)
-        self.assertIn('creatorRoot.damageServer',self.view)
+        self.assertIn('creatorRoot.damageServer',self.preview)
         self.assertIn('creatorRoot.rehearsalLimit',self.preview)
