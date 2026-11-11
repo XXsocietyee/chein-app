@@ -144,19 +144,23 @@ class AvatarContracts(unittest.TestCase):
     def test_payload_encodes_only_existing_six_wire_fields(self):
         source=(ROOT/'Core/ProfileEditContracts.swift').read_text()
         self.assertIn('case name, introduction, avatar, wechat, casePics, tagIds',source)
-        self.assertIn('draft.avatarReplacement?.reference ?? snapshot.avatar; wechat = snapshot.wechat; casePics = snapshot.casePics',source)
-        self.assertIn('snapshotHash == ProfileAvatarExact.snapshot(snapshot)',source)
+        # Case pictures and contact QR became explicit, separately reviewed removals/subsets; the avatar still
+        # comes only from the staged replacement, which must be bound to the exact current snapshot hash.
+        self.assertIn('avatar = draft.avatarReplacement?.reference ?? snapshot.avatar',source)
+        self.assertIn('wechat = removesContactQR ? "" : snapshot.wechat',source)
+        self.assertIn('casePics = removesCasePictures ? "" : (casePictureSubset?.wireValue ?? snapshot.casePics)',source)
+        self.assertIn('replacement.receipt.target.snapshotHash == ProfileAvatarExact.snapshot(snapshot)',source)
     def test_optional_image_prepare_validation_runs_after_fresh_read(self):
         self.assertEqual(self.coordinator.count('avatarValidity?.isCurrent == true'),3)
         self.assertIn('avatar.permits(session: expected, snapshot: latest)',self.coordinator)
         self.assertIn('return self.active(expected, request) && value.avatarValidity?.isCurrent == true',self.coordinator)
         self.assertIn('try await service.save(value.payload, token: expected.token)',self.coordinator)
     def test_image_save_checks_exact_fresh_snapshot_before_pending_reservation(self):
-        save=self.coordinator[self.coordinator.index('    public func save('):]
+        save=self.coordinator[self.coordinator.index('public func save(_ value: ProfileEditConfirmation)'):]
         guard='guard ProfileAvatarExact.snapshot(latest) == ProfileAvatarExact.snapshot(value.snapshot) else'
         self.assertIn('if value.payload.avatarReplacement != nil {', save)
         self.assertLess(save.index(guard),save.index('pending[expected.identity.accountID] = PendingWrite'))
-        self.assertIn('guard latest == value.snapshot else',save)
+        self.assertIn('guard latest == value.snapshot,',save)
         tests=(ROOT/'Tests/CoreTests/ProfileAvatarTests.swift').read_text()
         for token in ['testPostConfirmationReadRejectsCanonicallyEquivalentByteChangeForEveryPreservedField','await h.plain.waitForRead()', 'h.plain.resumeRead()']:
             self.assertIn(token,tests)
@@ -177,7 +181,7 @@ class AvatarContracts(unittest.TestCase):
         self.assertIn('coordinator.model?.retireAvatar()',self.section)
         self.assertIn('avatarLifetimeID = UUID(); avatarPreview = nil; avatarRetirement?()',self.view)
         self.assertIn('model.observeAvatarRetirement { [weak self] in self?.retire() }',self.section)
-        self.assertIn('model.retireReload(); model.retireAvatar()',self.view)
+        self.assertIn('if model.preferencePicker == nil, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }\n        model.retireReload()',self.view)
     def test_selected_only_picker_square_crop_and_no_new_device_grants(self):
         self.assertIn('pickerHost: RetainedImagePickerHost? = nil',self.section)
         self.assertIn('host.makePicker',self.section)
@@ -188,7 +192,10 @@ class AvatarContracts(unittest.TestCase):
     def test_locale_fragment_covers_all_new_user_labels(self):
         data=json.loads((ROOT/'Resources/ProfileAvatarLocalizations.fragment.json').read_text());self.assertEqual(len(data),18)
         used=set(re.findall(r'"(profile\.avatar\.[A-Za-z]+)"',self.section+self.view+self.coordinator))
-        self.assertTrue(used <= set(data),used-set(data))
+        # Keys added after the fragment live only in the product catalog; they must still carry both languages.
+        product=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
+        for key in used-set(data):
+            for lang in ['en','zh-Hans']:self.assertTrue(product[key]['localizations'][lang]['stringUnit']['value'],key)
         for item in data.values():
             for lang in ['en','zh-Hans']:self.assertTrue(item['localizations'][lang]['stringUnit']['value'])
     def test_negative_and_lifecycle_xctest_cases_are_authored(self):
