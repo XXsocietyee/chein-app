@@ -33,7 +33,8 @@ class CouponNoticeSurfaceChecks(unittest.TestCase):
         self.assertIn('element.isEnabled && element.isHittable',branch)
         self.assertEqual(branch.count('.tap()'),1)
         self.assertNotIn('while ',branch)
-        self.assertIn('XCTAssertEqual(code.value as? String, "123456")',s)
+        # The sixth digit auto-submits sign-in, so the value is asserted at five digits first.
+        self.assertIn('XCTAssertEqual(code.value as? String, "12345")',s)
         self.assertIn('waitForExistence(timeout: 8), app.debugDescription',s)
     def test_runtime_journeys_and_recovery_method_are_preserved(self):
         runtime=(self.read('Tests/AppUITests/CouponRuntimeFlowTests.swift') + '\n' +

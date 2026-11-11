@@ -24,7 +24,9 @@ import XCTest
         tap("auth.channels.sendCode")
         XCTAssertTrue(app.staticTexts["Code sent. Check your messages."].waitForExistence(timeout: 5))
         app.textFields["auth.channels.code"].tap(); app.textFields["auth.channels.code"].typeText("123456")
-        tap("auth.channels.phoneSignIn")
+        // The sixth digit submits automatically; tap only if that has not started yet.
+        let submit = app.buttons["auth.channels.phoneSignIn"]
+        if submit.exists && submit.isEnabled { tap("auth.channels.phoneSignIn") }
         let account = app.tabBars.buttons["Passport"]
         XCTAssertTrue(account.waitForExistence(timeout: 10)); account.tap()
         tap("rewards.open")
