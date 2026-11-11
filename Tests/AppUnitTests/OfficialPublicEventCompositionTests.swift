@@ -122,7 +122,7 @@ import UIKit
         XCTAssertEqual(URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems, [.init(name: "city", value: "Example & town/城")])
         transport.current = { .init(epoch: 1, accountID: 7, role: "player", token: "synthetic-7") }
         let paths = ["api/official/my-events", "api/official/v2/party-inbox", "api/official/can-publish",
-                     "api/official/my-published", "api/official/broadcast/71/stats", "api/official/active-for-roam",
+                     "api/official/broadcast/71/stats", "api/official/active-for-roam",
                      "api/official/events/71/signup", "api/official/events/071", "api/official/events/71/"]
         for path in paths {
             var request = URLRequest(url: URL(string: "https://example.test/native")!.appendingPathComponent(path))
@@ -132,6 +132,18 @@ import UIKit
             catch { XCTAssertEqual(error as? APIError, .notConfigured, path) }
         }
         XCTAssertEqual(wire.requests.count, 1)
+        // `my-published` is a separately reviewed signed-in read (ReviewedOrientOfficialRoute, liveInProduction), not part of the
+        // public catalog grant: it is admitted only for an exact signed-in GET and never for a guest viewer.
+        var published = URLRequest(url: URL(string: "https://example.test/native")!.appendingPathComponent("api/official/my-published"))
+        published.httpMethod = "GET"; published.setValue("application/json", forHTTPHeaderField: "Accept")
+        published.setValue("synthetic-7", forHTTPHeaderField: "Authorization")
+        transport.current = { .init(epoch: 1, accountID: nil, role: nil, token: nil) }
+        do { _ = try await transport.send(published); XCTFail("guest reached my-published") }
+        catch { XCTAssertNotNil(error) }
+        XCTAssertEqual(wire.requests.count, 1)
+        transport.current = { .init(epoch: 1, accountID: 7, role: "player", token: "synthetic-7") }
+        _ = try await transport.send(published)
+        XCTAssertEqual(wire.requests.count, 2)
     }
 
     func testUSRevokedRemovedAndForeignSourceNeverReachWire() async throws {

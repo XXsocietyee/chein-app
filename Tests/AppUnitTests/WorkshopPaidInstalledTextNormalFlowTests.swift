@@ -86,7 +86,7 @@ import UIKit
         init() throws {
             wire = try Wire()
             deployment = try .init(market:.china,baseURL:base.absoluteString,approvedBaseURLs:[.china:[base.absoluteString]],verifiedCapabilities:[.domesticChinaPhone],bundleIdentifier:"test.workshop.paidbody",realm:"synthetic-"+UUID().uuidString.lowercased())
-            session = AppCompositionRoot(deployment:.reviewed(deployment),storage:.init(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},workshopPaidInstalledTextApproval:{[weak self] context in
+            session = AppCompositionRoot(deployment:.reviewed(deployment),storage:WorkshopSyntheticStorage.factory(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},workshopPaidInstalledTextApproval:{[weak self] context in
                 guard let self,let expected=try? self.context() else{return nil}; self.seen += 1
                 XCTAssertEqual(context,expected); XCTAssertEqual(context.role,context.session.role)
                 return context==expected ? self.approval:nil
