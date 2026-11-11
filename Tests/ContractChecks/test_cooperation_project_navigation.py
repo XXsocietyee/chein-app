@@ -51,7 +51,9 @@ class CooperationProjectNavigationContract(unittest.TestCase):
         self.assertIn('openedTopic = nil', self.detail)
         self.assertNotIn('cooperation.retry', self.nav)
         self.assertIn('Button("cooperation.retry", action: retry)', read('App/CooperationComponents.swift'))
-        self.assertIn('Button("cooperation.detail.deposit.pay") {}.disabled(true)', self.actions)
+        # Deposit payment is never offered: the old disabled pay button was replaced by a back-to-list control.
+        self.assertNotIn('cooperation.detail.deposit.pay"', self.actions)
+        self.assertIn('Button("cooperation.detail.deposit.backToList") { dismiss() }', self.actions)
         self.assertIn('NavigationLink { CoopFlowHandleEditor(inviteID: invite.id, action: .cancel, currentStatus: 1) }', self.actions)
 
 

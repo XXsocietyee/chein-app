@@ -96,7 +96,8 @@ class MerchantOperationsSourceTests(unittest.TestCase):
     def test_native_card_and_accessible_form_structure(self):
         views = self.text('App/MerchantOperationsViews.swift')
         editor = self.text('App/MerchantOperationsEditor.swift')
-        self.assertIn('QuestifyImageEntityCard(', views)
+        # The image entity card now lives with the editor rows rather than the home view.
+        self.assertIn('QuestifyImageEntityCard(', editor)
         self.assertIn('Form {', editor)
         self.assertNotIn('.stroke(', views + editor)
         self.assertIn('interactiveDismissDisabled', views)
@@ -116,6 +117,9 @@ class MerchantOperationsSourceTests(unittest.TestCase):
         self.assertIn('"pageSize": "100"', service)
         self.assertIn('"category_id": ""', service)
         self.assertIn('"is_quote": ""', service)
-        self.assertIn('templatePageLimit', self.text('App/MerchantOperationsViews.swift'))
+        # Template browsing is an explicit paged browser: one page per request, bounded by MerchantTemplatePage.pageSize.
+        self.assertIn('MerchantTemplateBrowserView(reader: reader', self.text('App/MerchantOperationsViews.swift'))
+        self.assertIn('guard page > 0 else { throw APIError.invalidRequest }', service)
+        self.assertIn('"pageSize": String(MerchantTemplatePage.pageSize)', service)
 
 if __name__ == '__main__': unittest.main()

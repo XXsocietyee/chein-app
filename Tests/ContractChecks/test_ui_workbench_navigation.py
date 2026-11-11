@@ -11,8 +11,12 @@ class WorkbenchUINavigationChecks(unittest.TestCase):
 
     def test_enrollment_ticket_identifier_does_not_replace_descendant_routes(self):
         source = self.text('App/ClubEnrollmentView.swift')
-        self.assertIn('title(ticket.name, fallback: "club.enroll.unnamedTicket").font(.headline)\n'
-                      '                        .accessibilityIdentifier("club.enroll.ticket.\\(ticket.id)")', source)
+        # The id stays a leaf on the ticket title (restyled with cardTitle tokens), not on the whole row.
+        self.assertIn('title(ticket.name, fallback: "club.enroll.unnamedTicket")\n'
+                      '            .font(CYTypography.cardTitle)\n'
+                      '            .foregroundStyle(palette.textPrimary)\n'
+                      '            .fixedSize(horizontal: false, vertical: true)\n'
+                      '            .accessibilityIdentifier("club.enroll.ticket.\\(ticket.id)")', source)
         self.assertNotIn('}.padding(.vertical, 6).accessibilityIdentifier("club.enroll.ticket.', source)
         for identifier in ['club.enroll.profile.', 'club.enroll.checkin.']:
             self.assertIn('.accessibilityIdentifier("' + identifier, source)

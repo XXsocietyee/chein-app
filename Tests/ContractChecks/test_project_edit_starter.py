@@ -62,7 +62,7 @@ class ProjectEditStarterChecks(unittest.TestCase):
     def test_capture_invalidates_on_real_model_lifecycle(self):
         model = read('App/ProjectEditView.swift')
         for token in ['func restore() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID()', 'func discard() { guard ownsVisit else { return }; cancelReview(); editorIncarnation = UUID()',
-                      'guard ownsVisit else { return }; generation += 1; editorIncarnation = UUID()', 'editorIncarnation = UUID(); generation += 1',
+                      'if visit == nil { leftBeforeInitialLoad = true }; guard ownsVisit else { return }', 'confirmedLocalExit = nil; generation += 1; editorIncarnation = UUID(); autosave?.cancel()', 'editorIncarnation = UUID(); generation += 1',
                       'editorIncarnation = UUID(); draft = seed', 'starter.retire(); pending.retire(); model.leave()']:
             self.assertIn(token, model)
         fixtures = read('App/ProjectEditFixtureSupport.swift')

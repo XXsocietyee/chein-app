@@ -42,7 +42,7 @@ class MerchantPublicFactoryContractTests(unittest.TestCase):
                      'message.unicodeScalars.count <= 300',
                      'OperationPendingRecord(operationID: id', 'pending != record',
                      'try journal.write(record)', 'data["requestId"] as? String == requestID',
-                     'status != "PROCESSING" && !retryable', 'try journal.clear(record)',
+                     'reply.outcomeStatus != "PROCESSING" && !reply.canRetry', 'try journal.clear(record)',
                      'guard valid(input.scope), !Task.isCancelled']:
             self.assertIn(text, production)
         self.assertLess(production.index('try journal.write(record)'), production.index('transport.send(request)'))

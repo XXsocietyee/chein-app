@@ -1,11 +1,11 @@
 {
   "walking.title": {
-    "en": "In-app walking navigation",
-    "zh-Hans": "App 内步行导航"
+    "en": "Walking navigation",
+    "zh-Hans": "步行导航"
   },
   "walking.foregroundOnly": {
-    "en": "Foreground walking guidance. Location permission must already be enabled; leaving the app pauses navigation.",
-    "zh-Hans": "仅在前台提供步行指引；需要已授权定位，离开 App 将暂停导航"
+    "en": "Navigation pauses when you leave the app.",
+    "zh-Hans": "离开 App 后导航会暂停。"
   },
   "walking.previewUnavailable": {
     "en": "Walking route unavailable. No walkable path has been verified.",
@@ -48,8 +48,8 @@
     "zh-Hans": "定位精度"
   },
   "walking.arrivalBoundary": {
-    "en": "Being near the destination does not complete a task or grant rewards. Return to the current task to verify it.",
-    "zh-Hans": "接近目的地不会完成任务或发放奖励，请返回当前任务进行验证"
+    "en": "Getting close doesn't finish the task. Check in from the task.",
+    "zh-Hans": "走近不等于完成任务，请回到任务打卡。"
   },
   "walking.openVerification": {
     "en": "Open task verification",
@@ -72,8 +72,8 @@
     "zh-Hans": "取消导航"
   },
   "walking.safety": {
-    "en": "Check crossings, closures and building entrances. No indoor, background or voice guidance is provided.",
-    "zh-Hans": "注意路口、封路与建筑入口；当前不提供室内、后台或语音指引"
+    "en": "Watch for crossings and closures.",
+    "zh-Hans": "注意路口和封路。"
   },
   "walking.ready": {
     "en": "Ready to request the current allowed destination",

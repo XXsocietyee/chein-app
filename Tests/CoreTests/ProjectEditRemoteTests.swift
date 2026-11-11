@@ -106,7 +106,9 @@ import FoundationNetworking
             var payload = completed.payload; payload["description"] = .string("é")
             let replacement = ProjectEditPending(operationID: completed.operationID,
                 ownerKey: completed.ownerKey, identity: completed.identity, payload: payload,
-                dispatchStarted: completed.dispatchStarted, baseline: completed.baseline,
+                dispatchStarted: completed.dispatchStarted, serverRequest: completed.serverRequest,
+                serverRequestCommitted: completed.serverRequestCommitted, postProcessing: completed.postProcessing,
+                baseline: completed.baseline,
                 completedTopicID: completed.completedTopicID, serverAcknowledged: completed.serverAcknowledged,
                 bundleAcknowledgment: completed.bundleAcknowledgment)
             XCTAssertEqual(replacement.payload, capture.completed.payload) // Swift String equality is canonical.

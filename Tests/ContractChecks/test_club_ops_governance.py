@@ -67,7 +67,7 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
             'clubOpsGov.bans.empty': '暂无治理记录', 'clubOpsGov.cases.empty': '暂无已提交工单',
             'clubOpsGov.appeal.current': '封禁中的这条', 'clubOpsGov.appeal.empty': '当前没有可申诉的封禁',
             'clubOpsGov.appeal.emptyBody': '只有被本俱乐部限期封禁时才能向平台提交申诉。',
-            'clubOpsGov.appeal.note': '申诉进入平台治理队列；俱乐部主理人和副主理人不能裁决。申诉通过后解除封禁，但不会自动恢复成员身份。',
+            'clubOpsGov.appeal.note': '申诉由平台裁决。申诉通过后解封，需重新入会。',
             'clubOpsGov.banReason %@': '封禁原因：%@', 'clubOpsGov.unbanNote %@': '解封说明：%@', 'clubOpsGov.submittedAt %@': '提交于 %@',
             'clubOpsGov.decision %@': '平台说明：%@', 'clubOpsGov.banTarget %@': '成员「%@」', 'clubOpsGov.memberNumber %lld': '成员 #%lld',
             'clubOpsGov.until %@': '至 %@', 'clubOpsGov.platformPermanent': '平台永久封禁', 'clubOpsGov.platformOnly': '仅平台可解封',
@@ -80,12 +80,12 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
             'clubOpsGov.ban.consequence': '封禁后对方立即失去成员身份与群聊入口；解封只恢复申请资格，成员身份不会自动恢复。',
             'clubOpsGov.unban.reasonHint': '填写复核说明（可选）', 'clubOpsGov.transfer.title %@': '转让主理人给 %@',
             'clubOpsGov.transfer.hint': '转让后你将失去主理人权限', 'clubOpsGov.transfer.reasonHint': '填写交接原因（必填）',
-            'clubOpsGov.report.note': '请只提交可核实的具体事实。平台审核前，不会自动认定违规或执行封禁。',
+            'clubOpsGov.report.note': '请提交可核实的事实。',
             'clubOpsGov.success.ban': '已封禁并移出俱乐部', 'clubOpsGov.success.unban': '已解除封禁', 'clubOpsGov.success.transfer': '主理人已转让',
             'clubOpsGov.success.case': '已提交平台处理', 'clubOpsGov.roles.success.assign': '角色已分配', 'clubOpsGov.roles.success.revoke': '角色已撤销',
             'clubOpsGov.roles.ownerSummary': '全部权限，不可撤销', 'clubOpsGov.roles.roleFallback': '角色', 'clubOpsGov.roles.until %@': ' · 至 %@',
             'clubOpsGov.roles.assign.title': '分配固定角色', 'clubOpsGov.roles.assign.caption': '选择成员后，从下方分配一个固定角色',
-            'clubOpsGov.roles.footer': '撤销角色要二次确认；撤销后该成员立即失去对应入口。',
+            'clubOpsGov.roles.footer': '撤销后立即生效',
             'clubOpsGov.roles.revoke.title %@': '撤销「%@」?', 'clubOpsGov.roles.revoke.body': '撤销后对方立即失去这个范围内的权限。',
             'clubOpsGov.roles.revoke.consequence1': '对方立刻失去该范围内的全部管理动作,进行中的操作会被打断',
             'clubOpsGov.roles.revoke.consequence2': '对方仍然是俱乐部成员,只是不再有这个角色',
@@ -163,7 +163,7 @@ class ClubOpsGovernanceContracts(unittest.TestCase):
         self.assertIn('ClubOpsGovernanceSuccess(operation: route.operation)', receipt)
         self.assertEqual(self.form.count('ClubOpsGovernanceSuccess('), 1)
         self.assertIn('receipt = value; self.review = nil; locked = true', self.form)
-        review = self.form.split('Section("club.gov.review") {', 1)[1].split('Button(', 1)[0]
+        review = self.form.split('if let review {', 1)[1].split('Button(', 1)[0]
         self.assertIn('.filter { $0 != "expiresAtEpochMs" && ', review)
         self.assertIn('ClubOpsBanExpiryReview(fields: review.command.fields)', review)
 

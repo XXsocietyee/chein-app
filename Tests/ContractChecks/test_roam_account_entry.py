@@ -33,7 +33,7 @@ class RoamAccountEntryContracts(unittest.TestCase):
         self.assertLess(toolbar, action)
         self.assertGreater(toolbar, self.browser.index(".sheet(item: $selected)"))
         for token in ["reader.isConfigured", "reader.identity", "reader.searchArea", "currentFix", "approval", "transport"]:
-            self.assertNotIn(token, self.browser.split("if let onOpenAccount {", 1)[1].split("if let cityDestination", 1)[0])
+            self.assertNotIn(token, self.browser.split("if let onOpenAccount {", 1)[1].split("if experienceReader != nil", 1)[0])
 
     def test_callback_does_not_change_subject_or_start_a_walk(self):
         action = self.root.split("onOpenAccount:{", 1)[1].split("}", 1)[0].strip()

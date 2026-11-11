@@ -34,33 +34,35 @@
       }
     },
     "nearby.review.liveConsequence": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Applying requests membership. Approval adds the applicant; rejection prevents reapplication; withdrawal removes your pending request. Confirm only the team and applicant shown here."
+            "value": "Check the team before you continue. A declined applicant can't apply again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申请请求加入；同意会添加成员；拒绝后无法再次申请；撤回会移除待处理请求。请仅确认此处显示的队伍与申请人。"
+            "value": "继续前请确认队伍信息。被拒绝后不能再次申请。"
           }
         }
       }
     },
     "nearby.submitReviewed": {
+      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit reviewed action"
+            "value": "Confirm"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交已核对操作"
+            "value": "确认"
           }
         }
       }

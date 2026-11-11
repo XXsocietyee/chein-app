@@ -265,7 +265,7 @@ class CityFairnessContracts(unittest.TestCase):
             self.assertNotIn(denied, view)
         self.assertNotIn("UserDefaults", view)
         self.assertNotIn("restartRestoreSupported = false", source)
-        for marker in ['tableName: "CityFairness"', "restoreSameQuery()", "loadOutings()", "nextOutings()", "setForeground", "page.showsRatio", "page.ratioText", "page.outings", "fairness.back", "fairness.notComputable", "fairness.noMatureSample", "fairness.unknown", "fairness.coverage", "fact.missing", "String(count)"]:
+        for marker in ['private let table = "CityFairness"', "restoreSameQuery()", "loadOutings()", "nextOutings()", "setForeground", "page.showsRatio", "page.ratioText", "page.outings", "fairness.back", "fairness.notComputable", "fairness.noMatureSample", "fairness.unknown", "fairness.coverage", 'return "—"', "String(count)"]:
             self.assertIn(marker, view)
         evidence = view.split("struct CityFairnessEvidenceView", 1)[1]
         self.assertNotIn("ratioText", evidence)
@@ -377,14 +377,19 @@ class CityFairnessContracts(unittest.TestCase):
     def test_committed_host_files_are_untouched(self):
         for relative in [
             "App/AppSession.swift", "App/AppCompositionRoot.swift", "App/QuestifyApp.swift", "App/AccountView.swift",
-            "App/CityPlayerView.swift", "App/RoamBrowserView.swift", "Questify.xcodeproj/project.pbxproj",
+            "App/CityPlayerView.swift", "App/RoamBrowserView.swift",
         ]:
             self.assertNotIn("CityFairness", (ROOT / relative).read_text())
+        # The project file now registers the screen, core and catalog (the host files above still do not).
+        project = (ROOT / "Questify.xcodeproj/project.pbxproj").read_text()
+        for path in ["App/CityFairnessView.swift", "Core/CityFairness.swift", "Resources/CityFairness.xcstrings"]:
+            self.assertIn(path, project)
 
     def test_catalog_is_bilingual_and_covers_literal_keys(self):
         catalog = json.loads((ROOT / "Resources/CityFairness.xcstrings").read_text())
         view = (ROOT / "App/CityFairnessView.swift").read_text()
-        used = set(re.findall(r'Text\("([^"]+)", tableName: "CityFairness"\)', view))
+        # Keys are now passed through components with a shared `table` constant; collect every key literal.
+        used = set(re.findall(r'"(fairness\.[A-Za-z0-9]+)"', view)) - {"fairness.screen"}
         self.assertEqual(used | {"fairness.entry"}, set(catalog["strings"]))
         for key, entry in catalog["strings"].items():
             self.assertEqual(set(entry["localizations"]), {"en", "zh-Hans"})

@@ -17,12 +17,19 @@ def block(text, start, length=1400):
 
 class Pkg19LoginDeletionChain(unittest.TestCase):
     def test_settings_reaches_deletion_entry_without_debug_gate(self):
-        for path in ['App/SettingsView.swift', 'App/SettingsSupportSections.swift',
-                     'App/AccountComplianceViews.swift', 'App/SettingsAccountEntries.swift']:
+        import re
+        # The deletion path itself has no DEBUG gate. SettingsView and AccountComplianceViews now carry
+        # design-fixture-only DEBUG blocks (stubbed identity / view model); everything the release build
+        # reaches must remain present once those blocks are removed.
+        for path in ['App/SettingsSupportSections.swift', 'App/SettingsAccountEntries.swift']:
             self.assertNotIn('#if DEBUG', src(path), path)
+        release = lambda path: re.sub(r'#if DEBUG.*?#endif', '', src(path), flags=re.S)
+        for path in ['App/SettingsView.swift', 'App/AccountComplianceViews.swift']:
+            for block in re.findall(r'#if DEBUG.*?#endif', src(path), flags=re.S):
+                self.assertTrue('Design fixtures only' in block or 'designMode' in block or 'designOverride' in block, (path, block[:80]))
         self.assertIn('SettingsSupportSections(market: session.operationalMarket, complianceCoordinator: session.accountComplianceCoordinator)',
-                      src('App/SettingsView.swift'))
-        self.assertIn('case roam, marketing, cancellation', src('App/AccountComplianceViews.swift'))
+                      release('App/SettingsView.swift'))
+        self.assertIn('case roam, marketing, cancellation', release('App/AccountComplianceViews.swift'))
 
     def test_non_cn_fallback_keeps_explicit_unavailable_deletion_row(self):
         sections = src('App/SettingsSupportSections.swift')
@@ -88,7 +95,8 @@ class Pkg19LoginDeletionChain(unittest.TestCase):
 
     def test_sign_out_entry_requires_confirmation(self):
         entry = src('App/SettingsAccountEntries.swift')
-        self.assertIn('confirmationDialog("auth.signOutConfirm"', entry)
+        self.assertIn('CYConfirmSheet(title: appLocalized("auth.signOutConfirm", locale: locale)', entry)
+        self.assertIn('isDestructive: true, confirmIdentifier: "settings.signOut.confirm"', entry)
         self.assertIn('if session.account != nil {', entry)
 
     def test_no_new_endpoint_literals_in_auth_or_compliance_ui(self):

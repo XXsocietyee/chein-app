@@ -26,14 +26,14 @@ class OfficialDetailParityChecks(unittest.TestCase):
         view = read("App/OfficialEventDetailView.swift")
         self.assertIn("let presentation = OfficialEventDetailPresentation(event: event, now: Date())", view)
         order = ["OfficialEventCard(event: event)", "OfficialDetailID.organizer", 'Section("official.facts")',
-                 "OfficialDetailID.overview", "presentation.storyDetail", "presentation.cards",
+                 "OfficialDetailID.overview", "presentation.cards", "presentation.storyDetail",
                  '"official.detailParity.tasks.heading"', '"official.detailParity.rewards.heading"',
                  '"official.collective"', "OfficialDetailID.rewardFootnote", "presentation.cta.key"]
         positions = [view.index(marker) for marker in order]
         self.assertEqual(positions, sorted(positions))
         model = read("Core/OfficialEventDetailPresentation.swift")
         for marker in ['"city_light"', '"merchant_hunt"', '"ROAM_POI_ARRIVAL"', '"EVENT_POINT_ARRIVAL"',
-                       '"THEME_VERIFIED_FINISH"', '"ROAM_SESSION_AREA"', '"Asia/Shanghai"', "if let status, status >= 5 { return .ended }"]:
+                       '"THEME_VERIFIED_FINISH"', '"ROAM_SESSION_AREA"', 'displayTimeZone: TimeZone = .current', 'calendar.timeZone = displayTimeZone', "if let status, status >= 5 { return .ended }"]:
             self.assertIn(marker, model)
         for forbidden in ["URLSession", "httpMethod", "NavigationLink", "openURL"]:
             self.assertNotIn(forbidden, model)

@@ -89,8 +89,10 @@ class PagesShezhiShezhiTests(unittest.TestCase):
                             "[UGC_POLICY_PLACEHOLDER]"]:
             self.assertIn(placeholder, note)
         view = self.read("App/SettingsView.swift")
-        self.assertNotIn("SettingsHomePage", view)
-        self.assertIn('?? "—"', view)
+        # The unknown market now renders through the Core helper (nil -> the em dash), never invented or shown as a value.
+        self.assertIn("SettingsHomePage.marketText(session.operationalMarket)", view)
+        core = self.read("Core/SettingsIdentityApplications.swift")
+        self.assertIn("market?.rawValue ?? unknownDisplay", core)
 
     def test_existing_settings_offer_behavior_is_unchanged(self):
         source = self.read("Core/SettingsIdentityApplications.swift")

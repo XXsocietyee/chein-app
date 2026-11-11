@@ -17,8 +17,9 @@ class MerchantProfileBenefitsTests(unittest.TestCase):
         self.assertIn('fields: value.profile.legacyFields', draft)
     def test_normal_editor_and_frozen_review_are_connected(self):
         editor = self.read('App/MerchantOperationsEditor.swift')
-        self.assertIn('merchant.operations.field.derivativeBenefits', editor)
-        self.assertIn('current.derivativeBenefits = text; model.edit(.profile(current))', editor)
+        # Benefits are now edited through the shared store-field entry, which writes the same profile draft field.
+        self.assertIn('MerchantStoreFieldEntry(document: model, presentation: storeFieldPresentation, field: .derivativeBenefits)', editor)
+        self.assertIn('case .derivativeBenefits: p.derivativeBenefits = value', self.read('Core/MerchantStoreFieldDraft.swift'))
         self.assertIn('confirmation.draft.reviewLines', editor)
         self.assertIn('.profile', self.read('App/MerchantOperationsViews.swift'))
     def test_acknowledged_profile_readback_is_separate_from_write_failure(self):

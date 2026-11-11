@@ -38,15 +38,19 @@ class TemplateOwnShelfReadStateContract(unittest.TestCase):
         self.core = read('Core/TemplateAuthoringShelf.swift')
         self.catalog = read('Resources/Localizable.xcstrings')
 
-    def test_fragment_is_the_mini_wording_and_not_merged(self):
+    def test_fragment_is_the_mini_wording_and_is_merged(self):
         strings = self.fragment['strings']
         self.assertEqual(set(strings), set(COPY))
         for key, value in COPY.items():
             row = strings[key]['localizations']
             self.assertEqual(set(row), {'en', 'zh-Hans'})
             self.assertEqual(row['zh-Hans']['stringUnit']['value'], value)
-            self.assertEqual(row['en']['stringUnit']['value'], value)
-            self.assertNotIn('"%s"' % key, self.catalog)
+            # The English side is now a real translation (it was once the Chinese mini wording verbatim).
+            en = row['en']['stringUnit']['value']
+            self.assertTrue(en.strip())
+            self.assertFalse(any('\u4e00' <= ch <= '\u9fff' for ch in en), key)
+            # The fragment has since been merged into the live catalog.
+            self.assertIn('"%s"' % key, self.catalog)
 
     def test_mine_view_uses_the_read_states_without_a_new_login_route(self):
         for key in COPY:

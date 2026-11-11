@@ -13,7 +13,7 @@ class ClubDetailEventsSectionTests(unittest.TestCase):
     def test_symbols_and_wiring(self):
         section = self.text('App/ClubDetailEventsSection.swift')
         for symbol in ['ClubDetailEventsSection', 'ClubEventCalendarReadModel', 'ClubEventCalendarView',
-                       'club.calendar.open', 'task(id: readContext)', 'model.invalidate()']:
+                       'club.calendar.open', 'task(id: ReadTrigger(context: readContext', 'model.invalidate()']:
             self.assertIn(symbol, section)
         self.assertIn('ClubDetailEventsSummary', self.text('Core/ClubDetailEventsSummary.swift'))
         self.assertIn('ClubDetailEventsSection(', self.text('App/ClubDetailView.swift'))

@@ -30,7 +30,11 @@ class TeamPkg07AcceptanceContract(unittest.TestCase):
         # b5f63a07 (dot's copy commit) integrates scoped pasteboard copy in TeamInvitePreview only.
         self.assertNotIn('UIPasteboard', (ROOT / 'App/TeamHomeView.swift').read_text())
         components = (ROOT / 'App/TeamComponents.swift').read_text()
-        self.assertIn('UIPasteboard.general.setItems', components)
+        # Copy now goes through the single local-only, expiring LocalPasteboard route (no direct UIPasteboard in the view).
+        self.assertIn('LocalPasteboard.copy(value)', components)
+        self.assertNotIn('UIPasteboard', components)
+        pasteboard = (ROOT / 'App/LocalPasteboard.swift').read_text()
+        self.assertIn('options: [.localOnly: true, .expirationDate: now.addingTimeInterval(lifetime)]', pasteboard)
         self.assertIn('team.invite.copy', components)
 
 if __name__ == '__main__':

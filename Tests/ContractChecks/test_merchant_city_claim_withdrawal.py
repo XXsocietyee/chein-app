@@ -38,7 +38,7 @@ class MerchantCityClaimWithdrawalContracts(unittest.TestCase):
         source = self.read('App/MerchantContentViews.swift')
         self.assertIn('MerchantCityClaimWithdrawal(poiID: poiID, snapshot: review.baseline)', source)
         self.assertIn('Button("action.cancel") { model.cancel(); dismiss() }', source)
-        self.assertIn('!model.coordinator.service.permitsWrites', source)
+        self.assertIn('!model.coordinator.service.permits(review.command)', source)
         self.assertIn('merchant.cityClaim.withdrawConsequence', source)
 
     def test_source_correction_has_explicit_negative_and_coordinator_cases(self):

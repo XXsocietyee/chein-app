@@ -56,14 +56,18 @@ class NativePresentationReuseChecks(unittest.TestCase):
         for filename, binding in [('RoamStampCameraView.swift', 'showingCamera'), ('RoamPosterScanView.swift', 'showingScanner')]:
             text = source('App/' + filename)
             self.assertIn('.fullScreenCover(isPresented: $' + binding + ', onDismiss:', text)
-            self.assertNotIn('.sheet(', text)
+            # The stamp flow gained a non-camera permission-priming sheet; the camera itself stays full screen.
+            self.assertNotIn('.sheet(', text.replace('.sheet(isPresented: $showingPriming, onDismiss:', ''))
             self.assertIn('@AccessibilityFocusState', text)
             self.assertIn('scenePhase == .active, cameraEnabled', text)
             self.assertIn('.onChange(of: cameraEnabled)', text)
         stamp = source('App/RoamStampCameraView.swift')
         callback = stamp.split('RoamNativeStampCamera { result in', 1)[1].split('switch result', 1)[0]
         self.assertLess(callback.index('guard ticket == captureGeneration'), callback.index('showingCamera = false'))
-        self.assertIn('imagePickerControllerDidCancel', stamp)
+        # The camera is now the custom framing controller; its cancel button must finish with a nil (no-image) result.
+        framing = source('App/RoamStampFramingCamera.swift')
+        self.assertIn('roam.stampFraming.cancel', framing)
+        self.assertIn('invalidate(); finished(.success(nil))', framing)
         self.assertIn('Button("action.cancel")', source('App/NativeQRScanner.swift'))
 
     def test_poster_callback_is_generation_gated_and_background_clears_review(self):
@@ -81,7 +85,7 @@ class NativePresentationReuseChecks(unittest.TestCase):
         self.assertIn('coordinator?.phase == .uploading || coordinator?.phase == .creating', stamp)
         self.assertIn('phase == .locating || phase == .preflighting || phase == .submitting', poster)
         for text in [stamp, poster]:
-            self.assertIn('if isBusy { ProgressView(', text)
+            self.assertTrue('if isBusy { ProgressView(' in text or ('if isBusy {' in text and 'CYSkeleton()' in text))
             self.assertIn('case .unknown:', text)
             self.assertIn('case .unavailable:', text)
             self.assertIn('case .failed:', text)
@@ -90,12 +94,13 @@ class NativePresentationReuseChecks(unittest.TestCase):
 
     def test_settings_still_has_one_language_owner_and_read_only_region(self):
         text = source('App/SettingsView.swift')
-        self.assertEqual(text.count('@AppStorage("preferences.language")'), 1)
+        self.assertEqual(text.count('@AppStorage(AppLanguage.storageKey)'), 1)
+        self.assertIn('preferences.language', source('Core/AppPreferences.swift'))
         self.assertIn('Form {', text)
-        self.assertIn('LabeledContent { Text(verbatim:RegionalLaunchConfiguration.market?', text)
+        self.assertIn('LabeledContent { Text(verbatim: SettingsHomePage.marketText(session.operationalMarket))', text)
         self.assertNotIn('Picker("region.market"', text)
         self.assertNotIn('AppLanguage', source('Core/SettingsSourceLegalCatalog.swift'))
-        self.assertIn('SettingsAttributionsSection(copyText: copyText)', source('App/SettingsSupportSections.swift'))
+        self.assertIn('SettingsAttributionsSection(copyText: copyText)', source('App/SettingsAboutView.swift'))
         self.assertIn('case .loaded(.missing(let reason)):', source('App/SettingsLegalDocumentView.swift'))
 
     def test_uses_existing_bilingual_strings_and_no_new_dependency(self):

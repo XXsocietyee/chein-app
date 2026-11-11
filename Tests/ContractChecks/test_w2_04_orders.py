@@ -58,7 +58,7 @@ class W204OrderParityChecks(unittest.TestCase):
         self.assertIn('guard state != .unknown else { return nil }', self.core)
         for removed in ['"profile.orders.paymentCode"', '"profile.orders.refundCode"', '"profile.orders.refundApplicationCode"']:
             self.assertNotIn(removed, self.app)
-        self.assertIn('case .raw(let code): Text("profile.orderParity.rawCode \\(String(code))")', self.app)
+        self.assertIn('case .raw: Text(verbatim: "—")', self.app)
 
     def test_core_is_display_only(self):
         for banned in ['URLSession', 'transport.send', 'Task {', 'UserDefaults', 'func pay(', 'func refund(', 'func cancel(', 'func submit(']:

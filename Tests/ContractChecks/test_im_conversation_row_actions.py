@@ -51,7 +51,7 @@ class IMConversationRowActionsContracts(unittest.TestCase):
         screen = self.read('App/MessagingComponents.swift')
         self.assertIn('guard queued == token, appearance == token.appearance', sheet)
         self.assertIn('guard appearance == token.appearance, executing == token', sheet)
-        self.assertIn('Button("action.close") { model.dismiss(); dismiss() }', sheet)
+        self.assertIn('LocalizedStringKey("action.close")) { model.dismiss(); dismiss() }', sheet)
         self.assertIn('model.prepare(.retryUnchanged, appearance: appearance)', sheet)
         self.assertIn('Task { _ = await model.perform(token) }', sheet)
         self.assertIn('Task { await owner.perform(token, load: operation) }', screen)

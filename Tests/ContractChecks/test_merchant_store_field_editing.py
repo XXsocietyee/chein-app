@@ -32,7 +32,7 @@ class Contract(unittest.TestCase):
  def test_old_presentation_binding_and_permit_rejected(self):
   for s in ['generation == permit','self.generation == captured','guard session?.id == id else','self.session?.id == shownID','self?.close(shownID)']:self.assertIn(s,self.session)
  def test_lifecycle_clears_new_buffer(self):
-  for s in ['.onChange(of: document.revision)','.onChange(of: document.coordinator.draftIdentity)','.onChange(of: document.coordinator.reader.scope)','.onChange(of: scenePhase)','.onDisappear { presentation.deactivate() }','.privacySensitive()']:self.assertIn(s,self.view)
+  for s in ['.onChange(of: document.revision)','.onChange(of: document.coordinator.draftIdentity)','.onChange(of: document.coordinator.reader.scope)','.onChange(of: scenePhase)','.onDisappear { presentation.viewDisappeared() }','.privacySensitive()']:self.assertIn(s,self.view)
  def test_discard_prompt_not_consumed_by_framework_binding(self):
   self.assertIn('Binding(get: { session.asksDiscard }, set: { _ in })',self.view)
   self.assertIn('.interactiveDismissDisabled(session.buffer.isDirty || session.asksDiscard)',self.view)
@@ -42,10 +42,10 @@ class Contract(unittest.TestCase):
   rows=json.loads((R/'Resources/MerchantStoreFieldLocalizations.fragment.json').read_text());self.assertEqual(len(rows),16)
   for v in rows.values():self.assertEqual(set(v['localizations']),{'en','zh-Hans'})
  def test_native_test_modules_and_inventory(self):
-  for p,n,module in [('CoreTests/MerchantStoreFieldDraftTests.swift',17,'QuestifyCore'),('AppUnitTests/MerchantStoreFieldSessionTests.swift',22,'Questify'),('AppUITests/MerchantStoreFieldFlowTests.swift',5,None)]:
+  for p,n,module in [('CoreTests/MerchantStoreFieldDraftTests.swift',17,'QuestifyCore'),('AppUnitTests/MerchantStoreFieldSessionTests.swift',39,'Questify'),('AppUITests/MerchantStoreFieldFlowTests.swift',5,None)]:
    s=(R/'Tests'/p).read_text();self.assertEqual(s.count('func test'),n)
    if module:self.assertIn('@testable import '+module+'\n',s)
  def test_existing_fixture_only_no_new_runtime_injection(self):
   ui=(R/'Tests/AppUITests/MerchantStoreFieldFlowTests.swift').read_text();self.assertIn('--uitesting-merchant-operations-fixture',ui)
-  self.assertNotIn('merchant.operations.confirm',ui);self.assertNotIn('Fixture',self.session+self.view)
+  self.assertNotIn('"merchant.operations.confirm"',ui);self.assertNotIn('Fixture',self.session+self.view)
 if __name__=='__main__':unittest.main()
