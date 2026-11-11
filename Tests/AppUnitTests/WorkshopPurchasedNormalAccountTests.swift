@@ -20,6 +20,17 @@ enum HostedAccessibilityRuntime {
     static func enable() { _ = declared }
 }
 
+/// Unsigned simulator test hosts answer Keychain with -34018. Hosted workshop flows persist recovery metadata through the
+/// template-authoring storage, so the harness supplies the existing DEBUG memory store through the explicit factory override.
+/// The store still validates owner keys and byte-exact readback; only the system Keychain is replaced.
+@MainActor enum WorkshopSyntheticStorage {
+    static func factory(defaults: UserDefaults, tokenStore: @escaping (RegionalSessionStorageScope?) -> any AppTokenStorage) -> AppScopedStorageFactory {
+        var storage = AppScopedStorageFactory(defaults: defaults, tokenStore: tokenStore)
+        storage.syntheticTemplateAuthoringStorage = TemplateAuthoringMemoryStorage()
+        return storage
+    }
+}
+
 /// Own a real foreground scene for hosted SwiftUI navigation so the fixture takes
 /// part in the app's scene lifecycle, rather than mounting isolated frame-only content.
 /// This helper never calls appearance callbacks or changes animation behavior.

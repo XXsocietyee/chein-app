@@ -95,6 +95,9 @@ extension KeychainTokenStore: AppTokenStorage {}
 #if DEBUG
     /// Explicit fixture-only override. Ordinary and Release composition keep system storage.
     var syntheticWorkshopCreatorPendingRecoveryStorage: (any TemplateAuthoringStorage)? = nil
+    /// Explicit test-host override for the shared template-authoring storage. Unsigned simulator test hosts answer Keychain with
+    /// -34018, so hosted workshop flows that persist recovery metadata cannot reach their own assertions on system storage.
+    var syntheticTemplateAuthoringStorage: (any TemplateAuthoringStorage)? = nil
 #endif
     init(defaults: UserDefaults = .standard,
          tokenStore: @escaping (RegionalSessionStorageScope?) -> any AppTokenStorage = { KeychainTokenStore(scope: $0) },
@@ -2598,6 +2601,16 @@ extension KeychainTokenStore: AppTokenStorage {}
         let rewardPledgeOperation = RewardPledgeRoutes.operation(request, baseURL: api.baseURL)
         guard ownMedia || ReviewedOrientOfficialRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || ReviewedNearbyTeamReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedMerchantMarketingReadRoute.accepts(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) || ReviewedRoamShareSnapshotReadRoute.accepts(request, baseURL: api.baseURL) || ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: request.value(forHTTPHeaderField: "Authorization")) != nil || nearbyEvents != nil || entryNearby != nil || passportHistory != nil || passportToolPath != nil || privateToolReadPath != nil || rewardPledgeOperation != nil || url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil || characterRead != nil || cityRead != nil || ownedCover != nil || tileMemory != nil || sessionFactRoute != nil else { throw APIError.notConfigured }
         guard let captured = current() else { throw CancellationError() }
+        // The canonical `api/template/myinfo` id read satisfies both the reviewed merchant baseline route and the owned-shelf
+        // detail route. When this viewer holds a matching shelf read approval the shelf route is the specific claim and is
+        // admitted below by that approval alone; otherwise the merchant route keeps its merchant-only gate unchanged.
+        let templateShelfDetailClaimed: Bool = {
+            guard case .detail? = TemplateShelfReadRoute(request: request, baseURL: api.baseURL), captured.isSignedInContentViewer,
+                  let account = captured.accountID, let role = captured.role, let token = captured.token,
+                  let session = try? PlayExperienceSession(accountID: account, epoch: captured.epoch, namespace: deployment.storageScope.service, token: token, role: role) else { return false }
+            let context = RuntimeDependencyContext(market: deployment.regional.market, baseURL: api.baseURL, role: role, session: session)
+            return templateShelfReadApproval(context)?.matches(context) == true
+        }()
         let authPaths = [AuthEndpoint.smsSend, .phone, .userInfo, .logout].map { api.url(for: $0) }
         let auth = authPaths.contains(url)
         let appleAuth = url == api.url(for: .apple)
@@ -2794,7 +2807,7 @@ extension KeychainTokenStore: AppTokenStorage {}
         } else if url == api.baseURL.appendingPathComponent("api/common/dict") {
             guard deployment.reads.contains(.homeAndSearch), captured.isPublicTemplateViewer,
                   TemplateMetadataReadRoute(request: request, baseURL: api.baseURL) != nil else { throw APIError.notConfigured }
-        } else if ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: captured.token) != nil {
+        } else if !templateShelfDetailClaimed, ReviewedMerchantOperationsRoute.kind(request, baseURL: api.baseURL, token: captured.token) != nil {
             guard deployment.productionGatesEnabled, deployment.regional.market == .china,
                   captured.isSignedInContentViewer, captured.role == "merchant" else { throw APIError.notConfigured }
         } else if url == api.baseURL.appendingPathComponent("api/merchant/coop-profile") || url == api.baseURL.appendingPathComponent("api/coupon/command-receipt") {

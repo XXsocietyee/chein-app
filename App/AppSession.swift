@@ -4686,7 +4686,11 @@ final class AppSession: ObservableObject {
         let reader = OwnedMemberTemplateReader(transport: makeTemplateShelfReadTransport(), authenticated: { [weak self] in self?.account != nil && self?.token != nil })
         retainedOwnedMemberReader = (identity, reader); return reader
     }
+#if DEBUG
+    private lazy var templateAuthoringSecureStorage: any TemplateAuthoringStorage = composition.storage.syntheticTemplateAuthoringStorage ?? TemplateAuthoringSecureStorage(scope: storageScope)
+#else
     private lazy var templateAuthoringSecureStorage = TemplateAuthoringSecureStorage(scope: storageScope)
+#endif
     private lazy var templateAuthoringDraftStore = TemplateAuthoringLocalStore(storage: templateAuthoringSecureStorage)
     lazy var prefabPreviewStore = PrefabPreviewStore(storage: templateAuthoringSecureStorage)
     var currentTemplateAuthoringSession: TemplateAuthoringSession? {

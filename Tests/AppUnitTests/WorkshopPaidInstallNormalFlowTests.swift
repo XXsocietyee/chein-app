@@ -49,7 +49,7 @@ import UIKit
         var session:AppSession!,approval:WorkshopPaidInstallApproval?,readApproval:WorkshopPurchasedReadApproval?,seen=0
         init()throws{
             deployment=try .init(market:.china,baseURL:base.absoluteString,approvedBaseURLs:[.china:[base.absoluteString]],verifiedCapabilities:[.domesticChinaPhone],bundleIdentifier:"test.workshop.install",realm:"synthetic-"+UUID().uuidString.lowercased())
-            session=AppCompositionRoot(deployment:.reviewed(deployment),storage:.init(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},workshopPaidInstallApproval:{[weak self] context in
+            session=AppCompositionRoot(deployment:.reviewed(deployment),storage:WorkshopSyntheticStorage.factory(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},workshopPaidInstallApproval:{[weak self] context in
                 guard let self,let expected=try? self.context() else{return nil};self.seen += 1;XCTAssertEqual(context,expected);guard context==expected else{return nil};return self.approval
             },workshopPurchasedReadApproval:{[weak self] context in guard let self,let grant=self.readApproval,grant.matches(context) else{return nil};return grant}).makeSession()
         }

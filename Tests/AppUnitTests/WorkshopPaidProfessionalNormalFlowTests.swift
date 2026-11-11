@@ -76,7 +76,7 @@ import UIKit
         var body: WorkshopPaidInstalledTextApproval?, install: WorkshopPaidInstallApproval?, seen = 0
         init() throws {
             deployment = try .init(market:.china,baseURL:base.absoluteString,approvedBaseURLs:[.china:[base.absoluteString]],verifiedCapabilities:[.domesticChinaPhone],bundleIdentifier:"test.workshop.professional",realm:"synthetic-"+UUID().uuidString.lowercased())
-            root = AppCompositionRoot(deployment:.reviewed(deployment),storage:.init(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},
+            root = AppCompositionRoot(deployment:.reviewed(deployment),storage:WorkshopSyntheticStorage.factory(defaults:UserDefaults(suiteName:suite)!,tokenStore:{[vault] _ in vault}),makeTransport:{[wire] in wire},
                 workshopPaidProfessionalReadApproval:{[weak self] c in guard let self, self.valid(c) else { return nil }; return self.read },
                 workshopPaidProfessionalWriteApproval:{[weak self] c in guard let self, self.valid(c) else { return nil }; return self.write },
                 workshopPaidInstalledTextApproval:{[weak self] c in guard let self, self.valid(c) else { return nil }; return self.body },
