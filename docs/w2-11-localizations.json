@@ -84,7 +84,7 @@
     "创作者"
   ],
   "discovery.templateDetail.publisher.platform": [
-    "Questify",
+    "城瘾",
     "城瘾"
   ],
   "discovery.templateDetail.publisher.official": [
@@ -120,8 +120,8 @@
     "关闭预览"
   ],
   "discovery.templateTab.staffReadOnly": [
-    "Your role can browse templates. Publishing, copying and configuring are done by the owner or manager.",
-    "当前岗位可浏览模板；发布、复制和配置由店主或店长操作"
+    "Only the owner or manager can publish and copy.",
+    "仅店主、店长可发布和复制"
   ],
   "discovery.templateTab.refusal.previewNotViewable": [
     "This is a preview template. Save it before viewing.",
@@ -396,8 +396,8 @@
     "任务"
   ],
   "playx.backpack.claimOnly": [
-    "This run has ended; only pending rewards can be claimed",
-    "本局已结束，仅可领取待领奖励"
+    "This run has ended. You can still claim pending rewards.",
+    "本局已结束，仍可领取待领奖励。"
   ],
   "playx.backpack.pending": [
     "To claim",
