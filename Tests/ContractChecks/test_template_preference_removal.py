@@ -92,7 +92,7 @@ class PreferenceRemovalContracts(unittest.TestCase):
             for locale in entry['localizations'].values():
                 self.assertEqual(locale['stringUnit']['state'], 'translated')
                 self.assertTrue(locale['stringUnit']['value'].strip())
-        self.assertIn('Check JSON again', catalog['strings']['preferenceRemoval.recheck']['localizations']['en']['stringUnit']['value'])
+        self.assertIn('Check the questionnaire again', catalog['strings']['preferenceRemoval.recheck']['localizations']['en']['stringUnit']['value'])
         self.assertNotIn('TemplatePreferenceRemoval(source:', UI)
 
     def test_authored_regressions_cover_boundaries_and_stale_actions(self):

@@ -70,7 +70,9 @@ class InvitationHistoryLifetimeContracts(unittest.TestCase):
         end = load.split("defer {", 1)[1].split("        do {", 1)[0]
         self.assertLess(end.index("if owns("), end.index("loading = false"))
         catch = load.split("catch {", 1)[1]
-        self.assertLess(catch.index("!Task.isCancelled, owns("), catch.index("APIError == .unauthorized"))
+        # 401/denied classification moved into ProfileInviteHistoryIssueKind; it still runs only after the owner fence.
+        self.assertLess(catch.index("!Task.isCancelled, owns("), catch.index("ProfileInviteHistoryIssueKind(error)"))
+        self.assertIn("if kind == .signIn || kind == .denied { pagination = SocialInvitePagination(); scan = nil }", catch)
         self.assertLess(catch.index("!Task.isCancelled, owns("), catch.index("self.error = error"))
         self.assertIn("try pagination.accept(value.page); scan = value.rewardScan", load)
 
