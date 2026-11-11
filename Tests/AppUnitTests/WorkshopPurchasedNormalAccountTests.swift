@@ -23,6 +23,18 @@ enum HostedAccessibilityRuntime {
 /// Own a real foreground scene for hosted SwiftUI navigation so the fixture takes
 /// part in the app's scene lifecycle, rather than mounting isolated frame-only content.
 /// This helper never calls appearance callbacks or changes animation behavior.
+/// Window that settles its hosted content as soon as it becomes key and visible. SwiftUI presentation, `onAppear` and
+/// sheet callbacks are delivered on run-loop turns after the first layout, so attaching alone is not enough on the iOS 27
+/// simulator: lay the hierarchy out, then pump the main run loop in bounded slices (never an unbounded wait).
+@MainActor final class HostedSceneUIWindow: UIWindow {
+    override func makeKeyAndVisible() {
+        super.makeKeyAndVisible()
+        rootViewController?.view.setNeedsLayout()
+        rootViewController?.view.layoutIfNeeded()
+        for _ in 0..<5 { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
+    }
+}
+
 @MainActor final class HostedNavigationSceneWindow {
     let window: UIWindow
     private weak var scene: UIWindowScene?
@@ -36,7 +48,7 @@ enum HostedAccessibilityRuntime {
                                     "Hosted navigation requires exactly one foreground-active UIWindowScene")
         scene = selected
         previousKeyWindow = selected.windows.first { $0.isKeyWindow }
-        window = UIWindow(windowScene: selected)
+        window = HostedSceneUIWindow(windowScene: selected)
         window.frame = selected.coordinateSpace.bounds
     }
 
@@ -78,7 +90,10 @@ enum HostedAccessibilityRuntime {
 /// the main queue without ever returning to the run loop, so hosted waits sleep in short slices and stay bounded.
 @MainActor func hostedWait(timeout: TimeInterval = 5, _ condition: () -> Bool) async {
     let deadline = Date().addingTimeInterval(timeout)
-    while !condition(), Date() < deadline { try? await Task.sleep(nanoseconds: 10_000_000) }
+    while !condition(), Date() < deadline {
+        RunLoop.main.run(until: Date().addingTimeInterval(0.002))
+        try? await Task.sleep(nanoseconds: 10_000_000)
+    }
 }
 
 @MainActor final class WorkshopPurchasedNormalAccountTests: XCTestCase {
