@@ -12,7 +12,12 @@ class GrowthSourceChecks(unittest.TestCase):
     def test_route_allowlist_matches_audited_flutter_reads(self):
         service = (CORE / "GrowthCenterService.swift").read_text()
         actual = set(re.findall(r'"(api/[^"\s]+)"', service))
-        self.assertEqual(actual, {"api/growth/center", "api/growth/leaderboard", "api/play/growth", "api/play/my-completed"})
+        # The anonymous leaderboard read is opt-in per composition (default contract stays legacy) and is still
+        # recorded as `.missing` in the reviewed route capability map, so production gates keep it closed.
+        self.assertEqual(actual, {"api/growth/center", "api/growth/leaderboard", "api/growth/leaderboard/anonymous",
+                                  "api/play/growth", "api/play/my-completed"})
+        self.assertIn('leaderboardContract: GrowthLeaderboardReadContract = .legacy', service)
+        self.assertIn('"/api/growth/leaderboard/anonymous": .missing', (CORE / "ChinaReviewedRouteCapability.swift").read_text())
         self.assertIn('"application/json"', service)
         self.assertIn('limit: 1', service)
         self.assertIn('limit: Int = 50', service)
