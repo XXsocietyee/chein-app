@@ -27,7 +27,8 @@ class NativeAppCompileContracts(unittest.TestCase):
 
     def test_integer_badge_axes_are_converted_to_localization_suffixes(self):
         source = (ROOT / 'App/ObjectBadgeViews.swift').read_text()
-        self.assertIn('"objects.track." + String(track)', source)
+        # The track label was dropped by the badge restyle (track only picks the tint); the integer rarity axis still maps to a suffix.
+        self.assertNotIn('objects.track.', source)
         self.assertIn('"objects.rarity." + String(parameters.rarity)', source)
         self.assertNotIn('"objects.track." + (track)', source)
         self.assertNotIn('"objects.rarity." + (parameters.rarity)', source)
