@@ -67,3 +67,7 @@ xcconfig URL (checked by `tools/check_release_config.py`).
 - Answer export-compliance / encryption questions for the first build.
 - Click Archive and Upload in Xcode; the agent run cannot sign or upload.
 - Because this build reads production data, use real production test accounts only for sign-in; do not test writes.
+
+## Contract suite ratchet
+
+Before an upload, run `python3 tools/contract_ratchet.py --check` (~2 min). It must report no new failures; after fixing tests run `--update` to shrink `docs/release/contract-failing-baseline.txt`. Xcode Cloud runs it as a non-blocking warning (`ci_scripts/ci_pre_xcodebuild.sh`). Details: `docs/release/receipts/contract-ratchet.md`.
