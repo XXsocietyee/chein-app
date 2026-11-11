@@ -43,6 +43,9 @@ class ClubOpsCustomerCatalog(unittest.TestCase):
                                             "App/ClubOwnerFundsView.swift", "Core/ClubOpsCustomerPresentation.swift",
                                             "Core/ClubOpsSettlementPresentation.swift"])
         used = set()
+        # `enum Accessibility` blocks hold UI-test identifiers, which are intentionally not localized strings.
+        sources = re.sub(r'\b\w*[iI]dentifier: "[^"]*"', '', sources)
+        sources = re.sub(r'(?ms)^    public enum Accessibility \{.*?^    \}\n', '', sources)
         for literal in re.findall(r'(?<!accessibilityIdentifier\()"(clubOps\.[A-Za-z.]+)[^"]*"', sources):
             used.add(literal)
         prefixes = {"clubOps.customer.status.", "clubOps.customer.issue.", "clubOps.settlement.withdraw."}
@@ -214,7 +217,8 @@ class ClubOpsSettlementWiring(unittest.TestCase):
         self.assertIn("if let target = ClubOwnerFundsTarget(snapshot: snapshot, context: readContext) {", b)
         self.assertIn("} else if let settlementSummary, !settlementSummary.isOwner, settlementSummary.hasTopics {", b)
         self.assertIn("ClubOpsSettlementOwnerOnlyWithdraw()", b)
-        self.assertIn('Text("club.gov.financialGate")', b)
+        # The static financial-gate notice was replaced by the owner-funds section (availability-gated) and the
+        # non-owner lock chip above; the non-owner branch must still be the only alternative to the owner section.
         self.assertIn('"clubOps.settlement.topicsHeader"', b)
         self.assertIn("ClubOpsSettlementFootnote()", b)
         self.assertIn(".disabled(ownerFundsParent.retainsContact || ownerFundsParent.workflow.loading)", b)
@@ -223,8 +227,10 @@ class ClubOpsSettlementWiring(unittest.TestCase):
     def test_non_owner_withdraw_is_disabled_and_has_no_money_path(self):
         views = read("App/ClubOpsSettlementViews.swift")
         owner_only = span(views, "struct ClubOpsSettlementOwnerOnlyWithdraw", "struct ClubOpsSettlementFootnote")
-        self.assertIn("Button {} label:", owner_only)
-        self.assertIn(".disabled(true)", owner_only)
+        # Native shows only the fact (lock chip), never a dead withdraw button.
+        self.assertNotIn("Button", owner_only)
+        self.assertIn('systemImage: "lock"', owner_only)
+        self.assertIn('.accessibilityIdentifier("clubOps.settlement.withdraw.ownerOnly")', owner_only)
         for forbidden in ["openContact", "withdraw(", "api/", "URLSession", "reader"]:
             self.assertNotIn(forbidden, views)
         summary = read("Core/ClubOpsSettlementPresentation.swift")
@@ -240,7 +246,7 @@ class ClubOpsSettlementWiring(unittest.TestCase):
         rows = span(read("App/ClubSettlementDetail.swift"), "struct ClubSettlementRows:", "struct ClubSettlementDetail:")
         self.assertIn('"clubOps.settlement.rowUnverified"', rows)
         self.assertIn('"clubOps.settlement.empty"', rows)
-        self.assertIn("if row.status == .void || row.status == .unverified { Text(verbatim: row.paidText) }", rows)
+        self.assertRegex(rows, r"if row\.status == \.void \|\| row\.status == \.unverified \{ Text\(verbatim: row\.paidText\)[^\n]*\}")
         status = read("Core/ClubSettlementDetailPresentation.swift")
         self.assertIn('case "settled": status = row["amountStatus"] == .string("unverified") ? .unverified : .credited', status)
 
