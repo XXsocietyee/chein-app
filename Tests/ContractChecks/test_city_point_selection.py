@@ -66,7 +66,7 @@ class CityPointSelectionContracts(unittest.TestCase):
                        '.accessibilityHint(Text("city.read.point.selectHint"))']:
             self.assertIn(marker, self.view)
         self.assertIn('point.mine ? "city.read.point.mine" : "city.read.point.notMine"', self.view)
-        self.assertIn('if context.points.isEmpty { Text("city.read.points.empty") }', self.view)
+        self.assertIn('if context.points.isEmpty { CYEmptyState(systemImage: "mappin.slash", "city.read.points.empty") }', self.view)
         self.assertIn('else { Text("city.read.points.unavailable").foregroundStyle(.secondary) }', self.view)
 
     def test_no_network_location_persistence_or_gameplay_actions_added(self):

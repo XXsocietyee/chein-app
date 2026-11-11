@@ -16,8 +16,11 @@ class ClubGroupCodePageReadyChecks(unittest.TestCase):
         view = read("App/ClubGovernanceViews.swift")
         presentation = read("App/ClubGroupCodePresentation.swift")
         welcome = read("App/WelcomeView.swift")
-        self.assertNotIn("ClubGroupCodePage", view)
-        self.assertNotIn("ClubGroupCodePage", presentation)
+        # The page is now projected inside the club-governance read host (club ops surface), never the player entry.
+        self.assertIn("ClubGroupCodePage.project(value: value, scope: scope, capability:", view)
+        self.assertNotIn("ClubGroupCodePage", welcome)
+        for entry in ("App/WelcomeView.swift", "App/QuestifyApp.swift", "App/SessionHomeFeedView.swift"):
+            self.assertNotIn("ClubGroupCodePage", read(entry))
         self.assertIn("static let showsMerchantChoice = false", welcome)
         for token in [
             "case loading",

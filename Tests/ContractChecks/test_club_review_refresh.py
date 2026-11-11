@@ -24,7 +24,8 @@ class ClubReviewRefreshChecks(unittest.TestCase):
         s = self.read('App/ClubManagementView.swift')
         self.assertIn('.task(id: readContext)', s)
         self.assertIn('if contextMatches, let snapshot', s)
-        self.assertIn('if contextMatches, let pending = confirmation', s)
+        # Confirmation is held by the review owner; it renders only for the current context and active scene.
+        self.assertIn('if contextMatches, reviewOwner.current(item, context: reviewContext, active: scenePhase == .active) {', s)
         self.assertGreaterEqual(s.count('viewerRevision == revision, screenRevision == revision'), 5)
         self.assertIn('leaveScreen()\n            generation', s)
     def test_only_connection_failures_after_permission_check_are_classified(self):

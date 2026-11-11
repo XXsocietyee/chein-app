@@ -58,7 +58,9 @@ class ClubCustomerClearFiltersContracts(unittest.TestCase):
         self.assertIn('Picker("club.gov.filter", selection: customerFilterBinding)', controls)
         self.assertIn('TextField("club.gov.keyword", text: customerKeywordBinding)', controls)
         self.assertIn(".onSubmit { loadCustomersNow() }", controls)
-        self.assertIn('Button("club.gov.search") { loadCustomersNow() }.disabled(loading)', controls)
+        # The separate Search button was removed in the restyle; search stays explicit via the keyboard submit action.
+        self.assertIn('.submitLabel(.search)', controls)
+        self.assertNotIn('Button("club.gov.search")', controls)
         self.assertNotIn(".onChange", controls)
 
     def test_input_bindings_schedule_only_actual_user_value_changes(self):
@@ -74,7 +76,7 @@ class ClubCustomerClearFiltersContracts(unittest.TestCase):
         display = span(self.source, "if operation == .customers, !loading, failure == nil,", "if operation == .topicSettings")
         for token in ['value["items"].array?.isEmpty == true', "customerFilters.isFiltered",
                       "snapshotCustomerFilters == customerFilters", "let sourceFilters = customerFilters",
-                      "sourceGeneration = snapshotGeneration", 'Button("discovery.clearFilters")',
+                      "sourceGeneration = snapshotGeneration", 'Button("club.gov.customers.showAll")',
                       "source: snapshot, context: sourceContext", "filters: sourceFilters",
                       '.accessibilityIdentifier("club.gov.customers.clearFilters")']:
             self.assertIn(token, display)
@@ -100,9 +102,10 @@ class ClubCustomerClearFiltersContracts(unittest.TestCase):
         for token in ["keywordRevision == generation", "context == readContext", "access.identity == expected",
                       "customerFilters.filter == expectedFilter", "customerFilters.keyword == expectedKeyword"]:
             self.assertIn(token, scheduling)
-        self.assertIn("guard revision == generation, context == readContext, expected == identity, access.identity == expected, !Task.isCancelled else { return }", self.source)
-        self.assertIn(".task(id: readContext) { invalidateRead(); await load() }", self.source)
-        self.assertIn(".onDisappear { generation &+= 1 }", self.source)
+        self.assertIn("guard operation == .customers, context == readContext, expected == identity,\n                  access.identity == expected, keywordRevision == generation,", self.source)
+        self.assertIn("customerFilters == ClubCustomerFilters(),\n                  scenePhase == .active, !Task.isCancelled else { return }", self.source)
+        self.assertIn(".task(id: readContext) { await synchronizeReadContext() }", self.source)
+        self.assertIn("        .onDisappear {\n            if operation == .customers {\n                customerKeywordDebounce.cancel()\n                generation &+= 1\n            }\n        }", self.source)
 
     def test_lost_reset_fences_are_detected_by_negative_controls(self):
         start = self.source.index("private func clearCustomerFilters(")

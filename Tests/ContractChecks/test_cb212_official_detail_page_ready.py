@@ -78,7 +78,9 @@ class OfficialDetailPageReadyChecks(unittest.TestCase):
         self.assertIn("public static let content = OfficialEventSyntheticFixtures.eventJSON", fixture)
         self.assertNotIn("http://", fixture)
         self.assertNotIn("https://", fixture)
-        self.assertNotIn("token", fixture.lower())
+        # Doc comments may say "no token"; only code may not carry one.
+        code = "\n".join(line for line in fixture.splitlines() if not line.lstrip().startswith("//"))
+        self.assertNotIn("token", code.lower())
 
     def test_string_catalog_is_bilingual_and_matches_existing_keys(self):
         document = json.loads(read(STRINGS))

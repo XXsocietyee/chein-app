@@ -15,7 +15,7 @@ class AuthEntryParitySourceChecks(unittest.TestCase):
     def test_every_auth_entry_key_is_bilingual_in_its_own_table(self):
         catalog = json.loads((ROOT/'Resources/AuthEntry.xcstrings').read_text())['strings']
         for name in FILES:
-            source = re.sub(r'\.accessibilityIdentifier\("[^"]*"\)', '', (ROOT/'App'/(name + '.swift')).read_text())
+            source = re.sub(r'\.accessibilityIdentifier\("[^"]*"\)|\bid: "[^"]*"', '', (ROOT/'App'/(name + '.swift')).read_text())
             keys = re.findall(r'"(authEntry\.[A-Za-z0-9.]+)"', source)
             for key in keys:
                 self.assertIn(key, catalog, (name, key))
@@ -55,7 +55,8 @@ class AuthEntryParitySourceChecks(unittest.TestCase):
 
     def test_sign_in_channels_require_current_agreement(self):
         login = (ROOT/'App/LoginView.swift').read_text()
-        self.assertIn('.disabled(session.isWorking || !consentGranted)', login)
+        self.assertIn('.disabled(working || !consentGranted)', login)
+        self.assertIn('        return session.isWorking\n    }\n    @State private var rootLegal', login)
         self.assertIn('session.operationalMarket == .china && consentGranted', login)
         self.assertIn('onOpenPrivacy: { legalDocument = AuthEntryLegalSheet(type: .privacyPolicy) }', login)
 

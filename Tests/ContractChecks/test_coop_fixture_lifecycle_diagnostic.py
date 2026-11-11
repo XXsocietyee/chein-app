@@ -38,7 +38,9 @@ class CoopFixtureLifecycleDiagnosticChecks(unittest.TestCase):
         # 6e8d14b020e33d30cebba4215a4d30463131554dc450f80400198987f2712602.
         # This explicit production identity-owner increment changes Release code;
         # it must not be described as another Release-equivalent diagnostic patch.
-        self.assertEqual('5f3cd99f7af82970d7658fe31b9d65f69ce069928c395b5b77d4d2a5f9f4ff43', hashlib.sha256(normalized.encode()).hexdigest())
+        # Re-pinned after the e3/UI-CLOUD-16 player-surface restyles (grouped surface, kit components, row-string
+        # unwrap); the identity-owner/lifetime token content above is unchanged.
+        self.assertEqual('bcddaa96ce429f51130a98204aa970086c1965c29ff61a836a32d328fd8b5d69', hashlib.sha256(normalized.encode()).hexdigest())
 
     def test_failure_projection_is_small_and_does_not_change_read_count_label(self):
         source = (ROOT / 'Tests/AppUITests/CoopRelationDiscoveryFlowTests.swift').read_text()
