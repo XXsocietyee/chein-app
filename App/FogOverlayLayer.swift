@@ -83,16 +83,21 @@ enum FogFeather {
     }
     /// 0 inside and outside, 1 at the middle of the roll-off; squared so the ring is thin.
     static func ring(_ clear: Float) -> Float { let r = 4 * clear * (1 - clear); return r * r }
+    /// Frontier rim: a very thin core (about a third of the roll-off, ~2-3 pt).
+    static func rim(_ clear: Float) -> Float { let r = 4 * clear * (1 - clear); return pow(r, 6) }
+    /// Frontier bloom: the whole roll-off, drawn at low opacity so the rim fades with distance.
+    static func bloom(_ clear: Float) -> Float { 4 * clear * (1 - clear) }
 }
 
 // MARK: - Mask images
 
 /// CGImages derived once per mask (never per frame), all premultiplied black so only alpha carries data.
-/// `cutout`: feathered explored ground (confirmed plus pending) for `destinationOut`. `glow`: ring on the confirmed
-/// frontier. `pendingRing`: ring around unconfirmed-only ground, drawn dashed.
+/// `cutout`: feathered explored ground (confirmed plus pending) for `destinationOut`. `glow`: thin rim on the confirmed
+/// frontier; `bloom`: the wide soft halo around it. `pendingRing`: ring around unconfirmed-only ground, drawn dashed.
 struct FogMaskImages {
     let cutout: CGImage
     let glow: CGImage?
+    let bloom: CGImage?
     let pendingRing: CGImage?
 
     /// Pixels of feather radius per geohash-7 cell width (a cell is ~152.8 mercator meters wide at every latitude).
@@ -118,13 +123,14 @@ struct FogMaskImages {
         for i in 0..<n { union[i] = max(confirmed[i], pending[i]) }
         let u = FogFeather.blur(union, w: w, h: h, radius: radius).map(FogFeather.smooth)
         guard let cutout = image(u.map { UInt8(min(max($0, 0), 1) * 255) }, w: w, h: h) else { return nil }
-        let glow = image((0..<n).map { UInt8(FogFeather.ring(c[$0]) * 255) }, w: w, h: h)
+        let glow = image((0..<n).map { UInt8(FogFeather.rim(c[$0]) * 255) }, w: w, h: h)
+        let bloom = image((0..<n).map { UInt8(FogFeather.bloom(c[$0]) * 255) }, w: w, h: h)
         var ring: CGImage?
         if pending.contains(1) {
             let p = FogFeather.blur(pending, w: w, h: h, radius: radius).map(FogFeather.smooth)
             ring = image((0..<n).map { UInt8(FogFeather.ring(p[$0]) * (1 - c[$0]) * 255) }, w: w, h: h)
         }
-        return FogMaskImages(cutout: cutout, glow: glow, pendingRing: ring)
+        return FogMaskImages(cutout: cutout, glow: glow, bloom: bloom, pendingRing: ring)
     }
 
     private static func image(_ alpha: [UInt8], w: Int, h: Int) -> CGImage? {
@@ -257,7 +263,7 @@ struct FogOverlayLayer: View {
 
     var body: some View {
         Group {
-            if wipes.isEmpty && !(shimmer && images?.pendingRing != nil) {
+            if wipes.isEmpty && !(shimmer && (images?.pendingRing != nil || (style.frontierGlow && images?.glow != nil))) {
                 canvas(now: 0)
             } else {
                 TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { _ in canvas(now: clock()) }
@@ -297,9 +303,19 @@ struct FogOverlayLayer: View {
                 }
             }
             if style.frontierGlow, let glow = images?.glow {
+                // Breathes slowly (+-15 %) unless motion is reduced; `shimmer` is false then.
+                let breath = shimmer ? 1 + 0.15 * sin(now * 1.6) : 1
+                if let bloom = images?.bloom {
+                    ctx.drawLayer { layer in
+                        layer.clip(to: Path(windowRect))
+                        layer.fill(Path(full), with: .color(Self.warm.opacity(0.22 * breath)))
+                        layer.blendMode = .destinationIn
+                        layer.draw(layer.resolve(Image(decorative: bloom, scale: 1)), in: windowRect)
+                    }
+                }
                 ctx.drawLayer { layer in
                     layer.clip(to: Path(windowRect))
-                    layer.fill(Path(full), with: .color(Self.warm.opacity(0.85)))
+                    layer.fill(Path(full), with: .color(Self.warm.opacity(0.58 * breath)))
                     layer.blendMode = .destinationIn
                     layer.draw(layer.resolve(Image(decorative: glow, scale: 1)), in: windowRect)
                 }
