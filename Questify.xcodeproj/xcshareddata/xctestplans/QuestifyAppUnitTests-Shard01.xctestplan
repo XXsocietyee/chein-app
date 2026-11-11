@@ -491,6 +491,7 @@
         "ReleaseArchiveChecklistSectionViewTests",
         "ReleasePreflightDiagnosticsViewTests",
         "RetainedImageSanitizerTests",
+        "RevealChoreographerTests",
         "ReviewedChinaLaunchCompositionTests",
         "ReviewedHookWiring2Base",
         "ReviewedHookWiringTests",
