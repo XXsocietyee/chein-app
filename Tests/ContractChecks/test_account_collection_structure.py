@@ -37,7 +37,9 @@ class AccountCollectionStructureTests(unittest.TestCase):
         favorite = self.text('App/AccountCollectionFavoritesView.swift')
         self.assertIn('QuestifyImageEntityCard(', favorite)
         self.assertIn('onOpenTopic(topic.id)', favorite)
-        self.assertNotIn('.stroke', favorite)
+        self.assertNotIn('.stroke(', favorite)  # only the token border is allowed
+        self.assertNotIn('.strokeBorder(Color', favorite)
+        self.assertNotIn('.strokeBorder(.', favorite)
         self.assertNotIn('minimumAmount', favorite)
 
     def test_catalog_is_complete_for_literal_and_computed_keys(self):
@@ -117,7 +119,7 @@ class AccountCollectionStructureTests(unittest.TestCase):
         self.assertIn('if value == nil { _ = self.close(id: id) }', owner)
         self.assertIn('selected.id == id', owner)
         self.assertIn('.navigationDestination(item: owner.binding(for: selected), destination: destination)', owner)
-        self.assertIn('.onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear() }', root)
+        self.assertIn('.onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear();', root)
         self.assertIn('session.profileFavoritesReader.selectTopic($0, renderedScope: session.profileFavoritesReader.scope)', entry)
         self.assertIn('savedTopicOwner.open(selected, scope: session.profileFavoritesReader.scope)', entry)
         topic = root.split('ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner)', 1)[1].split('ProfileFavoriteNavigationLayer(owner: savedPostOwner)', 1)[0]

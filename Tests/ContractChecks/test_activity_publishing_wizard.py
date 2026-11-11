@@ -17,9 +17,9 @@ STEPS = [
     ("content", "活动内容", "这场活动玩什么？", ["description", "imgUrl", "templateId"]),
     ("ticket", "票务与合作", "这场活动怎么卖票？", ["ticket*"]),
 ]
-QUICK_SHA = "dc44fc165361e3b3906bb6753f16558506e1407788ab5c84f9a6e86d8b82d142"
-PREFIX_SHA = "ba5179bf5d05540f96b2c299a2ede1c591e5b1cf0cc7761ac27131a76f0e8e94"
-SUFFIX_SHA = "2ca41887e8770bbea25ac45daf45dbab2c78a4b02bbda1779333fb7c9fa48d90"
+QUICK_SHA = "7fd9e5a9d46b28e91e3b5d15358498ffedcf4e1efb705ef1492996f757b77f67"
+PREFIX_SHA = "6afa30ba87bfccebd13a9b58dd2caf83f4d7a0f1c0a0374b11caad5cbec0a0f2"
+SUFFIX_SHA = "7fb63333236d1014e3c7f7f202e1baf26442c41092b42bed0e6fefa1befbdf6e"
 
 
 def read(path):
@@ -269,7 +269,13 @@ class ActivityPublishingWizardContract(unittest.TestCase):
         self.assertIn("service.submit(review)", text)
         self.assertIn("invalidateReviews()", text)
         self.assertIn('wizardStep = 0; wizardBlock = nil; abandonConfirm = false', text)
-        self.assertIn("结果未知，原请求保持锁定。查看项目不会确认本次请求，也不会重新发送。", text)
+        # Unknown-outcome copy moved into the string catalog; the request stays locked (uncertain) and says not to resubmit.
+        self.assertIn('Text("publishModes.unknown")', text)
+        self.assertIn("submission.outcome == .unknown || submission.lockUnavailable", text)
+        catalog = read("Resources/Localizable.xcstrings")
+        unknown = catalog[catalog.index('"publishModes.unknown"'):][:900]
+        self.assertIn("请勿重复提交", unknown)
+        self.assertIn("Don’t submit again", unknown)
         self.assertIn("ActivityPublishingWizard.located(ActivityPublishingWizard.steps.count, draft: draft)", text)
         self.assertIn("ActivityPublishingWizard.located(wizardStep, draft: draft)", text)
         navigation = read("App/ActivityPublishingWizardView.swift")
