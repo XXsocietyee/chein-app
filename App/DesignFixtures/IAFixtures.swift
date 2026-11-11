@@ -60,6 +60,8 @@ struct IAExploreCreateFixture: View {
 /// Passport actions + stamp grid in its real Form section. `count == nil` is the unknown state (em dash, all locked).
 struct IAPassportFixture: View {
     let count: Int?
+    /// nil = unknown (em dash), [] = known none (rail hidden).
+    var badges: [PassportBadge]? = nil
     var body: some View {
         NavigationStack {
             Form {
@@ -67,7 +69,7 @@ struct IAPassportFixture: View {
                     Text(verbatim: "Synthetic fixture: identity card goes here (MemberIdentityCardSection)")
                         .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }
-                Section { PassportOverviewContent(stampCount: count) }
+                Section { PassportOverviewContent(stampCount: count, badges: badges) }
                     .listRowBackground(CYColor.bgSurface)
             }
             .scrollContentBackground(.hidden)

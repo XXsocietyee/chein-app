@@ -53,6 +53,7 @@ struct SettingsView: View {
                 // Mini-program pages/shezhi order: 个人资料, 成为俱乐部主理人/成为商家, 城瘾玩法, 我的收藏.
                 accountHeader
                 SettingsIdentityApplicationEntries(session: session).environment(\.settingsTileTint, SettingsTint.orange)
+                AccountRoleSections(gatesCreatorByCapability: true).environment(\.settingsTileTint, SettingsTint.orange)
                 Section {
                     NavigationLink {
                         ProfileGuideHost(reader: session.makeProfileGuideReader(),

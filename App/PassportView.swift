@@ -9,10 +9,12 @@ import SwiftUI
     var privateHomeCoordinator: PrivateHomeCoordinator? = nil
     var nativeHomeReturnSelection: NativeHomeReturnSelectionCoordinator? = nil
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
+    /// chein://ticket/<id>: presents the existing ticket pass sheet once (AccountView clears it).
+    var presentsTicketPass: Binding<Bool>? = nil
     var body: some View {
         AccountView(account: account, privateHomeCoordinator: privateHomeCoordinator,
                     nativeHomeReturnSelection: nativeHomeReturnSelection, onOpenGuideDestination: onOpenGuideDestination,
-                    showsPassportOverview: true)
+                    showsPassportOverview: true, presentsTicketPass: presentsTicketPass)
     }
 }
 
@@ -23,20 +25,44 @@ enum PassportStampGrid {
     static func earnedSlots(_ count: Int?) -> Int { max(0, min(count ?? 0, slots)) }
 }
 
-/// Loads the stamp count and hosts `PassportOverviewContent` as a Form section next to the identity card.
+/// One earned badge from the existing growth center read (`GrowthCenterRecord.badges`). `name` nil renders the
+/// generic "Badge" label; it is never invented.
+struct PassportBadge: Identifiable, Equatable {
+    let id: Int
+    let name: String?
+    init(index: Int, badge: GrowthCenterBadge) { id = index; name = badge.displayName }
+    init(id: Int, name: String?) { self.id = id; self.name = name }
+}
+
+/// Loads the stamp count and badges and hosts `PassportOverviewContent` as a Form section next to the identity card.
 @MainActor struct PassportOverviewSection: View {
     let reader: any RoamExperienceReading
+    /// Existing growth center source; nil or unreadable leaves the badges unknown (em dash).
+    var growth: (any GrowthCenterReading)? = nil
+    var refreshToken = 0
     var onOpenTickets: () -> Void
     var onOpenWallet: () -> Void
     var onOpenMessages: () -> Void
     @State private var stampCount: Int?
+    @State private var badges: [PassportBadge]?
+    private struct LoadKey: Equatable { var stamps: ObjectIdentifier; var growth: ObjectIdentifier?; var refresh: Int }
 
     var body: some View {
         Section {
-            PassportOverviewContent(stampCount: stampCount, onOpenTickets: onOpenTickets, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages)
+            PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages)
         }
         .listRowBackground(CYColor.bgSurface)
-        .task(id: ObjectIdentifier(reader)) { load() }
+        .task(id: LoadKey(stamps: ObjectIdentifier(reader), growth: growth.map { ObjectIdentifier($0) }, refresh: refreshToken)) {
+            load()
+            await loadBadges()
+        }
+    }
+
+    private func loadBadges() async {
+        // Same source as the Growth Center; any failure (unconfigured, signed out, read error) is unknown, not "none".
+        guard let growth, growth.isConfigured, growth.isAuthenticated,
+              let center = (try? await growth.overview())?.center.value, !Task.isCancelled else { badges = nil; return }
+        badges = center.badges.enumerated().map { PassportBadge(index: $0.offset, badge: $0.element) }
     }
 
     private func load() {
@@ -48,6 +74,8 @@ enum PassportStampGrid {
 /// Three circular actions + stamp grid. Pure presentation so fixtures can render every state.
 @MainActor struct PassportOverviewContent: View {
     let stampCount: Int?
+    /// nil = unknown (em dash); empty = known none (rail hidden); otherwise the earned badges.
+    var badges: [PassportBadge]? = nil
     var onOpenTickets: () -> Void = {}
     var onOpenWallet: () -> Void = {}
     var onOpenMessages: () -> Void = {}
@@ -57,6 +85,7 @@ enum PassportStampGrid {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             actions
             stamps
+            if badges?.isEmpty != true { badgeRail }
         }
         .padding(.vertical, CYSpacing.xs)
     }
@@ -113,6 +142,42 @@ enum PassportStampGrid {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.stampGrid")
+    }
+
+    private var badgeRail: some View {
+        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+            HStack {
+                Text("passport.badges.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Spacer(minLength: CYSpacing.sm)
+                if let badges { Text(verbatim: "\(badges.count)").font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
+                else { Text(verbatim: "—").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+            }
+            if let badges {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHStack(alignment: .top, spacing: CYSpacing.md) {
+                        ForEach(badges) { badge in
+                            VStack(spacing: CYSpacing.xs) {
+                                Image(systemName: "medal.fill")
+                                    .font(.title3).foregroundStyle(CYColor.textPrimary)
+                                    .frame(width: 56, height: 56)
+                                    .background(Circle().fill(CYColor.bgElevated))
+                                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
+                                    .accessibilityHidden(true)
+                                Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
+                                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
+                                    .fixedSize(horizontal: false, vertical: true)
+                            }
+                            .frame(width: typeSize.isAccessibilitySize ? 112 : 76)
+                            .accessibilityElement(children: .combine)
+                            .accessibilityIdentifier("passport.badge.\(badge.id)")
+                        }
+                    }
+                }
+            }
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("passport.badgeRail")
     }
 
     @ViewBuilder private func slot(earned: Bool) -> some View {

@@ -33,5 +33,10 @@
     "key": "passport.stamp.locked",
     "en": "Locked stamp",
     "zh-Hans": "未解锁的印章"
+  },
+  {
+    "key": "passport.badges.title",
+    "en": "Badges",
+    "zh-Hans": "徽章"
   }
 ]

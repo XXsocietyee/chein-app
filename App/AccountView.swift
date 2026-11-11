@@ -7,8 +7,8 @@ import SwiftUI
     var onOpenGuideDestination: ((SocialGuideDestination) -> Void)? = nil
     /// W1-4: true when hosted as the Passport tab root (adds the actions + stamp grid, renames the title).
     var showsPassportOverview = false
-    @Environment(\.merchantRootModeSwitch) private var merchantRootModeSwitch
-    @Environment(\.themeDomain) private var themeDomain
+    /// W3-6: a chein://ticket link asks for the ticket pass sheet; consumed (cleared) here.
+    var presentsTicketPass: Binding<Bool>? = nil
     @EnvironmentObject private var session: AppSession
     @State private var savedTopicOwner = ProfileFavoriteTopicNavigationOwner()
     @State private var savedPostOwner = ProfileFavoriteNavigationOwner()
@@ -24,7 +24,6 @@ import SwiftUI
     @State private var showsCooperation=false
     @State private var confirmsLogout=false
     @State private var logoutConfirmation: AuthChannelSessionSnapshot?
-    @State private var showsMerchantApplication=false
     private var localCoverOwner: ProfileLocalCoverOwner? {
         ProfileLocalCoverOwner.make(accountID: account.id, configuration: session.regionalConfiguration)
     }
@@ -33,7 +32,7 @@ import SwiftUI
             Form {
                 MemberIdentityCardSection(account: account, reader: session.memberHomeReader, growth: session.growthCenterReader, onOpenTickets: { showsTicketPass = true }, refreshToken: memberRefreshToken, avatarAccess: session.memberIdentityAvatarAccess)
                 if showsPassportOverview {
-                    PassportOverviewSection(reader: session.roamExperienceReader, onOpenTickets: { showsTicketPass = true },
+                    PassportOverviewSection(reader: session.roamExperienceReader, growth: session.growthCenterReader, refreshToken: memberRefreshToken, onOpenTickets: { showsTicketPass = true },
                                             onOpenWallet: { showsPassportWallet = true }, onOpenMessages: { showsPassportMessages = true })
                 }
                 ProfileAccountLinks(reader:session.profileReader,scoreAppealsDestination:{ AnyView(MemberScoreAppealListView(session: session)) },ordersDestination:{ AnyView(SessionOwnedOrdersView(session: session)) },participantReader:session.participantReader,participantCoordinator:session.participantCoordinator,orderLifecycleCoordinator:session.orderLifecycleCoordinator, mediaScope:session.platformConsumers.scope, makeExternalMaps:session.platformConsumers.mapsFactory, part: .orders)
@@ -44,33 +43,7 @@ import SwiftUI
                     .accessibilityIdentifier("account.invoices")
                 }
                 PlayerJourneyAccountLinks()
-                Section("profile.selfProjects.title") {
-                    NavigationLink {
-                        SessionCreatorProjectsView(session: session)
-                    } label: { CYListRow("creatorContent.projects", trailing: .none) { CYRowIcon(systemImage: "square.stack") } }
-                    .accessibilityIdentifier("account.creatorProjects")
-                    WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
-                    WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
-                        .environment(\.workshopGeneratedTemplateReaderFactory, { session.makeOwnedMemberTemplateReader() })
-                    WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() },
-                        makeInstallationPair: { reference in
-                            guard let pair = session.makeModInstallationWithOriginalReader(reference: reference) else { return nil }
-                            return (pair.controller, pair.originalReader)
-                        })
-                    NavigationLink { WorkshopLicenseLibraryView() } label: {
-                        Label { Text("workshopCommerce.library.title", tableName: "WorkshopCommerce") } icon: { Image(systemName: "checkmark.seal") }
-                    }.accessibilityIdentifier("account.workshopLicenses")
-                    OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
-                    NavigationLink { ProjectEditLaunchView().id(session.sessionRevision)                     } label: {
-                        CYListRow("projectEdit.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
-                    }.accessibilityIdentifier("account.projectEditor")
-                    NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity)                     } label: {
-                        CYListRow("templateAuthor.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
-                    }.accessibilityIdentifier("account.templateAuthoring")
-                    NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext).id(session.creatorContentReader.scope)                     } label: {
-                        CYListRow("creatorContent.center", trailing: .none) { CYRowIcon(systemImage: "pencil.and.outline") }
-                    }.accessibilityIdentifier("account.creatorCenter")
-                }
+                if !showsPassportOverview { AccountRoleSections() } // Passport hosts these in Settings instead
                 Section("wallet.assets") {
                     NavigationLink { SessionWalletCommerceView().id(session.walletCommerceScope)                     } label: {
                         CYListRow("wallet.title", trailing: .none) { CYRowIcon(systemImage: "wallet.pass") }
@@ -111,12 +84,14 @@ import SwiftUI
                     .id(session.accountCollectionReader.scope)
                 MemberBenefitsSection(reader: session.memberHomeReader, earningsDestination: { AnyView(SessionWalletCommerceView().id(session.walletCommerceScope)) })
                 Section {
-                    NavigationLink { SessionMessagingHome(session: session) } label: {
-                        HStack(spacing: CYSpacing.sm) {
-                            CYListRow("messaging.title", trailing: .none) { CYRowIcon(systemImage: "bubble.left.and.bubble.right") }
-                            IMUnreadEntryBadge(reader: session.imUnreadTotalReader)
-                        }
-                    }.accessibilityIdentifier("account.messages")
+                    if !showsPassportOverview { // Passport has the Messages circle action instead
+                        NavigationLink { SessionMessagingHome(session: session) } label: {
+                            HStack(spacing: CYSpacing.sm) {
+                                CYListRow("messaging.title", trailing: .none) { CYRowIcon(systemImage: "bubble.left.and.bubble.right") }
+                                IMUnreadEntryBadge(reader: session.imUnreadTotalReader)
+                            }
+                        }.accessibilityIdentifier("account.messages")
+                    }
                     NavigationLink { SessionTeamHomeView() } label: {
                         CYListRow("team.title", trailing: .none) { CYRowIcon(systemImage: "person.3") }
                     }.accessibilityIdentifier("account.teams")
@@ -147,25 +122,6 @@ import SwiftUI
                     }
                     .buttonStyle(.cyPressable)
                     .accessibilityIdentifier("account.cooperation")
-                    if themeDomain != .player { // players never see merchant rows; code stays for the merchant role
-                    NavigationLink { SessionMerchantOverviewView(session: session) } label: {
-                        CYListRow("account.merchantOverview", trailing: .none) { CYRowIcon(systemImage: "chart.bar.doc.horizontal") }
-                    }.accessibilityIdentifier("account.merchantOverview")
-                    NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
-                        CYListRow("merchant.projects", trailing: .none) { CYRowIcon(systemImage: "calendar") }
-                    }.accessibilityIdentifier("account.merchantProjectBrowse")
-                    NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) })                     } label: {
-                        CYListRow("merchant.title", trailing: .none) { CYRowIcon(systemImage: "storefront") }
-                    }.accessibilityIdentifier("account.merchant")
-                    if merchantRootModeSwitch.isAvailable {
-                        MerchantAccountModeSwitchRow(modeSwitch: merchantRootModeSwitch)
-                    }
-                    Button { showsMerchantApplication=true } label: {
-                        CYListRow("merchant.onboarding.openApplication", trailing: .none) { CYRowIcon(systemImage: "doc.text") }
-                    }
-                    .buttonStyle(.cyPressable)
-                    .accessibilityIdentifier("account.merchantApplication")
-                    }
                 }
                 SupportTicketReadEntry(session: session)
                 Section {
@@ -193,9 +149,6 @@ import SwiftUI
             }
             .navigationDestination(isPresented:$showsPassportWallet) { SessionWalletCommerceView().id(session.walletCommerceScope) }
             .navigationDestination(isPresented:$showsPassportMessages) { SessionMessagingHome(session: session) }
-            .navigationDestination(isPresented:$showsMerchantApplication) {
-                MerchantOnboardingView(session:session,coordinator:session.merchantOnboardingCoordinator)
-            }
             .background {
                 ProfileFavoriteTopicNavigationLayer(owner: savedTopicOwner) { selected in
                     ProfileFavoriteTopicDestination(selection: selected, session: session,
@@ -241,6 +194,10 @@ import SwiftUI
         }
         .onAppear { savedPostOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active); savedTopicOwner.appear(scope: session.profileFavoritesReader.scope, foreground: scenePhase == .active) }
         .onDisappear { savedPostOwner.disappear(); savedTopicOwner.disappear(); logoutConfirmation = nil; confirmsLogout = false }
+        .onChange(of: presentsTicketPass?.wrappedValue, initial: true) { _, requested in
+            guard requested == true else { return }
+            showsTicketPass = true; presentsTicketPass?.wrappedValue = false
+        }
         .onChange(of: confirmsLogout) { _, visible in if !visible { logoutConfirmation = nil } }
         .onChange(of: session.authChannelSnapshot) { _, _ in logoutConfirmation = nil; confirmsLogout = false }
         .onChange(of: scenePhase) { _, phase in savedPostOwner.setForeground(phase == .active); savedTopicOwner.setForeground(phase == .active) }
@@ -271,6 +228,83 @@ import SwiftUI
                         .accessibilityIdentifier("ticketWallet.play.ticket")
                     }
                 })
+        }
+    }
+}
+
+/// Creator and merchant rows. Hosted in Settings for the Passport tab (W1-4 follow-up); the legacy `AccountView`
+/// keeps showing the creator rows inline. Gating is unchanged: merchant rows stay hidden for the player domain and the
+/// mode switch needs `merchantRootModeSwitch.isAvailable`; Settings also hides the creator rows without a publishing session.
+@MainActor struct AccountRoleSections: View {
+    /// Settings: hide creator rows when the publishing capability (`session.publishingSession`) is absent.
+    var gatesCreatorByCapability = false
+    var showsMerchant = true
+    @Environment(\.merchantRootModeSwitch) private var merchantRootModeSwitch
+    @Environment(\.themeDomain) private var themeDomain
+    @EnvironmentObject private var session: AppSession
+    @State private var showsMerchantApplication = false
+
+    var body: some View {
+        Group {
+            if !gatesCreatorByCapability || session.publishingSession != nil { creatorSection }
+            if showsMerchant && themeDomain != .player { merchantSection }
+        }
+        .navigationDestination(isPresented: $showsMerchantApplication) {
+            MerchantOnboardingView(session: session, coordinator: session.merchantOnboardingCoordinator)
+        }
+    }
+
+    @ViewBuilder private var creatorSection: some View {
+        Section("profile.selfProjects.title") {
+            NavigationLink {
+                SessionCreatorProjectsView(session: session)
+            } label: { CYListRow("creatorContent.projects", trailing: .none) { CYRowIcon(systemImage: "square.stack") } }
+            .accessibilityIdentifier("account.creatorProjects")
+            WorkshopOwnedAccountLink(browser: session.workshopOwnedBrowser)
+            WorkshopPurchasedAccountLink(browser: session.workshopPurchasedBrowser, makeInstall: { session.makeWorkshopPaidInstallController(item: $0) }, makeText: { session.makeWorkshopPaidInstalledTextController(reference: $0) }, makeProfessional: { session.makeWorkshopPaidProfessionalController(reference: $0) })
+                .environment(\.workshopGeneratedTemplateReaderFactory, { session.makeOwnedMemberTemplateReader() })
+            WorkshopCommerceAccountLink(makeController: { session.makeWorkshopCommerceController() },
+                makeInstallationPair: { reference in
+                    guard let pair = session.makeModInstallationWithOriginalReader(reference: reference) else { return nil }
+                    return (pair.controller, pair.originalReader)
+                })
+            NavigationLink { WorkshopLicenseLibraryView() } label: {
+                Label { Text("workshopCommerce.library.title", tableName: "WorkshopCommerce") } icon: { Image(systemName: "checkmark.seal") }
+            }.accessibilityIdentifier("account.workshopLicenses")
+            OwnerDraftAccountLink(browser: session.ownerDraftBrowser)
+            NavigationLink { ProjectEditLaunchView().id(session.sessionRevision)                     } label: {
+                CYListRow("projectEdit.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+            }.accessibilityIdentifier("account.projectEditor")
+            NavigationLink { TemplateAuthoringLaunchView().id(session.templateAuthoringViewIdentity)                     } label: {
+                CYListRow("templateAuthor.title", trailing: .none) { CYRowIcon(systemImage: "square.and.pencil") }
+            }.accessibilityIdentifier("account.templateAuthoring")
+            NavigationLink { CreatorContentCenterView(reader:session.creatorContentReader, publisherContext: session.publisherLifecycleContext).id(session.creatorContentReader.scope)                     } label: {
+                CYListRow("creatorContent.center", trailing: .none) { CYRowIcon(systemImage: "pencil.and.outline") }
+            }.accessibilityIdentifier("account.creatorCenter")
+        }
+    }
+
+    @ViewBuilder private var merchantSection: some View {
+        Section { // players never see merchant rows; code stays for the merchant role
+            if themeDomain != .player { // players never see merchant rows; code stays for the merchant role
+            NavigationLink { SessionMerchantOverviewView(session: session) } label: {
+                CYListRow("account.merchantOverview", trailing: .none) { CYRowIcon(systemImage: "chart.bar.doc.horizontal") }
+            }.accessibilityIdentifier("account.merchantOverview")
+            NavigationLink { SessionMerchantProjectBrowseView(session: session) } label: {
+                CYListRow("merchant.projects", trailing: .none) { CYRowIcon(systemImage: "calendar") }
+            }.accessibilityIdentifier("account.merchantProjectBrowse")
+            NavigationLink { MerchantHomeView(reader:session,marketingModel:session.merchantMarketingCoordinator,marketingDestination:{ AnyView(SessionMerchantMarketingDestination(session:session,destination:$0)) },openApplication:{ showsMerchantApplication=true },operationsReader:session.merchantOperationsReader,operationsDestinationFactory:{ session.merchantOperationsDestination($0, access: $1) },businessReader:session.merchantBusinessReader,businessJournal:session.merchantBusinessJournal,contentService:session.merchantContentService,cooperationFlowReader:session.cooperationFlowReader,engagementReader:session.merchantEngagementReader,exportRecovery:session.merchantExportRecovery,predictionReader:session.merchantPredictionReader).environment(\.merchantPredictionWorkbenchEntry,{ AnyView(SessionMerchantPredictionEntry(session: session)) }).environment(\.merchantAnchorDestination, { access in AnyView(SessionMerchantAnchorView(access: access)) })                     } label: {
+                CYListRow("merchant.title", trailing: .none) { CYRowIcon(systemImage: "storefront") }
+            }.accessibilityIdentifier("account.merchant")
+            if merchantRootModeSwitch.isAvailable {
+                MerchantAccountModeSwitchRow(modeSwitch: merchantRootModeSwitch)
+            }
+            Button { showsMerchantApplication=true } label: {
+                CYListRow("merchant.onboarding.openApplication", trailing: .none) { CYRowIcon(systemImage: "doc.text") }
+            }
+            .buttonStyle(.cyPressable)
+            .accessibilityIdentifier("account.merchantApplication")
+            }
         }
     }
 }

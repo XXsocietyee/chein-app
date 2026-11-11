@@ -254,6 +254,9 @@ struct SessionRootView: View {
     @StateObject private var merchantRootCoordinator = MerchantRootModeCoordinator()
     @State private var browsingAsGuest=false
     @State private var selectedTab=RootTab.home
+    /// W3-6: one-shot presentation requests from a chein:// link; the owning screen clears them when it consumes them.
+    @State private var deepLinkTicketPass=false
+    @State private var deepLinkClubID: Int?
     @State private var showsAreaPicker=false
     #if DEBUG
     @State private var showsScannerFixture = false
@@ -287,14 +290,14 @@ struct SessionRootView: View {
     }
 
     @ViewBuilder private var clubTab: some View {
-                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }).modifier(SessionMessagingToolbarEntry(session: session)) }
+                    NavigationStack { ClubHomeView(reader:session,onSignIn:{ selectedTab = .mine },actionCoordinator:session.clubActionCoordinator,management:session.clubManagementContext, community:session.clubCommunityContext, publicRoster:session.clubPublicRosterReader, topicDestination: { AnyView(SessionTopicDetailView(id: $0, session: session)) }, requestedClubID: $deepLinkClubID).modifier(SessionMessagingToolbarEntry(session: session)) }
                         .id(session.sessionRevision)
                         .tabItem { rootTabLabel(.club) }.tag(RootTab.club)
     }
 
     @ViewBuilder private var mineTab: some View {
                     Group {
-                        if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home }).id(session.sessionRevision) }
+                        if let account=session.account { PassportView(account:account,privateHomeCoordinator:session.privateHomeCoordinator,nativeHomeReturnSelection:session.nativeHomeReturnSelection,onOpenGuideDestination:{ destination in selectedTab = destination == .roam ? .roam : .home },presentsTicketPass:$deepLinkTicketPass).id(session.sessionRevision) }
                         else { WelcomeView() }
                     }.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)
     }
@@ -334,7 +337,14 @@ struct SessionRootView: View {
         .environment(\.merchantRootModeSwitch, merchantRootCoordinator.makeModeSwitch(session: session))
         .onChange(of: session.pendingDeepLink, initial: true) { _, _ in
             // W3-6: chein:// links resolve in one presentation, the owning root tab.
-            if let link = session.consumeDeepLink() { selectedTab = link.rootTab }
+            if let link = session.consumeDeepLink() {
+                selectedTab = link.rootTab
+                switch link {
+                case .ticket: if session.account != nil { deepLinkTicketPass = true } // pass sheet only; the ticket wallet reader keeps its own gating
+                case .clubJoin(let id): deepLinkClubID = id // club detail only; joining still needs the detail's confirmation
+                case .roamGo: break
+                }
+            }
         }
         .onChange(of: session.account?.id) { _, accountID in
             merchantRootCoordinator.handleSessionChange(accountID: accountID, isSignedIn: session.isSignedIn, isConfigured: session.isConfigured, revision: session.sessionRevision)

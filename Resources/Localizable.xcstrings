@@ -243500,6 +243500,22 @@
         }
       }
     },
+    "passport.badges.title": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Badges"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "徽章"
+          }
+        }
+      }
+    },
     "passport.stamps.title": {
       "localizations": {
         "en": {
