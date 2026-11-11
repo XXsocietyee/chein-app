@@ -852,13 +852,13 @@
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "Customer nickname"
+          "value": "Nickname"
         }
       },
       "zh-Hans": {
         "stringUnit": {
           "state": "translated",
-          "value": "客户昵称"
+          "value": "昵称"
         }
       }
     }
