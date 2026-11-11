@@ -64,7 +64,13 @@ class ManualMapCompositionContracts(unittest.TestCase):
         for file in ['App/RoamBrowserView.swift', 'App/RoamItemDetailView.swift', 'App/SearchMapExplorerView.swift', 'App/SearchMapDetailViews.swift']:
             source = self.read(file)
             self.assertIn('await readOwner.run { await performLoad() }', source)
-            self.assertIn('.onDisappear { readOwner.deactivate();', source)
+            # Every disappearance path deactivates the owner: inline, or through suspendReads() in the item detail.
+            disappear = source.split('.onDisappear {', 1)[1]
+            if file == 'App/RoamItemDetailView.swift':
+                self.assertIn('suspendReads() }', disappear.split('\n', 1)[0])
+                self.assertIn('private func suspendReads() {\n        merchantRetry.cancel(); readOwner.deactivate();', source)
+            else:
+                self.assertIn('readOwner.deactivate();', disappear[:400])
             self.assertIn('readOwner.start { await performLoad() }', source)
         self.assertIn('@State private var originatingIdentity: RoamReadIdentity?', self.read('App/RoamItemDetailView.swift'))
         self.assertIn('_originatingReadKey = State(initialValue:', self.read('App/SearchMapDetailViews.swift'))

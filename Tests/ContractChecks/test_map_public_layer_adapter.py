@@ -677,7 +677,7 @@ class MapPublicLayerAdapterContracts(unittest.TestCase):
         self.assertEqual(kept["pages"][0]["status"], "idle")
 
     def test_public_story_and_theme_require_literal_true_read_capability(self):
-        self.assertIn('status == "OK" && read != true', self.text)
+        self.assertIn('status == "OK" && read == nil', self.text)
         self.assertIn('CFGetTypeID(number) == CFBooleanGetTypeID()', self.text)
         south, north, west, east = sample_box()
         for source in ("story_node", "theme"):
