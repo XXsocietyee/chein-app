@@ -7,50 +7,134 @@ import CoreGraphics
 
 // MARK: - Scrim colour
 
-/// Fog scrim colour. `token` is the style manifest's `fogOverlay` (candidate: grey at 0.35, both appearances).
+/// Fog scrim colour and finish. `token` is the style manifest's `fogOverlay` (candidate: grey at 0.35, both appearances,
+/// plain). `reveal` is the visible-fog look: a desaturated haze at ~0.62 with soft noise, a vignette toward the screen
+/// edges, a warm glow on the frontier and a shimmering dashed outline on unconfirmed ground. The night haze is a lighter
+/// slate and the day haze a darker one, so the cleared ground reads against both a dark and a light basemap.
 struct FogScrimStyle: Equatable {
     let red, green, blue, opacity: Double
+    /// Soft noise blobs over the scrim.
+    var texture = false
+    /// Extra darkening toward the screen edges (0 = none; opacity of black at the corners).
+    var vignette = 0.0
+    /// Warm ring on the frontier of confirmed ground.
+    var frontierGlow = false
 
     static func token(_ appearance: MapAppearance, manifest: MapVisualStyleManifest = .candidate) -> FogScrimStyle {
         let c = manifest.color(.fogOverlay, appearance)
         return FogScrimStyle(red: c.red, green: c.green, blue: c.blue, opacity: c.opacity)
     }
+    static func reveal(_ appearance: MapAppearance) -> FogScrimStyle {
+        switch appearance {
+        case .day: return FogScrimStyle(red: 0.17, green: 0.19, blue: 0.24, opacity: 0.62, texture: true, vignette: 0.30, frontierGlow: true)
+        case .night: return FogScrimStyle(red: 0.36, green: 0.39, blue: 0.47, opacity: 0.62, texture: true, vignette: 0.34, frontierGlow: true)
+        }
+    }
+    /// Same colour and opacity with no texture, vignette or glow: flat, for exact pixel assertions.
+    var plain: FogScrimStyle { FogScrimStyle(red: red, green: green, blue: blue, opacity: opacity) }
     var color: Color { Color(red: red, green: green, blue: blue).opacity(opacity) }
+}
 
-    #if DEBUG
-    /// Deep blue-black scrim for the DEBUG fixtures: the 0.35 grey token is nearly invisible on the dark backdrop.
-    static let darkFixture = FogScrimStyle(red: 0.03, green: 0.04, blue: 0.08, opacity: 0.78)
-    #endif
+// MARK: - Feathering
+
+/// Union of rounded blobs: blur the binary explored field, then stretch it through a smoothstep. A single cell becomes a
+/// soft disc-like blob, neighbours merge into one organic region, and the interior stays fully clear.
+enum FogFeather {
+    static let low: Float = 0.18, high: Float = 0.62
+
+    /// Three box passes per axis (close to a Gaussian). Outside the buffer counts as unexplored.
+    static func blur(_ field: [Float], w: Int, h: Int, radius: Int) -> [Float] {
+        guard radius > 0, w > 0, h > 0 else { return field }
+        var a = field, b = field
+        for _ in 0..<3 {
+            boxRows(a, &b, w: w, h: h, r: radius)
+            boxColumns(b, &a, w: w, h: h, r: radius)
+        }
+        return a
+    }
+    private static func boxRows(_ src: [Float], _ dst: inout [Float], w: Int, h: Int, r: Int) {
+        let norm = 1 / Float(2 * r + 1)
+        for y in 0..<h {
+            let row = y * w
+            var sum: Float = 0
+            for x in 0..<min(r, w) { sum += src[row + x] }
+            for x in 0..<w {
+                if x + r < w { sum += src[row + x + r] }
+                if x - r - 1 >= 0 { sum -= src[row + x - r - 1] }
+                dst[row + x] = sum * norm
+            }
+        }
+    }
+    private static func boxColumns(_ src: [Float], _ dst: inout [Float], w: Int, h: Int, r: Int) {
+        let norm = 1 / Float(2 * r + 1)
+        for x in 0..<w {
+            var sum: Float = 0
+            for y in 0..<min(r, h) { sum += src[y * w + x] }
+            for y in 0..<h {
+                if y + r < h { sum += src[(y + r) * w + x] }
+                if y - r - 1 >= 0 { sum -= src[(y - r - 1) * w + x] }
+                dst[y * w + x] = sum * norm
+            }
+        }
+    }
+    static func smooth(_ v: Float) -> Float {
+        let t = min(max((v - low) / (high - low), 0), 1)
+        return t * t * (3 - 2 * t)
+    }
+    /// 0 inside and outside, 1 at the middle of the roll-off; squared so the ring is thin.
+    static func ring(_ clear: Float) -> Float { let r = 4 * clear * (1 - clear); return r * r }
 }
 
 // MARK: - Mask images
 
-/// CGImages derived once per mask (never per frame). `cutout` carries the explored alpha for `destinationOut`;
-/// `pendingBand` marks the pending-only plateau (alpha 128) so the hatch pass can be clipped to it at draw time.
+/// CGImages derived once per mask (never per frame), all premultiplied black so only alpha carries data.
+/// `cutout`: feathered explored ground (confirmed plus pending) for `destinationOut`. `glow`: ring on the confirmed
+/// frontier. `pendingRing`: ring around unconfirmed-only ground, drawn dashed.
 struct FogMaskImages {
     let cutout: CGImage
-    let pendingBand: CGImage?
+    let glow: CGImage?
+    let pendingRing: CGImage?
 
-    static let pendingBandRange: ClosedRange<UInt8> = 120...136
+    /// Pixels of feather radius per geohash-7 cell width (a cell is ~152.8 mercator meters wide at every latitude).
+    static let featherPerCell = 0.38
+    static let cellMercatorMeters = 152.8
 
     /// nil for an empty mask (summary level of detail or no window).
     static func make(_ mask: FogMask) -> FogMaskImages? {
-        guard mask.width > 0, mask.height > 0, mask.alpha.count == mask.width * mask.height,
-              let cutout = image(mask.alpha, w: mask.width, h: mask.height, interpolate: true) else { return nil }
-        let band = mask.alpha.map { pendingBandRange.contains($0) ? UInt8(255) : UInt8(0) }
-        let pending = band.contains(255) ? image(band, w: mask.width, h: mask.height, interpolate: true) : nil
-        return FogMaskImages(cutout: cutout, pendingBand: pending)
+        let w = mask.width, h = mask.height
+        guard w > 0, h > 0, mask.alpha.count == w * h else { return nil }
+        let n = w * h
+        var confirmed = [Float](repeating: 0, count: n), pending = confirmed
+        for i in 0..<n {
+            let a = mask.alpha[i]
+            if mask.lod == .cell6 { confirmed[i] = Float(a) / 255 }
+            else if a >= 200 { confirmed[i] = 1 }
+            else if (100...160).contains(a) { pending[i] = 1 }
+        }
+        let cellPx = cellMercatorMeters * Double(w) / max(mask.window.width, 1)
+        let radius = max(1, Int((cellPx * featherPerCell).rounded()))
+        let c = FogFeather.blur(confirmed, w: w, h: h, radius: radius).map(FogFeather.smooth)
+        var union = confirmed
+        for i in 0..<n { union[i] = max(confirmed[i], pending[i]) }
+        let u = FogFeather.blur(union, w: w, h: h, radius: radius).map(FogFeather.smooth)
+        guard let cutout = image(u.map { UInt8(min(max($0, 0), 1) * 255) }, w: w, h: h) else { return nil }
+        let glow = image((0..<n).map { UInt8(FogFeather.ring(c[$0]) * 255) }, w: w, h: h)
+        var ring: CGImage?
+        if pending.contains(1) {
+            let p = FogFeather.blur(pending, w: w, h: h, radius: radius).map(FogFeather.smooth)
+            ring = image((0..<n).map { UInt8(FogFeather.ring(p[$0]) * (1 - c[$0]) * 255) }, w: w, h: h)
+        }
+        return FogMaskImages(cutout: cutout, glow: glow, pendingRing: ring)
     }
 
-    /// Premultiplied black: only alpha carries data.
-    private static func image(_ alpha: [UInt8], w: Int, h: Int, interpolate: Bool) -> CGImage? {
+    private static func image(_ alpha: [UInt8], w: Int, h: Int) -> CGImage? {
         var rgba = [UInt8](repeating: 0, count: w * h * 4)
         for i in 0..<(w * h) { rgba[i * 4 + 3] = alpha[i] }
         guard let provider = CGDataProvider(data: Data(rgba) as CFData) else { return nil }
         return CGImage(width: w, height: h, bitsPerComponent: 8, bitsPerPixel: 32, bytesPerRow: w * 4,
                        space: CGColorSpaceCreateDeviceRGB(),
                        bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.premultipliedLast.rawValue),
-                       provider: provider, decode: nil, shouldInterpolate: interpolate, intent: .defaultIntent)
+                       provider: provider, decode: nil, shouldInterpolate: true, intent: .defaultIntent)
     }
 }
 
@@ -120,10 +204,10 @@ enum FogWindowGeometry {
         }
         let cellPixels = FogLevelOfDetail.cellPixels(metersPerPixel: viewport.metersPerPixel)
         let lod = mask.map { FogLevelOfDetail.resolve(cellPixels: cellPixels, previous: $0.lod) } ?? FogLevelOfDetail.resolve(cellPixels: cellPixels)
-        // Low Power or thermal pressure: skip the softening pass.
+        // Feathering happens in `FogMaskImages`, so the Core mask stays crisp (exact bytes at cell centres).
         let rebuilt = FogMaskRasterizer.rasterize(confirmed: confirmed, pending: pending,
                                                   window: viewport.expanded(by: FogMaskRasterizer.margin), lod: lod,
-                                                  soften: !constrained, revision: revision)
+                                                  soften: false, revision: revision)
         mask = rebuilt; images = FogMaskImages.make(rebuilt); self.constrained = constrained
         rebuildCount += 1
         return (rebuilt, images)
@@ -140,8 +224,9 @@ struct FogWipeDraw: Equatable {
     let duration: TimeInterval
 }
 
-/// Scrim over the basemap with the explored area cut out (`destinationOut`), a hatch over unconfirmed cells (state is never
-/// colour-only), and a soft roll-off. Ticks only while wipes are in flight. Hidden from accessibility and hit testing.
+/// Scrim over the basemap with the explored area cut out (`destinationOut`) through a feathered mask, a warm glow on the
+/// confirmed frontier, and a dashed shimmering outline around unconfirmed ground (state is never colour-only). Ticks only
+/// while wipes or the shimmer are live. Hidden from accessibility and hit testing.
 struct FogOverlayLayer: View {
     let mask: FogMask
     let images: FogMaskImages?
@@ -149,26 +234,30 @@ struct FogOverlayLayer: View {
     let windowRect: CGRect
     var style: FogScrimStyle
     var wipes: [FogWipeDraw] = []
-    /// Blur radius (points) applied to the cut-out for the cloud-like edge; 0 under Low Power.
-    var softEdgeRadius: CGFloat = 3
+    /// Extra canvas blur on the cut-out (points). The mask is already feathered; 0 by default.
+    var softEdgeRadius: CGFloat = 0
+    /// Animate the dashed outline. False under Reduce Motion or Low Power: the dashes stay still.
+    var shimmer = false
     var clock: () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }
 
     init(mask: FogMask, images: FogMaskImages?, windowRect: CGRect, appearance: MapAppearance,
-         manifest: MapVisualStyleManifest = .candidate, wipes: [FogWipeDraw] = [], softEdgeRadius: CGFloat = 3,
+         wipes: [FogWipeDraw] = [], softEdgeRadius: CGFloat = 0, shimmer: Bool = false,
          clock: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }) {
-        self.init(mask: mask, images: images, windowRect: windowRect, style: .token(appearance, manifest: manifest),
-                  wipes: wipes, softEdgeRadius: softEdgeRadius, clock: clock)
+        self.init(mask: mask, images: images, windowRect: windowRect, style: .reveal(appearance), wipes: wipes,
+                  softEdgeRadius: softEdgeRadius, shimmer: shimmer, clock: clock)
     }
 
     init(mask: FogMask, images: FogMaskImages?, windowRect: CGRect, style: FogScrimStyle, wipes: [FogWipeDraw] = [],
-         softEdgeRadius: CGFloat = 3, clock: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }) {
+         softEdgeRadius: CGFloat = 0, shimmer: Bool = false, clock: @escaping () -> TimeInterval = { Date().timeIntervalSinceReferenceDate }) {
         self.mask = mask; self.images = images; self.windowRect = windowRect; self.style = style
-        self.wipes = wipes; self.softEdgeRadius = softEdgeRadius; self.clock = clock
+        self.wipes = wipes; self.softEdgeRadius = softEdgeRadius; self.shimmer = shimmer; self.clock = clock
     }
+
+    private static let warm = Color(red: 1.0, green: 0.78, blue: 0.45)
 
     var body: some View {
         Group {
-            if wipes.isEmpty {
+            if wipes.isEmpty && !(shimmer && images?.pendingRing != nil) {
                 canvas(now: 0)
             } else {
                 TimelineView(.animation(minimumInterval: 1.0 / 30.0)) { _ in canvas(now: clock()) }
@@ -184,6 +273,12 @@ struct FogOverlayLayer: View {
             let full = CGRect(origin: .zero, size: size)
             ctx.drawLayer { layer in
                 layer.fill(Path(full), with: .color(style.color))
+                if style.texture { drawTexture(&layer, size: size) }
+                if style.vignette > 0 {
+                    layer.fill(Path(full), with: .radialGradient(
+                        Gradient(stops: [.init(color: .clear, location: 0.35), .init(color: .black.opacity(style.vignette), location: 1)]),
+                        center: CGPoint(x: size.width / 2, y: size.height / 2), startRadius: 0, endRadius: hypot(size.width, size.height) / 2))
+                }
                 layer.blendMode = .destinationOut
                 if let cutout = images?.cutout {
                     var cut = layer
@@ -201,18 +296,46 @@ struct FogOverlayLayer: View {
                                                      center: wipe.center, startRadius: 0, endRadius: max(r, 1)))
                 }
             }
-            if let band = images?.pendingBand {
+            if style.frontierGlow, let glow = images?.glow {
                 ctx.drawLayer { layer in
-                    var hatch = Path()
-                    var x = -size.height
-                    while x < size.width {
-                        hatch.move(to: CGPoint(x: x, y: size.height)); hatch.addLine(to: CGPoint(x: x + size.height, y: 0)); x += 6
-                    }
-                    layer.stroke(hatch, with: .color(Color.white.opacity(0.35)), lineWidth: 1)
+                    layer.clip(to: Path(windowRect))
+                    layer.fill(Path(full), with: .color(Self.warm.opacity(0.85)))
                     layer.blendMode = .destinationIn
-                    layer.draw(layer.resolve(Image(decorative: band, scale: 1)), in: windowRect)
+                    layer.draw(layer.resolve(Image(decorative: glow, scale: 1)), in: windowRect)
                 }
             }
+            if let ring = images?.pendingRing {
+                ctx.drawLayer { layer in
+                    layer.clip(to: Path(windowRect))
+                    // Dashes: diagonal stripes 4 pt on, 5 pt off, crawling slowly when the shimmer runs.
+                    let phase = shimmer ? CGFloat((now * 14).truncatingRemainder(dividingBy: 9)) : 0
+                    var dashes = Path()
+                    var x = -size.height + phase
+                    while x < size.width {
+                        dashes.move(to: CGPoint(x: x, y: size.height)); dashes.addLine(to: CGPoint(x: x + size.height, y: 0)); x += 9
+                    }
+                    let pulse = shimmer ? 0.75 + 0.25 * sin(now * 3) : 0.9
+                    layer.stroke(dashes, with: .color(Color.white.opacity(pulse)), lineWidth: 4)
+                    layer.blendMode = .destinationIn
+                    layer.draw(layer.resolve(Image(decorative: ring, scale: 1)), in: windowRect)
+                }
+            }
+        }
+    }
+
+    /// Deterministic soft blobs (lighter and darker) so the haze is not a flat fill. Screen-anchored.
+    private func drawTexture(_ layer: inout GraphicsContext, size: CGSize) {
+        var seed: UInt64 = 0x9E37_79B9_7F4A_7C15
+        func next() -> CGFloat {
+            seed = seed &* 6_364_136_223_846_793_005 &+ 1_442_695_040_888_963_407
+            return CGFloat(seed >> 11) / CGFloat(1 << 53)
+        }
+        for i in 0..<40 {
+            let c = CGPoint(x: next() * size.width, y: next() * size.height)
+            let r = 50 + next() * 90
+            let tint: Color = i.isMultiple(of: 2) ? .white.opacity(0.07) : .black.opacity(0.10)
+            layer.fill(Path(ellipseIn: CGRect(x: c.x - r, y: c.y - r, width: r * 2, height: r * 2)),
+                       with: .radialGradient(Gradient(colors: [tint, tint.opacity(0)]), center: c, startRadius: 0, endRadius: r))
         }
     }
 }

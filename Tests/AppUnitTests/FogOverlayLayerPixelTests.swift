@@ -20,9 +20,10 @@ import UIKit
         func alpha(_ x: Int, _ y: Int) -> Int { Int(bytes[(y * width + x) * 4 + 3]) }
     }
 
-    private func render(_ mask: FogMask, appearance: MapAppearance, softEdge: CGFloat = 0) throws -> Pixels {
+    private func render(_ mask: FogMask, appearance: MapAppearance, plain: Bool = false) throws -> Pixels {
         let rect = FogWindowGeometry.rect(of: mask.window, in: viewport, pointSize: size)
-        let layer = FogOverlayLayer(mask: mask, images: FogMaskImages.make(mask), windowRect: rect, appearance: appearance, softEdgeRadius: softEdge)
+        let style = plain ? FogScrimStyle.reveal(appearance).plain : FogScrimStyle.reveal(appearance)
+        let layer = FogOverlayLayer(mask: mask, images: FogMaskImages.make(mask), windowRect: rect, style: style)
             .frame(width: size.width, height: size.height)
         let renderer = ImageRenderer(content: layer)
         renderer.scale = 1
@@ -53,11 +54,27 @@ import UIKit
 
     // MARK: Pixels
 
-    func testHiddenGroundCarriesTheFogOverlayTokenInBothAppearances() throws {
-        let bitmap = try walk()
+    func testScrimIsClearlyVisibleOutsideAndGoneInsideInBothAppearances() throws {
+        let codes = FogFixtures.revealedCodes(FogFixtures.shanghaiPeoplesSquareWalk)
+        let c = try centre(of: codes[4])
+        let inside = screenPoint(latitude: c.latitude, longitude: c.longitude)
         for appearance in MapAppearance.allCases {
-            let pixels = try render(mask(confirmed: bitmap), appearance: appearance)
-            let expected = MapVisualStyleManifest.candidate.color(.fogOverlay, appearance).opacity * 255
+            let pixels = try render(mask(confirmed: try walk()), appearance: appearance)
+            let outside = [(200, 40), (40, 350), (360, 60), (330, 340)].map { pixels.alpha($0.0, $0.1) }
+            for a in outside {
+                XCTAssertGreaterThanOrEqual(a, 140, "unexplored fog must read clearly (>= ~0.55) in \(appearance)")
+                XCTAssertLessThanOrEqual(a, 215, "\(appearance)")
+            }
+            XCTAssertLessThanOrEqual(pixels.alpha(inside.x, inside.y), 3, "explored ground is fully clear in \(appearance)")
+            XCTAssertGreaterThan((outside.min() ?? 0) - pixels.alpha(inside.x, inside.y), 130, "inside vs outside must differ unmistakably")
+        }
+    }
+
+    func testPlainScrimMatchesTheStyleOpacity() throws {
+        for appearance in MapAppearance.allCases {
+            let pixels = try render(mask(confirmed: try walk()), appearance: appearance, plain: true)
+            let expected = FogScrimStyle.reveal(appearance).opacity * 255
+            XCTAssertEqual(expected, 158, accuracy: 3)
             XCTAssertEqual(Double(pixels.alpha(6, 6)), expected, accuracy: 2, "\(appearance)")
             XCTAssertEqual(Double(pixels.alpha(393, 393)), expected, accuracy: 2, "\(appearance)")
         }
@@ -71,24 +88,54 @@ import UIKit
             let c = try centre(of: code)
             let p = screenPoint(latitude: c.latitude, longitude: c.longitude)
             guard (0..<pixels.width).contains(p.x), (0..<pixels.height).contains(p.y) else { continue }
-            XCTAssertLessThanOrEqual(pixels.alpha(p.x, p.y), 2, code)
+            // Interior of a run of cells: cells whose neighbours are revealed too are fully clear; a lone cell is >= 90 % clear.
+            XCTAssertLessThanOrEqual(pixels.alpha(p.x, p.y), 16, code)
             checked += 1
         }
         XCTAssertGreaterThanOrEqual(checked, 3, "at least three revealed cell centres must fall inside the viewport")
     }
 
-    func testPendingCellsAreHatchedAndOnlyPartlyCutOut() throws {
+    func testFeatherRoundsCornersInsteadOfAxisAlignedRectangles() throws {
+        let code = FogFixtures.revealedCodes(FogFixtures.shanghaiPeoplesSquareWalk)[0]
+        let single = try FogFixtures.bitmap([code])
+        let pixels = try render(mask(confirmed: single), appearance: .night, plain: true)
+        let b = try XCTUnwrap(FogGeohash.bounds(of: code))
+        let c = try centre(of: code)
+        let middle = screenPoint(latitude: c.latitude, longitude: c.longitude)
+        let corner = screenPoint(latitude: b.north, longitude: b.east)
+        let edge = screenPoint(latitude: c.latitude, longitude: b.east)
+        let cornerAlpha = pixels.alpha(corner.x - 2, corner.y + 2), edgeAlpha = pixels.alpha(edge.x - 2, edge.y)
+        XCTAssertLessThanOrEqual(pixels.alpha(middle.x, middle.y), 40)
+        XCTAssertGreaterThan(cornerAlpha, edgeAlpha + 25, "a rectangle would clear its corner as much as its edge")
+        XCTAssertGreaterThan(cornerAlpha, 90, "the corner stays mostly fogged: the blob is round")
+    }
+
+    func testFrontierGlowIsWarm() throws {
+        let eastCell = try XCTUnwrap(RoamCoordinate(latitude: 31.2304, longitude: 121.4818).flatMap { RoamExperienceMath.tileKey($0) })
+        let c = try centre(of: eastCell)
+        let start = screenPoint(latitude: c.latitude, longitude: c.longitude)
+        for appearance in MapAppearance.allCases {
+            let pixels = try render(mask(confirmed: try walk()), appearance: appearance)
+            let warm = (start.x..<min(start.x + 100, pixels.width)).contains { x in
+                let p = pixels.rgba(x, start.y); return p[3] > 40 && Int(p[0]) > Int(p[2]) + 15
+            }
+            XCTAssertTrue(warm, "a warm ring marks the frontier in \(appearance)")
+        }
+    }
+
+    func testPendingCellsAreClearWithADashedOutlineNotAHatchBlock() throws {
         let pendingCode = try XCTUnwrap(RoamCoordinate(latitude: 31.2304, longitude: 121.4856).flatMap { RoamExperienceMath.tileKey($0) })
         let pending = try FogFixtures.bitmap([pendingCode])
         let pixels = try render(mask(confirmed: try walk(), pending: pending), appearance: .night)
         let c = try centre(of: pendingCode)
         let p = screenPoint(latitude: c.latitude, longitude: c.longitude)
-        var alphas: [Int] = []
-        for dy in -8...8 { for dx in -8...8 { alphas.append(pixels.alpha(p.x + dx, p.y + dy)) } }
-        XCTAssertGreaterThan(alphas.min() ?? 0, 0, "pending ground is never fully revealed")
-        XCTAssertGreaterThan((alphas.max() ?? 0) - (alphas.min() ?? 0), 20, "hatch lines must be visible, state is not colour-only")
-        let mean = Double(alphas.reduce(0, +)) / Double(alphas.count)
-        XCTAssertLessThan(mean, 89, "pending reads lighter than hidden fog")
+        for dy in -5...5 { for dx in -5...5 { XCTAssertLessThanOrEqual(pixels.alpha(p.x + dx, p.y + dy), 40, "interior of an unconfirmed cell is clear, not hatched") } }
+        var dashes = 0
+        for dy in -45...45 { for dx in -45...45 {
+            let q = pixels.rgba(p.x + dx, p.y + dy)
+            if q[3] > 100 && q[0] > 120 && q[2] > 120 { dashes += 1 }
+        } }
+        XCTAssertGreaterThan(dashes, 12, "the dashed outline must be visible, state is not colour-only")
     }
 
     func testSoftEdgeRollsOffMonotonicallyAcrossTheBoundary() throws {
@@ -96,12 +143,24 @@ import UIKit
         let eastCell = try XCTUnwrap(RoamCoordinate(latitude: 31.2304, longitude: 121.4818).flatMap { RoamExperienceMath.tileKey($0) })
         let c = try centre(of: eastCell)
         let start = screenPoint(latitude: c.latitude, longitude: c.longitude)
-        let pixels = try render(mask(confirmed: bitmap, soften: true), appearance: .night, softEdge: 3)
+        let pixels = try render(mask(confirmed: bitmap), appearance: .night, plain: true)
         let row = (start.x..<min(start.x + 100, pixels.width)).map { pixels.alpha($0, start.y) }
-        XCTAssertLessThanOrEqual(row.first ?? 255, 6)
-        XCTAssertEqual(Double(row.last ?? 0), 89, accuracy: 3)
+        let expected = FogScrimStyle.reveal(.night).opacity * 255
+        XCTAssertLessThanOrEqual(row.first ?? 255, 16)
+        XCTAssertEqual(Double(row.last ?? 0), expected, accuracy: 3)
         for pair in zip(row, row.dropFirst()) { XCTAssertGreaterThanOrEqual(pair.1 + 1, pair.0, "alpha must not dip across the edge") }
-        XCTAssertGreaterThan(Set(row).count, 4, "the edge is soft, not a one-pixel step")
+        XCTAssertGreaterThanOrEqual(row.filter { (20...140).contains($0) }.count, 8, "the edge is feathered over many pixels")
+    }
+
+    func testFeatherMathKeepsInteriorClearAndOutsideFogged() {
+        XCTAssertEqual(FogFeather.smooth(0), 0); XCTAssertEqual(FogFeather.smooth(1), 1)
+        XCTAssertEqual(FogFeather.ring(0), 0); XCTAssertEqual(FogFeather.ring(1), 0); XCTAssertEqual(FogFeather.ring(0.5), 1, accuracy: 0.0001)
+        var field = [Float](repeating: 0, count: 41 * 41)
+        for y in 15...25 { for x in 15...25 { field[y * 41 + x] = 1 } }
+        let blurred = FogFeather.blur(field, w: 41, h: 41, radius: 4)
+        XCTAssertGreaterThan(FogFeather.smooth(blurred[20 * 41 + 20]), 0.99)
+        XCTAssertEqual(FogFeather.smooth(blurred[0]), 0)
+        XCTAssertLessThan(blurred[15 * 41 + 15], blurred[20 * 41 + 15], "corner is weaker than the edge middle")
     }
 
     // MARK: Geometry

@@ -117,6 +117,7 @@ enum DesignFixtureReleaseExclusionAudit {
         "E5cCopy",
         "E5cFixtures",
         "E5cTabsFixture",
+        "FogLightBackdrop",
         "KitGalleryFixture",
         "LabDetail",
         "LoginFixture",
