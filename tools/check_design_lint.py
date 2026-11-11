@@ -50,7 +50,7 @@ ALLOWLIST = {
     'App/SocialGuideViews.swift': {FIXED_FONT: 1},
     'App/SocialGuideXcxParity.swift': {FIXED_FONT: 1},
     'App/UsageConsentGateView.swift': {FIXED_FONT: 1},
-    'App/WalletCommerceViews.swift': {FIXED_FONT: 3},
+    'App/WalletCommerceViews.swift': {FIXED_FONT: 2},
     'App/WelcomeView.swift': {FIXED_FONT: 1},
 }
 
