@@ -73,7 +73,7 @@ class NonCashRewardDetailChecks(unittest.TestCase):
         self.assertIn('testPushedScreenHidesOldScopeAndRefusesAnotherAccountRead',app)
         self.assertEqual(len(re.findall(r'func test\w+',lifetime)),8)
         self.assertEqual(len(re.findall(r'func test\w+',self.read('Tests/CoreTests/NonCashRewardDetailTests.swift'))),15)
-        self.assertEqual(len(re.findall(r'func test\w+',app)),17)
+        self.assertEqual(len(re.findall(r'func test\w+',app)),25)
     def test_project_registers_new_app_source_and_app_hosted_tests(self):
         project=self.read('Questify.xcodeproj/project.pbxproj')
         for file in ['Core/NonCashRewardDetailModel.swift','Core/NonCashRewardDetailProjection.swift','App/NonCashRewardDetailReadSupport.swift','Tests/AppUnitTests/NonCashRewardDetailCompositionTests.swift']:
@@ -128,7 +128,7 @@ class NonCashRewardDetailChecks(unittest.TestCase):
         self.assertNotIn('}.accessibilityIdentifier("rewards.read.qualification")',facts)
         self.assertIn('Text("rewards.read.origin").accessibilityIdentifier("rewards.read.origin.header")',facts)
         self.assertIn('Text("rewards.read.qualification").accessibilityIdentifier("rewards.read.qualification.header")',facts)
-        self.assertIn('Text(verbatim: value).accessibilityIdentifier(id)',facts)
+        self.assertIn('Text(verbatim: value).fixedSize(horizontal: false, vertical: true).accessibilityIdentifier(id)',facts)
         self.assertIn('.accessibilityElement(children: .contain)',facts)
         ui=self.read('Tests/AppUITests/NonCashRewardFlowTests.swift')
         self.assertIn('("rewards.read.contextId.value", "Context identifier, example-map")',ui)
@@ -144,7 +144,7 @@ class NonCashRewardDetailChecks(unittest.TestCase):
         end=support.split('func endPresentation(',1)[1].split('\n    }',1)[0]
         self.assertLess(end.index('presentation === permit'),end.index('cancelPending()'))
         view=self.read('App/NonCashRewardViews.swift').split('private struct NonCashRewardDetailView:',1)[1]
-        self.assertIn('if appearance.end(model: model) { presenting = false }',view)
+        self.assertIn('if appearance.end(model: model) { presenting = false; merchantNavigation.cancel() }',view)
         self.assertIn('if viewPresentation === appearance',view)
         owner=support.split('final class NonCashRewardDetailViewPresentation',1)[1]
         self.assertIn('guard !isClosed else { return nil }',owner)
