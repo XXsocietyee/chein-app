@@ -54,7 +54,7 @@ struct E5cTabsFixture: View {
     @Environment(\.cyPalette) private var palette
     var body: some View {
         TabView(selection: $selection) {
-            ForEach(RootTab.allCases, id: \.self) { tab in
+            ForEach(RootTab.playerTabs, id: \.self) { tab in
                 NavigationStack {
                     List {
                         ForEach(0..<8, id: \.self) { i in

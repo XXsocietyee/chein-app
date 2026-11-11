@@ -11,6 +11,7 @@ import SwiftUI
     @State private var continuationReadAvailability:HomeContinuationReadAvailability = .unauthenticated
     @State private var showsGlobalSearch=false
     @State private var showsTemplates=false
+    @State private var showsCreate=false
     @State private var showsSquare=false
     @State private var showsOfficialEvents=false
     @State private var showsProjectEditor=false
@@ -43,6 +44,18 @@ import SwiftUI
             },topicLinks:OfficialTopicLinks(reader:session.topicReader,destination:{ AnyView(SessionTopicDetailView(id:$0,session:session)) })).id(session.officialEventReader.scope)
         }
         .sheet(isPresented:$showsSquare) { SessionSquareBrowserView(session: session, onClose: { showsSquare = false }, onSignIn: { showsSquare = false; onSignIn?() }).id(session.squareReader.scope) }
+        .sheet(isPresented:$showsCreate) {
+            NavigationStack {
+                DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext,
+                    publishDestination: { AnyView(SessionPublishingModesView().environmentObject(session).id(session.publishingSession?.epoch)) })
+                    .toolbar {
+                        ToolbarItem(placement:.cancellationAction) {
+                            Button("action.close") { showsCreate=false }
+                        }
+                    }
+            }
+            .id(session.templateAuthoringViewIdentity)
+        }
         .sheet(isPresented:$showsTemplates) {
             NavigationStack {
                 DiscoveryTemplateBrowserView(reader: session, authoringFactory: { session.templateAuthoringEditor(adopting: $0) }, authoringRevision: session.sessionRevision, authoringCompletion: session.templateAuthoringCompletionContext).id(session.templateAuthoringViewIdentity)
@@ -76,6 +89,13 @@ import SwiftUI
                     ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }
                     // Two actions at most: search, then everything else in one menu.
                     ToolbarItemGroup(placement:.topBarTrailing) {
+                        // W1-1: Publish left the tab bar. The "+" opens the former Publish tab content, only when a
+                        // publishing session exists (signed in with a token); absent capability hides the entry.
+                        if session.publishingSession != nil {
+                            Button("homeFeed.create",systemImage:"plus") { showsCreate=true }
+                                .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
+                                .accessibilityIdentifier("homeFeed.openCreate")
+                        }
                         Button("searchMap.title",systemImage:"magnifyingglass") { showsGlobalSearch=true }
                             .labelStyle(.iconOnly).frame(minWidth:44,minHeight:44)
                             .accessibilityIdentifier("homeFeed.openGlobalSearch")
@@ -84,8 +104,12 @@ import SwiftUI
                                 .accessibilityIdentifier("homeFeed.openSquare")
                             Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
                                 .accessibilityIdentifier("homeFeed.openOfficialEvents")
-                            Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
-                                .accessibilityIdentifier("homeFeed.openTemplates")
+                            // Templates lived on the Publish tab and must stay reachable for guests: it is browse-only, so the
+                            // capability is the discovery read (`isConfigured`), not a publishing session. Hidden when unconfigured.
+                            if session.isConfigured {
+                                Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
+                                    .accessibilityIdentifier("homeFeed.openTemplates")
+                            }
                             Button("projectEdit.title", systemImage:"square.and.pencil") { showsProjectEditor=true }
                                 .accessibilityIdentifier("homeFeed.openProjectEditor")
                         } label: {

@@ -13,6 +13,8 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
     var topicDestination: ((Int) -> AnyView)? = nil
     /// Retained callback for hosts that own a value-based navigation path.
     var onTopicDestination: ((Int) -> Void)? = nil
+    /// chein://club/<id>/join: open this club's detail once, then clear it. The detail keeps its own join confirmation.
+    var requestedClubID: Binding<Int?>? = nil
     @State private var locality = MerchantClubDiscoveryState()
     /// Card or inline Join pill tapped; both open the gated detail, which still owns the membership action.
     @State private var openedClubID: Int? = nil
@@ -141,6 +143,10 @@ struct ClubHomeView<Reader: ClubReading & ObservableObject>: View {
         }
         .navigationDestination(item: $openedClubID) { id in
             ClubDetailView(id: id, reader: reader, onSignIn: onSignIn, actionCoordinator: actionCoordinator, management:management, community:community, publicRoster:publicRoster)
+        }
+        .onChange(of: requestedClubID?.wrappedValue, initial: true) { _, id in
+            guard let id else { return }
+            openedClubID = id; requestedClubID?.wrappedValue = nil
         }
         .cyHeroScreen()
         .environment(\.clubEnrollmentProfile, management?.governance?.enrollmentProfile)

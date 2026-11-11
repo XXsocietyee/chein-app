@@ -24,7 +24,7 @@ class RoamAccountEntryContracts(unittest.TestCase):
         self.assertIn("onOpenAccount:{ selectedTab = .mine }", self.root)
         self.assertEqual(self.root.count("onOpenAccount:"), 1)
         self.assertIn('}.tabItem { rootTabLabel(.mine) }.tag(RootTab.mine)', self.root)
-        self.assertIn("if let account=session.account { AccountView(account:account", self.root)
+        self.assertIn("if let account=session.account { PassportView(account:account", self.root)
         self.assertIn("else { WelcomeView() }", self.root)
 
     def test_local_button_is_in_normal_chrome_outside_map_read_gates(self):

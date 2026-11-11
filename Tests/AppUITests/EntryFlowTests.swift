@@ -32,14 +32,19 @@ final class EntryFlowTests: XCTestCase {
         XCTAssertTrue(browse.waitForExistence(timeout:10))
         if !browse.isHittable { app.swipeUp() }
         browse.tap()
-        // Mini-program consumer tab bar: 首页 · 漫游 · 发布 · 俱乐部 · 我的; activities live inside Home.
-        let publish=app.tabBars.buttons["Publish"]
-        XCTAssertTrue(publish.waitForExistence(timeout:10))
-        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Home","Roam","Publish","Clubs","Me"])
+        // Four-tab player bar (W1-1): Explore · Roam · Clubs · Passport. Publish is an Explore "+" (hidden for a guest, who has no publishing session); templates stay reachable from the More menu.
+        let explore=app.tabBars.buttons["Explore"]
+        XCTAssertTrue(explore.waitForExistence(timeout:10))
+        XCTAssertEqual(app.tabBars.buttons.allElementsBoundByIndex.map(\.label), ["Explore","Roam","Clubs","Passport"])
+        XCTAssertFalse(app.tabBars.buttons["Publish"].exists)
         XCTAssertFalse(app.tabBars.buttons["Activities"].exists)
-        publish.tap()
-        XCTAssertTrue(app.navigationBars["Templates"].waitForExistence(timeout:5))
-        let account=app.tabBars.buttons["Me"]
+        XCTAssertFalse(app.buttons["homeFeed.openCreate"].exists)
+        // Unconfigured test build: Home renders its unavailable state without the toolbar, and the Templates entry is gated on
+        // `session.isConfigured`, so neither the More menu nor Templates is offered to a guest here.
+        XCTAssertTrue(app.staticTexts["homeFeed.configurationUnavailable"].firstMatch.waitForExistence(timeout:5))
+        XCTAssertFalse(app.buttons["homeFeed.moreMenu"].exists)
+        XCTAssertFalse(app.buttons["homeFeed.openTemplates"].exists)
+        let account=app.tabBars.buttons["Passport"]
         XCTAssertTrue(account.exists);account.tap()
         XCTAssertTrue(app.buttons["welcome.player"].waitForExistence(timeout:5))
         XCTAssertFalse(app.buttons["welcome.merchant"].exists)
