@@ -87,8 +87,11 @@ class PlayRouteMapContracts(unittest.TestCase):
                 entry = self.strings[key]['localizations']
                 self.assertEqual(set(entry), {'en', 'zh-Hans'})
                 self.assertTrue(all(value['stringUnit']['value'] for value in entry.values()))
-        self.assertIn('not walking directions', self.strings['playRoute.explanation']['localizations']['en']['stringUnit']['value'])
-        self.assertIn('不采集你的位置', self.strings['playRoute.explanation']['localizations']['zh-Hans']['stringUnit']['value'])
+        # The disclaimer was reworded: it still says the lines are order only, not a route or directions (the
+        # no-location-collection claim is no longer made in copy; location APIs stay barred by the source guards).
+        self.assertIn('not a walkable route or navigation directions', self.strings['playRoute.explanation']['localizations']['en']['stringUnit']['value'])
+        self.assertIn('不代表可步行路线', self.strings['playRoute.explanation']['localizations']['zh-Hans']['stringUnit']['value'])
+        self.assertIn('不是导航指引', self.strings['playRoute.explanation']['localizations']['zh-Hans']['stringUnit']['value'])
 
     def test_fixture_is_additive_debug_read_only_and_ui_journeys_authored(self):
         self.assertTrue(self.fixture.startswith('#if DEBUG'))

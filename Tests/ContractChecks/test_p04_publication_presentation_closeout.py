@@ -17,11 +17,11 @@ class P04PublicationPresentationCloseoutTests(unittest.TestCase):
         for value in ['.listStyle(.insetGrouped)','.font(Theme.Font.body)','.tint(Theme.Color.accent(in: domain))','.background(Theme.Color.bgPage(in: domain))','func p04FactRow()','func p04RecoveryRecord()']:self.assertIn(value,source)
         for value in ['Task','@State','onAppear','onDisappear','URLRequest','coordinator','grant:','journal:','.disabled(','.id(']:self.assertNotIn(value,source)
     def testPublishConfirmationStillUsesExactCapturedConfirmation(self):
-        self.contains('ApprovedReleasePublicationConfirmationView',['let original: ApprovedTopicReleasePublishFlow.Confirmation','ApprovedReleaseSummarySection(prepared: original.prepared, identifierPrefix: "approvedRelease.confirm")','{ confirm(original) }','{ cancel(original) }','.onDisappear { cancel(original) }','.buttonStyle(.borderedProminent)','.frame(maxWidth: .infinity, minHeight: 44)'])
+        self.contains('ApprovedReleasePublicationConfirmationView',['let original: ApprovedTopicReleasePublishFlow.Confirmation','ApprovedReleaseSummarySection(prepared: original.prepared, identifierPrefix: "approvedRelease.confirm")','primary: true) {','confirm(original)','{ cancel(original) }','.onDisappear { cancel(original) }'])
     def testReviewModelKeepsExactReceiptAndRetryFences(self):
         self.contains('ApprovedTopicReviewRequestView',['guard !isWorking, flow.canReadStatus, flow.snapshot == original else','guard !isWorking, flow.canRetryExact, flow.snapshot == original else','guard !isWorking, flow.canObserve, flow.snapshot == original else','guard owns(original), let claim = flow.claim(original) else','confirmation?.id == original.id && flow.confirmation?.id == original.id && flow.isCurrent'])
     def testRecoveryControlsRemainExplicitAndCapabilityBound(self):
-        self.contains('ApprovedTopicReviewRequestView',['{ model.check(captured) }','.disabled(!flow.canReadStatus)','if captured.current?.receipt == nil','{ model.retry(captured) }','.disabled(!flow.canRetryExact)','topicReview.recoveryUnavailable','topicReview.changed','.onDisappear { original.flow.close() }'])
+        self.contains('ApprovedTopicReviewRequestView',['model.check(captured)','isDisabled: !flow.canReadStatus','if captured.current?.receipt == nil','model.retry(captured)','isDisabled: !flow.canRetryExact','topicReview.recoveryUnavailable','topicReview.changed','.onDisappear { original.flow.close() }'])
     def testReviewObservationDoesNotImplyApprovalOrPublication(self):
         self.contains('ApprovedTopicReviewObservationSection',['topicReview.currentNotice','topicReview.currentDifferent','topicReview.currentFailed','{ model.observe(original) }','.disabled(!model.flow.canObserve)','switch model.flow.observation'])
     def testCoverReadRetainsSeparateMediaGrantAndCapturedLifetime(self):
@@ -37,7 +37,7 @@ class P04PublicationPresentationCloseoutTests(unittest.TestCase):
         for name in LEAVES:
             for match in re.finditer(r'LocalizedStringResource\("([^"\\]+)",\s*defaultValue:\s*"(?:\\.|[^"\\])*"(?:,\s*table:\s*"([^"\\]+)")?,\s*locale: locale\)',self.source(name)):
                 keys.add((match[2] or 'Localizable',match[1]))
-        self.assertEqual(len(keys),109)
+        self.assertEqual(len(keys),96)  # restyled leaves share design-system strings; every remaining key is still checked below
         catalogs={table:json.loads((ROOT/'Resources'/(table+'.xcstrings')).read_text())['strings'] for table,_ in keys}
         for table,key in keys:
             for lang in ['en','zh-Hans']:
