@@ -4,7 +4,7 @@ import SwiftUI
     @EnvironmentObject private var session:AppSession
     var onSignIn:(()->Void)? = nil
     var onStartRoam:(()->Void)? = nil
-    @State private var path:[HomeFeedDestination]=[]
+    @State private var router = AppRouter()
     @State private var activeContinuationScope:PlaySessionScope?=nil
     @State private var continuationCoordinator = HomeContinuationCoordinator()
     @State private var continuationCards:[HomeIndexParityPresentation.ContinuationCard]=[]
@@ -55,7 +55,7 @@ import SwiftUI
         }
     }
     private var navigationRoot: some View {
-        NavigationStack(path:$path) {
+        NavigationStack(path:$router.homePath) {
             // Unzoned content needs a separately verified event/backend timezone.
             // Market and interface language alone do not establish one.
             HomeFeedView(
@@ -71,7 +71,7 @@ import SwiftUI
                 onContinuation: handleContinuation,
                 onRetryContinuation: { Task { await reloadContinuationCards() } },
                 onStartRoam: onStartRoam
-            ) { path.append($0) }
+            ) { router.pushHome($0) }
                 .toolbar {
                     ToolbarItem(placement:.topBarLeading) { LanguageSwitcher() }
                     // Two actions at most: search, then everything else in one menu.
@@ -95,10 +95,11 @@ import SwiftUI
                         .accessibilityIdentifier("homeFeed.moreMenu")
                     }
                 }
-                .navigationDestination(for:HomeFeedDestination.self) { destination in
-                    switch destination {
+                .navigationDestination(for:AppRoute.self) { route in
+                    switch route.homeFeedDestination {
                     case .activity(let id): ActivityDetailView(id:id,reader:session,playReaderForActivity:{ session.playReader(for:.activity($0)) },registrationEnabled:true)
                     case .topic(let id): SessionTopicDetailView(id: id, session: session)
+                    case nil: EmptyView()
                     }
                 }
                 .navigationDestination(item:$activeContinuationScope) { scope in
@@ -106,7 +107,7 @@ import SwiftUI
                 }
         }
         .onChange(of:activeContinuationScope) { _,next in if next == nil { Task { await reloadContinuationCards() } } }
-        .onChange(of:path) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
+        .onChange(of:router.homePath) { _,next in if next.isEmpty { Task { await reloadContinuationCards() } } }
         .sheet(isPresented:$showsClubApplication) { clubApplicationSheet }
         .sheet(isPresented:$showsMerchantApplication) { merchantApplicationSheet }
     }
@@ -152,7 +153,7 @@ import SwiftUI
         }.id(session.sessionRevision)
     }
     private func resetForHomeScopeChange() {
-        path=[]
+        router.resetHome()
         activeContinuationScope=nil
         continuationCoordinator.reset()
         continuationCards=[]
@@ -198,7 +199,7 @@ import SwiftUI
             case .enterRuntime(let scope):
                 activeContinuationScope = scope
             case .openDetail(let destination):
-                path.append(destination)
+                router.pushHome(destination)
             case .staleRejected:
                 await reloadContinuationCards()
             }

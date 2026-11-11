@@ -272,5 +272,10 @@ if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_release_config.py')
     raise SystemExit('Release config check failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_design_lint.py')]).returncode!=0:
     raise SystemExit('Design lint failed')
+for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),):
+    if subprocess.run([sys.executable,'-B',str(ROOT/'tools'/gate)]).returncode!=0:
+        raise SystemExit(label+' failed')
+if subprocess.run([sys.executable,'-B',str(ROOT/'tools/build_page_route_table.py'),'--check']).returncode!=0:
+    raise SystemExit('Page route table drift')
 print(f'PASS structural checks: {len(source_paths)} Swift source files, {len(catalog["strings"])} bilingual keys, references, scheme, read-only expected project equivalence')
 print('SCOPE: this script does not run Swift/Xcode, previews, simulator/device, accessibility or live backend checks; see separate evidence')
