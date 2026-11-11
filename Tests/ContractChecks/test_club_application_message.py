@@ -31,13 +31,24 @@ class ClubApplicationMessageContracts(unittest.TestCase):
             'request.setValue("application/json", forHTTPHeaderField: "Content-Type")',
             'var fields: [String: Any] = ["id": clubID]',
             'if action == .apply { fields["joinMessage"] = joinMessage }',
+            # Original-receipt idempotency: the reviewed pending record must equal the call before any header is added.
+            'if let original {',
+            'guard original.clubID == clubID, original.action == action, original.hasOriginalReceipt else { throw APIError.invalidRequest }',
+            'let reviewed = ClubOrdinaryAdmissionPending(accountID: original.accountID, clubID: clubID,',
+            'requestID: original.requestID, action: action, hasOriginalReceipt: true, message: joinMessage)',
+            'guard original == reviewed else { throw APIError.invalidRequest }',
+            'request.setValue(original.requestID.uuidString.lowercased(), forHTTPHeaderField: "X-Club-Admission-Request-Id")',
+            'request.setValue(action.rawValue, forHTTPHeaderField: "X-Club-Admission-Action")',
+            'request.setValue(original.payloadSHA256, forHTTPHeaderField: "X-Club-Admission-Payload-SHA256")',
+            '}',
             'request.httpBody = try JSONSerialization.data(withJSONObject: fields, options: [.sortedKeys])',
         ])
         for prohibited in ['makeFormRequest', 'multipart/form-data', 'String(clubID)', 'Double(clubID)',
                            '"clubId"', '"payment"', '"transaction"', '"membershipAccessEnd"']:
             self.assertNotIn(prohibited, construction)
     def test_membership_write_has_one_send_and_no_automatic_retry(self):
-        s = self.read('Core/ClubActionService.swift')
+        # `recover` is a separate original-receipt read (its own send); the membership write has exactly one.
+        s = self.read('Core/ClubActionService.swift').split('    func recover(', 1)[0]
         self.assertEqual(s.count('transport.send('), 1)
         self.assertIn('guard !Task.isCancelled else { throw ClubActionWriteError.cancelledBeforeDispatch }', s)
         self.assertIn('do { (data, status) = try await transport.send(request) }', s)
@@ -61,7 +72,8 @@ class ClubApplicationMessageContracts(unittest.TestCase):
             self.assertIn(required, s)
     def test_optional_verbatim_received_message(self):
         self.assertIn('decodeIfPresent(String.self, forKey: .joinMessage)', self.read('Core/ClubManagementContracts.swift'))
-        self.assertIn('Text(verbatim: message).accessibilityIdentifier("club.management.joinMessage")', self.read('App/ClubManagementView.swift'))
+        self.assertRegex(self.read('App/ClubManagementView.swift'),
+                         r'Text\(verbatim: message\)(\n\s*\.[^\n]*)*\n\s*\.accessibilityIdentifier\("club\.management\.joinMessage"\)')
     def test_review_and_identity_reset(self):
         s = self.read('App/ClubActionPanel.swift')
         self.assertIn('value.joinMessage', s)
