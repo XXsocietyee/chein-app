@@ -175,7 +175,7 @@ Source of truth for the manifest: `Resources/PrivacyInfo.xcprivacy`, checked by 
 | Contact Info > Physical Address | Yes | Yes | No | `ParticipantForm.detailAddress` written back only if already present | Declared conservatively; remove if unused at submission |
 | Tracking (any) | No | n/a | No | `NSPrivacyTracking = false`, `NSPrivacyTrackingDomains = []`; no analytics or ad SDK, no `MXMetricManager` | Checked |
 
-The manifest declares the last three-status rows (User ID, Purchase History, Email, Physical Address) more broadly than CB67 could prove. Over-declaring is safe for review; under-declaring is not. The owner trims them only after confirming against the production service.
+The manifest declares four types (User ID, Purchase History, Email Address, Physical Address) more broadly than CB67 could prove. Over-declaring is safe for review; under-declaring is not. The owner trims them only after confirming against the production service.
 
 Required-reason APIs (checked against source by the script):
 
