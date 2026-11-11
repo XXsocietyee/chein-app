@@ -13,7 +13,9 @@ class PlayExperienceReturnMountChecks(unittest.TestCase):
  def test_disabled_identifier_stays_on_leaf_instead_of_parent_override(self):
   s=(ROOT/'App/PlayExperienceView.swift').read_text()
   self.assertIn('Text("playx.disabled").accessibilityIdentifier("playx.disabled")',s)
-  self.assertIn('ProgressView("playx.loading").accessibilityIdentifier("playMode.loading")',s)
+  self.assertIn('Text("playx.disabled").font(CYTypography.bodyCompact).foregroundStyle(CYColor.textSecondary)\n                                .accessibilityIdentifier("playx.disabled")',s)
+  # Loading is a skeleton leaf carrying its own id (the earlier ProgressView was replaced).
+  self.assertIn('CYSkeleton().padding(CYSpacing.lg).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)\n                        .accessibilityIdentifier("playMode.loading")',s)
   self.assertNotIn('.padding().accessibilityIdentifier("playMode.loading")',s)
  def test_original_real_ui_journeys_remain(self):
   s=(ROOT/'Tests/AppUITests/PlayExperienceFlowTests.swift').read_text()

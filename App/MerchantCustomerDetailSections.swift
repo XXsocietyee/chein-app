@@ -48,6 +48,8 @@ import SwiftUI
                             Text("merchant.business.sensitiveUnavailable").foregroundStyle(CYColor.textTertiary)
                         }
                     }.accessibilityIdentifier("merchant.customerDetail.paidAmount")
+                    Text("merchant.customerDetail.paidAmountExcludesRefunds", tableName: "MerchantReviewAndCustomerDetail")
+                        .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
                 }.accessibilityIdentifier("merchant.customerDetail.paidCard")
                 Section("merchant.customerDetail.identity") {
                     ForEach(["arrivedCount", "pendingCount", "refundedCount"], id: \.self) { key in
