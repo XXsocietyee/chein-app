@@ -92,17 +92,17 @@ import UIKit
                 return context==expected ? self.approval:nil
             },workshopPaidInstallApproval:{[weak self] context in guard let self,let grant=self.installApproval,grant.matches(context) else{return nil};return grant}).makeSession()
         }
-        func context(canonical: Bool = true) throws -> RuntimeDependencyContext {
-            .init(market:.china,baseURL:base,role:wire.role,session:try .init(accountID:7,epoch:session.sessionRevision,namespace:deployment.storageScope.service,token:"synthetic-7",role:canonical ? wire.role:"player"))
+        func context() throws -> RuntimeDependencyContext {
+            .init(market:.china,baseURL:base,role:wire.role,session:try .init(accountID:7,epoch:session.sessionRevision,namespace:deployment.storageScope.service,token:"synthetic-7",role:wire.role))
         }
         func login() async { await session.authChannels.loginWithPhone(phone:"10000000000",code:"123456") }
-        func approve() throws { let body = try WorkshopPaidInstalledTextApproval(context:context(),expiresAt:.distantFuture), install = try WorkshopPaidInstallApproval(context:context(canonical:false),expiresAt:.distantFuture); session.withWorkshopReadConfigurationChange { approval = body; installApproval = install } }
+        func approve() throws { let body = try WorkshopPaidInstalledTextApproval(context:context(),expiresAt:.distantFuture), install = try WorkshopPaidInstallApproval(context:context(),expiresAt:.distantFuture); session.withWorkshopReadConfigurationChange { approval = body; installApproval = install } }
         func controller() throws -> WorkshopPaidInstalledTextController { try XCTUnwrap(session.makeWorkshopPaidInstalledTextController(reference:WorkshopPaidTextAppFixture.reference())) }
         func clean() { UserDefaults(suiteName:suite)?.removePersistentDomain(forName:suite) }
     }
     func testNormalDefaultAndInstallApprovalCannotOpenProtectedBody() async throws {
         let h = try Harness(); defer { h.clean() }; await h.login()
-        h.installApproval = try .init(context:h.context(canonical:false),expiresAt:.distantFuture)
+        h.installApproval = try .init(context:h.context(),expiresAt:.distantFuture)
         XCTAssertNil(h.session.makeWorkshopPaidInstalledTextController(reference:try WorkshopPaidTextAppFixture.reference())); XCTAssertTrue(h.wire.bodyRequests.isEmpty)
     }
     func testNormalPlayerMerchantClubSelectorsSeeConsistentFullCanonicalContext() async throws {
@@ -145,14 +145,14 @@ import UIKit
         await (try XCTUnwrap(parent.appear(a)))(); let receipt = try XCTUnwrap(parent.history.first), p = WorkshopPaidInstalledTextPresentation()
         let reference = { parent.installedTextReference(receipt,appearance:a) }, factory: WorkshopPaidInstalledTextControllerFactory = { h.session.makeWorkshopPaidInstalledTextController(reference:$0) }
         let host = UIHostingController(rootView:NavigationStack { Form { WorkshopPaidInstalledTextEntry(makeReference:reference,makeController:factory,presentation:p) } })
-        let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible(); defer { window.isHidden = true }; host.view.layoutIfNeeded()
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; window.rootViewController = host; window.makeKeyAndVisible(); defer { sceneWindow.retire() }; host.view.layoutIfNeeded()
         p.open(makeReference:reference,makeController:factory); let old = try XCTUnwrap(p.selection)
-        for _ in 0..<1000 { if old.controller.phase == .loaded { break }; await Task.yield() }
+        await hostedWait { old.controller.phase == .loaded }
         XCTAssertEqual(old.controller.phase,.loaded); XCTAssertNotNil(host.presentedViewController)
         let queued = try XCTUnwrap(old.controller.offerReload(old.appearance)); p.dismiss(old); XCTAssertNil(old.controller.content)
-        for _ in 0..<1000 { if host.presentedViewController == nil { break }; await Task.yield() }
+        await hostedWait { host.presentedViewController == nil }
         p.open(makeReference:reference,makeController:factory); let fresh = try XCTUnwrap(p.selection)
-        for _ in 0..<1000 { if fresh.controller.phase == .loaded { break }; await Task.yield() }
+        await hostedWait { fresh.controller.phase == .loaded }
         let count = h.wire.bodyRequests.count; await queued(); p.replace(nil,expected:old.id); p.dismiss(old)
         XCTAssertTrue(p.selection === fresh); XCTAssertEqual(fresh.controller.phase,.loaded); XCTAssertEqual(h.wire.bodyRequests.count,count)
         p.dismiss(fresh)

@@ -874,13 +874,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load your saved request. Pull to refresh."
+            "value": "The original request record is temporarily unavailable. Refresh to read it again; this will not create another appeal or resend automatically."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法读取已保存的提交，请下拉刷新。"
+            "value": "原请求记录暂不可用。请刷新重读；不会创建新的申诉或自动重发。"
           }
         }
       }
@@ -908,13 +908,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check result"
+            "value": "Check original result"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "查看结果"
+            "value": "回读原结果"
           }
         }
       }
@@ -925,13 +925,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Review before retrying original request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新提交"
+            "value": "核对后重试原请求"
           }
         }
       }
@@ -942,13 +942,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pending request"
+            "value": "Recover original request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "待确认的提交"
+            "value": "原请求恢复"
           }
         }
       }
@@ -993,13 +993,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Confirm"
+            "value": "Confirm original action"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "确认提交"
+            "value": "确认原操作"
           }
         }
       }
@@ -1010,13 +1010,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explain why"
+            "value": "Reason for appeal, additional statement, or reason for withdrawal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "填写说明"
+            "value": "误判原因、补充说明或撤回原因"
           }
         }
       }
@@ -1044,13 +1044,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Submit appeal"
+            "value": "Appeal this moderation decision"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交申诉"
+            "value": "我认为这是误判，申诉"
           }
         }
       }
@@ -1061,13 +1061,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add statement"
+            "value": "Add one additional statement"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "追加说明"
+            "value": "追加一次说明"
           }
         }
       }
@@ -1095,7 +1095,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explanation"
+            "value": "Statement"
           }
         },
         "zh-Hans": {
@@ -1129,13 +1129,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "This appeal isn't available right now."
+            "value": "The current session or access is no longer valid. The original pending request is still saved."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "当前申诉暂不可用。"
+            "value": "当前会话或权限已失效，原待定请求仍保留。"
           }
         }
       }
@@ -1146,13 +1146,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal"
+            "value": "Channel moderation appeal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申诉"
+            "value": "频道处置申诉"
           }
         }
       }
@@ -1163,13 +1163,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Check the result first. Only try again if your request wasn't received."
+            "value": "Check the original result first. Only retry with the same content if the original request wasn't received."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "请先查看结果，确认未收到后再重新提交。"
+            "value": "请先查看原结果；仅在原请求未被收到时，才以相同内容重试。"
           }
         }
       }
@@ -1180,13 +1180,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Try again"
+            "value": "Check and retry original request"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重新提交"
+            "value": "核对并重试原请求"
           }
         }
       }
@@ -1197,7 +1197,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "原状态"
+            "value": "服务端原状态"
           }
         },
         "en": {
@@ -1231,13 +1231,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Appeal deadline"
+            "value": "Original appeal deadline"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "申诉截止"
+            "value": "原申诉截止"
           }
         }
       }
@@ -1265,13 +1265,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Couldn't load the latest progress. Pull to refresh."
+            "value": "We couldn't load your current appeal progress. Refresh to try again; your appeal won't be submitted twice."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂时无法加载最新进度，请下拉刷新。"
+            "value": "暂未获取当前申诉进度，请刷新重试；不会重复提交申诉。"
           }
         }
       }
@@ -1299,13 +1299,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Progress"
+            "value": "Original action and appeal progress"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "处理进度"
+            "value": "原处置与申诉进度"
           }
         }
       }
@@ -1350,13 +1350,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdraw appeal"
+            "value": "Withdraw original appeal"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤回申诉"
+            "value": "撤回原申诉"
           }
         }
       }
@@ -1367,13 +1367,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Request"
+            "value": "Original action"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提交内容"
+            "value": "原操作"
           }
         }
       }
@@ -1384,13 +1384,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Status unavailable"
+            "value": "Appeal status cannot currently be confirmed"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "状态暂不可确认"
+            "value": "申诉状态暂不可确认"
           }
         }
       }

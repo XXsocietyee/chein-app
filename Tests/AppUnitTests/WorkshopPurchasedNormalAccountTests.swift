@@ -66,6 +66,13 @@ enum HostedAccessibilityRuntime {
     }
 }
 
+/// SwiftUI lifecycle callbacks (sheet presentation, onDisappear) are delivered on run-loop turns. `Task.yield()` alone can drain
+/// the main queue without ever returning to the run loop, so hosted waits sleep in short slices and stay bounded.
+@MainActor func hostedWait(timeout: TimeInterval = 5, _ condition: () -> Bool) async {
+    let deadline = Date().addingTimeInterval(timeout)
+    while !condition(), Date() < deadline { try? await Task.sleep(nanoseconds: 10_000_000) }
+}
+
 @MainActor enum WorkshopPurchasedAppFixture {
     static let item: [String: Any] = ["licenseId":"w18-paid-11","moduleId":"synthetic-module","purchasedVersionId":"synthetic-version","contentHash":String(repeating:"a",count:64),"status":"ACTIVE","acquiredAt":"2026-10-05T00:00:00Z","termsVersion":"terms-1","termsHash":String(repeating:"b",count:64),"commercialUse":"PROHIBITED","adaptation":"LOCAL_ADAPTATION","translation":"PROHIBITED","updates":"EXACT_PURCHASED_VERSION","redistribution":"PROHIBITED","allowedRegions":["synthetic-region"],"themeLimit":["unlimited":false,"maximum":1],"merchantLimit":["unlimited":false,"maximum":0],"runLimit":["unlimited":false,"maximum":10],"acquisition":"PAID","buyerKind":"INDIVIDUAL","useDuration":"PERPETUAL_PURCHASED_VERSION","contentUseStatus":"PAID_INSTALL_AUTHORITY_UNAVAILABLE","purchaseActionStatus":"CHANNEL_APPROVAL_REQUIRED"]
     static let header: [String: Any] = ["schema":"workshop-purchased-owned-v1","scope":"PAID_INDIVIDUAL_PURCHASED_VERSION_METADATA_ONLY","checkedAt":"2026-10-05T00:00:00Z"]

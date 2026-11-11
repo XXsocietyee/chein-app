@@ -80,17 +80,17 @@ import UIKit
                 workshopPaidProfessionalReadApproval:{[weak self] c in guard let self, self.valid(c) else { return nil }; return self.read },
                 workshopPaidProfessionalWriteApproval:{[weak self] c in guard let self, self.valid(c) else { return nil }; return self.write },
                 workshopPaidInstalledTextApproval:{[weak self] c in guard let self, self.valid(c) else { return nil }; return self.body },
-                workshopPaidInstallApproval:{[weak self] c in guard let self, let expected = try? self.context(canonical:false) else { return nil }; XCTAssertEqual(c,expected); return c == expected ? self.install : nil })
+                workshopPaidInstallApproval:{[weak self] c in guard let self, let expected = try? self.context() else { return nil }; XCTAssertEqual(c,expected); return c == expected ? self.install : nil })
             session = root.makeSession()
         }
         func valid(_ c: RuntimeDependencyContext) -> Bool { guard let expected = try? context() else { return false }; seen += 1; XCTAssertEqual(c,expected); XCTAssertEqual(c.role,c.session.role); return c == expected }
-        func context(canonical: Bool = true) throws -> RuntimeDependencyContext { .init(market:.china,baseURL:base,role:wire.role,session:try .init(accountID:7,epoch:session.sessionRevision,namespace:deployment.storageScope.service,token:"synthetic-7",role:canonical ? wire.role : "player")) }
+        func context() throws -> RuntimeDependencyContext { .init(market:.china,baseURL:base,role:wire.role,session:try .init(accountID:7,epoch:session.sessionRevision,namespace:deployment.storageScope.service,token:"synthetic-7",role:wire.role)) }
         func login() async { await session.authChannels.loginWithPhone(phone:"10000000000",code:"123456") }
         func approve(write enabled: Bool = true, prepare: Bool = true) throws {
             let r = try WorkshopPaidProfessionalReadApproval(context:context(),expiresAt:.distantFuture)
             let w = enabled ? try WorkshopPaidProfessionalWriteApproval(context:context(),expiresAt:.distantFuture) : nil
             let b = prepare ? try WorkshopPaidInstalledTextApproval(context:context(),expiresAt:.distantFuture) : nil
-            let i = prepare ? try WorkshopPaidInstallApproval(context:context(canonical:false),expiresAt:.distantFuture) : nil
+            let i = prepare ? try WorkshopPaidInstallApproval(context:context(),expiresAt:.distantFuture) : nil
             session.withWorkshopReadConfigurationChange { read = r; write = w; body = b; install = i }
         }
         func controller() throws -> WorkshopPaidProfessionalController { try XCTUnwrap(session.makeWorkshopPaidProfessionalController(reference:WorkshopPaidTextAppFixture.reference())) }
@@ -161,9 +161,9 @@ import UIKit
         let p = WorkshopPaidProfessionalPresentation(), reference = try WorkshopPaidTextAppFixture.reference()
         let factory: WorkshopPaidProfessionalControllerFactory = { h.session.makeWorkshopPaidProfessionalController(reference:$0) }
         let host = UIHostingController(rootView:NavigationStack { Form { WorkshopPaidProfessionalEntry(makeReference:{reference},makeController:factory,presentation:p) } })
-        let window = UIWindow(frame:UIScreen.main.bounds); window.rootViewController = host; window.makeKeyAndVisible(); defer { window.isHidden = true }; host.view.layoutIfNeeded()
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; window.rootViewController = host; window.makeKeyAndVisible(); defer { sceneWindow.retire() }; host.view.layoutIfNeeded()
         p.open(makeReference:{reference},makeController:factory); let old = try XCTUnwrap(p.selection)
-        for _ in 0..<1000 { if old.controller.phase == .history { break }; await Task.yield() }
+        await hostedWait { old.controller.phase == .history }
         XCTAssertEqual(old.controller.phase,.history); XCTAssertNotNil(host.presentedViewController)
         let queued = try XCTUnwrap(old.controller.offerNewReview(old.appearance)); p.dismiss(old); await queued()
         XCTAssertNil(old.controller.body); XCTAssertTrue(h.wire.writes.isEmpty)
