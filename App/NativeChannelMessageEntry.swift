@@ -111,7 +111,7 @@ import SwiftUI
             }
             if coordinator.isCurrent, let pending = coordinator.original,
                pending.operation == .pin || pending.operation == .unpin {
-                Label { Text(verbatim: copy.format("p23.pending", copy.operation(pending.operation))) } icon: { Image(systemName: "clock") }
+                Label { Text(verbatim: copy.format("p23.pending", pending.requestID, copy.operation(pending.operation), pending.messageID?.rawValue ?? "—")) } icon: { Image(systemName: "clock") }
                     .fixedSize(horizontal: false, vertical: true)
             }
             if coordinator.isCurrent, coordinator.original == nil, let readback = coordinator.pins.appliedReadback {

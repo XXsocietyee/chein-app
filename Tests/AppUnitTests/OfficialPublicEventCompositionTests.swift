@@ -51,7 +51,7 @@ import UIKit
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
         addTeardownBlock { defaults.removePersistentDomain(forName: suite) }
         let deployment = try ReviewedAppDeployment(market: market, baseURL: "https://example.test/native",
-            approvedBaseURLs: [market: ["https://example.test/native"]], verifiedCapabilities: [],
+            approvedBaseURLs: [market: ["https://example.test/native"]], verifiedCapabilities: market == .china ? [.domesticChinaPhone] : [],
             bundleIdentifier: "test.questify.official-public", realm: "synthetic", reads: reads)
         return AppCompositionRoot(deployment: .reviewed(deployment), storage: .init(defaults: defaults, tokenStore: { _ in vault }), makeTransport: { wire })
     }

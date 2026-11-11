@@ -53,7 +53,7 @@ import UIKit
                 guard let self,let expected=try? self.context() else{return nil};self.seen += 1;XCTAssertEqual(context,expected);guard context==expected else{return nil};return self.approval
             },workshopPurchasedReadApproval:{[weak self] context in guard let self,let grant=self.readApproval,grant.matches(context) else{return nil};return grant}).makeSession()
         }
-        func context()throws->RuntimeDependencyContext{.init(market:.china,baseURL:base,role:wire.role,session:try .init(accountID:7,epoch:session.sessionRevision,namespace:deployment.storageScope.service,token:"synthetic-7"))}
+        func context()throws->RuntimeDependencyContext{.init(market:.china,baseURL:base,role:wire.role,session:try .init(accountID:7,epoch:session.sessionRevision,namespace:deployment.storageScope.service,token:"synthetic-7",role:wire.role))}
         func login()async{await session.authChannels.loginWithPhone(phone:"10000000000",code:"123456")}
         func approve()throws{let grant=try WorkshopPaidInstallApproval(context:context(),expiresAt:.distantFuture);session.withWorkshopReadConfigurationChange{approval=grant}}
         func clean(){UserDefaults(suiteName:suite)?.removePersistentDomain(forName:suite)}
@@ -94,8 +94,8 @@ import UIKit
         let sceneWindow = try HostedNavigationSceneWindow()
         let window=sceneWindow.window,presenter=UIViewController();window.rootViewController=presenter;window.makeKeyAndVisible();defer{sceneWindow.retire()}
         let host=UIHostingController(rootView:WorkshopPaidInstallView(controller:c,appearance:old,onClose:{}));presenter.present(host,animated:false)
-        for _ in 0..<1000{if c.phase == .ready{break};await Task.yield()};XCTAssertEqual(c.phase,.ready)
-        presenter.dismiss(animated:false);for _ in 0..<1000{if c.phase == .idle{break};await Task.yield()};XCTAssertEqual(c.phase,.idle)
+        await hostedWait{c.phase == .ready};XCTAssertEqual(c.phase,.ready)
+        presenter.dismiss(animated:false);await hostedWait{c.phase == .idle};XCTAssertEqual(c.phase,.idle)
         let fresh=WorkshopPaidInstallAppearance();await (try XCTUnwrap(c.appear(fresh)))();c.close(old);XCTAssertNil(c.appear(old));XCTAssertEqual(c.phase,.ready)
     }
     func testNormalTransportNeverAcceptsSubmitThroughGeneralSendEvenWithInstallApproval()async throws{
