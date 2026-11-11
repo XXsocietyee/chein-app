@@ -99,11 +99,11 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
 
     def testReceiptCopyNeverPromisesReversalOrAutomaticResubmission(self):
         expected = {
-            'retry.confirmation': 'Check the result first. Only try again if your request wasn\'t received.',
-            'recovery.journalUnavailable': 'Couldn\'t load your saved request. Pull to refresh.',
+            'retry.confirmation': 'Check the original result first. Only retry with the same content if the original request wasn\'t received.',
+            'recovery.journalUnavailable': 'The original request record is temporarily unavailable. Refresh to read it again; this will not create another appeal or resend automatically.',
             'result.acceptedNotReversed': 'A submission receipt only confirms that the appeal was accepted for processing. It does not mean the original action was reversed.',
             'result.currentSeparate': 'The original request outcome is confirmed. Current appeal status is read separately; a past receipt does not enable a new statement or withdrawal.',
-            'session.unavailable': 'This appeal isn\'t available right now.',
+            'session.unavailable': 'The current session or access is no longer valid. The original pending request is still saved.',
         }
         for key, english in expected.items():
             self.assertEqual(STRINGS[key]['localizations']['en']['stringUnit']['value'], english)

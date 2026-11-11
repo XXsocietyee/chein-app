@@ -194,9 +194,16 @@ struct MerchantOperationsEditor: View {
                     ForEach(MerchantTemplateMethod.allCases, id: \.rawValue) { method in Text(LocalizedStringKey(method.titleKey)).tag(method.rawValue) }
                 }.accessibilityIdentifier("merchant.operations.method")
             }
-            Section("merchant.templateMetadata.title") {
+            Section {
                 templateField("merchant.templateMetadata.duration", \.gameDurationMinutes, "gameDurationMinutes")
                 templateField("merchant.templateMetadata.players", \.players, "players")
+            } header: {
+                Text("merchant.templateMetadata.title")
+            } footer: {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("merchant.templateMetadata.scopeHint")
+                    Text("merchant.templateMetadata.omissionHint")
+                }
             }
             Section("merchant.preparation.title") {
                 Picker("merchant.preparation.venueLabel", selection: Binding(get: { currentTemplate?.usageLocation ?? "" }, set: { text in
@@ -460,11 +467,18 @@ struct MerchantOperationsConfirmationView: View {
                     if case .template(let value) = confirmation.draft, let method = value.method { Text(LocalizedStringKey(method.titleKey)) }
                 }
                 if case .template(let template) = confirmation.draft {
-                    Section("merchant.templateMetadata.title") {
+                    Section {
                         LabeledContent("merchant.templateMetadata.duration", value: template.gameDurationMinutes.trimmingCharacters(in: .whitespacesAndNewlines))
                             .accessibilityIdentifier("merchant.templateMetadata.review.duration")
                         LabeledContent("merchant.templateMetadata.players", value: template.players.trimmingCharacters(in: .whitespacesAndNewlines))
                             .accessibilityIdentifier("merchant.templateMetadata.review.players")
+                    } header: {
+                        Text("merchant.templateMetadata.title")
+                    } footer: {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("merchant.templateMetadata.scopeHint")
+                            Text("merchant.templateMetadata.omissionHint")
+                        }
                     }
                 }
                 if case .template(let template) = confirmation.draft {

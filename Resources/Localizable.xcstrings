@@ -196235,18 +196235,17 @@
       }
     },
     "shopNPC.pauseNotice": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your chat is hidden while paused."
+            "value": "Your conversation is hidden while paused. Restore it after the current account and node access are checked. Restoring never sends a message."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂停时对话已隐藏。"
+            "value": "暂停时对话内容已隐藏。恢复前将重新核验当前账号和节点权限，恢复不会发送消息。"
           }
         }
       }
@@ -196364,18 +196363,17 @@
       }
     },
     "shopNPC.retryNotice": {
-      "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "It may already have been sent. Trying again won't send it twice."
+            "value": "Stopping only ends local waiting. The server may have received the request. A confirmed retry uses the same request ID; it does not prove that the earlier request was cancelled."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "可能已经发出，重试不会重复发送。"
+            "value": "停止等待仅作用于本机，服务器可能已收到请求。确认重试将使用原请求编号，并不代表先前请求已撤销。"
           }
         }
       }
