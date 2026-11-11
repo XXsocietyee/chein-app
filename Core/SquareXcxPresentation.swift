@@ -428,7 +428,9 @@ private enum SquareDetailWire {
 
     /// A JSON integer, including 0. Numeric strings, booleans, and fractions are not integers.
     static func wholeNumber(_ value: Any?) -> Int? {
-        guard let value, !(value is NSNull), !(value is Bool), !(value is String) else { return nil }
+        // No `value is Bool`: on Darwin an NSNumber 0 or 1 bridges to Bool, which turned a real 0 or 1 into unknown.
+        // The CFBoolean type check below is the exact test for a JSON true/false.
+        guard let value, !(value is NSNull), !(value is String) else { return nil }
         guard let number = value as? NSNumber, CFGetTypeID(number) != CFBooleanGetTypeID() else { return nil }
         let double = number.doubleValue
         guard double.isFinite, double.rounded() == double, double >= Double(Int.min), double <= Double(Int.max) else { return nil }
