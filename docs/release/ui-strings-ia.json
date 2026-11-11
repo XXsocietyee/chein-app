@@ -38,5 +38,10 @@
     "key": "passport.badges.title",
     "en": "Badges",
     "zh-Hans": "徽章"
+  },
+  {
+    "key": "passport.stamps.ofTotal %lld",
+    "en": "of %lld",
+    "zh-Hans": "/ %lld"
   }
 ]

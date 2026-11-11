@@ -104,8 +104,12 @@ import SwiftUI
                                 .accessibilityIdentifier("homeFeed.openSquare")
                             Button("official.title",systemImage:"sparkles") { showsOfficialEvents=true }
                                 .accessibilityIdentifier("homeFeed.openOfficialEvents")
-                            Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
-                                .accessibilityIdentifier("homeFeed.openTemplates")
+                            // Templates lived on the Publish tab and must stay reachable for guests: it is browse-only, so the
+                            // capability is the discovery read (`isConfigured`), not a publishing session. Hidden when unconfigured.
+                            if session.isConfigured {
+                                Button("discovery.browseTemplates",systemImage:"square.stack.3d.up") { showsTemplates=true }
+                                    .accessibilityIdentifier("homeFeed.openTemplates")
+                            }
                             Button("projectEdit.title", systemImage:"square.and.pencil") { showsProjectEditor=true }
                                 .accessibilityIdentifier("homeFeed.openProjectEditor")
                         } label: {

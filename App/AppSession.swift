@@ -4085,7 +4085,6 @@ final class AppSession: ObservableObject {
         })
     }
 
-
     func nativeAttributePublishedReader(for model: ProjectEditModel) -> NativeAttributeAuthorPublishedReader? {
         guard let source = NativeConditionAuthorProjectReadbackAdapter.Source.capture(model: model),
               source.session == currentProjectEditSession,
@@ -7065,8 +7064,7 @@ final class AppSession: ObservableObject {
     private var entryObservedToken: String?
     @Published private(set) var restorationFinished = false
     @Published private(set) var nativeEntry: NativeEntryPresentation?
-    /// W3-6: a parsed chein:// link waiting for the root view to select its owning tab. Carries no authority.
-    @Published private(set) var pendingDeepLink: CheinDeepLink?
+    @Published var pendingDeepLink: CheinDeepLink? // W3-6, see AppSession+DeepLink.swift
     let nativeEntryLinkPolicy = NativeEntryLinkPolicy(verifiedHTTPSOrigins: [])
     var doorReferralSession: DoorReferralSession {
         DoorReferralSession(accountID: account?.id, epoch: doorEpoch, token: token, restored: restorationFinished)
@@ -7211,12 +7209,7 @@ final class AppSession: ObservableObject {
     var doorReferralQueue: DoorReferralQueue? { prepareDoorRuntime(); return retainedDoorQueue }
     var doorEntryCoordinator: DoorEntryCoordinator? { prepareDoorRuntime(); return retainedDoorCoordinator }
     func receiveNativeURL(_ url: URL) {
-        if url.scheme?.lowercased() == CheinDeepLink.scheme {
-            // One presentation: the owning tab. Destination gating (sign-in, capability, confirmation) stays with the screen.
-            if let link = CheinDeepLink(url: url) { pendingDeepLink = link } else { receiveNativeIntent(.routeError(.unsupported)) }
-            return
-        }
-        if nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) { return }
+        if receiveCheinURL(url) || nativeWeChatPaymentDriver.handle(url, adapter: nativeWeChatPaymentAdapter) { return }
         if weChatSDKDriver.handle(url, adapter: weChatSDKAdapter) { return }
         guard let intent = nativeEntryLinkPolicy.parse(url) else {
             receiveNativeIntent(.routeError(.unsupported)); return
@@ -7236,7 +7229,6 @@ final class AppSession: ObservableObject {
         }
         nativeEntry = NativeEntryPresentation(intent: intent)
     }
-    func consumeDeepLink() -> CheinDeepLink? { defer { pendingDeepLink = nil }; return pendingDeepLink }
     func dismissNativeEntry() { retainedDoorCoordinator?.cancel(); nativeEntry = nil }
     private func synchronizeAccountMarketingEntry() {
         synchronizePrivateHome()

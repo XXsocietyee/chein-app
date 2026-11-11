@@ -243579,6 +243579,22 @@
           }
         }
       }
+    },
+    "passport.stamps.ofTotal %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "of %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "/ %lld"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

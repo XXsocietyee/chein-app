@@ -51,7 +51,9 @@ struct PassportBadge: Identifiable, Equatable {
         Section {
             PassportOverviewContent(stampCount: stampCount, badges: badges, onOpenTickets: onOpenTickets, onOpenWallet: onOpenWallet, onOpenMessages: onOpenMessages)
         }
-        .listRowBackground(CYColor.bgSurface)
+        // No white slab: the section rows are clear and each block below draws its own dark glass card.
+        .listRowBackground(Color.clear)
+        .listRowInsets(EdgeInsets(top: CYSpacing.sm, leading: 0, bottom: CYSpacing.sm, trailing: 0))
         .task(id: LoadKey(stamps: ObjectIdentifier(reader), growth: growth.map { ObjectIdentifier($0) }, refresh: refreshToken)) {
             load()
             await loadBadges()
@@ -71,7 +73,62 @@ struct PassportBadge: Identifiable, Equatable {
     }
 }
 
-/// Three circular actions + stamp grid. Pure presentation so fixtures can render every state.
+/// Dark glass card used by the Passport blocks. Palette colours (not system-dynamic ones) so the card stays dark
+/// in the player domain; Reduce Transparency swaps the material for the solid elevated fill.
+private struct PassportGlassCard: ViewModifier {
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: CYRadius.xl, style: .continuous)
+        content
+            .padding(CYSpacing.lg)
+            .background {
+                if reduceTransparency { shape.fill(palette.bgElevated) }
+                else { shape.fill(.ultraThinMaterial).overlay(shape.fill(palette.bgGlass.opacity(0.55))) }
+            }
+            .overlay(shape.strokeBorder(palette.borderSubtle, lineWidth: 1))
+    }
+}
+
+private extension View {
+    func passportGlassCard() -> some View { modifier(PassportGlassCard()) }
+}
+
+/// Large rolling "3 of 12" header. Unknown (nil) is an em dash, never 0. Reduce Motion: final number at once.
+private struct PassportRollingCount: View {
+    let value: Int?
+    let total: Int
+    @Environment(\.cyPalette) private var palette
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var shown = 0
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: CYSpacing.xs) {
+            if value != nil {
+                Text(verbatim: "\(shown)")
+                    .font(.system(.largeTitle, design: .rounded).weight(.bold)).monospacedDigit()
+                    .foregroundStyle(palette.textPrimary)
+                    .contentTransition(.numericText(value: Double(shown)))
+                Text("passport.stamps.ofTotal \(total)")
+                    .font(CYTypography.cardTitle).monospacedDigit().foregroundStyle(palette.textSecondary)
+            } else {
+                Text(verbatim: "—").font(.system(.largeTitle, design: .rounded).weight(.bold)).foregroundStyle(palette.textTertiary)
+            }
+        }
+        .minimumScaleFactor(0.6).lineLimit(1)
+        .onAppear { reveal() }
+        .onChange(of: value) { _, _ in reveal() }
+    }
+
+    private func reveal() {
+        guard let value else { shown = 0; return }
+        let target = PassportStampGrid.earnedSlots(value)
+        if reduceMotion { shown = target } else { withAnimation(CYAlbumMotion.countUp) { shown = target } }
+    }
+}
+
+/// Three circular actions, stamp collection (foil seals + ghost silhouettes) and the badge rail. Pure presentation so
+/// fixtures can render every state.
 @MainActor struct PassportOverviewContent: View {
     let stampCount: Int?
     /// nil = unknown (em dash); empty = known none (rail hidden); otherwise the earned badges.
@@ -80,14 +137,25 @@ struct PassportBadge: Identifiable, Equatable {
     var onOpenWallet: () -> Void = {}
     var onOpenMessages: () -> Void = {}
     @Environment(\.dynamicTypeSize) private var typeSize
+    @Environment(\.cyPalette) private var palette
+    @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
+
+    /// One foil colour pair per stamp (by index), so a collection reads as distinct seals.
+    private static let foils: [(Color, Color)] = [
+        (Color(red: 1.00, green: 0.84, blue: 0.40), Color(red: 0.86, green: 0.55, blue: 0.16)),
+        (Color(red: 0.62, green: 0.84, blue: 1.00), Color(red: 0.28, green: 0.52, blue: 0.92)),
+        (Color(red: 0.62, green: 0.95, blue: 0.78), Color(red: 0.18, green: 0.64, blue: 0.48)),
+        (Color(red: 1.00, green: 0.70, blue: 0.78), Color(red: 0.84, green: 0.30, blue: 0.48)),
+        (Color(red: 0.88, green: 0.90, blue: 0.94), Color(red: 0.50, green: 0.55, blue: 0.64)),
+        (Color(red: 1.00, green: 0.78, blue: 0.60), Color(red: 0.88, green: 0.42, blue: 0.24)),
+    ]
 
     var body: some View {
         VStack(alignment: .leading, spacing: CYSpacing.lg) {
             actions
-            stamps
-            if badges?.isEmpty != true { badgeRail }
+            stamps.passportGlassCard()
+            if badges?.isEmpty != true { badgeRail.passportGlassCard() }
         }
-        .padding(.vertical, CYSpacing.xs)
     }
 
     private var actions: some View {
@@ -99,18 +167,23 @@ struct PassportBadge: Identifiable, Equatable {
         .frame(maxWidth: .infinity)
     }
 
+    /// Glass circle button; the label sits under it.
     private func action(_ title: LocalizedStringKey, _ symbol: String, id: String, perform: @escaping () -> Void) -> some View {
         Button(action: perform) {
             VStack(spacing: CYSpacing.xs) {
                 Image(systemName: symbol)
                     .font(.title3)
-                    .foregroundStyle(CYColor.textPrimary)
+                    .foregroundStyle(palette.textPrimary)
                     .frame(width: 56, height: 56)
-                    .background(Circle().fill(CYColor.bgSurfaceSubtle))
+                    .background {
+                        if reduceTransparency { Circle().fill(palette.bgElevated) }
+                        else { Circle().fill(.ultraThinMaterial).overlay(Circle().fill(palette.bgGlass.opacity(0.55))) }
+                    }
+                    .overlay(Circle().strokeBorder(LinearGradient(colors: [palette.borderStrong, palette.borderSubtle], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1))
                     .accessibilityHidden(true)
                 Text(title)
                     .font(CYTypography.meta)
-                    .foregroundStyle(CYColor.textSecondary)
+                    .foregroundStyle(palette.textSecondary)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -122,20 +195,17 @@ struct PassportBadge: Identifiable, Equatable {
     }
 
     private var stamps: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
-            HStack {
-                Text("passport.stamps.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
-                Spacer(minLength: CYSpacing.sm)
-                Group {
-                    if let stampCount { Text("passport.stamps.count \(PassportStampGrid.earnedSlots(stampCount)) \(PassportStampGrid.slots)") }
-                    else { Text(verbatim: "—") }
-                }
-                .font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary)
-                .accessibilityIdentifier("passport.stamps.count")
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
+            VStack(alignment: .leading, spacing: CYSpacing.xxs) {
+                Text("passport.stamps.title").font(CYTypography.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
+                PassportRollingCount(value: stampCount, total: PassportStampGrid.slots)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(stampCount.map { Text("passport.stamps.count \(PassportStampGrid.earnedSlots($0)) \(PassportStampGrid.slots)") } ?? Text(verbatim: "—"))
+                    .accessibilityIdentifier("passport.stamps.count")
             }
             LazyVGrid(columns: [GridItem(.adaptive(minimum: typeSize.isAccessibilitySize ? 88 : 64), spacing: CYSpacing.md)], spacing: CYSpacing.md) {
                 ForEach(0..<PassportStampGrid.slots, id: \.self) { index in
-                    slot(earned: index < PassportStampGrid.earnedSlots(stampCount))
+                    slot(index: index, earned: index < PassportStampGrid.earnedSlots(stampCount))
                         .accessibilityIdentifier("passport.stamp.\(index)")
                 }
             }
@@ -144,31 +214,52 @@ struct PassportBadge: Identifiable, Equatable {
         .accessibilityIdentifier("passport.stampGrid")
     }
 
+    /// Earned: foil seal in this stamp's colour with the one-shot sheen. Locked: ghost silhouette, dashed outline, low opacity.
+    @ViewBuilder private func slot(index: Int, earned: Bool) -> some View {
+        let foil = Self.foils[index % Self.foils.count]
+        ZStack {
+            if earned {
+                Circle().fill(LinearGradient(colors: [foil.0, foil.1], startPoint: .topLeading, endPoint: .bottomTrailing))
+                Circle().strokeBorder(LinearGradient(colors: [.white.opacity(0.85), foil.1.opacity(0.6)], startPoint: .top, endPoint: .bottom), lineWidth: 2)
+                Circle().strokeBorder(.white.opacity(0.35), style: StrokeStyle(lineWidth: 1, dash: [2, 3])).padding(6)
+                Image(systemName: "seal.fill")
+                    .font(.title3.weight(.semibold))
+                    .foregroundStyle(.white)
+                    .shadow(color: .black.opacity(0.35), radius: 2, y: 1)
+            } else {
+                Circle().strokeBorder(palette.textTertiary, style: StrokeStyle(lineWidth: 1.5, dash: [4, 4]))
+                Image(systemName: "seal").font(.title3).foregroundStyle(palette.textTertiary)
+            }
+        }
+        .aspectRatio(1, contentMode: .fit)
+        .cyFoilSheen(active: earned, trigger: 0, cornerRadius: 64)
+        .shadow(color: earned ? foil.1.opacity(0.35) : .clear, radius: 6, y: 3)
+        .opacity(earned ? 1 : 0.35)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
+    }
+
     private var badgeRail: some View {
-        VStack(alignment: .leading, spacing: CYSpacing.sm) {
+        VStack(alignment: .leading, spacing: CYSpacing.md) {
             HStack {
-                Text("passport.badges.title").font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
+                Text("passport.badges.title").font(CYTypography.meta).textCase(.uppercase).foregroundStyle(palette.textSecondary)
                 Spacer(minLength: CYSpacing.sm)
-                if let badges { Text(verbatim: "\(badges.count)").font(CYTypography.meta).monospacedDigit().foregroundStyle(CYColor.textSecondary) }
-                else { Text(verbatim: "—").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
+                if let badges { Text(verbatim: "\(badges.count)").font(CYTypography.meta).monospacedDigit().foregroundStyle(palette.textSecondary) }
+                else { Text(verbatim: "—").font(CYTypography.meta).foregroundStyle(palette.textTertiary) }
             }
             if let badges {
                 ScrollView(.horizontal, showsIndicators: false) {
                     LazyHStack(alignment: .top, spacing: CYSpacing.md) {
                         ForEach(badges) { badge in
                             VStack(spacing: CYSpacing.xs) {
-                                Image(systemName: "medal.fill")
-                                    .font(.title3).foregroundStyle(CYColor.textPrimary)
-                                    .frame(width: 56, height: 56)
-                                    .background(Circle().fill(CYColor.bgElevated))
-                                    .overlay(Circle().strokeBorder(CYColor.borderSubtle, lineWidth: 1))
-                                    .accessibilityHidden(true)
+                                CYBadgeMedal(seed: badge.name ?? "badge-\(badge.id)", size: 64)
+                                    .cyFoilSheen(cornerRadius: 32)
                                 Group { if let name = badge.name { Text(verbatim: name) } else { Text("growth.badge.unnamed") } }
-                                    .font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                                    .font(CYTypography.meta).foregroundStyle(palette.textSecondary)
                                     .multilineTextAlignment(.center).lineLimit(typeSize.isAccessibilitySize ? 4 : 2)
                                     .fixedSize(horizontal: false, vertical: true)
                             }
-                            .frame(width: typeSize.isAccessibilitySize ? 112 : 76)
+                            .frame(width: typeSize.isAccessibilitySize ? 112 : 80)
                             .accessibilityElement(children: .combine)
                             .accessibilityIdentifier("passport.badge.\(badge.id)")
                         }
@@ -178,18 +269,5 @@ struct PassportBadge: Identifiable, Equatable {
         }
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("passport.badgeRail")
-    }
-
-    @ViewBuilder private func slot(earned: Bool) -> some View {
-        ZStack {
-            Circle().fill(earned ? CYColor.bgElevated : CYColor.bgSurfaceSubtle)
-            Circle().strokeBorder(CYColor.borderSubtle, style: StrokeStyle(lineWidth: 1, dash: earned ? [] : [4, 3]))
-            Image(systemName: earned ? "seal.fill" : "seal")
-                .font(.title3)
-                .foregroundStyle(earned ? CYColor.textPrimary : CYColor.textPlaceholder)
-        }
-        .aspectRatio(1, contentMode: .fit)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(earned ? LocalizedStringKey("passport.stamp.earned") : LocalizedStringKey("passport.stamp.locked")))
     }
 }
