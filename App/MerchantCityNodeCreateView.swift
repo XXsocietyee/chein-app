@@ -103,7 +103,7 @@ import SwiftUI
         } else if c.issue == "merchant.content.signedOut" || !service.isAuthenticated {
             VStack(spacing: 12) {
                 stateView(title: "merchantCityNode.create.login", sub: nil, identifier: "cityNodeCreate.login", retry: false)
-                Button { dismiss() } label: { Text("去登录") }
+                Button { dismiss() } label: { Text("auth.signIn") }
                     .buttonStyle(.questifyPrimary)
                     .accessibilityIdentifier("cityNodeCreate.login.action")
             }

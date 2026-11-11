@@ -73,7 +73,7 @@ class CityNodeContractChecks(unittest.TestCase):
         for key, entry in table.items():
             self.assertEqual(set(entry['localizations']), {'en', 'zh-Hans'}, key)
         zh = {k: v['localizations']['zh-Hans']['stringUnit']['value'] for k, v in table.items()}
-        for key, text in {'merchantCityNode.title': '成为节点', 'merchantCityNode.create.title': '报名成为节点', 'merchantCityNode.place.action': '投放据点',
+        for key, text in {'merchantCityNode.title': '成为节点', 'merchantCityNode.create.title': '报名成为节点', 'merchantCityNode.place.action': '投放节点',
                           'merchantCityNode.audit.reviewing': '审核中', 'merchantCityNode.audit.rejected': '已驳回', 'merchantCityNode.poster.title': '到店打卡码',
                           'merchantCityNode.create.readbackTitle': '申请状态暂未同步', 'merchantCityNode.create.leaveTitle': '放弃未提交草稿吗'}.items():
             self.assertEqual(zh[key], text)

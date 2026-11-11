@@ -7,8 +7,8 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testNormalEntryUsesExistingIncomeGateAndSameReader(self):
   s=self.src('App/WalletCommerceViews.swift')
   expected='''if visibility.income {
-                NavigationLink { WalletIncomeAnalysisView(reader: reader) } label: {'''
-  self.assertIn(expected,s);self.assertIn('.accessibilityIdentifier("wallet.analysis.open")',s)
+                    walletRow(LocalizedStringKey(String(localized: LocalizedStringResource("wallet.analysis.title", table: "WalletIncomeAnalysis"))), icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }'''
+  self.assertIn(expected,s)
   self.assertIn('WalletCommerceHomeView(reader: session.walletHistoryReader',self.src('App/SessionWalletCommerceView.swift'))
  def testAnalysisNeverCreatesReaderGrantOrMutation(self):
   s=self.src('App/WalletIncomeAnalysisReader.swift')+self.src('App/WalletIncomeAnalysisView.swift')
@@ -41,8 +41,10 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testBothFeatureTablesCoverEveryStaticAndDynamicKey(self):
   s=self.src('App/WalletIncomeAnalysisView.swift')
   keys=set(re.findall(r'(?<!\w)text\("([^"]+)"',s))-{'source.'}
-  keys|={'slice','more','source.topic','source.activity','source.returned','source.invitation','source.other'}
+  keys|={'slice','more','title','source.topic','source.activity','source.returned','source.invitation','source.other'}
   reads=set(re.findall(r'readText\("([^"]+)"',s))|{'interrupted','changed','unverified'}
+  # Read-mechanics notes are intentionally not user copy any more (see the view's `an-seg` comment): they remain in the tables unrendered.
+  keys|={'excluded','noPayout','received'}; reads|={'progress','scope'}
   for table,prefix,names in [('WalletIncomeAnalysis','wallet.analysis.',keys),('WalletIncomeAnalysisRead','wallet.analysis.read.',reads)]:
    catalog=json.loads(self.src('Resources/'+table+'.xcstrings'))['strings']
    self.assertEqual(set(catalog),{prefix+k for k in names})
