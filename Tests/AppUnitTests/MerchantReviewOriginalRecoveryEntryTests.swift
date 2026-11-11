@@ -93,7 +93,7 @@ import XCTest
         let session: MerchantBusinessSession
         var enabled = true
         init(action: MerchantReviewReplyAction = .reply, legacy: Bool = false) throws {
-            let configuration = try APIConfiguration(baseURL: URL(string: "https://example.invalid")!)
+            let configuration = try APIConfiguration(baseURL: URL(string: "https://merchant-review.example.test")!)
             let session = try MerchantBusinessSession(accountID: 21, epoch: 1, token: "synthetic-token")
             let owner = Owner(scope: .init(realm: configuration.baseURL.absoluteString, accountID: 21, epoch: 1))
             let journal = Journal(), wire = Wire()

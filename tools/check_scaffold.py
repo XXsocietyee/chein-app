@@ -270,6 +270,8 @@ assert hashlib.sha256(project_path.read_bytes()).hexdigest()==before
 subprocess.run(['python3','-B',str(pathlib.Path(__file__).resolve().with_name('check_catalog_coverage.py'))],check=True)
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_release_config.py')]).returncode!=0:
     raise SystemExit('Release config check failed')
+if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_privacy_manifest.py')]).returncode!=0:
+    raise SystemExit('Privacy manifest check failed')
 if subprocess.run([sys.executable,'-B',str(ROOT/'tools/check_design_lint.py')]).returncode!=0:
     raise SystemExit('Design lint failed')
 for gate,label in (('check_appsession_ratchet.py','AppSession ratchet'),):

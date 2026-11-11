@@ -3,9 +3,30 @@ import Security
 @testable import Questify
 
 #if targetEnvironment(simulator)
+/// The data-protection keychain needs the `keychain-access-groups` entitlement, which an unsigned
+/// simulator test host (CODE_SIGNING_ALLOWED=NO) does not carry: every call answers -34018. That is an
+/// environment limit, not a product defect, so the real-Security classes skip instead of failing.
+/// Any other status is left for the tests themselves to judge. Uses one unique synthetic key.
+enum SystemKeychainAvailability {
+    static func skipIfEntitlementMissing() throws {
+        let probe: [String: Any] = [kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: "questify.tests.entitlement-probe." + UUID().uuidString,
+            kSecAttrAccount as String: "synthetic-" + UUID().uuidString,
+            kSecAttrSynchronizable as String: false, kSecUseDataProtectionKeychain as String: true]
+        var add = probe
+        add[kSecValueData as String] = Data("synthetic entitlement probe".utf8)
+        add[kSecAttrAccessible as String] = kSecAttrAccessibleWhenUnlockedThisDeviceOnly
+        let status = SecItemAdd(add as CFDictionary, nil)
+        if status == errSecSuccess { SecItemDelete(probe as CFDictionary) }
+        try XCTSkipIf(status == errSecMissingEntitlement,
+                      "Keychain entitlement unavailable (OSStatus \(status)): unsigned simulator test host")
+    }
+}
+
 /// Real Security API checks, confined to unique synthetic simulator-only keys.
 /// These do not simulate locking the device or validate physical-device access groups.
 @MainActor final class PrivateHomeSystemKeychainTests: XCTestCase {
+    override func setUpWithError() throws { try SystemKeychainAvailability.skipIfEntitlementMissing() }
     // Additive environment probes: preserve the adapter acceptance tests below unchanged.
     // Only fixed operation names and numeric OSStatus are reported, never query data or paths.
     func testSyntheticSecurityPrerequisitesReportNumericStatus() {

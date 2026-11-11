@@ -300,7 +300,8 @@ public enum ProjectEditValidation {
             need(!ticket.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty, "ticketName\(ticket.id)", "ticketName")
             need(decimal(ticket.price).map { $0 >= 0 } ?? false, "price\(ticket.id)", "price")
             need(Int(ticket.totalStock).map { $0 >= 0 } ?? false, "stock\(ticket.id)", "number")
-            need(Int(ticket.teamSize).map { $0 >= 0 } ?? false, "team\(ticket.id)", "number")
+            // An absent server team size reads back as "" (unknown, never an invented 0) and stays valid; it is omitted from the payload.
+            need(ticket.teamSize.isEmpty || Int(ticket.teamSize).map { $0 >= 0 } == true, "team\(ticket.id)", "number")
             let schedule = ticket.schedule(in: draft)
             let ts = dateTime(schedule.start), te = dateTime(schedule.end, endOfDay: true)
             need(ts != nil && te != nil, "ticketDates\(ticket.id)", "dates")

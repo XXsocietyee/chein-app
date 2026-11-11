@@ -330,6 +330,20 @@ final class ProjectEditTests: XCTestCase {
         XCTAssertEqual(try ProjectEditContract.decodeEditDetail(missing, expectedTopicID: 71, owner: .personal).draft.tickets[0].teamSize, "")
         XCTAssertEqual(try ProjectEditContract.decodeEditDetail(present, expectedTopicID: 71, owner: .personal).draft.tickets[0].teamSize, "0")
     }
+    func testBlankTeamSizeStaysValidAndIsOmittedFromPayloadWhileLiteralZeroIsSent() throws {
+        var draft = ProjectEditSyntheticFixtures.draft(product: .city)
+        draft.tickets[0].teamSize = ""
+        XCTAssertTrue(ProjectEditValidation.issues(draft).isEmpty)
+        func ticket(_ draft: ProjectEditDraft) throws -> [String: ProjectEditJSON] {
+            let payload = try ProjectEditContract.payload(draft, topicID: nil, scope: .full, baseline: nil, intent: .ordinary)
+            return try XCTUnwrap(payload["tickets"]?.array?.first?.object)
+        }
+        XCTAssertNil(try ticket(draft)["teamSize"])
+        draft.tickets[0].teamSize = "0"
+        XCTAssertEqual(try ticket(draft)["teamSize"], .number(0))
+        draft.tickets[0].teamSize = "x"
+        XCTAssertFalse(ProjectEditValidation.issues(draft).isEmpty)
+    }
     func testUnknownEditScopeAndWrongTopicAreRejected() {
         let data = Data(#"{"code":200,"data":{"editScope":"NEW_SCOPE","topic":{"id":71,"productType":1,"updateTime":"r1"},"chapters":[],"tickets":[]}}"#.utf8)
         XCTAssertThrowsError(try ProjectEditContract.decodeEditDetail(data, expectedTopicID: 71, owner: .personal))
