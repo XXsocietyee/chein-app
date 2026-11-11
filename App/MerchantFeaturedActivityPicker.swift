@@ -106,6 +106,7 @@ import SwiftUI
                 Section {
                     if picker.originalNotLoaded { Text("merchant.featuredPicker.originalRetained").font(.footnote) }
                     LabeledContent("merchant.featuredPicker.loaded", value: picker.total.map { "\(picker.rows.count) / \($0)" } ?? String(picker.rows.count))
+                    if picker.hasLoaded, picker.total == nil { Text("merchant.featuredPicker.unknownTotal").font(.footnote) }
                 }
                 if let issue = picker.issue {
                     Section {
