@@ -12,8 +12,10 @@ import SwiftUI
 /// | `roam-reveal` | walking + "new area revealed" toast, percent counting up, fog edge pushes out (loops every 5 s) |
 /// | `roam-sheet-half` | nearby sheet at half detent, second card selected, its pin highlighted |
 /// | `roam-paused` | paused: static fog edge, resume glyph on the circle |
-/// | `roam-fog-engine` | fog engine stages: mask scrim + hatch for unconfirmed cells, 480 ms radial wipes along a replayed walk, coverage badge |
-/// | `roam-fog-unknown` | same layer with coverage unknown: the badge prints an em dash, never 0 |
+/// | `roam-fog-engine` | fog engine, dark basemap, ~25 %: haze scrim, feathered clear ground with warm frontier glow, dashed shimmer outline on 3 unconfirmed cells, player dot, 480 ms wipes along a replayed walk |
+/// | `roam-fog-unknown` | coverage unknown, nothing loaded: whole map fogged, no player, the badge prints an em dash, never 0 |
+/// | `roam-fog-high` | ~80 % explored with unconfirmed pockets (static) |
+/// | `roam-fog-light` | the replay state on a light basemap |
 enum RoamFixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
@@ -24,6 +26,8 @@ enum RoamFixtures {
         case "roam-paused": return wrap(RoamFixtureStage(initial: .paused))
         case "roam-fog-engine": return wrap(RoamFogEngineFixture(unknown: nil))
         case "roam-fog-unknown": return wrap(RoamFogEngineFixture(unknown: .permissionMissing))
+        case "roam-fog-high": return wrap(RoamFogEngineFixture(high: true))
+        case "roam-fog-light": return wrap(RoamFogEngineFixture(light: true))
         default: return nil
         }
     }
@@ -171,45 +175,115 @@ private struct RoamFixtureStage: View {
     }
 }
 
+/// Light stand-in basemap for the fog fixtures (the dark one is `CYMapStreetGrid`). DEBUG only.
+private struct FogLightBackdrop: View {
+    var body: some View {
+        Canvas { ctx, size in
+            ctx.fill(Path(CGRect(origin: .zero, size: size)), with: .color(Color(red: 0.95, green: 0.94, blue: 0.91)))
+            ctx.fill(Path(CGRect(x: size.width * 0.52, y: size.height * 0.10, width: size.width * 0.34, height: size.height * 0.14)), with: .color(Color(red: 0.84, green: 0.90, blue: 0.80)))
+            ctx.fill(Path(CGRect(x: 0, y: size.height * 0.58, width: size.width * 0.30, height: size.height * 0.16)), with: .color(Color(red: 0.84, green: 0.90, blue: 0.80)))
+            var water = Path()
+            water.move(to: CGPoint(x: size.width, y: size.height * 0.30)); water.addCurve(to: CGPoint(x: 0, y: size.height * 0.86), control1: CGPoint(x: size.width * 0.6, y: size.height * 0.34), control2: CGPoint(x: size.width * 0.5, y: size.height * 0.8))
+            ctx.stroke(water, with: .color(Color(red: 0.76, green: 0.86, blue: 0.92)), lineWidth: 40)
+            var x: CGFloat = 10; var i = 0
+            while x < size.width + 60 {
+                var p = Path(); p.move(to: CGPoint(x: x, y: 0)); p.addLine(to: CGPoint(x: x + 14, y: size.height))
+                ctx.stroke(p, with: .color(.white), lineWidth: i % 4 == 0 ? 9 : 4); x += 62; i += 1
+            }
+            var y: CGFloat = 20; i = 0
+            while y < size.height + 60 {
+                var p = Path(); p.move(to: CGPoint(x: 0, y: y)); p.addLine(to: CGPoint(x: size.width, y: y - 16))
+                ctx.stroke(p, with: .color(.white), lineWidth: i % 3 == 0 ? 9 : 4); y += 58; i += 1
+            }
+        }
+        .ignoresSafeArea().accessibilityHidden(true)
+    }
+}
+
 /// Fog engine stages 2 and 3 on the Shanghai People's Square walk (`FogFixtures`): a real `FogCellBitmap` rasterized by
-/// `FogMaskRasterizer` and drawn by `FogOverlayLayer` over the DEBUG street-grid backdrop, with soft edges, a dark-theme
-/// scrim, hatch on unconfirmed cells and `RevealChoreographer` wipes. The coordinates are literal fixtures, not a person's trail.
+/// `FogMaskRasterizer`, feathered by `FogMaskImages` and drawn by `FogOverlayLayer` over a DEBUG basemap (dark or light):
+/// haze scrim with vignette and noise, clear explored ground with a warm frontier glow, dashed shimmering outline on
+/// unconfirmed cells, a pulsing player dot and `RevealChoreographer` wipes. Three states:
+/// - replay (default): ~25 % explored, three unconfirmed cells, the walk keeps extending;
+/// - `unknown`: nothing loaded, the badge prints an em dash and the whole map is fogged;
+/// - `high`: ~80 % explored with a few unconfirmed pockets (static).
+/// The coordinates are literal fixtures, not a person's trail.
 private struct RoamFogEngineFixture: View {
-    let unknown: FogCoverageReading.UnknownReason?
-    private static let center = RoamCoordinate(latitude: 31.2375, longitude: 121.4783)!
+    var unknown: FogCoverageReading.UnknownReason? = nil
+    var high = false
+    var light = false
+    private static let center = RoamCoordinate(latitude: 31.2354, longitude: 121.4790)!
+    private static let ground = 3.0
     /// The first two legs of the walk (the third is ~2 km away and off this window).
     private static let walkCodes: [String] = FogFixtures.revealedCodes(FogFixtures.shanghaiPeoplesSquareWalk).filter {
         (FogGeohash.bounds(of: $0)?.south ?? 0) > 31.225
     }
     private static let seedCount = 8
+    private static let replayArea = 32
     /// Ahead of the walker, not yet confirmed by the server.
-    private static let pendingCodes: [String] = [(31.2304, 121.4845), (31.2304, 121.4856), (31.2313, 121.4845)]
+    private static let pendingCodes: [String] = [(31.2304, 121.4843), (31.2304, 121.4857), (31.2313, 121.4843)]
         .compactMap { RoamCoordinate(latitude: $0.0, longitude: $0.1).flatMap { RoamExperienceMath.tileKey($0) } }
         .filter { !RoamFogEngineFixture.walkCodes.contains($0) }
 
-    @State private var confirmed = (try? FogFixtures.bitmap(Array(RoamFogEngineFixture.walkCodes.prefix(RoamFogEngineFixture.seedCount)))) ?? FogCellBitmap()
-    @State private var pending = (try? FogFixtures.bitmap(RoamFogEngineFixture.pendingCodes)) ?? FogCellBitmap()
+    /// A superellipse of cells around the centre with ~6 % pockets; the first four pockets are unconfirmed.
+    private static let highSets: (confirmed: [String], pending: [String], area: Int) = {
+        var area = Set<String>(), confirmed: [String] = [], pockets: [String] = []
+        var lat = center.latitude - 0.0105
+        while lat <= center.latitude + 0.0105 {
+            var lng = center.longitude - 0.0058
+            while lng <= center.longitude + 0.0058 {
+                defer { lng += 0.0009 }
+                guard let c = RoamCoordinate(latitude: lat, longitude: lng), let code = RoamExperienceMath.tileKey(c), area.insert(code).inserted else { continue }
+                let nx = (lng - center.longitude) / 0.0058, ny = (lat - center.latitude) / 0.0105
+                guard pow(abs(nx), 3) + pow(abs(ny), 3) < 1 else { continue }
+                let hash = code.unicodeScalars.reduce(UInt64(5381)) { ($0 &* 33) &+ UInt64($1.value) }
+                if hash % 100 < 6 { pockets.append(code) } else { confirmed.append(code) }
+            }
+            lat += 0.0009
+        }
+        return (confirmed, Array(pockets.sorted().prefix(4)), area.count)
+    }()
+
+    @State private var confirmed: FogCellBitmap
+    @State private var pending: FogCellBitmap
     @State private var revision = 1
     @State private var choreo: RevealChoreographer?
+    @State private var player: RoamCoordinate?
     @QuestifyReduceMotion private var reduceMotion
+
+    init(unknown: FogCoverageReading.UnknownReason? = nil, high: Bool = false, light: Bool = false) {
+        self.unknown = unknown; self.high = high; self.light = light
+        if unknown != nil {
+            _confirmed = State(initialValue: FogCellBitmap()); _pending = State(initialValue: FogCellBitmap()); _player = State(initialValue: nil)
+        } else if high {
+            _confirmed = State(initialValue: (try? FogFixtures.bitmap(Self.highSets.confirmed)) ?? FogCellBitmap())
+            _pending = State(initialValue: (try? FogFixtures.bitmap(Self.highSets.pending)) ?? FogCellBitmap())
+            _player = State(initialValue: Self.center)
+        } else {
+            _confirmed = State(initialValue: (try? FogFixtures.bitmap(Array(Self.walkCodes.prefix(Self.seedCount)))) ?? FogCellBitmap())
+            _pending = State(initialValue: (try? FogFixtures.bitmap(Self.pendingCodes)) ?? FogCellBitmap())
+            let last = FogGeohash.bounds(of: Self.walkCodes[Self.seedCount - 1])
+            _player = State(initialValue: last.flatMap { RoamCoordinate(latitude: ($0.south + $0.north) / 2, longitude: ($0.west + $0.east) / 2) })
+        }
+    }
 
     private var reading: FogCoverageReading {
         if let unknown { return .unknown(unknown) }
         // Denominator: the fixture window's cells, a stand-in for the selected search-area grid.
-        return .known(confirmed: confirmed.count, pending: pending.count, areaCells: Self.walkCodes.count + Self.pendingCodes.count + 24)
+        return .known(confirmed: confirmed.count, pending: pending.count, areaCells: high ? Self.highSets.area : Self.replayArea)
     }
 
     var body: some View {
         ZStack(alignment: .top) {
-            CYMapStreetGrid()
+            if light { FogLightBackdrop() } else { CYMapStreetGrid() }
             GeometryReader { geometry in
-                let viewport = FogWindowGeometry.viewport(center: Self.center, pointSize: geometry.size, groundMetersPerPoint: 5)
-                FogViewportLayer(fog: FogPresentation(confirmed: confirmed, pending: pending, revision: revision, coverage: reading, datum: .gcj02),
-                                 viewport: viewport, size: geometry.size, reveal: choreo, style: .darkFixture)
+                let viewport = FogWindowGeometry.viewport(center: Self.center, pointSize: geometry.size, groundMetersPerPoint: Self.ground)
+                FogViewportLayer(fog: FogPresentation(confirmed: confirmed, pending: pending, revision: revision, coverage: reading, datum: .gcj02, player: player),
+                                 viewport: viewport, size: geometry.size, reveal: choreo, style: .reveal(light ? .day : .night))
             }.ignoresSafeArea()
             VStack {
                 HStack {
-                    Text(verbatim: "Fog engine").font(.title2.weight(.heavy)).foregroundStyle(.white)
+                    Text(verbatim: "Fog engine").font(.title2.weight(.heavy)).foregroundStyle(light ? Color.black : Color.white)
                     Spacer()
                     CYFogCoverageBadge(reading: CYFogCoverageReading(reading))
                 }.padding(.horizontal, CYSpacing.lg).padding(.top, CYSpacing.xxl)
@@ -219,6 +293,7 @@ private struct RoamFogEngineFixture: View {
         .cyHaptic(.success, trigger: choreo?.hapticSuccessSerial ?? 0, where: { old, new in new > old })
         .cyHaptic(.impactLight, trigger: choreo?.hapticLightSerial ?? 0, where: { old, new in new > old })
         .task {
+            guard unknown == nil, !high else { return }
             let rm = reduceMotion
             let driver = RevealChoreographer(reduceMotion: { rm }, lowPower: { FogPowerState.constrained })
             choreo = driver
@@ -233,6 +308,7 @@ private struct RoamFogEngineFixture: View {
                     revision += 1
                     continue
                 }
+                player = origin
                 bake(driver.enqueue(FogRevealEvent(cells: [cell], origin: origin, at: Date())))
                 try? await Task.sleep(for: .milliseconds(600))
                 bake(driver.settle())

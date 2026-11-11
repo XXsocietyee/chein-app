@@ -14,6 +14,8 @@ struct FogPresentation: Equatable {
     let coverage: FogCoverageReading
     /// Cells are keyed in the server datum (GCJ-02) and are never re-projected (spec §1a).
     let datum: WalkingCoordinateDatum
+    /// The player's fix, drawn as a pulsing dot above the fog. nil draws none (the host map shows its own).
+    var player: RoamCoordinate? = nil
 }
 
 /// Low Power or thermal `.serious`: no softening pass, no wipe layer (spec §1b, §1c).
@@ -47,7 +49,7 @@ struct FogViewportLayer: View {
     let viewport: FogMercatorWindow
     let size: CGSize
     var reveal: RevealChoreographer?
-    /// nil: the style manifest's `fogOverlay` token for the current appearance.
+    /// nil: the visible-fog look for the current appearance (`FogScrimStyle.reveal`).
     var style: FogScrimStyle? = nil
     @State private var cache = FogMaskCache()
     @QuestifyReduceMotion private var reduceMotion
@@ -65,10 +67,16 @@ struct FogViewportLayer: View {
         let appearance = MapAppearance.resolve(systemIsDark: colorScheme == .dark)
         ZStack {
             FogOverlayLayer(mask: resolved.mask, images: resolved.images, windowRect: rect,
-                            style: style ?? .token(appearance), wipes: wipes, softEdgeRadius: constrained ? 0 : 3)
+                            style: style ?? .reveal(appearance), wipes: wipes,
+                            // Dashes crawl only with full motion and full power.
+                            shimmer: !reduceMotion && !constrained)
                 // Reduce Motion: a new mask fades in over 200 ms instead of any wipe.
                 .id(resolved.mask.revision)
                 .transition(.opacity)
+            if let player = fog.player {
+                FogPlayerDot()
+                    .position(FogWindowGeometry.point(latitude: player.latitude, longitude: player.longitude, in: viewport, pointSize: size))
+            }
         }
         .animation(reduceMotion ? .easeOut(duration: RevealChoreographer.crossfadeDuration) : nil, value: resolved.mask.revision)
     }
@@ -148,4 +156,27 @@ struct RoamLiveFogMap {
     let presentation: FogPresentation
     var reveal: RevealChoreographer? = nil
     var onBaked: ([FogRenderCell]) -> Void = { _ in }
+}
+
+/// Player position above the fog: an accent dot with a white ring and one slow pulse ring. Reduce Motion: a still halo.
+struct FogPlayerDot: View {
+    @QuestifyReduceMotion private var reduceMotion
+    @State private var pulse = false
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Color.accentColor.opacity(reduceMotion ? 0.28 : (pulse ? 0 : 0.40)))
+                .frame(width: 22, height: 22)
+                .scaleEffect(reduceMotion ? 1.6 : (pulse ? 3.2 : 1))
+            Circle().fill(Color.white).frame(width: 18, height: 18).shadow(color: .black.opacity(0.35), radius: 3)
+            Circle().fill(Color.accentColor).frame(width: 12, height: 12)
+        }
+        .onAppear {
+            guard !reduceMotion else { return }
+            withAnimation(.easeOut(duration: 1.8).repeatForever(autoreverses: false)) { pulse = true }
+        }
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+        .accessibilityIdentifier("roam.fog.player")
+    }
 }
