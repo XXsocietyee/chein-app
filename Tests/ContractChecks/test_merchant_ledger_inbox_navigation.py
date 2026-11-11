@@ -10,7 +10,7 @@ class LedgerInboxContracts(unittest.TestCase):
     def test_destination_identity_before_and_after(self):
         for t in ['identity.accountID == source.scope.accountID','identity.epoch == source.scope.epoch','currentMessaging() === messaging','messaging.identity == identity','generation == token']:self.assertIn(t,self.s)
     def test_production_existing_messaging_composition(self):
-        for t in ['source.reader === session.merchantBusinessReader','MessagingHomeView(reader: session.messagingReader','session.socialMessageMediaReader','session.messageSender(for: $0)','session.imExpandedNavigation']:self.assertIn(t,self.s)
+        for t in ['source.reader === session.merchantBusinessReader','MessagingHomeView(reader: readerOwner.reader(for: session)','let reader = session.messagingReader','if self.session === session, issuance == current, let retained { return retained }','session.socialMessageMediaReader','session.messageSender(for: $0)','session.imExpandedNavigation']:self.assertIn(t,self.s)
         for t in ['sendRequest','subscribe','URLRequest','execute(','messagingConversations()']:self.assertNotIn(t,self.s)
     def test_normal_host_and_factory(self):
         h=(ROOT/'App/MerchantBusinessViews.swift').read_text();a=(ROOT/'App/QuestifyApp.swift').read_text()
@@ -26,7 +26,7 @@ class LedgerInboxContracts(unittest.TestCase):
         self.assertIn('@State private var isVisible = false',self.s)
         self.assertIn('guard isVisible, scenePhase == .active, ownsSource else { gate.deactivate(); return }',self.s)
         self.assertIn('.onChange(of: scenePhase) { _, _ in scheduleOpen() }',self.s)
-        self.assertIn('guard let permit = gate.openingPermit() else { return }\n        Task { await gate.open(source, currentMessaging: { session.messagingReader }, permit: permit) }',self.s)
+        self.assertIn('guard let permit = gate.openingPermit() else { return }\n        Task { await gate.open(source, currentMessaging: { readerOwner.reader(for: session) }, permit: permit) }',self.s)
         self.assertIn('guard active, permit == nil || permit == generation else { return }\n        cancel();',self.s)
         self.assertNotIn('Task { await open() }',self.s)
 if __name__=='__main__':unittest.main()

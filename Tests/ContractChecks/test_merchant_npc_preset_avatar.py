@@ -105,7 +105,9 @@ class MerchantNPCPresetContracts(unittest.TestCase):
         self.assertIn('MerchantNPCCharacterAvatarSnapshot(draft: confirmation.draft)',confirmation)
         self.assertNotIn('model.coordinator.draft',confirmation)
         self.assertIn('source: avatar.rawValue',confirmation)
-        self.assertIn('Text(verbatim: avatar.rawValue)',confirmation)
+        # The frozen avatar URL is shown only as media (the raw URL is no longer printed as text).
+        self.assertIn('MerchantOperationsMediaPreview(source: avatar.rawValue, title: "merchant.operations.avatar"',confirmation)
+        self.assertNotIn('Text(verbatim: avatar.rawValue)',confirmation)
         self.assertIn('ForEach(confirmation.draft.reviewLines)',confirmation)
     def test_confirmation_scope_still_rejects_live_draft_and_ignores_later_editor(self):
         source=(ROOT/'App/MerchantOperationsEditor.swift').read_text()

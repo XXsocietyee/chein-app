@@ -18,7 +18,11 @@ class CalendarContracts(unittest.TestCase):
  def test_once_only_apply(self):self.assertIn('let value = try draft.value(now: now); cancel(); return value',self.app)
  def test_stale_callback_bound_to_id(self):self.assertIn('guard session?.id == shown.id',self.app);self.assertIn('guard session?.id == shownID',self.app)
  def test_background_retires_picker(self):self.assertIn('phase != .active { session?.cancel(); session = nil }',self.app)
- def test_normal_workbench_entry(self):self.assertIn('CoopFlowTemplateEditor(currentCalendarSession: { reader.session })',self.workbench)
+ def test_normal_workbench_entry(self):
+  # The workbench entry is intentionally hidden until its review screen's submit is wired; the editor (and the
+  # disabled-submit policy below) stays in place, so no dead-end affordance is mounted.
+  self.assertIn('// 添加常备权益 is hidden: its review screen ends at a submit that is not wired in the app.',self.workbench)
+  self.assertNotIn('CoopFlowTemplateEditor(',self.workbench)
  def test_actual_editor_field_wired(self):self.assertIn('MerchantPerkValidityEntry(value: $validEnd',self.host)
  def test_result_is_local(self):self.assertIn('value = next; appliedValue = next; appliedContext = context()',self.app)
  def test_no_service_or_write_added(self):
