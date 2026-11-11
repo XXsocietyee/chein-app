@@ -61,8 +61,8 @@ class NativeChannelNotificationPresentationSourceContracts(unittest.TestCase):
                       'perform { await $0.mute(minutes: minutes) }',
                       'guard owns(expected), screenTask == nil, model.isCurrent else { return }']:
             self.assertIn(token,view)
-        self.assertIn('NativeChannelNotificationPresentation.failureDetail(model.lastFailure, state: model.state, locale: locale)',view)
-        self.assertIn('Text(n(localIssue))',view);self.assertIn('localIssue = "editor.invalid"',view)
+        self.assertIn('NativeChannelNotificationCopy.failureDetail(model.lastFailure, state: model.state, locale: locale)',view)
+        self.assertIn('Text(verbatim: c(localIssue))',view);self.assertIn('localIssue = "editor.invalid"',view)
     def test_permissions_remain_user_actions_and_unknown_is_not_authorized(self):
         view=self.read(VIEWS[2]);source=self.read(PRESENTATION)
         for token in ['if snapshot.authorization == .notDetermined','await model.requestFromUserAction(expectedRevision: revision)',
