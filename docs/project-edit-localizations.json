@@ -660,8 +660,8 @@
     "zh-Hans": "售票结束"
   },
   "projectEdit.saleStoredOnly": {
-    "en": "These dates are saved and displayed only. They do not currently control when tickets can be purchased. Dates use the service’s wall-clock time; no device time-zone conversion is applied.",
-    "zh-Hans": "这些日期仅保存和展示，目前不控制购票时段。日期按服务端墙上时间提交，不按设备时区换算。"
+    "en": "These dates are shown to players. They don't limit when tickets can be bought.",
+    "zh-Hans": "这些日期仅向玩家展示，不限制购票时间。"
   },
   "projectEdit.saleLegacy": {
     "en": "This saved setting can't be changed here. It will be kept as is.",

@@ -96,12 +96,12 @@
     "zh-Hans": "重试"
   },
   "searchMap.empty": {
-    "en": "No matching results",
-    "zh-Hans": "没有匹配结果"
+    "en": "No places match",
+    "zh-Hans": "没有找到匹配的地点"
   },
   "searchMap.emptyHint": {
-    "en": "Try another keyword or adjust the filters",
-    "zh-Hans": "换个关键词或调整筛选条件"
+    "en": "Try a different keyword, or loosen the filters.",
+    "zh-Hans": "换个关键词，或放宽筛选条件。"
   },
   "searchMap.pageLimit": {
     "en": "Shows up to 12 topics and 12 activities per category.",
@@ -526,5 +526,17 @@
   "searchMap.resultKinds": {
     "en": "Result type",
     "zh-Hans": "结果类型"
+  },
+  "searchMap.moreWays": {
+    "en": "More ways to find",
+    "zh-Hans": "更多查找方式"
+  },
+  "searchMap.placeholder.player": {
+    "en": "Search topics, activities and clubs",
+    "zh-Hans": "搜索路线、活动和俱乐部"
+  },
+  "searchMap.routes.recent": {
+    "en": "Recent routes",
+    "zh-Hans": "最近路线"
   }
 }
