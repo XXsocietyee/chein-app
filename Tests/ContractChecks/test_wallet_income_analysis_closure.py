@@ -7,7 +7,7 @@ class WalletIncomeAnalysisClosureContracts(unittest.TestCase):
  def testNormalEntryUsesExistingIncomeGateAndSameReader(self):
   s=self.src('App/WalletCommerceViews.swift')
   expected='''if visibility.income {
-                    walletRow(LocalizedStringKey(String(localized: LocalizedStringResource("wallet.analysis.title", table: "WalletIncomeAnalysis"))), icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }'''
+                    walletRow("wallet.analysis.title", icon: "chart.bar.xaxis", id: "wallet.analysis.open") { WalletIncomeAnalysisView(reader: reader) }'''
   self.assertIn(expected,s)
   self.assertIn('WalletCommerceHomeView(reader: session.walletHistoryReader',self.src('App/SessionWalletCommerceView.swift'))
  def testAnalysisNeverCreatesReaderGrantOrMutation(self):

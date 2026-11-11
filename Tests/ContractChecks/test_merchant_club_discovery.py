@@ -100,10 +100,10 @@ class MerchantClubDiscoveryContracts(unittest.TestCase):
                         NavigationLink {
                             ClubOwnedView(''', source)
         self.assertIn('CYListRow("club.owned", trailing: .chevron)', source)
-        self.assertIn('clubRows(home.joined, identifier: "club.home.joined", section: .joined)', source)
+        self.assertIn('clubRows(home.joined, identifier: "club.home.joined", section: .joined, page: page)', source)
         self.assertIn('let nearby = locality.nearby(home.nearby, in: discoveryScope)', source)
         # Merchant viewers get the locality list only: the owned/joined list is in the non-merchant branch.
-        self.assertIn('if discoveryScope.isMerchantViewer {\n                    localityStatus\n                    merchantNearbySection(nearby)', source)
+        self.assertIn('if discoveryScope.isMerchantViewer {\n                    localityStatus\n                    merchantNearbySection(nearby, page: page)', source)
         self.assertIn('ClubDetailView(id: id, reader: reader', source)
         self.assertIn('if let topicDestination, event.id > 0', source)
 

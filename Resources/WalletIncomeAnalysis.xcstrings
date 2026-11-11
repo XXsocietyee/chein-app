@@ -211,13 +211,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Withdrawals"
+            "value": "Withdrawal request debits"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "提现"
+            "value": "提现申请扣款"
           }
         }
       }

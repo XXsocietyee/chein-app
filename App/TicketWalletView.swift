@@ -93,6 +93,12 @@ import SwiftUI
                         }.accessibilityIdentifier("ticketWallet.teams")
                     }
                 }
+                // Payment, refunds and completion rewards are not in the app; shown in every state so the wallet never implies otherwise.
+                Section {
+                    Text("ticketWallet.readOnly").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .accessibilityIdentifier("ticketWallet.readOnly")
+                }
             }
             .listStyle(.insetGrouped)
             .scrollContentBackground(.hidden)
