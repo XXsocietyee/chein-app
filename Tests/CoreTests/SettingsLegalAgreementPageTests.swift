@@ -76,7 +76,7 @@ final class SettingsLegalAgreementPageTests: XCTestCase {
         XCTAssertTrue(SettingsLegalAgreementPage.agreementGetStaysHidden)
         XCTAssertNil(ChinaReviewedRouteCapability.mark(for: "/api/agreement/get"))
         XCTAssertFalse(ChinaReviewedRouteCapability.admitsChinaProductionCall("/api/agreement/get"))
-        XCTAssertFalse(ChinaReviewedRouteCapability.virtualGoodsEnabled)
+        XCTAssertFalse(ReleaseMoneyWriteSwitch.virtualGoodsEnabled)
         XCTAssertFalse(SettingsSourceLegalCatalog.userAgreement.isReleaseApproved)
         XCTAssertFalse(SettingsSourceLegalCatalog.cancellationNotice.isReleaseApproved)
         XCTAssertFalse(SettingsSourceLegalCatalog.privacyPolicy.isReleaseApproved)
