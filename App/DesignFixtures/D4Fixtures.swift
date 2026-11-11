@@ -132,7 +132,7 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
 
 /// Club enrollment / governance workspace / operations through the existing synthetic access fixtures (labelled, DEBUG only).
 @MainActor struct D4ClubOpsFixture: View {
-    enum Screen { case enroll, governance, operations(create: Bool) }
+    enum Screen { case enroll, governance, operations(create: Bool), operationsFacts(unknown: Bool) }
     let screen: Screen
     @State private var access = ClubGovernanceFixtureAccess()
     @State private var opsAccess = ClubOperationsFixtureAccess(scenario: .owner)
@@ -148,6 +148,10 @@ private final class D4MemoryBlockedStore: ChannelBlockedUsersStoring, @unchecked
                     ClubGovernanceWorkspaceView(clubID: 81, identity: access.identity, access: access, coordinator: governance)
                 case .operations(let create):
                     ClubOperationsWorkspaceView(target: create ? .create : .club(81), identity: opsAccess.identity, access: opsAccess, coordinator: ops)
+                case .operationsFacts(let unknown):
+                    // Edit facts over `ClubEditPage`: known counts, or an owner body that omits them (em dash).
+                    ClubOperationsWorkspaceView(target: .club(81), identity: opsAccess.identity, access: opsAccess, coordinator: ops)
+                        .environment(\.clubEditDetailBody, { _ in Data((unknown ? ClubEditFixtureData.missingQuota : ClubEditFixtureData.owner).utf8) })
                 }
             } else { ProgressView() }
         }

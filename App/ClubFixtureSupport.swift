@@ -6,6 +6,8 @@ enum ClubFixtureScenario: String {
     case owner, member, visitor, administrator, empty, retry, forbidden, guest, missingMembers
     case customerOwner, customerAdministrator, customerDenied, customerInvalidHistory
     case merchantLocality, merchantLocalityRetry, merchantLocalityUnknown, merchantLocalityEmpty, merchantLocalityDelayed
+    /// Core club-tab page model over the raw home body: known facts, and facts the server left out (em dash).
+    case tabFacts, tabUnknown
     static func selected(arguments: [String]) -> Self? {
         guard let index = arguments.firstIndex(of: "--uitesting-club-fixture"), arguments.indices.contains(index + 1) else { return nil }
         return Self(rawValue: arguments[index + 1])
@@ -150,6 +152,7 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
     }
     func clubHome() async throws -> ClubHome {
         try authorize()
+        if let data = tabBodyData { return try decode(data) }
         if scenario == .retry && firstHomeAttempt { firstHomeAttempt = false; throw URLError(.notConnectedToInternet) }
         if scenario == .empty { return try decode(["owned": [], "joined": [], "nearby": [], "events": []]) }
         if isLocalityFixture {
@@ -167,6 +170,29 @@ final class ClubFixtureReader: ObservableObject, ClubReading {
             "nearby": !owned && !joined ? [mine, nearby] : [nearby],
             "events": owned ? [["id": 91, "clubId": 81, "title": "Fixture club outing"]] : []
         ])
+    }
+    /// Raw `/api/club/home` and club detail bodies for the Core page models. Other scenarios keep none (capability off).
+    private var tabBodyData: [String: Any]? {
+        let json: String
+        switch scenario {
+        case .tabFacts: json = ClubTabPageFixtureData.ready
+        case .tabUnknown: json = #"{"owned":[{"id":81,"name":"Synthetic owned","isOwner":true}],"joined":[],"nearby":[],"events":[{"id":91,"clubId":81,"title":"Synthetic outing"}],"leaderStatus":{"isClubLeader":true}}"#
+        default: return nil
+        }
+        return try? ClubTabPageFixtureData.object(json)
+    }
+    func clubHomeBody() async throws -> Data? {
+        try authorize()
+        guard let data = tabBodyData else { return nil }
+        return try JSONSerialization.data(withJSONObject: ["code": 200, "data": data])
+    }
+    func clubDetailBody(id: Int) async throws -> Data? {
+        try authorize()
+        switch scenario {
+        case .tabFacts: return Data(ClubEditFixtureData.owner.utf8)
+        case .tabUnknown: return Data(ClubEditFixtureData.missingQuota.utf8)
+        default: return nil
+        }
     }
     func clubOwned() async throws -> [ClubRecord] {
         try authorize()

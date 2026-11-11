@@ -4,11 +4,13 @@ import SwiftUI
 struct ClubTabTagLine: View {
     let club: ClubRecord
     let section: ClubTabPresentation.Section
+    /// Core page model topic count for this row; nil when no page model, em dash when the server omitted it.
+    var topicCount: ClubTabPageModel.Count? = nil
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     var body: some View {
         let tags = ClubTabPresentation.tags(club, in: section)
         let level = ClubTabPresentation.levelKey(club.level)
-        if !tags.labels.isEmpty || tags.freeToJoin || level.key != nil || level.fallback != nil {
+        if !tags.labels.isEmpty || tags.freeToJoin || topicCount != nil || level.key != nil || level.fallback != nil {
             chipLayout(tags: tags, level: level)
                 .accessibilityElement(children: .combine)
                 .accessibilityIdentifier("clubTab.tags.\(club.id)")
@@ -25,6 +27,10 @@ struct ClubTabTagLine: View {
                 CYStatusChip(verbatim: label)
             }
             if tags.freeToJoin { CYStatusChip("club.tab.freeToJoin", tone: .success, systemImage: "person.badge.plus") }
+            if let topicCount {
+                let label: LocalizedStringKey = "club.tab.topicCount \(topicCount.text)"
+                CYStatusChip(label, systemImage: "text.bubble")
+            }
         }
     }
 }
@@ -36,5 +42,74 @@ struct ClubTabEmptyState: View {
         let keys = ClubTabPresentation.emptyKeys(merchant: merchant)
         CYEmptyState(systemImage: "person.3", LocalizedStringKey(keys.title))
             .accessibilityIdentifier("clubTab.empty")
+    }
+}
+
+/// One club-tab load: the typed home plus the optional Core page model (nil = capability off or unusable body).
+struct ClubTabLoaded {
+    let home: ClubHome
+    let page: ClubTabPageModel?
+}
+
+extension ClubReading {
+    /// The raw home body, or nil when this reader keeps none or the read failed (never an empty list).
+    func clubHomeBodyIfAvailable() async -> Data? { (try? await clubHomeBody()) ?? nil }
+}
+
+private struct ClubEditDetailBodyKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (Int) async throws -> Data?)? = nil
+}
+extension EnvironmentValues {
+    /// Raw club detail body read. Unset means the capability is off and the edit facts stay hidden.
+    var clubEditDetailBody: (@MainActor (Int) async throws -> Data?)? {
+        get { self[ClubEditDetailBodyKey.self] }
+        set { self[ClubEditDetailBodyKey.self] = newValue }
+    }
+}
+
+/// pages/club/edit facts over `ClubEditPage.make`: members, reserved quota and (owner with governance) blockers.
+/// Unknown values are an em dash, never 0. No read port in the environment means nothing is drawn.
+struct ClubEditFactsSection: View {
+    let clubID: Int
+    let governanceAvailable: Bool
+    @Environment(\.clubEditDetailBody) private var readBody
+    @State private var page: ClubEditPage?
+    var body: some View {
+        if let readBody {
+            Section {
+                switch page?.state {
+                case nil, .loading?:
+                    ProgressView().accessibilityIdentifier("club.ops.facts.loading")
+                case .error?:
+                    Text("club.loadFailed").accessibilityIdentifier("club.ops.facts.error")
+                case .empty?, .unknown?, .ready?:
+                    if let page {
+                        LabeledContent("club.ops.facts.members") { Text(verbatim: page.memberCountText) }
+                            .accessibilityIdentifier("club.ops.facts.members")
+                        LabeledContent("club.ops.facts.quota") { Text(verbatim: page.reservedQuotaText) }
+                            .accessibilityIdentifier("club.ops.facts.quota")
+                        if page.showsDissolve {
+                            LabeledContent("club.ops.facts.blockers") { Text(verbatim: page.blockerCountText) }
+                                .accessibilityIdentifier("club.ops.facts.blockers")
+                        }
+                    }
+                }
+            } header: { Text("club.ops.facts") }
+            .task(id: clubID) { await load(readBody) }
+        }
+    }
+    private func load(_ read: @MainActor (Int) async throws -> Data?) async {
+        func make(_ value: ClubEditPage.Read) -> ClubEditPage {
+            ClubEditPage.make(read: value, surface: .manage, clubID: clubID, governanceAvailable: governanceAvailable)
+        }
+        page = make(.loading)
+        do {
+            let body = try await read(clubID)
+            guard !Task.isCancelled else { return }
+            page = make(body.map { ClubEditPage.Read.detail($0, blockers: nil) } ?? .unknown)
+        } catch {
+            guard !Task.isCancelled else { return }
+            page = make(.error)
+        }
     }
 }

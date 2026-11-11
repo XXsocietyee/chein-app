@@ -67,6 +67,8 @@ enum DesignFixtureRegistry {
         case "d4-gov": return AnyView(D4ClubOpsFixture(screen: .governance))
         case "d4-ops": return AnyView(D4ClubOpsFixture(screen: .operations(create: false)))
         case "d4-ops-create": return AnyView(D4ClubOpsFixture(screen: .operations(create: true)))
+        case "d4-ops-facts": return AnyView(D4ClubOpsFixture(screen: .operationsFacts(unknown: false)))
+        case "d4-ops-facts-unknown": return AnyView(D4ClubOpsFixture(screen: .operationsFacts(unknown: true)))
         // D5 merchant console (synthetic data, light, real views under .roleTheme(.merchant))
         case "merchant-home": return merchantConsoleFixture(.home)
         case "merchant-home-unknown": return merchantConsoleFixture(.homeUnknown)
@@ -279,7 +281,7 @@ struct E4ComplianceFixture: View {
 
 /// Order info, points history, invite history and nearby merchants over the Core page models.
 /// DEBUG only, synthetic data. `--design-fixture core-order-info | core-order-info-unknown | core-points-history
-/// | core-invite-history[-partial|-zero|-unavailable] | core-nearby-merchant | core-nearby-merchant-empty`.
+/// | core-invite-history[-partial|-zero|-unavailable] | core-nearby-merchant | core-nearby-merchant-empty | core-club-tab-facts | core-club-tab-unknown`.
 enum CoreGapPageFixtures {
     @MainActor static func make(_ name: String) -> AnyView? {
         switch name {
@@ -291,6 +293,9 @@ enum CoreGapPageFixtures {
         case "core-invite-history-partial": return AnyView(ProfileInviteRewardReviewFixtureHost(scenario: "partial"))
         case "core-invite-history-zero": return AnyView(ProfileInviteRewardReviewFixtureHost(scenario: "zero"))
         case "core-invite-history-unavailable": return AnyView(ProfileInviteRewardReviewFixtureHost(scenario: "unavailable"))
+        // Club tab over the raw home body: known facts, and a body that omits counts (em dash).
+        case "core-club-tab-facts": return AnyView(ClubFixtureRootView(scenario: .tabFacts))
+        case "core-club-tab-unknown": return AnyView(ClubFixtureRootView(scenario: .tabUnknown))
         case "core-nearby-merchant": return AnyView(CoreGapNearbyFixtureHost(empty: false))
         case "core-nearby-merchant-empty": return AnyView(CoreGapNearbyFixtureHost(empty: true))
         default: return nil

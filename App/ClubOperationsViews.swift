@@ -324,6 +324,9 @@ struct ClubOperationsWorkspaceView: View {
                     draft.discardMedia(.logo, original: value.profile); draft.discardMedia(.cover, original: value.profile)
                 })
             }
+            if target != .create, let profile = value.profile {
+                ClubEditFactsSection(clubID: profile.club.id, governanceAvailable: hostApplication != nil)
+            }
             ClubProfileMediaSection(draft: $draft, snapshot: value, identity: identity, service: access.profileMedia,
                 flow: profileMedia, enabled: scenePhase == .active && !loading && !state.locksForm && !profileDraftBlocked && access.identity == identity)
             ClubOperationsProfileForm(draft: $draft, isCreate: target == .create, isOwner: value.profile?.club.isOwner == true, joinPolicySupported: value.profile?.club.joinPolicySupported == true,

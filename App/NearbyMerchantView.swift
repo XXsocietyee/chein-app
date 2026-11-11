@@ -73,6 +73,8 @@ extension EnvironmentValues {
             }
             if page.phase == .ready || page.phase == .empty {
                 Section {
+                    Text("nearbyMerchant.total \(page.totalText)").font(CYTypography.meta).foregroundStyle(CYColor.textSecondary)
+                        .accessibilityIdentifier("nearbyMerchant.total")
                     if page.phase == .empty {
                         CYEmptyStateView(systemImage: "mappin.slash", title: "cooperation.nearby.empty", description: "cooperation.nearby.empty.detail")
                             .accessibilityIdentifier("cooperation.nearby.empty")
