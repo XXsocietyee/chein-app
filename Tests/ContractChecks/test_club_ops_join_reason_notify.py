@@ -145,7 +145,10 @@ class ClubOpsJoinNotifyContracts(unittest.TestCase):
         for forbidden in ['perform(', 'coordinator', 'access.read', 'canDispatch', 'requestId']:
             self.assertNotIn(forbidden, self.notify_ui)
         self.assertIn('ClubNotificationAudienceReadModel.eventAudienceIDs.contains(option.id)', self.audience)
-        self.assertIn('if option.enabled, let count = option.count {', self.audience)
+        self.assertIn('if option.enabled { audienceCount(option) }', self.audience)
+        self.assertIn('if let count = option.count {', self.audience)
+        # A missing count stays unknown ("—"), never 0.
+        self.assertIn('Text(verbatim: "—")', self.audience)
         self.assertIn('ClubOpsJoinNotifyCopy.people(count)', self.audience)
 
     def test_core_cases_are_authored(self):

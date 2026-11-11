@@ -32,7 +32,7 @@ class ClubOpsEventContracts(unittest.TestCase):
         self.assertIn('case occurrence, roster, series, recurrence, capacity', self.core)
 
     def test_hub_is_reachable_from_workspace_and_event_view(self):
-        access = self.views.split('Section("club.gov.workspace") {', 1)[1].split('Section("club.gov.delegatedEvents")', 1)[0]
+        access = self.views.split('Section("club.gov.section.customers") {', 1)[1].split('Section("club.gov.delegatedEvents")', 1)[0]
         self.assertIn('if read == .series, ClubOpsEventAccess(permissions: snapshot.permissions, scope: scope).permitted', access)
         self.assertIn('ClubOpsEventView(scope: scope, identity: identity, access: access, coordinator: coordinator)', access)
         event = self.views.split('struct ClubGovernanceEventView: View {', 1)[1].split('/// Route/play display', 1)[0]
@@ -42,7 +42,7 @@ class ClubOpsEventContracts(unittest.TestCase):
     def test_hub_only_composes_existing_reads_and_never_writes(self):
         self.assertIn('ClubGovernanceReadView(operation: read, scope: target', self.hub)
         self.assertIn('try await access.read(.access, scope: accessScope, options: [:], check: check)', self.hub)
-        self.assertIn('.navigationTitle(Text("clubOpsEvent.title", tableName: "ClubOpsEvent"))', self.hub)
+        self.assertIn('CYHeroHeader("clubOpsEvent.title", tableName: "ClubOpsEvent")', self.hub)
         for token in ['.send(', 'coordinator.confirm', 'coordinator.prepare', 'ProductionApproval', 'allowsOfflineWrites', 'URLSession']:
             self.assertNotIn(token, self.hub)
             self.assertNotIn(token, self.core)
@@ -87,7 +87,7 @@ class ClubOpsEventContracts(unittest.TestCase):
         for path in ['App/ClubOpsEventView.swift', 'App/ClubOpsEventFormFields.swift', 'App/ClubRosterBucketContent.swift',
                      'App/ClubSeriesOccurrenceBrowser.swift', 'App/ClubSeriesLeadPicker.swift', 'App/ClubGovernanceCommandForm.swift',
                      'App/ClubSeriesScheduleEditor.swift', 'App/ClubGovernanceViews.swift']:
-            source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', '', text(path))
+            source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)|(?:message|action)Identifier: "[^"]*"', '', text(path))
             for key in re.findall(r'"(clubOpsEvent\.[A-Za-z.]+(?: \\\([^"]*)?)"', source):
                 if key.endswith('.'):
                     continue

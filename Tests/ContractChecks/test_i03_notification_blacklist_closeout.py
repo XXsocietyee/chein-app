@@ -11,7 +11,7 @@ class I03NotificationBlacklistCloseoutTests(unittest.TestCase):
         source=self.source('SettingsView')
         self.assertEqual(source.count('NativeNotificationPermissionEntry()'),1)
         self.assertIn('Section {\n                    NativeNotificationPermissionEntry()\n                    NativeChannelNotificationSettingsEntry(session: session)',source)
-        self.assertIn('Text("notification.permission.delivery", tableName: "NativeChannelNotification")',source)
+        self.assertIn('Text("notification.global.title", tableName: "NativeChannelNotification")',source)
     def testEntryRequiresNoAccountOrServiceCoordinator(self):
         source=self.source('NativeNotificationPermissionEntry')
         self.assertIn('NavigationLink { NativeNotificationPermissionNudgeView(model: model) }',source)
@@ -19,17 +19,17 @@ class I03NotificationBlacklistCloseoutTests(unittest.TestCase):
         self.assertIn('.accessibilityIdentifier("notification.permission.entry")',source)
         for value in ['AppSession','makeFlow','coordinator','@EnvironmentObject','.task','onAppear','requestFromUserAction()','openSettingsFromUserAction()','refresh()']:self.assertNotIn(value,source)
     def testExistingUnavailableServiceDestinationCannotHideIndependentEntry(self):
-        self.contains('NativeChannelNotificationEntry',['if let model { NativeChannelNotificationGlobalView(model: model','else if attempted { ContentUnavailableView(n("entry.unavailable")','model = makeFlow(nil)'])
+        self.contains('NativeChannelNotificationEntry',['if let model { NativeChannelNotificationGlobalView(model: model','else if attempted { ContentUnavailableView(NativeChannelNotificationCopy.text("entry.unavailable", locale: locale)','model = makeFlow(nil)'])
         self.contains('SettingsView',['NativeNotificationPermissionEntry()'])
     def testNudgeReadOnlyAppearanceAndExplicitActionsRemainSeparate(self):
-        self.contains('NativeNotificationPermissionNudgeView',['.task { await model.refresh() }','if phase == .active { Task { await model.refresh() } }','if snapshot.authorization == .notDetermined','Button(n("permission.request")) { Task { await model.requestFromUserAction() } }','Button(n("permission.settings")) { Task { await model.openSettingsFromUserAction() } }','.disabled(model.busy)'])
+        self.contains('NativeNotificationPermissionNudgeView',['.task { await model.refresh(expectedRevision: model.revision) }','if phase == .active { let revision = model.revision; Task { await model.refresh(expectedRevision: revision) } }','if snapshot.authorization == .notDetermined','CYPillButton("d7.notifyPermission.request") { let revision = model.revision; Task { await model.requestFromUserAction(expectedRevision: revision) } }','CYPillButton("d7.notifyPermission.settings") { let revision = model.revision; Task { await model.openSettingsFromUserAction(expectedRevision: revision) } }','.disabled(model.busy)'])
     def testAdapterRereadsCurrentOSStatusBeforePrompt(self):
         self.contains('NativeNotificationPermissionAdapter',['guard await center.notificationSettings().authorizationStatus == .notDetermined else { return }','center.requestAuthorization(options: [.alert, .sound, .badge])','UIApplication.openNotificationSettingsURLString'])
         entry=self.source('NativeNotificationPermissionEntry');self.assertNotIn('registerForRemoteNotifications',entry);self.assertNotIn('setBadgeCount',entry)
     def testUnknownAndFailureNeverBecomeAuthorized(self):
         self.contains('NativeNotificationPermissionStatusPresentation',['if let authorization { return .known(authorization) }','if busy { return .loading }','if hasIssue { return .unavailable }','return .waiting'])
         core=(ROOT/'Core/NativeNotificationPermissionState.swift').read_text()
-        for value in ['guard !busy, snapshot?.authorization == .notDetermined else { return }','guard !busy, let authorization = snapshot?.authorization, authorization != .notDetermined else { return }','guard ticket == generation, !Task.isCancelled else { return }']:self.assertIn(value,core)
+        for value in ['guard accepts(expectedRevision), !busy, snapshot?.authorization == .notDetermined else { return }','guard accepts(expectedRevision), !busy, let authorization = snapshot?.authorization, authorization != .notDetermined else { return }','guard ticket == generation, !Task.isCancelled else { return }']:self.assertIn(value,core)
     def testBlacklistOriginalIdentitiesRemainFullAndSelectable(self):
         source=self.source('NativeBlacklistView')
         self.assertEqual(source.count('.font(.footnote.monospaced()).foregroundStyle(.secondary).textSelection(.enabled)'),3)
@@ -49,5 +49,5 @@ class I03NotificationBlacklistCloseoutTests(unittest.TestCase):
             for language in ['en','zh-Hans']:
                 unit=entry['localizations'][language]['stringUnit'];self.assertEqual(unit['state'],'translated');self.assertTrue(unit['value'].strip())
     def testExistingSettingsOwnersAndLocaleLifecycleRemain(self):
-        self.contains('SettingsView',['ProfileSettingsProfileEntry(session: session, owner: profileOwner)','ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)','.onAppear { profileOwner.appear() }','.onDisappear { profileOwner.retire() }','.modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))','.environment(\\.locale, RegionalLaunchConfiguration.language(storedLanguage).locale)'])
+        self.contains('SettingsView',['profileOwner.route(.current(session))','ProfileSettingsProfileNavigation(session: session, owner: profileOwner)','ProfileSettingsFavoritesEntry(session: session, owner: favoritesOwner)','profileOwner.appear()','.onDisappear { profileOwner.retire() }','.modifier(ProfileSettingsFavoritesLifecycle(session: session, owner: favoritesOwner))','.modifier(AppLanguageEnvironment(stored: storedLanguage))'])
 if __name__=='__main__':unittest.main()

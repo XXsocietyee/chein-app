@@ -16,7 +16,7 @@ class ActivityParityW206P2Checks(unittest.TestCase):
         view = read("App/OfficialEventDetailView.swift")
         self.assertIn("OfficialDetailTopicLinks.linkedTopic(event.missions[mission.index], signed: event.signed == true)", view)
         self.assertIn("OfficialDetailTopicLinks.ctaTopic(event, cta: presentation.cta)", view)
-        self.assertIn("guard let topicLinks, reader.isAuthenticated, !ids.isEmpty else { return }", view)
+        self.assertIn("guard let topicLinks, reader.isAuthenticated, !key.ids.isEmpty,\n              key.topicScope == topicLinks.reader.scope else { return }", view)
         self.assertIn("topicLinks.reader.topicDetail(id: id)", view)
         # Signup stays with the reviewed participation actions; topics never dispatch writes.
         self.assertIn("OfficialParticipationActions(coordinator: actions, event: event, onReturn:", view)

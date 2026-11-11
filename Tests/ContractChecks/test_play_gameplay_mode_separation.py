@@ -45,8 +45,12 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
                        'return .merchantPhoto','if snapshot.isDone(node) { return .redeemed }']:
             self.assertIn(marker,source)
         free=self.read('App/FreeExplorationViews.swift')
-        for marker in ['playFree.game.unavailable','playFree.redemption.unavailable','PlayDeviceTaskSection(model: device, task: task']:
+        # The in-store game / redemption placeholder notices were retired on purpose (no native flow yet): the
+        # store page must not render them, and evidence still comes only from the evidence task of this node.
+        for marker in ['FreeExplorationPresentation.evidenceTask(for: node, in: snapshot)','PlayDeviceTaskSection(model: device, task: task']:
             self.assertIn(marker,free)
+        for retired in ['playFree.game.unavailable','playFree.redemption.unavailable']:
+            self.assertNotIn(retired,free)
         for denied in ['PlayPreferenceView','PlayAdvancedView','PlayLeadSection','PlayPlayerSessionView','requestHint(']:self.assertNotIn(denied,free)
     def test_free_ending_has_its_own_read_and_no_score_ranking_or_write(self):
         source=self.read('Core/PlayExperienceCoordinator.swift').split('public func loadFreeExplorationEnding() async {',1)[1].split('public func loadEndingAndLeaderboard',1)[0]
@@ -71,12 +75,13 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
 
     def test_ax_ids_are_on_leaf_or_concrete_list_not_virtual_parent_groups(self):
         source=self.read('App/FreeExplorationViews.swift')
-        self.assertIn('Text("playFree.title").font(.caption.bold()).accessibilityIdentifier("playFree.pass")',source)
+        self.assertIn('Text("playFree.title").font(CYTypography.caption).foregroundStyle(CYColor.textTertiary).accessibilityIdentifier("playFree.pass")',source)
         self.assertNotIn('}.accessibilityIdentifier("playFree.pass")',source)
         root=self.read('App/PlayExperienceView.swift')
-        wrapper=root.split('private var orientationContent',1)[0]
+        # The map-first screen wraps the list in a scaffold; the id stays on the concrete task list, never on the wrapper.
+        wrapper=root.split('private var orientationContent',1)[1].split('@ViewBuilder private var runHeader',1)[0]
         self.assertNotIn('accessibilityIdentifier("playx.overview")',wrapper)
-        orientation=root.split('private var orientationContent',1)[1].split('@ViewBuilder private func freeStoreDestination',1)[0]
+        orientation=root.split('private var orientationList',1)[1].split('private var orientationContent',1)[0]
         self.assertIn('.accessibilityIdentifier("playx.overview")',orientation)
         self.assertIn('.accessibilityIdentifier("playFree.overview")',source)
 
@@ -184,7 +189,7 @@ class PlayGameplayModeSeparationContracts(unittest.TestCase):
         self.assertNotIn('pendingThoughtKeys = []',retired)
         self.assertNotIn('recovery.clear',retired)
         advanced=self.read('Core/PlayAdvancedRuntime.swift')
-        self.assertIn('blocksReadRebinding: Bool { startOutcomeUnknown || pending != nil',advanced)
+        self.assertIn('blocksReadRebinding: Bool { modInstallationRecoveryRequired || recoverySnapshot != nil || startOutcomeUnknown || pending != nil',advanced)
         start=advanced.split('public func start() async {',1)[1].split('public var isCurrent',1)[0]
         self.assertLess(start.index('startOutcomeUnknown = true'),start.index('service.startAdvanced'))
         tests=self.read('Tests/CoreTests/PlayReadLifetimeTests.swift')

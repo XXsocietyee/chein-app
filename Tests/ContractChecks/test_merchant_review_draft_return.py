@@ -67,7 +67,7 @@ class ReviewDraftReturnContracts(unittest.TestCase):
         self.assertIn('if draftReturn.beginConfirmation(id: review.id) { Task { await model.confirm(review) } }',self.views)
         self.assertIn('} else { Task { await model.confirm(review) } }',self.views)
     def test_background_departure_and_owner_change_retire(self):
-        for token in ['.onChange(of: scenePhase)', 'draftReturn.retire()', '.onChange(of: reader.scope)', '.onChange(of: reader.authorizationGeneration)', '.onDisappear { draftReturn.retire()']:
+        for token in ['.onChange(of: scenePhase)', 'draftReturn.retire()', '.onChange(of: reader.scope)', '.onChange(of: reader.authorizationGeneration)', 'noteDrafts.retire(); draftReturn.retire(); editor = nil; pendingMutation = nil']:
             self.assertIn(token,self.views)
         self.assertIn('retiredReviewID = owner?.coordinator.confirmation?.id',self.flow)
         self.assertIn('editor?.id == retired { editor = nil }',self.views)
@@ -75,7 +75,8 @@ class ReviewDraftReturnContracts(unittest.TestCase):
         self.assertIn('owner.coordinator.confirmation?.id == id',self.flow)
         self.assertIn('discard(); owner.cancel()',self.flow)
         self.assertIn('let presentedReview = state.confirmation',self.views)
-        self.assertIn('cancelReview(id: presentedReview.id)',self.views)
+        self.assertIn('if value == nil, let presentedReview { cancelBusinessReview(presentedReview) }',self.views)
+        self.assertIn('else { draftReturn.cancelReview(id: review.id) }',self.views)
         self.assertIn('Button("action.cancel", action: cancel).disabled(busy)',self.editor)
     def test_busy_receipt_unknown_and_failure_are_ineligible(self):
         for token in ['!c.isBusy', '!c.isLocked', 'c.receipt == nil', 'c.failureKey == nil', 'active, ticket.generation == generation']:
@@ -93,7 +94,7 @@ class ReviewDraftReturnContracts(unittest.TestCase):
         for item in strings.values():self.assertEqual(set(item['localizations']),{'en','zh-Hans'})
     def test_authored_actual_model_regressions(self):
         tests=read('Tests/AppUnitTests/MerchantReviewDraftReturnTests.swift').decode()
-        self.assertEqual(len(re.findall(r'func test',tests)),24)
+        self.assertEqual(len(re.findall(r'func test',tests)),39)
         for name in ['testUnknownOutcomeDoesNotResurrectDraftOrRemoveJournal','testOldDismissalAndOldQueuedTicketCannotAffectNewerReturn','testExactPayloadBytesRejectCanonicallyEquivalentReplacementWithoutViewRevision','testQueuedConfirmationClosesEditWindowBeforeTaskStarts','testAnotherEditorBlocksAndConsumesQueuedReturn','testBackgroundBeforeEditInvalidatesOldAndFreshCapturesOfSameReview']:
             self.assertIn(name,tests)
     def test_no_timer_automatic_submit_or_focus_side_effect(self):

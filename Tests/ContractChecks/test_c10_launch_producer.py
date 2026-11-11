@@ -39,8 +39,14 @@ class C10LaunchProducerContract(unittest.TestCase):
         self.assertNotIn("https://", view)
         self.assertTrue(PARENT.is_file())
         self.assertTrue(RECOVER.is_file())
-        self.assertFalse(SHELL_VIEW.exists())
-        self.assertFalse(SHELL_LOAD.exists())
+        # The platform shell/load files were later restored (e5 restyle); the producer still never presents or loads
+        # them itself: only the existing parent flow presents the shell.
+        self.assertTrue(SHELL_VIEW.exists())
+        self.assertTrue(SHELL_LOAD.exists())
+        for owner in (PRODUCER.read_text(), view):
+            self.assertNotIn("H5PlatformShellView", owner)
+            self.assertNotIn("H5ShellLoad", owner)
+        self.assertIn("H5PlatformShellView(shellURL: shellURL,", (ROOT / "App/H5ShellParentFlowView.swift").read_text())
 
 
 if __name__ == "__main__":

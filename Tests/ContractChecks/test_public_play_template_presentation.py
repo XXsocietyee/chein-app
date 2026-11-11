@@ -33,7 +33,8 @@ class PublicPlayTemplatePresentationContracts(unittest.TestCase):
                      'useCount = item.useNum', 'storyText != nil || storyImage != nil']:
             self.assertIn(text, model)
         view = self.read('App/DiscoveryPlayTemplatePresentationView.swift')
-        for text in ['if let publisher = presentation.publisher', 'if let count = presentation.useCount',
+        self.assertIn('public var useCountText: String { useCount.map(String.init) ?? "—" }', model)  # unknown is a dash, never 0
+        for text in ['if let publisher = presentation.publisher', 'if presentation.useCount != nil',
                      'if presentation.hasStory', 'if presentation.storyImage != nil',
                      'Text(verbatim: publisher)', 'Text(verbatim: text)', 'NativeMediaGalleryEntry(',
                      'scope: scope', 'reader: imageReader']:
@@ -45,7 +46,7 @@ class PublicPlayTemplatePresentationContracts(unittest.TestCase):
         view = self.read('App/DiscoveryTemplateDetailView.swift').split('/// Uses only the server', 1)[0]
         self.assertIn('imageReader ?? RetainedPublicImageReader()', view)
         self.assertIn('if let authoringFactory', view)
-        self.assertIn('TemplateAuthoringView(coordinator: authoringFactory(item)', view)
+        self.assertIn('DiscoveryTemplateAdoptionDestination(factory: { authoringFactory(selected.source) },', view)
         self.assertNotIn('DiscoveryArtwork', view)
         self.assertNotIn('AsyncImage', view)
         self.assertNotIn('enabled: true', view)

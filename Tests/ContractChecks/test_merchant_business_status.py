@@ -38,7 +38,9 @@ class MerchantBusinessStatusChecks(unittest.TestCase):
         self.assertIn('returnedStatus.merchantID == original.merchantID', block)
         self.assertNotIn('saveReviewed', block)
     def test_ordinary_navigation_and_frozen_localized_review(self):
-        self.assertIn('[.profile, .businessStatus, .decor', self.read('App/MerchantOperationsViews.swift'))
+        # Source decor groups: business status sits with the store profile (门店信息), decor with the brand group.
+        self.assertIn('("merchant.decor.section.store", [.profile, .businessStatus])', self.read('App/MerchantOperationsViews.swift'))
+        self.assertIn('("merchant.decor.section.brand", [.story, .decor])', self.read('App/MerchantOperationsViews.swift'))
         editor = self.read('App/MerchantOperationsEditor.swift')
         self.assertIn('merchant.operations.status.picker',editor)
         self.assertIn('line.key == "merchant.operations.businessStatus"',editor)

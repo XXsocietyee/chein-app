@@ -99,7 +99,8 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertNotIn('MerchantNPCKnowledgeAuthorFlow(', host)
         self.assertNotIn('publishApproved', host)
         self.assertNotIn('theme/draft', host)
-        for source in (session, root, project):
+        # The files are now registered in the Xcode project (so they compile); the hold is that session/composition do not wire them.
+        for source in (session, root):
             self.assertNotIn('MerchantNPCKnowledgeAuthorFlow', source)
             self.assertNotIn('submitAuthoredFields', source)
         for token in ['Do not apply', 'App/AppSession.swift', 'App/AppCompositionRoot.swift',
@@ -158,7 +159,8 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertIn('NOT_FOUND', tests)
         self.assertIn('publisher.published, 0', tests)
         self.assertNotIn('func submitAuthoredFields()', page.replace('func submitAuthoredFields()', '', 1))
-        for source in (session, root, project):
+        # The files are now registered in the Xcode project (so they compile); the hold is that session/composition do not wire them.
+        for source in (session, root):
             self.assertNotIn('MerchantNPCThemeDraftRequestRead', source)
             self.assertNotIn('holdThemeDraftRequest', source)
         for token in ['Do not apply', 'App/AppSession.swift', 'App/AppCompositionRoot.swift',
@@ -210,7 +212,8 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertNotIn('holdThemeDraftRequest', host)
         self.assertNotIn('readAndRecover', host)
         self.assertNotIn('_ = caller', host)
-        for source in (session, root, project):
+        # The files are now registered in the Xcode project (so they compile); the hold is that session/composition do not wire them.
+        for source in (session, root):
             self.assertNotIn('MerchantNPCThemeDraftRequestRead', source)
             self.assertNotIn('readHeldThemeDraft', source)
             self.assertNotIn('holdThemeDraftRequest', source)
@@ -391,7 +394,8 @@ class MerchantNPCKnowledgeAuthorFlowContracts(unittest.TestCase):
         self.assertNotIn('MerchantStoreCharacterView', host)
         self.assertNotIn('originalDraftWriter', page)
         self.assertNotIn('originalDraftWriter', host)
-        for source in (session, root, project, self.flow):
+        # Project registration only compiles the file; session/composition still must not wire the writer.
+        for source in (session, root, self.flow):
             self.assertNotIn('MerchantNPCOriginalDraftWriter', source)
             self.assertNotIn('submitHeldDraftThenRead', source)
             self.assertNotIn('originalDraftWriter', source)

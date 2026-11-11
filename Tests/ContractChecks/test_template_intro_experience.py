@@ -10,9 +10,10 @@ class IntroSourceContracts(unittest.TestCase):
   self.assertIn('maximum = 3',C);self.assertIn('source.prefix(Self.maximum)',C);self.assertNotIn('.filter',C)
  def test_normal_intro_has_one_entry_and_keeps_name_and_editor(self):
   self.assertEqual(H.count('TemplateAuthoringIntroExperience('),1);self.assertIn('onContinue: { step = .name }',H)
-  for x in ['Text("templateAuthor.introBody")','private var name: some View','step = .edit','Button("templateAuthor.saveLocal")']:self.assertIn(x,H)
+  for x in ['private var name: some View','step = .edit','CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }']:self.assertIn(x,H)
+  self.assertIn('Text("publishParity.intro.lead")',A);self.assertIn('Text("publishParity.intro.tail")',A)
  def test_uses_only_existing_home_read_and_artwork(self):
-  self.assertEqual(A.count('reader.discoveryTemplateHome()'),1);self.assertIn('DiscoveryArtwork(source:item.imgUrl,height:120)',A)
+  self.assertEqual(A.count('reader.discoveryTemplateHome()'),1);self.assertIn('DiscoveryArtwork(source:item.imgUrl,height:150)',A)
   self.assertNotRegex(A+C,r'URLSession|https?://|requestAuthorization|grant|Authorization|transport\.send')
  def test_never_mutates_draft_or_persistence(self):
   self.assertNotRegex(A,r'model\.draft\s*=|model\.(changed|save|prepare|confirm|discard|restore)\(|store\.(save|discard)|beginNewDraft')
@@ -27,15 +28,18 @@ class IntroSourceContracts(unittest.TestCase):
  def test_publication_ABA_and_scene_retire_old_actions(self):
   for x in ['model.objectWillChange.sink','controller.retire(); readerRevision &+= 1','.onDisappear { controller.retire() }','phase != .active { controller.retire() }','permit.generation == generation']:self.assertIn(x,A)
  def test_begin_and_skip_share_real_exit_without_data_gate(self):
-  self.assertEqual(A.count('Button(action:advance)'),2);self.assertEqual(A.count('.disabled(!controller.canContinue || scenePhase != .active)'),2)
+  # Mini-program parity: one primary "begin" action and no second exit (the skip button was retired).
+  self.assertEqual(A.count('Button(action:advance)'),1);self.assertEqual(A.count('.disabled(!controller.canContinue || scenePhase != .active)'),1)
   line=next(x for x in A.splitlines() if 'var canContinue:' in x);self.assertNotIn('configured',line);self.assertNotIn('phase',line);self.assertNotIn('examples',line)
  def test_retry_and_empty_unavailable_loading_states_are_visible(self):
   for x in ['case .failed:','case .empty,.ready:','case .unavailable:','case .idle,.loading:','controller.load(permit)']:self.assertIn(x,A)
  def test_no_id_collision_when_source_duplicates_are_displayed(self):
-  self.assertIn('ForEach(Array(rows.enumerated()),id:\\.offset)',A);self.assertIn('Text(verbatim:item.title)',A)
+  self.assertIn('ForEach(Array(examples.rows.enumerated()),id:\\.offset)',A);self.assertIn('Text(verbatim:item.title)',A)
  def test_catalog_keys_use_explicit_named_table(self):
-  keys=set(re.findall(r'"(creatorIntro\.(?:examples|unnamed|loading|failed|retry|empty|unavailable|scope|skip))"',A));self.assertEqual(keys,set(L));self.assertEqual(len(L),9)
-  self.assertEqual(A.count('tableName:"CreatorIntroExamples"'),9);self.assertTrue(all(set(v['localizations'])=={'en','zh-Hans'} for v in L.values()))
+  # The restyled intro renders only four of the nine catalogued keys (examples header, loading/unavailable text,
+  # scope note and skip were retired); every rendered key must stay catalogued and use the named table.
+  keys=set(re.findall(r'"(creatorIntro\.(?:examples|unnamed|loading|failed|retry|empty|unavailable|scope|skip))"',A));self.assertEqual(keys,{'creatorIntro.unnamed','creatorIntro.failed','creatorIntro.retry','creatorIntro.empty'});self.assertTrue(keys<=set(L));self.assertEqual(len(L),9)
+  self.assertEqual(A.count('tableName:"CreatorIntroExamples"'),4);self.assertTrue(all(set(v['localizations'])=={'en','zh-Hans'} for v in L.values()))
  def test_tests_and_registration_are_complete_and_native_unrun(self):
   self.assertEqual(CT.count('func test'),9);self.assertEqual(AT.count('func test'),16);self.assertEqual(len(G['production_sources']),2);self.assertTrue(G['actual_PBX_registration']);self.assertTrue(G['CoreTests_directory_discovery']);self.assertIn('NOT_RUN',D)
  def test_projection_limits_and_old_stack_are_explicit(self):

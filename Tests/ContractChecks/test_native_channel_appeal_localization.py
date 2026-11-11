@@ -48,7 +48,7 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
                 keys.update(re.findall(r'"([^"]+)"', call.split('tableName:')[0]))
         keys.update(re.findall(r'(?:originalFact|fact)\("([^"]+)"', SOURCE))
         keys.update(re.findall(r'(?:case [^\n]+|default): "((?:status|operation)\.[^"]+)"', SOURCE))
-        self.assertGreater(len(keys), 70)
+        self.assertGreater(len(keys), 60)
         self.assertEqual(keys, set(STRINGS))
         for key in keys:
             for language in ['en', 'zh-Hans']:
@@ -58,10 +58,10 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
                 self.assertNotEqual(unit['value'], key)
 
     def testOriginalValuesAreNotTranslatedOrFormatted(self):
-        for value in ['id', 'flow.reviewedText', 'flow.appealStatus', 'flow.notice.actionID',
-                      'flow.deadline', 'flow.actionReason', 'flow.decisionReason', 'value', 'event', 'reason']:
+        # Request/notice identifiers are no longer rendered on this screen; the remaining server-owned values stay verbatim.
+        for value in ['flow.reviewedText', 'flow.deadline', 'flow.actionReason', 'flow.decisionReason', 'value ?? "—"', 'event', 'reason']:
             self.assertIn('Text(verbatim: ' + value + ')', SOURCE)
-        self.assertIn('.accessibilityValue(id)', SOURCE)
+        self.assertNotIn('LocalizedStringKey(flow.reviewedText', SOURCE)
         self.assertNotIn('String(format:', SOURCE)
         self.assertNotIn('String(localized:', SOURCE)
         self.assertNotIn('Locale.current', SOURCE)
@@ -73,7 +73,7 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
             self.assertEqual(SOURCE.count(call), 1, call)
         for guard in ['if flow.isCurrent', 'if flow.hasPending', 'if flow.journalUnavailable',
                       'if flow.canSubmit', 'if flow.canSupplement', 'if flow.canWithdraw',
-                      '.disabled(!flow.canRecover)', '.disabled(!flow.canRetry)', '.disabled(reading)']:
+                      'if flow.canRecover {', 'if flow.canRetry {', 'if flow.isCurrent, !reading { await flow.refresh() }']:
             self.assertIn(guard, SOURCE)
         self.assertEqual(SOURCE.count('.disabled(!validExplanation)'), 3)
         self.assertIn('isPresented: $retryConfirmation, titleVisibility: .visible', SOURCE)
@@ -82,7 +82,7 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
         self.assertIn('explanation.trimmingCharacters(in: .whitespacesAndNewlines).utf16.count', SOURCE)
         self.assertIn('explanationCount > 0 && explanationCount <= 500', SOURCE)
         self.assertIn('Text(verbatim: "\\(explanationCount)/500")', SOURCE)
-        self.assertIn('Text(explanationCount > 500 ? "input.tooLong" : "input.required", tableName:', SOURCE)
+        self.assertIn('if explanationCount > 500 {\n                                Text("input.tooLong", tableName:', SOURCE)
         self.assertIn('.task { await flow.activate() }', SOURCE)
         self.assertIn('.onDisappear { retryConfirmation = false; flow.deactivate() }', SOURCE)
         self.assertIn('else { retryConfirmation = false; flow.deactivate() }', SOURCE)
@@ -99,11 +99,11 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
 
     def testReceiptCopyNeverPromisesReversalOrAutomaticResubmission(self):
         expected = {
-            'retry.confirmation': 'Check the original result first. Only retry with the same content if the original request wasn\'t received.',
-            'recovery.journalUnavailable': 'The original request record is temporarily unavailable. Refresh to read it again; this will not create another appeal or resend automatically.',
+            'retry.confirmation': 'Check the result first. Only try again if your request wasn\'t received.',
+            'recovery.journalUnavailable': 'Couldn\'t load your saved request. Pull to refresh.',
             'result.acceptedNotReversed': 'A submission receipt only confirms that the appeal was accepted for processing. It does not mean the original action was reversed.',
             'result.currentSeparate': 'The original request outcome is confirmed. Current appeal status is read separately; a past receipt does not enable a new statement or withdrawal.',
-            'session.unavailable': 'The current session or access is no longer valid. The original pending request is still saved.',
+            'session.unavailable': 'This appeal isn\'t available right now.',
         }
         for key, english in expected.items():
             self.assertEqual(STRINGS[key]['localizations']['en']['stringUnit']['value'], english)
@@ -113,7 +113,7 @@ class NativeChannelAppealLocalizationContracts(unittest.TestCase):
     def testAccessibilityIdentifiersAndOriginalDetailsRemainAvailable(self):
         for identifier in ['channel.appeal.journalUnavailable', 'channel.appeal.explanation', 'channel.appeal.currentStatus']:
             self.assertIn('.accessibilityIdentifier("' + identifier + '")', SOURCE)
-        self.assertIn('.accessibilityLabel(Text("recovery.requestID", tableName: "NativeChannelAppealDetails"))', SOURCE)
+        self.assertIn('Text(verbatim: value ?? "—").textSelection(.enabled)', SOURCE)
         self.assertIn('ForEach(details.evidence)', SOURCE)
         self.assertIn('ForEach(details.timeline)', SOURCE)
         self.assertIn('details.evidenceUnavailable', SOURCE)

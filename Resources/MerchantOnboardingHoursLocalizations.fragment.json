@@ -2,16 +2,16 @@
   "merchant.onboarding.hoursUnknown": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "现有营业时间无法识别，原文已保留。请主动选择营业日和时间，再应用替换；取消不会改变原文。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The existing hours could not be read and are preserved. Choose days and times before applying a replacement. Cancel keeps the original text."
+          "value": "Your existing hours couldn't be read. Choose days and times to replace them."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "现有营业时间无法识别，请重新选择营业日和时间。"
         }
       }
     }
@@ -19,16 +19,16 @@
   "merchant.onboarding.hoursNextDay": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "结束时间为次日，表示跨夜营业。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
-          "value": "The closing time is on the following day."
+          "value": "Closes the next day."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "次日结束营业。"
         }
       }
     }
@@ -36,16 +36,16 @@
   "merchant.onboarding.hoursLocalDraft": {
     "extractionState": "manual",
     "localizations": {
-      "zh-Hans": {
-        "stringUnit": {
-          "state": "translated",
-          "value": "只更新当前入驻草稿，申请仍需单独审阅并提交。"
-        }
-      },
       "en": {
         "stringUnit": {
           "state": "translated",
           "value": "Updates this application draft only. The application still needs separate review and submission."
+        }
+      },
+      "zh-Hans": {
+        "stringUnit": {
+          "state": "translated",
+          "value": "只更新当前入驻草稿，申请仍需单独审阅并提交。"
         }
       }
     }

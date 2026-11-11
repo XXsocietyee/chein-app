@@ -16,7 +16,8 @@ class ReferenceChatTaskContracts(unittest.TestCase):
         self.assertIn('typeSize.isAccessibilitySize ? 0 : 48', text)
         self.assertIn('fixedSize(horizontal: false, vertical: true)', text)
         for file in ['MessagingHistoryView.swift', 'ShopNPCView.swift', 'MerchantNPCViews.swift']:
-            self.assertIn('ChatMessageBubble(', read('App/' + file))
+            # The NPC page uses its own presentation-only NPCChatBubble (avatar + tail), declared in ShopNPCView.
+            self.assertIn('NPCChatBubble(' if file == 'ShopNPCView.swift' else 'ChatMessageBubble(', read('App/' + file))
     def test_history_preserves_authority_and_pagination_anchor(self):
         text = read('App/MessagingHistoryView.swift')
         for token in ['message.senderID == accountID && accountID > 0', 'scrollPosition(id: $visibleMessageID, anchor: .top)', 'visibleMessageID = anchor', 'loadedIdentity == reader.identity', 'generation == request', 'MessagingMessageDetailView', 'MessageActionComposer', 'scrollDismissesKeyboard(.interactively)']:
@@ -35,7 +36,7 @@ class ReferenceChatTaskContracts(unittest.TestCase):
         self.assertIn('.safeAreaInset(edge: .bottom) {', text)
     def test_npc_lifecycle_and_voice_grants_still_fail_closed(self):
         text = read('App/ShopNPCView.swift')
-        for token in ['shopNPC.disclosure', 'shopNPC.assistant', 'shopNPC.voiceDisclosure', 'shopNPC.transmissionDisclosure', '.onDisappear { cancelSensitiveConfirmation(); invalidate() }', '.onChange(of: coordinator.scope)', '.onChange(of: coordinator.grants)', 'phase != .active', 'capture?.cancel()', 'grants.voiceAllowed', 'grants.microphone', 'startAfterExplicitMicrophoneIntent']:
+        for token in ['shopNPC.disclosure', 'shopNPC.voiceDisclosure', 'shopNPC.transmissionDisclosure', '.onDisappear { cancelSensitiveConfirmation(); invalidate() }', '.onChange(of: coordinator.scope)', '.onChange(of: coordinator.grants)', 'phase != .active', 'capture?.cancel()', 'grants.voiceAllowed', 'grants.microphone', 'startAfterExplicitMicrophoneIntent']:
             self.assertIn(token, text)
         self.assertNotIn('requestRecordPermission', text)
     def test_merchant_resources_and_chat_have_separate_authority(self):

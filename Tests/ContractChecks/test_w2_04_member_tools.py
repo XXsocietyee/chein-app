@@ -21,7 +21,8 @@ class ComplaintProgressChecks(unittest.TestCase):
         self.assertEqual(self.core.count('reader.read('), 1)
         self.assertIn('reader.read(.complaintProgress, isCurrent: { current() })', self.core)
         for t in ['CoopFlowMutation', 'perform(', 'submit(', 'URLSession', 'HTTPTransport', 'UserDefaults', 'CoopFlowService(']:
-            self.assertNotIn(t, self.core + self.section)
+            # The complaint write lives in the appended section of the same Core file; the progress read stays read-only.
+            self.assertNotIn(t, self.core.split('// MARK: - Complaint report write', 1)[0] + self.section)
     def test_missing_id_rejects_whole_array(self):
         self.assertIn('guard case .object = row, let id = row["id"].integer, id > 0 else { throw APIError.malformedResponse }', self.core)
     def test_access_codes_follow_source(self):
@@ -39,7 +40,7 @@ class ComplaintProgressChecks(unittest.TestCase):
     def test_source_copy_and_handle_note_line(self):
         self.assertIn('Text("profile.complaintProgress.handleNote \\(note)")', self.section)
         self.assertIn('Text("profile.complaint.sourceEmpty").accessibilityIdentifier("profile.complaint.empty")', self.screen)
-        self.assertIn('.navigationTitle("profile.complaint.pageTitle")', self.screen)
+        self.assertIn('Text("profile.complaint.pageTitle").font(.system(.largeTitle, design: .rounded, weight: .bold))', self.screen)
     def test_fixture_progress_uses_its_own_counter(self):
         s = read('App/ProfileComplaintPreparationFixture.swift')
         self.assertIn('if resource == .complaintProgress { return try progress() }', s)

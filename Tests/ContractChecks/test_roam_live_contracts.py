@@ -51,15 +51,19 @@ class LiveRoamContracts(unittest.TestCase):
         self.assertIn('SessionRoamNearbyTeamsView()', source('App/QuestifyApp.swift'))
     def test_share_is_local_preview_then_explicit_system_gesture(self):
         view = source('App/RoamHistoryShareView.swift')
-        self.assertIn('ImageRenderer(content:', view)
-        self.assertIn('ShareLink(item:', view)
+        # The preview/render now live in the shared share-composer kit; the system share sheet opens only from an explicit export
+        # request that is rechecked against the prepared selection, channel policy and current reader.
+        self.assertIn('CYShareComposer(content: cardContent', view)
+        self.assertIn('ImageRenderer(content:', source('App/DesignSystem/CYShareCard.swift'))
+        self.assertIn('RoamHistorySystemShareSheet(request: request', view)
+        self.assertIn('channelPolicy.permits(.systemShare), machine.image === request.image', view)
         self.assertIn('private var includeRoute = false', view)
         for forbidden in ['URLSession', 'PHPhotoLibrary', 'requestAuthorization', 'api/', 'http://', 'https://']:
             self.assertNotIn(forbidden, view)
     def test_bilingual_copy_for_all_rendered_live_and_share_keys(self):
         catalog = json.loads(source('Resources/Localizable.xcstrings'))['strings']
         for path in ['App/RoamLiveSessionView.swift','App/RoamHistoryShareView.swift']:
-            text = re.sub(r'\.accessibilityIdentifier\("[^"]+"\)', '', source(path))
+            text = re.sub(r'\.accessibilityIdentifier\("[^"]+"\)|accessibilityPrefix: "[^"]+"|(?:identifier|previewLabel): "[^"]+"', '', source(path))
             for key in re.findall(r'"(roam\.(?:live|share)\.[A-Za-z]+)"', text):
                 self.assertIn(key, catalog)
                 self.assertEqual(set(catalog[key]['localizations']), {'en','zh-Hans'})

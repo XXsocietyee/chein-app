@@ -20,9 +20,11 @@ class CreatorContentContracts(unittest.TestCase):
     def test_ui_shared_artwork_and_no_fake_writes(self):
         self.assertIn('QuestifyImageEntityCard',self.ui)
         self.assertNotIn('apply(',self.ui);self.assertNotIn('delete(',self.service)
-        self.assertIn('creatorContent.readOnly',self.ui)
+        # The standalone "read-only" notice was retired with the list restyle; rows still open only for the loaded scope.
+        self.assertIn('guard model.state.loadedScope == rowScope, reader.scope == rowScope, reader.isAuthenticated,',self.ui)
+        self.assertNotIn('URLSession',self.ui);self.assertNotIn('.send(',self.ui)
     def test_retry_identifier_not_on_ancestor(self):
-        self.assertIn('}.accessibilityIdentifier("creatorContent.issue")',self.ui)
+        self.assertIn('}.font(CYTypography.body).foregroundStyle(CYColor.textSecondary).multilineTextAlignment(.center)\n                .accessibilityIdentifier("creatorContent.issue")',self.ui)
         self.assertNotIn('issue(failure).accessibilityIdentifier', self.ui)
     def test_localization_static_keys_and_dynamic_families(self):
         strings=json.loads((ROOT/'docs/creator-content-localizations.json').read_text())

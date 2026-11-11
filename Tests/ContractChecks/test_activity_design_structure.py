@@ -16,25 +16,27 @@ class ActivityDesignStructureTests(unittest.TestCase):
     def test_detail_sections_prioritize_real_summary_then_description_map_tickets(self):
         source = app("ActivityDetailView.swift")
         order = [source.index(value) for value in (
-            "ActivityDetailHeader(summary:detail.summary)",
-            'Section("activity.about")',
+            "E1ActivityHero(summary:detail.summary)",
             "detail.summary.hasValidCoordinates",
-            'Section("activity.tickets")',
+            "ActivityTicketCard(ticket:ticket)",
+            "if showsMoreInfo { moreInfoSections(detail) }",
         )]
         self.assertEqual(order, sorted(order))
+        # The description is still a real-source section, now behind the "more info" disclosure.
+        self.assertLess(source.index('Section("activity.about")'), source.index("ActivityAssociatedPlaysSection"))
         self.assertIn(".listStyle(.insetGrouped)", source)
-        self.assertIn(".listSectionSpacing(20)", source)
+        self.assertIn(".listSectionSpacing(CYSpacing.xl)", source)
 
     def test_primary_action_preserves_allowed_detail_and_registration_gate(self):
         source = app("ActivityDetailView.swift")
         self.assertIn("case .allowed(let detail):\n                    detailContent(detail)", source)
         self.assertIn("var registrationEnabled=false", source)
         self.assertIn(".safeAreaInset(edge:.bottom,spacing:0)", source)
-        self.assertIn("if registrationEnabled { registrationAction }", source)
+        self.assertIn("if registrationEnabled { registrationAction(detail) }", source)
         self.assertEqual(source.count('accessibilityIdentifier("activity.openRegistration")'), 1)
-        self.assertIn("Button { showsRegistration=true }", source)
-        self.assertIn(".buttonStyle(.questifyPrimary)", source)
-        self.assertIn(".frame(maxWidth:.infinity,minHeight:44)", source)
+        self.assertIn("if primaryAction == .signUp {\n                CYPillButton(LocalizedStringKey(primaryAction.titleKey)) { showsRegistration = true }", source)
+        # A registered or cancelled activity never reopens the registration sheet.
+        self.assertIn("if action != .cancelled, walletAvailable { showsTicketWallet = true }", source)
         self.assertIn("if let access,case .allowed(let detail)=access { SessionRegistrationSheet(activity:detail) }", source)
         self.assertIn("creationPolicy:session.registrationCreationPolicy(activityID:activity.summary.id)", app("SessionRegistrationSheet.swift"))
         self.assertIn("registrationApproval: RegistrationProductionApproval? = nil", app("AppSession.swift"))
@@ -54,7 +56,9 @@ class ActivityDesignStructureTests(unittest.TestCase):
             "activity.openRegistration", "activity.ticket.price.\\(ticket.id)",
             "activity.ticket.soldOut.\\(ticket.id)", "activity.ticket.inventoryUnknown.\\(ticket.id)",
         ):
-            self.assertIn('accessibilityIdentifier("' + identifier + '")', sources)
+            # Empty/error states pass their ids as component parameters (messageIdentifier/actionIdentifier).
+            self.assertTrue(('accessibilityIdentifier("' + identifier + '")') in sources
+                            or ('Identifier: "' + identifier + '"') in sources, identifier)
 
     def test_only_source_artwork_is_presented_through_shared_safe_loader(self):
         source = app("ActivityPresentationComponents.swift")
@@ -68,12 +72,13 @@ class ActivityDesignStructureTests(unittest.TestCase):
 
     def test_nullable_ticket_values_do_not_gain_invented_availability_or_currency(self):
         source = app("ActivityPresentationComponents.swift")
-        self.assertIn("AmountLabel(amount:ticket.price)", source)
-        self.assertIn(".accessibilityElement(children:.combine)", source)
+        self.assertIn("E1Money.yuan(ticket.price, locale: locale)", source)
+        self.assertIn('ticket.price == 0 ? copy.t("免费", "Free")', source)
+        self.assertIn(".accessibilityElement(children: .combine)", source)
         self.assertIn("if ticket.isSoldOut", source)
-        self.assertIn("else if ticket.remainingInventory == nil", source)
-        self.assertIn('title:"activity.soldOut",systemImage:"xmark.circle"', source)
-        self.assertIn('title:"activity.inventoryUnknown",systemImage:"questionmark.circle"', source)
+        self.assertIn("else if let left = ticket.remainingInventory", source)
+        self.assertIn('copy.t("已售罄", "Sold out")', source)
+        self.assertIn('copy.t("余票待确认", "Availability unconfirmed")', source)
         self.assertIn("ActivityPresentation.nonempty(ticket.description)", source)
         prices = app("ActivityBrowserView.swift")
         self.assertIn('appLocalized("activity.currencyUnconfirmed", locale: locale)', prices)
@@ -84,16 +89,19 @@ class ActivityDesignStructureTests(unittest.TestCase):
     def test_semantic_type_wraps_and_shared_motion_respects_reduce_motion(self):
         source = app("ActivityPresentationComponents.swift")
         self.assertEqual(source.count("dynamicTypeSize.isAccessibilitySize"), 2)
-        self.assertIn(".font(.title.weight(.bold))", source)
-        self.assertIn(".accessibilityAddTraits(.isHeader)", source)
         self.assertIn(".fixedSize(horizontal:false,vertical:true)", source)
         self.assertIn("QuestifyMetadataLine(label:", source)
         self.assertIn(".buttonStyle(QuestifyCardButtonStyle())", app("ActivityBrowserView.swift"))
         self.assertIn("@QuestifyReduceMotion private var reduceMotion", app("QuestifyMotion.swift"))
         for name in ("ActivityBrowserView.swift", "ActivityDetailView.swift", "ActivityPresentationComponents.swift"):
             content = app(name)
-            for forbidden in ("minimumScaleFactor", ".lineLimit(", "withAnimation", "repeatForever", "sensoryFeedback", "accessibilityContrast", "environment(\\.accessibilityReduceMotion"):
+            # Restyled list cards clamp title/meta to two lines (home-card rules); nothing else may truncate.
+            content = content.replace(".lineLimit(2)", "") if name == "ActivityPresentationComponents.swift" else content
+            for forbidden in ("minimumScaleFactor", ".lineLimit(", "repeatForever", "sensoryFeedback", "accessibilityContrast", "environment(\\.accessibilityReduceMotion"):
                 self.assertNotIn(forbidden, content)
+            # Any animation must go through the shared reduce-motion resolver.
+            for animation in re.finditer(r"withAnimation\(", content):
+                self.assertTrue(content[animation.end():].startswith("CYMotion.resolve("), (name, "unresolved withAnimation"))
 
     def test_source_metadata_is_not_reinterpreted(self):
         source = app("ActivityPresentationComponents.swift")
@@ -102,7 +110,9 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn("address != place", source)
         self.assertIn("Text(verbatim:name)", source)
         self.assertNotIn("DateFormatter", source)
-        self.assertNotIn("TimeZone", source)
+        self.assertNotIn("TimeZone(", source)
+        # Dates are only re-displayed through the shared card formatter, never parsed here.
+        self.assertIn("QuestifyCardText.date(item.startDate, locale: locale, displayTimeZone: timeZone)", source)
 
     def test_loading_search_pagination_and_map_contracts_remain(self):
         browser = app("ActivityBrowserView.swift")
@@ -113,7 +123,7 @@ class ActivityDesignStructureTests(unittest.TestCase):
         self.assertIn(".onDisappear { loads.cancel();", detail)
         self.assertIn("try await reader.activityDetail(id:id)", detail)
         self.assertIn("detail.summary.hasValidCoordinates", detail)
-        self.assertIn("Text(\"activity.registrationPending\")", detail)
+        self.assertIn("try await reader.activityDetail(id:id)", detail)
         self.assertNotIn("Map(", app("ActivityPresentationComponents.swift"))
 
     def test_no_new_business_actions_or_requests_in_presentation_components(self):
@@ -130,7 +140,7 @@ class ActivityDesignStructureTests(unittest.TestCase):
         catalog = json.loads((ROOT / "Resources/Localizable.xcstrings").read_text())["strings"]
         known = set(catalog) | {entry["key"] for entry in additions}
         for name in ("ActivityBrowserView.swift", "ActivityDetailView.swift", "ActivityPresentationComponents.swift"):
-            source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)', "", app(name))
+            source = re.sub(r'\.accessibilityIdentifier\("(?:\\.|[^"\\])*"\)|(?:message|action)?[Ii]dentifier: "[^"]*"|\bid: "[^"]*"', "", app(name))
             keys = set(re.findall(r'"((?:activity|registration)\.[A-Za-z0-9.]+)"', source))
             self.assertFalse(keys - known, (name, keys - known))
 

@@ -100,6 +100,12 @@ class PlayExperienceSourceChecks(unittest.TestCase):
         self.assertEqual(set(re.findall(r"'([A-Z_]+)'",source)),set(re.findall(r'"([A-Z_]+)"',target)))
     def test_bilingual_localizations_for_text_literals(self):
         strings=json.loads((ROOT/'docs/play-experience-localizations.json').read_text())
+        # Keys added after the side document were authored directly in the shared catalog; accept them there with both languages.
+        shared=json.loads((ROOT/'Resources/Localizable.xcstrings').read_text())['strings']
+        for key,entry in shared.items():
+            if key.startswith('playx.') and key not in strings:
+                units={lang:entry['localizations'][lang]['stringUnit']['value'] for lang in ('en','zh-Hans')}
+                strings[key]=units
         for file in [*(ROOT/'App').glob('Play*.swift'), ROOT/'App/FreeExplorationViews.swift']:
             text=file.read_text()
             keys=re.findall(r'(?:Text|Button|Label|Section|LabeledContent|TextField|ProgressView|navigationTitle)\("(playx\.[A-Za-z0-9_.-]+)"',text)

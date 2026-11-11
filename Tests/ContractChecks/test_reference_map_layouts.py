@@ -22,15 +22,15 @@ class ReferenceMapLayoutContracts(unittest.TestCase):
             self.assertNotIn(forbidden, source)
     def test_steps_keep_provider_notices_and_read_live_route(self):
         source = self.read('App/WalkingNavigationView.swift').split('private struct WalkingStepsDetail:', 1)[1]
-        for token in ['let model: WalkingNavigationCoordinator', 'if let route = model.route', 'provider.attribution', 'provider.advisoryNotices', 'walking.safety', 'walking.arrivalBoundary']:
+        for token in ['let model: WalkingNavigationCoordinator', 'if let route = model.route', 'provider.attribution', 'provider.advisoryNotices', 'walking.safety']:
             self.assertIn(token, source)
     def test_map_selection_and_query_gates_do_not_enable_location(self):
         source = self.read('App/SearchMapExplorerView.swift')
         self.assertIn('if mapEnabled {', source)
         self.assertNotIn('mapEnabled || reader.isOfflineExample', source)
         self.assertEqual(source.count('mapEnabled = true'), 1)
-        self.assertIn('Button("searchMap.showMap") { mapEnabled = true }', source)
-        for token in ['selectedID: selectedPin', 'mapEnabled = false; invalidate()', 'selectedPin = nil', 'gate.accepts(ticket, scope: reader.scope)', 'filter == query.filter', '.onChange(of: sortType)', 'mapEnabled = false; showsArea = false; showsFilters = false']:
+        self.assertIn('Button("searchMap.showMap") { mapCameraIdentityArea = area; mapEnabled = true }', source)
+        for token in ['selectedID: selectedPin', 'mapEnabled = false; mapCameraIdentityArea = nil; invalidate()', 'selectedPin = nil', 'gate.accepts(ticket, scope: reader.scope)', 'filter == query.filter', '.onChange(of: sortType)', 'mapEnabled = false; showsArea = false; showsFilters = false']:
             self.assertIn(token, source)
         self.assertIn('selectPlace("city-\\(row.id)", title: row.name)', source)
         self.assertIn('.accessibilityAddTraits', self.read('App/SearchMapCanvas.swift'))

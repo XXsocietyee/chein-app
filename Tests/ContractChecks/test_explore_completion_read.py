@@ -86,7 +86,7 @@ class ExploreCompletionSourceContracts(unittest.TestCase):
     def test_missing_topic_shell_does_not_render_progress_or_rewards(self):
         self.assertIn('public var hasTopic: Bool { topicID != nil }', self.contracts)
         self.assertIn('if value.hasTopic { facts(value) }', self.ui)
-        self.assertIn('ContentUnavailableView("exploreCompletion.noTopic"', self.ui)
+        self.assertIn('CYEmptyState(systemImage: "questionmark.folder", "exploreCompletion.noTopic")', self.ui)
         self.assertIn('if value.requiredChapterCount > 0', self.ui)
 
     def test_current_owned_order_and_completion_contexts_are_bound_before_mounting(self):

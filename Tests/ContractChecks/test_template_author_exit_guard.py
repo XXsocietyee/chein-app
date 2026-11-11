@@ -10,7 +10,7 @@ class ExitGuardSourceContracts(unittest.TestCase):
         self.assertEqual(HOST.count('.modifier(TemplateAuthoringExitGuard('),1)
         self.assertIn('overlaysOpen: { preview || discard || media.review != nil }',HOST)
         self.assertIn('.confirmationDialog("templateAuthor.discardQuestion"',HOST)
-        self.assertIn('Button("templateAuthor.saveLocal") { model.save() }',HOST)
+        self.assertIn('CYPillButton("templateAuthor.saveLocal", style: .tertiary) { model.save() }',HOST)
     def test_exact_checkpoint_comparison_not_unicode_equatable(self):
         for value in ['.sortedKeys','.withoutEscapingSlashes','encoder.encode(draft)','current == persisted','Self.snapshot(TemplateAuthoringDraft())']:
             self.assertIn(value,CORE)

@@ -6,9 +6,14 @@ ROOT = Path(__file__).resolve().parents[2]
 class ContextPublishingChecks(unittest.TestCase):
     def test_ai_is_contextual_and_optional(self):
         view = (ROOT/'App/PublishingModesViews.swift').read_text()
-        self.assertIn('PublishingAIDraftSheet(client: makeAIDraft?()', view)
+        owner = (ROOT/'App/QuickPublishingJourneyOwner.swift').read_text()
+        # The AI sheet is opened by the journey owner; the client is optional and only used for the same account.
+        self.assertIn('journey.openAIAction(makeClient: makeAIDraft)', view)
+        self.assertIn('PublishingAIDraftSheet(client: shown.client', owner)
+        self.assertIn('let client = makeClient?()', owner)
+        self.assertIn('client: client?.session == self.account ? client : nil', owner)
         self.assertIn('var makeAIDraft: (() -> any PublishingAIDraftServing)? = nil', view)
-        self.assertIn('draft = value; draftID = UUID()', view)
+        self.assertIn('draft = value; draftID = identity ?? UUID()', owner)
     def test_current_source_request_and_cancel(self):
         flow = (ROOT/'Core/PublishingAIDraftFlow.swift').read_text()
         self.assertIn('client.session == openedSession', flow)

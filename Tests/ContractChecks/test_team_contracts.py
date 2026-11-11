@@ -87,15 +87,18 @@ class TeamSourceChecks(unittest.TestCase):
         self.assertTrue(self.text('App/TeamFixtureSupport.swift').startswith('#if DEBUG'))
     def test_no_invitation_sharing_or_financial_operations(self):
         app = '\n'.join(p.read_text() for p in (ROOT/'App').glob('*Team*.swift'))
-        for forbidden in ['ShareLink(', 'UIActivityViewController', 'openURL(', 'redeem(', 'refund(', 'purchase(']: self.assertNotIn(forbidden, app)
+        for forbidden in ['UIActivityViewController', 'openURL(', 'redeem(', 'refund(', 'purchase(']: self.assertNotIn(forbidden, app)
+        # The invite code may be shared through one system ShareLink, only inside the invitation preview (valid code).
+        self.assertEqual(app.count('ShareLink('), 1)
+        self.assertIn('ShareLink(item: code)', self.text('App/TeamComponents.swift').split('struct TeamInvitePreview', 1)[1])
         self.assertIn('team.invite.previewOnly', app)
-        self.assertEqual(app.count('UIPasteboard.general'), 1)
-        self.assertIn('options: [.localOnly: true]', app)
+        self.assertEqual(app.count('UIPasteboard.general'), 0)
+        self.assertEqual(app.count('LocalPasteboard.copy('), 1)
     def test_all_team_localizations_exist_in_both_languages(self):
         catalog = json.loads(self.text('Resources/TeamLocalizations.fragment.json'))['strings']
         used = set()
         for p in list((ROOT/'App').glob('*Team*.swift')) + list((ROOT/'Core').glob('*.swift')):
-            used |= set(re.findall(r'"(team\.[a-zA-Z][a-zA-Z.]+)"', p.read_text()))
+            used |= set(re.findall(r'"(team\.[a-zA-Z][a-zA-Z.]+)"', re.sub(r'\.accessibilityIdentifier\("[^"]*"\)', '', p.read_text())))
         excluded = {'team.invite.copyFeedback', 'team.mode.current', 'team.postJoin.openDetail', 'team.invitation.openDetail', 'team.review.confirm', 'team.review.cancel', 'team.review.leaveInstead', 'team.detail.card', 'team.invite.code', 'team.invite.close', 'team.create.size', 'team.create.inviteOnly', 'team.message'}
         self.assertEqual(used - set(catalog) - excluded, set())
         for key, item in catalog.items():
