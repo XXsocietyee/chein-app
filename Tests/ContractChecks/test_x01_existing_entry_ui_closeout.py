@@ -9,7 +9,7 @@ class X01ExistingEntryUICloseoutTests(unittest.TestCase):
         s=self.source('App/CoopPoolApplicationEditor.swift')
         for text in ['Text(verbatim: name).font(.headline).fixedSize(horizontal: false, vertical: true)',
                      'Text("coopflow.poolMessage.intent").font(.footnote).foregroundStyle(.secondary).fixedSize(horizontal: false, vertical: true)',
-                     'Text("coopflow.poolMessage.tooLong").foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)']:
+                     'Text("coopflow.poolMessage.tooLong").foregroundStyle(CYColor.dangerText).fixedSize(horizontal: false, vertical: true)']:
             self.assertIn(text,s)
         self.assertNotIn('.lineLimit(1)',s)
         self.assertNotIn('.minimumScaleFactor(',s)
@@ -24,7 +24,7 @@ class X01ExistingEntryUICloseoutTests(unittest.TestCase):
     def testTopicMenuKeepsLoadedOnlyAndRetainsOutOfPageSelection(self):
         s=self.source('App/CooperationBrowserView.swift')
         self.assertIn('}.pickerStyle(.menu).accessibilityIdentifier("cooperation.topicFilter.choose")',s)
-        self.assertIn('Text("cooperation.topicFilter.loadedOnly").font(.footnote).foregroundStyle(.secondary)\n                    .fixedSize(horizontal: false, vertical: true)',s)
+        self.assertIn('Text("cooperation.topicFilter.loadedOnly").font(CYTypography.meta).foregroundStyle(CYColor.textTertiary)\n                    .fixedSize(horizontal: false, vertical: true)',s)
         self.assertIn('if let selected, !options.contains(where: { $0.id == selected })',s)
         self.assertIn('Text(verbatim: "#" + String(selected)).tag(selected)',s)
     def testTopicSelectionDoesNotAcquireAuthorityOrPerformNetworkIO(self):

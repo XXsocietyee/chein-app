@@ -24,8 +24,8 @@ class WalletUIFirstCurrentBindingTests(unittest.TestCase):
     def test_all_current_workspace_regressions_include_original_and_four_new_methods(self):
         source = (ROOT / 'Tests/AppUnitTests/MerchantProjectWorkspaceEntryTests.swift').read_text()
         names = re.findall(r'\bfunc (test\w+)\(', source)
-        self.assertEqual(len(names), 28)
-        self.assertEqual(len(set(names)), 28)
+        self.assertEqual(len(names), 32)
+        self.assertEqual(len(set(names)), 32)
         for name in ['testOldSummaryBindingCannotDismissReopenedSummary',
                      'testOldWorkspaceBindingCannotPopReopenedWorkspace',
                      'testInitiallyEmptySummaryBindingObservesFirstSelectionAndDismissesOnlyIt',

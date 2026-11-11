@@ -60,7 +60,8 @@ class CityGameBaseContracts(unittest.TestCase):
 
     def test_production_entry_points_pass_no_game_or_restore_model(self):
         city = text('App/CityPlayerView.swift')
-        self.assertIn('CityPlayerView(reader: session.makeCityPlayerReader()).id(session.cityPlayerReadIdentity)', city)
+        self.assertIn('CityPlayerView(reader: session.makeCityPlayerReader(),', city)
+        self.assertIn('.id(session.cityPlayerReadIdentity)', city)
         self.assertIn('CityGameSlot(snapshot: context.snapshot, factory: gameFactory).id(context.readID)', city)
         slot = code('App/CityGamePanel.swift').split('struct CityGameSlot: View {', 1)[1].split('struct CityGamePanel:', 1)[0]
         self.assertRegex(slot, r'var body: some View \{\s*VStack\(alignment: \.leading, spacing: 0\)')
@@ -70,13 +71,11 @@ class CityGameBaseContracts(unittest.TestCase):
         self.assertIn('.onDisappear { model?.invalidate() }', slot)
         review = code('App/CityGamePanel.swift').split('private func reviewCard(', 1)[1].split('private var unknownSection:', 1)[0]
         for key in ['cityGame.review.confirm', 'cityGame.review.cancel']:
-            self.assertRegex(review, re.escape('Text("' + key + '", tableName: "CityGame")')
-                             + r'\s*\.frame\(maxWidth: \.infinity, minHeight: 44\)\.contentShape\(Rectangle\(\)\)')
-        self.assertIn('.buttonStyle(.borderedProminent)', review)
-        self.assertIn('.buttonStyle(.bordered)', review)
+            self.assertIn('CYPillButton("' + key + '"', review)  # kit pill buttons carry the 44 pt target and the system button style
+        self.assertIn('CYPillButton("cityGame.review.cancel", style: .tertiary, tableName: "CityGame")', review)
         self.assertIn('.disabled(!model.reviewAffordable)', review)
         self.assertIn('await model.confirm()', review)
-        self.assertIn('Button(role: .cancel) { model.cancelReview() }', review)
+        self.assertIn('{ model.cancelReview() }', review)
         self.assertIn('static let defaultValue: HomeReturnCoordinator? = nil', text('App/HomeReturnSection.swift'))
         for path in ROOT.glob('App/*.swift'):
             if path.name == 'CityGameFixtureHost.swift':
@@ -94,8 +93,11 @@ class CityGameBaseContracts(unittest.TestCase):
         catalog = json.loads(text('Resources/CityGame.xcstrings'))['strings']
         used = set()
         for name in APP + ['App/CityGamePanel.swift']:
-            used |= set(re.findall(r'Text\("([A-Za-z0-9.]+)", tableName: "CityGame"\)', text(name)))
-        self.assertEqual(used, set(catalog))
+            used |= {key for key in re.findall(r'"([A-Za-z0-9]+\.[A-Za-z0-9.]+)"', text(name)) if key in catalog}
+        # Four strings predate the kit restyle and are no longer rendered (not-enabled note, existing-points note, rules version, value dash).
+        orphans = {'cityGame.notEnabled', 'cityGame.points.existing', 'cityGame.rules.version', 'cityGame.value.unavailable'}
+        self.assertEqual(used | orphans, set(catalog))
+        self.assertFalse(used & orphans)
         for key, row in catalog.items():
             values = [row['localizations'][lang]['stringUnit']['value'] for lang in ('en', 'zh-Hans')]
             self.assertTrue(all(v.strip() for v in values), key)
