@@ -66,11 +66,15 @@ import UIKit
     func testConfirmedCellCentresAreCutOut() throws {
         let codes = FogFixtures.revealedCodes(FogFixtures.shanghaiPeoplesSquareWalk)
         let pixels = try render(mask(confirmed: try walk()), appearance: .night)
-        for code in [codes[0], codes[4], codes[9]] {
+        var checked = 0
+        for code in codes {
             let c = try centre(of: code)
             let p = screenPoint(latitude: c.latitude, longitude: c.longitude)
+            guard (0..<pixels.width).contains(p.x), (0..<pixels.height).contains(p.y) else { continue }
             XCTAssertLessThanOrEqual(pixels.alpha(p.x, p.y), 2, code)
+            checked += 1
         }
+        XCTAssertGreaterThanOrEqual(checked, 3, "at least three revealed cell centres must fall inside the viewport")
     }
 
     func testPendingCellsAreHatchedAndOnlyPartlyCutOut() throws {
