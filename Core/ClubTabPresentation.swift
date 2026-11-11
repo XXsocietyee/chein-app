@@ -207,6 +207,31 @@ public struct ClubTabPageModel: Equatable, Sendable {
                     eventCount: eventResult.count, merchant: merchant, unread: badge, feed: feed)
     }
 
+    /// Raw-body entry for the reader's `clubHomeBody()`: the full `/api/club/home` response.
+    /// A nil body is the withheld read (unknown, never an empty list). A body that is not a JSON
+    /// object with code 200 and a `data` object is an error, never an empty club tab.
+    public static func project(homeBody: Data?, inFlight: Bool = false, failed: Bool = false,
+                               merchant: Bool = false, unreadGranted: Bool = false, unreadData: Any? = nil,
+                               feedClubCount: Int? = nil, feedInFlight: Bool = false, feedFailed: Bool = false,
+                               feedHasPosts: Bool? = nil) -> ClubTabPageModel {
+        var data: [String: Any]?
+        var unreadable = false
+        if let homeBody {
+            data = homeData(from: homeBody)
+            unreadable = data == nil
+        }
+        return project(homeData: data, inFlight: inFlight, failed: failed || unreadable, merchant: merchant,
+                       unreadGranted: unreadGranted, unreadData: unreadData, feedClubCount: feedClubCount,
+                       feedInFlight: feedInFlight, feedFailed: feedFailed, feedHasPosts: feedHasPosts)
+    }
+
+    /// The `data` object of a `{code: 200, data: {...}}` envelope; nil for anything else.
+    public static func homeData(from body: Data) -> [String: Any]? {
+        guard let root = try? JSONSerialization.jsonObject(with: body) as? [String: Any],
+              exactCount(root["code"]) == 200, let data = root["data"] as? [String: Any] else { return nil }
+        return data
+    }
+
     /// Hidden unless the unread-total read is already granted. A known zero draws no badge.
     /// Null, text, booleans, and fractions are an em dash, never 0.
     public static func unreadBadge(granted: Bool, data: Any?) -> String? {

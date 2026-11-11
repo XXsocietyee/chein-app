@@ -106,10 +106,10 @@ struct SquarePostContent: View {
             if post.completed { Label("square.completed", systemImage: "checkmark.circle") }
             if showsCounts {
                 HStack(spacing: 16) {
-                    Label { Text(max(0, post.likeCount), format: .number) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
-                        .accessibilityLabel(Text("square.xcx.likesA11y \(max(0, post.likeCount))"))
-                    Label { Text(max(0, post.commentCount), format: .number) } icon: { Image(systemName: "bubble.right") }
-                        .accessibilityLabel(Text("square.xcx.commentsA11y \(max(0, post.commentCount))"))
+                    Label { Text(verbatim: SquareCountDisplay.text(post.likeCount)) } icon: { Image(systemName: post.isLiked == 1 ? "heart.fill" : "heart") }
+                        .accessibilityLabel(post.likeCount.map { Text("square.xcx.likesA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
+                    Label { Text(verbatim: SquareCountDisplay.text(post.commentCount)) } icon: { Image(systemName: "bubble.right") }
+                        .accessibilityLabel(post.commentCount.map { Text("square.xcx.commentsA11y \($0)") } ?? Text(verbatim: SquareCountDisplay.unknownMark))
                 }
                 .font(.subheadline).foregroundStyle(.secondary)
             }

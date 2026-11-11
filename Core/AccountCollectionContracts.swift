@@ -145,9 +145,13 @@ public struct AccountCollectionPostPage: Equatable {
     public let rows: [SquarePost]
     public let pageNumber: Int
     public let pageSize: Int
+    /// The unmodified `/api/creativesquare/list` response body for this page, kept so
+    /// `AccountCollectionFavoritesPageModel.resolvePosts` can tell a missing count from a literal 0.
+    /// Nil for fixtures and for pages built without a body. Never persisted, never logged.
+    public let rawPayload: Data?
     public var hasMore: Bool { rows.count >= pageSize }
-    public init(rows: [SquarePost], pageNumber: Int, pageSize: Int) {
-        self.rows = rows; self.pageNumber = pageNumber; self.pageSize = pageSize
+    public init(rows: [SquarePost], pageNumber: Int, pageSize: Int, rawPayload: Data? = nil) {
+        self.rows = rows; self.pageNumber = pageNumber; self.pageSize = pageSize; self.rawPayload = rawPayload
     }
 }
 public struct AccountCollectionPostPagination {
@@ -201,8 +205,8 @@ public enum AccountCollectionIssue: Equatable {
 /// Topics are `POST /api/topic/like_list`. Both paths are already live.
 /// This type does not build a request, open a session, or change a route mark.
 ///
-/// `SquarePost` and `TopicSummary` still store a missing count as 0. This projection
-/// does not change those decoders. An omitted count, null, a numeric string, a fraction,
+/// `SquarePost` now keeps a missing like or comment count as nil (`SquareCountDisplay`);
+/// `TopicSummary` still stores a missing count as 0. This projection does not change either decoder. An omitted count, null, a numeric string, a fraction,
 /// a boolean, or a negative is U+2014. A literal JSON 0 stays "0".
 public enum AccountCollectionFavoritesPageModel {
     /// Em dash (U+2014). Unknown numbers use this. A literal zero does not.

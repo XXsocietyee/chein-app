@@ -73,7 +73,7 @@ class SquareDetailPageReadyContract(unittest.TestCase):
             self.assertIn("- %s" % field, note)
             self.assertNotIn(field, DECODER.read_text(encoding="utf-8"))
         view = VIEW.read_text(encoding="utf-8")
-        self.assertIn("max(0, post.likeCount)", view)
+        self.assertIn("SquareCountDisplay.text(post.likeCount)", view)
         self.assertNotIn("SquareDetailPageModel", view)
         self.assertIn('"square.xcx.noCommentsTitle"', view)
         self.assertNotIn("square.xcx.noCommentsDetail", view)
@@ -100,8 +100,8 @@ class SquareDetailPageReadyContract(unittest.TestCase):
         debug = model.split("#if DEBUG", 1)[1].split("#endif", 1)[0]
         self.assertIn("enum SquareDetailPageFixtureData", debug)
         decoder = DECODER.read_text(encoding="utf-8")
-        self.assertIn('likeCount = post.first("likeCount", "likeNum").number ?? 0', decoder)
-        self.assertIn('commentCount = post["commentCount"].number ?? 0', decoder)
+        self.assertIn('likeCount = SquareCountDisplay.known(post.first("likeCount", "likeNum").number)', decoder)
+        self.assertIn('commentCount = SquareCountDisplay.known(post["commentCount"].number)', decoder)
         ledger = LEDGER.read_text(encoding="utf-8")
         self.assertIn('"pages/square/detail/index"', ledger)
 

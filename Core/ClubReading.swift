@@ -35,6 +35,8 @@ public protocol ClubReading: AnyObject {
     func clubDetail(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubRecord
     func clubMembers(id: Int) async throws -> ClubMemberDirectory
     func clubMembers(id: Int, isCurrent: @escaping () -> Bool) async throws -> ClubMemberDirectory
+    func clubHomeBody() async throws -> Data?
+    func clubDetailBody(id: Int) async throws -> Data?
 }
 
 extension ClubReading {
@@ -56,6 +58,10 @@ extension ClubReading {
 public extension ClubReading {
     var clubDiscoveryScope: ClubDiscoveryScope { .init(identity: clubIdentity) }
     func clubMerchantLocality() async throws -> MerchantClubLocality { throw APIError.notConfigured }
+    /// Raw response bodies of the two existing live reads. A reader that does not retain them
+    /// returns nil, which the page models treat as unknown, never as an empty club list or a 0 count.
+    func clubHomeBody() async throws -> Data? { nil }
+    func clubDetailBody(id: Int) async throws -> Data? { nil }
 }
 
 /// Capture the live session before every operation, including both member-list reads.
@@ -73,6 +79,14 @@ public final class ClubSessionReader: ClubReading {
     }
     public func clubHome() async throws -> ClubHome {
         try await read { service, session in try await service.home(token: session.token) }
+    }
+    public func clubHomeBody() async throws -> Data? {
+        let body: Data = try await read { service, session in try await service.homeBody(token: session.token) }
+        return body
+    }
+    public func clubDetailBody(id: Int) async throws -> Data? {
+        let body: Data = try await read { service, session in try await service.detailBody(id: id, token: session.token) }
+        return body
     }
     public func clubOwned() async throws -> [ClubRecord] {
         try await read { service, session in
