@@ -663,13 +663,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Unable to complete. Refresh to retry reading; nothing is assumed successful."
+            "value": "That didn't go through. Refresh to check, then try again."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "未能完成。可刷新重试读取；不假定操作成功。"
+            "value": "没有完成。刷新确认状态后再试一次。"
           }
         }
       }
