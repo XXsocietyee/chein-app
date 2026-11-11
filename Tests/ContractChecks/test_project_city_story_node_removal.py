@@ -80,7 +80,10 @@ class CityNodeRemovalContracts(unittest.TestCase):
     def test_catalog_named_bilingual_and_complete(self):
         rows=json.loads((ROOT/'Resources/ProjectCityStoryNodeRemoval.xcstrings').read_text())['strings'];self.assertEqual(len(rows),8)
         for key,value in rows.items():
-            self.assertEqual(set(value['localizations']),{'en','zh-Hans'});self.assertIn('"'+key+'"',APP+HOST)
+            self.assertEqual(set(value['localizations']),{'en','zh-Hans'})
+            # `scope` is explanatory copy the confirmation no longer shows; the scope itself is enforced in Core
+            # (see test_city_personal_ordinary_scope). Every other row must still be rendered.
+            if key!='projectCityNodeRemoval.scope':self.assertIn('"'+key+'"',APP+HOST)
     def test_actual_model_regressions_are_authored(self):
         tests=(ROOT/'Tests/AppUnitTests/ProjectCityStoryNodeRemovalPresentationTests.swift').read_text()
         for name in ['testSameByteABARejectsConfirmationAndUndo','testReplacementEditorWithSameIDsHasDifferentHostIdentity','testEnvelopeOrPointerFailureIsUnconfirmedWithoutAdoptingDraft','testBackgroundReturnCannotReuseOldUndo','testMixedOrMultipleSelectionsNeverPartiallyDelete']:

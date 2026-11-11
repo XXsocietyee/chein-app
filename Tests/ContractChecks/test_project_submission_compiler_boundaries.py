@@ -43,7 +43,8 @@ class ProjectSubmissionCompilerBoundaries(unittest.TestCase):
         for token in ['if model.submissionIsCurrent(receipt, incarnation: submissionIncarnation) {',
                       'PublishingSubmissionResultSheet(receipt: receipt, canNavigate: publisherHost != nil, canVerifyRelease: model.approvedReleaseReadIsConfigured)',
                       'guard model.submissionIsCurrent(receipt, incarnation: submissionIncarnation), submission?.id == receipt.id else { return }',
-                      'submission = nil\n                if publisherHost != nil { submittedResource = receipt.resource }']:
+                      # Navigation now carries a destination bound to the current session and visit, built only when a host exists.
+                      'let destination = publisherHost == nil ? nil : model.submissionDestination(receipt, incarnation: submissionIncarnation)\n                submission = nil\n                submittedResource = destination']:
             self.assertIn(token, result)
         self.assertEqual(result.count('submission = nil'), 1)
         self.assertEqual(result.count('submittedResource ='), 1)
@@ -66,7 +67,7 @@ class ProjectSubmissionCompilerBoundaries(unittest.TestCase):
             ('submission?.id == receipt.id', 'true'),
             ('canNavigate: publisherHost != nil', 'canNavigate: true'),
             ('canVerifyRelease: model.approvedReleaseReadIsConfigured', 'canVerifyRelease: true'),
-            ('if publisherHost != nil { submittedResource = receipt.resource }', 'submittedResource = receipt.resource'),
+            ('publisherHost == nil ? nil : model.submissionDestination(receipt, incarnation: submissionIncarnation)', 'model.submissionDestination(receipt, incarnation: submissionIncarnation)'),
         ]
         methods = ['test_render_captures_feed_explicit_typed_boundaries',
                    'test_binding_preserves_original_getter_and_old_dismissal_fences',
