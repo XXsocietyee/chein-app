@@ -90,7 +90,7 @@ class ProfileFavoriteRemovalSourceChecks(unittest.TestCase):
  def test_sheet_cannot_retire_another_presentation(self):
   self.assertIn('.sheet(item: $presentation) { value in',self.view)
   self.assertNotIn('onDismiss: { if let id = controller.presentationID',self.view)
-  self.assertIn('.onDisappear { finish() }',self.view)
+  self.assertIn('.onDisappear {\n                diagnostics?.record("sheet.disappeared", scene: scenePhase, presentation: presentation, controller: controller)\n                finish()\n            }',self.view)
   self.assertIn('controller.retire(id)',self.view)
  def test_done_consumed_once_only_after_removed_and_current(self):
   self.assertIn('guard !isFinished else { return }',self.view)
@@ -100,7 +100,7 @@ class ProfileFavoriteRemovalSourceChecks(unittest.TestCase):
   body=self.view.split('case .unknown:')[1].split('case .removed:')[0]
   self.assertIn('controller.reconcile(presentation.id)',body);self.assertNotIn('controller.confirm',body)
  def test_background_scope_and_close_retire(self):
-  self.assertIn('.onChange(of: scope) { _, _ in close() }',self.view)
+  self.assertIn('.onChange(of: scope) { _, _ in\n            lifecycle.record("entryHost.scopeChanged", scene: scenePhase, presentation: presentation, controller: controller)\n            close()\n        }',self.view)
   self.assertIn('if value != .active { close() }',self.view)
   self.assertIn('presentation?.finish(controller: controller, isCurrent: isCurrent, onRemoved: onRemoved)',self.view)
  def test_registration_and_localization_disclose_pending_production(self):
