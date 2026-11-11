@@ -67,12 +67,13 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertIn("if let url = QuestifyCardArtwork.safeURL(item.imageURL)", app("HomeFeedView.swift"))
 
     def test_home_live_updates_only_at_a_verified_boundary(self):
+        # The Home redesign removed the live badge/countdown; the feed must stay free of timers and device-zone guesses.
+        # The Core countdown helpers stay (covered by HomeSearchTabParityTests) and are not rendered by Home.
         source = app("HomeFeedView.swift")
         self.assertNotIn(".periodic(", source)
-        self.assertIn("if case .activity = item", source)
-        self.assertIn("HomeFeedDate.parse(item.startDate, sourceTimeZone: sourceTimeZone)", source)
-        self.assertIn("start > date ? [date, start] : [date]", source)
-        self.assertIn("if start <= context.date", source)
+        self.assertNotIn("TimelineView", source)
+        self.assertNotIn("upcomingCountdownText", source)
+        self.assertNotIn("countdownScheduleDates", source)
         self.assertNotIn("TimeZone.current", source)
 
     def test_home_navigation_preserves_results_and_retires_scoped_reads(self):
@@ -152,7 +153,10 @@ class NativeDesignMotionGuards(unittest.TestCase):
         self.assertNotIn(".currency(code:", card)
         self.assertIn("public var currencyCode: String? { nil }", (ROOT / "Core/HomeFeedContracts.swift").read_text())
         self.assertIn('Text("ticketWallet.readOnly")', app("TicketWalletView.swift"))
-        self.assertIn('Text("ticketWallet.noCode")', app("TicketWalletDetailView.swift"))
+        # The em-dash noCode placeholder is gone: the pass is only offered when ready, and the code comes from the injected factory.
+        detail = app("TicketWalletDetailView.swift")
+        self.assertIn("if ticket.status == .ready {", detail)
+        self.assertIn('.accessibilityIdentifier("ticketWallet.present.open")', detail)
 
     def test_dynamic_type_and_semantic_color_are_explicit(self):
         for name in ("HomeFeedView.swift", "TicketWalletDetailView.swift", "TicketWalletModel.swift"):

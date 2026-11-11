@@ -14,7 +14,14 @@ class RestoredManagementCoreSources(unittest.TestCase):
                 lines = text.splitlines()
                 positions = [i for i, line in enumerate(lines) if "try await service." in line]
                 self.assertEqual(len(positions), count)
-                self.assertTrue(all(lines[i - 1].strip() == "try requireCurrentVisit(stamp)" for i in positions))
+                def fenced(i):
+                    # requireCurrentVisit must run after the last suspension point before the write; synchronous
+                    # re-validation guards (no await) may sit between the fence and the call.
+                    for j in range(i - 1, max(i - 8, 0), -1):
+                        if lines[j].strip() == "try requireCurrentVisit(stamp)": return True
+                        if "await" in lines[j]: return False
+                    return False
+                self.assertTrue(all(fenced(i) for i in positions))
                 self.assertIn("guard generation == stamp, isCurrent, !Task.isCancelled", text)
                 self.assertIn("private func requireCurrentVisit(_ stamp: UInt64) throws", text)
     def test_webhook_routes_keep_deployment_prefix_and_exact_approval(self):
