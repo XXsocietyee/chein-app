@@ -116,8 +116,7 @@ import UIKit
         XCTAssertNotNil(nav.popViewController(animated: false)); try await eventually { !owner.isActive }
     }
     private func mount(_ rig: ShareLifetimeRig, window: UIWindow) {
-        let host = UIHostingController(rootView: ShareLifetimeHost(rig: rig))
-        window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
+        hostedMount(window, root: ShareLifetimeHost(rig: rig))
     }
     private func openAndPrepare(_ rig: ShareLifetimeRig, in window: UIWindow) async throws {
         try await tap("share.lifetime.open", in: window)

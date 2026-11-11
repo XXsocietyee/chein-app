@@ -147,8 +147,7 @@ import UIKit
         XCTAssertNil(find("roam.tasks.empty", in: scene.window)); XCTAssertEqual(state.official.calls, calls)
     }
     private func mount(_ state: OfficialTaskLifetimeHostState, in window: UIWindow) {
-        let host = UIHostingController(rootView: OfficialTaskLifetimeHost(state: state))
-        window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
+        hostedMount(window, root: OfficialTaskLifetimeHost(state: state))
     }
     private func settle() async { for _ in 0..<20 { await Task.yield() } }
     private func waitFor(_ condition: () -> Bool) async throws {

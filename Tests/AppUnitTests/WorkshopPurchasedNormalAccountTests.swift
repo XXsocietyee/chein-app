@@ -86,6 +86,18 @@ enum HostedAccessibilityRuntime {
     }
 }
 
+/// Mount real SwiftUI content the way the passing hosted suites do (RoamTileDenialHostTests): attach a placeholder root to the
+/// visible window first, let the first layout/run-loop turns complete, then install the real root. Content installed into an
+/// already-live hosting controller gets its accessibility tree and lifecycle callbacks; content handed to a controller that
+/// becomes visible in the same turn did not on the iOS 27 simulator (controls never discoverable, onChange never delivered).
+@discardableResult @MainActor func hostedMount<V: View>(_ window: UIWindow, root: V) -> UIHostingController<AnyView> {
+    let host = UIHostingController(rootView: AnyView(Text("Preparing test")))
+    window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
+    host.rootView = AnyView(root); host.view.setNeedsLayout(); host.view.layoutIfNeeded()
+    for _ in 0..<5 { RunLoop.main.run(until: Date().addingTimeInterval(0.01)) }
+    return host
+}
+
 /// SwiftUI lifecycle callbacks (sheet presentation, onDisappear) are delivered on run-loop turns. `Task.yield()` alone can drain
 /// the main queue without ever returning to the run loop, so hosted waits sleep in short slices and stay bounded.
 @MainActor func hostedWait(timeout: TimeInterval = 5, _ condition: () -> Bool) async {

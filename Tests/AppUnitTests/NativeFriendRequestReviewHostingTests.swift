@@ -92,8 +92,7 @@ import UIKit
     }
     private func host(_ routes: Routes, _ navigation: NativeFriendHomeNavigation, _ source: Source, _ journal: Journal) throws -> (HostedNavigationSceneWindow, UIViewController) {
         let scene = try HostedNavigationSceneWindow()
-        let host = UIHostingController(rootView: Root(routes: routes, navigation: navigation, source: source, journal: journal))
-        scene.window.rootViewController = host; scene.window.makeKeyAndVisible()
+        let host = hostedMount(scene.window, root: Root(routes: routes, navigation: navigation, source: source, journal: journal))
         XCTAssertTrue(host.view.window === scene.window)
         return (scene, host)
     }

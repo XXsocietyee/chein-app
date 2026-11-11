@@ -107,8 +107,7 @@ import UIKit
         XCTAssertNil(find("roam.merchant.retry", in: scene.window))
     }
     private func mount(_ rig: PlaceReadLifetimeRig, window: UIWindow) {
-        let host = UIHostingController(rootView: PlaceReadLifetimeHost(rig: rig))
-        window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
+        hostedMount(window, root: PlaceReadLifetimeHost(rig: rig))
     }
     private func open(_ rig: PlaceReadLifetimeRig, window: UIWindow) async throws {
         try await tap("place.read.open", in: window)

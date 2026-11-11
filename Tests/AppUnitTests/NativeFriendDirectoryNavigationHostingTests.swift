@@ -104,8 +104,7 @@ import UIKit
         let scene = try HostedNavigationSceneWindow()
         let root = NativeFriendDirectoryView(flow: navigation.flow, navigation: navigation,
             metadataFactory: state.makeMetadata, removalFactory: state.makeRemoval, publicProfile: publicProfile, conversation: conversation)
-        let host = UIHostingController(rootView: NavigationStack { root })
-        scene.window.rootViewController = host; scene.window.makeKeyAndVisible()
+        let host = hostedMount(scene.window, root: NavigationStack { root })
         XCTAssertTrue(host.view.window === scene.window)
         return scene
     }

@@ -121,9 +121,8 @@ import UIKit
         XCTAssertEqual(state.tickets.reads, 1); XCTAssertTrue(state.tickets.details.isEmpty)
     }
     private func mount(_ state: EnrolledLifetimeHostState) -> UIWindow {
-        let host = UIHostingController(rootView: EnrolledLifetimeHost(state: state))
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1100))
-        window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
+        hostedMount(window, root: EnrolledLifetimeHost(state: state))
         return window
     }
     private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
