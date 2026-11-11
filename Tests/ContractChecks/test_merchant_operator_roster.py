@@ -27,8 +27,10 @@ class MerchantOperatorRosterContracts(unittest.TestCase):
                       'case (.invite, "PENDING"): pending.append(row)',
                       'case (.invite, "ACCEPTED"), (.invite, "EXPIRED"), (.invite, "REVOKED"): invites.append(row)']:
             self.assertIn(value, source)
+        # roleCode is only read by the separate local no-change role ticket after the roster classification.
+        classification = source.split('public struct MerchantOperatorRoleNoChange')[0]
         for forbidden in ['Date(', 'expiresAt', '.sorted(', '.lowercased()', 'trimmingCharacters', 'roleCode']:
-            self.assertNotIn(forbidden, source)
+            self.assertNotIn(forbidden, classification)
 
     def test_roster_is_immutable_and_retains_original_record_types(self):
         source = self.read(CORE)
@@ -69,7 +71,9 @@ class MerchantOperatorRosterContracts(unittest.TestCase):
     def test_accessibility_and_dynamic_type_preserve_content(self):
         source = self.read(APP)
         self.assertIn('.frame(minHeight: 44)', source)
-        self.assertIn('.fixedSize(horizontal: false, vertical: true)', source)
+        # Rows are Form/LabeledContent/DisclosureGroup content that wraps natively; nothing may clamp or truncate it.
+        self.assertNotIn('.fixedSize(horizontal: true', source)
+        self.assertNotIn('.minimumScaleFactor', source)
         for name in ['memberCount', 'inviteCount', 'membersEmpty', 'invitesEmpty', 'previousMembers', 'previousInvites']:
             self.assertIn('.accessibilityIdentifier("merchant.operatorRoster.' + name + '")', source)
         self.assertNotIn('.lineLimit(', source)
@@ -81,21 +85,22 @@ class MerchantOperatorRosterContracts(unittest.TestCase):
         app = re.sub(r'\.accessibilityIdentifier\([^\n]*', '', self.read(APP))
         page = self.read('App/MerchantBusinessViews.swift')
         keys = set(re.findall(r'"(merchant\.operatorRoster\.[A-Za-z]+)"', app + page))
-        self.assertEqual(keys, set(fragment))
+        # currentAccess/accessDetails live in the main catalog (role card); the rest of the roster strings are in this fragment.
+        self.assertEqual(keys, set(fragment) | {'merchant.operatorRoster.currentAccess', 'merchant.operatorRoster.accessDetails'})
         for key, value in fragment.items():
             self.assertEqual(set(value['localizations']), {'en', 'zh-Hans'}, key)
             for row in value['localizations'].values():
                 self.assertTrue(row['stringUnit']['value'].strip(), key)
         en = lambda name: fragment['merchant.operatorRoster.' + name]['localizations']['en']['stringUnit']['value']
         self.assertIn('latest loaded', en('loadedScope'))
-        self.assertIn('server', en('historyScope'))
+        self.assertIn('aren\'t counted', en('historyScope'))
         self.assertIn('in this list', en('membersEmpty'))
         self.assertIn('in this list', en('invitesEmpty'))
 
     def test_existing_journal_and_scope_cancellation_remain_on_the_owner(self):
         page = self.read('App/MerchantBusinessViews.swift')
         for value in ['.onChange(of: reader.scope)', '.onChange(of: reader.authorizationGeneration)',
-                      '.onDisappear { editor = nil; pendingMutation = nil; model.invalidate() }',
+                      'editor = nil; pendingMutation = nil; pendingMutationEditorID = nil; model.invalidate() }',
                       'if state.isLocked { Text("merchant.business.unknownResult")',
                       'if query == .operators, snapshot.access.canManageOperators']:
             self.assertIn(value, page)
