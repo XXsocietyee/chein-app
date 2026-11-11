@@ -37,7 +37,7 @@ class PlayKitCameraPresentationChecks(unittest.TestCase):
         for value in ['generation != cameraGeneration','cameraGeneration == generation','cameraGeneration &+= 1; authorizationInFlight = false']:
             self.assertIn(value,text)
     def test_empty_grants_and_approved_assets_remain_required(self):
-        self.assertIn('init(grants: Set<PlayDeviceKind> = [])',self.read('App/PlayNativeDeviceProvider.swift'))
+        self.assertIn('init(grants: Set<PlayDeviceKind> = [], makeLocationManager:',self.read('App/PlayNativeDeviceProvider.swift'))
         core=self.read('Core/PlayKitCameraContracts.swift')
         for value in ['segment["scanned"].bool == true','parts.user == nil','parts.port == nil || parts.port == 443','approvedHosts: Set<String>']:
             self.assertIn(value,core)

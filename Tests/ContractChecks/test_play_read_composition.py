@@ -17,7 +17,8 @@ class PlayReadCompositionContracts(unittest.TestCase):
             self.assertIn(text, matcher)
         self.assertNotIn('hasPrefix(', matcher)
         root = self.read('App/AppCompositionRoot.swift')
-        self.assertIn('guard url.query == nil || manualRead != nil || playRead != nil', root)
+        # The query exception is the typed-route OR; play read is one closed matcher among them.
+        self.assertIn('url.query == nil || manualRead != nil || publicLayers || publicMapLayer != nil || playRead != nil', root)
         self.assertIn('PlayReadRoute(request: request, baseURL: api.baseURL)', root)
 
     def test_root_and_current_runtime_are_independent_and_fail_closed(self):
@@ -69,7 +70,11 @@ class PlayReadCompositionContracts(unittest.TestCase):
         self.assertIn('answersEnabled:false', session)
         self.assertIn('loadedSession == currentSession() ? storedSnapshot : nil', coordinator)
         launch = self.read('App/RegionalLaunchConfiguration.swift')
-        self.assertNotIn('playNodesAndRouteState', launch)
+        # The reviewed China launch composition now lists the read-only play capability; no write capability appears.
+        reads = launch.split('reads: [', 1)[1].split(']', 1)[0]
+        self.assertIn('.playNodesAndRouteState', reads)
+        self.assertNotIn('writes', reads.lower())
+        self.assertNotIn('.playWrite', launch)
 
     def test_synthetic_recovery_is_explicit_and_cannot_forge_system_provenance(self):
         root = self.read('App/AppCompositionRoot.swift')

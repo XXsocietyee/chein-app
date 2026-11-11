@@ -61,8 +61,12 @@ class PlayKitNativeScreenChecks(unittest.TestCase):
         self.assertIn('SUBMIT_COUNTDOWN", [:]', code)
     def test_bingo_reads_real_server_progress_and_walk_locks_goal(self):
         code = self.read('Core/PlayKitScreenContracts.swift')+self.read('App/PlayKitDecisionProgressViews.swift')
-        for token in ['filledPositions', 'completedLines', 'cellSpecs', 'todaySteps', 'goalLocked', 'providerGate']:
+        for token in ['filledPositions', 'completedLines', 'cellSpecs', 'todaySteps', 'providerGate']:
             self.assertIn(token, code)
+        # The walk goal is server-owned: it is displayed read-only and there is no goal editor or setter.
+        self.assertIn('LabeledContent("playkit.walk.goal") { Text(verbatim: goal.formatted()) }', code)
+        for forbidden in ['TextField("playkit.walk.goal"', 'SET_GOAL', 'UPDATE_GOAL', 'goalBinding']:
+            self.assertNotIn(forbidden, code)
         self.assertNotIn('filled.insert', code)
     def test_multi_select_and_five_source_additions_are_bounded(self):
         core = self.read('Core/PlayKitScreenContracts.swift')
