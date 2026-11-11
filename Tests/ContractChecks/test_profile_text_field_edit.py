@@ -50,9 +50,11 @@ class ProfileTextFieldEditContracts(unittest.TestCase):
         self.assertIn('guard textEdit?.id == value.id else { return }', cancel)
         self.assertIn('retireTextEdit()', cancel)
         self.assertNotIn('draft =', cancel)
-        binding = section('private var textEditPresentation:', 'private func textFieldRow')
-        self.assertIn('let presented = model.textEdit', binding)
-        self.assertIn('model.cancelTextEdit(presented)', binding)
+        # The presented-id scoping now lives in the model: a retained binding only observes/dismisses the editor it was made for.
+        binding = section('func textEditPresentation(for presented: ProfileTextFieldEdit?)', 'func ')
+        self.assertIn('guard let presented, self.textEdit?.id == presented.id else { return nil }', binding)
+        self.assertIn('if value == nil, let presented { self.cancelTextEdit(presented) }', binding)
+        self.assertIn('.sheet(item: model.textEditPresentation(for: edit), onDismiss: { model.cancelTextEdit(edit) })', read('App/ProfileEditView.swift'))
         self.assertIn('.id(value.id)', read('App/ProfileEditView.swift'))
         self.assertIn('}.interactiveDismissDisabled(false)', read('App/ProfileEditView.swift'))
         editor = read('App/ProfileTextFieldEditor.swift')
@@ -93,7 +95,7 @@ class ProfileTextFieldEditContracts(unittest.TestCase):
 
     def test_draft_aba_and_context_reset_retire_old_edit(self):
         view = read('App/ProfileEditView.swift')
-        self.assertIn('didSet { retireTextEdit(); avatarDraftRevision &+= 1', view)
+        self.assertIn('retireTextEdit(); avatarDraftRevision &+= 1', view)
         sync = section('private func synchronizeContext()', 'func resetAndLoad()')
         self.assertIn('retireTextEdit()', sync)
         self.assertIn('if let value = model.textEdit { model.cancelTextEdit(value) }', view)
@@ -102,15 +104,16 @@ class ProfileTextFieldEditContracts(unittest.TestCase):
 
     def test_background_keeps_text_scratch_and_presentation_avoids_avatar_retirement(self):
         view = read('App/ProfileEditView.swift')
-        self.assertIn('if phase != .active { model.retireReload(); model.retireAvatar() }', view)
+        self.assertIn('if phase != .active { model.retireReload(); model.suspendForBackground() }', view)
         self.assertIn('func retireReload() { reloadContextRevision &+= 1; cancelReload(); cancelExit() }', view)
-        self.assertIn('func retireAvatar() { cancelExit();', view)
-        self.assertIn('if !showPreferences, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive', view)
+        self.assertIn('private func retireAvatarResources() { retirePreferencePicker(); retireSavedReturn(); cancelExit();', view)
+        self.assertIn('if model.preferencePicker == nil, model.textEdit == nil, model.confirmation == nil, !model.avatarPresentationActive { model.retireAvatar() }', view)
 
     def test_pending_text_edit_blocks_competing_operations(self):
         view = read('App/ProfileEditView.swift')
-        for method in ['load()', 'requestReload()', 'prepare()', 'save(_ value: ProfileEditConfirmation)']:
-            self.assertIn(f'func {method} async {{\n        guard !exitCommitted else {{ return }}\n        guard textEdit == nil else {{ return }}', view)
+        for method in ['load()', 'requestReload()', 'prepare()']:
+            self.assertIn(f'func {method} async {{\n        retireSavedReturn()\n        guard !exitCommitted else {{ return }}\n        guard textEdit == nil else {{ return }}', view)
+        self.assertIn('guard !exitCommitted else { return nil }\n        guard textEdit == nil else { return nil }', view)
         self.assertIn('textEdit == nil', section('var canRequestExit:', 'func cancelExit()'))
         self.assertIn('textEdit == nil', section('func avatarTarget', 'func stageAvatar'))
         self.assertIn('hasUnsavedDraft || textEdit != nil || busy || coordinator.isBusy', view)

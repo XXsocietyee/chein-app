@@ -84,7 +84,9 @@ class ProfileLocalCoverSourceChecks(unittest.TestCase):
   self.assertIn('.onDisappear {\n#if DEBUG\n                model.diagnosticEvent?("section.owner.disappear.before-retire")\n#endif\n                model.retire()',self.view)
   self.assertIn('func retire() { close(); controller.retire() }',self.view)
  def test_ui_states_device_only_and_uses_local_pixels(self):
-  self.assertGreaterEqual(self.view.count('profile.localCover.deviceOnly'),2)
+  # The editor shows one device-only disclosure above every state (crop, review, empty), so one occurrence covers all of them.
+  self.assertEqual(self.view.count('profile.localCover.deviceOnly'),1)
+  self.assertLess(self.view.index('profile.localCover.deviceOnly'),self.view.index('if let crop = model.crop {'))
   self.assertIn('UIImage(data: selected.jpeg)',self.view)
   self.assertIn('pixels.width == selected.width, pixels.height == selected.height',self.view)
   self.assertIn('image.imageOrientation == .up',self.view)

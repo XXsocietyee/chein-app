@@ -48,4 +48,4 @@ class OwnedTemplateConfiguration(unittest.TestCase):
         self.assertIn('.task(id: id)', read('App/OwnedTemplateConfigurationView.swift'))
         self.assertIn('snapshot.id == expectedID', read('App/OwnedTemplateConfigurationView.swift'))
         self.assertIn('testNewSelectionWinsWhilePriorTemplateSuccess401OrErrorIsPending', core)
-        self.assertEqual(read('Core/TemplateShelfReadApproval.swift').count('acceptsResult()'), 3)
+        self.assertEqual(read('Core/TemplateShelfReadApproval.swift').count('acceptsResult()'), 5)
