@@ -32,12 +32,12 @@ import SwiftUI
     private let coordinator: OrderLifecycleCoordinator
     @State private var revision = 0
     private let autoReview: OrderLifecycleAction?
-    init(autoReview: OrderLifecycleAction? = nil) {
+    init(autoReview: OrderLifecycleAction? = nil, scenario fixed: OrderLifecycleFixtureReader.Scenario? = nil) {
         self.autoReview = autoReview
         let arguments = ProcessInfo.processInfo.arguments
         let index = arguments.firstIndex(of: "--uitesting-order-lifecycle-scenario")
         let raw = index.flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
-        let scenario = raw.flatMap(OrderLifecycleFixtureReader.Scenario.init(rawValue:)) ?? .pending
+        let scenario = fixed ?? raw.flatMap(OrderLifecycleFixtureReader.Scenario.init(rawValue:)) ?? .pending
         let reader = OrderLifecycleFixtureReader(scenario: scenario)
         self.reader = reader
         coordinator = scenario == .unknown ? OrderLifecycleCoordinator(reader: reader, fixtureSimulator: OrderLifecycleUnknownFixtureSimulator()) : OrderLifecycleCoordinator(reader: reader)

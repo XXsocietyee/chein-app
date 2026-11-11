@@ -29,6 +29,7 @@ extension EnvironmentValues {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.openURL) private var openURL
     var body: some View {
+        let page = NearbyMerchantPage.resolve(phase: model.phase, rows: model.rows)
         List {
             Section {
                 // Mini opens with the privacy gate, then the result cards: purpose + consent stay one quiet block.
@@ -70,9 +71,9 @@ extension EnvironmentValues {
                     }.accessibilityElement(children: .combine).accessibilityIdentifier("nearbyMerchant.permissionDenied")
                 }
             }
-            if model.phase == .ready {
+            if page.phase == .ready || page.phase == .empty {
                 Section {
-                    if model.rows.isEmpty {
+                    if page.phase == .empty {
                         CYEmptyStateView(systemImage: "mappin.slash", title: "cooperation.nearby.empty", description: "cooperation.nearby.empty.detail")
                             .accessibilityIdentifier("cooperation.nearby.empty")
                     }
@@ -129,7 +130,7 @@ extension EnvironmentValues {
         VStack(alignment: .leading, spacing: CYSpacing.xs) {
             Text(verbatim: row.name).font(CYTypography.cardTitle).foregroundStyle(CYColor.textPrimary)
             if let address = row.address { Text(verbatim: address).font(CYTypography.meta).foregroundStyle(CYColor.textSecondary) }
-            if let distance = row.distance { Text("\(distance, specifier: "%.0f") m").font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
+            if let distance = NearbyMerchantPage.distanceText(row.distance) { Text(verbatim: distance).font(CYTypography.caption).monospacedDigit().foregroundStyle(CYColor.textTertiary) }
         }
     }
 }

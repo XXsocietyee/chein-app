@@ -104,6 +104,7 @@ enum DesignFixtureRegistry {
         // HERO roam (RoamFixtures): roam-go, roam-walking, roam-reveal, roam-sheet-half, roam-paused
         case let n where n.hasPrefix("roam-") && RoamFixtures.make(n) != nil: return RoamFixtures.make(n)!
         default:
+            if let gap = MainActor.assumeIsolated({ CoreGapPageFixtures.make(name) }) { return gap }
             if let e4 = MainActor.assumeIsolated({ E4Fixtures.make(name) }) { return e4 }
             if let e4p = MainActor.assumeIsolated({ E4PurchaseFixtures.make(name) }) { return e4p }
             if let e4l = MainActor.assumeIsolated({ E4LoadingFixtures.make(name) }) { return e4l }
@@ -272,5 +273,54 @@ struct E4ComplianceFixture: View {
         }
         .onAppear { if model == nil { model = makeModel() } }
     }
+}
+// MARK: core-gap page fixtures (kept in this file so no project file change is needed)
+
+/// Order info, points history, invite history and nearby merchants over the Core page models.
+/// DEBUG only, synthetic data. `--design-fixture core-order-info | core-order-info-unknown | core-points-history
+/// | core-invite-history[-partial|-zero|-unavailable] | core-nearby-merchant | core-nearby-merchant-empty`.
+enum CoreGapPageFixtures {
+    @MainActor static func make(_ name: String) -> AnyView? {
+        switch name {
+        case "core-order-info": return AnyView(OrderLifecycleFixtureHostView(scenario: .paid))
+        // The expired scenario carries no amount or times: every unknown is an em dash, never 0.
+        case "core-order-info-unknown": return AnyView(OrderLifecycleFixtureHostView(scenario: .expired))
+        case "core-points-history": return AnyView(WalletCommerceFixtureHost(designPage: "points"))
+        case "core-invite-history": return AnyView(ProfileInviteRewardReviewFixtureHost(scenario: "complete"))
+        case "core-invite-history-partial": return AnyView(ProfileInviteRewardReviewFixtureHost(scenario: "partial"))
+        case "core-invite-history-zero": return AnyView(ProfileInviteRewardReviewFixtureHost(scenario: "zero"))
+        case "core-invite-history-unavailable": return AnyView(ProfileInviteRewardReviewFixtureHost(scenario: "unavailable"))
+        case "core-nearby-merchant": return AnyView(CoreGapNearbyFixtureHost(empty: false))
+        case "core-nearby-merchant-empty": return AnyView(CoreGapNearbyFixtureHost(empty: true))
+        default: return nil
+        }
+    }
+}
+
+@MainActor private final class CoreGapNearbyFixtureReader: CoopFlowReading {
+    let session: CoopFlowSession? = try? CoopFlowSession(accountID: 101, epoch: 1, token: "synthetic-nearby")
+    let empty: Bool
+    init(empty: Bool) { self.empty = empty }
+    func read(_ resource: CoopFlowRead) async throws -> CoopFlowJSON {
+        if empty { return .array([]) }
+        // One row with a distance, one without (no distance line), one literal 0 m.
+        return .array([
+            .object(["id": .id(1), "memberId": .id(41), "name": .string("Synthetic cafe"), "address": .string("1 Fixture Road"), "distance": .string("350")]),
+            .object(["id": .id(2), "name": .string("Synthetic studio"), "address": .string("2 Fixture Road")]),
+            .object(["id": .id(3), "memberId": .id(43), "name": .string("Synthetic arcade"), "distance": .string("0")])
+        ])
+    }
+    func settlement(source: CoopFlowSettlement.Source, id: Int) async throws -> CoopFlowSettlement { throw CoopFlowFailure.unavailable }
+}
+@MainActor private final class CoreGapNearbyFixtureLocation: RoamDeviceLocationProviding {
+    func currentFix() async throws -> RoamDeviceFix { try RoamDeviceFix(coordinate: RoamCoordinate(latitude: 31.2, longitude: 121.4)!, accuracyMeters: 10, measuredAt: Date(), datum: .gcj02) }
+    func stop() {}
+}
+@MainActor private struct CoreGapNearbyFixtureHost: View {
+    @State private var model: NearbyMerchantCoordinator
+    init(empty: Bool) {
+        _model = State(initialValue: NearbyMerchantCoordinator(reader: CoreGapNearbyFixtureReader(empty: empty), location: CoreGapNearbyFixtureLocation(), approved: { true }))
+    }
+    var body: some View { NavigationStack { NearbyMerchantView(model: model) } }
 }
 #endif
