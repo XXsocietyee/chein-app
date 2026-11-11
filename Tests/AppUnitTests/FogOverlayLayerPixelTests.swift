@@ -119,16 +119,25 @@ import UIKit
             let warm = (start.x..<min(start.x + 100, pixels.width)).contains { x in
                 let p = pixels.rgba(x, start.y); return p[3] > 40 && Int(p[0]) > Int(p[2]) + 15
             }
-            XCTAssertTrue(warm, "a warm ring marks the frontier in \(appearance)")
+            XCTAssertTrue(warm, "a warm rim marks the frontier in \(appearance)")
+            // Thin rim, not a thick stroke: only a few pixels are strongly warm; the bloom around it is faint.
+            let strong = (start.x..<min(start.x + 100, pixels.width)).filter { x in
+                let p = pixels.rgba(x, start.y); return p[3] > 80 && Int(p[0]) > Int(p[2]) + 40
+            }.count
+            XCTAssertGreaterThanOrEqual(strong, 1, "\(appearance)")
+            XCTAssertLessThanOrEqual(strong, 10, "rim must be ~2-3 pt, not an 8 pt outline (\(appearance))")
         }
     }
 
     func testPendingCellsAreClearWithADashedOutlineNotAHatchBlock() throws {
-        let pendingCode = try XCTUnwrap(RoamCoordinate(latitude: 31.2304, longitude: 121.4856).flatMap { RoamExperienceMath.tileKey($0) })
+        // An isolated cell ~460 m south of the walk, well inside the viewport and clear of the confirmed row, so its
+        // outline is not merged into confirmed ground. Its centre goes through the same projection the layer uses.
+        let pendingCode = try XCTUnwrap(RoamCoordinate(latitude: 31.2262, longitude: 121.4777).flatMap { RoamExperienceMath.tileKey($0) })
         let pending = try FogFixtures.bitmap([pendingCode])
         let pixels = try render(mask(confirmed: try walk(), pending: pending), appearance: .night)
         let c = try centre(of: pendingCode)
         let p = screenPoint(latitude: c.latitude, longitude: c.longitude)
+        XCTAssertTrue((50..<(pixels.width - 50)).contains(p.x) && (50..<(pixels.height - 50)).contains(p.y), "sample window must be fully on screen, got \(p)")
         for dy in -5...5 { for dx in -5...5 { XCTAssertLessThanOrEqual(pixels.alpha(p.x + dx, p.y + dy), 40, "interior of an unconfirmed cell is clear, not hatched") } }
         var dashes = 0
         for dy in -45...45 { for dx in -45...45 {
@@ -136,6 +145,10 @@ import UIKit
             if q[3] > 100 && q[0] > 120 && q[2] > 120 { dashes += 1 }
         } }
         XCTAssertGreaterThan(dashes, 12, "the dashed outline must be visible, state is not colour-only")
+        // Far from the cell there are no dashes: the outline hugs the cell, it is not a screen-wide pattern.
+        var far = 0
+        for dy in 0..<30 { for dx in 0..<30 { let q = pixels.rgba(dx, dy); if q[3] > 100 && q[0] > 120 && q[2] > 120 { far += 1 } } }
+        XCTAssertEqual(far, 0)
     }
 
     func testSoftEdgeRollsOffMonotonicallyAcrossTheBoundary() throws {
@@ -154,13 +167,17 @@ import UIKit
 
     func testFeatherMathKeepsInteriorClearAndOutsideFogged() {
         XCTAssertEqual(FogFeather.smooth(0), 0); XCTAssertEqual(FogFeather.smooth(1), 1)
+        XCTAssertEqual(FogFeather.rim(0.5), 1, accuracy: 0.0001); XCTAssertLessThan(FogFeather.rim(0.3), FogFeather.ring(0.3))
+        XCTAssertEqual(FogFeather.bloom(0.5), 1, accuracy: 0.0001); XCTAssertEqual(FogFeather.bloom(1), 0)
         XCTAssertEqual(FogFeather.ring(0), 0); XCTAssertEqual(FogFeather.ring(1), 0); XCTAssertEqual(FogFeather.ring(0.5), 1, accuracy: 0.0001)
-        var field = [Float](repeating: 0, count: 41 * 41)
-        for y in 15...25 { for x in 15...25 { field[y * 41 + x] = 1 } }
-        let blurred = FogFeather.blur(field, w: 41, h: 41, radius: 4)
-        XCTAssertGreaterThan(FogFeather.smooth(blurred[20 * 41 + 20]), 0.99)
+        // A cell is ~2.5 blur sigmas wide in the real mask (radius = 0.38 cell); the buffer here keeps that ratio.
+        let n = 61
+        var field = [Float](repeating: 0, count: n * n)
+        for y in 21...39 { for x in 21...39 { field[y * n + x] = 1 } }
+        let blurred = FogFeather.blur(field, w: n, h: n, radius: 4)
+        XCTAssertGreaterThan(FogFeather.smooth(blurred[30 * n + 30]), 0.99)
         XCTAssertEqual(FogFeather.smooth(blurred[0]), 0)
-        XCTAssertLessThan(blurred[15 * 41 + 15], blurred[20 * 41 + 15], "corner is weaker than the edge middle")
+        XCTAssertLessThan(blurred[21 * n + 21], blurred[30 * n + 21], "corner is weaker than the edge middle")
     }
 
     // MARK: Geometry
