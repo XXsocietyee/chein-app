@@ -235,7 +235,9 @@ def scan(root=ROOT):
                         found['key_missing_everywhere'].append((rel, lit.line, text, table))
             elif (callee in ('Text', 'Button', 'Label') and lit.argidx == 0 and not lit.label
                   and re.search(r'[A-Za-z]{3,} [A-Za-z]{2,}', text)
-                  and text not in tables['Localizable']):
+                  and text not in tables['Localizable']
+                  # A same-line Chinese sibling branch (`zh ? "中文" : "English"`) is an explicit bilingual pair, not an implicit key.
+                  and not CJKH.search(src.splitlines()[lit.line - 1])):
                 found['english_literal_not_in_catalog'].append((rel, lit.line, text, 'Localizable'))
     found['incomplete_entries'] = incomplete_entries(tables)
     return found

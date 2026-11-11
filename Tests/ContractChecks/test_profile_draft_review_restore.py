@@ -24,7 +24,7 @@ class ProfileDraftReviewRestoreContracts(unittest.TestCase):
         s=read('Core/ProfileEditReviewSummary.swift')
         for token in ['before: .present(!snapshot.avatar.isEmpty), after: .newAvatar',
                       'before: .present(!snapshot.wechat.isEmpty), after: .present(false)',
-                      'before: .imageCount(ProfileCasePortfolio(casePics: snapshot.casePics).imageCount), after: .imageCount(0)']:
+                      'before: .imageCount(ProfileCasePortfolio(casePics: snapshot.casePics).imageCount), after: .imageCount(ProfileCasePortfolio(casePics: payload.casePics).imageCount)']:
             self.assertIn(token,s)
         for token in ['.text(snapshot.avatar)', '.text(snapshot.wechat)', '.text(snapshot.casePics)', '.text(payload.avatar)']:
             self.assertNotIn(token,s)
@@ -61,7 +61,7 @@ class ProfileDraftReviewRestoreContracts(unittest.TestCase):
                       'captured.identity == coordinator.identity, captured.viewerRevision == coordinator.viewerRevision']:
             self.assertIn(token,s)
     def test_local_restore_is_atomic_and_stays_in_editor(self):
-        s=section('App/ProfileEditView.swift','func restoreReviewedDraft','    func save(')
+        s=section('App/ProfileEditView.swift','func restoreReviewedDraft','    @discardableResult func save(')
         for token in ['guard canRestoreReviewedDraft(value), let snapshot = coordinator.discardReviewedDraft(value)',
                       'reviewedDraft = nil; confirmation = nil', 'retireReload(); retireAvatar(); activateAvatar()',
                       'draft = snapshot.draft; revision += 1']:
@@ -70,8 +70,8 @@ class ProfileDraftReviewRestoreContracts(unittest.TestCase):
             self.assertNotIn(token,s)
     def test_retirement_and_save_drop_restoration_capability(self):
         s=read('App/ProfileEditView.swift')
-        self.assertIn('func retireAvatar() { cancelExit(); reviewedDraft = nil;',s)
-        self.assertIn('let request = generation; reviewedDraft = nil; confirmation = nil; busy = true',s)
+        self.assertIn('private func retireAvatarResources() { retirePreferencePicker(); retireSavedReturn(); cancelExit(); reviewedDraft = nil;',s)
+        self.assertIn('reviewedDraft = nil; confirmation = nil; busy = true',s)
         self.assertIn('await coordinator.save(value)',s)
     def test_comparison_and_separate_discard_confirmation_are_native_and_local(self):
         s=read('App/ProfileDraftReviewSection.swift')
@@ -87,7 +87,7 @@ class ProfileDraftReviewRestoreContracts(unittest.TestCase):
         self.assertIn('ProfileDraftReviewSection(summary: value.reviewSummary,',s)
         self.assertIn('canRestore: model.canRestoreReviewedDraft(value)',s)
         self.assertIn('restore: { _ = model.restoreReviewedDraft(value) })\n                        .id(value.id)',s)
-        self.assertIn('Button { Task { await model.save(value) } }',s)
+        self.assertIn('guard let receipt = await model.save(value), model.consumeSavedReturn(receipt) else { return }',s)
         self.assertIn('model.coordinator.cancel(value); model.confirmation = nil',s)
     def test_fragment_has_fifteen_bilingual_keys_and_no_central_changes(self):
         rows=json.loads(read('Resources/ProfileDraftReviewRestoreLocalizations.fragment.json'));self.assertEqual(len(rows),15)

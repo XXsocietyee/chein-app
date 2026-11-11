@@ -24,14 +24,15 @@ class ProfileSelfMedalsSourceChecks(unittest.TestCase):
   self.assertIn('profileReader: profileReader, isCurrent: isCurrent()) == captured',self.core)
   self.assertIn('let wall = try await profileReader.profileBadges()\n            guard current() else { return }',self.core)
  def test_nil_medals_is_partial_not_empty(self):
-  self.assertIn('guard let rows = wall.medals else { issue = .partial; return }',self.core)
+  self.assertIn('guard let rows = wall.medals else {\n                if wall.medalReadRestriction != nil { medals = nil }\n                issue = .partial; return\n            }',self.core)
   self.assertNotIn('wall.medals ?? []',self.core)
  def test_successful_empty_replaces_rows(self):
   self.assertIn('medals = rows',self.core);self.assertNotIn('medals +=',self.core)
  def test_unauthorized_clears_old_rows(self):
   self.assertIn('error as? APIError == .unauthorized',self.core);self.assertIn('isUnauthorized == true',self.core);self.assertIn('medals = nil; issue = .signIn',self.core)
  def test_generic_failure_retains_but_labels_rows(self):
-  self.assertIn('else { issue = .readFailed }',self.core);self.assertIn('if model.medals != nil { Text("profile.selfMedals.retained")',self.view)
+  # A restricted read clears rows; any other generic failure retains them and labels them.
+  self.assertIn('if ProfileMedalReadRestriction.classify(error) != nil { medals = nil }\n                issue = .readFailed',self.core);self.assertIn('if model.medals != nil { Text("profile.selfMedals.retained")',self.view)
  def test_suspend_keeps_navigation_rows_and_retires_generation(self):
   self.assertIn('public func suspend() { generation &+= 1; isLoading = false }',self.core)
   self.assertIn('.onDisappear { model.suspend() }',self.view)
@@ -47,7 +48,8 @@ class ProfileSelfMedalsSourceChecks(unittest.TestCase):
   self.assertIn('profile.selfMedals.refresh',self.view);self.assertIn('if medals.isEmpty { Text("profile.selfMedals.empty")',self.view)
  def test_normal_account_injection_and_tab(self):
   self.assertIn('selfMedalsReader: session.profileReader',self.account)
-  self.assertIn('case .achievements:\n                        if let selfMedalsReader',self.public)
+  self.assertIn('case .achievements:',self.public)
+  self.assertIn('if let selfMedalsReader {\n                            ProfileSelfMedalsSection(',self.public)
   self.assertIn('profileReader: selfMedalsReader, isCurrent: isCurrent)',self.public)
  def test_other_callers_default_to_no_private_reader(self):
   self.assertIn('var selfMedalsReader: (any ProfileReading)? = nil',self.public)

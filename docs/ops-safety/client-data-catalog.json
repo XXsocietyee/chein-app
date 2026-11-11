@@ -68,6 +68,15 @@
       "deletion": "退出/注销清理路径未逐项核验 / logout & deregistration cleanup not verified per store"
     },
     {
+      "file": "App/GlobalSearchView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Remembers the last four map entry routes (city, nearby, layers, shops) under globalSearch.recentRoutes.v1 to order the shortcut shelf; route names only, no search text or location",
+      "retention": "Device-local; at most 4 route names, overwritten by use; removed when the app is deleted",
+      "deletion": "No in-app deletion yet (pending privacy review)"
+    },
+    {
       "file": "App/ImageUploadSecureStorage.swift",
       "kinds": [
         "keychain"
@@ -93,6 +102,15 @@
       "purpose": "Session token; deployment-scoped Keychain, no legacy migration",
       "retention": "Until logout/expiry (code); policy 待隐私评审确定 / pending privacy review",
       "deletion": "Cleared by session logout path; device verification NOT_RUN"
+    },
+    {
+      "file": "App/LanguageSwitcher.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Reads and writes the app language preference through @AppStorage(AppLanguage.storageKey)",
+      "retention": "Device-local until changed or the app is deleted",
+      "deletion": "Changing the language overwrites it; removed when the app is deleted"
     },
     {
       "file": "App/NativeChannelReportJournalKeys.swift",
@@ -255,6 +273,33 @@
       "purpose": "Client audit / consent / recovery metadata (W01.1 / W09.6)",
       "retention": "pending privacy review (session or explicit account scope)",
       "deletion": "pending privacy review (cleared on sign-out or account deregistration)"
+    },
+    {
+      "file": "App/WelcomeView.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Records that onboarding was completed (onboarding.completed.v1, a boolean) so the welcome flow is not shown again",
+      "retention": "Device-local until the app is deleted",
+      "deletion": "No in-app deletion (pending privacy review)"
+    },
+    {
+      "file": "Core/AccountScopedPersistence.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Account-scoped play-continuation index (play.continuation.<namespace>.<account>.<role>.scopes/.titles/.envelope) and its persistence ledger (questify.persistence.ledger.v1.*)",
+      "retention": "Device-local, scoped to namespace and account",
+      "deletion": "Deleted for the previous account on a real account switch only; logout, first login and same-account relogin do not delete"
+    },
+    {
+      "file": "Core/AppPreferences.swift",
+      "kinds": [
+        "userDefaults"
+      ],
+      "purpose": "Persists the app language preference (AppLanguage.storageKey) shared by Settings, the language switcher and the app root",
+      "retention": "Device-local until changed or the app is deleted",
+      "deletion": "Changing the language overwrites it; removed when the app is deleted"
     },
     {
       "file": "Core/AppStorePrivacyManifestAndPermissionAudit.swift",

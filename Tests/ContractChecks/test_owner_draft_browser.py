@@ -15,7 +15,7 @@ class OwnerDraftBrowserContracts(unittest.TestCase):
         self.assertEqual(envelope, {'code': 200, 'token': 'synthetic-7', 'data': {'id': 7}})
         service = self.source('Core/AuthChannelService.swift')
         self.assertIn('let account = body.data, account.id > 0', service)
-        self.assertIn('try await service.currentAccount(token: result.token)', self.source('Core/AuthChannelCoordinator.swift'))
+        self.assertIn('try await service.currentAccount(token: result.token, loginFallbackRole: fallbackRole)', self.source('Core/AuthChannelCoordinator.swift'))
     def test_migrated_feature_helpers_require_success_and_exact_auth_requests(self):
         for name in ['AppCompositionRootTests', 'PrivateHomeCompositionTests', 'PublicTemplateCompositionTests',
                      'PublicTemplateDetailAppTests', 'SocialMemberActionAppTests', 'OwnerDraftCompositionTests']:
