@@ -9,7 +9,7 @@ class NativeRepairBatchIntegrationTests(unittest.TestCase):
   s=self.read('App/AppSession.swift');self.assertIn('lazy var objectCardReader = makeObjectCardReader()',s);self.assertIn('self.currentObjectCardSession == captured',s)
   self.assertIn('socialReaderApproval: SocialReaderProductionApproval? = nil', self.read('App/NativeRuntimeDependencies.swift'))
   self.assertIn('approval.objectCards', self.read('Core/SocialReaderProduction.swift'))
-  self.assertIn('}).id(session.sessionRevision)',self.read('App/QuestifyApp.swift'))
+  self.assertIn('presentsTicketPass:$deepLinkTicketPass).id(session.sessionRevision)',self.read('App/QuestifyApp.swift'))  # Passport tab root (was AccountView) keeps the session-epoch identity
  def test_badge_wall_has_reviewed_media_boundary(self):
   self.assertIn('ObjectBadgeWallView(reader: reader)',self.read('App/ProfileAccountLinks.swift'))
   self.assertNotIn('AsyncImage(',self.read('App/ObjectCardViews.swift'))
