@@ -58,7 +58,12 @@ class PlayKitAuthoringLegacyChecks(unittest.TestCase):
     def test_scan_preserves_returned_image_without_fake_ar(self):
         ui=self.read('App/PlayKitPersonalForms.swift')
         self.assertIn('artwork(raw["overlayUrl"].text)',ui)
-        self.assertIn('playkitLegacy.scan.staticFallback',ui)
+        # The static-image note gave way to real camera overlay / spatial reveal controls, each gated on device
+        # support, an approved host or spatial approval, and a current owner; the returned image stays a plain artwork.
+        self.assertIn('PlayKitScanOverlay(segment: raw, approvedHosts: approvedArtworkHosts)',ui)
+        self.assertIn('cameraEnabled: device?.supports(.scan) == true, active: model.isCurrent',ui)
+        self.assertIn('if ["PLANE", "MARKER"].contains(raw["arMode"].text ?? "") {',ui)
+        self.assertIn('PlayKitSpatialRevealButton(segment: raw, approval: spatialApproval, identity: runtimeIdentity, active: model.isCurrent)',ui)
         self.assertNotIn('ARWorldTrackingConfiguration',ui)
     def test_localizations_cover_literal_new_ui(self):
         strings=json.loads(self.read('docs/playkit-authoring-legacy-localizations.json'))
