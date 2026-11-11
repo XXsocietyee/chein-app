@@ -39,7 +39,10 @@ func revealFixtureElement(_ element: XCUIElement, in app: XCUIApplication,
         let hierarchy = descendants(snapshot)
         // One AX generation: later in-screen bars belong to the presented layer.
         func foregroundBarFrame(_ type: XCUIElement.ElementType) -> CGRect? {
-            hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) }?.frame
+            // A screen-sized Toolbar/NavigationBar is a SwiftUI container wrapper (e.g. the welcome
+            // screen's hidden toolbar), not a bar occluding content; it would collapse the viewport.
+            let frame = hierarchy.last { $0.elementType == type && !$0.frame.isEmpty && screen.intersects($0.frame) }?.frame
+            return frame.flatMap { $0.height < screen.height / 2 ? $0 : nil }
         }
         if let frame = foregroundBarFrame(.navigationBar) { bounds.origin.y = max(bounds.minY, frame.maxY + 4) }
         var bottom = screen.maxY - 40
