@@ -18,7 +18,7 @@ def defects(section):
         found.append("draft_query_used")
     schedule = section.split("private func scheduleLoad()", 1)[1].split("private func load()", 1)[0]
     required_order = ["guard isVisible else { return }", "pendingLoad?.cancel()",
-                      "model.clear()", "model.loading = true", "let scope = reader.scope", "pendingLoad = Task {"]
+                      "model.clear()", "model.markLoading()", "let scope = reader.scope", "pendingLoad = Task {"]
     offsets = [schedule.find(token) for token in required_order]
     if -1 in offsets or offsets != sorted(offsets):
         found.append("replacement_not_synchronously_loading")
@@ -46,7 +46,7 @@ class WalletProductSearchGrokR1Tests(unittest.TestCase):
 
     def test_missing_synchronous_loading_is_detected(self):
         self.assertIn("replacement_not_synchronously_loading", defects(
-            self.section.replace("model.loading = true", "", 1)))
+            self.section.replace("model.markLoading()", "", 1)))
 
     def test_draft_request_regression_is_detected(self):
         self.assertIn("draft_query_used", defects(

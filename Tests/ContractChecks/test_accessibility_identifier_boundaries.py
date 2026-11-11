@@ -12,6 +12,10 @@ class IdentifierBoundaryTests(unittest.TestCase):
         self.assertNotIn('}.padding(.vertical, 10).accessibilityIdentifier',source)
         self.assertNotIn('.accessibilityIdentifier("accountCollection.favorites.moreError")',(ROOT/'App/AccountCollectionFavoritesView.swift').read_text())
     def test_ticket_notice_query_targets_text_not_decorative_image(self):
-        self.assertIn('reveal(app.staticTexts["ticketWallet.redemption.notice"])',(ROOT/'Tests/AppUITests/TicketWalletFlowTests.swift').read_text())
+        ui=(ROOT/'Tests/AppUITests/TicketWalletFlowTests.swift').read_text()
+        # The notice is found by its copy across every element type, never by the decorative info image.
+        self.assertIn('revealText("Redemption codes are not available in this native version yet")',ui)
+        self.assertNotIn('app.images["ticketWallet.redemption.notice"]',ui)
+        self.assertIn('Image(systemName: "info.circle").accessibilityHidden(true)',(ROOT/'App/TicketWalletDetailView.swift').read_text())
     def test_raw_translation_key_assertion_checks_label(self):
         self.assertIn('NSPredicate(format: "label == %@", "square.empty")',(ROOT/'Tests/AppUITests/SquareFlowTests.swift').read_text())
