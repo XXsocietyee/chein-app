@@ -89,20 +89,27 @@ class ClubOperationsSourceChecks(unittest.TestCase):
     def test_ui_has_native_review_unknown_lock_and_accessibility(self):
         ui = self.text('App/ClubOperationsViews.swift') + self.text('App/ClubOperationsReviewView.swift')
         for required in ['.sheet(item:', '.interactiveDismissDisabled(', 'accessibilityIdentifier', 'accessibilityReduceMotion', 'QuestifyImageEntityCard', '.confirmationDialog(', 'TextField(', 'Toggle(', 'Picker(']: self.assertIn(required,ui)
-        self.assertNotIn('.stroke(',ui); self.assertNotIn('allowsHitTesting(false)',ui)
+        # Design-system card chrome may stroke only with a CYColor token; no ad-hoc drawn controls.
+        for stroke in re.findall(r'\.stroke\([^)]*\)',ui): self.assertTrue(stroke.startswith('.stroke(CYColor.'),stroke)
+        self.assertNotIn('allowsHitTesting(false)',ui)
         coordinator = self.text('Core/ClubOperationsCoordinator.swift')
         self.assertIn('let accountID: Int; let target: ClubOperationsTarget',coordinator)
         self.assertIn('record.identity != identity',coordinator)
         self.assertIn('records[key]?.readGeneration == run',coordinator)
     def test_all_literal_ui_keys_and_canonical_values_have_bilingual_copy(self):
         catalog = json.loads(self.text('docs/club-operations-localizations.json'))
+        product = json.loads(self.text('Resources/Localizable.xcstrings'))['strings']
         for value in catalog.values(): self.assertEqual(set(value),{'en','zh-Hans'}); self.assertTrue(all(value.values()))
         ui = ''.join(p.read_text() for p in (ROOT/'App').glob('ClubOperations*.swift'))
         keys = set(re.findall(r'"(club\.ops\.[A-Za-z][A-Za-z0-9.]*)"',ui))
         for key in keys:
             if key in catalog or key.endswith('.') or any(t in key for t in ['openCreate','openManage','loading','error','setting.','member.','writeCount','fixtureNotice','field.','fixture.workspace','reviewSheet','confirm','cancelReview']): continue
             # Localized text and test identifiers are intentionally separate.
-            self.assertTrue(key in catalog, key)
+            if key not in catalog:
+                # Newer keys live in the product string catalog; they must carry both languages.
+                row = product.get(key); self.assertIsNotNone(row, key)
+                for language in ('en','zh-Hans'): self.assertTrue(row['localizations'][language]['stringUnit']['value'], key)
+            self.assertTrue(key in catalog or key in product, key)
     def test_integration_wires_retained_session_and_fixture(self):
         # Additive files are valid in isolation; assert host wiring once merged.
         if not (ROOT/'App/AppSession.swift').exists(): self.skipTest('isolated overlay: host integration checked after merge')
