@@ -173,7 +173,7 @@ import UIKit
         journal = NativeChannelTextJournal(storage: storage, scope: try .init(context: c, conversationID: 9))
     }
     func seedOriginal() throws -> MessageTextIntent {
-        let value = try MessageTextIntent(conversationID: 9, content: "original body", clientMessageID: "readonly-original-0001")
+        let value = try MessageTextIntent(conversationID: 9, content: "original body", clientMessageID: "b2c3d4e5f60718293a4b5c6d7e8f9a02")
         try journal.saveBeforeDispatch(value); return value
     }
     func makeFlow() async throws -> NativeChannelTextCoordinator {

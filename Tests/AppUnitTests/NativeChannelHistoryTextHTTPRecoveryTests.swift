@@ -190,7 +190,7 @@ import UIKit
         read = try .init(context: c, operation: .receipt, conversationIDs: [9], expiresAt: Date().addingTimeInterval(300))
         write = try .init(context: c, operation: .send, conversationIDs: [9], expiresAt: Date().addingTimeInterval(300))
         journal = NativeChannelTextJournal(storage: storage, scope: try .init(context: c, conversationID: 9))
-        original = try MessageTextIntent(conversationID: 9, content: "original body", clientMessageID: "history-text-http-0001")
+        original = try MessageTextIntent(conversationID: 9, content: "original body", clientMessageID: "a1b2c3d4e5f60718293a4b5c6d7e8f01")
         try journal.saveBeforeDispatch(original)
         let reader = MessagingSessionReader(service: MessagingService(configuration: try .init(baseURL: c.baseURL), transport: wire),
             currentSession: { try? .init(accountID: 7, epoch: 1, token: "synthetic-token") },

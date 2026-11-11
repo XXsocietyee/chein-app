@@ -73,7 +73,7 @@ final class ClubCommunityReadCompositionTests: XCTestCase {
         var sentCount = 0
         let transport = SpyReadHTTPTransport { _ in
             sentCount += 1
-            return (Data(#"{"code":200,"data":{"rows":[{"id":12,"clubId":3,"memberId":7,"nickname":"Ada","content":"Hello","version":1,"likeCount":0,"commentCount":0,"liked":false}],"total":1,"clubCount":1}}"#.utf8), 200)
+            return (Data(#"{"code":200,"data":{"rows":[{"id":12,"clubId":3,"memberId":7,"nickname":"Ada","content":"Hello","version":1,"likeCount":0,"commentCount":0,"liked":false,"isPinned":0}],"total":1,"clubCount":1}}"#.utf8), 200)
         }
         let fallback = ClubCommunityService(
             dormantBaseURL: URL(string: "https://disabled.invalid")!,
@@ -136,7 +136,7 @@ final class ClubCommunityReadCompositionTests: XCTestCase {
             switch path {
             case "/api/club/post/list":
                 listLoadCount += 1
-                return (Data(#"{"code":200,"data":{"rows":[{"id":55,"clubId":3,"memberId":7,"nickname":"Ada","content":"Round \#(listLoadCount)","version":\#(listLoadCount),"likeCount":1,"commentCount":1,"liked":false}],"total":1,"clubCount":1}}"#.utf8), 200)
+                return (Data(#"{"code":200,"data":{"rows":[{"id":55,"clubId":3,"memberId":7,"nickname":"Ada","content":"Round \#(listLoadCount)","version":\#(listLoadCount),"likeCount":1,"commentCount":1,"liked":false,"isPinned":0}],"total":1,"clubCount":1}}"#.utf8), 200)
             case "/api/club/post/comment/list":
                 return (Data(#"{"code":200,"data":{"rows":[{"id":88,"postId":55,"memberId":8,"nickname":"Bob","content":"Detail comment"}],"total":1,"clubCount":1}}"#.utf8), 200)
             case "/api/club/post/history":
