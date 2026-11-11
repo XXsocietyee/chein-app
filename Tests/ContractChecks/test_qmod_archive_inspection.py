@@ -340,8 +340,12 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
         self.assertIn("isProposal: true", self.contract)
         self.assertIn("QmodManifest(data:", self.core)
         self.assertIn("fileImporter", self.app)
-        self.assertIn("fixedServerDenialText", self.app)
-        self.assertIn("不是正式业务规则", self.app)
+        # The report screen shows the local outcome text, which states it is not a server submission; the fixed
+        # server-denial and limit-profile notes stay in the core report model.
+        self.assertIn("fixedServerDenialText", self.core)
+        self.assertIn("不是正式业务规则", self.core)
+        self.assertIn("Text(verbatim: report.outcomeText)", self.app)
+        self.assertIn("这不是服务器提交成功", self.core)
         self.assertNotIn("UploadModDraft(", self.core + self.app)
         self.assertNotIn("ValidateModPackage(", self.core + self.app)
 
@@ -402,7 +406,7 @@ class QmodArchiveInspectionContracts(unittest.TestCase):
     def test_new_pick_retires_the_previous_selection(self):
         for ident in ("qmod.authorImport.pick", "qmod.authorImport.replace"):
             window = self.app[:self.app.index(ident)]
-            action = window[window.rindex("Button(action:"):]
+            action = window[window.rindex("CYPillButton("):]
             self.assertIn("QmodFileImporterBinding(token: model.beginPicking())", action)
             self.assertNotIn("pickerPresentation", action)
         self.assertNotIn(".onDisappear", self.app)

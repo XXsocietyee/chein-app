@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 KEYS = {
-    'roam.private.new': ('NEW', 'NEW'),
+    'roam.private.new': ('NEW', '新'),
     'roam.private.loading': ('Reading…', '正在读取…'),
     'roam.private.readFailed': ("Couldn't read this yet. Try again.", '暂时没读到，请重试'),
     'roam.private.changedContext': ('Your sign-in changed. Reopen this page.', '登录状态已变化，请重新打开此页'),

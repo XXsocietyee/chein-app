@@ -46,12 +46,14 @@ class RoamMerchantDetailRetrySourceTests(unittest.TestCase):
 
     def test_close_context_replacement_and_full_reload_cancel_retry(self):
         self.assertIn('Button("roam.close") { merchantRetry.cancel(); dismiss() }', self.view)
-        self.assertIn('.onDisappear { merchantRetry.cancel();', self.view)
+        # Disappearing suspends reads, and suspendReads() cancels the retry first.
+        self.assertIn('.onDisappear { eventIsVisible = false; readsInForeground = false; eventPresentationID = UUID(); suspendReads() }', self.view)
+        self.assertIn('private func suspendReads() {\n        merchantRetry.cancel();', self.view)
         self.assertIn('.onChange(of: reader.identity) { _, _ in merchantRetry.cancel();', self.view)
         self.assertIn('.onChange(of: reader.searchArea) { _, _ in merchantRetry.cancel();', self.view)
         self.assertIn('latestReaderID = value; eventPresentationID = UUID(); merchantRetry.cancel()', self.view)
         self.assertIn('latestItem = value; eventPresentationID = UUID(); merchantRetry.cancel()', self.view)
-        self.assertIn('private func performLoad() async {\n        merchantRetry.cancel()', self.view)
+        self.assertIn('private func performLoad() async {\n        guard readsActive, !Task.isCancelled else { return }\n        merchantRetry.cancel()', self.view)
 
     def test_prior_wallet_navigation_and_translated_labels_are_retained(self):
         self.assertIn('featuredCouponWalletButton(place: renderedPlace, node: renderedNode, detail: detail)', self.view)

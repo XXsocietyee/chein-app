@@ -14,7 +14,10 @@ class ReviewPresentationTests(unittest.TestCase):
         ticket = view.split('private var ticketSection:')[1].split('private var waitlistSection:')[0]
         for token in ['TimelineView', 'available: flow.waitlistAvailable', 'status: flow.waitlistStatus', 'now: context.date']:
             self.assertIn(token, ticket)
-        self.assertIn('.disabled(flow.confirmationBlock != nil)', view)
+        # A blocked review keeps the full primary look but the tap is ignored and the reason is announced.
+        self.assertIn('let blocked = flow.confirmationBlock != nil', view)
+        self.assertIn('if blocked { blockedTaps += 1; return }', view)
+        self.assertIn('.accessibilityHint(blockReason(copy) ?? "")', view)
         self.assertIn('testUnreviewedOfferGuidanceExpiresWhileFormRemainsOpen', self.read('Tests/AppUITests/RegistrationWaitlistUITests.swift'))
     def test_expiry_fixture_is_armed_only_after_the_offered_ui_is_observed(self):
         fixture = self.read('App/RegistrationFixtureSupport.swift')
@@ -51,7 +54,7 @@ class ReviewPresentationTests(unittest.TestCase):
         source = self.read('App/RegistrationSheetView.swift')
         row = source.split('private struct RegistrationAmountRow: View')[1].split('private struct RegistrationIssueText:')[0]
         for token in ['Text(verbatim: deduction && amount != .zero ? "−\\(text)" : text)',
-                      '.foregroundStyle(Color.primary).accessibilityIdentifier(key + ".amount")',
+                      '.foregroundStyle(CYColor.textPrimary).accessibilityIdentifier(key + ".amount")',
                       'RegistrationUIMoney.display(amount, locale: locale, currencyCode: currencyCode)', 'if currencyCode == nil']:
             self.assertIn(token, row)
         self.assertNotIn('Color(red:', row)
