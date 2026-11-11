@@ -12,11 +12,22 @@ class BackendSyncSourceTests(unittest.TestCase):
    if p.name == 'RoamSubpagePresentation.swift':
     self.assertIn('guard (200..<300).contains(status) else { return .error }', value)
     continue
+   if p.name == 'ChinaReviewedRouteCapability.swift':
+    # Route-capability catalog (not a consumer): the snapshot read must stay recorded as a live, reviewed read.
+    self.assertIn('"/api/roam/share/snapshot": .liveInProduction', value)
+    continue
+   if p.name == 'AppCompositionRoot.swift':
+    # Reviewed composition gate for the anonymous read: production gates and the China market only.
+    self.assertIn('reviewed?.productionGatesEnabled == true && reviewed?.regional.market == .china', value)
+    continue
    self.assertNotIn('roam/share/snapshot', value, p)
  def test_topic_like_write_is_only_the_explicit_type0_unlike(self):
   # E01-19 consumers: explicit type only; the legacy blank-type toggle keeps failing on DELETE0.
   users = sorted(str(p.relative_to(ROOT)) for p, v in self.swift().items() if re.search(r'"api/topic/like"', v))
-  self.assertEqual(users, ['Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
+  # App/AppCompositionRoot.swift hosts the reviewed-route body validator that pins the same explicit type "0".
+  self.assertEqual(users, ['App/AppCompositionRoot.swift', 'Core/TopicLikeDirection.swift', 'Core/TopicUnlike.swift'])
+  root = (ROOT/'App/AppCompositionRoot.swift').read_text()
+  self.assertIn('case baseURL.appendingPathComponent("api/topic/like").absoluteString:\n            requiredKeys = ["id", "type"]; positiveKey = "id"; requiredTypeField = "0"', root)
   value = (ROOT/'Core/TopicUnlike.swift').read_text()
   self.assertIn('fields: ["id": String(topicID), "type": "0"]', value)
   self.assertIn('if envelope.code == 200 {\n            unresolved.remove(topicID); phase = .removed(topicID: topicID)', value)
