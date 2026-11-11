@@ -160,8 +160,8 @@ import UIKit
         let h = try Harness(); defer { h.clean() }; await h.login(); try h.approve()
         let p = WorkshopPaidProfessionalPresentation(), reference = try WorkshopPaidTextAppFixture.reference()
         let factory: WorkshopPaidProfessionalControllerFactory = { h.session.makeWorkshopPaidProfessionalController(reference:$0) }
-        let host = UIHostingController(rootView:NavigationStack { Form { WorkshopPaidProfessionalEntry(makeReference:{reference},makeController:factory,presentation:p) } })
-        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; window.rootViewController = host; window.makeKeyAndVisible(); defer { sceneWindow.retire() }; host.view.layoutIfNeeded()
+        let sceneWindow = try HostedNavigationSceneWindow(), window = sceneWindow.window; defer { sceneWindow.retire() }
+        let host = hostedMount(window, root: NavigationStack { Form { WorkshopPaidProfessionalEntry(makeReference:{reference},makeController:factory,presentation:p) } })
         p.open(makeReference:{reference},makeController:factory); let old = try XCTUnwrap(p.selection)
         await hostedWait { old.controller.phase == .history }
         XCTAssertEqual(old.controller.phase,.history); XCTAssertNotNil(host.presentedViewController)

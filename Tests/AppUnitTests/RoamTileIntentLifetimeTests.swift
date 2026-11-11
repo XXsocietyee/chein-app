@@ -172,9 +172,8 @@ import UIKit
         try await waitFor { state.rig.wire.cursors == [0, 0] && self.find("roam.experience.tiles.loaded", in: window) != nil }
     }
     private func mount(_ state: TileIntentHostState) -> UIWindow {
-        let host = UIHostingController(rootView: TileIntentHost(state: state))
         let window = UIWindow(frame: CGRect(x: 0, y: 0, width: 430, height: 1000))
-        window.rootViewController = host; window.makeKeyAndVisible(); host.loadViewIfNeeded(); host.view.layoutIfNeeded()
+        hostedMount(window, root: TileIntentHost(state: state))
         return window
     }
     private func close(_ window: UIWindow) { window.isHidden = true; window.rootViewController = nil }
