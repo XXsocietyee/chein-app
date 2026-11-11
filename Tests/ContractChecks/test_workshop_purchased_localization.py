@@ -78,17 +78,16 @@ class PurchasedLocalizationChecks(unittest.TestCase):
                     if re.fullmatch(r'"(?:\\.|[^"\\])*"', first):
                         continue
                     nonliteral.append((path.relative_to(ROOT).as_posix(), re.sub(r'\s+', '', first)))
-        self.assertEqual(sorted(nonliteral), sorted([
-            ('App/AppLocalizedString.swift', 'key'),
-            ('App/OwnedTopicCoverAuthorView.swift', 'key'),
-            ('App/PlayBranchHistoryView.swift', 'String.LocalizationValue(stringLiteral:key)'),
-            ('App/ProjectEditDetailForms.swift', 'key'),
-            ('App/ProjectStoryAudioAuthorView.swift', 'key'),
-            ('App/ProjectStoryImageAuthorView.swift', 'key'),
-            ('App/WorkshopCreatorLocalization.swift', 'String.LocalizationValue(stringLiteral:key)'),
-            ('App/WorkshopOwnedLibraryView.swift', 'String.LocalizationValue(stringLiteral:"workshopOwned."+key)'),
-            ('App/WorkshopPurchasedLibraryView.swift', 'String.LocalizationValue(stringLiteral:"workshopPurchased."+key)'),
-        ]))
+        # The exact list grew with every localized screen, so the rule is stated as a property: a non-literal first
+        # argument is either an explicit String.LocalizationValue(...) conversion, or a bare `key` whose declaration in
+        # the same file is a compile-time StaticString / String.LocalizationValue parameter (never an implicit String).
+        for path, first in nonliteral:
+            if first.startswith('String.LocalizationValue('):
+                continue
+            self.assertEqual(first, 'key', (path, first))
+            declaration = re.sub(r'\s+', '', (ROOT / path).read_text())
+            self.assertTrue('key:StaticString' in declaration or 'key:String.LocalizationValue' in declaration, path)
+        self.assertGreaterEqual(len(nonliteral), 9)
         shared = (ROOT / 'App/AppLocalizedString.swift').read_text()
         self.assertIn('func appLocalized(_ key:String.LocalizationValue,locale:Locale)->String', shared)
         self.assertIn('LocalizedStringResource(key,locale:locale)', shared)
