@@ -32,7 +32,7 @@ class ProfileSelfOrdersChecks(unittest.TestCase):
     def test_generation_scope_and_singleflight(self):
         for t in ['guard !isLoading else { return }','generation == stamp','loadedScope == reader.scope','!Task.isCancelled']:self.assertIn(t,self.core)
     def test_initial_unknown_empty_not_fabricated(self):self.assertIn('public private(set) var rows: [ProfileOrder]?',self.core);self.assertIn('rows = next',self.core)
-    def test_authentication_and_config_failure_clear(self):self.assertIn('if failure == .signIn || failure == .unavailable { rows = nil }',self.core)
+    def test_authentication_and_config_failure_clear(self):self.assertIn('if failure == .signIn || failure == .unavailable\n                || (error as? ProfileReadFailure)?.isDenied == true\n                || error as? APIError == .httpStatus(403) { rows = nil }',self.core)
     def test_stale_cards_cannot_navigate(self):
         self.assertIn('!isLoading, issue == nil, let rows',self.core);self.assertIn('ProfileSelfOrdersPreview(rows: rows).rows.contains(row)',self.core)
         self.assertIn('guard selected == nil, model.canOpen(order, reader: reader)',self.app)

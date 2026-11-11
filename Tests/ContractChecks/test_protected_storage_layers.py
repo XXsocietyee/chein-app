@@ -90,11 +90,11 @@ class ProtectedStorageLayerTests(unittest.TestCase):
 
     def test_ci_compiles_device_tests_and_reports_without_claiming_execution(self):
         workflow = (ROOT / '.github/workflows/native-ios.yml').read_text()
-        device = workflow.split('  device-build:')[1].split('  us-build:')[0]
+        # The device compile is now a matrix leg of the `platforms` job (kind == 'device'), still unexecuted.
+        device = workflow.split('- name: Compile unsigned device app and protected storage bundle')[1].split('- name: Compile and verify the US regional profile')[0]
         for token in ['-scheme QuestifyAppUnitTests', '-sdk iphoneos', "generic/platform=iOS",
-                      'CODE_SIGNING_ALLOWED=NO build-for-testing', 'if: always()',
-                      'steps.protected_storage_device_compile.outcome', 'report_protected_storage_coverage.py',
-                      'protected-storage-coverage-${{ github.sha }}']:
+                      'CODE_SIGNING_ALLOWED=NO build-for-testing', "matrix.kind == 'device'", 'always()',
+                      'steps.device.outcome', 'report_protected_storage_coverage.py']:
             self.assertIn(token, device)
         self.assertNotIn('test-without-building', device)
         self.assertNotIn('continue-on-error', device)
