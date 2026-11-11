@@ -20,6 +20,11 @@ class SquareStructureTests(unittest.TestCase):
         for key, row in fragment.items():
             self.assertEqual(actual[key], row)
             by_key[key] = {lang: row['localizations'][lang]['stringUnit']['value'] for lang in ['en', 'zh-Hans']}
+        # Keys authored straight into the shared catalog (after the side packets) count when both languages are present.
+        for key, row in actual.items():
+            units = row.get('localizations', {})
+            if key.startswith('square.') and key not in by_key and all(units.get(lang, {}).get('stringUnit', {}).get('value') for lang in ['en', 'zh-Hans']):
+                by_key[key] = {lang: units[lang]['stringUnit']['value'] for lang in ['en', 'zh-Hans']}
         # Only localized controls, labels and fixed string keys; IDs are excluded.
         for path in (ROOT / 'App').glob('Square*.swift'):
             source = path.read_text()

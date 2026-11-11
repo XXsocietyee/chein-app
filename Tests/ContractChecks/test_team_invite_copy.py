@@ -7,11 +7,16 @@ ROOT = Path(__file__).resolve().parents[2]
 class TeamInviteCopyContractTests(unittest.TestCase):
     def test_copy_is_only_synchronous_tap_and_local_only(self):
         source = (ROOT / 'App/TeamComponents.swift').read_text()
-        self.assertEqual(source.count('UIPasteboard.general'), 1)
+        # Copies go through the single local-only, expiring pasteboard route.
+        self.assertEqual(source.count('UIPasteboard.general'), 0)
+        self.assertEqual(source.count('LocalPasteboard.copy(value)'), 1)
+        board = (ROOT / 'App/LocalPasteboard.swift').read_text()
+        self.assertEqual(board.count('UIPasteboard.general'), 1)
+        self.assertIn('options: [.localOnly: true, .expirationDate: now.addingTimeInterval(lifetime)]', board)
+        self.assertIn('UTType.utf8PlainText.identifier: text', board)
         self.assertIn('Button("team.invite.copy") { copyInvitationCode(code) }', source)
         self.assertIn('model.copyInvitationCode(from: team, code: code, permit: copyPermit)', source)
-        self.assertIn('options: [.localOnly: true]', source)
-        self.assertIn('UTType.utf8PlainText.identifier: value', source)
+        # (local-only options and UTType now live in LocalPasteboard, asserted above)
         boundary = source.split('func copyInvitationCode(from team:', 1)[1].split('var reviewBinding:', 1)[0]
         self.assertLess(boundary.index('coordinator.synchronizeSession()'), boundary.index('guard let permit'))
         for guard in ['inviteCopyPermit == permit', 'permit.presentationID == presentationID', 'permit.scope == coordinator.scope', '!actionLocked', 'current.id == team.id', 'current.status == .recruiting', 'team.inviteCode == code', 'current.inviteCode == code', 'TeamLookup.validInvite(code)']:

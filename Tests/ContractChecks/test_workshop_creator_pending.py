@@ -62,7 +62,8 @@ class CreatorPendingContracts(unittest.TestCase):
   self.assertLess(s.index('declarationStore?.load()'),s.index('canReadProposals()'))
   self.assertLess(s.index('previewService.status'),s.index('self.refresh(life)'))
   self.assertIn('let available = read != nil',read('App/AppSession.swift'))
-  self.assertIn('Historical receipt only.',read('Resources/WorkshopCreatorPending.xcstrings'))
+  # An earlier declaration must still be labelled as history that does not imply current approval or listing.
+  self.assertIn("An earlier declaration. It doesn't mean the package is currently approved or listed.",read('Resources/WorkshopCreatorPending.xcstrings'))
  def test_creator_labels_use_explicit_named_tables_and_selected_locale(self):
   helper=read('App/WorkshopCreatorLocalization.swift')
   self.assertIn('table = "WorkshopCreatorPending"',helper);self.assertIn('table = "WorkshopCreatorConsent"',helper)
@@ -71,7 +72,7 @@ class CreatorPendingContracts(unittest.TestCase):
    s=read(path);self.assertIn('workshopCreatorLocalized(key, locale: locale)',s)
    self.assertNotRegex(s,r'\b(?:Text|Button|Section|Toggle|LabeledContent|ProgressView|navigationTitle)\("workshop(?:Creator|Pending)\.')
    self.assertNotIn('LocalizedStringKey(',s)
-  self.assertIn('Button(workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale))',read('App/TemplateAuthoringMineView.swift'))
+  self.assertIn('CYListRow(verbatim: workshopCreatorLocalized("workshopCreator.open", locale: creatorLocale))',read('App/TemplateAuthoringMineView.swift'))
   self.assertIn('testEveryCreatorLabelUsesItsNamedCatalogAndSelectedLanguage',read('Tests/AppUnitTests/WorkshopCreatorPendingNormalFlowTests.swift'))
  def test_fixture_stays_debug_and_does_not_register_a_network_client(self):
   for path in ['App/WorkshopCreatorPendingFixtureData.swift','App/WorkshopCreatorPendingFixtureSupport.swift']:

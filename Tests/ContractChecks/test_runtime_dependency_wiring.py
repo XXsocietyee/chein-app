@@ -43,12 +43,12 @@ class RuntimeDependencyWiringTests(unittest.TestCase):
         self.assertIn('cooperationNearbyDestination', self.read('App/QuestifyApp.swift'))
         self.assertIn('if let nearbyDestination { nearbyDestination() }', self.read('App/CooperationFlowWorkbench.swift'))
         view = self.read('App/NearbyMerchantView.swift')
-        for value in ['model.search(purposeAccepted: purposeAccepted)', 'ownerMemberID(owner)', 'row.memberID', '.onDisappear { cancel() }', 'phase == .background']:
+        for value in ['model.search(purposeAccepted: purposeAccepted)', 'model.publicHomeSelection(rowID: row.id)', 'nearbyMerchant.unlisted', '.onDisappear { cancel() }', 'phase == .background']:
             self.assertIn(value, view)
         self.assertNotIn('.task {', view)
     def test_nearby_requires_consent_fresh_real_fix_and_source_conversion(self):
         core = self.read('Core/NearbyMerchantCoordinator.swift')
-        for value in ['guard purposeAccepted', 'guard available', 'location.currentFix()', 'RuntimeLocationProjection.gcj02', 'reader.session == session', '.nearby(longitude:', 'phase == .locating ? .locationFailed : .failed', 'stamp == generation']:
+        for value in ['guard purposeAccepted', 'guard available', 'location.currentFix()', 'RuntimeLocationProjection.gcj02', 'reader.session == session', '.nearby(longitude:', 'static func failurePhase(during phase: Phase, error: Error) -> Phase', 'if phase == .locating {', 'return .locationFailed', 'stamp == generation']:
             self.assertIn(value, core)
         self.assertEqual(core.count('reader.read('), 1)
         self.assertNotIn('UserDefaults', core)
@@ -88,6 +88,6 @@ class RuntimeDependencyWiringTests(unittest.TestCase):
         for key, value in fragment.items():
             self.assertEqual(set(value['localizations']), {'en', 'zh-Hans'}); self.assertEqual(actual[key], value)
         self.assertEqual(self.read('Tests/CoreTests/RuntimeDependencyTests.swift').count('func test'), 8)
-        self.assertEqual(self.read('Tests/CoreTests/NearbyMerchantCoordinatorTests.swift').count('func test'), 10)
-        self.assertEqual(self.read('Tests/AppUnitTests/RuntimeDependencyAppTests.swift').count('func test'), 5)
+        self.assertEqual(self.read('Tests/CoreTests/NearbyMerchantCoordinatorTests.swift').count('func test'), 18)
+        self.assertEqual(self.read('Tests/AppUnitTests/RuntimeDependencyAppTests.swift').count('func test'), 17)
 if __name__ == '__main__': unittest.main()

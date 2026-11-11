@@ -27,9 +27,10 @@ def errors(source):
     contexts = [
         'guard active(expected, request) else { return false }\n' + ASSIGN + '            messageKey = isLocked',
         'guard active(expected, request) else { return }\n' + ASSIGN + '            messageKey = "profile.edit.loadFailed"',
-        'guard active(expected, request) else { return }\n' + ASSIGN + '            messageKey = "profile.edit.unknown"',
+        'guard active(expected, request) else { return nil }\n' + ASSIGN + '            messageKey = "profile.edit.loadFailed"',
+        'guard active(expected, request) else { return nil }\n' + ASSIGN + '            messageKey = "profile.edit.unknown"',
     ]
-    for context, count in zip(contexts, [1, 2, 1]):
+    for context, count in zip(contexts, [1, 1, 1, 1]):
         if source.count(context) != count:
             result.append('missing gated read-failure site')
     if source.count(ASSIGN) != 4:
@@ -91,7 +92,7 @@ def coordinator_byte_mutations(data):
     yield 'lost cancellation', data.replace(b'!Task.isCancelled', b'true', 1)
     yield 'unsafe error string', data.replace(b'(error as? ProfileReadFailure)?.message', b'error.localizedDescription', 1)
     yield 'empty filter removed', data.replace(b'!message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty', b'true', 1)
-    yield 'rewritten explanation', data.replace(b'return message\n    }\n    private func reconcile', b'return message.uppercased()\n    }\n    private func reconcile', 1)
+    yield 'rewritten explanation', data.replace(b'return message\n    }\n    @discardableResult private func reconcile', b'return message.uppercased()\n    }\n    @discardableResult private func reconcile', 1)
     for index, match in enumerate(re.finditer(re.escape(ASSIGN.encode()), data)):
         yield 'missing assignment ' + str(index), data[:match.start()] + data[match.end():]
     yield 'duplicate helper', data + HELPER.encode()
@@ -166,7 +167,7 @@ class ProfileReadFailureContracts(unittest.TestCase):
 
     def test_each_missing_active_fence_is_rejected(self):
         source = (ROOT / CORE).read_text()
-        matches = list(re.finditer(r'            guard active\(expected, request\) else \{ return(?: false)? \}\n(?=' + re.escape(ASSIGN) + ')', source))
+        matches = list(re.finditer(r'            guard active\(expected, request\) else \{ return(?: false| nil)? \}\n(?=' + re.escape(ASSIGN) + ')', source))
         self.assertEqual(len(matches), 4)
         for match in matches:
             self.assertTrue(errors(source[:match.start()] + source[match.end():]))
@@ -177,7 +178,7 @@ class ProfileReadFailureContracts(unittest.TestCase):
             ('(error as? ProfileReadFailure)?.message', 'error.localizedDescription'),
             ('(error as? ProfileReadFailure)?.message', 'String(reflecting: error)'),
             ('!message.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty', 'true'),
-            ('return message\n    }\n    private func reconcile', 'return message.uppercased()\n    }\n    private func reconcile'),
+            ('return message\n    }\n    @discardableResult private func reconcile', 'return message.uppercased()\n    }\n    @discardableResult private func reconcile'),
         ]:
             self.assertIn(old, source)
             self.assertTrue(errors(source.replace(old, new, 1)))

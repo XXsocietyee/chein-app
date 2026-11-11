@@ -22,7 +22,7 @@ class W204TicketWalletParity(unittest.TestCase):
         return self.catalog[key]['localizations']['zh-Hans']['stringUnit']['value']
 
     def test_source_copy_is_exact(self):
-        expected = {'ticketWallet.loading': '正在加载我的票', 'ticketWallet.empty': '还没有票',
+        expected = {'ticketWallet.loading': '加载中…', 'ticketWallet.empty': '票夹还是空的。报名活动后，票会放在这里。',
                     'ticketWallet.issue.login': '登录后查看票夹', 'ticketWallet.parity.error.title': '票夹没能打开',
                     'ticketWallet.parity.login.detail': '登录后可查看你报名的路线票和场次票',
                     'ticketWallet.parity.empty.detail': '去首页发现路线或报名场次，票会在这里出现。',
@@ -47,7 +47,7 @@ class W204TicketWalletParity(unittest.TestCase):
 
     def test_hint_and_title_are_presentation_only(self):
         self.assertIn('TicketWalletTitle(title: ticket.title, untitledKey: ticket.untitledKey)', self.view)
-        self.assertIn('if let hint = ticket.statusHintKey {', self.view)
+        self.assertIn('if let hint = ticket.statusHintKey, ticket.action == .detail {', self.view)
         body = self.copy.split('public extension TicketWalletTicket {', 1)[1]
         for forbidden in ['action', 'Task {', 'transport', 'URLRequest', 'send(']:
             self.assertNotIn(forbidden, body)

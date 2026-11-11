@@ -14,8 +14,16 @@ class NearbySourceChecks(unittest.TestCase):
             for language in ['en','zh-Hans']:
                 self.assertTrue(value['localizations'][language]['stringUnit']['value'],(key,language))
     def test_literal_localizations_resolve(self):
-        for key in set(re.findall(r'"(nearby\.[A-Za-z]+(?:\.[A-Za-z]+)*)"', UI)):
+        # Accessibility identifiers are not localization keys.
+        ui = re.sub(r'\.accessibilityIdentifier\("[^"]*"\)|(?:message|action)?[Ii]dentifier: "[^"]*"', '', UI)
+        mapping = json.loads((ROOT/'Resources/NearbyMapDiscovery.xcstrings').read_text())['strings']
+        for key in set(re.findall(r'"(nearby\.[A-Za-z]+(?:\.[A-Za-z]+)*)"', ui)):
             if key in ['nearby.section','nearby.serverMessage','nearby.message','nearby.fixture.destination','nearby.confirm'] or key.startswith('nearby.fixture.'):
+                continue
+            if key not in LOCAL:
+                # The map-discovery strings live in their own explicit table and must be looked up with it.
+                self.assertIn(key,mapping)
+                self.assertIn('LocalizedStringKey("'+key+'"), tableName: "NearbyMapDiscovery"',UI)
                 continue
             self.assertIn(key,LOCAL)
     def test_no_location_access_or_network_executor(self):

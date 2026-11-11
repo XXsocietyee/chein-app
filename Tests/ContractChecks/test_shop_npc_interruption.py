@@ -82,7 +82,7 @@ class ShopNPCInterruptionContracts(unittest.TestCase):
         body = function(source, 'invalidate')
         for token in ['transmission?.cancel()', 'active = false', 'isSuspended = false', 'pending = nil', 'messages = []']:
             self.assertIn(token, body)
-        self.assertIn('.onDisappear { invalidate() }', read('App/ShopNPCView.swift'))
+        self.assertIn('.onDisappear { cancelSensitiveConfirmation(); invalidate() }', read('App/ShopNPCView.swift'))
         host = read('App/ShopNPCSessionHost.swift')
         self.assertIn('.onDisappear { scriptedGuide?.retire(); scriptedGuide = nil; coordinator?.invalidate() }', host)
         self.assertIn('coordinator?.invalidate()', host)
@@ -109,7 +109,8 @@ class ShopNPCInterruptionContracts(unittest.TestCase):
 
     def test_no_new_provider_permission_persistence_or_merchant_identity_path(self):
         paths = ['Core/ShopNPCCoordinator.swift', 'Core/ShopNPCHTTP.swift', 'Core/ShopNPCAuthenticatedTransport.swift', 'App/ShopNPCView.swift']
-        source = '\n'.join(read(path) for path in paths)
+        # `.publicMerchantNPC` is the safety-disclosure surface name for this public NPC, not a merchant-owned NPC path.
+        source = '\n'.join(read(path) for path in paths).replace('SafetyDisclosurePolicy(surface: .publicMerchantNPC)', '')
         for forbidden in ['UserDefaults', 'FileManager', 'requestRecordPermission', 'requestAuthorization', 'MerchantNPC', 'bizId', 'merchantId', 'URLSession.shared']:
             self.assertNotIn(forbidden, source)
         contracts = read('Core/ShopNPCContracts.swift')
@@ -155,7 +156,7 @@ class ShopNPCInterruptionContracts(unittest.TestCase):
 
     def test_behavior_regressions_use_shipping_adapter_without_real_network(self):
         tests = read('Tests/CoreTests/ShopNPCInterruptionTests.swift')
-        self.assertEqual(tests.count('func test'), 21)
+        self.assertEqual(tests.count('func test'), 22)
         self.assertIn('ShopNPCAuthenticatedHTTPTransport(', tests)
         self.assertIn('CheckedContinuation<(Data, Int), Never>', tests)
         for name in ['testStopWaitingPreservesOriginalIDAndLateReplyCannotReplaceRetry', 'testAccountRoleNodeRunAndRevisionChangesPermanentlyInvalidate', 'testVoiceGrantRevocationWhileSuspendedPreventsResumeAndUpload', 'testInterruptedRegenerationPreservesOriginalAnswerAndReplacesItOnlyOnce']:
