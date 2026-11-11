@@ -507,7 +507,7 @@ enum WalletPayoutCapability { static let isOn = false }
                     .font(.subheadline.weight(.medium)).foregroundStyle(CYColor.textSecondary)
                 HStack(alignment: .firstTextBaseline, spacing: CYSpacing.sm) {
                     Text(verbatim: value.map { WalletNumberLocalization.text($0.text, locale: locale) } ?? "—")
-                        .font(.system(size: 44, weight: .bold, design: .rounded)).monospacedDigit()
+                        .font(CYTypography.data2XL).monospacedDigit()
                         .minimumScaleFactor(0.5).lineLimit(1)
                         .foregroundStyle(CYColor.textPrimary)
                     if value != nil { Text(verbatim: unit).font(.title3.weight(.semibold)).foregroundStyle(CYColor.textSecondary) }
