@@ -71,9 +71,10 @@ class MerchantTemplateBrowserChecks(unittest.TestCase):
     def test_full_ui_recovery_return_refresh_and_existing_exact_id_editor(self):
         app = self.app()
         for text in ['merchant.templateBrowser.retryRefresh', 'merchant.templateBrowser.retained', 'merchant.templateBrowser.retryMore',
-                     'merchant.templateBrowser.emptyHint', 'merchant.templateBrowser.end', '.refreshable { await model.refresh() }',
-                     '.task(id: reader.scope) { await model.refresh() }', '.onDisappear { model.deactivate() }',
-                     'destination: .template(row.id)', 'destination: .template(nil)', '!reader.isAuthenticated']:
+                     'merchant.templateBrowser.emptyHint', 'merchant.templateBrowser.end', '.refreshable { await model.refresh(permit) }',
+                     '.task(id: readID) { await model.loadAppearance(readID) }', '.onDisappear { model.disappear() }',
+                     'model.open(row.id, permit: permit)', 'model.open(nil, permit: permit)', 'destination: .template(selected.templateID)',
+                     'browser.rows.contains(where: { $0.id == id })', '!reader.isAuthenticated']:
             self.assertIn(text, app)
         self.assertNotIn('.searchable', app); self.assertNotIn('Picker(', app)
         for text in ['.save(', 'deleteTemplate', 'market-submit', 'updateLibraryStatus']: self.assertNotIn(text, app + self.core())
