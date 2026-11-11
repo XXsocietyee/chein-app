@@ -30,10 +30,15 @@ class SearchMapActivityCardContractTests(unittest.TestCase):
         self.assertEqual(self.explorer.count('SearchMapActivityCard(item: row, offline: reader.isOfflineExample)'), 2)
         selected = self.explorer.split('private func pinDetail(', 1)[1].split('else if let node', 1)[0]
         result_list = self.explorer.split('ForEach(pagination.rows)', 1)[1].split('activityPaginationControls', 1)[0]
+        # Navigation is fenced: both surfaces open through openLayerActivity (rendered-context check), and the
+        # single navigationDestination resolves the exact row id.
         for surface in [selected, result_list]:
-            self.assertIn('destination(.activity(row.id))', surface)
+            self.assertIn('openLayerActivity(row, rendered: renderedContext)', surface)
+        self.assertIn('case .activity(let row): destination(.activity(row.id))', self.explorer)
+        self.assertIn('rendered.acceptsActivity(row, current: pinSelectionContext, isConfigured: reader.isConfigured)', self.explorer)
         self.assertIn('if let topic = row.linkedTopicID', selected)
-        self.assertIn('destination(.topic(topic))', selected)
+        self.assertIn('openLayerActivity(row, rendered: renderedContext, relatedTopic: true)', selected)
+        self.assertIn('case .relatedTopic(let row):\n                    if let topic = row.linkedTopicID { destination(.topic(topic)) }', self.explorer)
         self.assertNotIn('row.topicID', selected)
 
     def test_topic_label_cannot_rewrite_activity_identity(self):
