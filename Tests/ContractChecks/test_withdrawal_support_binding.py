@@ -22,9 +22,9 @@ class WithdrawalSupportBindingTests(unittest.TestCase):
         self.assertNotIn('print(', s)
     def test_interrupted_and_unconfigured_paths_remain(self):
         s = (ROOT/'App/WithdrawalSupportContactView.swift').read_text()
-        for requirement in ['.task(id: reader?.scope)', '.onDisappear { clear() }',
+        for requirement in ['.task(id: readerKey) { await load(offered: offered) }', 'private var readerKey: ReaderKey { .init(id: reader.map { ObjectIdentifier($0) }, scope: reader?.scope) }', '.onDisappear { clear() }',
                             '.onChange(of: scenePhase)', 'clear(); dismiss()', 'withdrawal.support.unconfigured',
-                            'configuration = nil; loadedScope = nil', 'guard !busy']:
+                            'configuration = nil; loadedScope = nil', 'guard scenePhase == .active, !Task.isCancelled, !busy, let reader, loadedScope == reader.scope,']:
             self.assertIn(requirement, s)
     def test_reader_fences_and_synthetic_separation(self):
         s = (ROOT/'Core/WithdrawalSupportConfiguration.swift').read_text()

@@ -60,7 +60,9 @@ class W207SquareParity(unittest.TestCase):
         self.assertNotRegex(app, r'SquareDeletionCoordinator\(service:')
         self.assertNotRegex(app, r'\.environment\(\\\.squareDeletion')
         detail = read('App/SquareDetailView.swift')
-        self.assertIn('deletion?.isAllowed($0) != true', detail)
+        # Delete controls (post and comment) render only when the approved coordinator allows that exact target.
+        self.assertIn('if let target = SquareDeletionTarget(post: post), deletion?.isAllowed(target) == true {', detail)
+        self.assertIn('deletion?.isAllowed(target) == true', detail)
         self.assertIn('deletion.resolveUnknown(stillPresent: false)', detail)
 
     def test_community_gate_blocks_feed_reads_when_closed(self):
