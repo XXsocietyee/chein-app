@@ -7,6 +7,8 @@ import Foundation
 public enum PersonalFogFeature {
     /// The reveal write path (grid version, batch idempotency) is not a reviewed contract yet.
     public static let revealSyncEnabled = false
+    /// Live foreground reveal from the device fix stream (roam-fog-engine stage 4). Off until a separate reviewed change.
+    public static let liveRevealEnabled = false
 }
 
 public struct FogGridVersion: Hashable, Codable {
