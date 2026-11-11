@@ -82,7 +82,8 @@ import UIKit
         }
         let wire = OfficialPublicHostWire(), root = try self.root(wire, reads: [.homeAndSearch])
         _ = try selectSyntheticSource(root)
-        do { _ = try await root.makeSession().officialEventReader.events(city: nil); XCTFail("homeAndSearch was expanded") }
+        let session = root.makeSession(); defer { withExtendedLifetime(session) {} }
+        do { _ = try await session.officialEventReader.events(city: nil); XCTFail("homeAndSearch was expanded") }
         catch { XCTAssertEqual(error as? APIError, .notConfigured) }
         XCTAssertTrue(wire.requests.isEmpty)
     }
@@ -157,8 +158,10 @@ import UIKit
             case "namespace": root.officialPublicEventReadSelection.select(try .init(baseURL: source.baseURL, namespace: "foreign"))
             default: break
             }
-            do { _ = try await root.makeSession().officialEventReader.events(city: nil); XCTFail(state) }
+            let session = root.makeSession()
+            do { _ = try await session.officialEventReader.events(city: nil); XCTFail(state) }
             catch { XCTAssertEqual(error as? APIError, .notConfigured, state) }
+            withExtendedLifetime(session) {}
             XCTAssertTrue(wire.requests.isEmpty)
         }
     }

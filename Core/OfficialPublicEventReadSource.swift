@@ -80,3 +80,11 @@ public enum OfficialPublicEventReadRoute {
         return revision
     }
 }
+
+extension OfficialPublicEventReadSelection {
+    /// Early transport allow-list for the query form. Needs the reviewed grant AND a matching selected source; otherwise default deny.
+    public func admitsEarly(_ request: URLRequest, baseURL: URL, namespace: String, granted: Bool) -> Bool {
+        granted && activeRevision(baseURL: baseURL, namespace: namespace) != nil
+            && OfficialPublicEventReadRoute.accepts(request, baseURL: baseURL)
+    }
+}

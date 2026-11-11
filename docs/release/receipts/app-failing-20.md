@@ -19,3 +19,25 @@ No assertion was weakened or removed. Nothing here has been executed; the next c
 | NativeChannelMessageHostBindingTests x2 | NOT root-caused. History stays empty after a plain send (no history refresh after acknowledge in the harness path) and the timeout remount shows a second send for the same key. | none; needs a run. |
 
 Summary: 13 of 20 have a code-level fix (3 Appeal, 3 Pin, 2 Official, 5 Workshop). 7 are not root-caused: 2 Official, 3 Creator hosted, 2 MessageHost.
+
+## Follow-up on ui/main cd17d0d99
+
+- Early allow-list narrowed: the city-query admit is now `OfficialPublicEventReadSelection.admitsEarly(...)` and needs the reviewed grant, China market and a matching selected source. Capability-absent, US, revoked, removed and foreign origin/namespace stay default-closed; the route branch re-checks all of it. Test expectations unchanged.
+- Real cause of testIndependentGrantAndSourceRemainSeparatelyDefaultClosed and testUSRevokedRemovedAndForeignSourceNeverReachWire (the previous receipt called it unexplained): these tests used `root.makeSession().officialEventReader.events(...)` on a temporary session. The reader's context closure holds the session weakly and falls back to `guestEpoch: 0`, so when the session is released mid-await the reader sees a context change and throws `CancellationError` (hence `as? APIError == nil`). The refusal itself was always `notConfigured`. Fix: tests now retain the session for the call (`withExtendedLifetime`); assertions untouched. Not verified by a run.
+- The admit change was not the cause of those two; the early guard already passed query-less requests.
+
+## The other 7 (not changed, per test)
+
+Not root-caused by reading code; I cannot confirm they are the iOS 27 hosted-AX family, only that the evidence is consistent with a hosted/lifecycle environment cause rather than a product-logic defect:
+
+| test | observation | family call |
+|---|---|---|
+| WorkshopCreatorConsentNormalFlowTests.testHostedNavigationBackAndFreshRowSelection... | stays `idle`, never `reviewing` after UIKit push into a scene window | hosted lifecycle (scenePhase/onAppear); likely hosted family |
+| WorkshopCreatorPendingNormalFlowTests.testHostedBackAndFreshSelection... | `offerAuthor` closure nil, never `editing` | hosted lifecycle; likely hosted family |
+| WorkshopCreatorPendingNormalFlowTests.testHostedAuthorToReviewTransition... | `offerAuthor` closure nil | hosted lifecycle; likely hosted family |
+| WorkshopPaidInstallNormalFlowTests.testRealHostedInstallModal... | `ready` != `idle` after dismiss (fix attempted: run-loop wait) | hosted lifecycle; likely hosted family |
+| WorkshopPaidInstalledTextNormalFlowTests.testActualHostedSheet... | `idle` != `loaded` (fix attempted: scene window, wait) | hosted lifecycle |
+| WorkshopPaidProfessionalNormalFlowTests.testHostedActualSheet... | `idle` != `history` (fix attempted: scene window, wait) | hosted lifecycle |
+| NativeChannelMessageHostBindingTests x2 | history nil after send; same key sent twice after timeout remount | NOT hosted UI (no window); domain behaviour, unexplained, needs a run |
+
+So the hosted-AX label fits the five Workshop hosted tests (three of which also got a fix attempt above); it does not fit the two MessageHostBinding tests.
