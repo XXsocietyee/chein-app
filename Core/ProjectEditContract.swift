@@ -50,14 +50,17 @@ public enum ProjectEditContract {
         guard storyFlow || !draft.chapters.contains(where: { $0.blocks != nil && !ProjectEditStoryContract.isLegacyProjection($0) }) else { throw ProjectEditError.invalidDraft }
         payload["chapters"] = .array(try draft.chapters.map { .object(try chapterPayload($0, product: draft.product, storyFlow: storyFlow, editing: topicID != nil)) })
         payload["tickets"] = .array(try draft.tickets.map { ticket in
-            guard let price = ProjectEditValidation.decimal(ticket.price), let stock = Int(ticket.totalStock), let team = Int(ticket.teamSize) else { throw ProjectEditError.invalidDraft }
+            guard let price = ProjectEditValidation.decimal(ticket.price), let stock = Int(ticket.totalStock) else { throw ProjectEditError.invalidDraft }
+            // Unknown ("") is not sent: the server keeps its own value rather than receiving an invented 0.
+            guard ticket.teamSize.isEmpty || Int(ticket.teamSize) != nil else { throw ProjectEditError.invalidDraft }
             let schedule = ticket.schedule(in: draft)
             var p: [String: ProjectEditJSON] = [
                 "name": .string(ticket.name), "price": .number(price), "mode": .number(Decimal(draft.product.rawValue)),
-                "totalStock": .number(Decimal(stock)), "teamSize": .number(Decimal(team)),
+                "totalStock": .number(Decimal(stock)),
                 "startTime": .string(ProjectEditValidation.dateTime(schedule.start)!),
                 "endTime": .string(ProjectEditValidation.dateTime(schedule.end, endOfDay: true)!)
             ]
+            if let team = Int(ticket.teamSize) { p["teamSize"] = .number(Decimal(team)) }
             if !ticket.description.isEmpty { p["description"] = .string(ticket.description) }
             p.merge(try ProjectTicketMeetingPoint.wireFields(ticket)) { _, edited in edited }
             p.merge(try ticket.saleTimePayloads()) { _, edited in edited }

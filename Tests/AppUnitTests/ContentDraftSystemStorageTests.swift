@@ -7,6 +7,7 @@ import Darwin
 /// Opt-in Apple execution only: unique synthetic service/key and temporary ciphertext directory.
 /// No real account, user Keychain namespace, backend, or device lock manipulation.
 @MainActor final class ContentDraftSystemStorageTests: XCTestCase {
+    override func setUpWithError() throws { try SystemKeychainAvailability.skipIfEntitlementMissing() }
     func testRealNonClassADirectoryRejectsEveryFileOperationWithoutWriting() async throws {
         try await NonClassAStorageFixture.withDirectory { root in
             let store = ContentDraftSystemCiphertexts(root: root)

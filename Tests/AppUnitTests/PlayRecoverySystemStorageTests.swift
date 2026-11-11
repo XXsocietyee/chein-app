@@ -5,6 +5,7 @@ import Security
 #if targetEnvironment(simulator)
 /// Unique synthetic services and scoped temporary directories only. No production factory I/O.
 @MainActor final class PlayRecoverySystemStorageTests: XCTestCase {
+    override func setUpWithError() throws { try SystemKeychainAvailability.skipIfEntitlementMissing() }
     private func session() throws -> PlayExperienceSession { try .init(accountID: 9001, epoch: 1, namespace: "synthetic-os-only", token: "NEVER-PERSIST-SYNTHETIC-TOKEN") }
     private func deleteSyntheticService(_ service: String) {
         let query: [String: Any] = [kSecClass as String: kSecClassGenericPassword, kSecAttrService as String: service,
